@@ -100,7 +100,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.multiple_trees'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('MonitoringInfo')
+        navigation.navigate('AddRemeasurment')
         props.setVisible(false)
       },
       disabled: false,

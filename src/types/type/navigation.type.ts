@@ -44,6 +44,7 @@ export type RootStackParamList = {
   AddPlantDetailsPlot: undefined
   AddPlotDetails: undefined
   MonitoringInfo: undefined
+  AddRemeasurment:undefined
 }
 
 type SpeciesInfoView = {
