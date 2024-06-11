@@ -35,6 +35,7 @@ import PlotDetailsView from './PlotDetailsView'
 import PlotPlantRemeasureView from './PlotPlantRemeasureView'
 import AddPlantDetailsPlotView from './AddPlantDetailsPlotView'
 import AddPlotDetailsView from './AddPlotDetailsView'
+import MonitoringInfoView from './MonitoringInfoView';
 
 export default {
   HomeMapView: HomeMapView,
@@ -73,5 +74,6 @@ export default {
   PlotDetails: PlotDetailsView,
   PlotPlantRemeasure: PlotPlantRemeasureView,
   AddPlantDetailsPlot: AddPlantDetailsPlotView,
-  AddPlotDetails: AddPlotDetailsView
+  AddPlotDetails: AddPlotDetailsView,
+  MonitoringInfo: MonitoringInfoView
 }
