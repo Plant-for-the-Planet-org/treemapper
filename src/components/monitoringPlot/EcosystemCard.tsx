@@ -1,8 +1,9 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
-import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
-// import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
-import Addicon from 'assets/images/svg/Addicon.svg'
+import SoilMoistureIcon from 'assets/images/svg/SoilMoistureIcon.svg'
+// import CanopyCoverIcon from 'assets/images/svg/CanopyCoverIcon.svg'
+// import BioacusticsIcon from 'assets/images/svg/BioacusticsIcon.svg'
+
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
@@ -10,36 +11,32 @@ interface Props {
     item: any
 }
 
-const PlantPlotCards = (props: Props) => {
+const EcosystemCard = (props: Props) => {
     const { item } = props;
     console.log(item)
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <View style={styles.avatar}>
-                    <SingleTreeIcon />
+                    <SoilMoistureIcon />
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>EE-101</Text>
-                        <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.dateLabel}>10d ago</Text>
+                        <Text style={styles.idLabel}>Soil Moisture</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>Planted</Text>
+                        <Text style={styles.planetedLabel}>12d ago</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.speciesLabel}>Catalpa bungei</Text>
+                        <Text style={styles.planetedLabel}>65%</Text>
                     </View>
-                </View>
-                <View style={styles.addIconWrapper}>
-                    <Addicon />
                 </View>
             </View>
         </View>
     )
 }
 
-export default PlantPlotCards
+export default EcosystemCard
+
 
 const styles = StyleSheet.create({
     container: {
@@ -58,7 +55,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         flex: 1,
-        marginLeft: 10
+        marginLeft: 20
     },
     sectionHeader: {
         width: '100%',
@@ -85,7 +82,7 @@ const styles = StyleSheet.create({
         color: Colors.DARK_TEXT_COLOR
     },
     planetedLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR
     },
