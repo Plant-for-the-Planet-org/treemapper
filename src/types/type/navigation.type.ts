@@ -40,6 +40,7 @@ export type RootStackParamList = {
   CreatePlotDetail: undefined
   CreatePlotMap: undefined
   PlotDetails: undefined
+  PlotPlantRemeasure: undefined
 }
 
 type SpeciesInfoView = {

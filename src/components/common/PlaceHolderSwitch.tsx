@@ -55,7 +55,6 @@ const styles = StyleSheet.create({
     height: '100%',
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-around',
     paddingVertical: 7,
     paddingHorizontal:5
   },
@@ -63,7 +62,8 @@ const styles = StyleSheet.create({
     color: Colors.DARK_TEXT_COLOR,
     fontSize: scaleFont(15),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    marginLeft:10
+    marginLeft:10,
+    flex:1
   },
   switchWrapper: {
     marginLeft:'20%'

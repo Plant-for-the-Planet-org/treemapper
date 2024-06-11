@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 // import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
@@ -8,14 +8,14 @@ import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 interface Props {
     item: any
+    handleSelection: () => void
 }
 
 const PlantPlotCards = (props: Props) => {
-    const { item } = props;
-    console.log(item)
+    const { handleSelection } = props;
     return (
         <View style={styles.container}>
-            <View style={styles.wrapper}>
+            <TouchableOpacity style={styles.wrapper} onPress={handleSelection}>
                 <View style={styles.avatar}>
                     <SingleTreeIcon />
                 </View>
@@ -34,7 +34,7 @@ const PlantPlotCards = (props: Props) => {
                 <View style={styles.addIconWrapper}>
                     <Addicon />
                 </View>
-            </View>
+            </TouchableOpacity>
         </View>
     )
 }
