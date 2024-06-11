@@ -1,5 +1,5 @@
 {
-    "zoom_to_site": "Zoom To Site",
+    "zoom_to_site": "Zoom to site",
     "select_project": "Select Project",
     "select_site": "Select Site",
     "no_site_found": "No site found for this project",
@@ -7,7 +7,7 @@
     "monitoring_plots": "Monitoring Plots",
     "intervention": "Intervention",
     "filter_intervention": "Filter Interventions",
-    "only_remeasurment": "Only Interverntion that{'\n'}need remeasurment",
+    "only_remeasurment": "Only Interverntion that \nneed remeasurment",
     "all": "All",
     "incomplete": "Incomplete",
     "coming_soon_plot":"We're working hard to bring you exciting new features. Stay tuned for updates !",

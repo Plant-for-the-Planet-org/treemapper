@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '90%',
-    height: '90%',
+    height: '80%',
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: scaleFont(16),
+    fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 10

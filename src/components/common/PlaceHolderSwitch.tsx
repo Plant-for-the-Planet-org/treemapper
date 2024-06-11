@@ -42,7 +42,7 @@ export default PlaceHolderSwitch
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: scaleSize(55),
+    height: scaleSize(50),
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
 
   },
   inputWrapper: {
-    borderRadius: 5,
+    borderRadius: 8,
     width: '90%',
     height: '100%',
     flexDirection: 'row',
@@ -61,11 +61,10 @@ const styles = StyleSheet.create({
   inputLabel: {
     color: Colors.DARK_TEXT_COLOR,
     fontSize: scaleFont(15),
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginLeft:10,
     flex:1
   },
   switchWrapper: {
-    marginLeft:'20%'
   }
 })

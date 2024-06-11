@@ -253,6 +253,6 @@ const styles = StyleSheet.create({
   },
   commonIcon: {
     borderRadius: 10,
-    marginRight: 10
+    marginRight: 15
   }
 })

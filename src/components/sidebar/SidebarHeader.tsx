@@ -70,7 +70,8 @@ const styles = StyleSheet.create({
   },
   userName: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleFont(20),
+    fontSize: scaleFont(18),
+    color: Colors.DARK_TEXT_COLOR
   },
   emailLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -89,8 +90,8 @@ const styles = StyleSheet.create({
     width: '70%'
   },
   editMe: {
-    width: 45,
-    height: 45,
+    width: 35,
+    height: 35,
     borderRadius: 50,
     justifyContent: 'center',
     alignItems: 'center',

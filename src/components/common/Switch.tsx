@@ -3,7 +3,7 @@ import { ViewStyle } from 'react-native'
 import {Switch as RNSwitch} from 'react-native-switch'
 
 const toggleWidth = 31
-const circleSize = 18
+const circleSize = 20
 const switchWidthMultiplier = toggleWidth / circleSize
 const multiplierFix =
   circleSize / ((circleSize * switchWidthMultiplier - circleSize) / 2)
@@ -22,10 +22,10 @@ const Switch = (props: Props) => {
       value={value}
       onValueChange={onValueChange}
       disabled={disabled}
+      barHeight={13}
       activeText={'On'}
       inActiveText={'Off'}
       containerStyle={{marginHorizontal:10,...styles}}
-      barHeight={12}
       circleSize={circleSize}
       switchLeftPx={multiplierFix}
       switchRightPx={multiplierFix}

@@ -29,7 +29,7 @@ const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
   // variables
-  const snapPoints = useMemo(() => ['60%'], []);
+  const snapPoints = useMemo(() => ['65%'], []);
 
   const { isVisible, toogleModal } = props
   const [projectData, setProjectData] = useState<any>([])
@@ -147,15 +147,15 @@ const ProjectModal = (props: Props) => {
     <BottomSheetModal
       ref={bottomSheetModalRef}
       index={0}
+      handleIndicatorStyle={styles.handleIndicatorStyle}
       detached
-      enableContentPanningGesture={false}
+      handleStyle={styles.handleIndicatorStyle}      enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
         <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
       )}
     >
       <BottomSheetView style={styles.container} >
-
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>
             <View style={styles.header}>
@@ -178,6 +178,7 @@ const ProjectModal = (props: Props) => {
             <View style={styles.siteContainer}>
               <FlatList
                 data={projectSies}
+                indicatorStyle="white"
                 renderItem={({ item, index }: { item: any, index: number }) => {
                   return (
                     <TouchableOpacity
@@ -230,13 +231,11 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     width: '100%',
     backgroundColor: Colors.WHITE,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
     alignItems: 'center',
   },
   contnetWrapper: {
     width: '95%',
-    paddingTop: 10,
+    borderRadius:30
   },
   card: {
     height: 50,
@@ -260,6 +259,7 @@ const styles = StyleSheet.create({
   headerLable: {
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    color:Colors.DARK_TEXT
   },
   cardLable: {
     fontSize: 16,
@@ -272,10 +272,11 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_14,
     marginHorizontal: 20,
+    color:Colors.DARK_TEXT,
+    marginVertical:10
   },
   siteContainer: {
     width: '100%',
-    marginTop: 20,
     marginLeft: '5%',
     maxHeight: '47.5%',
   },
@@ -295,7 +296,12 @@ const styles = StyleSheet.create({
     paddingVertical: 14
   },
   siteCardLabel: {
-    fontSize: Typography.FONT_SIZE_16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR
+    fontSize: 14,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color:Colors.DARK_TEXT_COLOR
   },
+  handleIndicatorStyle: {
+    backgroundColor: Colors.WHITE,
+    borderRadius:30
+  }
 })

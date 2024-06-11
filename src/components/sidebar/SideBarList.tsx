@@ -49,7 +49,7 @@ const SideBarList = (props: Props) => {
       icon: <OfflineMapIcon />,
       visible: true,
       key: 'offline_map',
-      disable: true
+      disable: false
     },
     {
       label: i18next.t('label.data_explorer'),

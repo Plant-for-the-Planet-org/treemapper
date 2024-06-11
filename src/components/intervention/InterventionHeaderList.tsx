@@ -43,7 +43,7 @@ const InterventionHeaderList = (props: Props) => {
     }
     const isSelected = item.key === selectedLabel
     const selectedStyle: TextStyle = {
-      color: isSelected ? Colors.WHITE : Colors.TEXT_COLOR,
+      color: isSelected ? Colors.WHITE : Colors.DARK_TEXT,
       backgroundColor: isSelected ? Colors.NEW_PRIMARY : Colors.WHITE,
       fontFamily: isSelected ? Typography.FONT_FAMILY_BOLD : Typography.FONT_FAMILY_REGULAR
     }
