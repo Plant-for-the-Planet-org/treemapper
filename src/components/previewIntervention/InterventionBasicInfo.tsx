@@ -12,7 +12,7 @@ interface Props {
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const { intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
+  const { intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species, location_type } = props.data
   const dateFormated = () => {
     if (intervention_date) {
       return timestampToBasicDate(intervention_date)
@@ -28,8 +28,8 @@ const InterventionBasicInfo = (props: Props) => {
       {
       }
     )
-      // @ts-expect-error: ts module
-      const areaInSqM = turfArea(geoJSON);
+    // @ts-expect-error: ts module
+    const areaInSqM = turfArea(geoJSON);
     const areaInHa = Math.round(convertArea(areaInSqM, 'meters', 'hectares') * 10000) / 10000;
     return areaInHa
   }
@@ -43,10 +43,10 @@ const InterventionBasicInfo = (props: Props) => {
         <Text style={styles.cardTitle}>Planted species</Text>
         <View style={styles.planetedSpeciesWrapper}>
           {planted_species.map((el, i) => (
-            <View key={i} style={{marginVertical:5}}>
+            <View key={i} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
               {el.scientific_name && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientific_name === 'Undefined' ? "Unknown" : el.scientific_name}</Text>}
-              {i < planted_species.length-1? <View style={styles.plantedBorder}></View> : null}
+              {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}
             </View>
           ))}
         </View>
@@ -77,10 +77,10 @@ const InterventionBasicInfo = (props: Props) => {
             </View> */}
           </View>
         </View>
-        <View style={styles.cardWrapper}>
+        {location_type === 'Polygon' && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Intervention Area</Text>
           <Text style={styles.haLabel}>{setPlantingArea()}ha</Text>
-        </View>
+        </View>}
         <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>Type</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
@@ -188,6 +188,6 @@ const styles = StyleSheet.create({
     width: '95%',
     height: 1,
     backgroundColor: Colors.GRAY_LIGHT,
-    marginBottom:10
+    marginBottom: 10
   }
 })

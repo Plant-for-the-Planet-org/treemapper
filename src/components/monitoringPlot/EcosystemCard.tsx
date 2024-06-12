@@ -1,8 +1,8 @@
 import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import SoilMoistureIcon from 'assets/images/svg/SoilMoistureIcon.svg'
-// import CanopyCoverIcon from 'assets/images/svg/CanopyCoverIcon.svg'
-// import BioacusticsIcon from 'assets/images/svg/BioacusticsIcon.svg'
+import CanopyCoverIcon from 'assets/images/svg/CanopyCoverIcon.svg'
+import BioacusticsIcon from 'assets/images/svg/BioacusticsIcon.svg'
 
 
 import { Colors, Typography } from 'src/utils/constants'
@@ -12,22 +12,35 @@ interface Props {
 }
 
 const EcosystemCard = (props: Props) => {
-    const { item } = props;
-    console.log(item)
+    const { type, title, value, date } = props.item;
+
+    const renderIcon = () => {
+        switch (type) {
+            case 'soil':
+                return <SoilMoistureIcon />
+            case 'bio':
+                return <BioacusticsIcon />
+            case 'canopy':
+                return <CanopyCoverIcon />
+            default:
+                return <CanopyCoverIcon />
+        }
+    }
+
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <View style={styles.avatar}>
-                    <SoilMoistureIcon />
+                    {renderIcon()}
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>Soil Moisture</Text>
+                        <Text style={styles.idLabel}>{title}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>12d ago</Text>
-                        <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.planetedLabel}>65%</Text>
+                        <Text style={styles.planetedLabel}>{date}</Text>
+                        <DividerDot width={18} height={18} size={18} color={Colors.TEXT_LIGHT} />
+                        <Text style={styles.planetedLabel}>{value}</Text>
                     </View>
                 </View>
             </View>
@@ -63,8 +76,8 @@ const styles = StyleSheet.create({
         flexDirection: 'row'
     },
     avatar: {
-        width: 50,
-        height: 50,
+        width: 40,
+        height: 40,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.NEW_PRIMARY + '1A',
@@ -72,22 +85,22 @@ const styles = StyleSheet.create({
         marginLeft: 10
     },
     idLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT_COLOR
     },
     dateLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
     planetedLabel: {
-        fontSize: 14,
+        fontSize: 12,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        color: Colors.TEXT_COLOR
+        color: Colors.TEXT_LIGHT
     },
     speciesLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_ITALIC,
         color: Colors.TEXT_COLOR
     },

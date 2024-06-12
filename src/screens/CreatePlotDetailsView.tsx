@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -21,9 +21,12 @@ const CreatePlotDetailsView = () => {
     const handleNav = () => {
         navigation.navigate('CreatePlotMap')
     }
+    const openInfo = () => {
+        navigation.navigate('MonitoringInfo')
+    }
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Create Plot' rightComponet={<InfoIcon style={styles.infoWrapper} />} />
+            <Header label='Create Plot'  rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
             <View style={styles.wrapper}>
                 <OutlinedTextInput
                     placeholder={'Plot Name'}
@@ -76,6 +79,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.BACKDROP_COLOR,
         paddingHorizontal: 20,
+        paddingTop: 20
     },
     btnContainer: {
         width: '100%',
@@ -92,6 +96,6 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
         letterSpacing: 0.4,
         fontSize: scaleFont(14),
-        marginBottom: 10
+        marginBottom: 15
     }
 })

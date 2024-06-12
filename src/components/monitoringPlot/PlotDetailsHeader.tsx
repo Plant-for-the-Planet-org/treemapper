@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
 import { useNavigation } from '@react-navigation/native'
@@ -7,7 +7,13 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
 import MoreOptionIcon from 'assets/images/svg/MoreOptionIcon.svg'
 
-const PlotDetailsHeader = () => {
+
+interface Props {
+    showOptions: () => void
+}
+
+const PlotDetailsHeader = (props: Props) => {
+    const { showOptions } = props;
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const goBack = () => {
         navigation.goBack()
@@ -23,9 +29,9 @@ const PlotDetailsHeader = () => {
                     Standard Plot- Americs loren upsim
                 </Text>
             </View>
-            <View style={styles.rightContainer}>
-                <MoreOptionIcon />
-            </View>
+            <Pressable style={styles.rightContainer} onPress={showOptions}>
+                <MoreOptionIcon onPress={showOptions} />
+            </Pressable>
         </View>
     )
 }
@@ -41,7 +47,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         marginLeft: 20,
-        flex:1
+        flex: 1
     },
     backIcon: {
         width: 20,

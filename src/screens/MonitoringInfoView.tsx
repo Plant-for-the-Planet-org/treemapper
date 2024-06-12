@@ -15,7 +15,7 @@ const MonitoringInfoView = () => {
                         How do I set up a monitoring plot?
                     </Text>
                     <View style={styles.videoWrapper}>
-                        <YoutubePlayer 
+                        <YoutubePlayer
                             height={300}
                             play={true}
                             videoId={"8UPHyT_oakM"}
@@ -96,9 +96,10 @@ const styles = StyleSheet.create({
     },
     videoWrapper: {
         width: '80%',
-        height: 160,
+        height: 180,
         borderRadius: 12,
-        overflow: 'hidden'
+        overflow: 'hidden',
+        backgroundColor: Colors.GRAY_LIGHT
     },
     sectionWrapper: {
         paddingHorizontal: 20,

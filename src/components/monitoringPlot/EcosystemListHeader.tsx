@@ -9,7 +9,7 @@ interface Props {
     onPress: (s: string) => void
 }
 
-const dummyData = ['all', 'cover', 'soil'];
+const dummyData = ['All 12', '4 Canopy Cover', '2 Bioacustics', '3 Soil Mositure'];
 
 const EcosystemListHeader = (props: Props) => {
     const { selectedLabel, onPress } = props;
@@ -22,7 +22,7 @@ const EcosystemListHeader = (props: Props) => {
         backgroundColor: Colors.NEW_PRIMARY,
     }
     const unslectedTextWrapper = {
-        borderColor: Colors.TEXT_LIGHT,
+        borderColor: Colors.GRAY_LIGHT,
         backgroundColor: Colors.WHITE,
     }
     const unslectedTextStyle = {
@@ -35,13 +35,14 @@ const EcosystemListHeader = (props: Props) => {
         <FlatList
             data={dummyData}
             horizontal
+            showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.container}
             renderItem={({ item }) => {
                 return (
                     <Pressable style={[styles.sectionWrapper, selectedLabel === item ? selectedWrapper : unslectedTextWrapper]} onPress={() => {
                         onPress(item)
                     }}>
-                        <Text style={[styles.sectionHeader, selectedLabel === item ? selectedTextStyle : unslectedTextStyle]}>All 8</Text>
+                        <Text style={[styles.sectionHeader, selectedLabel === item ? selectedTextStyle : unslectedTextStyle]}>{item}</Text>
                     </Pressable>
                 )
             }} />

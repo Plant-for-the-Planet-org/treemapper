@@ -18,6 +18,12 @@ export interface TempStateSlice {
   webAuthLoading: boolean
 }
 
+export interface MonitoringPlotSlice {
+  plotShape: 'reactangular' | 'circular'
+  plotType: 'intervention' | 'control'
+}
+
+
 
 export interface MapBoundSlice {
   bounds: number[]

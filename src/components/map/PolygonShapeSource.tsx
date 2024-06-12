@@ -76,7 +76,7 @@ const PolygonShapeSource = (props: Props) => {
           20, 20,
           22, 25  // Use the same radius as zoom level 12 for higher zoom levels
         ],
-        circleTranslate: [-10, -10]
+        circleTranslate: [0, 0]
       }}
         filter={['==', ['get', 'site'], true]}
       />

@@ -61,7 +61,8 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: Colors.NEW_PRIMARY + '1A'
+        backgroundColor: Colors.NEW_PRIMARY + '1A',
+        paddingTop:10
     },
     wrapper: {
         width: '90%',

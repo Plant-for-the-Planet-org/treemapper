@@ -8,8 +8,15 @@ import InterventionDatePicker from 'src/components/formBuilder/InterventionDateP
 import { Colors } from 'src/utils/constants'
 import { BACKDROP_COLOR } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 const PlotPlantRemeasureView = () => {
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const goBack=()=>{
+        navigation.goBack()
+    }
     return (
         <SafeAreaView style={styles.cotnainer}>
             <PlotPlantRemeasureHeader />
@@ -42,7 +49,7 @@ const PlotPlantRemeasureView = () => {
             <CustomButton
                 label="Save"
                 containerStyle={styles.btnContainer}
-                pressHandler={() => { }}
+                pressHandler={goBack}
                 hideFadein
             />
         </SafeAreaView>
@@ -70,6 +77,6 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 20,
+        bottom: 50,
     },
 })

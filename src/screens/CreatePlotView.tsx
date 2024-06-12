@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { Pressable, StyleSheet, View } from 'react-native'
 import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -19,9 +19,14 @@ const CreatePlotView = () => {
     const handleNav = () => {
         navigation.navigate('CreatePlotDetail')
     }
+
+    const openInfo = () => {
+        navigation.navigate('MonitoringInfo')
+    }
+
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Create Plot' rightComponet={<InfoIcon style={styles.infoWrapper} />} />
+            <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
             <View style={styles.wrapper}>
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
                     key: 'standard',
@@ -51,12 +56,12 @@ const CreatePlotView = () => {
                 }} disabled={false}
                     selectedValue={plotType}
                     onSelect={setPlotType} />
-                <CustomButton
-                    label="Continue"
-                    containerStyle={styles.btnContainer}
-                    pressHandler={handleNav}
-                />
             </View>
+            <CustomButton
+                label="Continue"
+                containerStyle={styles.btnContainer}
+                pressHandler={handleNav}
+            />
         </SafeAreaView>
     )
 }
@@ -76,9 +81,13 @@ const styles = StyleSheet.create({
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom: 30,
+        bottom: 50,
     },
     infoWrapper: {
+        width: 50,
+        height: 50,
+        justifyContent: 'center',
+        alignItems: 'center',
         marginRight: '5%'
     }
 })

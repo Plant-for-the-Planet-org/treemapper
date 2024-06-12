@@ -9,13 +9,15 @@ import PlotPlantSearch from 'src/components/monitoringPlot/PlotPlantSearch'
 import PlotPlantList from 'src/components/monitoringPlot/PlotPlantList'
 import EcosystemList from 'src/components/monitoringPlot/EcosystemtList'
 import PlotMapDisplay from 'src/components/monitoringPlot/PlotMapDisplay'
+import EidPlantModal from 'src/components/monitoringPlot/EidPlantModal'
 
 const PlotDetailsView = () => {
     const [selectedIndex, setSelectedIndex] = useState(0)
+    const [showEdit, setShowEdit] = useState(false)
 
     return (
         <SafeAreaView style={styles.container}>
-            <PlotDetailsHeader />
+            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} />
             <MainHeaderPlot />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             {selectedIndex === 0 && <>
@@ -23,6 +25,10 @@ const PlotDetailsView = () => {
                 <PlotPlantList /></>}
             {selectedIndex === 1 && <EcosystemList />}
             {selectedIndex === 2 && <PlotMapDisplay />}
+            <EidPlantModal
+                isVisible={showEdit}
+                toogleModal={() => { setShowEdit(false) }}
+            />
         </SafeAreaView>
     )
 }

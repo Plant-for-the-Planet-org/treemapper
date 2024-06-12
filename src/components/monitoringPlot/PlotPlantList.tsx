@@ -11,7 +11,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 const PlotPlantList = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleSelection=()=>{
-        navigation.navigate('PlotPlantRemeasure')
+        navigation.navigate('AddRemeasurment')
     }
     return (
         <FlashList
