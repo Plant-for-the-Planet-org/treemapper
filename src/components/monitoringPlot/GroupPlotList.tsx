@@ -29,6 +29,7 @@ const GroupPlotList = () => {
                 label="Add Group"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
+                hideFadein
             />
         </>
     )

@@ -61,6 +61,7 @@ const CreatePlotView = () => {
                 label="Continue"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
+                hideFadein
             />
         </SafeAreaView>
     )

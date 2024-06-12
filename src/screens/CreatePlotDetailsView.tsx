@@ -63,6 +63,7 @@ const CreatePlotDetailsView = () => {
                 label="Create"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
+                hideFadein
             />
         </SafeAreaView>
     )

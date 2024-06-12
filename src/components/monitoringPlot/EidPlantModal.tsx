@@ -34,11 +34,11 @@ const EidPlantModal = (props: Props) => {
     bottomSheetModalRef.current?.present();
   }, []);
 
-    // callbacks
-    const closeModal = useCallback(() => {
-      dismiss()
-      toogleModal()
-    }, []);
+  // callbacks
+  const closeModal = () => {
+    dismiss()
+    toogleModal()
+  }
 
   return (
     <BottomSheetModal
@@ -73,14 +73,14 @@ const EidPlantModal = (props: Props) => {
                   }}
                 />
               </View>
-              <CloseIcon width={50} onPress={closeModal}/>
+              <CloseIcon width={50} onPress={closeModal} />
             </View>
             <View style={styles.optionCard}>
-              <EditPend  width={18} height={18} fill={Colors.NEW_PRIMARY} />
+              <EditPend width={18} height={18} fill={Colors.NEW_PRIMARY} />
               <Text style={styles.cardLabel}> Edit Name</Text>
             </View>
             <View style={styles.optionCard}>
-              <EditDimension width={18} height={18}/>
+              <EditDimension width={18} height={18} />
               <Text style={styles.cardLabel}> Edit Plot Dimension</Text>
             </View>
             <View style={styles.optionCard}>

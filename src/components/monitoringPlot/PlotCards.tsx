@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
         marginVertical:5
     },
     wrapper: {
-        width: '95%',
+        width: '90%',
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 20,
