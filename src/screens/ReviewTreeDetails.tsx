@@ -208,7 +208,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('height', String(treeDetails.specie_height), 'number-pad')
                         }}>
-                            <HeightIcon width={20} height={20} style={styles.iconwrapper} />
+                            <HeightIcon width={14} height={20} style={styles.iconwrapper} />
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_height}
                             </Text>
@@ -223,7 +223,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
                         }}>
-                            <WidthIcon width={20} height={20} style={styles.iconwrapper} />
+                            <WidthIcon width={18} height={8} style={styles.iconwrapper} />
                             <Text style={styles.valueLable}>
                                 {treeDetails.specie_diameter}
                             </Text>
@@ -359,12 +359,14 @@ const styles = StyleSheet.create({
         marginTop: 10
     },
     btnContainer: {
-        width: '100%',
+        width: '96%',
         height: scaleSize(70),
         flexDirection: 'row',
         alignItems: 'center',
         position: 'absolute',
-        bottom: 20,
+        bottom: 25,
+        marginHorizontal:'2%',
+        justifyContent:'center'
     },
     btnWrapper: {
         flex: 1,

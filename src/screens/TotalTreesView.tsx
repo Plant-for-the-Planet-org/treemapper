@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
+import { FlatList, StyleSheet, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
@@ -72,16 +72,11 @@ const TotalTreesView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Total Trees" />
+      <Header label="Total Trees" note='List all species planted at the location'/>
       <View style={styles.wrapper}>
         <FlatList
           data={plantedSpecies}
           renderItem={({ item, index }) => renderSpecieCard(item, index)}
-          ListHeaderComponent={() => (
-            <Text style={styles.textLable}>
-              List all trees planted at the site
-            </Text>
-          )}
           keyExtractor={({ guid }) => guid}
           ListFooterComponent={() => <View style={styles.footerWrapper} />}
         />
@@ -116,7 +111,8 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     flex: 1,
-    backgroundColor: Colors.BACKDROP_COLOR
+    backgroundColor: Colors.BACKDROP_COLOR,
+    paddingTop: 20
   },
   noteWrapper: {
     width: '100%',

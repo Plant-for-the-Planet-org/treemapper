@@ -85,7 +85,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
               <PinkHeart />
             ) : (
               <View style={styles.biContainer}>
-                <RemoveSpeciesIcon width={20} height={20} fill="tomato" />
+                <RemoveSpeciesIcon width={18} height={18} fill="tomato" />
               </View>
             )}
           </TouchableOpacity>}
@@ -157,8 +157,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   biContainer: {
-    width: 40,
-    height: 40,
+    width: 30,
+    height: 30,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.LIGHT_RED + '1A',

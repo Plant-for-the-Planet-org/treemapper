@@ -67,9 +67,9 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               }}
             />
           </View>
-          {activeSpecie && <Text style={styles.note}>How many  {activeSpecie.aliases.length
+          {activeSpecie && <Text style={styles.note}>How many  <Text style={styles.speciesLabel}>{activeSpecie.aliases.length
             ? activeSpecie.aliases
-            : activeSpecie.scientific_name} did you plant ?</Text>}
+            : activeSpecie.scientific_name}</Text> did you plant ?</Text>}
           <View style={styles.inputWrapper}>
             <View style={styles.input}>
               <InputOutline
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
   },
   note: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    color: Colors.TEXT_COLOR,
+    color: Colors.DARK_TEXT,
     fontSize: scaleFont(18),
     marginLeft: 15,
     paddingRight: 10
@@ -150,6 +150,9 @@ const styles = StyleSheet.create({
     width: '60%',
     height: '100%',
     marginHorizontal: 10
+  },
+  speciesLabel: {
+    fontFamily: Typography.FONT_FAMILY_ITALIC_BOLD
   },
   button: {
     width: "30%",
