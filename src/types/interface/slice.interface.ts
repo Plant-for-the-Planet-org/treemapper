@@ -282,5 +282,7 @@ export interface MonitoringPlot {
   lastScreen: string
   plot_plants: PlotPlants[]
   plot_created_at: number,
-  plot_updated_at: number
+  plot_updated_at: number,
+  local_image: string,
+  cdn_image: string,
 }

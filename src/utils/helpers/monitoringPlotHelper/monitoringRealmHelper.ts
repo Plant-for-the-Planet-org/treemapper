@@ -43,6 +43,8 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         plot_plants: [],
         plot_created_at: Date.now(),
         plot_updated_at: Date.now(),
+        local_image: "",
+        cdn_image: "",
     }
     return details
 }

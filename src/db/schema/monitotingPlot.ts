@@ -23,6 +23,8 @@ export const MonitoringPlot: ObjectSchema = {
     hid: { type: 'string', default: '' },
     lastScreen: { type: 'string', default: 'form' },
     plot_created_at: "double",
-    plot_updated_at: "double"
+    plot_updated_at: "double",
+    local_image: 'string',
+    cdn_image: 'string',
   },
 }
