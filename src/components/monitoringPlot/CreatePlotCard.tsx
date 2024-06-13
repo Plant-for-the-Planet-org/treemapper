@@ -4,21 +4,22 @@ import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import BouncyCheckbox from "react-native-bouncy-checkbox";
 import { SCALE_18 } from 'src/utils/constants/spacing';
+import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from 'src/types/type/app.type';
 
 
 interface Props {
     header: string
     labelOne: {
-        key: string,
+        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
         value: string
     }
     labelTwo: {
-        key: string,
+        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
         value: string
     },
     disabled: boolean,
     selectedValue: string,
-    onSelect: (v: string) => void
+    onSelect: (v: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE) => void
 }
 
 const CreatePlotCard = (props: Props) => {

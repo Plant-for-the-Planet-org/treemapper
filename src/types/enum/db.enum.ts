@@ -21,5 +21,9 @@ export enum RealmSchema {
   InterventionPlantedSpecies = 'InterventionPlantedSpecies',
   GeoSpatial = 'GeoSpatial',
   AdditonalDetailsForm = 'AdditonalDetailsForm',
-  FormElement = 'FormElement'
+  FormElement = 'FormElement',
+  MonitoringPlot = 'MonitoringPlot',
+  PlotPlantedSpecies = 'PlotPlantedSpecies',
+  PlantTimeline = 'PlantTimeline',
+  PlotGroups = 'PlotGroups'
 }

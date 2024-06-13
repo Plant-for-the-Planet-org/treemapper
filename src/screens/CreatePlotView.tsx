@@ -10,14 +10,28 @@ import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useNavigation } from '@react-navigation/native'
+import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import { newPlotDetails } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
+import { PLOT_TYPE, PLOT_SHAPE, PLOT_COMPLEXITY } from 'src/types/type/app.type'
+import { useToast } from 'react-native-toast-notifications'
 
 const CreatePlotView = () => {
-    const [plotType, setPlotType] = useState('intervention');
-    const [plotShape, setPlotShape] = useState('rectangular');
-    const [plotComplexity, setPlotComplexity] = useState('standard');
+    const [plotType, setPlotType] = useState<PLOT_TYPE | any>('INTERVENTION');
+    const [plotShape, setPlotShape] = useState<PLOT_SHAPE | any>('RECTANGULAR');
+    const [plotComplexity, setPlotComplexity] = useState<PLOT_COMPLEXITY | any>('STANDARD');
+
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const handleNav = () => {
-        navigation.navigate('CreatePlotDetail')
+    const { initateNewPlot } = useMonitoringPlotMangement()
+    const toast = useToast()
+
+    const handleNav = async () => {
+        const details = newPlotDetails(plotShape, plotType, plotComplexity)
+        const result = await initateNewPlot(details)
+        if (result) {
+            navigation.navigate('CreatePlotDetail', { id: details.plot_id })
+        } else {
+            toast.show("Error while cretaing plots")
+        }
     }
 
     const openInfo = () => {
@@ -29,29 +43,29 @@ const CreatePlotView = () => {
             <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
             <View style={styles.wrapper}>
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
-                    key: 'standard',
+                    key: 'STANDARD',
                     value: 'Standard'
                 }} labelTwo={{
-                    key: 'simple',
+                    key: 'SIMPLE',
                     value: 'Simple'
                 }} disabled={true}
                     selectedValue={plotComplexity}
                     onSelect={setPlotComplexity}
                 />
                 <CreatePlotCard header={'Plot Shape'} labelOne={{
-                    key: 'rectangular',
+                    key: 'RECTANGULAR',
                     value: 'Rectangular'
                 }} labelTwo={{
-                    key: 'circular',
+                    key: 'CIRCULAR',
                     value: 'Circular'
                 }} disabled={false}
                     selectedValue={plotShape}
                     onSelect={setPlotShape} />
                 <CreatePlotCard header={'Plot type'} labelOne={{
-                    key: 'intervention',
+                    key: 'INTERVENTION',
                     value: 'Intervention'
                 }} labelTwo={{
-                    key: 'control',
+                    key: 'CONTROL',
                     value: 'Control'
                 }} disabled={false}
                     selectedValue={plotType}

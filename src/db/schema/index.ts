@@ -21,8 +21,16 @@ import {YesNo} from './yesOrNo'
 import { GeoSpatial } from './geoSpatial'
 import { FormElement } from './FormElements'
 import { AdditonalDetailsForm } from './AdditonalDetailsForm'
+import {MonitoringPlot} from './monitotingPlot'
+import {PlotGroups} from './plotGroups'
+import {PlantTimeline} from './plantTimeline'
+import {PlotPlantedSpecies} from './plotPlantedSpecies'
 
 export default [
+  MonitoringPlot,
+  PlotGroups,
+  PlantTimeline,
+  PlotPlantedSpecies,
   Dropdown,
   DropDownOption,
   ActivityLogs,

@@ -1,32 +1,35 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 // import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
+import { MonitoringPlot } from 'src/types/interface/slice.interface'
+import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
-    item: any
+    item: MonitoringPlot | any
     handleSelection: () => void
 }
 
 const PlotCards = (props: Props) => {
-    const { handleSelection , item} = props;
+    const { handleSelection, item } = props;
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={handleSelection}>
-                <Image source={item.image} style={styles.avatar}/>
+                {/* <Image source={item.image} style={styles.avatar}/> */}
+                <View style={styles.avatar} />
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>{item.label}</Text>
+                        <Text style={styles.idLabel}>{item.name}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{item.note}</Text>
+                        <Text style={styles.planetedLabel}>{item.length}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.planetedLabel}>{item.obs}</Text>
+                        {/* <Text style={styles.planetedLabel}>{item.}</Text> */}
                     </View>
-                    <Text style={styles.speciesLabel}>{item.date}</Text>
+                    <Text style={styles.speciesLabel}>{formatRelativeTimeCustom(item.plot_created_at)}</Text>
                 </View>
-                {item.show && <View style={styles.plotDetailsWrapper}>
+                {item.plot_groups.length > 0 && <View style={styles.plotDetailsWrapper}>
                     <Text style={styles.plotTitle}>Las Americas 7 Vertisols</Text>
                 </View>}
             </TouchableOpacity>
@@ -41,7 +44,7 @@ const styles = StyleSheet.create({
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',
-        marginVertical:5
+        marginVertical: 5
     },
     wrapper: {
         width: '90%',
@@ -103,9 +106,9 @@ const styles = StyleSheet.create({
         right: 0,
         top: 0,
         borderBottomLeftRadius: 12,
-        paddingHorizontal:10,
-        paddingVertical:7,
-        borderTopRightRadius:12
+        paddingHorizontal: 10,
+        paddingVertical: 7,
+        borderTopRightRadius: 12
     },
     plotTitle: {
         fontSize: 10,

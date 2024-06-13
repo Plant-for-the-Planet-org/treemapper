@@ -1,0 +1,48 @@
+import { MonitoringPlot } from "src/types/interface/slice.interface"
+import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from "src/types/type/app.type";
+
+function generateUniquePlotId() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let id = '';
+
+    // Loop to generate an 8-character string
+    for (let i = 0; i < 8; i++) {
+        const randomIndex = Math.floor(Math.random() * chars.length);
+        id += chars[randomIndex];
+    }
+
+    return id;
+}
+
+
+export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: PLOT_COMPLEXITY) => {
+    const details: MonitoringPlot = {
+        plot_id: generateUniquePlotId(),
+        complexity: complexity,
+        shape: shape,
+        type: type,
+        radius: 0,
+        length: 0,
+        width: 0,
+        name: "",
+        plot_groups: [],
+        location: {
+            type: "",
+            coordinates: ""
+        },
+        coords: {
+            type: "Point",
+            coordinates: []
+        },
+        is_complete: false,
+        additional_data: "",
+        meta_data: "",
+        status: "NOT_SYNCED",
+        hid: "",
+        lastScreen: "form",
+        plot_plants: [],
+        plot_created_at: Date.now(),
+        plot_updated_at: Date.now(),
+    }
+    return details
+}

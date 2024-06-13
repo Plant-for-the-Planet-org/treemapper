@@ -8,8 +8,19 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import AddIcon from 'assets/images/svg/Addicon.svg'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import {MonitoringPlot } from 'src/types/interface/slice.interface'
 
 const PlotView = () => {
+
+  const plotData = useQuery<MonitoringPlot>(
+    RealmSchema.MonitoringPlot,
+    data => {
+      return data
+    },
+  )
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const addGroups = () => {
     navigation.navigate('PlotGroup')
@@ -22,7 +33,7 @@ const PlotView = () => {
     <SafeAreaView style={styles.container}>
       <Header label='Monitoring Plots' showBackIcon={false} rightComponet={renderIcon()} />
       <View style={styles.wrapper}>
-        <PlotList />
+        <PlotList data={plotData} />
       </View>
     </SafeAreaView>
   )

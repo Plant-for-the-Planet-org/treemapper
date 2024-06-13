@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -162,42 +162,7 @@ export interface SampleTreeSlice {
   current_species: PlantedSpecies
 }
 
-// export interface UserInterface {
-//     address: {
-//       address: null | string;
-//       city: null | string;
-//       country: string;
-//       zipCode: null | string;
-//     };
-//     bio: null | string;
-//     country: string;
-//     created: string;
-//     currency: null | string;
-//     displayName: string;
-//     email: string;
-//     firstname: string;
-//     getNews: boolean;
-//     hasLogoLicense: boolean;
-//     id: string;
-//     image: null | string;
-//     isPrivate: boolean;
-//     lastname: string;
-//     locale: null | string;
-//     name: null | string;
-//     planetCash: null | number;
-//     score: {
-//       personal: number;
-//       received: number;
-//       target: number;
-//     };
-//     slug: string;
-//     supportPin: string;
-//     supportedProfile: null | string;
-//     tin: null | string;
-//     type: string;
-//     url: null | string;
-//     urlText: null | string;
-//   }
+
 
 export interface UserInterface {
   country: string
@@ -263,4 +228,59 @@ export interface LogDetails {
   logStack?: string
   timestamp?: number
   id?: string
+}
+
+
+export interface PlantTimeLine {
+  status: string
+  length: number
+  width: string
+  date: string
+  length_unit: string
+  width_unit: string
+  image: string
+}
+
+export interface PlotPlants {
+  tag: string
+  guid: string
+  scientific_name: string
+  aliases: string
+  count: number
+  image: string
+  timeline: PlantTimeLine[]
+  planting_date: number
+  is_alive: boolean
+}
+export interface PlotGroups {
+  name: string,
+  group_id: string,
+  date_created: number
+}
+
+
+export interface MonitoringPlot {
+  plot_id: string
+  complexity: PLOT_COMPLEXITY
+  shape: PLOT_SHAPE
+  type: PLOT_TYPE
+  radius: number
+  length: number
+  width: number
+  name: string
+  plot_groups: PlotGroups[]
+  location: InterventionLocation
+  coords: {
+    type: 'Point',
+    coordinates: number[]
+  },
+  is_complete: boolean
+  additional_data: string
+  meta_data: string
+  status: 'NOT_SYNCED' | "SYNCED"
+  hid: string
+  lastScreen: string
+  plot_plants: PlotPlants[]
+  plot_created_at: number,
+  plot_updated_at: number
 }

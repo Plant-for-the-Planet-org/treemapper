@@ -37,7 +37,7 @@ export type RootStackParamList = {
   EditAdditionData: EditAdditionDataView
   EditPolygon: undefined
   CreatePlot: undefined
-  CreatePlotDetail: undefined
+  CreatePlotDetail: CreatePlotDetails
   CreatePlotMap: undefined
   PlotDetails: undefined
   PlotPlantRemeasure: undefined
@@ -112,4 +112,9 @@ type SelectElementView = {
 
 type EditAdditionDataView = {
   interventionID: string
+}
+
+
+type CreatePlotDetails = {
+  id: string
 }

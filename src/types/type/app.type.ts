@@ -19,3 +19,8 @@ export type INTERVENTION_FILTER = 'always' | 'year' | 'months' | 'days' | 'none'
 export type LOG_TYPES = "INTERVENTION" | "MAPS" | "MANAGE_SPECIES" | "DATA_SYNC" | "USER" | "PROJECTS" | "OTHER" | "ADDITIONAL_DATA" | "LOCATION"
 
 export type LOG_LEVELS = 'info' | 'warn' | 'error';
+
+
+export type PLOT_TYPE = "INTERVENTION" | "CONTROL"
+export type PLOT_SHAPE = "RECTANGULAR" | "CIRCULAR"
+export type PLOT_COMPLEXITY = "STANDARD" | "SIMPLE"
