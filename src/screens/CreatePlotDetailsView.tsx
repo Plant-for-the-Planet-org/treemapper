@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -16,29 +16,37 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
 import useMonitoringPlotMangement, { PlotDetailsParams } from 'src/hooks/realm/useMonitoringPlotMangement'
+import AddPlotImage from 'src/components/monitoringPlot/AddPlotImage'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 
 const CreatePlotDetailsView = () => {
     const [plotName, setPlotName] = useState('');
     const [plotLength, setPlotLength] = useState('');
     const [plotWidth, setPlotWidth] = useState('');
-    const [plotGroup, setPlotGroup] = useState('');
+    // const [plotGroup, setPlotGroup] = useState('');
     const [plotRadius, setPlotRadius] = useState('');
     const [plotShape, setPlotShape] = useState<PLOT_SHAPE>('CIRCULAR');
-    console.log("Plot group",plotGroup)
     const realm = useRealm()
     const { updatePlotDetails } = useMonitoringPlotMangement()
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
     const plotID = route.params && route.params.id ? route.params.id : ''
+    const [plotImage, setPlotImage] = useState('')
+    const { lastUpdateAt } = useSelector(
+        (state: RootState) => state.monitoringPlotState,
+    )
+
+
     const toast = useToast()
     useEffect(() => {
         getPlotDetails()
-    }, [plotID])
+    }, [plotID, lastUpdateAt])
 
     const getPlotDetails = () => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
-        console.log("PLOTDETAILS", plotData)
         if (plotData) {
             setPlotShape(plotData.shape)
+            setPlotImage(plotData.local_image)
         } else {
             toast.show("No plot details found")
             navigation.goBack()
@@ -57,7 +65,7 @@ const CreatePlotDetailsView = () => {
         }
         const result = await updatePlotDetails(plotID, data)
         if (result) {
-            navigation.navigate('CreatePlotMap')
+            navigation.navigate('CreatePlotMap', { id: plotID })
         } else {
             toast.show("Error occured while adding data")
         }
@@ -68,45 +76,48 @@ const CreatePlotDetailsView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
-            <View style={styles.wrapper}>
-                <OutlinedTextInput
-                    placeholder={'Plot Name'}
-                    changeHandler={setPlotName}
-                    keyboardType={'default'}
-                    trailingtext={''}
-                    errMsg={''} />
-                {plotShape === 'RECTANGULAR' ? <><OutlinedTextInput
-                    placeholder={'Plot Length'}
-                    changeHandler={setPlotLength}
-                    keyboardType={'decimal-pad'}
-                    trailingtext={'m'}
-                    errMsg={''} />
-                    <Text style={styles.noteWrapper}>
-                        25 meters or more recommended
-                    </Text>
+            <ScrollView>
+                <View style={styles.wrapper}>
+                    <AddPlotImage image={plotImage} plotID={plotID} />
                     <OutlinedTextInput
-                        placeholder={'Plot Width'}
-                        changeHandler={setPlotWidth}
+                        placeholder={'Plot Name'}
+                        changeHandler={setPlotName}
+                        keyboardType={'default'}
+                        trailingtext={''}
+                        errMsg={''} />
+                    {plotShape === 'RECTANGULAR' ? <><OutlinedTextInput
+                        placeholder={'Plot Length'}
+                        changeHandler={setPlotLength}
                         keyboardType={'decimal-pad'}
                         trailingtext={'m'}
                         errMsg={''} />
-                    <Text style={styles.noteWrapper}>
-                        4 meters or more recommended
-                    </Text></> : <><OutlinedTextInput
-                        placeholder={'Plot Radius'}
-                        changeHandler={setPlotRadius}
-                        keyboardType={'decimal-pad'}
-                        trailingtext={'m'}
-                        errMsg={''} /><Text style={styles.noteWrapper}>
-                        25 meters or more recommended
-                    </Text></>}
-                <OutlinedTextInput
+                        <Text style={styles.noteWrapper}>
+                            25 meters or more recommended
+                        </Text>
+                        <OutlinedTextInput
+                            placeholder={'Plot Width'}
+                            changeHandler={setPlotWidth}
+                            keyboardType={'decimal-pad'}
+                            trailingtext={'m'}
+                            errMsg={''} />
+                        <Text style={styles.noteWrapper}>
+                            4 meters or more recommended
+                        </Text></> : <><OutlinedTextInput
+                            placeholder={'Plot Radius'}
+                            changeHandler={setPlotRadius}
+                            keyboardType={'decimal-pad'}
+                            trailingtext={'m'}
+                            errMsg={''} /><Text style={styles.noteWrapper}>
+                            25 meters or more recommended
+                        </Text></>}
+                    {/* <OutlinedTextInput
                     placeholder={'Plot Group (Optional)'}
                     changeHandler={setPlotGroup}
                     keyboardType={'decimal-pad'}
                     trailingtext={''}
-                    errMsg={''} />
-            </View>
+                    errMsg={''} /> */}
+                </View>
+            </ScrollView>
             <CustomButton
                 label="Create"
                 containerStyle={styles.btnContainer}
@@ -128,7 +139,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.BACKDROP_COLOR,
         paddingHorizontal: 20,
-        paddingTop: 20
+        paddingTop: 20,
+        paddingBottom:100
     },
     btnContainer: {
         width: '100%',

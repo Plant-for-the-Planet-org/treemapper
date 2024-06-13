@@ -30,14 +30,15 @@ const ImagePreview = (props: Props) => {
   const dispatch = useDispatch()
 
   const navigateToNext = async () => {
-    const finalURL = await copyImageAndGetData(imageData.uri, interventionID, screen === 'SPECIES_INFO')
+    const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE'
+    const finalURL = await copyImageAndGetData(imageData.uri, interventionID, hasSpecies)
     dispatch(
       updateImageDetails({
         id: id,
         url: finalURL,
       }),
     )
-    if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE') {
+    if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE' || screen === 'PLOT_IMAGE') {
       navigation.goBack()
       return;
     }

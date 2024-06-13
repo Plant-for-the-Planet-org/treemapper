@@ -77,8 +77,24 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const updatePlotImage = async (
+    id: string,
+    image: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        plotData.local_image = image
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
-  return { initateNewPlot, updatePlotDetails, updatePlotLocation }
+
+  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage }
 }
 
 export default useMonitoringPlotMangement

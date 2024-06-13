@@ -14,14 +14,15 @@ export interface AppInitialState {
   refreshToken: string,
 }
 
-export interface TempStateSlice {
+export interface MonitoringPlotSlice {
+  lastUpdateAt: number
+  updateScreen: string
+}
+
+export interface MonitoringPlot {
   webAuthLoading: boolean
 }
 
-export interface MonitoringPlotSlice {
-  plotShape: 'reactangular' | 'circular'
-  plotType: 'intervention' | 'control'
-}
 
 
 
