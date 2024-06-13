@@ -56,7 +56,7 @@ const useMonitoringPlotMangement = () => {
 
   const updatePlotLocation = async (
     id: string,
-    coordinate: number[]
+    coordinate: Array<number[]>
   ): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -67,7 +67,7 @@ const useMonitoringPlotMangement = () => {
         }
         plotData.coords = {
           type: 'Point',
-          coordinates: [coordinate[0]]
+          coordinates: [coordinate[0][0][0]]
         }
       })
       return Promise.resolve(true)
