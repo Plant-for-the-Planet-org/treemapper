@@ -55,12 +55,10 @@ const TotalTreesView = () => {
 
   const renderSpecieCard = (
     item: IScientificSpecies | any,
-    index: number,
   ) => {
     return (
       <SpecieCard
         item={item}
-        index={index}
         onPressSpecies={cardpress}
         actionName={'remove'}
         handleRemoveFavourite={removeHandler}
@@ -76,7 +74,7 @@ const TotalTreesView = () => {
       <View style={styles.wrapper}>
         <FlatList
           data={plantedSpecies}
-          renderItem={({ item, index }) => renderSpecieCard(item, index)}
+          renderItem={({ item }) => renderSpecieCard(item)}
           keyExtractor={({ guid }) => guid}
           ListFooterComponent={() => <View style={styles.footerWrapper} />}
         />

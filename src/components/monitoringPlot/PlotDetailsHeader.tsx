@@ -6,14 +6,18 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
 import MoreOptionIcon from 'assets/images/svg/MoreOptionIcon.svg'
+import { PLOT_COMPLEXITY } from 'src/types/type/app.type'
 
 
 interface Props {
     showOptions: () => void
+    label: string
+    type: PLOT_COMPLEXITY
+    group: string
 }
 
 const PlotDetailsHeader = (props: Props) => {
-    const { showOptions } = props;
+    const { showOptions, label, type, group } = props;
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const goBack = () => {
         navigation.goBack()
@@ -23,11 +27,12 @@ const PlotDetailsHeader = (props: Props) => {
             <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>
             <View style={styles.sectionWrapper}>
                 <Text style={styles.headerLabel}>
-                    Plot A
+                    {label}
                 </Text>
                 <Text style={styles.noteLabel}>
-                    Standard Plot- Americs loren upsim
+                    {type === 'STANDARD' ? "Standard" : "Simple"}{group}
                 </Text>
+
             </View>
             <Pressable style={styles.rightContainer} onPress={showOptions}>
                 <MoreOptionIcon onPress={showOptions} />

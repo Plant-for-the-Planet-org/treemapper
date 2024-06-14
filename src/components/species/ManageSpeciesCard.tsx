@@ -12,7 +12,6 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
-  index: number
   onPressSpecies: (item: PlantedSpecies | IScientificSpecies) => void
   isSampleTreeSpecies?: boolean
   actionName: string
@@ -22,7 +21,6 @@ interface SpecieCardProps {
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
   item,
-  index,
   onPressSpecies,
   handleRemoveFavourite,
   actionName,
@@ -43,7 +41,6 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
       <View
         style={styles.cardWrapper}>
         <TouchableOpacity
-          key={index}
           style={styles.mySpecies}
           onPress={handlePress}>
           <View style={styles.imageCon}>

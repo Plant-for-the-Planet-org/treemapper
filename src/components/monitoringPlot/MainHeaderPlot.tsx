@@ -4,8 +4,26 @@ import { Colors, Typography } from 'src/utils/constants'
 import CardIdIcon from 'assets/images/svg/CardIdIcon.svg'
 import TallyIcon from 'assets/images/svg/TallyIcon.svg'
 import CircularPlotIcon from 'assets/images/svg/CircularPlotIcon.svg'
+import { PLOT_SHAPE } from 'src/types/type/app.type'
+import RectangularIcon from 'assets/images/svg/RectangualrIcon.svg'
 
-const MainHeaderPlot = () => {
+
+interface Props {
+    shape: PLOT_SHAPE
+    width: number
+    length: number
+    radius: number
+    plotID: string
+}
+
+const MainHeaderPlot = (props: Props) => {
+    const { shape, width, length, radius, plotID } = props
+    const metaData = () => {
+        if (shape === 'CIRCULAR') {
+            return `${radius}m`
+        }
+        return `${width}m by ${length}m`
+    }
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
@@ -15,7 +33,7 @@ const MainHeaderPlot = () => {
                         <Text style={styles.cardLabel}>ID</Text>
                     </View>
                     <Text style={styles.cardNote}>
-                        ZK12D4DD
+                        {plotID}
                     </Text>
                 </View>
                 <View style={styles.cardWrapper}>
@@ -28,10 +46,10 @@ const MainHeaderPlot = () => {
                 </View>
                 <View style={styles.cardWrapper}>
                     <View style={styles.cradMetaIcon}>
-                        <CircularPlotIcon />
+                        {shape === 'CIRCULAR' ? <CircularPlotIcon /> : <RectangularIcon />}
                     </View>
                     <Text style={styles.cardNote}>
-                        7.14m
+                        {metaData()}
                     </Text>
                 </View>
             </View>

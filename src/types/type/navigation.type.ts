@@ -39,7 +39,7 @@ export type RootStackParamList = {
   CreatePlot: undefined
   CreatePlotDetail: CreatePlotDetails
   CreatePlotMap: CreatePlotMap
-  PlotDetails: undefined
+  PlotDetails: PlotDetails
   PlotPlantRemeasure: undefined
   AddPlantDetailsPlot: undefined
   AddPlotDetails: undefined
@@ -119,5 +119,8 @@ type CreatePlotDetails = {
   id: string
 }
 type CreatePlotMap = {
+  id: string
+}
+type PlotDetails = {
   id: string
 }

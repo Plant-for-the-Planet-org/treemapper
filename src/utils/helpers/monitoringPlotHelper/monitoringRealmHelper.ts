@@ -1,7 +1,7 @@
 import { MonitoringPlot } from "src/types/interface/slice.interface"
 import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from "src/types/type/app.type";
 
-function generateUniquePlotId() {
+export function generateUniquePlotId() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     let id = '';
 

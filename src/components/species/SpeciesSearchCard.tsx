@@ -7,13 +7,14 @@ import { Typography, Colors } from 'src/utils/constants'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
-  item: IScientificSpecies
+  item: IScientificSpecies | any
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   handleCard: (item: IScientificSpecies, status: boolean) => void
+  hideFav?: boolean
 }
 
 const SpeciesSearchCard = (props: Props) => {
-  const { item, toogleFavSpecies, handleCard } = props
+  const { item, toogleFavSpecies, handleCard, hideFav } = props
   const handleIconPress = () => {
     toogleFavSpecies(item, !item.is_user_species)
   }
@@ -25,9 +26,9 @@ const SpeciesSearchCard = (props: Props) => {
       <View style={styles.wrapper}>
         <Text style={styles.scientificName}>{item.scientific_name}</Text>
         <View style={styles.divider} />
-        <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
+        {!hideFav && <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
           {item.is_user_species ? <PinkHeart /> : <GreyHeart />}
-        </TouchableOpacity>
+        </TouchableOpacity>}
       </View>
     </TouchableOpacity>
   )
@@ -49,10 +50,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    paddingBottom:10,
-    paddingTop:15,
+    paddingBottom: 10,
+    paddingTop: 15,
     borderBottomWidth: 0.5,
-    borderBottomColor:Colors.GRAY_LIGHT
+    borderBottomColor: Colors.GRAY_LIGHT
   },
   scientificName: {
     fontSize: Typography.FONT_SIZE_16,

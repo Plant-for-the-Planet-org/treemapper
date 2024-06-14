@@ -8,14 +8,14 @@ import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
     item: MonitoringPlot | any
-    handleSelection: () => void
+    handleSelection: (id:string) => void
 }
 
 const PlotCards = (props: Props) => {
     const { handleSelection, item } = props;
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.wrapper} onPress={handleSelection}>
+            <TouchableOpacity style={styles.wrapper} onPress={()=>{handleSelection(item.plot_id)}}>
                 {/* <Image source={item.image} style={styles.avatar}/> */}
                 <View style={styles.avatar} />
                 <View style={styles.sectionWrapper}>

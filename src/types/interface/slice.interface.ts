@@ -19,10 +19,6 @@ export interface MonitoringPlotSlice {
   updateScreen: string
 }
 
-export interface MonitoringPlot {
-  webAuthLoading: boolean
-}
-
 
 
 

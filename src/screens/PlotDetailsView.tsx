@@ -10,19 +10,30 @@ import PlotPlantList from 'src/components/monitoringPlot/PlotPlantList'
 import EcosystemList from 'src/components/monitoringPlot/EcosystemtList'
 import PlotMapDisplay from 'src/components/monitoringPlot/PlotMapDisplay'
 import EidPlantModal from 'src/components/monitoringPlot/EidPlantModal'
+import { useObject } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { MonitoringPlot } from 'src/types/interface/slice.interface'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { RouteProp, useRoute } from '@react-navigation/native'
 
 const PlotDetailsView = () => {
+    const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
+    const plotID = route.params && route.params.id ? route.params.id : ''
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [showEdit, setShowEdit] = useState(false)
 
+    const monitoringPlot = useObject<MonitoringPlot>(
+        RealmSchema.MonitoringPlot, plotID
+    )
+    const { shape, name, length, width, radius, complexity } = monitoringPlot;
     return (
         <SafeAreaView style={styles.container}>
-            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} />
-            <MainHeaderPlot />
+            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''} />
+            <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             {selectedIndex === 0 && <>
                 <PlotPlantSearch />
-                <PlotPlantList /></>}
+                <PlotPlantList plants={monitoringPlot.plot_plants} /></>}
             {selectedIndex === 1 && <EcosystemList />}
             {selectedIndex === 2 && <PlotMapDisplay />}
             <EidPlantModal
@@ -40,5 +51,4 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.WHITE
     },
-
 })

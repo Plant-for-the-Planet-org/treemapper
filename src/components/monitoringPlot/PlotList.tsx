@@ -6,16 +6,17 @@ import { Colors } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { MonitoringPlot } from 'src/types/interface/slice.interface'
 
 interface Props {
-    data: any
+    data: MonitoringPlot[] | any
 }
 
 const PlotList = (props: Props) => {
     const { data } = props
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const handleSelection = () => {
-        navigation.navigate('AddRemeasurment')
+    const handleSelection = (id: string) => {
+        navigation.navigate('PlotDetails', { id })
     }
     return (
         <FlashList
