@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlantedPlotSpecies, PlotGroups } from 'src/types/interface/slice.interface'
 
 
 export interface PlotDetailsParams {
@@ -93,8 +93,25 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const addPlantDetailsPlot = async (
+    id: string,
+    plantDetails: PlantedPlotSpecies
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        plotData.plot_plants = [...plotData.plot_plants,{...plantDetails}]
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
-  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage }
+
+
+  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot }
 }
 
 export default useMonitoringPlotMangement

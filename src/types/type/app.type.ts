@@ -24,3 +24,5 @@ export type LOG_LEVELS = 'info' | 'warn' | 'error';
 export type PLOT_TYPE = "INTERVENTION" | "CONTROL"
 export type PLOT_SHAPE = "RECTANGULAR" | "CIRCULAR"
 export type PLOT_COMPLEXITY = "STANDARD" | "SIMPLE"
+export type PLOT_PLANT = "PLANTED" | "RECRUIT"
+export type PLOT_PLANT_STATUS = "PLANTED" | "RECRUIT" | "REMEASURMENT" | "DESCEASED"

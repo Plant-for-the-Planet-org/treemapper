@@ -41,7 +41,7 @@ export type RootStackParamList = {
   CreatePlotMap: CreatePlotMap
   PlotDetails: PlotDetails
   PlotPlantRemeasure: undefined
-  AddPlantDetailsPlot: undefined
+  AddPlantDetailsPlot: AddPlantDetailsPlot
   AddPlotDetails: undefined
   MonitoringInfo: undefined
   AddRemeasurment:undefined
@@ -122,5 +122,9 @@ type CreatePlotMap = {
   id: string
 }
 type PlotDetails = {
+  id: string
+}
+
+type AddPlantDetailsPlot = {
   id: string
 }

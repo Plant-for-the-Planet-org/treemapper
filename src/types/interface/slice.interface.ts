@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -229,26 +229,16 @@ export interface LogDetails {
 
 
 export interface PlantTimeLine {
-  status: string
+  status: PLOT_PLANT_STATUS
   length: number
-  width: string
-  date: string
+  width: number
+  date: number
   length_unit: string
   width_unit: string
   image: string
 }
 
-export interface PlotPlants {
-  tag: string
-  guid: string
-  scientific_name: string
-  aliases: string
-  count: number
-  image: string
-  timeline: PlantTimeLine[]
-  planting_date: number
-  is_alive: boolean
-}
+
 export interface PlotGroups {
   name: string,
   group_id: string,
@@ -277,9 +267,23 @@ export interface MonitoringPlot {
   status: 'NOT_SYNCED' | "SYNCED"
   hid: string
   lastScreen: string
-  plot_plants: PlotPlants[]
+  plot_plants: PlantedPlotSpecies[]
   plot_created_at: number,
   plot_updated_at: number,
   local_image: string,
   cdn_image: string,
+}
+
+
+export interface PlantedPlotSpecies {
+  tag: string
+  guid: string
+  scientific_name: string
+  aliases: string
+  count: number
+  image: string
+  timeline: PlantTimeLine[]
+  planting_date: number
+  is_alive: boolean
+  type: PLOT_PLANT
 }

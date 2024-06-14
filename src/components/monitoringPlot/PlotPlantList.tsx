@@ -6,21 +6,22 @@ import { Colors } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { PlotPlants } from 'src/types/interface/slice.interface'
+import { PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import CustomButton from '../common/CustomButton'
 
 interface Props {
-    plants: PlotPlants[]
+    plants: PlantedPlotSpecies[]
+    plotID: string
 }
 
 const PlotPlantList = (props: Props) => {
-    const { plants } = props;
+    const { plants, plotID } = props;
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleSelection = () => {
         navigation.navigate('AddPlantDetailsPlot')
     }
     const addMorePlants = () => {
-        navigation.navigate('AddPlantDetailsPlot')
+        navigation.navigate('AddPlantDetailsPlot', { id: plotID })
     }
     return (
         <View style={styles.container}>

@@ -16,6 +16,7 @@ export const MonitoringPlot: ObjectSchema = {
     plot_groups: `${RealmSchema.PlotGroups}[]`,
     location: `${RealmSchema.Polygon}`,
     coords: `${RealmSchema.GeoSpatial}`,
+    plot_plants: `${RealmSchema.PlotPlantedSpecies}[]`,
     is_complete: { type: 'bool', default: false },
     additional_data: { type: 'string', default: '' },
     meta_data: { type: 'string', default: '{}' },

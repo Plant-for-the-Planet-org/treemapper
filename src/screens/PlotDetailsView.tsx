@@ -25,7 +25,7 @@ const PlotDetailsView = () => {
     const monitoringPlot = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID
     )
-    const { shape, name, length, width, radius, complexity } = monitoringPlot;
+    const { shape, name, length, width, radius, complexity, plot_plants } = monitoringPlot;
     return (
         <SafeAreaView style={styles.container}>
             <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''} />
@@ -33,7 +33,7 @@ const PlotDetailsView = () => {
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             {selectedIndex === 0 && <>
                 <PlotPlantSearch />
-                <PlotPlantList plants={monitoringPlot.plot_plants} /></>}
+                <PlotPlantList plants={plot_plants} plotID={plotID} /></>}
             {selectedIndex === 1 && <EcosystemList />}
             {selectedIndex === 2 && <PlotMapDisplay />}
             <EidPlantModal

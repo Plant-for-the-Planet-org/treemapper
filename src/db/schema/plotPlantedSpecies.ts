@@ -13,6 +13,7 @@ export const PlotPlantedSpecies: ObjectSchema = {
     timeline: `${RealmSchema.PlantTimeline}[]`,
     planting_date: { type: 'double' },
     is_alive:  { type: 'bool', default: true},
+    type: { type: 'string', default: 'planted' },
   }
 };
 
