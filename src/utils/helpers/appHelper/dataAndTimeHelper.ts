@@ -44,10 +44,15 @@ export const formatRelativeTimeCustom = (timestamp: number) => {
   if (days > 0) {
     return `${days}d ago`;
   } else if (hours > 0) {
-    return `${hours}hrs ago`;
+    return `${hours}hr ago`;
   } else if (minutes > 0) {
-    return `${minutes}mins ago`;
+    return `${minutes}min ago`;
   } else {
     return 'just now';
   }
+}
+
+
+export const displayYearDate=(t:number)=>{
+  return moment(t).format('MMMM D, YYYY');
 }

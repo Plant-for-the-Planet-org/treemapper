@@ -17,16 +17,16 @@ interface Props {
 const PlotPlantList = (props: Props) => {
     const { plants, plotID } = props;
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const handleSelection = () => {
-        navigation.navigate('AddPlantDetailsPlot')
+    const handleSelection = (plantID: string) => {
+        navigation.navigate('AddRemeasurment', { id: plotID, plantID: plantID })
     }
     const addMorePlants = () => {
-        navigation.navigate('AddPlantDetailsPlot', { id: plotID })
+        navigation.navigate('AddPlantDetailsPlot', { id: plotID, })
     }
     return (
         <View style={styles.container}>
             <FlashList
-                renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection} />)}
+                renderItem={({ item, index }) => (<PlantPlotCards item={item} handleSelection={handleSelection} index={index} />)}
                 data={plants} estimatedItemSize={100}
             />
             <CustomButton

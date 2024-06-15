@@ -25,7 +25,7 @@ const CreatePlotMapView = () => {
     const [plotRadius, setPlotRadius] = useState(0);
     const [plotName, setPlotName] = useState('');
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
+    const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotMap'>>()
     const plotID = route.params && route.params.id ? route.params.id : ''
     const toast = useToast()
 

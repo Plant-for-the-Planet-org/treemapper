@@ -14,6 +14,7 @@ import { PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.int
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 
 
 const AddPlantDetailsPlotView = () => {
@@ -40,7 +41,7 @@ const AddPlantDetailsPlotView = () => {
 
     const submitHandler = async () => {
         const plantTimeline: PlantTimeLine = {
-            status: isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
+            status: !isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
             length: Number(height),
             width: Number(width),
             date: mesaurmentDate,
@@ -49,6 +50,7 @@ const AddPlantDetailsPlotView = () => {
             image: ''
         }
         const plantDetails: PlantedPlotSpecies = {
+            plot_plant_id: generateUniquePlotId(),
             tag: tag,
             guid: species.guid,
             scientific_name: species.scientific_name,
@@ -58,7 +60,8 @@ const AddPlantDetailsPlotView = () => {
             timeline: [plantTimeline],
             planting_date: plantingDate,
             is_alive: isTreeAlive,
-            type: isPlanted ? 'PLANTED' : 'RECRUIT'
+            type: isPlanted ? 'PLANTED' : 'RECRUIT',
+            details_updated_at: Date.now()
         }
         await addPlantDetailsPlot(plotID, plantDetails)
     }

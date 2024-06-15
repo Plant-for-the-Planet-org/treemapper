@@ -5,9 +5,17 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
+import { PLOT_PLANT } from 'src/types/type/app.type'
 
+interface Props {
+    label: string
+    type: PLOT_PLANT
+    species: string
+    allias: string
+    showRemeasure: boolean
+}
 
-const PlotPlantRemeasureHeader = () => {
+const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure }: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const goBack = () => {
         navigation.goBack()
@@ -16,11 +24,15 @@ const PlotPlantRemeasureHeader = () => {
         <View style={styles.container}>
             <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.headerLabel}>
-                    Remeasure <Text style={styles.highlight}>EE-101</Text>
-                </Text>
+                <View style={styles.headerLabelContainer}>
+                    {showRemeasure ? <>
+                        <Text style={styles.headerLabel}>Remeasure  </Text>
+                        <Text style={styles.highlight}>{label}</Text>
+                    </> : <><Text style={styles.headerLabel}>{label}</Text>
+                        <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}><Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? "Planted" : "Recruit"}</Text></View></>}
+                </View>
                 <Text style={styles.noteLabel}>
-                    Catzin negri
+                    {species}
                 </Text>
             </View>
         </View>
@@ -45,16 +57,22 @@ const styles = StyleSheet.create({
         height: 20,
         marginLeft: 20,
     },
+    headerLabelContainer: {
+        flexDirection: 'row',
+        alignItems: "center"
+    },
     headerLabel: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
         fontSize: 20
     },
     highlight: {
+        fontFamily: Typography.FONT_FAMILY_BOLD,
+        fontSize: 20,
         color: Colors.NEW_PRIMARY
     },
     noteLabel: {
-        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        fontFamily: Typography.FONT_FAMILY_ITALIC,
         color: Colors.TEXT_COLOR,
         fontSize: 14
     },
@@ -63,5 +81,19 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: 'center',
         alignItems: 'center'
+    },
+    chip: {
+        marginLeft: 10,
+        borderRadius: 5,
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: 20
+    },
+    chipLabel: {
+        fontSize: 10,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.WHITE,
+        paddingHorizontal: 10,
+        letterSpacing: 0.2
     }
 })

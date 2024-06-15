@@ -276,6 +276,7 @@ export interface MonitoringPlot {
 
 
 export interface PlantedPlotSpecies {
+  plot_plant_id: string
   tag: string
   guid: string
   scientific_name: string
@@ -286,4 +287,5 @@ export interface PlantedPlotSpecies {
   planting_date: number
   is_alive: boolean
   type: PLOT_PLANT
+  details_updated_at: number
 }

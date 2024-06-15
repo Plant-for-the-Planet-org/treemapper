@@ -1,37 +1,45 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
+import RecruitTreeIcon from 'assets/images/svg/RecruitTreeIcon.svg'
+
 // import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 import Addicon from 'assets/images/svg/Addicon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
+import { PlantedPlotSpecies } from 'src/types/interface/slice.interface'
+import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
-    item: any
-    handleSelection: () => void
+    item: PlantedPlotSpecies
+    handleSelection: (plantID: string) => void,
+    index: number
 }
 
 const PlantPlotCards = (props: Props) => {
-    const { handleSelection } = props;
+    const { handleSelection, item, index } = props;
+    const handlePlantSelction=()=>{
+        handleSelection(item.plot_plant_id)
+    }
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.wrapper} onPress={handleSelection}>
+            <TouchableOpacity style={styles.wrapper} onPress={handlePlantSelction}>
                 <View style={styles.avatar}>
-                    <SingleTreeIcon />
+                    {item.type === 'PLANTED' ? <SingleTreeIcon /> : <RecruitTreeIcon />}
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>EE-101</Text>
+                        <Text style={styles.idLabel}>EE-{100 + index}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.dateLabel}>10d ago</Text>
+                        <Text style={styles.dateLabel}>{formatRelativeTimeCustom(item.details_updated_at)}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>Planted</Text>
+                        <Text style={styles.planetedLabel}>{item.type === 'PLANTED' ? "Planted" : "Recruit"}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.speciesLabel}>Catalpa bungei</Text>
+                        <Text style={styles.speciesLabel}>{item.scientific_name}</Text>
                     </View>
                 </View>
-                <View style={styles.addIconWrapper}>
+                <View style={[styles.addIconWrapper,{backgroundColor:item.type === 'PLANTED' ?  Colors.NEW_PRIMARY :  Colors.RECRUIT_PLANT_THEME}]}>
                     <Addicon />
                 </View>
             </TouchableOpacity>
@@ -45,10 +53,10 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center', paddingVertical: 10
     },
     wrapper: {
-        width: '95%',
+        width: '90%',
         flexDirection: 'row',
         alignItems: 'center',
         paddingVertical: 10,
@@ -80,12 +88,12 @@ const styles = StyleSheet.create({
         color: Colors.DARK_TEXT_COLOR
     },
     dateLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
     planetedLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR
     },

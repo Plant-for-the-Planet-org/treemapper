@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { MonitoringPlot, PlantedPlotSpecies, PlotGroups } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotGroups } from 'src/types/interface/slice.interface'
 
 
 export interface PlotDetailsParams {
@@ -100,7 +100,28 @@ const useMonitoringPlotMangement = () => {
     try {
       realm.write(() => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
-        plotData.plot_plants = [...plotData.plot_plants,{...plantDetails}]
+        plotData.plot_plants = [...plotData.plot_plants, { ...plantDetails }]
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const addNewMeasurmentPlantPlots = async (
+    id: string,
+    plantId: string,
+    timeLine: PlantTimeLine
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
+        plotData.plot_plants[index].timeline.push(timeLine)
+        plotData.plot_updated_at = Date.now()
+        plotData.plot_plants[index].is_alive = timeLine.status !== 'DESCEASED'
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -111,7 +132,8 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot }
+
+  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

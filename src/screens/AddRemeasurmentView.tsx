@@ -1,101 +1,112 @@
-import { FlatList, Image, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { FlatList, StyleSheet, Text, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
 import { Colors, Typography } from 'src/utils/constants'
 import { BACKDROP_COLOR } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
-import { useNavigation } from '@react-navigation/native'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 
 import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
 import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 import RemeasurmentIcon from 'assets/images/svg/RemeasurmentIcon.svg'
+import { useObject } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
+import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 
-const DummyImage = require('assets/images/intervention/DummyImage.png')
 
-const dummyData = [{
-    date: "October 8, 2019",
-    label: "Tree Planted",
-    type: "planted"
-},
-{
-    date: "October 10, 2020",
-    label: "Measurment 1: 0.38m high, 0.3cm wide",
-    type: "remeausre"
-},
-{
-    date: "July 11, 2021",
-    label: "Measurment 1: 1.18m high, 1.3cm wide",
-    type: "remeausre"
-},
-{
-    date: "April 16, 2022",
-    label: "Deceased",
-    type: "deceased"
-}
-]
+
 
 const AddRemeasurmentView = () => {
+    const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
+    const plotID = route.params && route.params.id ? route.params.id : ''
+    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
+    const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>()
+
+    const plotDetails = useObject<MonitoringPlot>(
+        RealmSchema.MonitoringPlot, plotID
+    )
+
+    useEffect(() => {
+        if (plantID) {
+            const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
+            if (getPlantDetails) {
+                setSelectedTimeLIne(getPlantDetails)
+            }
+        }
+    }, [plotID])
+
+
+
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleSelection = () => {
-        navigation.navigate('PlotPlantRemeasure')
+        navigation.navigate('PlotPlantRemeasure', { id: plotID, plantID: plantID })
     }
-
-
-    const renderCard = (item: any, index: number) => {
+    const renderCard = (item: PlantTimeLine, index: number) => {
         const renderIcon = () => {
-            switch (item.type) {
-                case 'remeausre':
+            switch (item.status) {
+                case 'REMEASURMENT':
                     return <RemeasurmentIcon />
-                case 'deceased':
+                case 'DESCEASED':
                     return <DeceasedTreeIcon />
                 default:
                     return <PlantedIcon />
             }
         }
+        const label = () => {
+            switch (item.status) {
+                case 'REMEASURMENT':
+                    return `Measurement ${index}: ${item.length}${item.length_unit} high,${item.width}${item.width_unit} wide`
+                case 'DESCEASED':
+                    return 'Marked deceased'
+                default:
+                    return 'Tree Planted'
+            }
+        }
         return (
             <View style={styles.cardContainer}>
                 <View style={styles.iconWrapper}>
-                    <View style={[styles.icon, {backgroundColor:item.type === 'deceased' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A'}]}>
+                    <View style={[styles.icon, { backgroundColor: item.status === 'DESCEASED' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
                         {renderIcon()}
                     </View>
-                    {index < dummyData.length - 1 && <View style={styles.divider} />}
+                    {item.status !== 'DESCEASED' && <View style={styles.divider} />}
                 </View>
                 <View style={styles.cardSection}>
                     <Text style={styles.cardHeader}>
-                        {item.date}
+                        {displayYearDate(item.date)}
                     </Text>
                     <Text style={styles.cardLabel}>
-                        {item.label}
+                        {label()}
                     </Text>
                 </View>
             </View>
         )
     }
+    if (!selectedTimeline) {
+        return null
+    }
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader />
+            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} />
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
                     <FlatList
                         showsVerticalScrollIndicator={false}
-                        ListHeaderComponent={() => {
-                            return <Image source={DummyImage} style={styles.imageWrapper}/>
-                        }}
                         style={styles.flatlistWrapper}
                         ListFooterComponent={() => (<View style={styles.footerWrapper} />)}
                         renderItem={({ item, index }) => { return renderCard(item, index) }}
-                        data={dummyData} />
+                        data={selectedTimeline ? selectedTimeline.timeline : []} />
                 </View>
             </View>
-            <CustomButton
+            {selectedTimeline.is_alive && <CustomButton
                 label="Add Remeasurment"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleSelection}
                 hideFadein
-            />
+            />}
         </SafeAreaView>
     )
 }
@@ -132,6 +143,7 @@ const styles = StyleSheet.create({
         flex: 1,
         width: '100%',
         alignItems: 'center',
+        paddingTop: 50
     },
     footerWrapper: {
         height: 100,
@@ -178,6 +190,6 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT,
         fontSize: 14,
-        letterSpacing:0.2
+        letterSpacing: 0.2
     }
 })
