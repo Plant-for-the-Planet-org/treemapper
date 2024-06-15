@@ -66,6 +66,7 @@
     "react-native-material-menu": "^2.0.0",
     "react-native-modal": "^13.0.1",
     "react-native-pager-view": "6.2.0",
+    "react-native-popover-view": "^5.1.8",
     "react-native-reanimated": "~3.3.0",
     "react-native-reanimated-carousel": "^3.5.1",
     "react-native-redash": "^18.1.3",
