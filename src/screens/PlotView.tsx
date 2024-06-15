@@ -10,7 +10,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import AddIcon from 'assets/images/svg/Addicon.svg'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import {MonitoringPlot } from 'src/types/interface/slice.interface'
+import { MonitoringPlot } from 'src/types/interface/slice.interface'
 
 const PlotView = () => {
 
@@ -25,6 +25,7 @@ const PlotView = () => {
   const addGroups = () => {
     navigation.navigate('PlotGroup')
   }
+
 
   const renderIcon = () => {
     return <Pressable onPress={addGroups} style={styles.rightContainer}><AddIcon width={16} height={16} /></Pressable>
@@ -57,6 +58,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: Colors.NEW_PRIMARY,
     marginRight: 20,
-    borderRadius:8
+    borderRadius: 8
   }
 })

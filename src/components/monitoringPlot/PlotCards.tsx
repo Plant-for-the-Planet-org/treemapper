@@ -29,7 +29,7 @@ const PlotCards = (props: Props) => {
                     </View>
                     <Text style={styles.speciesLabel}>{formatRelativeTimeCustom(item.plot_created_at)}</Text>
                 </View>
-                {item.plot_groups.length > 0 && <View style={styles.plotDetailsWrapper}>
+                {item.plot_group.length > 0 && <View style={styles.plotDetailsWrapper}>
                     <Text style={styles.plotTitle}>Las Americas 7 Vertisols</Text>
                 </View>}
             </TouchableOpacity>

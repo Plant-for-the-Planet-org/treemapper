@@ -14,7 +14,7 @@ interface Props {
   whiteBG?: boolean
 }
 
-const DropdownComponent = (props: Props) => {
+const CustomDropdownComponent = (props: Props) => {
   const { label, data, onSelect, selectedValue, whiteBG = false } = props
   const [isFocus, setIsFocus] = useState(false)
   const [value, setSelectedValue] = useState(selectedValue)
@@ -63,7 +63,7 @@ const DropdownComponent = (props: Props) => {
   )
 }
 
-export default DropdownComponent
+export default CustomDropdownComponent
 
 const styles = StyleSheet.create({
   container: {

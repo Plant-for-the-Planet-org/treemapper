@@ -41,6 +41,7 @@ export type RootStackParamList = {
   CreatePlotMap: CreatePlotMap
   PlotDetails: PlotDetails
   PlotPlantRemeasure: PlotPlantDetails
+  AddObservationForm: AddObservation
   AddPlantDetailsPlot: AddPlantDetailsPlot
   AddPlotDetails: undefined
   MonitoringInfo: undefined
@@ -132,4 +133,9 @@ type AddPlantDetailsPlot = {
 type PlotPlantDetails = {
   id: string,
   plantID: string
+}
+
+
+type AddObservation = {
+  id: string
 }

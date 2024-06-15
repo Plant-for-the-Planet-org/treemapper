@@ -1,6 +1,8 @@
 import { ObjectSchema } from 'realm'
 import { RealmSchema } from 'src/types/enum/db.enum'
 
+
+
 export const MonitoringPlot: ObjectSchema = {
   name: RealmSchema.MonitoringPlot,
   primaryKey: 'plot_id',
@@ -12,8 +14,6 @@ export const MonitoringPlot: ObjectSchema = {
     radius: { type: 'double' },
     length: { type: 'double' },
     width: { type: 'double' },
-    name: { type: 'string', default: '' },
-    plot_groups: `${RealmSchema.PlotGroups}[]`,
     location: `${RealmSchema.Polygon}`,
     coords: `${RealmSchema.GeoSpatial}`,
     plot_plants: `${RealmSchema.PlotPlantedSpecies}[]`,
@@ -27,5 +27,11 @@ export const MonitoringPlot: ObjectSchema = {
     plot_updated_at: "double",
     local_image: 'string',
     cdn_image: 'string',
+    observations: `${RealmSchema.PlotObservation}[]`,
+    plot_group: {
+      type: 'linkingObjects',
+      objectType: `${RealmSchema.PlotGroups}`,
+      property: 'plots',
+    },
   },
 }

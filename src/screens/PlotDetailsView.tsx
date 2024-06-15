@@ -34,7 +34,7 @@ const PlotDetailsView = () => {
             {selectedIndex === 0 && <>
                 <PlotPlantSearch />
                 <PlotPlantList plants={plot_plants} plotID={plotID} /></>}
-            {selectedIndex === 1 && <EcosystemList />}
+            {selectedIndex === 1 && <EcosystemList plotID={plotID} />}
             {selectedIndex === 2 && <PlotMapDisplay />}
             <EidPlantModal
                 isVisible={showEdit}

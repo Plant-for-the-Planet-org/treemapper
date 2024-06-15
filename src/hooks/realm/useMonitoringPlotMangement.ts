@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotGroups } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotObservation } from 'src/types/interface/slice.interface'
 
 
 export interface PlotDetailsParams {
@@ -8,7 +8,7 @@ export interface PlotDetailsParams {
   length: number,
   width: number,
   radius: number,
-  group: PlotGroups[]
+  group: null
 }
 
 
@@ -45,7 +45,6 @@ const useMonitoringPlotMangement = () => {
         plotData.length = data.length
         plotData.width = data.width
         plotData.radius = data.radius
-        plotData.plot_groups = data.group
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -129,11 +128,26 @@ const useMonitoringPlotMangement = () => {
       return Promise.reject(false)
     }
   }
+  const addPlotObservation = async (
+    id: string,
+    observationDEtails: PlotObservation
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        plotData.observations = [...plotData.observations, { ...observationDEtails }]
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
 
-
-  return { initateNewPlot, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

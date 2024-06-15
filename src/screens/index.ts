@@ -38,6 +38,7 @@ import AddPlotDetailsView from './AddPlotDetailsView'
 import MonitoringInfoView from './MonitoringInfoView';
 import AddRemeasurmentView from './AddRemeasurmentView'
 import PlotGroupView from './PlotGroupView';
+import AddObservationFormView from './AddObservationFormView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -79,5 +80,6 @@ export default {
   AddPlotDetails: AddPlotDetailsView,
   MonitoringInfo: MonitoringInfoView,
   AddRemeasurment: AddRemeasurmentView,
-  PlotGroup: PlotGroupView
+  PlotGroup: PlotGroupView,
+  AddObservationForm: AddObservationFormView
 }

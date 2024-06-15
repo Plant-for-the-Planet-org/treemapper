@@ -25,7 +25,6 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         length: 0,
         width: 0,
         name: "",
-        plot_groups: [],
         location: {
             type: "",
             coordinates: ""
@@ -45,6 +44,8 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         plot_updated_at: Date.now(),
         local_image: "",
         cdn_image: "",
+        plot_group: null,
+        observations: []
     }
     return details
 }

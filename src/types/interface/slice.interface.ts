@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -255,7 +255,6 @@ export interface MonitoringPlot {
   length: number
   width: number
   name: string
-  plot_groups: PlotGroups[]
   location: InterventionLocation
   coords: {
     type: 'Point',
@@ -272,6 +271,8 @@ export interface MonitoringPlot {
   plot_updated_at: number,
   local_image: string,
   cdn_image: string,
+  plot_group?: any,
+  observations: PlotObservation[]
 }
 
 
@@ -288,4 +289,15 @@ export interface PlantedPlotSpecies {
   is_alive: boolean
   type: PLOT_PLANT
   details_updated_at: number
+}
+
+
+
+
+export interface PlotObservation {
+  obs_id: string
+  type: OBSERVATION_TYPE
+  obs_date: number
+  value: number
+  unit: string
 }

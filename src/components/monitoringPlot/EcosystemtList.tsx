@@ -84,11 +84,15 @@ const dummyData = [
     },
 ]
 
-const EcosystemList = () => {
+interface Props {
+    plotID: string
+}
+
+const EcosystemList = ({ plotID }: Props) => {
     const [selectedLabel, setSelectedLabel] = useState('All 12')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleNav = () => {
-        navigation.navigate('AddPlantDetailsPlot')
+        navigation.navigate('AddObservationForm', { id: plotID })
     }
     return (
         <>
