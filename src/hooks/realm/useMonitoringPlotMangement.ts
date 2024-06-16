@@ -45,6 +45,7 @@ const useMonitoringPlotMangement = () => {
         plotData.length = data.length
         plotData.width = data.width
         plotData.radius = data.radius
+        plotData.lastScreen = 'details'
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -68,6 +69,7 @@ const useMonitoringPlotMangement = () => {
           type: 'Point',
           coordinates: [coordinate[0][0][0]]
         }
+        plotData.lastScreen = 'location'
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -109,6 +111,22 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const delteMonitoringPlot = async (plotID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
+        if (plot) {
+          realm.delete(plot);
+        }
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+
   const addNewMeasurmentPlantPlots = async (
     id: string,
     plantId: string,
@@ -147,7 +165,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

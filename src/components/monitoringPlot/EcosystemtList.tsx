@@ -8,87 +8,16 @@ import CustomButton from '../common/CustomButton'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { MonitoringPlot } from 'src/types/interface/slice.interface'
 
-const dummyData = [
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '112 kPa',
-        date: '1d ago',
-    },
-    {
-        type: 'canopy',
-        title: 'Canopy Cover',
-        value: '65%',
-        date: '6hrs ago',
-    },
-    {
-        type: 'bio',
-        title: 'Soil Moisture',
-        value: '65%',
-        date: '12d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Bioacustics',
-        value: 'not analysed',
-        date: '3d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '65%',
-        date: '6d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '90 kPa',
-        date: '2d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '112 kPa',
-        date: '1d ago',
-    },
-    {
-        type: 'canopy',
-        title: 'Canopy Cover',
-        value: '65%',
-        date: '6hrs ago',
-    },
-    {
-        type: 'bio',
-        title: 'Soil Moisture',
-        value: '65%',
-        date: '12d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Bioacustics',
-        value: 'not analysed',
-        date: '3d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '65%',
-        date: '6d ago',
-    },
-    {
-        type: 'soil',
-        title: 'Soil Moisture',
-        value: '90 kPa',
-        date: '2d ago',
-    },
-]
+
 
 interface Props {
     plotID: string
+    data: MonitoringPlot
 }
 
-const EcosystemList = ({ plotID }: Props) => {
+const EcosystemList = ({ plotID , data}: Props) => {
     const [selectedLabel, setSelectedLabel] = useState('All 12')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleNav = () => {
@@ -97,14 +26,18 @@ const EcosystemList = ({ plotID }: Props) => {
     return (
         <>
             <FlashList
-                renderItem={({ item }) => (<EcosystemCard item={item} />)} data={dummyData}
+                data={data.observations}
+                renderItem={({ item }) => (<EcosystemCard item={item} />)}
                 estimatedItemSize={100}
-                ListHeaderComponent={<EcosystemListHeader onPress={setSelectedLabel} selectedLabel={selectedLabel} />}
+                ListHeaderComponent={<EcosystemListHeader 
+                    item={data.observations}
+                    onPress={setSelectedLabel} selectedLabel={selectedLabel} />}
                 contentContainerStyle={styles.container} />
             <CustomButton
                 label="Add Observation"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
+                hideFadein
             />
         </>
     )

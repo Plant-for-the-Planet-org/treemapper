@@ -1,8 +1,8 @@
 import React from 'react'
 import { FlashList } from '@shopify/flash-list'
 import PlantPlotCards from './PlantPlotCards'
-import { StyleSheet, View } from 'react-native'
-import { Colors } from 'src/utils/constants'
+import { StyleSheet, Text, View } from 'react-native'
+import { Colors, Typography } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -26,6 +26,11 @@ const PlotPlantList = (props: Props) => {
     return (
         <View style={styles.container}>
             <FlashList
+                ListEmptyComponent={() => {
+                    return (<View style={styles.emptyWrapper}><Text style={styles.emptyLabel}>
+                        Start Adding plants
+                    </Text></View>)
+                }}
                 renderItem={({ item, index }) => (<PlantPlotCards item={item} handleSelection={handleSelection} index={index} />)}
                 data={plants} estimatedItemSize={100}
             />
@@ -51,5 +56,16 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
     },
+    emptyWrapper: {
+        width: '100%',
+        paddingTop: 100,
+        justifyContent: "center",
+        alignItems: 'center'
+    },
+    emptyLabel: {
+        color: Colors.GRAY_LIGHT,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        fontSize: 15
+    }
 })
 

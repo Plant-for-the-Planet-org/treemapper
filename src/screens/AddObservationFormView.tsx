@@ -56,7 +56,7 @@ const AddObeservationForm = () => {
     >(AllObservaiton[0])
     const [observationDate, setObservationDate] = useState(Date.now())
     const [value, setValue] = useState('')
-    const [unit, setUnit] = useState('')
+    const [unit, setUnit] = useState('kpa')
 
     const { addPlotObservation } = useMonitoringPlotMangement()
 
@@ -65,7 +65,6 @@ const AddObeservationForm = () => {
         value: OBSERVATION_TYPE
         index: number
     }) => {
-
         if (d.value === 'SOIL_MOISTURE') {
             setUnit('kpa')
         }

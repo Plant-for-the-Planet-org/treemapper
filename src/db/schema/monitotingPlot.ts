@@ -12,6 +12,7 @@ export const MonitoringPlot: ObjectSchema = {
     shape: { type: 'string' },
     type: { type: 'string' },
     radius: { type: 'double' },
+    name: { type: 'string' },
     length: { type: 'double' },
     width: { type: 'double' },
     location: `${RealmSchema.Polygon}`,

@@ -119,7 +119,7 @@ const CreatePlotMapDetail = (props: Props) => {
   const continueForm = async () => {
     const result = await updatePlotLocation(plotId, plotCoordinates)
     if (result) {
-      navigation.navigate("PlotDetails", { id: plotId })
+      navigation.replace("PlotDetails", { id: plotId })
     } else {
       toast.show('Error showing result')
     }

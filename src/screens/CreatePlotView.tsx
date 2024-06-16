@@ -28,7 +28,7 @@ const CreatePlotView = () => {
         const details = newPlotDetails(plotShape, plotType, plotComplexity)
         const result = await initateNewPlot(details)
         if (result) {
-            navigation.navigate('CreatePlotDetail', { id: details.plot_id })
+            navigation.replace('CreatePlotDetail', { id: details.plot_id })
         } else {
             toast.show("Error while cretaing plots")
         }

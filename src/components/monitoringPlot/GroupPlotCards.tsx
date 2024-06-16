@@ -1,7 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-import EditPenIcon from 'assets/images/svg/EditPenIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
@@ -26,9 +25,6 @@ const GroupPlotCards = (props: Props) => {
                     </View>
                 </View>
                 <View style={styles.plotDetailsWrapper}>
-                    <View style={styles.avatar}>
-                        <EditPenIcon width={15} height={15} fill={Colors.TEXT_LIGHT}/>
-                    </View>
                     <View style={styles.avatar}>
                         <BinIcon width={18} height={18} fill={Colors.TEXT_LIGHT}/>
                     </View>
@@ -101,7 +97,7 @@ const styles = StyleSheet.create({
     },
     plotDetailsWrapper: {
         flexDirection: 'row',
-        width: '30%',
+        width: '20%',
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center'

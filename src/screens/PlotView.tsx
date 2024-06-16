@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import PlotList from 'src/components/monitoringPlot/PlotList'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -15,25 +15,30 @@ import Popover from 'react-native-popover-view';
 
 
 const PlotView = () => {
-
+  const [popupVisible, setPopupVisible] = useState(false)
   const plotData = useQuery<MonitoringPlot>(
     RealmSchema.MonitoringPlot,
     data => {
-      return data
+      return data.filtered("lastScreen != 'form'")
     },
   )
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const addGroups = () => {
+    tooglePopup()
     navigation.navigate('PlotGroup')
   }
 
+  const tooglePopup = () => {
+    setPopupVisible(!popupVisible)
+  }
 
 
 
   const renderIcon = () => {
     return <Popover
+      isVisible={popupVisible}
       backgroundStyle={{ opacity: 0 }}
       popoverStyle={{
         borderColor: Colors.GRAY_LIGHT,
@@ -44,11 +49,12 @@ const PlotView = () => {
         elevation: 2,
         borderRadius: 8,
       }}
+      onRequestClose={tooglePopup}
       from={(
-        <Pressable onPress={addGroups} style={styles.rightContainer}><AddIcon width={16} height={16} /></Pressable>
+        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} /></Pressable>
       )}>
       <View style={styles.popOverWrapper}>
-        <Text style={styles.menuLabel}>Plot Group</Text>
+        <Pressable onPress={addGroups}><Text style={styles.menuLabel}>Plot Group</Text></Pressable>
       </View>
 
     </Popover>

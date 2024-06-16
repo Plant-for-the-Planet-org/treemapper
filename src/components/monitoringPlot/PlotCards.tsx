@@ -1,6 +1,5 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-// import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
@@ -8,24 +7,36 @@ import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
     item: MonitoringPlot | any
-    handleSelection: (id:string) => void
+    handleSelection: (id: string, lastScreen: string) => void
 }
 
 const PlotCards = (props: Props) => {
     const { handleSelection, item } = props;
+
+    const renderLabel = () => {
+        let l = ''
+        if (item.complexity === 'SIMPLE') l += "Simple"
+        if (item.complexity === 'STANDARD') l += "Standard"
+        if (item.type === 'CONTROL') l += " Control"
+        if (item.type === 'INTERVENTION') l += " Intervention"
+        return l + ' Plot'
+    }
+
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.wrapper} onPress={()=>{handleSelection(item.plot_id)}}>
-                {/* <Image source={item.image} style={styles.avatar}/> */}
-                <View style={styles.avatar} />
+            <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.plot_id, item.lastScreen) }}>
+                <Image source={{ uri: item.local_image }} style={styles.avatar} />
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.idLabel}>{item.name}</Text>
+                        {item.lastScreen !== 'location' && <View style={styles.sectionHeader}>
+                            <Text style={styles.chipLabel}>Incomplete</Text>
+                        </View>}
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{item.length}</Text>
+                        <Text style={styles.planetedLabel}>{renderLabel()}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        {/* <Text style={styles.planetedLabel}>{item.}</Text> */}
+                        <Text style={styles.planetedLabel}>{item.observations.length} obs.</Text>
                     </View>
                     <Text style={styles.speciesLabel}>{formatRelativeTimeCustom(item.plot_created_at)}</Text>
                 </View>
@@ -33,7 +44,7 @@ const PlotCards = (props: Props) => {
                     <Text style={styles.plotTitle}>Las Americas 7 Vertisols</Text>
                 </View>}
             </TouchableOpacity>
-        </View>
+        </View >
     )
 }
 
@@ -67,7 +78,20 @@ const styles = StyleSheet.create({
     sectionHeader: {
         width: '100%',
         alignItems: 'center',
-        flexDirection: 'row'
+        flexDirection: 'row',
+    },
+    incompleteChip: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: "#FCF4DB"
+    },
+    chipLabel: {
+        fontSize: 10,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        letterSpacing: 0.2,
+        paddingHorizontal: 10,
+        paddingVertical: 5,
+        color: "#F39F53"
     },
     avatar: {
         width: 70,
@@ -89,7 +113,7 @@ const styles = StyleSheet.create({
         color: Colors.DARK_TEXT_COLOR
     },
     planetedLabel: {
-        fontSize: 12,
+        fontSize: 11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT
     },

@@ -40,7 +40,7 @@ export default GroupPlotList
 const styles = StyleSheet.create({
     container: {
         backgroundColor: Colors.BACKDROP_COLOR,
-        paddingTop: 20
+        paddingTop: 10
     },
     btnContainer: {
         width: '100%',

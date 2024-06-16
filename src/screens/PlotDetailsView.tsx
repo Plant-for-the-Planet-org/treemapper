@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React, { useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotDetailsHeader from 'src/components/monitoringPlot/PlotDetailsHeader'
@@ -31,11 +31,13 @@ const PlotDetailsView = () => {
             <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''} />
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
+            <View style={styles.mainSection}>
             {selectedIndex === 0 && <>
                 <PlotPlantSearch />
                 <PlotPlantList plants={plot_plants} plotID={plotID} /></>}
-            {selectedIndex === 1 && <EcosystemList plotID={plotID} />}
+            {selectedIndex === 1 && <EcosystemList plotID={plotID} data={monitoringPlot}/>}
             {selectedIndex === 2 && <PlotMapDisplay />}
+            </View>
             <EidPlantModal
                 isVisible={showEdit}
                 toogleModal={() => { setShowEdit(false) }}
@@ -51,4 +53,8 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.WHITE
     },
+    mainSection:{
+        flex: 1,
+        backgroundColor: Colors.BACKDROP_COLOR 
+    }
 })

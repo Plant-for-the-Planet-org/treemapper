@@ -15,8 +15,20 @@ interface Props {
 const PlotList = (props: Props) => {
     const { data } = props
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const handleSelection = (id: string) => {
-        navigation.navigate('PlotDetails', { id })
+    const handleSelection = (id: string, lastScreen: string) => {
+        if (lastScreen === 'form') {
+            navigation.navigate('CreatePlotDetail', { id })
+            return
+        }
+
+        if (lastScreen === 'details') {
+            navigation.navigate('CreatePlotMap', { id })
+            return
+        }
+        if (lastScreen === 'location') {
+            navigation.navigate('PlotDetails', { id })
+            return
+        }
     }
     return (
         <FlashList
@@ -32,7 +44,8 @@ export default PlotList
 const styles = StyleSheet.create({
     container: {
         backgroundColor: Colors.BACKDROP_COLOR,
-        paddingTop: 20
+        paddingTop: 10,
+        paddingBottom: 100
     }
 })
 

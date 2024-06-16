@@ -7,24 +7,33 @@ import BioacusticsIcon from 'assets/images/svg/BioacusticsIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
+import { PlotObservation } from 'src/types/interface/slice.interface'
+import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
-    item: any
+    item: PlotObservation | any
 }
 
 const EcosystemCard = (props: Props) => {
-    const { type, title, value, date } = props.item;
-
+    const { type, value, unit, obs_date } = props.item;
     const renderIcon = () => {
         switch (type) {
-            case 'soil':
+            case 'SOIL_MOISTURE':
                 return <SoilMoistureIcon />
-            case 'bio':
+            case 'BIOACUSTICS':
                 return <BioacusticsIcon />
-            case 'canopy':
+            case 'CANOPY':
                 return <CanopyCoverIcon />
             default:
                 return <CanopyCoverIcon />
         }
+    }
+
+    const render = () => {
+        let l = ''
+        if (type === 'SOIL_MOISTURE') l = "Soil Moisture"
+        if (type === 'CANOPY') l = "Canopy"
+        if (type === 'BIOACUSTICS') l = "Bioacustics"
+        return l
     }
 
     return (
@@ -35,12 +44,12 @@ const EcosystemCard = (props: Props) => {
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>{title}</Text>
+                        <Text style={styles.idLabel}>{render()}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{date}</Text>
+                        <Text style={styles.planetedLabel}>{formatRelativeTimeCustom(obs_date)}</Text>
                         <DividerDot width={18} height={18} size={18} color={Colors.TEXT_LIGHT} />
-                        <Text style={styles.planetedLabel}>{value}</Text>
+                        <Text style={styles.planetedLabel}>{value}{unit}</Text>
                     </View>
                 </View>
             </View>
@@ -55,16 +64,17 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'center',
     },
     wrapper: {
-        width: '95%',
+        width: '90%',
         flexDirection: 'row',
         alignItems: 'center',
-        paddingVertical: 10,
+        paddingVertical: 15,
         backgroundColor: Colors.WHITE,
         marginVertical: 5,
-        borderRadius: 10
+        borderRadius: 10,
+
     },
     sectionWrapper: {
         flex: 1,

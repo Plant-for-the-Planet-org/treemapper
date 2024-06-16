@@ -2,17 +2,18 @@ import { FlatList, Pressable, StyleSheet, Text } from 'react-native'
 import React from 'react'
 
 import { Colors, Typography } from 'src/utils/constants'
+import { PlotObservation } from 'src/types/interface/slice.interface'
 
 interface Props {
-    item?: any,
+    item: PlotObservation[],
     selectedLabel: string
     onPress: (s: string) => void
 }
 
-const dummyData = ['All 12', '4 Canopy Cover', '2 Bioacustics', '3 Soil Mositure'];
 
 const EcosystemListHeader = (props: Props) => {
-    const { selectedLabel, onPress } = props;
+
+    const { selectedLabel, onPress, item } = props;
     const selectedTextStyle = {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.WHITE
@@ -29,22 +30,52 @@ const EcosystemListHeader = (props: Props) => {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR
     }
+    const canopyLength = item.filter(el => el.type === 'CANOPY').length
+    const soilMoistureLength = item.filter(el => el.type === 'SOIL_MOISTURE').length
+    const bioacusticsLength = item.filter(el => el.type === 'BIOACUSTICS').length
 
 
+    const headerData = [{
+        key: 'all',
+        label: `All ${item.length}`,
+        hide: false
+    },
+    {
+        key: 'canopy',
+        label: `${canopyLength} Canopy Cover`,
+        hide: canopyLength === 0
+    },
+    {
+        key: 'soil_moisture',
+        label: `${soilMoistureLength} Soil Moisture`,
+        hide: soilMoistureLength === 0
+
+    },
+    {
+        key: 'bioacustics',
+        label: `${bioacusticsLength} Bioacustics`,
+        hide: bioacusticsLength === 0
+
+    }
+    ]
     return (
         <FlatList
-            data={dummyData}
+            data={headerData}
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.container}
             renderItem={({ item }) => {
+                if (item.hide) {
+                    return null
+                }
                 return (
-                    <Pressable style={[styles.sectionWrapper, selectedLabel === item ? selectedWrapper : unslectedTextWrapper]} onPress={() => {
-                        onPress(item)
+                    <Pressable style={[styles.sectionWrapper, selectedLabel === item.key ? selectedWrapper : unslectedTextWrapper]} onPress={() => {
+                        onPress(item.key)
                     }}>
-                        <Text style={[styles.sectionHeader, selectedLabel === item ? selectedTextStyle : unslectedTextStyle]}>{item}</Text>
+                        <Text style={[styles.sectionHeader, selectedLabel === item.key ? selectedTextStyle : unslectedTextStyle]}>{item.label}</Text>
                     </Pressable>
                 )
+
             }} />
     )
 }
