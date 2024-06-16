@@ -17,7 +17,7 @@ import { useToast } from 'react-native-toast-notifications'
 
 const CreatePlotView = () => {
     const [plotType, setPlotType] = useState<PLOT_TYPE | any>('INTERVENTION');
-    const [plotShape, setPlotShape] = useState<PLOT_SHAPE | any>('RECTANGULAR');
+    const [plotShape, setPlotShape] = useState<PLOT_SHAPE | any>('CIRCULAR');
     const [plotComplexity, setPlotComplexity] = useState<PLOT_COMPLEXITY | any>('STANDARD');
 
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()

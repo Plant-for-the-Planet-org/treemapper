@@ -4,29 +4,30 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
+import { PlotGroups } from 'src/types/interface/slice.interface'
 interface Props {
-    item: any
-    handleSelection: () => void
+    item: PlotGroups | any
+    handleSelection: (gid: string) => void
 }
 
 const GroupPlotCards = (props: Props) => {
-    const { handleSelection } = props;
+    const { handleSelection, item } = props;
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.wrapper} onPress={handleSelection}>
+            <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.group_id) }}>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>Americas 7 Vertisols</Text>
+                        <Text style={styles.idLabel}>{item.name}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>6 interventin plots</Text>
+                        <Text style={styles.planetedLabel}>interventin plots</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
                         <Text style={styles.planetedLabel}>5 control plots</Text>
                     </View>
                 </View>
                 <View style={styles.plotDetailsWrapper}>
                     <View style={styles.avatar}>
-                        <BinIcon width={18} height={18} fill={Colors.TEXT_LIGHT}/>
+                        <BinIcon width={18} height={18} fill={Colors.TEXT_LIGHT} />
                     </View>
                 </View>
             </TouchableOpacity>

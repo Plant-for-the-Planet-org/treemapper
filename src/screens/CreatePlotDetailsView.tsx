@@ -61,7 +61,7 @@ const CreatePlotDetailsView = () => {
             length: Number(plotLength),
             width: Number(plotWidth),
             radius: Number(plotRadius),
-            group: []
+            group: null
         }
         const result = await updatePlotDetails(plotID, data)
         if (result) {

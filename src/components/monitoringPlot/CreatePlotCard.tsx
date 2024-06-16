@@ -2,8 +2,6 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
-import BouncyCheckbox from "react-native-bouncy-checkbox";
-import { SCALE_18 } from 'src/utils/constants/spacing';
 import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from 'src/types/type/app.type';
 
 
@@ -27,7 +25,7 @@ const CreatePlotCard = (props: Props) => {
     const isCheckedOne = selectedValue === labelOne.key
     return (
         <View style={styles.container}>
-            <View style={styles.wrapper}>
+            <View style={[styles.wrapper, { backgroundColor: disabled ? Colors.GRAY_LIGHT : Colors.WHITE }]}>
                 {disabled && <View style={styles.comingSoonWrapper}>
                     <Text style={styles.comingSoonLabel}>Coming Soon</Text>
                 </View>}
@@ -37,39 +35,28 @@ const CreatePlotCard = (props: Props) => {
                 <View style={styles.checkWrapper}>
                     <Pressable style={styles.selectWrapper} onPress={
                         () => {
-                            onSelect(labelOne.key)
+                            if (!disabled) {
+                                onSelect(labelOne.key)
+                            }
                         }
                     }>
-                        <BouncyCheckbox
-                            disabled={disabled}
-                            size={SCALE_18} fillColor={disabled ? Colors.LIGHT_BORDER_COLOR : Colors.NEW_PRIMARY}
-                            unFillColor={disabled ? Colors.GRAY_LIGHT : Colors.WHITE}
-                            style={styles.checkBox}
-                            isChecked={isCheckedOne}
-                            onPress={
-                                () => {
-                                    onSelect(labelOne.key)
-                                }
-                            }
-                        />
-                        <Text style={[styles.checkBoxLable, { color: isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
+                        <View style={[styles.outerCircle, { borderColor: isCheckedOne && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
+                            {isCheckedOne && !disabled ? <View style={styles.innerCircle}></View> : null}
+                        </View>
+                        <Text style={[styles.checkBoxLable, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelOne.value}
                         </Text>
                     </Pressable>
                     <Pressable style={styles.selectWrapper} onPress={
                         () => {
-                            onSelect(labelTwo.key)
+                            if (!disabled) {
+                                onSelect(labelTwo.key)
+                            }
                         }
                     }>
-                        <BouncyCheckbox disabled={disabled}
-                            unFillColor={disabled ? Colors.GRAY_LIGHT : Colors.WHITE}
-                            isChecked={!isCheckedOne}
-                            
-                            size={SCALE_18} fillColor={disabled ? Colors.LIGHT_BORDER_COLOR : Colors.NEW_PRIMARY} style={styles.checkBox}
-                            onPress={() => {
-                                onSelect(labelTwo.key)
-                            }}
-                        />
+                        <View style={[styles.outerCircle, { borderColor: !isCheckedOne ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
+                            {!isCheckedOne && <View style={styles.innerCircle}></View>}
+                        </View>
                         <Text style={[styles.checkBoxLable, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelTwo.value}
                         </Text>
@@ -108,7 +95,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 0,
         right: '6%',
-        backgroundColor: Colors.NEW_PRIMARY + '1A',
+        backgroundColor: Colors.GRAY_BACKDROP,
         justifyContent: 'center',
         alignItems: 'center',
         paddingHorizontal: 10,
@@ -119,12 +106,12 @@ const styles = StyleSheet.create({
     comingSoonLabel: {
         fontSize: scaleFont(10),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.NEW_PRIMARY
+        color: Colors.TEXT_LIGHT
     },
     headerLabel: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_COLOR
+        color: Colors.TEXT_LIGHT
     },
     checkWrapper: {
         width: '100%',
@@ -137,8 +124,23 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         flex: 1
     },
+    outerCircle: {
+        width: 20,
+        height: 20,
+        justifyContent: "center",
+        alignItems: 'center',
+        borderRadius: 20,
+        borderWidth: 1,
+        borderColor: Colors.TEXT_COLOR
+    },
+    innerCircle: {
+        width: 12,
+        height: 12,
+        borderRadius: 20,
+        backgroundColor: Colors.NEW_PRIMARY
+    },
     checkBoxLable: {
-        fontSize: scaleFont(17),
+        fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,
         paddingHorizontal: 10

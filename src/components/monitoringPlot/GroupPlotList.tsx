@@ -8,21 +8,33 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import GroupPlotCards from './GroupPlotCards'
 import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from '../common/CustomButton'
+import { PlotGroups } from 'src/types/interface/slice.interface'
+import { useQuery } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 
 
 const GroupPlotList = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const handleSelection = () => {
-        navigation.navigate('AddRemeasurment')
+    const handleSelection = (gid: string) => {
+        navigation.navigate('AddPlotGroup', { isEdit: true, groupId: gid })
     }
     const handleNav = () => {
-        navigation.navigate('AddPlotDetails')
+        navigation.navigate('AddPlotGroup')
     }
+
+    const groupList = useQuery<PlotGroups>(
+        RealmSchema.PlotGroups,
+        data => {
+            return data
+        },
+    )
+
+
     return (
         <>
             <FlashList
                 renderItem={({ item }) => (<GroupPlotCards item={item} handleSelection={handleSelection} />)}
-                data={[1, 2, 3, 4, 5]} estimatedItemSize={100}
+                data={groupList} estimatedItemSize={100}
                 contentContainerStyle={styles.container}
             />
             <CustomButton

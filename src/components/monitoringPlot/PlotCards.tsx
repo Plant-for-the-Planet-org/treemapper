@@ -110,12 +110,13 @@ const styles = StyleSheet.create({
     dateLabel: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        color: Colors.DARK_TEXT_COLOR
+        color: Colors.TEXT_LIGHT
     },
     planetedLabel: {
         fontSize: 11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        color: Colors.DARK_TEXT
+        color: Colors.TEXT_LIGHT,
+        letterSpacing:0.2
     },
     speciesLabel: {
         fontSize: 10,

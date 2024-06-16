@@ -243,8 +243,9 @@ export interface PlotGroups {
   name: string,
   group_id: string,
   date_created: number
+  details_updated_at: number
+  plots: MonitoringPlot[]
 }
-
 
 export interface MonitoringPlot {
   plot_id: string

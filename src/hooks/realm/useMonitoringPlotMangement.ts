@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotObservation } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotGroups, PlotObservation } from 'src/types/interface/slice.interface'
 
 
 export interface PlotDetailsParams {
@@ -163,9 +163,43 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const createNewPlotGroup = async (
+    groupDetails: PlotGroups,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        realm.create(
+          RealmSchema.PlotGroups,
+          groupDetails,
+          Realm.UpdateMode.All,
+        )
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const editGroupName = async (
+    id: string,
+    name: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, id);
+        groupData.name = name
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
-  return { delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+
+  return { editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

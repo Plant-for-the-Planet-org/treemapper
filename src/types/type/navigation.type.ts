@@ -45,8 +45,10 @@ export type RootStackParamList = {
   AddPlantDetailsPlot: AddPlantDetailsPlot
   AddPlotDetails: undefined
   MonitoringInfo: undefined
-  AddRemeasurment:PlotPlantDetails
+  AddRemeasurment: PlotPlantDetails
   PlotGroup: undefined
+  AddPlotGroup: AddPlotGroup,
+  AddPlotsToGroup: AddPlotsToGroup
 }
 
 type SpeciesInfoView = {
@@ -120,7 +122,7 @@ type CreatePlotDetails = {
   id: string
 }
 type CreatePlotMap = {
-  id: string,  
+  id: string,
 }
 type PlotDetails = {
   id: string
@@ -138,4 +140,13 @@ type PlotPlantDetails = {
 
 type AddObservation = {
   id: string
+}
+
+type AddPlotGroup = {
+  isEdit: boolean,
+  groupId: string
+}
+
+type AddPlotsToGroup = {
+  groupId: string
 }
