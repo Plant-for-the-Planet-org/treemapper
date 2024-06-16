@@ -12,6 +12,7 @@ import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import BouncyCheckbox from 'react-native-bouncy-checkbox/build/dist/BouncyCheckbox'
+import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 
 const AddPlotToGroupView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -19,10 +20,10 @@ const AddPlotToGroupView = () => {
     const [groupPlots, setGroupPlots] = useState<string[]>([])
     const [groupName, setGroupName] = useState<string>('')
     const [plotList, setPlotList] = useState<MonitoringPlot[] | any>([])
-    console.log("KLsdc", groupPlots)
     const groupId = route.params && route.params.groupId ? route.params.groupId : ''
     const toast = useToast()
     const realm = useRealm()
+    const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotMangement()
 
     useEffect(() => {
         if (groupId) {
@@ -53,7 +54,26 @@ const AddPlotToGroupView = () => {
             toast.show("No plot details found")
         }
     }
+
+    const isPlotPresent = (id: string) => {
+        return groupPlots.includes(id)
+    }
+
+    const updateCheck = async (item: MonitoringPlot) => {
+        if (!groupPlots.includes(item.plot_id)) {
+            await addPlotToGroup(groupId, item)
+            setGroupPlots([...groupPlots, item.plot_id])
+        } else {
+            await removePlotFromGroup(groupId, item.plot_id)
+            setGroupPlots([...groupPlots.filter(el => el !== item.plot_id)])
+
+        }
+    }
+
+
+
     const renderCardItems = (item: MonitoringPlot, index: number) => {
+        const shouldCheck = isPlotPresent(item.plot_id)
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotList.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
                 <Text style={styles.cardheader}>{item.name}</Text>
@@ -64,13 +84,13 @@ const AddPlotToGroupView = () => {
                     size={25}
                     fillColor={Colors.NEW_PRIMARY}
                     unFillColor={Colors.WHITE}
-                    innerIconStyle={{ borderWidth: 2, borderColor: Colors.TEXT_LIGHT, borderRadius: 5, margin: 0 }}
+                    innerIconStyle={{ borderWidth: 2, borderColor: shouldCheck ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT, borderRadius: 5, margin: 0 }}
                     iconStyle={{ borderWidth: 2, borderColor: Colors.NEW_PRIMARY, borderRadius: 5, margin: 0 }}
                     onPress={() => {
-                        // changeInterventionFilter(el.key)
+                        updateCheck(item)
                     }}
                     style={{ width: 30 }}
-                    isChecked={false}
+                    isChecked={shouldCheck}
                 />
             </View>
         </View>)

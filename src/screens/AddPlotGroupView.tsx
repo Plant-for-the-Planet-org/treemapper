@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -15,6 +15,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import GrouplistPlot from 'src/components/monitoringPlot/GrouplistPlot'
 
 const AddPlotGroup = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotGroup'>>()
@@ -80,11 +81,6 @@ const AddPlotGroup = () => {
         }
     }
 
-    const renderCardItems = (item: any) => {
-        console.log("c", item)
-        return null
-    }
-
     return (
         <SafeAreaView style={styles.container}>
             <Header label={`${isEdiatble ? "Edit" : "Add"} Plot Group`} />
@@ -97,15 +93,12 @@ const AddPlotGroup = () => {
                     defaultValue={groupName}
                     trailingtext={''} errMsg={''} />
             </View>
-            <FlatList data={[]} renderItem={({ item }) => renderCardItems(item)} ListEmptyComponent={() => {
-                return (
-                    <View style={styles.emptyWrapper}>
-                        <Text style={styles.emptyLabel}>
-                            {isEdiatble ? "Start adding plot's to \nthis group" : "Create group to add plots."}
-                        </Text>
-                    </View>
-                )
-            }} />
+            {gID && <GrouplistPlot gid={gID} />}
+            {!isEdiatble && <View style={styles.emptyWrapper}>
+                <Text style={styles.emptyLabel}>
+                    Create Group and start {'\n'} adding plots
+                </Text>
+            </View>}
             <CustomButton
                 label={isEdiatble ? 'Add Plot' : 'Create Group'}
                 containerStyle={styles.btnContainer}
@@ -127,7 +120,7 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         flex: 1,
-        width: '90%',
+        width: '100%',
         justifyContent: 'center',
     },
     inputWrapper: {

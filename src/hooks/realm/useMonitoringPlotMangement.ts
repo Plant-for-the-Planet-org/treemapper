@@ -197,9 +197,43 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const addPlotToGroup = async (
+    gid: string,
+    plot: MonitoringPlot,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
+        groupData.plots.push(plot);
+        groupData.details_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const removePlotFromGroup = async (
+    gid: string,
+    plot_id: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
+        groupData.plots = groupData.plots.filter(el => el.plot_id !== plot_id)
+        groupData.details_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
 
 
-  return { editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+
+  return { removePlotFromGroup,addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement
