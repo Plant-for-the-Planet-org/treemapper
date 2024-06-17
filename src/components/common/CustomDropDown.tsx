@@ -12,10 +12,11 @@ interface Props {
   onSelect: (data: DropdownData) => void
   selectedValue: DropdownData
   whiteBG?: boolean
+  position?: "auto" | "bottom" | "top"
 }
 
 const CustomDropdownComponent = (props: Props) => {
-  const { label, data, onSelect, selectedValue, whiteBG = false } = props
+  const { label, data, onSelect, selectedValue, whiteBG = false, position="auto" } = props
   const [isFocus, setIsFocus] = useState(false)
   const [value, setSelectedValue] = useState(selectedValue)
 
@@ -57,6 +58,7 @@ const CustomDropdownComponent = (props: Props) => {
         renderRightIcon={() => <SelectIcon />}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         containerStyle={styles.listContainer}
+        dropdownPosition={position}
         itemTextStyle={styles.itemTextStyle}
       />
     </View>

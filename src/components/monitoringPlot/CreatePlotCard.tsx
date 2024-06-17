@@ -111,7 +111,8 @@ const styles = StyleSheet.create({
     headerLabel: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_LIGHT
+        color: Colors.TEXT_LIGHT,
+        marginBottom:10
     },
     checkWrapper: {
         width: '100%',
@@ -125,8 +126,8 @@ const styles = StyleSheet.create({
         flex: 1
     },
     outerCircle: {
-        width: 20,
-        height: 20,
+        width: 18,
+        height: 18,
         justifyContent: "center",
         alignItems: 'center',
         borderRadius: 20,
@@ -134,8 +135,8 @@ const styles = StyleSheet.create({
         borderColor: Colors.TEXT_COLOR
     },
     innerCircle: {
-        width: 12,
-        height: 12,
+        width: 10,
+        height: 10,
         borderRadius: 20,
         backgroundColor: Colors.NEW_PRIMARY
     },
