@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, } from 'react-native'
+import { Pressable, StyleSheet, Text, View, } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef } from 'react'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
@@ -7,22 +7,29 @@ import CustomDropDown from '../common/CustomDropDown'
 import EditDimension from 'assets/images/svg/EditDimension.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import EditPend from 'assets/images/svg/EditPenIcon.svg'
+import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 
 
 interface Props {
   isVisible: boolean
   toogleModal: () => void
+  plotId: string
 }
 
 const EidPlantModal = (props: Props) => {
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+  const { delteMonitoringPlot } = useMonitoringPlotMangement()
   const { dismiss } = useBottomSheetModal()
   // variables
   const snapPoints = useMemo(() => ['40%'], []);
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const { isVisible, toogleModal } = props
+  const { isVisible, toogleModal, plotId } = props
   useEffect(() => {
     if (isVisible) {
       handlePresentModalPress()
@@ -38,6 +45,11 @@ const EidPlantModal = (props: Props) => {
   const closeModal = () => {
     dismiss()
     toogleModal()
+  }
+
+  const deleteHandler = async () => {
+    navigation.goBack()
+    await delteMonitoringPlot(plotId)
   }
 
   return (
@@ -83,10 +95,10 @@ const EidPlantModal = (props: Props) => {
               <EditDimension width={18} height={18} />
               <Text style={styles.cardLabel}> Edit Plot Dimension</Text>
             </View>
-            <View style={styles.optionCard}>
-              <BinIcon width={18} height={18} fill={Colors.NEW_PRIMARY} />
-              <Text style={styles.cardLabel}> Edit Name</Text>
-            </View>
+            <Pressable style={styles.optionCard} onPress={deleteHandler}>
+              <BinIcon width={18} height={18} fill={'tomato'} />
+              <Text style={styles.cardLabel}> Delete </Text>
+            </Pressable>
           </View>
         </View>
       </BottomSheetView>

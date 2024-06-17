@@ -17,6 +17,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type';
 import { useToast } from 'react-native-toast-notifications';
 import bbox from '@turf/bbox'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper';
+import { PlantedPlotSpecies } from 'src/types/interface/slice.interface';
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -32,16 +33,18 @@ interface Props {
   initialPolygon: Array<number[]>
   isMarking?: boolean
   plantId?: string
+  plnatedTrees?: PlantedPlotSpecies[]
 }
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId } = props
+  const { plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plnatedTrees } = props
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  console.log(plnatedTrees)
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updatePlotLocation, upatePlotPlantLocation } = useMonitoringPlotMangement()

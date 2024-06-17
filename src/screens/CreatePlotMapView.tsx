@@ -11,7 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useToast } from 'react-native-toast-notifications'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { MonitoringPlot } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
 import { PLOT_SHAPE } from 'src/types/type/app.type'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
@@ -30,7 +30,7 @@ const CreatePlotMapView = () => {
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
     const plantId = route.params && route.params.plantId ? route.params.plantId : ''
     const [initialPolygon, setInitalPloygon] = useState<any>([])
-
+    const [plnatedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
 
     useEffect(() => {
@@ -47,6 +47,7 @@ const CreatePlotMapView = () => {
             setPlotWidth(plotData.width)
             setPlotRadius(plotData.radius)
             setPlotName(plotData.name)
+            setPlantedTrees(plotData.plot_plants)
             if (markLocation) {
                 setInitalPloygon(JSON.parse(plotData.location.coordinates))
             }
@@ -67,6 +68,7 @@ const CreatePlotMapView = () => {
                 initialPolygon={initialPolygon}
                 isMarking={markLocation}
                 plantId={plantId}
+                plnatedTrees={plnatedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
             <UserlocationMarker />
         </SafeAreaView>
