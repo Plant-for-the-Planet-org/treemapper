@@ -11,6 +11,7 @@ import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import FadeBackground from './FadeBackground'
+import AddIcon from 'assets/images/svg/Addicon.svg'
 
 interface Props {
   label: string
@@ -22,6 +23,7 @@ interface Props {
   leftIcon?: React.ReactNode
   disable?: boolean
   hideFadein?: boolean
+  showAdd?: boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -34,7 +36,8 @@ const CustomButton = (props: Props) => {
     loading,
     leftIcon,
     disable,
-    hideFadein
+    hideFadein,
+    showAdd
   } = props
 
   const handlePress = () => {
@@ -61,7 +64,10 @@ const CustomButton = (props: Props) => {
         {loading ? (
           <ActivityIndicator color={Colors.WHITE} size="small" />
         ) : (
-          <Text style={[styles.lableStyle, { ...labelStyle }]}>{label}</Text>
+          <View style={styles.labelWrapper}>
+            {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} />}
+            <Text style={[styles.lableStyle, { ...labelStyle }]}>{label}</Text>
+          </View>
         )}
         {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
       </View>
@@ -89,7 +95,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
   lableStyle: {
-    fontSize: scaleFont(15),
+    fontSize: scaleFont(16),
     color: Colors.WHITE,
     letterSpacing: 0.2,
     fontFamily: Typography.FONT_FAMILY_BOLD,
@@ -97,5 +103,11 @@ const styles = StyleSheet.create({
   leftIconWrapper: {
     position: 'absolute',
     left: 20,
+  },
+  labelWrapper: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row'
   },
 })
