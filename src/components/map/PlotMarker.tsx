@@ -1,16 +1,17 @@
 import React from 'react'
 import Maplibre from '@maplibre/maplibre-react-native'
 import { PlantedPlotSpecies } from 'src/types/interface/slice.interface'
-import { View, StyleSheet } from 'react-native'
-import { Typography } from 'src/utils/constants'
+import { View, StyleSheet, Pressable } from 'react-native'
+import { Typography, Colors } from 'src/utils/constants'
 
 interface Props {
   sampleTreeData: PlantedPlotSpecies[]
-  onMarkerPress?: (index: number) => void
+  onMarkerPress?: (id: string) => void,
+  dynamic?: boolean,
 }
 
 const PlotMarker = (props: Props) => {
-  const { sampleTreeData } = props
+  const { sampleTreeData, onMarkerPress } = props
 
   const renderMarkers = () => {
     const filterdData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
@@ -22,9 +23,9 @@ const PlotMarker = (props: Props) => {
         }
         id={String(i)}
         key={i}>
-        <View style={styles.container}>
-          <View style={styles.markerContainer} />
-        </View>
+        <Pressable style={styles.container} onPress={() => { onMarkerPress(el.plot_plant_id) }}>
+          <View style={[styles.markerContainer, { backgroundColor: !el.is_alive ? Colors.TEXT_LIGHT : el.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]} />
+        </Pressable>
       </Maplibre.MarkerView>
     ))
   }

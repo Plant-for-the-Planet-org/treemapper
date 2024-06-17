@@ -66,6 +66,7 @@ const AddRemeasurmentView = () => {
                     return 'Tree Planted'
             }
         }
+        
         return (
             <View style={styles.cardContainer}>
                 <View style={styles.iconWrapper}>

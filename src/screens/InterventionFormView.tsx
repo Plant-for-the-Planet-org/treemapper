@@ -83,7 +83,7 @@ const InterventionFormView = () => {
       // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
-  })
+  }, [])
 
   const setUpRegisterFlow = async () => {
     await createBasePath()
@@ -389,7 +389,7 @@ const styles = StyleSheet.create({
     width: '98%',
     marginTop: 10,
     flex: 1,
-    paddingBottom:50
+    paddingBottom: 50
   },
   btnContainer: {
     width: '100%',

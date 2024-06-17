@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 
@@ -8,10 +8,20 @@ import { PlotGroups } from 'src/types/interface/slice.interface'
 interface Props {
     item: PlotGroups | any
     handleSelection: (gid: string) => void
+    deleteGroup: (gid: string) => void
 }
 
 const GroupPlotCards = (props: Props) => {
-    const { handleSelection, item } = props;
+    const { handleSelection, item, deleteGroup } = props;
+    let interventionCount = 0;
+    let controlCount = 0;
+    item.plots.forEach(el => {
+        if (el.type === 'CONTROL') {
+            controlCount += 1
+        } else {
+            interventionCount += 1
+        }
+    })
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.group_id) }}>
@@ -20,15 +30,15 @@ const GroupPlotCards = (props: Props) => {
                         <Text style={styles.idLabel}>{item.name}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>interventin plots</Text>
-                        <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.planetedLabel}>5 control plots</Text>
+                        <Text style={styles.planetedLabel}>{interventionCount} interventin plot</Text>
+                        <DividerDot width={20} height={20} size={20} color={Colors.TEXT_LIGHT} />
+                        <Text style={styles.planetedLabel}>{controlCount} control plot</Text>
                     </View>
                 </View>
                 <View style={styles.plotDetailsWrapper}>
-                    <View style={styles.avatar}>
-                        <BinIcon width={18} height={18} fill={Colors.TEXT_LIGHT} />
-                    </View>
+                    <Pressable style={styles.avatar} onPress={() => { deleteGroup(item.group_id) }}>
+                        <BinIcon width={18} height={18} fill={Colors.TEXT_LIGHT} onPress={() => { deleteGroup(item.group_id) }} />
+                    </Pressable>
                 </View>
             </TouchableOpacity>
         </View>
@@ -87,9 +97,9 @@ const styles = StyleSheet.create({
         color: Colors.DARK_TEXT_COLOR
     },
     planetedLabel: {
-        fontSize: 12,
+        fontSize: 13,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        color: Colors.DARK_TEXT
+        color: Colors.TEXT_LIGHT
     },
     speciesLabel: {
         fontSize: 10,

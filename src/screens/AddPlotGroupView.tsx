@@ -88,7 +88,7 @@ const AddPlotGroup = () => {
                 <OutlinedTextInput
                     placeholder={`Group Name`}
                     changeHandler={handleGroupName}
-                    keyboardType={'decimal-pad'}
+                    keyboardType={'default'}
                     autoFocus
                     defaultValue={groupName}
                     trailingtext={''} errMsg={''} />
@@ -195,17 +195,18 @@ const styles = StyleSheet.create({
     },
     emptyWrapper: {
         flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center'
+        alignItems: 'center',
+        width: '100%',
+        height: '100%',
     },
     emptyLabel: {
         fontSize: 16,
-        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_COLOR,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
+        color: Colors.TEXT_LIGHT,
         width: '100%',
         textAlign: 'center',
-        marginTop: 100,
-        letterSpacing: 1
+        letterSpacing: 0.5,
+        marginTop: 100
     }
 
 })

@@ -11,6 +11,7 @@ import CustomButton from '../common/CustomButton'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 
 
 const GroupPlotList = () => {
@@ -18,6 +19,7 @@ const GroupPlotList = () => {
     const handleSelection = (gid: string) => {
         navigation.navigate('AddPlotGroup', { isEdit: true, groupId: gid })
     }
+    const { deletePlotGroup } = useMonitoringPlotMangement()
     const handleNav = () => {
         navigation.navigate('AddPlotGroup')
     }
@@ -29,11 +31,16 @@ const GroupPlotList = () => {
         },
     )
 
+    const deleteGroupData = (gid: string) => {
+        deletePlotGroup(gid)
+    }
 
     return (
         <>
             <FlashList
-                renderItem={({ item }) => (<GroupPlotCards item={item} handleSelection={handleSelection} />)}
+                renderItem={({ item }) => (<GroupPlotCards 
+                    deleteGroup={deleteGroupData}
+                    item={item} handleSelection={handleSelection} />)}
                 data={groupList} estimatedItemSize={100}
                 contentContainerStyle={styles.container}
             />
@@ -42,6 +49,7 @@ const GroupPlotList = () => {
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
                 hideFadein
+                showAdd
             />
         </>
     )
@@ -58,7 +66,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom: 50,
+        bottom: 10,
     },
 })
 

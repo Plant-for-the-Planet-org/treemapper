@@ -31,6 +31,7 @@ const PlotPlantList = (props: Props) => {
                         Start Adding plants
                     </Text></View>)
                 }}
+                ListFooterComponent={()=>{return(<View style={{width:'100%',height:100}}/>)}}
                 renderItem={({ item, index }) => (<PlantPlotCards item={item} handleSelection={handleSelection} index={index} />)}
                 data={plants} estimatedItemSize={100}
             />
@@ -38,6 +39,7 @@ const PlotPlantList = (props: Props) => {
                 label="Add Plants"
                 containerStyle={styles.btnContainer}
                 pressHandler={addMorePlants}
+                showAdd
             />
         </View>
     )
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
         alignItems: 'center'
     },
     emptyLabel: {
-        color: Colors.GRAY_LIGHT,
+        color: Colors.TEXT_LIGHT,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         fontSize: 15
     }

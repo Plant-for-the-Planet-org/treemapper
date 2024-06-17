@@ -1,12 +1,10 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
+import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { useToast } from 'react-native-toast-notifications'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
@@ -15,13 +13,11 @@ import BouncyCheckbox from 'react-native-bouncy-checkbox/build/dist/BouncyCheckb
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 
 const AddPlotToGroupView = () => {
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotsToGroup'>>()
     const [groupPlots, setGroupPlots] = useState<string[]>([])
     const [groupName, setGroupName] = useState<string>('')
     const [plotList, setPlotList] = useState<MonitoringPlot[] | any>([])
     const groupId = route.params && route.params.groupId ? route.params.groupId : ''
-    const toast = useToast()
     const realm = useRealm()
     const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotMangement()
 
@@ -40,18 +36,13 @@ const AddPlotToGroupView = () => {
             const getAllIds = data.plots.map(el => el.plot_id)
             setGroupPlots(getAllIds)
             setGroupName(data.name)
-        } else {
-            toast.show("No plot details found")
-            navigation.goBack()
         }
     }
 
     const getPlotList = () => {
-        const data = realm.objects(`${RealmSchema.MonitoringPlot}`);
+        const data = realm.objects(RealmSchema.MonitoringPlot).filtered("lastScreen != 'form'");
         if (data && data.length > 0) {
             setPlotList(data)
-        } else {
-            toast.show("No plot details found")
         }
     }
 
@@ -109,7 +100,7 @@ const AddPlotToGroupView = () => {
                             return (
                                 <View style={styles.emptyWrapper}>
                                     <Text style={styles.emptyLabel}>
-                                        {"No Plot's to show"}
+                                        No Plot's to show{'\n'}{'\n'}Start creating some plot
                                     </Text>
                                 </View>
                             )
@@ -152,7 +143,6 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
         width: '100%',
         textAlign: 'center',
-        marginTop: 100,
         letterSpacing: 1
     },
     flatListWrapper: {

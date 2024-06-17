@@ -148,6 +148,21 @@ const useMonitoringPlotMangement = () => {
     }
   };
 
+  const deletePlotGroup = async (gid: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
+        groupData.plots.forEach(el => {
+          el.plot_group = null
+        })
+        realm.delete(groupData);
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
   const addNewMeasurmentPlantPlots = async (
     id: string,
@@ -255,7 +270,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

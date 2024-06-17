@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR
     },
     speciesLabel: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_ITALIC,
         color: Colors.TEXT_COLOR
     },

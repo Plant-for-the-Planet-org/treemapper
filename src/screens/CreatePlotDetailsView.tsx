@@ -59,7 +59,7 @@ const CreatePlotDetailsView = () => {
             // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
             AvoidSoftInput.setShouldMimicIOSBehavior(false);
         };
-    })
+    }, [])
 
 
     const getPlotDetails = () => {
@@ -115,7 +115,7 @@ const CreatePlotDetailsView = () => {
                 return
             }
         }
-        if(plotImage===''){
+        if (plotImage === '') {
             toast.show("Please add Plot Image")
             return
         }

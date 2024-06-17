@@ -5,7 +5,7 @@ import { Colors } from 'src/utils/constants'
 
 
 const polyline: StyleProp<LineLayerStyle> = {
-  lineWidth: 2,
+  lineWidth: 4,
   lineOpacity: 1,
   lineJoin: 'bevel',
 }
@@ -23,14 +23,14 @@ const PlotShapeSource = (props: Props) => {
       <MapLibreGL.FillLayer
         id={'plot-polyfill'}
         style={{
-          fillOpacity: 0.5,
+          fillOpacity: 0.3,
           fillColor: Colors.MULTI_TREE
         }}
       />
       <MapLibreGL.LineLayer
         id={'plot-poline'}
         style={{
-          ...polyline, lineColor: Colors.MULTI_TREE
+          ...polyline, lineColor: Colors.NEW_PRIMARY
         }}
       />
     </MapLibreGL.ShapeSource>

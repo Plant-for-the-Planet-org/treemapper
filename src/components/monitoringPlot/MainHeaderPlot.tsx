@@ -14,10 +14,11 @@ interface Props {
     length: number
     radius: number
     plotID: string
+    obsCount: number
 }
 
 const MainHeaderPlot = (props: Props) => {
-    const { shape, width, length, radius, plotID } = props
+    const { shape, width, length, radius, plotID, obsCount } = props
     const metaData = () => {
         if (shape === 'CIRCULAR') {
             return `${radius}m`
@@ -41,7 +42,7 @@ const MainHeaderPlot = (props: Props) => {
                         <TallyIcon />
                     </View>
                     <Text style={styles.cardNote}>
-                        512 Obs
+                        {obsCount} Obs
                     </Text>
                 </View>
                 <View style={styles.cardWrapper}>

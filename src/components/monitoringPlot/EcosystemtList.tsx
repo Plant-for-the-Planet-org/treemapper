@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import { StyleSheet } from 'react-native'
 import { Colors } from 'src/utils/constants'
@@ -8,7 +8,7 @@ import CustomButton from '../common/CustomButton'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { MonitoringPlot } from 'src/types/interface/slice.interface'
+import { MonitoringPlot, PlotObservation } from 'src/types/interface/slice.interface'
 
 
 
@@ -17,19 +17,34 @@ interface Props {
     data: MonitoringPlot
 }
 
-const EcosystemList = ({ plotID , data}: Props) => {
-    const [selectedLabel, setSelectedLabel] = useState('All 12')
+const EcosystemList = ({ plotID, data }: Props) => {
+    const [selectedLabel, setSelectedLabel] = useState('all')
+    const [observationData, setObservationData] = useState<PlotObservation[]>([])
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleNav = () => {
         navigation.navigate('AddObservationForm', { id: plotID })
     }
+
+    useEffect(() => {
+        if (selectedLabel === 'all') {
+            setObservationData(data.observations)
+        }
+        if (selectedLabel === 'canopy') {
+            setObservationData(data.observations.filter(el => el.type === 'CANOPY'))
+        }
+        if (selectedLabel === 'soil_moisture') {
+            setObservationData(data.observations.filter(el => el.type === 'SOIL_MOISTURE'))
+        }
+    }, [selectedLabel])
+
+
     return (
         <>
             <FlashList
-                data={data.observations}
+                data={observationData}
                 renderItem={({ item }) => (<EcosystemCard item={item} />)}
                 estimatedItemSize={100}
-                ListHeaderComponent={<EcosystemListHeader 
+                ListHeaderComponent={<EcosystemListHeader
                     item={data.observations}
                     onPress={setSelectedLabel} selectedLabel={selectedLabel} />}
                 contentContainerStyle={styles.container} />

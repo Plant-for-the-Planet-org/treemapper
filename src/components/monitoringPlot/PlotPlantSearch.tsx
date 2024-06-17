@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
         paddingVertical:30,
     },
     searchBar: {
-        width:'80%',
+        width:'90%',
         flexDirection: 'row',
         alignItems: 'center',
         height: scaleSize(45),

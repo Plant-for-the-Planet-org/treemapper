@@ -15,6 +15,7 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { OBSERVATION_TYPE } from 'src/types/type/app.type'
 import Header from 'src/components/common/Header'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
+import { useToast } from 'react-native-toast-notifications'
 
 
 
@@ -59,7 +60,7 @@ const AddObeservationForm = () => {
     const [unit, setUnit] = useState('kpa')
 
     const { addPlotObservation } = useMonitoringPlotMangement()
-
+    const toast = useToast()
     const handleDropDown = (d: {
         label: string
         value: OBSERVATION_TYPE
@@ -76,6 +77,10 @@ const AddObeservationForm = () => {
 
 
     const submitHadler = async () => {
+        if (value.trim().length === 0) {
+            toast.show("Please add valid Plot Name")
+            return
+        }
         const obsDetails: PlotObservation = {
             obs_id: generateUniquePlotId(),
             type: type.value,
@@ -109,7 +114,7 @@ const AddObeservationForm = () => {
                     <OutlinedTextInput
                         placeholder={'Value'}
                         changeHandler={setValue}
-                        keyboardType={'default'}
+                        keyboardType={'decimal-pad'}
                         trailingtext={unit} errMsg={''} />
                 </View>
             </View>

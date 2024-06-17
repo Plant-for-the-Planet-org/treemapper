@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import Header from 'src/components/common/Header'
 import { Colors } from 'src/utils/constants'
@@ -18,6 +18,7 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { StackNavigationProp } from '@react-navigation/stack'
 import { useToast } from 'react-native-toast-notifications'
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 
 
 const AddPlantDetailsPlotView = () => {
@@ -44,10 +45,18 @@ const AddPlantDetailsPlotView = () => {
         return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientific_name}` : 'Select Species'
     }
 
+    useEffect(() => {
+        // This should be run when screen gains focus - enable the module where it's needed
+        AvoidSoftInput.setShouldMimicIOSBehavior(true);
+        return () => {
+            // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+            AvoidSoftInput.setShouldMimicIOSBehavior(false);
+        };
+    }, [])
     const submitHandler = async () => {
         const validWidth = validateNumber(width, 'width', 'width')
         const validHeight = validateNumber(height, 'height', 'height')
-        if (!validHeight.hasError) {
+        if (validHeight.hasError) {
             toast.show(validHeight.errorMessage)
             return
         }
@@ -55,7 +64,7 @@ const AddPlantDetailsPlotView = () => {
             toast.show(validWidth.errorMessage)
             return
         }
-        if (species) {
+        if (!species) {
             toast.show("Please select a species")
             return
         }
@@ -96,54 +105,58 @@ const AddPlantDetailsPlotView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Add Plant' />
-            <ScrollView>
-                <PlantPlotListModal isVisible={speciesModal} toogleModal={toogleSpeciesModal} setSpecies={setSpecies} />
-                <View style={styles.wrapper}>
-                    <PlaceHolderSwitch
-                        description={'This tree was planted'}
-                        selectHandler={setIsPlanted}
-                        value={isPlanted}
-                    />
-                    <InterventionDatePicker
-                        placeHolder={'Measurment Date'}
-                        value={mesaurmentDate}
-                        callBack={setIsMeasurmentDate}
-                    />
-                    <StaticOutlineInput placeHolder={'Species'} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
-                    <View style={styles.inputWrapper}>
-                        <OutlinedTextInput
-                            placeholder={'Height'}
-                            changeHandler={setHeight}
-                            keyboardType={'decimal-pad'}
-                            trailingtext={'m'} errMsg={''} />
+            <AvoidSoftInputView
+                avoidOffset={20}
+                style={styles.container}>
+                <ScrollView>
+                    <PlantPlotListModal isVisible={speciesModal} toogleModal={toogleSpeciesModal} setSpecies={setSpecies} />
+                    <View style={styles.wrapper}>
+                        <PlaceHolderSwitch
+                            description={'This tree was planted'}
+                            selectHandler={setIsPlanted}
+                            value={isPlanted}
+                        />
+                        <InterventionDatePicker
+                            placeHolder={'Measurment Date'}
+                            value={mesaurmentDate}
+                            callBack={setIsMeasurmentDate}
+                        />
+                        <StaticOutlineInput placeHolder={'Species'} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
+                        <View style={styles.inputWrapper}>
+                            <OutlinedTextInput
+                                placeholder={'Height'}
+                                changeHandler={setHeight}
+                                keyboardType={'decimal-pad'}
+                                trailingtext={'m'} errMsg={''} />
+                        </View>
+                        <View style={styles.inputWrapper}>
+                            <OutlinedTextInput
+                                placeholder={'Diameter'}
+                                changeHandler={setWidth}
+                                keyboardType={'decimal-pad'}
+                                trailingtext={'cm'} errMsg={''} />
+                        </View>
+                        <PlaceHolderSwitch
+                            description={'This tree is still alive'}
+                            selectHandler={setIsTreeAlive}
+                            value={isTreeAlive}
+                        />
+                        <InterventionDatePicker
+                            placeHolder={'Measurment Date'}
+                            value={plantingDate}
+                            callBack={setPlantingDate}
+                        />
+                        <View style={styles.inputWrapper}>
+                            <OutlinedTextInput
+                                placeholder={'Tag'}
+                                changeHandler={setTag}
+                                keyboardType={'default'}
+                                defaultValue={randomTag}
+                                trailingtext={''} errMsg={''} />
+                        </View>
                     </View>
-                    <View style={styles.inputWrapper}>
-                        <OutlinedTextInput
-                            placeholder={'Diameter'}
-                            changeHandler={setWidth}
-                            keyboardType={'decimal-pad'}
-                            trailingtext={'cm'} errMsg={''} />
-                    </View>
-                    <PlaceHolderSwitch
-                        description={'This tree is still alive'}
-                        selectHandler={setIsTreeAlive}
-                        value={isTreeAlive}
-                    />
-                    <InterventionDatePicker
-                        placeHolder={'Measurment Date'}
-                        value={plantingDate}
-                        callBack={setPlantingDate}
-                    />
-                    <View style={styles.inputWrapper}>
-                        <OutlinedTextInput
-                            placeholder={'Tag'}
-                            changeHandler={setTag}
-                            keyboardType={'decimal-pad'}
-                            defaultValue={randomTag}
-                            trailingtext={''} errMsg={''} />
-                    </View>
-                </View>
-            </ScrollView>
+                </ScrollView>
+            </AvoidSoftInputView>
             <CustomButton
                 label="Save and Continue"
                 containerStyle={styles.btnContainer}
