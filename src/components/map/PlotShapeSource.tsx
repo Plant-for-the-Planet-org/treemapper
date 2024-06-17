@@ -12,25 +12,26 @@ const polyline: StyleProp<LineLayerStyle> = {
 
 interface Props {
   geoJSON: any
+  isEdit: boolean
 }
 
 const PlotShapeSource = (props: Props) => {
-  const { geoJSON } = props
+  const { geoJSON, isEdit } = props
   return (
     <MapLibreGL.ShapeSource
-      id={'plot-polygon'}
+      id={`plot-polygon-${isEdit}`}
       shape={geoJSON}>
       <MapLibreGL.FillLayer
-        id={'plot-polyfill'}
+        id={`plot-polyfill-${isEdit}`}
         style={{
           fillOpacity: 0.3,
-          fillColor: Colors.MULTI_TREE
+          fillColor: isEdit ? Colors.TEXT_COLOR : Colors.MULTI_TREE
         }}
       />
       <MapLibreGL.LineLayer
-        id={'plot-poline'}
+        id={`plot-poline-${isEdit}`}
         style={{
-          ...polyline, lineColor: Colors.NEW_PRIMARY
+          ...polyline, lineColor: isEdit ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY
         }}
       />
     </MapLibreGL.ShapeSource>

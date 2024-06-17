@@ -119,12 +119,14 @@ type EditAdditionDataView = {
 
 
 type CreatePlotDetails = {
-  id: string
+  id: string,
+  isEdit?: boolean
 }
 type CreatePlotMap = {
   id: string,
   markLocation?: boolean,
-  plantId?: string
+  plantId?: string,
+  isEdit?: boolean
 }
 type PlotDetails = {
   id: string

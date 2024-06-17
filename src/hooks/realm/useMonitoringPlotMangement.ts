@@ -56,7 +56,13 @@ const useMonitoringPlotMangement = () => {
 
   const updatePlotLocation = async (
     id: string,
-    coordinate: Array<number[]>
+    coordinate: Array<number[]>,
+    isEdit: boolean,
+    dimensions?: {
+      h: number,
+      w: number,
+      r: number
+    }
   ): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -70,6 +76,11 @@ const useMonitoringPlotMangement = () => {
           coordinates: [coordinate[0][0][0]]
         }
         plotData.lastScreen = 'location'
+        if (isEdit) {
+          plotData.length = dimensions.h
+          plotData.width = dimensions.w
+          plotData.radius = dimensions.r
+        }
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -111,6 +122,22 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+
+  const updatePlotName = async (
+    id: string,
+    name: string
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        plotData.name = name
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
   const upatePlotPlantLocation = async (
     id: string,
     plantId: string,
@@ -270,7 +297,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

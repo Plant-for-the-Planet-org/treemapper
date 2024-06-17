@@ -15,6 +15,7 @@ import { MonitoringPlot, PlantedPlotSpecies } from 'src/types/interface/slice.in
 import { useRealm } from '@realm/react'
 import { PLOT_SHAPE } from 'src/types/type/app.type'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
+import NewDimensionModal from 'src/components/monitoringPlot/NewDimensionModal'
 
 const CreatePlotMapView = () => {
 
@@ -27,11 +28,13 @@ const CreatePlotMapView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotMap'>>()
     const plotID = route.params && route.params.id ? route.params.id : ''
+    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
     const plantId = route.params && route.params.plantId ? route.params.plantId : ''
     const [initialPolygon, setInitalPloygon] = useState<any>([])
     const [plnatedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
+    const [showDimensionModal, setDimensionModal] = useState(false)
 
     useEffect(() => {
         getPlotDetails()
@@ -48,13 +51,23 @@ const CreatePlotMapView = () => {
             setPlotRadius(plotData.radius)
             setPlotName(plotData.name)
             setPlantedTrees(plotData.plot_plants)
-            if (markLocation) {
+            if (markLocation || isEdit) {
                 setInitalPloygon(JSON.parse(plotData.location.coordinates))
+            }
+            if (isEdit) {
+                setDimensionModal(true)
             }
         } else {
             toast.show("No plot details found")
             navigation.goBack()
         }
+    }
+
+    const handleUpdateDimension = (h: number, w: number, r: number) => {
+        setPlotLength(h)
+        setPlotWidth(w)
+        setPlotRadius(r)
+        setDimensionModal(false)
     }
 
 
@@ -64,10 +77,20 @@ const CreatePlotMapView = () => {
             <View style={styles.noteWrapper}>
                 <Text style={styles.noteLabel}>Go to the center of the plot and insert a painted rebar post labeled {plotName} or another permanent labeled marking.</Text>
             </View>
+            {isEdit && <NewDimensionModal
+                isVisible={showDimensionModal} toogleModal={() => {
+                    setDimensionModal(!showDimensionModal)
+                }} updatedDimensions={handleUpdateDimension} initalValue={{
+                    h: String(plotLength),
+                    w: String(plotWidth),
+                    r: String(plotRadius),
+                }} shape={plotShape} />}
             <CreatePlotMapDetail
                 initialPolygon={initialPolygon}
                 isMarking={markLocation}
+                showNewDimentionModal={() => { setDimensionModal(true) }}
                 plantId={plantId}
+                isEdit={isEdit}
                 plnatedTrees={plnatedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
             <UserlocationMarker />

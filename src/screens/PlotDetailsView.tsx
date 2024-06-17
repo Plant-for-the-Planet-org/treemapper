@@ -28,7 +28,7 @@ const PlotDetailsView = () => {
     const { shape, name, length, width, radius, complexity, plot_plants, observations } = monitoringPlot;
     return (
         <SafeAreaView style={styles.container}>
-            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''}/>
+            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''} />
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={observations.length} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             <View style={styles.mainSection}>
@@ -42,6 +42,7 @@ const PlotDetailsView = () => {
                 isVisible={showEdit}
                 toogleModal={() => { setShowEdit(false) }}
                 plotId={plotID}
+                plotData={monitoringPlot}
             />
         </SafeAreaView>
     )

@@ -29,7 +29,6 @@ const PlotMapDisplay = (props: Props) => {
 
     const setupMap = () => {
         const coords = JSON.parse(props.data.location.coordinates)
-        console.log("Kscl;", coords)
         if (coords && coords.length) {
             setPlotCoordinates(coords)
         }
@@ -60,7 +59,7 @@ const PlotMapDisplay = (props: Props) => {
         return null
     }
 
-    const onMarkerPress = (id:string) => {
+    const onMarkerPress = (id: string) => {
         navigation.navigate('AddRemeasurment', { id: props.data.plot_id, plantID: id })
 
     }
@@ -86,8 +85,8 @@ const PlotMapDisplay = (props: Props) => {
                             }
                         }
                     ]
-                }} />}
-                {props.data.plot_plants.length > 0 && <PlotMarker sampleTreeData={props.data.plot_plants} onMarkerPress={onMarkerPress}/>}
+                }} isEdit={false} />}
+                {props.data.plot_plants.length > 0 && <PlotMarker sampleTreeData={props.data.plot_plants} onMarkerPress={onMarkerPress} />}
             </MapLibreGL.MapView>
         </View>
     );

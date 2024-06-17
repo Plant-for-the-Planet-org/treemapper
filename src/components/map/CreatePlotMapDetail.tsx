@@ -36,21 +36,26 @@ interface Props {
   isMarking?: boolean
   plantId?: string
   plnatedTrees?: PlantedPlotSpecies[]
+  isEdit: boolean
+  showNewDimentionModal: () => void
 }
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plnatedTrees } = props
+  const { showNewDimentionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plnatedTrees } = props
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
+  const [updatedCoords, setUpdatedCoords] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updatePlotLocation, upatePlotPlantLocation } = useMonitoringPlotMangement()
   const [loading, setLoading] = useState(false)
   const toast = useToast()
+
+
 
   useEffect(() => {
     if (currentUserLocation && cameraRef.current !== null) {
@@ -63,7 +68,7 @@ const CreatePlotMapDetail = (props: Props) => {
     if (initialPolygon && initialPolygon.length) {
       setPlotCoordinates(initialPolygon)
     }
-  }, [initialPolygon])
+  }, [initialPolygon, isEdit])
 
   useEffect(() => {
     if (plotCoordinates.length > 0) {
@@ -131,7 +136,11 @@ const CreatePlotMapDetail = (props: Props) => {
     } else {
       updatedCoords = getPolygonCoords(centerCoordinates)
     }
-    setPlotCoordinates([updatedCoords])
+    if (isEdit) {
+      setUpdatedCoords([updatedCoords])
+    } else {
+      setPlotCoordinates([updatedCoords])
+    }
   }
 
 
@@ -163,13 +172,51 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
   const continueForm = async () => {
-    const result = await updatePlotLocation(plotId, plotCoordinates)
+    const result = await updatePlotLocation(plotId, plotCoordinates, false)
     if (result) {
       navigation.replace("PlotDetails", { id: plotId })
     } else {
       toast.show('Error showing result')
     }
   }
+
+  const checkForWithinPolygon = async (geoJSON) => {
+    for (const el of plnatedTrees) {
+      const validMarker = isPointInPolygon([el.longitude, el.latitude], geoJSON);
+      if (!validMarker) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+
+
+  const continueUPdateForm = async () => {
+    const isValid = await checkForWithinPolygon({
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": updatedCoords,
+        "type": "Polygon"
+      }
+    })
+    if (!isValid) {
+      toast.show("Previously marked poins are not within new location")
+      return
+    }
+    const result = await updatePlotLocation(plotId, updatedCoords, isEdit, {
+      h: length,
+      w: width,
+      r: radius
+    })
+    if (result) {
+      navigation.replace("PlotDetails", { id: plotId })
+    } else {
+      toast.show('Error showing result')
+    }
+  }
+
 
   return (
     <View style={styles.container}>
@@ -191,23 +238,42 @@ const CreatePlotMapDetail = (props: Props) => {
           androidRenderMode="gps"
           minDisplacement={1}
         />
-        {plotCoordinates.length > 0 && <PlotShapeSource geoJSON={{
-          "type": "FeatureCollection",
-          "features": [
-            {
-              "type": "Feature",
-              "properties": {},
-              "geometry": {
-                "coordinates": plotCoordinates,
-                "type": "Polygon"
+        {plotCoordinates.length > 0 && <PlotShapeSource
+          isEdit={isEdit}
+          geoJSON={{
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                  "coordinates": plotCoordinates,
+                  "type": "Polygon"
+                }
               }
-            }
-          ]
-        }} />}
+            ]
+          }} />}
+        {updatedCoords.length > 0 && <PlotShapeSource
+          isEdit={false}
+          geoJSON={{
+            "type": "FeatureCollection",
+            "features": [
+              {
+                "type": "Feature",
+                "properties": {},
+                "geometry": {
+                  "coordinates": updatedCoords,
+                  "type": "Polygon"
+                }
+              }
+            ]
+          }} />}
         {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} />}
       </MapLibreGL.MapView>
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
-      {plotCoordinates.length > 0 && !isMarking ? (
+      {isEdit ? <ActiveMarkerIcon /> : null}
+
+      {plotCoordinates.length > 0 && !isMarking && !isEdit ? (
         <View style={styles.btnFooter}>
           <CustomButton
             label="Reset"
@@ -236,15 +302,34 @@ const CreatePlotMapDetail = (props: Props) => {
         />
       )}
 
-      {plotCoordinates.length === 0 && (
+      {plotCoordinates.length === 0 || isEdit && updatedCoords.length === 0 ? (
         <CustomButton
-          label="Select center of plot"
+          label={"Select center of Plot"}
           containerStyle={styles.btnContainer}
           pressHandler={handleContinuePress}
           disable={loading}
           loading={loading}
         />
-      )}
+      ) : null}
+
+      {updatedCoords.length && isEdit ? (
+        <View style={styles.btnFooter}>
+          <CustomButton
+            label="Reset"
+            containerStyle={styles.btnWrapper}
+            pressHandler={() => { setUpdatedCoords([]), showNewDimentionModal() }}
+            wrapperStyle={styles.borderWrapper}
+            labelStyle={styles.highlightLabel}
+          />
+          <CustomButton
+            label="Save"
+            containerStyle={styles.btnWrapper}
+            pressHandler={continueUPdateForm}
+            wrapperStyle={styles.opaqueWrapper}
+            labelStyle={styles.normalLable}
+          />
+        </View>
+      ) : null}
     </View>
   );
 }
