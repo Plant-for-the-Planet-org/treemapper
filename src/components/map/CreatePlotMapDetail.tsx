@@ -90,11 +90,15 @@ const CreatePlotMapDetail = (props: Props) => {
     const widthMeters = width;
     const halfLength = lengthMeters / 2;
     const halfWidth = widthMeters / 2;
-    const bottomLeft = calculateCorner(center, Math.sqrt(halfLength ** 2 + halfWidth ** 2), -135);
-    const bottomRight = calculateCorner(center, Math.sqrt(halfLength ** 2 + halfWidth ** 2), -45);
-    const topRight = calculateCorner(center, Math.sqrt(halfLength ** 2 + halfWidth ** 2), 45);
-    const topLeft = calculateCorner(center, Math.sqrt(halfLength ** 2 + halfWidth ** 2), 135);
-    return [bottomLeft, bottomRight, topRight, topLeft, bottomLeft]
+    // Calculate the four corners
+    const topCenter = calculateCorner(center, halfLength, 0);
+    const bottomCenter = calculateCorner(center, halfLength, 180);
+
+    const topLeft = calculateCorner(topCenter, halfWidth, 270);
+    const topRight = calculateCorner(topCenter, halfWidth, 90);
+    const bottomLeft = calculateCorner(bottomCenter, halfWidth, 270);
+    const bottomRight = calculateCorner(bottomCenter, halfWidth, 90);
+    return [topRight, bottomRight, bottomLeft, topLeft, topRight]
   }
 
   const getCircularCoords = (center: number[]) => {
