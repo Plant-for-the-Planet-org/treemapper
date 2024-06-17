@@ -21,6 +21,8 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { DropdownData } from 'src/types/interface/app.interface'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
+import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 
 
 const CreatePlotDetailsView = () => {
@@ -50,6 +52,16 @@ const CreatePlotDetailsView = () => {
         getPlotDetails()
     }, [plotID, lastUpdateAt])
 
+    useEffect(() => {
+        // This should be run when screen gains focus - enable the module where it's needed
+        AvoidSoftInput.setShouldMimicIOSBehavior(true);
+        return () => {
+            // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
+            AvoidSoftInput.setShouldMimicIOSBehavior(false);
+        };
+    })
+
+
     const getPlotDetails = () => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
         if (plotData) {
@@ -73,6 +85,40 @@ const CreatePlotDetailsView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
     const submitHandler = async () => {
+        if (plotName.trim().length === 0) {
+            toast.show("Please add valid Plot Name")
+            return
+        }
+        if (plotShape === 'RECTANGULAR') {
+            const validWidth = validateNumber(plotWidth, 'width', 'width')
+            const validHeight = validateNumber(plotLength, 'length', 'length')
+            if (!validHeight) {
+                toast.show(validHeight.errorMessage)
+                return
+            }
+            if (!validWidth) {
+                toast.show(validWidth.errorMessage)
+                return
+            }
+            if (Number(plotWidth) < 4 || Number(plotLength) < 25) {
+                toast.show("Please add valid Dimenstions as per note")
+                return
+            }
+        } else {
+            const validRadius = validateNumber(plotRadius, 'Radius', 'Radius')
+            if (!validRadius) {
+                toast.show(validRadius.errorMessage)
+                return
+            }
+            if (Number(plotRadius) < 25) {
+                toast.show("Please add valid Radius as per note")
+                return
+            }
+        }
+        if(plotImage===''){
+            toast.show("Please add Plot Image")
+            return
+        }
         const data: PlotDetailsParams = {
             name: plotName,
             length: Number(plotLength),
@@ -82,9 +128,9 @@ const CreatePlotDetailsView = () => {
         }
         const result = await updatePlotDetails(plotID, data)
         if (result) {
-            if(type.value){
+            if (type.value) {
                 const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
-                await addPlotToGroup(type.value,plotData)
+                await addPlotToGroup(type.value, plotData)
             }
             navigation.navigate('CreatePlotMap', { id: plotID })
         } else {
@@ -102,55 +148,59 @@ const CreatePlotDetailsView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
-            <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
-                <View style={styles.wrapper}>
-                    <View style={{ paddingHorizontal: 20 }}>
-                        <AddPlotImage image={plotImage} plotID={plotID} />
-                        <OutlinedTextInput
-                            placeholder={'Plot Name'}
-                            changeHandler={setPlotName}
-                            keyboardType={'default'}
-                            trailingtext={''}
-                            errMsg={''} />
-                        {plotShape === 'RECTANGULAR' ? <><OutlinedTextInput
-                            placeholder={'Plot Length'}
-                            changeHandler={setPlotLength}
-                            keyboardType={'decimal-pad'}
-                            trailingtext={'m'}
-                            errMsg={''} />
-                            <Text style={styles.noteWrapper}>
-                                25 meters or more recommended
-                            </Text>
+            <AvoidSoftInputView
+                avoidOffset={20}
+                style={styles.container}>
+                <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+                <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
+                    <View style={styles.wrapper}>
+                        <View style={{ paddingHorizontal: 20 }}>
+                            <AddPlotImage image={plotImage} plotID={plotID} />
                             <OutlinedTextInput
-                                placeholder={'Plot Width'}
-                                changeHandler={setPlotWidth}
+                                placeholder={'Plot Name'}
+                                changeHandler={setPlotName}
+                                keyboardType={'default'}
+                                trailingtext={''}
+                                errMsg={''} />
+                            {plotShape === 'RECTANGULAR' ? <><OutlinedTextInput
+                                placeholder={'Plot Length'}
+                                changeHandler={setPlotLength}
                                 keyboardType={'decimal-pad'}
                                 trailingtext={'m'}
                                 errMsg={''} />
-                            <Text style={styles.noteWrapper}>
-                                4 meters or more recommended
-                            </Text></> : <><OutlinedTextInput
-                                placeholder={'Plot Radius'}
-                                changeHandler={setPlotRadius}
-                                keyboardType={'decimal-pad'}
-                                trailingtext={'m'}
-                                errMsg={''} /><Text style={styles.noteWrapper}>
-                                25 meters or more recommended
-                            </Text></>}
+                                <Text style={styles.noteWrapper}>
+                                    25 meters or more recommended
+                                </Text>
+                                <OutlinedTextInput
+                                    placeholder={'Plot Width'}
+                                    changeHandler={setPlotWidth}
+                                    keyboardType={'decimal-pad'}
+                                    trailingtext={'m'}
+                                    errMsg={''} />
+                                <Text style={styles.noteWrapper}>
+                                    4 meters or more recommended
+                                </Text></> : <><OutlinedTextInput
+                                    placeholder={'Plot Radius'}
+                                    changeHandler={setPlotRadius}
+                                    keyboardType={'decimal-pad'}
+                                    trailingtext={'m'}
+                                    errMsg={''} /><Text style={styles.noteWrapper}>
+                                    25 meters or more recommended
+                                </Text></>}
+                        </View>
+                        {dropDownList.length > 0 && <View style={{ marginLeft: '3%', width: '94%', justifyContent: 'center', alignItems: "center" }}>
+                            <CustomDropDownPicker
+                                label={'Plot Group (Optional)'}
+                                data={dropDownList}
+                                onSelect={setType}
+                                selectedValue={type}
+                                position='top'
+                            />
+                        </View>}
                     </View>
-                    {dropDownList.length > 0 && <View style={{ marginLeft: '4%', width: '92%', justifyContent: 'center', alignItems: "center" }}>
-                        <CustomDropDownPicker
-                            label={'Plot Group (Optional)'}
-                            data={dropDownList}
-                            onSelect={setType}
-                            selectedValue={type}
-                            position='top'
-                        />
-                    </View>}
-                </View>
 
-            </ScrollView>
+                </ScrollView>
+            </AvoidSoftInputView>
             <CustomButton
                 label="Create"
                 containerStyle={styles.btnContainer}
@@ -178,7 +228,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom: 50,
+        bottom: 20,
     },
     infoWrapper: {
         marginRight: '5%'
