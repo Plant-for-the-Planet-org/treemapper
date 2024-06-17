@@ -16,6 +16,8 @@ import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { StackNavigationProp } from '@react-navigation/stack'
+import { useToast } from 'react-native-toast-notifications'
+import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 
 
 const AddPlantDetailsPlotView = () => {
@@ -28,20 +30,39 @@ const AddPlantDetailsPlotView = () => {
     const [width, setWidth] = useState('')
     const [isTreeAlive, setIsTreeAlive] = useState(true)
     const [plantingDate, setPlantingDate] = useState(Date.now())
-    const [tag, setTag] = useState('')
+    const randomTag = generateUniquePlotId()
+    const [tag, setTag] = useState(randomTag)
     const [speciesModal, setShowSpeciesModal] = useState(false)
     const { addPlantDetailsPlot } = useMonitoringPlotMangement()
     const toogleSpeciesModal = () => {
         setShowSpeciesModal(!speciesModal)
     }
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+    const toast = useToast()
 
     const getSpeciesNames = () => {
         return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientific_name}` : 'Select Species'
     }
 
     const submitHandler = async () => {
+        const validWidth = validateNumber(width, 'width', 'width')
+        const validHeight = validateNumber(height, 'height', 'height')
+        if (!validHeight.hasError) {
+            toast.show(validHeight.errorMessage)
+            return
+        }
+        if (validWidth.hasError) {
+            toast.show(validWidth.errorMessage)
+            return
+        }
+        if (species) {
+            toast.show("Please select a species")
+            return
+        }
+        if (tag.trim().length === 0) {
+            toast.show("Please add valid Tag")
+            return
+        }
         const plantTimeline: PlantTimeLine = {
             status: !isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
             length: Number(height),
@@ -118,6 +139,7 @@ const AddPlantDetailsPlotView = () => {
                             placeholder={'Tag'}
                             changeHandler={setTag}
                             keyboardType={'decimal-pad'}
+                            defaultValue={randomTag}
                             trailingtext={''} errMsg={''} />
                     </View>
                 </View>

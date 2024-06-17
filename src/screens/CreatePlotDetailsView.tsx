@@ -92,11 +92,11 @@ const CreatePlotDetailsView = () => {
         if (plotShape === 'RECTANGULAR') {
             const validWidth = validateNumber(plotWidth, 'width', 'width')
             const validHeight = validateNumber(plotLength, 'length', 'length')
-            if (!validHeight) {
+            if (validHeight.hasError) {
                 toast.show(validHeight.errorMessage)
                 return
             }
-            if (!validWidth) {
+            if (validWidth.hasError) {
                 toast.show(validWidth.errorMessage)
                 return
             }
