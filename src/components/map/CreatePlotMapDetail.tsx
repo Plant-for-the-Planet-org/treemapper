@@ -18,6 +18,8 @@ import { useToast } from 'react-native-toast-notifications';
 import bbox from '@turf/bbox'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper';
 import { PlantedPlotSpecies } from 'src/types/interface/slice.interface';
+import { isPointInPolygon, validateMarkerForSampleTree } from 'src/utils/helpers/turfHelpers';
+import PlotMarker from './PlotMarker';
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -44,7 +46,6 @@ const CreatePlotMapDetail = (props: Props) => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  console.log(plnatedTrees)
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updatePlotLocation, upatePlotPlantLocation } = useMonitoringPlotMangement()
@@ -68,7 +69,7 @@ const CreatePlotMapDetail = (props: Props) => {
     if (plotCoordinates.length > 0) {
       setTimeout(() => {
         setBounds()
-      }, 1000);
+      }, 300);
     }
   }, [plotCoordinates])
 
@@ -83,7 +84,6 @@ const CreatePlotMapDetail = (props: Props) => {
       20,
       1000,
     )
-    console.log("SDcm", geoJSON)
   }
 
   const handleCamera = () => {
@@ -137,8 +137,29 @@ const CreatePlotMapDetail = (props: Props) => {
 
   const setSampleMarker = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    await upatePlotPlantLocation(plotId, plantId, centerCoordinates[0], centerCoordinates[1])
-    navigation.goBack()
+    const validMarker = isPointInPolygon(centerCoordinates, {
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": plotCoordinates,
+        "type": "Polygon"
+      }
+    })
+    if (!validMarker) {
+      toast.show('Selected point is outside polygon')
+      return
+    }
+
+    const isValidPoint = validateMarkerForSampleTree(
+      centerCoordinates,
+      plnatedTrees,
+    )
+    if (!isValidPoint) {
+      toast.show('Selected point is close to already existing point')
+      return
+    }
+    await upatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    navigation.replace("PlotDetails", { id: plotId })
   }
 
   const continueForm = async () => {
@@ -183,6 +204,7 @@ const CreatePlotMapDetail = (props: Props) => {
             }
           ]
         }} />}
+        {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} />}
       </MapLibreGL.MapView>
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
       {plotCoordinates.length > 0 && !isMarking ? (
