@@ -16,6 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
 import { useToast } from 'react-native-toast-notifications';
 import bbox from '@turf/bbox'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper';
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -28,11 +29,14 @@ interface Props {
   length: number,
   width: number,
   plotId: string
+  initialPolygon: Array<number[]>
+  isMarking?: boolean
+  plantId?: string
 }
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { plot_shape, radius, length, width, plotId } = props
+  const { plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId } = props
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(
@@ -40,7 +44,7 @@ const CreatePlotMapDetail = (props: Props) => {
   )
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const { updatePlotLocation } = useMonitoringPlotMangement()
+  const { updatePlotLocation, upatePlotPlantLocation } = useMonitoringPlotMangement()
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -51,28 +55,35 @@ const CreatePlotMapDetail = (props: Props) => {
   }, [currentUserLocation])
 
 
-  const handleCamera = () => {
-    if (plotCoordinates.length > 0) {
-      const bounds = bbox({
-        "type": "FeatureCollection",
-        "features": [
-          {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-              "coordinates": [...plotCoordinates],
-              "type": "Polygon"
-            }
-          }
-        ]
-      })
-      cameraRef.current.fitBounds(
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]],
-        20,
-        1000,
-      )
+  useEffect(() => {
+    if (initialPolygon && initialPolygon.length) {
+      setPlotCoordinates(initialPolygon)
     }
+  }, [initialPolygon])
+
+  useEffect(() => {
+    if (plotCoordinates.length > 0) {
+      setTimeout(() => {
+        setBounds()
+      }, 1000);
+    }
+  }, [plotCoordinates])
+
+
+  const setBounds = () => {
+    // @ts-expect-error: Property 'foo' does not exist on type 'Bar'.
+    const { geoJSON } = makeInterventionGeoJson('Polygon', plotCoordinates[0], '');
+    const bounds = bbox(geoJSON)
+    cameraRef.current.fitBounds(
+      [bounds[0], bounds[1]],
+      [bounds[2], bounds[3]],
+      20,
+      1000,
+    )
+    console.log("SDcm", geoJSON)
+  }
+
+  const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
       zoomLevel: 20,
@@ -120,6 +131,13 @@ const CreatePlotMapDetail = (props: Props) => {
     setPlotCoordinates([updatedCoords])
   }
 
+
+  const setSampleMarker = async () => {
+    const centerCoordinates = await mapRef.current.getCenter()
+    await upatePlotPlantLocation(plotId, plantId, centerCoordinates[0], centerCoordinates[1])
+    navigation.goBack()
+  }
+
   const continueForm = async () => {
     const result = await updatePlotLocation(plotId, plotCoordinates)
     if (result) {
@@ -135,7 +153,6 @@ const CreatePlotMapDetail = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onDidFinishRenderingMapFully={() => { handleCamera() }}
         attributionEnabled={false}
         onRegionDidChange={() => {
           setLoading(false)
@@ -157,15 +174,15 @@ const CreatePlotMapDetail = (props: Props) => {
               "type": "Feature",
               "properties": {},
               "geometry": {
-                "coordinates": [...plotCoordinates],
+                "coordinates": plotCoordinates,
                 "type": "Polygon"
               }
             }
           ]
         }} />}
       </MapLibreGL.MapView>
-      {plotCoordinates.length === 0 && <ActiveMarkerIcon />}
-      {plotCoordinates.length > 0 && (
+      {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
+      {plotCoordinates.length > 0 && !isMarking ? (
         <View style={styles.btnFooter}>
           <CustomButton
             label="Reset"
@@ -182,6 +199,16 @@ const CreatePlotMapDetail = (props: Props) => {
             labelStyle={styles.normalLable}
           />
         </View>
+      ) : null}
+
+      {isMarking && (
+        <CustomButton
+          label="Save"
+          containerStyle={styles.btnContainer}
+          pressHandler={setSampleMarker}
+          disable={loading}
+          loading={loading}
+        />
       )}
 
       {plotCoordinates.length === 0 && (

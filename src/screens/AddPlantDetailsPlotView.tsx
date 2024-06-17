@@ -12,9 +12,10 @@ import StaticOutlineInput from 'src/components/formBuilder/StaticOutlineInput'
 import PlantPlotListModal from 'src/components/monitoringPlot/PlotSpeciesList'
 import { PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
-import { useRoute, RouteProp } from '@react-navigation/native'
+import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
+import { StackNavigationProp } from '@react-navigation/stack'
 
 
 const AddPlantDetailsPlotView = () => {
@@ -33,6 +34,7 @@ const AddPlantDetailsPlotView = () => {
     const toogleSpeciesModal = () => {
         setShowSpeciesModal(!speciesModal)
     }
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
 
     const getSpeciesNames = () => {
@@ -61,9 +63,12 @@ const AddPlantDetailsPlotView = () => {
             planting_date: plantingDate,
             is_alive: isTreeAlive,
             type: isPlanted ? 'PLANTED' : 'RECRUIT',
-            details_updated_at: Date.now()
+            details_updated_at: Date.now(),
+            latitude: 0,
+            longitude: 0,
         }
         await addPlantDetailsPlot(plotID, plantDetails)
+        navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })
     }
 
 
@@ -118,7 +123,7 @@ const AddPlantDetailsPlotView = () => {
                 </View>
             </ScrollView>
             <CustomButton
-                label="Save"
+                label="Save and Continue"
                 containerStyle={styles.btnContainer}
                 pressHandler={submitHandler}
                 hideFadein

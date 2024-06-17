@@ -111,6 +111,28 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const upatePlotPlantLocation = async (
+    id: string,
+    plantId: string,
+    lat: number,
+    long: number
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const plantIndex = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
+        plotData.plot_plants[plantIndex].latitude = lat
+        plotData.plot_plants[plantIndex].longitude = long
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+
   const delteMonitoringPlot = async (plotID: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -233,7 +255,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { removePlotFromGroup,addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

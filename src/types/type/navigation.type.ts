@@ -123,6 +123,8 @@ type CreatePlotDetails = {
 }
 type CreatePlotMap = {
   id: string,
+  markLocation?: boolean,
+  plantId?: string
 }
 type PlotDetails = {
   id: string

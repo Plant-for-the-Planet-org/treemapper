@@ -16,6 +16,8 @@ export const PlotPlantedSpecies: ObjectSchema = {
     is_alive: { type: 'bool', default: true },
     type: { type: 'string', default: 'planted' },
     details_updated_at: { type: 'double' },
+    latitude: 'double',
+    longitude: 'double',
   }
 };
 

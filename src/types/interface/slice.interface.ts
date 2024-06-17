@@ -290,6 +290,8 @@ export interface PlantedPlotSpecies {
   is_alive: boolean
   type: PLOT_PLANT
   details_updated_at: number
+  latitude: number
+  longitude: number
 }
 
 
