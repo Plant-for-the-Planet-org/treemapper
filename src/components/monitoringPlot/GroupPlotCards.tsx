@@ -30,7 +30,7 @@ const GroupPlotCards = (props: Props) => {
                         <Text style={styles.idLabel}>{item.name}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{interventionCount} interventin plot</Text>
+                        <Text style={styles.planetedLabel}>{interventionCount} intervention plot</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.TEXT_LIGHT} />
                         <Text style={styles.planetedLabel}>{controlCount} control plot</Text>
                     </View>
