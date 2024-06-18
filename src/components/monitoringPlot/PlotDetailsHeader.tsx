@@ -30,7 +30,7 @@ const PlotDetailsHeader = (props: Props) => {
                     {label}
                 </Text>
                 <Text style={styles.noteLabel}>
-                    {type === 'STANDARD' ? "Standard" : "Simple"}{group}
+                    {type === 'STANDARD' ? "Standard" : "Simple"}  {". " + `${group}`}
                 </Text>
 
             </View>
