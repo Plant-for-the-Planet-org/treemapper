@@ -115,6 +115,8 @@ const AddPlantDetailsPlotView = () => {
                             description={'This tree was planted'}
                             selectHandler={setIsPlanted}
                             value={isPlanted}
+                            infoText={"Whether the tree is planted or if it is a recruit (naturally occurring in the plot)."}
+                            showInfoIcon={true}
                         />
                         <InterventionDatePicker
                             placeHolder={'Measurment Date'}
