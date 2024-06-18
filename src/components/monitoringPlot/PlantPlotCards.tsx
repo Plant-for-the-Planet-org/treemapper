@@ -17,8 +17,8 @@ interface Props {
 }
 
 const PlantPlotCards = (props: Props) => {
-    const { handleSelection, item, index } = props;
-    const handlePlantSelction=()=>{
+    const { handleSelection, item } = props;
+    const handlePlantSelction = () => {
         handleSelection(item.plot_plant_id)
     }
     return (
@@ -29,7 +29,7 @@ const PlantPlotCards = (props: Props) => {
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.idLabel}>EE-{100 + index}</Text>
+                        <Text style={styles.idLabel}>{item.tag}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
                         <Text style={styles.dateLabel}>{formatRelativeTimeCustom(item.details_updated_at)}</Text>
                     </View>
@@ -39,8 +39,8 @@ const PlantPlotCards = (props: Props) => {
                         <Text style={styles.speciesLabel}>{item.scientific_name}</Text>
                     </View>
                 </View>
-                <View style={[styles.addIconWrapper,{backgroundColor:item.type === 'PLANTED' ?  Colors.NEW_PRIMARY :  Colors.RECRUIT_PLANT_THEME}]}>
-                    <Addicon fill={Colors.WHITE}/>
+                <View style={[styles.addIconWrapper, { backgroundColor: item.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>
+                    <Addicon fill={Colors.WHITE} />
                 </View>
             </TouchableOpacity>
         </View>

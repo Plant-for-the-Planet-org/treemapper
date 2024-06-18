@@ -30,9 +30,8 @@ const PlotDetailsHeader = (props: Props) => {
                     {label}
                 </Text>
                 <Text style={styles.noteLabel}>
-                    {type === 'STANDARD' ? "Standard" : "Simple"}  {". " + `${group}`}
+                    {type === 'STANDARD' ? "Standard" : "Simple"}  {group.length>0?". " + `${group}`:''}
                 </Text>
-
             </View>
             <Pressable style={styles.rightContainer} onPress={showOptions}>
                 <MoreOptionIcon onPress={showOptions} />
@@ -67,7 +66,7 @@ const styles = StyleSheet.create({
     noteLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,
-        fontSize: 14
+        fontSize: 15
     },
     rightContainer: {
         width: 40,

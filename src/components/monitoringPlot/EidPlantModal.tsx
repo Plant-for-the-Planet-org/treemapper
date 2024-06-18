@@ -32,7 +32,7 @@ const EidPlantModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { delteMonitoringPlot, updatePlotName, removePlotFromGroup, addPlotToGroup } = useMonitoringPlotMangement()
   // variables
-  const snapPoints = useMemo(() => ['35%'], []);
+  const snapPoints = useMemo(() => ['40%'], []);
   const [showEdit, setShowEdit] = useState('')
 
   const [plotName, setPlotname] = useState('')

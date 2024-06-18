@@ -37,7 +37,7 @@ const EcosystemList = ({ plotID, data }: Props) => {
         if (selectedLabel === 'soil_moisture') {
             setObservationData(data.observations.filter(el => el.type === 'SOIL_MOISTURE'))
         }
-    }, [selectedLabel])
+    }, [selectedLabel,data.observations])
 
 
     return (

@@ -26,8 +26,6 @@ const AddPlotGroup = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [isEdiatble, setIsEditable] = useState(false)
     const [gID, setGID] = useState('')
-    const [groupData, setGrouData] = useState<PlotGroups>(null)
-    console.log(groupData)
     const realm = useRealm()
     const { createNewPlotGroup, editGroupName } = useMonitoringPlotMangement()
     const toast = useToast()
@@ -43,7 +41,6 @@ const AddPlotGroup = () => {
     const loadGroupData = () => {
         const detail = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, groupId);
         if (detail) {
-            setGrouData(detail)
             setGroupName(detail.name)
         }
     }
