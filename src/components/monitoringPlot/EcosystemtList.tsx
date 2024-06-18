@@ -9,6 +9,8 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { MonitoringPlot, PlotObservation } from 'src/types/interface/slice.interface'
+import EmptyIcom from 'assets/images/svg/EmptyGroupIcon.svg'
+import EmptyStaticScreen from '../common/EmptyStaticScreen'
 
 
 
@@ -44,6 +46,9 @@ const EcosystemList = ({ plotID, data }: Props) => {
                 data={observationData}
                 renderItem={({ item }) => (<EcosystemCard item={item} />)}
                 estimatedItemSize={100}
+                ListEmptyComponent={<EmptyStaticScreen label={'No Observation to Show'} note={'Tap the button below to add a new Obs.'}
+                marginTop={{marginTop:'25%'}}
+                image={<EmptyIcom />} />}
                 ListHeaderComponent={<EcosystemListHeader
                     item={data.observations}
                     onPress={setSelectedLabel} selectedLabel={selectedLabel} />}
@@ -68,7 +73,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 20,
+        bottom: 10,
     },
 })
 

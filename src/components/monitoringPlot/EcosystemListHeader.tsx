@@ -58,6 +58,10 @@ const EcosystemListHeader = (props: Props) => {
 
     }
     ]
+
+    if (item.length === 0) {
+        return null
+    }
     return (
         <FlatList
             data={headerData}

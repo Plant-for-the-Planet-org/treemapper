@@ -33,12 +33,13 @@ const GrouplistPlot = ({ gid }: Props) => {
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <FlatList
-                    style={styles.flatlistWrapper}
+                    style={[styles.flatlistWrapper, { backgroundColor: plotDetails.plots.length > 0 ? Colors.WHITE : 'transparent' }]}
                     ListEmptyComponent={() => {
                         return (
                             <View style={styles.emptyWrapper}>
                                 <Text style={styles.emptyLabel}>
-                                    Start adding plots
+                                    No plots to show{'\n'}
+                                    Tap the below button to add plots
                                 </Text>
                             </View>
                         )
@@ -53,11 +54,11 @@ const GrouplistPlot = ({ gid }: Props) => {
 export default GrouplistPlot
 
 const styles = StyleSheet.create({
-    container:{
-        width:'100%',
-        height:'100%',
-        backgroundColor:Colors.BACKDROP_COLOR,
-        alignItems:'center'
+    container: {
+        width: '100%',
+        height: '100%',
+        backgroundColor: Colors.BACKDROP_COLOR,
+        alignItems: 'center'
     },
     wrapper: {
         width: '90%',
@@ -80,7 +81,7 @@ const styles = StyleSheet.create({
     emptyLabel: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_COLOR,
+        color: Colors.TEXT_LIGHT,
         width: '100%',
         textAlign: 'center',
         letterSpacing: 1

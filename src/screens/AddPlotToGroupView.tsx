@@ -95,12 +95,12 @@ const AddPlotToGroupView = () => {
             <View style={styles.mainWrappe}>
                 <View style={styles.wrapper}>
                     <FlatList
-                        style={styles.flatListWrapper}
+                        style={[styles.flatListWrapper,{ backgroundColor: plotList.length > 0 ? Colors.WHITE : 'transparent' }]}
                         data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)} ListEmptyComponent={() => {
                             return (
                                 <View style={styles.emptyWrapper}>
                                     <Text style={styles.emptyLabel}>
-                                        No Plot's to show{'\n'}{'\n'}Start creating some plot
+                                        No Plot's to show{'\n'}
                                     </Text>
                                 </View>
                             )
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     emptyLabel: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_COLOR,
+        color: Colors.TEXT_LIGHT,
         width: '100%',
         textAlign: 'center',
         letterSpacing: 1

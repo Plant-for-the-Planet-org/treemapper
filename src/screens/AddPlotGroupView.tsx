@@ -105,6 +105,7 @@ const AddPlotGroup = () => {
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}
                 hideFadein
+                showAdd
             />
         </SafeAreaView>
     )
