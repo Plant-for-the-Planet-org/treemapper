@@ -1,4 +1,4 @@
-import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
@@ -15,6 +15,9 @@ const MonitoringInfoView = () => {
                         How do I set up a monitoring plot?
                     </Text>
                     <View style={styles.videoWrapper}>
+                        <View style={styles.loaderWrapper}>
+                            <ActivityIndicator size='small' />
+                        </View>
                         <YoutubePlayer
                             height={300}
                             play={true}
@@ -99,7 +102,15 @@ const styles = StyleSheet.create({
         height: 180,
         borderRadius: 12,
         overflow: 'hidden',
-        backgroundColor: Colors.GRAY_LIGHT
+        backgroundColor: Colors.GRAY_LIGHT,
+    },
+    loaderWrapper: {
+        width:'100%',
+        height:'100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'absolute',
+        zIndex: -1
     },
     sectionWrapper: {
         paddingHorizontal: 20,
