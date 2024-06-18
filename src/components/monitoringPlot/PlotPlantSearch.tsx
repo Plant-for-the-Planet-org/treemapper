@@ -1,18 +1,28 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, TextInput, View } from 'react-native'
 import React from 'react'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 
-const PlotPlantSearch = () => {
+interface Props{
+    onChangeText:(t:string)=>void
+}
+
+const PlotPlantSearch = (props:Props) => {
+    const {onChangeText} =props
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.searchBar} onPress={() => null}>
-                <SearchIcon style={styles.searchIcon} width={20} height={20} />
-                <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
-                   Search
-                </Text>
-            </TouchableOpacity>
+            <View style={styles.searchWrapper}>
+                <View style={styles.searchBar}>
+                    <SearchIcon style={styles.searchIcon} />
+                    <TextInput
+                        style={styles.input}
+                        placeholder={'search'}
+                        onChangeText={onChangeText}
+                        underlineColorAndroid="transparent"
+                    />
+                </View>
+            </View>
         </View>
     )
 }
@@ -24,11 +34,10 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:Colors.BACKDROP_COLOR,
-        paddingVertical:30,
+        paddingVertical:10,
     },
     searchBar: {
-        width:'90%',
+        width: '95%',
         flexDirection: 'row',
         alignItems: 'center',
         height: scaleSize(45),
@@ -53,5 +62,32 @@ const styles = StyleSheet.create({
         paddingLeft: '1%',
         flex: 1,
         color: Colors.PLANET_BLACK,
+    },
+    searchWrapper: {
+        height: 50,
+        width: '100%',
+        paddingHorizontal: '5%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        marginTop: 15,
+        marginBottom: 10
+    },
+    searchInputWrapper: {
+        height: 50,
+        width: '100%',
+        paddingHorizontal: '5%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center'
+    },
+    input: {
+        flex:1,
+        paddingTop: 10,
+        paddingRight: 10,
+        paddingBottom: 10,
+        paddingLeft: 0,
+        fontSize: 16, fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.TEXT_COLOR
     },
 })

@@ -5,7 +5,6 @@ import PlotDetailsHeader from 'src/components/monitoringPlot/PlotDetailsHeader'
 import { Colors } from 'src/utils/constants'
 import MainHeaderPlot from 'src/components/monitoringPlot/MainHeaderPlot'
 import PlotDetailsTab from 'src/components/monitoringPlot/PlotDetailsTab'
-import PlotPlantSearch from 'src/components/monitoringPlot/PlotPlantSearch'
 import PlotPlantList from 'src/components/monitoringPlot/PlotPlantList'
 import EcosystemList from 'src/components/monitoringPlot/EcosystemtList'
 import PlotMapDisplay from 'src/components/monitoringPlot/PlotMapDisplay'
@@ -25,15 +24,15 @@ const PlotDetailsView = () => {
     const monitoringPlot = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID
     )
-    const { shape, name, length, width, radius, complexity, plot_plants, observations } = monitoringPlot;
+    const { shape, name, length, width, radius, complexity, plot_plants, observations, plot_group } = monitoringPlot;
+
     return (
         <SafeAreaView style={styles.container}>
-            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={''} />
+            <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={plot_group && plot_group.length > 0 ? plot_group.name : ''} />
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={observations.length} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             <View style={styles.mainSection}>
                 {selectedIndex === 0 && <>
-                    <PlotPlantSearch />
                     <PlotPlantList plants={plot_plants} plotID={plotID} /></>}
                 {selectedIndex === 1 && <EcosystemList plotID={plotID} data={monitoringPlot} />}
                 {selectedIndex === 2 && <PlotMapDisplay data={monitoringPlot} />}

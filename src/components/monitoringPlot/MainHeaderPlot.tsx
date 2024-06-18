@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
         marginHorizontal: 5
     },
     cardNote: {
-        fontSize: 10,
+        fontSize: 11,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginTop: 5
