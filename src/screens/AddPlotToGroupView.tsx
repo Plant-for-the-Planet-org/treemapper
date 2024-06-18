@@ -40,9 +40,18 @@ const AddPlotToGroupView = () => {
     }
 
     const getPlotList = () => {
-        const data = realm.objects(RealmSchema.MonitoringPlot).filtered("lastScreen != 'form'");
+        const data = realm.objects<MonitoringPlot>(RealmSchema.MonitoringPlot).filtered("lastScreen != 'form'");
         if (data && data.length > 0) {
-            setPlotList(data)
+            const filterdData = []
+            data.forEach(el => {
+                if (!el.plot_group || el.plot_group.length === 0) {
+                    filterdData.push(el)
+                }
+                if (el.plot_group && el.plot_group.length > 0 && el.plot_group[0].group_id == groupId) {
+                    filterdData.push(el)
+                }
+            })
+            setPlotList(filterdData)
         }
     }
 
@@ -95,7 +104,7 @@ const AddPlotToGroupView = () => {
             <View style={styles.mainWrappe}>
                 <View style={styles.wrapper}>
                     <FlatList
-                        style={[styles.flatListWrapper,{ backgroundColor: plotList.length > 0 ? Colors.WHITE : 'transparent' }]}
+                        style={[styles.flatListWrapper, { backgroundColor: plotList.length > 0 ? Colors.WHITE : 'transparent' }]}
                         data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)} ListEmptyComponent={() => {
                             return (
                                 <View style={styles.emptyWrapper}>

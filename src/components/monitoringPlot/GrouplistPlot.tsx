@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { FlatList } from 'react-native'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
@@ -6,6 +6,8 @@ import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTim
 import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { Typography, Colors } from 'src/utils/constants'
+import BinIcon from 'assets/images/svg/BinIcon.svg'
+import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 
 interface Props {
     gid
@@ -16,15 +18,21 @@ const GrouplistPlot = ({ gid }: Props) => {
         RealmSchema.PlotGroups, gid
     )
 
+    const { removePlotFromGroup } = useMonitoringPlotMangement()
+
+    const handleRemoval = async (id: string) => {
+        await removePlotFromGroup(gid, id)
+    }
+
     const renderCardItems = (item: MonitoringPlot, index: number) => {
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotDetails.plots.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
                 <Text style={styles.cardheader}>{item.name}</Text>
                 <Text style={styles.cardLabel}>{item.observations.length} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
             </View>
-            <View style={styles.checkBoxWrapper}>
-
-            </View>
+            <Pressable style={styles.checkBoxWrapper} onPress={() => { handleRemoval(item.plot_id) }}>
+                <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} onPress={() => { handleRemoval(item.plot_id) }} />
+            </Pressable>
         </View>)
     }
 
@@ -114,9 +122,11 @@ const styles = StyleSheet.create({
         letterSpacing: 0.4
     },
     checkBoxWrapper: {
-        width: 40,
-        height: 40,
+        width: 35,
+        height: 35,
         justifyContent: 'center',
-        alignItems: "center"
+        alignItems: "center",
+        backgroundColor: Colors.GRAY_LIGHT,
+        borderRadius: 8
     }
 })

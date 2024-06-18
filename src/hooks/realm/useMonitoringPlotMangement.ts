@@ -177,12 +177,17 @@ const useMonitoringPlotMangement = () => {
 
   const deletePlotGroup = async (gid: string): Promise<boolean> => {
     try {
+      const plotList = []
       realm.write(() => {
         const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
-        groupData.plots.forEach(el => {
-          el.plot_group = null
-        })
+        groupData.plots.forEach(el => plotList.push(el.plot_id))
         realm.delete(groupData);
+      });
+      realm.write(() => {
+        plotList.forEach(el => {
+          const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, el);
+          plotData.plot_updated_at = Date.now()
+        })
       });
       return Promise.resolve(true);
     } catch (error) {
@@ -268,8 +273,11 @@ const useMonitoringPlotMangement = () => {
     try {
       realm.write(() => {
         const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
-        groupData.plots.push(plot);
+        const cleanData = groupData.plots.filter(el => el.plot_id !== plot.plot_id)
+        groupData.plots = [...cleanData, plot];
         groupData.details_updated_at = Date.now()
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plot.plot_id);
+        plotData.plot_updated_at = Date.now()
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -287,6 +295,8 @@ const useMonitoringPlotMangement = () => {
         const groupData = realm.objectForPrimaryKey<PlotGroups>(RealmSchema.PlotGroups, gid);
         groupData.plots = groupData.plots.filter(el => el.plot_id !== plot_id)
         groupData.details_updated_at = Date.now()
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plot_id);
+        plotData.plot_updated_at = Date.now()
       })
       return Promise.resolve(true)
     } catch (error) {

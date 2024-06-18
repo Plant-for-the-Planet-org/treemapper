@@ -132,7 +132,7 @@ const CreatePlotDetailsView = () => {
                 const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
                 await addPlotToGroup(type.value, plotData)
             }
-            navigation.navigate('CreatePlotMap', { id: plotID })
+            navigation.replace('CreatePlotMap', { id: plotID })
         } else {
             toast.show("Error occured while adding data")
         }

@@ -30,7 +30,7 @@ interface Props {
 const EidPlantModal = (props: Props) => {
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const { delteMonitoringPlot, updatePlotName } = useMonitoringPlotMangement()
+  const { delteMonitoringPlot, updatePlotName, removePlotFromGroup, addPlotToGroup } = useMonitoringPlotMangement()
   // variables
   const snapPoints = useMemo(() => ['35%'], []);
   const [showEdit, setShowEdit] = useState('')
@@ -54,6 +54,16 @@ const EidPlantModal = (props: Props) => {
   }, [isVisible])
 
 
+  const updatePlotGroup = async (d: any) => {
+    if (type.value) {
+      await removePlotFromGroup(type.value, plotId)
+      await addPlotToGroup(d.value, plotData)
+    } else {
+      await addPlotToGroup(d.value, plotData)
+    }
+  }
+
+
   const setGroupData = () => {
     const groupData = realm.objects<PlotGroups>(RealmSchema.PlotGroups);
     if (groupData) {
@@ -63,6 +73,13 @@ const EidPlantModal = (props: Props) => {
         index: i
       }))
       setDropDrownList(updateList)
+      if (plotData.plot_group && plotData.plot_group[0]) {
+        setType({
+          label: plotData.plot_group[0].name,
+          value: plotData.plot_group[0].group_id,
+          index: 0
+        })
+      }
     }
   }
 
@@ -121,9 +138,9 @@ const EidPlantModal = (props: Props) => {
                   <CustomDropDownPicker
                     label={'Plot Group (Optional)'}
                     data={dropDownList}
-                    onSelect={setType}
+                    onSelect={updatePlotGroup}
+                    whiteBG
                     selectedValue={type}
-                    position='top'
                   /> : <Pressable
                     onPress={addGroup}
                     style={styles.emptyWrapper}><Text style={styles.emptyLabel}>Add Group</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
