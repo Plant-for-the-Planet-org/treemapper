@@ -46,8 +46,8 @@ const EcosystemList = ({ plotID, data }: Props) => {
                 data={observationData}
                 renderItem={({ item }) => (<EcosystemCard item={item} />)}
                 estimatedItemSize={100}
-                ListEmptyComponent={<EmptyStaticScreen label={'No Observation to Show'} note={'Tap the button below to add a new Obs.'}
-                marginTop={{marginTop:'25%'}}
+                ListEmptyComponent={<EmptyStaticScreen label={'No Observation to Show'} note={'Tap the button below to add \nnew observation.'}
+                marginTop={{marginTop:'18%'}}
                 image={<EmptyIcom />} />}
                 ListHeaderComponent={<EcosystemListHeader
                     item={data.observations}
