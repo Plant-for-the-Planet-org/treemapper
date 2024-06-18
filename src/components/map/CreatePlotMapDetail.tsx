@@ -122,7 +122,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
   const getCircularCoords = (center: number[]) => {
     const circleGeoJSON = turf.circle(center, radius, {
-      steps: 64, // Number of steps to approximate the circle (higher number = smoother circle)
+      steps: 100, // Number of steps to approximate the circle (higher number = smoother circle)
       units: 'meters' // Units for the radius
     });
     return circleGeoJSON.geometry.coordinates[0]
@@ -268,7 +268,7 @@ const CreatePlotMapDetail = (props: Props) => {
               }
             ]
           }} />}
-        {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} />}
+        {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} onMarkerPress={() => { }} />}
       </MapLibreGL.MapView>
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
       {isEdit ? <ActiveMarkerIcon /> : null}

@@ -5,7 +5,7 @@ import { Colors } from 'src/utils/constants'
 
 
 const polyline: StyleProp<LineLayerStyle> = {
-  lineWidth: 4,
+  lineWidth: 3,
   lineOpacity: 1,
   lineJoin: 'bevel',
 }
