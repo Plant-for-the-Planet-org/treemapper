@@ -51,7 +51,7 @@ const PlotView = () => {
       }}
       onRequestClose={tooglePopup}
       from={(
-        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} /></Pressable>
+        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE}/></Pressable>
       )}>
       <View style={styles.popOverWrapper}>
         <Pressable onPress={addGroups}><Text style={styles.menuLabel}>Plot Group</Text></Pressable>

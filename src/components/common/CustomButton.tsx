@@ -65,7 +65,7 @@ const CustomButton = (props: Props) => {
           <ActivityIndicator color={Colors.WHITE} size="small" />
         ) : (
           <View style={styles.labelWrapper}>
-            {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} />}
+            {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
             <Text style={[styles.lableStyle, { ...labelStyle }]}>{label}</Text>
           </View>
         )}

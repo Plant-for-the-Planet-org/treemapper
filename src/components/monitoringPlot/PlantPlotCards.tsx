@@ -40,7 +40,7 @@ const PlantPlotCards = (props: Props) => {
                     </View>
                 </View>
                 <View style={[styles.addIconWrapper,{backgroundColor:item.type === 'PLANTED' ?  Colors.NEW_PRIMARY :  Colors.RECRUIT_PLANT_THEME}]}>
-                    <Addicon />
+                    <Addicon fill={Colors.WHITE}/>
                 </View>
             </TouchableOpacity>
         </View>

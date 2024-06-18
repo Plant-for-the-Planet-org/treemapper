@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View, } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import EditDimension from 'assets/images/svg/EditDimension.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
@@ -16,6 +16,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import EditInputModal from '../intervention/EditInputModal'
+import AddIcon from 'assets/images/svg/Addicon.svg'
 
 
 
@@ -30,9 +31,8 @@ const EidPlantModal = (props: Props) => {
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { delteMonitoringPlot, updatePlotName } = useMonitoringPlotMangement()
-  const { dismiss } = useBottomSheetModal()
   // variables
-  const snapPoints = useMemo(() => ['40%'], []);
+  const snapPoints = useMemo(() => ['35%'], []);
   const [showEdit, setShowEdit] = useState('')
 
   const [plotName, setPlotname] = useState('')
@@ -73,7 +73,7 @@ const EidPlantModal = (props: Props) => {
 
   // callbacks
   const closeModal = () => {
-    dismiss()
+    bottomSheetModalRef.current.dismiss()
     toogleModal()
   }
 
@@ -89,7 +89,14 @@ const EidPlantModal = (props: Props) => {
 
   const handleDimensions = () => {
     bottomSheetModalRef.current.dismiss()
+    toogleModal()
     navigation.navigate('CreatePlotMap', { id: plotId, isEdit: true })
+  }
+
+  const addGroup = () => {
+    bottomSheetModalRef.current.dismiss()
+    toogleModal()
+    navigation.navigate("PlotGroup")
   }
 
   return (
@@ -110,14 +117,16 @@ const EidPlantModal = (props: Props) => {
           <View style={styles.contnetWrapper}>
             <View style={styles.DropdownOption}>
               <View style={styles.dropwdownContainer}>
-                {dropDownList.length > 0 &&
+                {dropDownList.length > 0 ?
                   <CustomDropDownPicker
                     label={'Plot Group (Optional)'}
                     data={dropDownList}
                     onSelect={setType}
                     selectedValue={type}
                     position='top'
-                  />}
+                  /> : <Pressable
+                    onPress={addGroup}
+                    style={styles.emptyWrapper}><Text style={styles.emptyLabel}>Add Group</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
               </View>
               <Pressable onPress={closeModal} style={{ padding: 5 }}>
                 <CloseIcon width={50} onPress={closeModal} />
@@ -183,5 +192,16 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     marginLeft: '5%'
   },
-
+  emptyLabel: {
+    fontSize: 22,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.NEW_PRIMARY,
+    marginRight: 10
+  },
+  emptyWrapper: {
+    height: 55,
+    marginLeft: '5%',
+    alignItems: 'center',
+    flexDirection: 'row'
+  }
 })
