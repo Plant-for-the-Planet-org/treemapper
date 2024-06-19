@@ -105,6 +105,7 @@ export interface RegisterFormSliceInitalState {
   additional_data: FormElement[]
   form_data: FormElement[]
   plantedSpecies: PlantedSpecies[]
+  optionalLocation?:boolean
 }
 
 export interface SampleTree {
