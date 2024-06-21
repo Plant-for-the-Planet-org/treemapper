@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, Text, View } from 'react-native'
+import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
@@ -16,6 +16,7 @@ import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import PEN_ICON from 'assets/images/svg/EditPenIcon.svg'
 
 
 
@@ -45,6 +46,11 @@ const AddRemeasurmentView = () => {
     const handleSelection = () => {
         navigation.navigate('PlotPlantRemeasure', { id: plotID, plantID: plantID })
     }
+
+    const editPlant = () => {
+        navigation.navigate('AddPlantDetailsPlot', { id: plotID, plantId: plantID, isEdit: true })
+    }
+
     const renderCard = (item: PlantTimeLine, index: number) => {
         const renderIcon = () => {
             switch (item.status) {
@@ -66,7 +72,7 @@ const AddRemeasurmentView = () => {
                     return 'Tree Planted'
             }
         }
-        
+
         return (
             <View style={styles.cardContainer}>
                 <View style={styles.iconWrapper}>
@@ -91,7 +97,9 @@ const AddRemeasurmentView = () => {
     }
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} />
+            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
+                <PEN_ICON width={20} height={20} />
+            </Pressable>} />
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
                     <FlatList
@@ -176,6 +184,13 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         height: '100%',
         justifyContent: 'flex-start'
+    },
+    rightComp: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: 30,
+        height: 30,
+        marginRight: 10
     },
     divider: {
         flex: 1,

@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { ReactElement } from 'react'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -13,9 +13,10 @@ interface Props {
     species: string
     allias: string
     showRemeasure: boolean
+    rightComponent?: ReactElement
 }
 
-const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure }: Props) => {
+const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightComponent }: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const goBack = () => {
         navigation.goBack()
@@ -35,6 +36,7 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure }: Props
                     {species}
                 </Text>
             </View>
+            {rightComponent && rightComponent}
         </View>
     )
 }
@@ -95,5 +97,6 @@ const styles = StyleSheet.create({
         color: Colors.WHITE,
         paddingHorizontal: 10,
         letterSpacing: 0.2
-    }
+    },
+
 })

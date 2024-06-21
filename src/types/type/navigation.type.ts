@@ -133,7 +133,9 @@ type PlotDetails = {
 }
 
 type AddPlantDetailsPlot = {
-  id: string
+  id: string,
+  isEdit?: boolean
+  plantId?: string
 }
 
 type PlotPlantDetails = {

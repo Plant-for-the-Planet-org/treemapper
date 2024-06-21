@@ -215,6 +215,58 @@ const useMonitoringPlotMangement = () => {
       return Promise.reject(false)
     }
   }
+
+
+  const updatePlotPlatDetails = async (
+    id: string,
+    plantId: string,
+    updatedDetails: {
+      tag: string,
+      type: any,
+      species: {
+        guid: string,
+        scientific_name: string,
+        aliases: string,
+      }
+    }
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
+        plotData.plot_plants[index].scientific_name = updatedDetails.species.scientific_name
+        plotData.plot_plants[index].guid = updatedDetails.species.guid
+        plotData.plot_plants[index].aliases = updatedDetails.species.aliases
+        plotData.plot_plants[index].tag = updatedDetails.tag
+        plotData.plot_plants[index].type = updatedDetails.type
+        plotData.plot_plants[index].details_updated_at = Date.now()
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+
+  const deltePlantDetails = async (id: string, plantId: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotDetails = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const plantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantId)
+        const filteredData = plotDetails.plot_plants.filter(el => el.plot_plant_id !== plantId)
+        plotDetails.plot_plants = filteredData
+        realm.delete(plantDetails)
+        plotDetails.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
   const addPlotObservation = async (
     id: string,
     observationDEtails: PlotObservation
@@ -307,7 +359,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement
