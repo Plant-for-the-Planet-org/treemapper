@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react'
-import { FlashList } from '@shopify/flash-list'
 import PlantPlotCards from './PlantPlotCards'
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, FlatList } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -58,7 +57,7 @@ const PlotPlantList = (props: Props) => {
 
     return (
         <View style={styles.container}>
-            <FlashList
+            <FlatList
                 ListHeaderComponent={<PlotPlantSearch onChangeText={onChangeText} />
                 }
                 ListEmptyComponent={<EmptyStaticScreen label={noResult ? "No searched result found" : 'No Plots to Show Yet'} note={'Tap the button below to add a new plant.'}
@@ -66,7 +65,7 @@ const PlotPlantList = (props: Props) => {
                     image={<EmptyIcom />} />}
                 ListFooterComponent={() => { return (<View style={{ width: '100%', height: 100 }} />) }}
                 renderItem={({ item, index }) => (<PlantPlotCards item={item} handleSelection={handleSelection} index={index} />)}
-                data={plantData} estimatedItemSize={100}
+                data={plantData}
             />
             <CustomButton
                 label="Add Plants"
