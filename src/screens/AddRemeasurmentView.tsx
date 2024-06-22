@@ -51,6 +51,10 @@ const AddRemeasurmentView = () => {
         navigation.navigate('AddPlantDetailsPlot', { id: plotID, plantId: plantID, isEdit: true })
     }
 
+    const handlePress = (i: string) => {
+        navigation.navigate('PlotPlantRemeasure', { id: plotID, plantID: plantID, timelineId: i })
+    }
+
     const renderCard = (item: PlantTimeLine, index: number) => {
         const renderIcon = () => {
             switch (item.status) {
@@ -69,12 +73,12 @@ const AddRemeasurmentView = () => {
                 case 'DESCEASED':
                     return 'Marked deceased'
                 default:
-                    return 'Tree Planted'
+                    return `Tree Planted : ${item.length}${item.length_unit} high,${item.width}${item.width_unit} wide`
             }
         }
 
         return (
-            <View style={styles.cardContainer}>
+            <Pressable style={styles.cardContainer} onPress={() => { handlePress(item.timeline_id) }}>
                 <View style={styles.iconWrapper}>
                     <View style={[styles.icon, { backgroundColor: item.status === 'DESCEASED' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
                         {renderIcon()}
@@ -89,7 +93,7 @@ const AddRemeasurmentView = () => {
                         {label()}
                     </Text>
                 </View>
-            </View>
+            </Pressable>
         )
     }
     if (!selectedTimeline) {
@@ -97,7 +101,7 @@ const AddRemeasurmentView = () => {
     }
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
+            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
                 <PEN_ICON width={20} height={20} />
             </Pressable>} />
             <View style={styles.wrapper}>

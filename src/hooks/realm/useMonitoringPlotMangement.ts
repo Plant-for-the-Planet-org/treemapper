@@ -1,6 +1,7 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotGroups, PlotObservation } from 'src/types/interface/slice.interface'
+import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
 
 
 export interface PlotDetailsParams {
@@ -216,6 +217,62 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  
+
+
+  const updateTimelineDetails = async (
+    id: string,
+    plantId: string,
+    timelineId: string,
+    details: {
+      l: number,
+      w: number,
+      date: number,
+      status: PLOT_PLANT_STATUS | any,
+    }
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
+        const timelineDetails = plotData.plot_plants[index].timeline.find(el => el.timeline_id === timelineId)
+        timelineDetails.date = details.date
+        timelineDetails.length = details.l
+        timelineDetails.width = details.w
+        timelineDetails.status = details.status
+        plotData.plot_updated_at = Date.now()
+        plotData.plot_plants[index].is_alive = details.status !== 'DESCEASED'
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+
+  const deletePlotTimeline = async (
+    id: string,
+    plantId: string,
+    timelineId: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
+        const timelineDetails = plotData.plot_plants[index].timeline.find(el => el.timeline_id === timelineId)
+        plotData.plot_plants[index].timeline = plotData.plot_plants[index].timeline.filter(el => timelineDetails.timeline_id !== el.timeline_id)
+        plotData.plot_updated_at = Date.now()
+        plotData.plot_plants[index].is_alive = timelineDetails.status === 'DESCEASED' ? true : plotData.plot_plants[index].is_alive
+        realm.delete(timelineDetails)
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
 
   const updatePlotPlatDetails = async (
     id: string,
@@ -359,7 +416,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { deletePlotTimeline, updateTimelineDetails, deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

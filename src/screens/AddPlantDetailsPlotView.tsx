@@ -140,7 +140,8 @@ const AddPlantDetailsPlotView = () => {
             date: mesaurmentDate,
             length_unit: 'm',
             width_unit: 'cm',
-            image: ''
+            image: '',
+            timeline_id: generateUniquePlotId()
         }
         const plantDetails: PlantedPlotSpecies = {
             plot_plant_id: generateUniquePlotId(),

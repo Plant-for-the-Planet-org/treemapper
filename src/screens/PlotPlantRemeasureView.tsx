@@ -15,18 +15,26 @@ import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/int
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
+import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
+import { useToast } from 'react-native-toast-notifications'
 
 const PlotPlantRemeasureView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
+    const route = useRoute<RouteProp<RootStackParamList, 'AddRemeasurment'>>()
     const plotID = route.params && route.params.id ? route.params.id : ''
     const plantID = route.params && route.params.plantID ? route.params.plantID : ''
+    const timelineId = route.params && route.params.timelineId ? route.params.timelineId : ''
     const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const [mesaurementDate, setMesaurmentDate] = useState(Date.now())
     const [isAlive, setIsAlive] = useState(true)
-    const { addNewMeasurmentPlantPlots } = useMonitoringPlotMangement()
+    const [isEdit, setIsEdit] = useState(false)
+    const [disableDelte, setDisableDelte] = useState(false)
+
+    const toast = useToast()
+    const { addNewMeasurmentPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotMangement()
     const realm = useRealm()
 
     useEffect(() => {
@@ -35,11 +43,26 @@ const PlotPlantRemeasureView = () => {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
                 setSelectedTimeLIne(getPlantDetails)
+                if (timelineId) {
+                    const timelineDetails = getPlantDetails.timeline.find(el => el.timeline_id === timelineId)
+                    if (timelineDetails) {
+                        setHeight(String(timelineDetails.length))
+                        setWidth(String(timelineDetails.width))
+                        setIsEdit(true)
+                        setMesaurmentDate(timelineDetails.date)
+                        setIsAlive(timelineDetails.status !== 'DESCEASED')
+                        setDisableDelte(timelineDetails.status === 'PLANTED')
+                    }
+                }
             }
         }
     }, [plotID])
 
     const submitHadler = async () => {
+        if (isEdit) {
+            updateDetails()
+            return
+        }
         const updateTimeline: PlantTimeLine = {
             status: isAlive ? 'REMEASURMENT' : 'DESCEASED',
             length: Number(height),
@@ -47,7 +70,8 @@ const PlotPlantRemeasureView = () => {
             date: mesaurementDate,
             length_unit: 'm',
             width_unit: 'cm',
-            image: ''
+            image: '',
+            timeline_id: generateUniquePlotId()
         }
         await addNewMeasurmentPlantPlots(plotID, plantID, updateTimeline)
         navigation.goBack()
@@ -56,6 +80,59 @@ const PlotPlantRemeasureView = () => {
     if (!selectedTimeline) {
         return null
     }
+
+    const deleteHandler = async () => {
+        const result = await deletePlotTimeline(plotID, plantID, timelineId)
+        if (result) {
+            toast.show("Data deleted.")
+            navigation.goBack()
+        } else {
+            toast.show("Something went wrong.")
+        }
+    }
+
+    const dateCheck = (index: number, newDate: number) => {
+        if (index > 0 && newDate <= selectedTimeline.timeline[index - 1].date) {
+            toast.show("Selected date cannot be less than the previous measurment.")
+            return false
+        }
+        if (index < selectedTimeline.timeline.length - 1 && newDate >= selectedTimeline.timeline[index + 1].date) {
+            toast.show("Selected date cannot be more than the next measurment.")
+            return false
+        }
+
+        return true
+    }
+
+    const updateDetails = async () => {
+        const index = selectedTimeline.timeline.findIndex(el => el.timeline_id === timelineId)
+        if (index === 0 && !isAlive) {
+            toast.show("Planted Status cannot be marked as dseceased.\nPlease create new measurment and mark it as desceased.")
+            return
+        }
+        if (index !== selectedTimeline.timeline.length - 1 && !isAlive) {
+            toast.show("Please delete all the other measurement next to this measurment before marking it desceased.")
+            return
+        }
+        if (!dateCheck(index, mesaurementDate)) {
+            return
+        }
+        const updateTimeline = {
+            l: Number(height),
+            w: Number(width),
+            date: mesaurementDate,
+            status: isEdit && index === 0 ? 'PLANTED' : isAlive ? 'REMEASURMENT' : 'DESCEASED',
+        }
+        const result = await updateTimelineDetails(plotID, plantID, timelineId, updateTimeline)
+        if (result) {
+            toast.show("Details updated")
+            navigation.goBack()
+        } else {
+            toast.show("Error occured")
+        }
+    }
+
+
 
     return (
         <SafeAreaView style={styles.cotnainer}>
@@ -75,6 +152,7 @@ const PlotPlantRemeasureView = () => {
                         <OutlinedTextInput
                             placeholder={'Height'}
                             changeHandler={setHeight}
+                            defaultValue={height}
                             keyboardType={'decimal-pad'}
                             trailingtext={'m'} errMsg={''} />
                     </View>
@@ -83,15 +161,35 @@ const PlotPlantRemeasureView = () => {
                             placeholder={'Diameter'}
                             changeHandler={setWidth}
                             keyboardType={'decimal-pad'}
+                            defaultValue={width}
                             trailingtext={'cm'} errMsg={''} />
                     </View></>}
             </View>
-            <CustomButton
-                label="Save"
-                containerStyle={styles.btnContainer}
-                pressHandler={submitHadler}
-                hideFadein
-            />
+            {isEdit && !disableDelte ?
+                <View style={styles.btnContainedr}>
+                    <CustomButton
+                        label={'Delete'}
+                        containerStyle={styles.btnWrapper}
+                        pressHandler={deleteHandler}
+                        wrapperStyle={styles.borderWrapper}
+                        labelStyle={styles.highlightLabel}
+                        hideFadein
+                        disable={disableDelte}
+                    />
+                    <CustomButton
+                        label={'Save'}
+                        containerStyle={styles.btnWrapper}
+                        pressHandler={updateDetails}
+                        wrapperStyle={styles.noBorderWrapper}
+                        hideFadein
+                    />
+                </View> :
+                <CustomButton
+                    label="Save"
+                    containerStyle={styles.btnContainer}
+                    pressHandler={submitHadler}
+                    hideFadein
+                />}
         </SafeAreaView>
     )
 }
@@ -118,5 +216,67 @@ const styles = StyleSheet.create({
         height: 70,
         position: 'absolute',
         bottom: 50,
+    },
+    btnContainedr: {
+        width: '100%',
+        height: scaleSize(70),
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 30,
+        justifyContent: 'center'
+    },
+    btnWrapper: {
+        width: '48%',
+    },
+    imageContainer: {
+        widht: '100%',
+        height: '100%',
+    },
+    borderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.WHITE,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: 'tomato'
+    },
+    noBorderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 12,
+    },
+    opaqueWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '70%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 10,
+    },
+    highlightLabel: {
+        fontSize: scaleFont(16),
+        fontWeight: '400',
+        color: 'tomato'
+    },
+    normalLable: {
+        fontSize: scaleFont(14),
+        fontWeight: '400',
+        color: Colors.WHITE,
+        textAlign: 'center',
     },
 })

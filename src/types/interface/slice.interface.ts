@@ -105,7 +105,7 @@ export interface RegisterFormSliceInitalState {
   additional_data: FormElement[]
   form_data: FormElement[]
   plantedSpecies: PlantedSpecies[]
-  optionalLocation?:boolean
+  optionalLocation?: boolean
 }
 
 export interface SampleTree {
@@ -237,6 +237,7 @@ export interface PlantTimeLine {
   length_unit: string
   width_unit: string
   image: string
+  timeline_id: string
 }
 
 
