@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
@@ -16,6 +16,9 @@ import { OBSERVATION_TYPE } from 'src/types/type/app.type'
 import Header from 'src/components/common/Header'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { useToast } from 'react-native-toast-notifications'
+import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
 
 
 
@@ -49,6 +52,8 @@ const AddObeservationForm = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddObservationForm'>>()
     const plotID = route.params && route.params.id ? route.params.id : ''
+    const obsId = route.params && route.params.obsId ? route.params.obsId : ''
+
     const [type, setType] = useState<{
         label: string
         value: OBSERVATION_TYPE
@@ -59,8 +64,27 @@ const AddObeservationForm = () => {
     const [value, setValue] = useState('')
     const [unit, setUnit] = useState('kpa')
 
-    const { addPlotObservation } = useMonitoringPlotMangement()
+    const { addPlotObservation, updatePlotObservation, deltePlotObservation } = useMonitoringPlotMangement()
     const toast = useToast()
+    const realm = useRealm()
+
+    useEffect(() => {
+        if (obsId && obsId.length > 0) {
+            const details = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
+            if (details) {
+                setValue(String(details.value))
+                setUnit(String(details.unit))
+                setObservationDate(details.obs_date)
+                setType({
+                    label: details.type,
+                    value: details.type,
+                    index: 0
+                })
+            }
+        }
+    }, [obsId])
+
+
     const handleDropDown = (d: {
         label: string
         value: OBSERVATION_TYPE
@@ -92,6 +116,32 @@ const AddObeservationForm = () => {
         navigation.goBack()
     }
 
+    const deleteHandler = async () => {
+        const result = await deltePlotObservation(plotID, obsId)
+        if (result) {
+            toast.show("Observation deleted")
+            navigation.goBack()
+        } else {
+            toast.show("Error occured while deleting")
+        }
+    }
+
+    const updateDetails = async () => {
+        const obsDetails: PlotObservation = {
+            obs_id: obsId,
+            type: type.value,
+            obs_date: observationDate,
+            value: Number(value),
+            unit: unit
+        }
+        const result = await updatePlotObservation(plotID, obsDetails)
+        if (result) {
+            toast.show("Observation details updated")
+            navigation.goBack()
+        } else {
+            toast.show("Error occured while updating")
+        }
+    }
 
 
 
@@ -114,16 +164,35 @@ const AddObeservationForm = () => {
                     <OutlinedTextInput
                         placeholder={'Value'}
                         changeHandler={setValue}
+                        defaultValue={value}
                         keyboardType={'decimal-pad'}
                         trailingtext={unit} errMsg={''} />
                 </View>
             </View>
-            <CustomButton
-                label="Save"
-                containerStyle={styles.btnContainer}
-                pressHandler={submitHadler}
-                hideFadein
-            />
+            {obsId && obsId.length > 0 ?
+                <View style={styles.btnContainedr}>
+                    <CustomButton
+                        label={'Delete'}
+                        containerStyle={styles.btnWrapper}
+                        pressHandler={deleteHandler}
+                        wrapperStyle={styles.borderWrapper}
+                        labelStyle={styles.highlightLabel}
+                        hideFadein
+                    />
+                    <CustomButton
+                        label={'Save'}
+                        containerStyle={styles.btnWrapper}
+                        pressHandler={updateDetails}
+                        wrapperStyle={styles.noBorderWrapper}
+                        hideFadein
+                    />
+                </View> :
+                <CustomButton
+                    label="Save"
+                    containerStyle={styles.btnContainer}
+                    pressHandler={submitHadler}
+                    hideFadein
+                />}
         </SafeAreaView>
     )
 }
@@ -150,5 +219,67 @@ const styles = StyleSheet.create({
         height: 70,
         position: 'absolute',
         bottom: 50,
+    },
+    btnContainedr: {
+        width: '100%',
+        height: scaleSize(70),
+        flexDirection: 'row',
+        alignItems: 'center',
+        position: 'absolute',
+        bottom: 30,
+        justifyContent: 'center'
+    },
+    btnWrapper: {
+        width: '48%',
+    },
+    imageContainer: {
+        widht: '100%',
+        height: '100%',
+    },
+    borderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.WHITE,
+        borderRadius: 12,
+        borderWidth: 2,
+        borderColor: 'tomato'
+    },
+    noBorderWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '80%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 12,
+    },
+    opaqueWrapper: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 15,
+        paddingVertical: 5,
+        width: '90%',
+        height: '70%',
+        backgroundColor: Colors.PRIMARY_DARK,
+        borderRadius: 10,
+    },
+    highlightLabel: {
+        fontSize: scaleFont(16),
+        fontWeight: '400',
+        color: 'tomato'
+    },
+    normalLable: {
+        fontSize: scaleFont(14),
+        fontWeight: '400',
+        color: Colors.WHITE,
+        textAlign: 'center',
     },
 })

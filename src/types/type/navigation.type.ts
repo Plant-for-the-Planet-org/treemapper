@@ -153,6 +153,7 @@ type AddRemeasurementView = {
 
 type AddObservation = {
   id: string
+  obsId?: string
 }
 
 type AddPlotGroup = {

@@ -217,7 +217,7 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
-  
+
 
 
   const updateTimelineDetails = async (
@@ -341,6 +341,46 @@ const useMonitoringPlotMangement = () => {
     }
   }
 
+  const updatePlotObservation = async (
+    id: string,
+    observationDEtails: PlotObservation
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const observation = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, observationDEtails.obs_id);
+        observation.obs_date = observationDEtails.obs_date
+        observation.type = observationDEtails.type
+        observation.value = observationDEtails.value
+        observation.unit = observationDEtails.unit
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+  const deltePlotObservation = async (
+    id: string,
+    obsId: string
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
+        const observation = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
+        realm.delete(observation)
+        plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
+
+
   const createNewPlotGroup = async (
     groupDetails: PlotGroups,
   ): Promise<boolean> => {
@@ -416,7 +456,7 @@ const useMonitoringPlotMangement = () => {
 
 
 
-  return { deletePlotTimeline, updateTimelineDetails, deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { updatePlotObservation, deltePlotObservation, deletePlotTimeline, updateTimelineDetails, deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
 }
 
 export default useMonitoringPlotMangement

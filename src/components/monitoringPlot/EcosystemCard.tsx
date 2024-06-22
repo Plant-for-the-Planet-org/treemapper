@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import SoilMoistureIcon from 'assets/images/svg/SoilMoistureIcon.svg'
 import CanopyCoverIcon from 'assets/images/svg/CanopyCoverIcon.svg'
@@ -9,12 +9,20 @@ import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { PlotObservation } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 interface Props {
     item: PlotObservation | any
+    plotId: string
 }
 
 const EcosystemCard = (props: Props) => {
-    const { type, value, unit, obs_date } = props.item;
+    const { type, value, unit, obs_date, obs_id } = props.item;
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const handlePress = () => {
+        navigation.navigate('AddObservationForm', { id: props.plotId, obsId: obs_id })
+    }
     const renderIcon = () => {
         switch (type) {
             case 'SOIL_MOISTURE':
@@ -37,7 +45,7 @@ const EcosystemCard = (props: Props) => {
     }
 
     return (
-        <View style={styles.container}>
+        <Pressable style={styles.container} onPress={handlePress}>
             <View style={styles.wrapper}>
                 <View style={styles.avatar}>
                     {renderIcon()}
@@ -53,7 +61,7 @@ const EcosystemCard = (props: Props) => {
                     </View>
                 </View>
             </View>
-        </View>
+        </Pressable>
     )
 }
 

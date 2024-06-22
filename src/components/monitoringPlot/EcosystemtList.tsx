@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { FlashList } from '@shopify/flash-list'
-import { StyleSheet } from 'react-native'
+import { FlatList, StyleSheet } from 'react-native'
 import { Colors } from 'src/utils/constants'
 import EcosystemCard from './EcosystemCard'
 import EcosystemListHeader from './EcosystemListHeader'
@@ -37,18 +36,17 @@ const EcosystemList = ({ plotID, data }: Props) => {
         if (selectedLabel === 'soil_moisture') {
             setObservationData(data.observations.filter(el => el.type === 'SOIL_MOISTURE'))
         }
-    }, [selectedLabel,data.observations])
+    }, [selectedLabel, data.observations])
 
 
     return (
         <>
-            <FlashList
+            <FlatList
                 data={observationData}
-                renderItem={({ item }) => (<EcosystemCard item={item} />)}
-                estimatedItemSize={100}
+                renderItem={({ item }) => (<EcosystemCard item={item} plotId={plotID} />)}
                 ListEmptyComponent={<EmptyStaticScreen label={'No Observation to Show'} note={'Tap the button below to add \nnew observation.'}
-                marginTop={{marginTop:'20%'}}
-                image={<EmptyIcom />} />}
+                    marginTop={{ marginTop: '20%' }}
+                    image={<EmptyIcom />} />}
                 ListHeaderComponent={<EcosystemListHeader
                     item={data.observations}
                     onPress={setSelectedLabel} selectedLabel={selectedLabel} />}
