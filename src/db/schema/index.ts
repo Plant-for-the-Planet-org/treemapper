@@ -1,28 +1,38 @@
-import {Dropdown} from './ dropDown'
-import {DropDownOption} from './ dropDownOption'
-import {ActivityLogs} from './activityLogs'
-import {AdditionalDetail} from './additionalDetail'
-import {Coordinates} from './coordinates'
-import {Element} from './element'
-import {Form} from './form'
-import {Input} from './input'
-import {Inventory} from './inventory'
-import {Metadata} from './metaData'
-import {OfflineMap} from './offlineMap'
-import {Polygon} from './polygon'
-import {ProjectSite} from './projectSites'
-import {Projects} from './projects'
-import {SampleTree} from './sampleTree'
-import {ScientificSpecies} from './scientificSpecies'
-import {InterventionPlantedSpecies} from './InterventionPlantedSpecies'
-import {User} from './user'
-import {Intervention} from './intervention' 
-import {YesNo} from './yesOrNo'
+import { Dropdown } from './ dropDown'
+import { DropDownOption } from './ dropDownOption'
+import { ActivityLogs } from './activityLogs'
+import { AdditionalDetail } from './additionalDetail'
+import { Coordinates } from './coordinates'
+import { Element } from './element'
+import { Form } from './form'
+import { Input } from './input'
+import { Inventory } from './inventory'
+import { Metadata } from './metaData'
+import { OfflineMap } from './offlineMap'
+import { Polygon } from './polygon'
+import { ProjectSite } from './projectSites'
+import { Projects } from './projects'
+import { SampleTree } from './sampleTree'
+import { ScientificSpecies } from './scientificSpecies'
+import { InterventionPlantedSpecies } from './InterventionPlantedSpecies'
+import { User } from './user'
+import { Intervention } from './intervention'
+import { YesNo } from './yesOrNo'
 import { GeoSpatial } from './geoSpatial'
 import { FormElement } from './FormElements'
 import { AdditonalDetailsForm } from './AdditonalDetailsForm'
+import { MonitoringPlot } from './monitotingPlot'
+import { PlotGroups } from './plotGroups'
+import { PlantTimeline } from './plantTimeline'
+import { PlotPlantedSpecies } from './plotPlantedSpecies'
+import { PlotObservation } from './PlotObservation'
+
 
 export default [
+  MonitoringPlot,
+  PlotGroups,
+  PlantTimeline,
+  PlotPlantedSpecies,
   Dropdown,
   DropDownOption,
   ActivityLogs,
@@ -45,5 +55,6 @@ export default [
   Intervention,
   GeoSpatial,
   AdditonalDetailsForm,
-  FormElement
+  FormElement,
+  PlotObservation
 ]

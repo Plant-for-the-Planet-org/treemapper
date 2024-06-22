@@ -22,13 +22,16 @@ const FilterModal = (props: Props) => {
   const [showTimeModal, setTimeModal] = useState(false)
   const [showTypeModal, setTypeModal] = useState(false)
 
+  const [showMonitoringPlots, setMonitoringPlots] = useState(false)
+  const [showRemeasurment, setShowRemeasurment] = useState(false)
+
   const { interventionFilter } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
   // variables
-  const snapPoints = useMemo(() => ['48%', '85%'], []);
+  const snapPoints = useMemo(() => ['50%', '85%'], []);
   const { isVisible, toogleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -46,6 +49,7 @@ const FilterModal = (props: Props) => {
   }, []);
   const closeModal = () => {
     toogleModal()
+    setTypeModal(false)
     dismiss();
   }
 
@@ -83,7 +87,9 @@ const FilterModal = (props: Props) => {
     <BottomSheetModal
       ref={bottomSheetModalRef}
       index={0}
+      handleIndicatorStyle={styles.handleIndicatorStyle}
       detached
+      handleStyle={styles.handleIndicatorStyle}
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
@@ -92,12 +98,12 @@ const FilterModal = (props: Props) => {
       style={{ paddingTop: 20 }}
     >
       <InterventionTimeModal isVisible={showTimeModal} toogleModal={toogleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
-      <BottomSheetView style={styles.container} >
+      <BottomSheetView style={styles.container}>
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>
             <View style={styles.header}>
               <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
-              <Text style={styles.headerLable}>{i18next.t('label.filter')}</Text>
+              <Text style={styles.headerLable}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
                 <CloseIcon />
@@ -106,7 +112,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLable}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={false} onValueChange={() => { }} disabled={false} />
+              <Switch value={showMonitoringPlots} onValueChange={() => { setMonitoringPlots(!showMonitoringPlots) }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
               <Text style={styles.cardLable}>{i18next.t('label.intervention')}</Text>
@@ -122,7 +128,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLable}>{i18next.t('label.only_remeasurment')}</Text>
               <View style={styles.divider} />
-              <Switch value={false} onValueChange={() => { }} disabled={false} />
+              <Switch value={showRemeasurment} onValueChange={() => { setShowRemeasurment(!showRemeasurment) }} disabled={false} />
             </View>
             <View />
           </View>
@@ -148,7 +154,6 @@ const styles = StyleSheet.create({
   },
   contnetWrapper: {
     width: '95%',
-    paddingTop: 10,
     paddingBottom: 50
   },
   card: {
@@ -171,8 +176,6 @@ const styles = StyleSheet.create({
     marginHorizontal: 10
   },
   closeWrapper: {
-    width: 30,
-    height: 30,
     marginRight: 8,
     tintColor: Colors.TEXT_COLOR
   },
@@ -195,4 +198,9 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
+  handleIndicatorStyle: {
+    backgroundColor: Colors.WHITE,
+    width: 0,
+    height: 0
+  }
 })

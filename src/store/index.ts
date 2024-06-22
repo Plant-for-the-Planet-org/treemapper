@@ -22,6 +22,7 @@ import displayMapSlice from './slice/displayMapSlice'
 import mapBoundSlice from './slice/mapBoundSlice'
 import interventionSlice from './slice/interventionSlice'
 import tempStateSlice from './slice/tempStateSlice'
+import monitoringPlotSlice from './slice/monitoringPlotStateSlice'
 
 const appReducer = combineReducers({
   appState: appStateSlice,
@@ -34,7 +35,8 @@ const appReducer = combineReducers({
   displayMapState: displayMapSlice,
   mapBoundState: mapBoundSlice,
   interventionState: interventionSlice,
-  tempState: tempStateSlice
+  tempState: tempStateSlice,
+  monitoringPlotState: monitoringPlotSlice
 })
 
 const persistConfig = {

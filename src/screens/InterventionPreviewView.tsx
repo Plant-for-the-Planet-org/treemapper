@@ -1,4 +1,4 @@
-import { ActivityIndicator, ScrollView, StyleSheet, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -17,7 +17,7 @@ import {
   metaDataTranformer,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
@@ -191,6 +191,7 @@ const InterventionPreviewView = () => {
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
+        {InterventionData.status === 'NOT_SYNCED' && <Text style={styles.versionNote}>Collected With TreeMapper 2.0.3</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton
@@ -228,5 +229,13 @@ const styles = StyleSheet.create({
   },
   scrollWrapper: {
     backgroundColor: Colors.GRAY_LIGHT + '1A'
+  },
+  versionNote: {
+    fontSize: 14,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.TEXT_LIGHT,
+    width: '100%',
+    textAlign: 'center',
+    marginVertical: 20
   }
 })

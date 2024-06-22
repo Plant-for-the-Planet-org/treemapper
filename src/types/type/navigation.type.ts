@@ -36,6 +36,19 @@ export type RootStackParamList = {
   ImportForm: undefined
   EditAdditionData: EditAdditionDataView
   EditPolygon: undefined
+  CreatePlot: undefined
+  CreatePlotDetail: CreatePlotDetails
+  CreatePlotMap: CreatePlotMap
+  PlotDetails: PlotDetails
+  PlotPlantRemeasure: PlotPlantDetails
+  AddObservationForm: AddObservation
+  AddPlantDetailsPlot: AddPlantDetailsPlot
+  AddPlotDetails: undefined
+  MonitoringInfo: undefined
+  AddRemeasurment: AddRemeasurementView
+  PlotGroup: undefined
+  AddPlotGroup: AddPlotGroup,
+  AddPlotsToGroup: AddPlotsToGroup
 }
 
 type SpeciesInfoView = {
@@ -102,4 +115,52 @@ type SelectElementView = {
 
 type EditAdditionDataView = {
   interventionID: string
+}
+
+
+type CreatePlotDetails = {
+  id: string,
+  isEdit?: boolean
+}
+type CreatePlotMap = {
+  id: string,
+  markLocation?: boolean,
+  plantId?: string,
+  isEdit?: boolean
+}
+type PlotDetails = {
+  id: string
+}
+
+type AddPlantDetailsPlot = {
+  id: string,
+  isEdit?: boolean
+  plantId?: string
+}
+
+type PlotPlantDetails = {
+  id: string,
+  plantID: string,
+  timelineId?: string
+}
+
+
+type AddRemeasurementView = {
+  id: string,
+  plantID: string
+  timelineId: string
+}
+
+type AddObservation = {
+  id: string
+  obsId?: string
+}
+
+type AddPlotGroup = {
+  isEdit: boolean,
+  groupId: string
+}
+
+type AddPlotsToGroup = {
+  groupId: string
 }

@@ -1,4 +1,4 @@
-export type AFTER_CAPTURE = 'SPECIES_INFO' | 'POINT_REGISTER' | 'POLYGON_REGISTER' | 'SAMPLE_TREE' | 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
+export type AFTER_CAPTURE = 'SPECIES_INFO' | 'POINT_REGISTER' | 'POLYGON_REGISTER' | 'SAMPLE_TREE' | 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE' | 'PLOT_IMAGE'
 
 export type INTERVENTION_TYPE = 'single-tree-registration' | 'multi-tree-registration' | 'removal-invasive-species' | 'fire-suppression' | 'fire-patrol' | 'fencing' | 'marking-regenerant' | 'liberating-regenerant' | 'grass-suppression' | 'firebreaks' | 'assisting-seed-rain' | 'soil-improvement' | 'stop-tree-harvesting' | 'direct-seeding' | 'enrichement-planting' | 'other-intervention' | 'maintenance'
 
@@ -19,3 +19,11 @@ export type INTERVENTION_FILTER = 'always' | 'year' | 'months' | 'days' | 'none'
 export type LOG_TYPES = "INTERVENTION" | "MAPS" | "MANAGE_SPECIES" | "DATA_SYNC" | "USER" | "PROJECTS" | "OTHER" | "ADDITIONAL_DATA" | "LOCATION"
 
 export type LOG_LEVELS = 'info' | 'warn' | 'error';
+
+
+export type PLOT_TYPE = "INTERVENTION" | "CONTROL"
+export type PLOT_SHAPE = "RECTANGULAR" | "CIRCULAR"
+export type PLOT_COMPLEXITY = "STANDARD" | "SIMPLE"
+export type PLOT_PLANT = "PLANTED" | "RECRUIT"
+export type PLOT_PLANT_STATUS = "PLANTED" | "RECRUIT" | "REMEASURMENT" | "DESCEASED"
+export type OBSERVATION_TYPE = "CANOPY" | "SOIL_MOISTURE" | "BIOACUSTICS"

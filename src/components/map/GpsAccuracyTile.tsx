@@ -17,19 +17,21 @@ const GpsAccuracyTile = (props: Props) => {
   };
 
   useEffect(() => {
-    Location.watchPositionAsync(
-      {
-        accuracy: Location.Accuracy.Highest,
-        distanceInterval: 1,
-        mayShowUserSettingsDialog: true,
-        timeInterval: 1000
-      },
-      (location) => {
-        if (location && location.coords && location.coords.accuracy) {
-          setAccuracy(location.coords.accuracy);
+    setTimeout(() => {
+      Location.watchPositionAsync(
+        {
+          accuracy: Location.Accuracy.Highest,
+          distanceInterval: 1,
+          mayShowUserSettingsDialog: true,
+          timeInterval: 1000
+        },
+        (location) => {
+          if (location && location.coords && location.coords.accuracy) {
+            setAccuracy(location.coords.accuracy);
+          }
         }
-      }
-    );
+      );
+    }, 1000);
   }, []);
 
   const activeStyle = {
@@ -64,14 +66,15 @@ export default GpsAccuracyTile;
 const styles = StyleSheet.create({
   container: {
     width: '40%',
-    height: '100%',
+    height: '90%',
     justifyContent: 'center',
     alignItems: 'center',
   },
   wrapper: {
-    width: '80%',
+    width: '85%',
     height: '70%',
-    borderRadius: 30,
+    borderRadius: 14,
+    marginRight: 10,
     justifyContent: 'space-evenly',
     alignItems: 'center',
     flexDirection: 'row',
@@ -79,6 +82,7 @@ const styles = StyleSheet.create({
   boldText: {
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: 16
   },
   lightText: {
     color: Colors.TEXT_COLOR,

@@ -58,7 +58,7 @@ const EditInputModal = ({
           <View style={CommonStyles.bottomInputContainer}>
             <TextInput
               ref={textInput}
-              value={value}
+              defaultValue={value}
               keyboardType={inputType}
               style={CommonStyles.bottomInputText}
               placeholder={placeholder}

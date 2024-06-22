@@ -28,17 +28,17 @@ export default function App() {
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>
         <RealmProvider>
           <Provider store={store}>
-            <PersistGate loading={null} persistor={persistor}>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <BottomSheetModalProvider>
-                  <ToastProvider>
+            <ToastProvider>
+              <PersistGate loading={null} persistor={persistor}>
+                <GestureHandlerRootView style={{ flex: 1 }}>
+                  <BottomSheetModalProvider>
                     <NavigationContainer>
                       <RootNavigator />
                     </NavigationContainer>
-                  </ToastProvider>
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </PersistGate>
+                  </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+              </PersistGate>
+            </ToastProvider>
           </Provider>
         </RealmProvider>
       </Auth0Provider>

@@ -13,6 +13,7 @@ export const LINEAR_INTERMEDIATE = '#348F39'
 export const NEW_PRIMARY = '#007A49'
 export const LIGHT_PRIMARY = '#E1EDE8'
 export const BACKDROP_COLOR = '#FAFAFA'
+export const RECRUIT_PLANT_THEME= '#2F80ED'
 
 // export export const SECONDARY = '#767676';
 export const WHITE = '#FFFFFF'
@@ -27,7 +28,8 @@ export const LIGHT_AMBER = '#FDD015'
 export const LIGHT_RED = '#FD0B0B'
 export const BACKDROP_RED = '#EB5757'
 export const PALE_RED = '#FBDDDD'
-
+export const SHADOW_BORDER = 'f2ebdd'
+export const DARK_TEXT = '#333333'
 
 // ACTIONS
 export const SUCCESS = '#2ecc71'

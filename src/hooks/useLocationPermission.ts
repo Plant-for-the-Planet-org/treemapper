@@ -10,7 +10,7 @@ const useLocationPermission = () => {
   const { addNewLog } = useLogManagement()
 
   useEffect(() => {
-    if (status && status.status !== Location.PermissionStatus.GRANTED) {
+    if (status && status.status === Location.PermissionStatus.DENIED) {
       dispatch(updaeBlockerModal(true))
       addNewLog({
         logType: 'LOCATION',

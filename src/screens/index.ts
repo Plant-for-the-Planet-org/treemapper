@@ -28,6 +28,19 @@ import LocalFormView from './LocalFormView'
 import ImportForm from './ImportFormView'
 import EditAdditionData from './EditAdditionDataView'
 import EditPolygonView from './EditPolygonView'
+import CreatePlotView from './CreatePlotView'
+import CreatePlotDetailsView from './CreatePlotDetailsView'
+import CreatePlotMapView from './CreatePlotMapView'
+import PlotDetailsView from './PlotDetailsView'
+import PlotPlantRemeasureView from './PlotPlantRemeasureView'
+import AddPlantDetailsPlotView from './AddPlantDetailsPlotView'
+import AddPlotDetailsView from './AddPlotDetailsView'
+import MonitoringInfoView from './MonitoringInfoView';
+import AddRemeasurmentView from './AddRemeasurmentView'
+import PlotGroupView from './PlotGroupView';
+import AddObservationFormView from './AddObservationFormView'
+import AddPlotGroupView from './AddPlotGroupView'
+import AddPlotsToGroupView from './AddPlotToGroupView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -59,5 +72,18 @@ export default {
   LocalForm: LocalFormView,
   ImportForm: ImportForm,
   EditAdditionData: EditAdditionData,
-  EditPolygon: EditPolygonView
+  EditPolygon: EditPolygonView,
+  CreatePlot: CreatePlotView,
+  CreatePlotDetail: CreatePlotDetailsView,
+  CreatePlotMap: CreatePlotMapView,
+  PlotDetails: PlotDetailsView,
+  PlotPlantRemeasure: PlotPlantRemeasureView,
+  AddPlantDetailsPlot: AddPlantDetailsPlotView,
+  AddPlotDetails: AddPlotDetailsView,
+  MonitoringInfo: MonitoringInfoView,
+  AddRemeasurment: AddRemeasurmentView,
+  PlotGroup: PlotGroupView,
+  AddObservationForm: AddObservationFormView,
+  AddPlotGroup: AddPlotGroupView,
+  AddPlotsToGroup: AddPlotsToGroupView
 }

@@ -24,7 +24,7 @@ const OfflineMapHeader = () => {
         Anytime, Anywhere {'\n'}
       </Text>
       <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
-        <AddIcon style={styles.btnIcon}/>
+        <AddIcon style={styles.btnIcon} fill={Colors.WHITE}/>
         <Text style={styles.btnLable}>Add Area</Text>
       </TouchableOpacity>
     </View>

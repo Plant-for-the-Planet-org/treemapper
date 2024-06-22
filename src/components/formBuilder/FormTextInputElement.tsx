@@ -45,7 +45,8 @@ const FormTextInputElement = (props: Props) => {
         activeColor={Colors.NEW_PRIMARY}
         inactiveColor={Colors.TEXT_LIGHT}
         placeholderTextColor={Colors.TEXT_LIGHT}
-        fontSize={18}
+        fontSize={16}
+        paddingVertical={15}
         value={formValues[data.key].value}
         onChangeText={handleChange}
         returnKeyType='done'

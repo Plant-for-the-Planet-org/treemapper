@@ -1,7 +1,7 @@
 import booleanPointInPolygon from '@turf/boolean-point-in-polygon'
 import turfDistance from '@turf/distance'
 import {Point, Units} from '@turf/helpers'
-import {SampleTree} from 'src/types/interface/slice.interface'
+import {PlantedPlotSpecies, SampleTree} from 'src/types/interface/slice.interface'
 
 export default function distanceCalculator(
   latLong1: [number, number],
@@ -71,7 +71,7 @@ const checkIsSampleMarkerValid = (
 
 export const validateMarkerForSampleTree = (
   activeCoords: number[],
-  sampleTrees: SampleTree[],
+  sampleTrees: SampleTree[] | PlantedPlotSpecies[],
 ) => {
   const validDistance = checkIsSampleMarkerValid(activeCoords, sampleTrees)
   return validDistance

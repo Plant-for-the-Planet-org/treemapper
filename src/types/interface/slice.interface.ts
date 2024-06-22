@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
 export interface AppInitialState {
@@ -14,9 +14,12 @@ export interface AppInitialState {
   refreshToken: string,
 }
 
-export interface TempStateSlice {
-  webAuthLoading: boolean
+export interface MonitoringPlotSlice {
+  lastUpdateAt: number
+  updateScreen: string
 }
+
+
 
 
 export interface MapBoundSlice {
@@ -102,6 +105,7 @@ export interface RegisterFormSliceInitalState {
   additional_data: FormElement[]
   form_data: FormElement[]
   plantedSpecies: PlantedSpecies[]
+  optionalLocation?: boolean
 }
 
 export interface SampleTree {
@@ -156,42 +160,7 @@ export interface SampleTreeSlice {
   current_species: PlantedSpecies
 }
 
-// export interface UserInterface {
-//     address: {
-//       address: null | string;
-//       city: null | string;
-//       country: string;
-//       zipCode: null | string;
-//     };
-//     bio: null | string;
-//     country: string;
-//     created: string;
-//     currency: null | string;
-//     displayName: string;
-//     email: string;
-//     firstname: string;
-//     getNews: boolean;
-//     hasLogoLicense: boolean;
-//     id: string;
-//     image: null | string;
-//     isPrivate: boolean;
-//     lastname: string;
-//     locale: null | string;
-//     name: null | string;
-//     planetCash: null | number;
-//     score: {
-//       personal: number;
-//       received: number;
-//       target: number;
-//     };
-//     slug: string;
-//     supportPin: string;
-//     supportedProfile: null | string;
-//     tin: null | string;
-//     type: string;
-//     url: null | string;
-//     urlText: null | string;
-//   }
+
 
 export interface UserInterface {
   country: string
@@ -257,4 +226,83 @@ export interface LogDetails {
   logStack?: string
   timestamp?: number
   id?: string
+}
+
+
+export interface PlantTimeLine {
+  status: PLOT_PLANT_STATUS
+  length: number
+  width: number
+  date: number
+  length_unit: string
+  width_unit: string
+  image: string
+  timeline_id: string
+}
+
+
+export interface PlotGroups {
+  name: string,
+  group_id: string,
+  date_created: number
+  details_updated_at: number
+  plots: MonitoringPlot[]
+}
+
+export interface MonitoringPlot {
+  plot_id: string
+  complexity: PLOT_COMPLEXITY
+  shape: PLOT_SHAPE
+  type: PLOT_TYPE
+  radius: number
+  length: number
+  width: number
+  name: string
+  location: InterventionLocation
+  coords: {
+    type: 'Point',
+    coordinates: number[]
+  },
+  is_complete: boolean
+  additional_data: string
+  meta_data: string
+  status: 'NOT_SYNCED' | "SYNCED"
+  hid: string
+  lastScreen: string
+  plot_plants: PlantedPlotSpecies[]
+  plot_created_at: number,
+  plot_updated_at: number,
+  local_image: string,
+  cdn_image: string,
+  plot_group?: any,
+  observations: PlotObservation[]
+}
+
+
+export interface PlantedPlotSpecies {
+  plot_plant_id: string
+  tag: string
+  guid: string
+  scientific_name: string
+  aliases: string
+  count: number
+  image: string
+  timeline: PlantTimeLine[]
+  planting_date: number
+  is_alive: boolean
+  type: PLOT_PLANT
+  details_updated_at: number
+  latitude: number
+  longitude: number
+}
+
+
+
+
+export interface PlotObservation {
+  obs_id: string
+  type: OBSERVATION_TYPE
+  obs_date: number
+  value: number
+  unit: string
 }

@@ -10,6 +10,7 @@ import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHel
 import { InterventionData } from 'src/types/interface/slice.interface'
 import InterventionCardHeader from './InterventionCardHeader'
 import InterventionMetaInfo from './InterventionMetaInfo'
+import DividerDot from '../common/DividerDot'
 
 
 interface Props {
@@ -43,6 +44,7 @@ const InterventionCard = (props: Props) => {
               )}
             </View>
             <Text style={styles.metaLable}>{item.location_type}</Text>
+            <DividerDot width={20} height={20} size={20} color={Colors.TEXT_COLOR}/>
             <InterventionMetaInfo item={item} />
             <Text style={styles.metaLable}>
               {timestampToBasicDate(item.intervention_date)}
@@ -99,10 +101,11 @@ const styles = StyleSheet.create({
   editIconWrapper: {
     height: '100%',
     width: 30,
-    marginHorizontal: 10,
+    marginRight: 15,
+    marginLeft:5,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
-    paddingBottom: '5%',
+    paddingBottom: '4%',
   },
   sectionWrapper: {
     flex: 1,
@@ -124,7 +127,6 @@ const styles = StyleSheet.create({
   },
   metaLable: {
     fontSize: scaleFont(12),
-    marginHorizontal: 3,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 })

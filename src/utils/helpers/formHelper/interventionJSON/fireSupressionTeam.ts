@@ -18,7 +18,7 @@ const TeamName: FormElement = {
   sub_form: undefined,
   editable: true,
   value: '',
-  required: false,
+  required: true,
   validation: "^.{5,100}$"
 }
 
@@ -37,7 +37,7 @@ const NumberOfMembers: FormElement = {
   sub_form: undefined,
   editable: true,
   value: '',
-  required: false,
+  required: true,
   validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }
 

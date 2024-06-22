@@ -204,7 +204,7 @@ const AddMeasurment = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Add Measurment" />
+      <Header label="Add Measurments" />
       <View style={styles.wrapper}>
         <OutlinedTextInput
           placeholder={i18next.t('label.select_species_height')}
@@ -271,6 +271,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: scaleSize(70),
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
   },
 })

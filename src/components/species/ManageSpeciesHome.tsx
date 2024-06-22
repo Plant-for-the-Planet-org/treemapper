@@ -106,11 +106,10 @@ const ManageSpeciesHome = (props: Props) => {
     toogleFavSpecies(item, false)
   }
 
-  const renderSpecieCard = (item: IScientificSpecies | any, index: number) => {
+  const renderSpecieCard = (item: IScientificSpecies | any) => {
     return (
       <SpecieCard
         item={item}
-        index={index}
         onPressSpecies={handleSpeciesPress}
         actionName={''}
         handleRemoveFavourite={handleRemoveFav} isSelectSpecies={false} />
@@ -119,7 +118,7 @@ const ManageSpeciesHome = (props: Props) => {
   return (
     <FlashList
       data={userFavSpecies}
-      renderItem={({ item, index }) => renderSpecieCard(item, index)}
+      renderItem={({ item }) => renderSpecieCard(item)}
       estimatedItemSize={cardSize}
       ListHeaderComponent={<ManageSpeciesHeader isManageSecies={isManageSpecies} />}
       ListEmptyComponent={<EmptyManageSpeciesList />}

@@ -41,6 +41,7 @@ import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
+import SelectionLocationType from 'src/components/intervention/SelectLocationType'
 
 const InterventionFormView = () => {
   const realm = useRealm()
@@ -66,7 +67,7 @@ const InterventionFormView = () => {
     value: '',
     index: 0,
   })
-
+  const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
   const isTpoUser = userType === 'tpo'
   const paramId = route.params ? route.params.id : ''
 
@@ -83,7 +84,7 @@ const InterventionFormView = () => {
       // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
-  })
+  }, [])
 
   const setUpRegisterFlow = async () => {
     await createBasePath()
@@ -228,6 +229,10 @@ const InterventionFormView = () => {
       finalData.coordinates = siteCoordinatesSelect()
     }
 
+    if (InterventionFormData.optionalLocation) {
+      finalData.location_type = locationType
+    }
+
     const metaData = {}
     if (locationName && locationName.length > 0) {
       metaData["Location Name"] = locationName
@@ -336,6 +341,16 @@ const InterventionFormView = () => {
                 onSelect={handleInterventionType}
                 selectedValue={interventionType}
               />
+              {InterventionFormData.optionalLocation && <SelectionLocationType header={'Location Type'} labelOne={{
+                key: 'Polygon',
+                value: 'Polygon'
+              }} labelTwo={{
+                key: 'Point',
+                value: 'Point'
+              }} disabled={false}
+                selectedValue={locationType}
+                onSelect={setLocationType}
+              />}
               {InterventionFormData.can_be_entire_site && isTpoUser ? (
                 <PlaceHolderSwitch
                   description={'Apply Intervention to entire site'}
@@ -389,7 +404,7 @@ const styles = StyleSheet.create({
     width: '98%',
     marginTop: 10,
     flex: 1,
-    paddingBottom:50
+    paddingBottom: 50
   },
   btnContainer: {
     width: '100%',

@@ -91,9 +91,10 @@ export const OtherIntervention: RegisterFormSliceInitalState = {
   meta_data: '{}',
   form_data: [],
   additional_data: [],
-  can_be_entire_site: true,
+  can_be_entire_site: false,
   entire_site_selected: false,
   key: 'other-intervention',
   should_register_location: false,
-  plantedSpecies: []
+  plantedSpecies: [],
+  optionalLocation: true
 }
