@@ -43,6 +43,7 @@ const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
   whitelist: ['appState', 'userState', 'projectState'],
+  timeout: null
 }
 
 const persistedReducer = persistReducer(persistConfig, appReducer)
