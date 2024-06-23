@@ -212,14 +212,14 @@ const HomeHeader = (props: Props) => {
               width={22} height={22}
             />
           </Pressable>
-          <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleFilterModal}>
-            <FilterMapIcon
-              onPress={toogleFilterModal}
-              width={22} height={22}
-            />
-          </Pressable>
         </>
       ) : null}
+      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleFilterModal}>
+        <FilterMapIcon
+          onPress={toogleFilterModal}
+          width={22} height={22}
+        />
+      </Pressable>
     </View>
   )
 }
