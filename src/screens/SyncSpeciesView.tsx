@@ -23,12 +23,13 @@ import Snackbar from 'react-native-snackbar';
 import { useDispatch } from 'react-redux'
 import { updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
+import useInitalSetup from 'src/hooks/useInitialSetup'
 
 const SyncSpecies = () => {
   const { downloadFile, finalURL, currentState } = useDownloadFile()
   const { writeBulkSpecies } = useManageScientificSpecies()
   const { addNewLog } = useLogManagement()
-
+  const { setupApp } = useInitalSetup()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SyncSpecies'>>()
   const { isConnected } = useNetInfo();
@@ -49,6 +50,7 @@ const SyncSpecies = () => {
   }, [finalURL])
 
   const isSpeciesUpdateRequried = async () => {
+    setupApp()
     if (!isConnected) {
       addNewLog({
         logType: 'DATA_SYNC',

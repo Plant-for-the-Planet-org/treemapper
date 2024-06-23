@@ -42,6 +42,36 @@ const useManageScientificSpecies = () => {
     }
   }
 
+
+  const addUndefinedSpecies = async (): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        realm.create(
+          RealmSchema.ScientificSpecies,
+          {
+            guid: 'undefined',
+            scientific_name: 'undefined',
+            is_user_species: true,
+            aliases: 'Not Known'
+          },
+          Realm.UpdateMode.All,
+        )
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "DB error occured while adding undefined species.",
+        logLevel: 'error',
+        statusCode: '000',
+        logStack: JSON.stringify(error)
+      })
+      return Promise.reject(false)
+    }
+  }
+
+
+
   const updateUserFavSpecies = async (guid: string, isFavourite: boolean) => {
     try {
       realm.write(() => {
@@ -118,7 +148,7 @@ const useManageScientificSpecies = () => {
     }
   }
 
-  return { writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
+  return { addUndefinedSpecies, writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
 }
 
 export default useManageScientificSpecies
