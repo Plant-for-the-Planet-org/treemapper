@@ -41,7 +41,7 @@ const SpeciesSearchHeader = (props: Props) => {
     const specieArray: IScientificSpecies[] = Array.from(
       realm
         .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
-        .filtered('scientific_name CONTAINS $0', searchText),
+        .filtered('scientific_name CONTAINS[c] $0 OR aliases CONTAINS[c] $0', searchText)
     )
     setSpciesList(specieArray)
   }
