@@ -1,7 +1,7 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import Modal from 'react-native-modal'
-import {Colors, Typography} from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import i18next from 'i18next'
 import FlatButton from '../common/FlatButton'
@@ -13,14 +13,14 @@ interface Props {
 }
 
 const RemoveSpeciesModal = (props: Props) => {
-  const {isVisible, toogleModal, removeFavSpecie} = props
+  const { isVisible, toogleModal, removeFavSpecie } = props
   return (
     <Modal
       style={styles.container}
       isVisible={isVisible}
       onBackdropPress={toogleModal}>
       <View style={styles.subContainer}>
-        <View style={{flexDirection: 'row', alignItems: 'center'}}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <PinkHeart />
           <Text style={styles.alertHeader}>
             {i18next.t('label.remove_species')}
@@ -69,7 +69,7 @@ const styles = StyleSheet.create({
   },
   alertHeader: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_16,
+    fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.BLACK,
     marginVertical: 10,
@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     marginTop: 24,
   },
   removeLable: {
-    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.NEW_PRIMARY,
     lineHeight: Typography.LINE_HEIGHT_24,
@@ -100,5 +100,7 @@ const styles = StyleSheet.create({
   secondaryButtonStyle: {
     paddingVertical: 6,
     paddingHorizontal: 10,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.DARK_TEXT
   },
 })

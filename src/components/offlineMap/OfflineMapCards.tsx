@@ -21,7 +21,6 @@ const OfflineMapCars = (props: Props) => {
         <OfflineMapTile height={50} width={50} />
         <View style={styles.sectionWrapper}>
           <Text style={styles.mapLabel}>{props.data.areaName}</Text>
-          <Text style={styles.metaLabel}>Size: {props.data.size / 1000} mb</Text>
         </View>
         <TouchableOpacity style={styles.binIconWrapper} onPress={handleDelete}>
           <BinIcon height={20} width={20} fill={'tomato'} />

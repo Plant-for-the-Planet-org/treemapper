@@ -87,7 +87,7 @@ const OfflineMapDisplay = () => {
       await MapLibreGL.offlineManager.createPack(
         {
           name: offlineMapId,
-          styleURL: 'mapbox://styles/mapbox/streets-v12',
+          styleURL: process.env.EXPO_PUBLIC_OFFLINE_LINK,
           minZoom: 14,
           maxZoom: 20,
           bounds: bounds,

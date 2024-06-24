@@ -13,12 +13,14 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
+import { useToast } from 'react-native-toast-notifications'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const toast = useToast()
   const handleBackPress = () => {
     navigation.goBack()
   }
@@ -36,7 +38,11 @@ const SpeciesSearchView = () => {
       )
     })
     updateUserFavSpecies(item.guid, status)
-
+    if (status) {
+      toast.show(`"${item.scientific_name}" added to favourites`)
+    }else{
+      toast.show(`"${item.scientific_name}" removed from favourites`)
+    }
   }
 
   const handleCardPress = async (
@@ -52,6 +58,8 @@ const SpeciesSearchView = () => {
       navigation.navigate('SyncSpecies', { inApp: true })
     }, 300);
   }
+
+
 
   return (
     <SafeAreaView style={styles.contnetWrapper}>
