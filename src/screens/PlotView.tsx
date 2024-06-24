@@ -41,17 +41,11 @@ const PlotView = () => {
       isVisible={popupVisible}
       backgroundStyle={{ opacity: 0 }}
       popoverStyle={{
-        borderColor: Colors.GRAY_LIGHT,
-        shadowColor: Colors.GRAY_LIGHT,
-        shadowOffset: { width: 2, height: 2 },
-        shadowOpacity: 0.6,
-        shadowRadius: 5,
-        elevation: 2,
-        borderRadius: 8,
+
       }}
       onRequestClose={tooglePopup}
       from={(
-        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE}/></Pressable>
+        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE} /></Pressable>
       )}>
       <View style={styles.popOverWrapper}>
         <Pressable onPress={addGroups}><Text style={styles.menuLabel}>Plot Group</Text></Pressable>
@@ -95,6 +89,15 @@ const styles = StyleSheet.create({
     height: 40,
     justifyContent: 'center',
     alignItems: "center",
+    borderWidth: 0.5,
+    borderColor: Colors.PALE_WHITE,
+    backgroundColor: Colors.WHITE,
+    shadowColor: Colors.PALE_WHITE,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.6,
+    shadowRadius: 5,
+    elevation: 2,
+    borderRadius: 8,
   },
   menuLabel: {
     fontSize: 14,

@@ -13,10 +13,11 @@ export const LINEAR_INTERMEDIATE = '#348F39'
 export const NEW_PRIMARY = '#007A49'
 export const LIGHT_PRIMARY = '#E1EDE8'
 export const BACKDROP_COLOR = '#FAFAFA'
-export const RECRUIT_PLANT_THEME= '#2F80ED'
+export const RECRUIT_PLANT_THEME = '#2F80ED'
 
 // export export const SECONDARY = '#767676';
 export const WHITE = '#FFFFFF'
+export const PALE_WHITE = '#FAF9F5'
 export const BLACK = '#000000'
 export const TEXT_COLOR = '#4D5153'
 export const DARK_TEXT_COLOR = '#4F4F4F'
