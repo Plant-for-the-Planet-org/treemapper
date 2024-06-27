@@ -11,11 +11,12 @@ import { RootState } from 'src/store'
 import CarouselHeader from 'src/components/carousel/CarouselHeader'
 
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
+import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 const HomeMapView = () => {
 
   const [showFilterModal, setFileterModal] = useState(false)
   const [showProjectModal, setProjectModal] = useState(false)
-  
+
   const showCarousel = useSelector(
     (state: RootState) => state.displayMapState.showCarousel,
   )
@@ -39,6 +40,7 @@ const HomeMapView = () => {
         />
       )}
       <DisplayMap />
+      <SatelliteIconWrapper />
       <UserlocationMarker />
       <FilterModal
         isVisible={showFilterModal}
@@ -49,7 +51,7 @@ const HomeMapView = () => {
         toogleModal={toogleProjectModal}
       />
       {showCarousel && <CarouselModal />}
-      <LocationPermissionModal/>
+      <LocationPermissionModal />
     </View>
   )
 }
