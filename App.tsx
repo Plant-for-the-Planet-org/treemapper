@@ -22,7 +22,7 @@ MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar translucent />
+      <StatusBar translucent style='light'/>
       <Auth0Provider
         domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>

@@ -20,7 +20,7 @@ import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { getRandomPointInPolygon } from 'src/utils/helpers/genratePointInPolygon'
 import MapMarkersOverlay from './MapMarkersOverlay'
-
+import SatteliteLayer from 'assets/mapStyle/satteliteView'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -39,7 +39,7 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
+  const { mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
@@ -242,7 +242,7 @@ const DisplayMap = () => {
       attributionEnabled={false}
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
-      styleURL={JSON.stringify(MapStyle)}>
+      styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation showsUserHeadingIndicator
         androidRenderMode="gps"
