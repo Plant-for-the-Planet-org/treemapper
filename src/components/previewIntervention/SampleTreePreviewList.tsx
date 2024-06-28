@@ -7,6 +7,8 @@ import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
+import DetailIcon from 'assets/images/svg/DetailIcon.svg'
+import RemeasurmentIcon from 'assets/images/svg/RemeasurmentIcon.svg'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useDispatch } from 'react-redux'
@@ -36,6 +38,15 @@ const SampleTreePreviewList = (props: Props) => {
     navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced })
   }
 
+  const viewTreeDetails = async (id: string) => {
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true })
+  }
+
+  const remeasurement = async (id: string) => {
+    navigation.navigate("TreeRemeasurement", { interventionId: interventionId, treeId: id })
+  }
+
+
 
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
@@ -53,7 +64,18 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
+            {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+              remeasurement(details.tree_id)
+            }}>
+              <RemeasurmentIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+            </TouchableOpacity>}
+            {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+              viewTreeDetails(details.tree_id)
+            }}>
+              <DetailIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+            </TouchableOpacity>}
           </View>
+
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
             <Text style={styles.valueLable}>
@@ -212,7 +234,15 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     borderRadius: 8,
   },
+  editWrapperIcon: {
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 10,
+    borderRadius: 8,
+  },
   iconHolder: {
-    marginTop:10
+    marginTop: 10
   }
 })

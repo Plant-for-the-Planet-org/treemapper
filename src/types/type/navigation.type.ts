@@ -48,7 +48,8 @@ export type RootStackParamList = {
   AddRemeasurment: AddRemeasurementView
   PlotGroup: undefined
   AddPlotGroup: AddPlotGroup,
-  AddPlotsToGroup: AddPlotsToGroup
+  AddPlotsToGroup: AddPlotsToGroup,
+  TreeRemeasurement: TreeRemeasurementView
 }
 
 type SpeciesInfoView = {
@@ -163,4 +164,9 @@ type AddPlotGroup = {
 
 type AddPlotsToGroup = {
   groupId: string
+}
+
+type TreeRemeasurementView = {
+  interventionId: string
+  treeId: string
 }

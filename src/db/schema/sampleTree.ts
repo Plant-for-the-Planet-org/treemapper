@@ -3,6 +3,7 @@ import { RealmSchema } from 'src/types/enum/db.enum';
 
 export const SampleTree: ObjectSchema = {
   name: RealmSchema.SampleTree,
+  primaryKey: 'tree_id',
   properties: {
     tree_id: 'string',
     species_guid: 'string',
@@ -16,7 +17,7 @@ export const SampleTree: ObjectSchema = {
     image_url: 'string',
     cdn_image_url: 'string',
     specie_name: 'string',
-    local_name:'string',
+    local_name: 'string',
     specie_diameter: 'double',
     specie_height: 'double',
     tag_id: 'string',

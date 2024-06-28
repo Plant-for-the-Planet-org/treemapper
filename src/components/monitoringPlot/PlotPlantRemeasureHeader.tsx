@@ -13,10 +13,11 @@ interface Props {
     species: string
     allias: string
     showRemeasure: boolean
-    rightComponent?: ReactElement
+    rightComponent?: ReactElement,
+    tree?: boolean
 }
 
-const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightComponent }: Props) => {
+const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightComponent, tree }: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const goBack = () => {
         navigation.goBack()
@@ -27,7 +28,7 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightCo
             <View style={styles.sectionWrapper}>
                 <View style={styles.headerLabelContainer}>
                     {showRemeasure ? <>
-                        <Text style={styles.headerLabel}>Remeasure  </Text>
+                        <Text style={styles.headerLabel}>{tree ? 'Remeasurement  ' : 'Remeasure '}</Text>
                         <Text style={styles.highlight}>{label}</Text>
                     </> : <><Text style={styles.headerLabel}>{label}</Text>
                         <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}><Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? "Planted" : "Recruit"}</Text></View></>}

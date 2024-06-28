@@ -7,7 +7,7 @@ export type FORM_TYPE = 'INPUT' | 'INFO' | 'SWITCH' | 'TAG_SWITCH' | 'TEXTAREA' 
 
 export type DATA_VISIBLITY = 'public' | 'private' | 'app'
 
-export type MAP_BOUNDS  =  "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_MAP" | "UNKNOWN"
+export type MAP_BOUNDS = "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_MAP" | "UNKNOWN"
 
 export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log'
 
@@ -28,3 +28,5 @@ export type PLOT_PLANT = "PLANTED" | "RECRUIT"
 export type PLOT_PLANT_STATUS = "PLANTED" | "RECRUIT" | "REMEASURMENT" | "DESCEASED"
 export type OBSERVATION_TYPE = "CANOPY" | "SOIL_MOISTURE" | "BIOACUSTICS"
 export type MAP_VIEW = "SATELLITE" | "VECTOR"
+export type TREE_RE_STATUS = "FLOOD" | "FIRE" | "DROUGHT" | "OTHER"
+
