@@ -17,7 +17,7 @@ import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 
-MapLibreGL.setAccessToken(process.env.EXPO_PUBLIC_MAPBOX_TOKEN)
+MapLibreGL.setAccessToken(null)
 
 export default function App() {
   return (
