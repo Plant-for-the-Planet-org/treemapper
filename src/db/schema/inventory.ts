@@ -22,7 +22,7 @@ export const Inventory: ObjectSchema = {
     // stores the count of sample trees which are to be recorded
     sampleTreesCount: 'int?',
     // stores the sample trees having length equal to tree count
-    sampleTrees: `${RealmSchema.SampleTree}[]`,//TODO
+    sampleTrees: `${RealmSchema.SampleTree}[]`,
     // stores the number of sample trees which are already recorded
     completedSampleTreesCount: {
       type: 'int',

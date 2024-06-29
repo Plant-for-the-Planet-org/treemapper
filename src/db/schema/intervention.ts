@@ -19,7 +19,7 @@ export const Intervention: ObjectSchema = {
     has_species: { type: 'bool', default: false },
     species: { type: 'list', objectType: 'string' },
     has_sample_trees: { type: 'bool', default: false },
-    sample_trees: `${RealmSchema.SampleTree}[]`,
+    sample_trees: `${RealmSchema.TreeDetail}[]`,
     is_complete: { type: 'bool', default: false },
     planted_species: `${RealmSchema.InterventionPlantedSpecies}[]`,
     intervention_type: { type: 'string', default: 'UNKNOWN' },

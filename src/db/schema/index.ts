@@ -13,6 +13,7 @@ import { Polygon } from './polygon'
 import { ProjectSite } from './projectSites'
 import { Projects } from './projects'
 import { SampleTree } from './sampleTree'
+import { TreeDetail } from './treeDetail'
 import { ScientificSpecies } from './scientificSpecies'
 import { InterventionPlantedSpecies } from './InterventionPlantedSpecies'
 import { User } from './user'
@@ -48,6 +49,7 @@ export default [
   Projects,
   ProjectSite,
   SampleTree,
+  TreeDetail,
   ScientificSpecies,
   InterventionPlantedSpecies,
   User,

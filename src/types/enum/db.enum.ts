@@ -4,6 +4,7 @@ export enum RealmSchema {
   OfflineMap = 'OfflineMap',
   AdditionalDetail = 'AdditionalDetail',
   SampleTree = 'SampleTree',
+  TreeDetail = 'TreeDetail',
   Inventory = 'Inventory',
   Intervention = 'Intervention',
   User = 'User',

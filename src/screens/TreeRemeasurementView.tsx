@@ -60,7 +60,7 @@ const TreeRemeasurementView = () => {
 
     useEffect(() => {
         if (treeId) {
-            const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.SampleTree, treeId);
+            const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
             if (treeData) {
                 setTreeDetails(treeData)
             }
