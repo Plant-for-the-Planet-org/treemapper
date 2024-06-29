@@ -27,10 +27,6 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
   const realm = useRealm()
-  const [geoJSON, setGeoJSON] = useState({
-    type: 'FeatureCollection',
-    features: [],
-  })
   const [overlayGeoJSON, setOverlayGeoJSON] = useState({
     type: 'FeatureCollection',
     features: [],
@@ -53,22 +49,15 @@ const DisplayMap = () => {
     },
   )
 
-  // console.log(JSON.stringify(interventionData, null, 2))
 
-  useEffect(() => {
+
+
+  const handleGeoJSONData = () => {
     if (interventionFilter === 'none') {
-      handleGeoJSONData([])
-      return
+      return []
     }
-    handleGeoJSONData(interventionData)
-  }, [interventionData, interventionFilter, selectedFilters])
-
-
-
-
-  const handleGeoJSONData = (d: InterventionData[] | any) => {
     const dateFilter = filterToTime(interventionFilter)
-    const filterData = d.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
+    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
     const feature = filterData.map((el: InterventionData, index: number) => {
       const result = makeInterventionGeoJson(
         el.location.type,
@@ -86,10 +75,7 @@ const DisplayMap = () => {
       }
       return result.geoJSON
     })
-    setGeoJSON({
-      type: 'FeatureCollection',
-      features: feature.length ? [...feature] : [],
-    })
+    return feature.length ? [...feature] : []
   }
 
 
@@ -247,7 +233,10 @@ const DisplayMap = () => {
       <MapLibreGL.UserLocation showsUserHeadingIndicator
         androidRenderMode="gps"
         minDisplacement={1} />
-      {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={geoJSON}
+      {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={{
+        type: 'FeatureCollection',
+        features: handleGeoJSONData()
+      }}
         onShapeSourcePress={setSelectedGeoJson} /> :
         showOverlay ?
           <ClusterdShapSource geoJSON={overlayGeoJSON}
