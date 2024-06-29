@@ -132,7 +132,7 @@ const useInterventionManagement = () => {
         const index = intervention.sample_trees.findIndex(el => el.tree_id === treeId)
         intervention.sample_trees[index] = {
           ...intervention.sample_trees[index],
-          specie_name: speciesDetails.scientific_name,
+          specie_name: speciesDetails.scientificName,
           species_guid: speciesDetails.guid
         }
       });

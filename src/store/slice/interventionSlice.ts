@@ -51,7 +51,7 @@ const interventionSlice = createSlice({
     updateTreesSpecies(state, action: PayloadAction<{ treeId: string, data: IScientificSpecies }>) {
       const allTress = [...state.sample_trees]
       const index = allTress.findIndex(el => el.tree_id === action.payload.treeId);
-      allTress[index].specie_name = action.payload.data.scientific_name;
+      allTress[index].specie_name = action.payload.data.scientificName;
       allTress[index].species_guid = action.payload.data.guid;
       state.sample_trees = [...allTress]
       state.last_updated_at =  Date.now()

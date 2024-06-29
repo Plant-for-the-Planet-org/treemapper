@@ -22,7 +22,7 @@ import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
-
+//todo
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
@@ -46,7 +46,7 @@ const AddPlantDetailsPlotView = () => {
     const toast = useToast()
 
     const getSpeciesNames = () => {
-        return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientific_name}` : 'Select Species'
+        return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientificName}` : 'Select Species'
     }
     const realm = useRealm()
 
@@ -75,7 +75,7 @@ const AddPlantDetailsPlotView = () => {
             tag: tag,
             species: {
                 guid: species.guid,
-                scientific_name: species.scientific_name,
+                scientificName: species.scientificName,
                 aliases: species.aliases,
             },
         }
@@ -103,8 +103,8 @@ const AddPlantDetailsPlotView = () => {
         if (plantData) {
             const speciesData: IScientificSpecies = {
                 guid: plantData.guid,
-                scientific_name: plantData.scientific_name,
-                is_user_species: false,
+                scientificName: plantData.scientificName,
+                isUserSpecies: false,
                 aliases: plantData.aliases,
             }
             setSpecies(speciesData)
@@ -147,7 +147,7 @@ const AddPlantDetailsPlotView = () => {
             plot_plant_id: generateUniquePlotId(),
             tag: tag,
             guid: species.guid,
-            scientific_name: species.scientific_name,
+            scientificName: species.scientificName,
             aliases: species.aliases,
             count: 1,
             image: species.image,

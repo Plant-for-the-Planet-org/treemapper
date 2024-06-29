@@ -45,7 +45,7 @@ const InterventionBasicInfo = (props: Props) => {
           {planted_species.map((el, i) => (
             <View key={i} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
-              {el.scientific_name && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientific_name === 'Undefined' ? "Unknown" : el.scientific_name}</Text>}
+              {el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? "Unknown" : el.scientificName}</Text>}
               {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}
             </View>
           ))}

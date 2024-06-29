@@ -42,7 +42,7 @@ const ManageSpeciesView = () => {
 
   const dispatch = useDispatch()
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
-    return data.filtered('is_user_species == true')
+    return data.filtered('isUserSpecies == true')
   })
 
   const toogleRemoveFavModal = () => {
@@ -69,7 +69,7 @@ const ManageSpeciesView = () => {
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {
       guid: treeModalDetails.guid,
-      scientific_name: treeModalDetails.scientific_name,
+      scientificName: treeModalDetails.scientificName,
       aliases: treeModalDetails.aliases,
       count: Number(count),
       image: treeModalDetails.image
@@ -95,7 +95,7 @@ const ManageSpeciesView = () => {
     } else {
       const speciesDetails: PlantedSpecies = {
         guid: finalData.guid,
-        scientific_name: finalData.scientific_name,
+        scientificName: finalData.scientificName,
         aliases: finalData.aliases,
         count: 1,
         image: finalData.image

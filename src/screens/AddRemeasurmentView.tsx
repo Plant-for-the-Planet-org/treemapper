@@ -99,9 +99,10 @@ const AddRemeasurmentView = () => {
     if (!selectedTimeline) {
         return null
     }
+    //todo
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
+            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
                 <PEN_ICON width={20} height={20} />
             </Pressable>} />
             <View style={styles.wrapper}>

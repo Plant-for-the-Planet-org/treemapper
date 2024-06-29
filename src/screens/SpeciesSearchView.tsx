@@ -33,15 +33,15 @@ const SpeciesSearchView = () => {
     setSpciesList(prevSpecies => {
       return prevSpecies.map(species =>
         species.guid === item.guid
-          ? { ...species, is_user_species: status }
+          ? { ...species, isUserSpecies: status }
           : species,
       )
     })
     updateUserFavSpecies(item.guid, status)
     if (status) {
-      toast.show(`"${item.scientific_name}" added to favourites`)
-    }else{
-      toast.show(`"${item.scientific_name}" removed from favourites`)
+      toast.show(`"${item.scientificName}" added to favourites`)
+    } else {
+      toast.show(`"${item.scientificName}" removed from favourites`)
     }
   }
 

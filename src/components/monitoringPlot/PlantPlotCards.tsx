@@ -36,7 +36,7 @@ const PlantPlotCards = (props: Props) => {
                     <View style={styles.sectionHeader}>
                         <Text style={styles.planetedLabel}>{item.type === 'PLANTED' ? "Planted" : "Recruit"}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.speciesLabel}>{item.scientific_name}</Text>
+                        <Text style={styles.speciesLabel}>{item.scientificName}</Text>
                     </View>
                 </View>
                 <View style={[styles.addIconWrapper, { backgroundColor: item.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>

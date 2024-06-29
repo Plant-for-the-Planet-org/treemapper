@@ -21,10 +21,13 @@ const useManageScientificSpecies = () => {
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        for (const specie of speciesData) {
+        for (let i = 0; i < speciesData.length; i++) {
           realm.create(
             RealmSchema.ScientificSpecies,
-            specie,
+            {
+              guid: speciesData[i].guid,
+              scientificName: speciesData[i].scientific_name
+            },
             Realm.UpdateMode.All,
           )
         }
@@ -50,8 +53,8 @@ const useManageScientificSpecies = () => {
           RealmSchema.ScientificSpecies,
           {
             guid: 'undefined',
-            scientific_name: 'undefined',
-            is_user_species: true,
+            scientificName: 'undefined',
+            isUserSpecies: true,
             aliases: 'Not Known'
           },
           Realm.UpdateMode.All,
@@ -75,11 +78,11 @@ const useManageScientificSpecies = () => {
   const updateUserFavSpecies = async (guid: string, isFavourite: boolean) => {
     try {
       realm.write(() => {
-        const specieToUpdate = realm.objectForPrimaryKey(
+        const specieToUpdate = realm.objectForPrimaryKey<IScientificSpecies>(
           RealmSchema.ScientificSpecies,
           guid,
         )
-        specieToUpdate.is_user_species = isFavourite
+        specieToUpdate.isUserSpecies = isFavourite
       })
     } catch (error) {
       console.error('Error during species update:', error)
@@ -111,13 +114,13 @@ const useManageScientificSpecies = () => {
         item.forEach(specie => {
           const data = {
             guid: specie.id,
-            scientific_name: specie.scientificName || '',
-            is_user_species: true,
-            is_uploaded: true,
+            scientificName: specie.scientificName || '',
+            isUserSpecies: true,
+            isUploaded: true,
             aliases: specie.aliases || '',
             image: specie.image || '',
             description: specie.description || '',
-            is_updated: true,
+            isUpdated: true,
           }
           realm.create(
             RealmSchema.ScientificSpecies,
@@ -135,10 +138,10 @@ const useManageScientificSpecies = () => {
 
   const deleteAllUserSpecies = async () => {
     try {
-      const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('is_user_species == true');
+      const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('isUserSpecies == true');
       realm.write(() => {
         favoriteData.forEach(specie => {
-          specie.is_user_species = false
+          specie.isUserSpecies = false
         })
       })
       return Promise.resolve(true)

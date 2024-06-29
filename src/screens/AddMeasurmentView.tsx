@@ -164,7 +164,7 @@ const AddMeasurment = () => {
       location_accuracy: String(accuracy),
       image_url: SampleTreeData.image_url,
       cdn_image_url: '',
-      specie_name: SampleTreeData.current_species.scientific_name,
+      specie_name: SampleTreeData.current_species.scientificName,
       specie_diameter: Number(width),
       specie_height: Number(height),
       tag_id: tagId,

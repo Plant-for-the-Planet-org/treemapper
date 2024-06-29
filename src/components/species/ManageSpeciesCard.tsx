@@ -69,11 +69,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             <Text style={styles.unknownText} ellipsizeMode="tail">
               {item.aliases
                 ? item.aliases
-                : item.scientific_name}
+                : item.scientificName}
             </Text>
             <Text style={styles.unknownTextVal}>
-              {item.scientific_name
-                ? item.scientific_name
+              {item.scientificName
+                ? item.scientificName
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>

@@ -50,7 +50,7 @@ const PlantPlotListModal = (props: Props) => {
         const specieArray: IScientificSpecies[] = Array.from(
             realm
                 .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
-                .filtered('scientific_name CONTAINS $0', search),
+                .filtered('scientificName CONTAINS $0', search),
         )
         setPlantData(specieArray)
     }

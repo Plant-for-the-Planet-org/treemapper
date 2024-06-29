@@ -19,13 +19,13 @@ export interface SideDrawerItem {
 
 export interface IScientificSpecies {
   guid: string
-  scientific_name: string
-  is_user_species: boolean
-  is_uploaded?: boolean
+  scientificName: string
+  isUserSpecies: boolean
+  isUploaded?: boolean
   aliases: string
   image?: string
   description?: string
-  is_updated?: boolean
+  isUpdated?: boolean
 }
 
 

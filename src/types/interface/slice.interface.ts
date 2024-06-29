@@ -138,7 +138,7 @@ export interface SampleTree {
 export interface PlantedSpecies {
   id?: string,
   guid: string,
-  scientific_name: string,
+  scientificName: string,
   aliases: string,
   count: number,
   image: string
@@ -284,7 +284,7 @@ export interface PlantedPlotSpecies {
   plot_plant_id: string
   tag: string
   guid: string
-  scientific_name: string
+  scientificName: string
   aliases: string
   count: number
   image: string

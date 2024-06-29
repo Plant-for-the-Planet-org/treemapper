@@ -132,11 +132,11 @@ const PlotPlantRemeasureView = () => {
         }
     }
 
-
+//todo
 
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientific_name} allias={selectedTimeline.aliases} showRemeasure={true} />
+            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} allias={selectedTimeline.aliases} showRemeasure={true} />
             <View style={styles.wrapper}>
                 <PlaceHolderSwitch
                     description={'This tree is still alive'}

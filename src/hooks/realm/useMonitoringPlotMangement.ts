@@ -282,7 +282,7 @@ const useMonitoringPlotMangement = () => {
       type: any,
       species: {
         guid: string,
-        scientific_name: string,
+        scientificName: string,
         aliases: string,
       }
     }
@@ -291,7 +291,7 @@ const useMonitoringPlotMangement = () => {
       realm.write(() => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
         const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
-        plotData.plot_plants[index].scientific_name = updatedDetails.species.scientific_name
+        plotData.plot_plants[index].scientificName = updatedDetails.species.scientificName
         plotData.plot_plants[index].guid = updatedDetails.species.guid
         plotData.plot_plants[index].aliases = updatedDetails.species.aliases
         plotData.plot_plants[index].tag = updatedDetails.tag

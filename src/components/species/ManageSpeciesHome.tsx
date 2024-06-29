@@ -84,7 +84,7 @@ const ManageSpeciesHome = (props: Props) => {
       } else {
         const updatedSPecies: PlantedSpecies = {
           guid: item.guid,
-          scientific_name: item.scientific_name,
+          scientificName: item.scientificName,
           aliases: item.aliases,
           count: 1,
           image: item.image

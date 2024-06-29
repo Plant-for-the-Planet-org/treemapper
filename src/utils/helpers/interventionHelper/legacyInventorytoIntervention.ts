@@ -73,7 +73,7 @@ const setPlantedSpecies = (s: any) => {
         if (element) {
             finalData.push({
                 guid: element.scientificSpecies ? element.scientificSpecies : '',
-                scientific_name: element.scientificName ? element.scientificName : 'Undefined',
+                scientificName: element.scientificName ? element.scientificName : 'Undefined',
                 aliases: element.otherSpecies ? element.otherSpecies : 'Undefined',
                 count: element.treeCount ? element.treeCount : 1,
                 image: ""

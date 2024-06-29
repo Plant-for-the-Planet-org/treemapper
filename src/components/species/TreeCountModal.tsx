@@ -4,7 +4,6 @@ import {
   Platform,
   StyleSheet,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
 } from 'react-native'
@@ -15,6 +14,7 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { InputOutline } from 'react-native-input-outline'
 import { scaleFont } from 'src/utils/constants/mixins'
 import SpeciesIcon from 'assets/images/svg/SpeciesIcon.svg'
+import { InputOutlineMethods } from 'react-native-input-outline/lib/typescript/components/InputOutline'
 
 interface TreeCountModalProps {
   showTreeCountModal: boolean
@@ -30,7 +30,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   onPressTreeCountNextBtn,
 }) => {
   const [treeCount, setTreeCount] = useState('')
-  const inputRef = React.useRef<TextInput>(null)
+  const inputRef = React.useRef<InputOutlineMethods>(null)
 
   useEffect(() => {
     setTreeCount('')
@@ -69,7 +69,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
           </View>
           {activeSpecie && <Text style={styles.note}>How many  <Text style={styles.speciesLabel}>{activeSpecie.aliases.length
             ? activeSpecie.aliases
-            : activeSpecie.scientific_name}</Text> did you plant ?</Text>}
+            : activeSpecie.scientificName}</Text> did you plant ?</Text>}
           <View style={styles.inputWrapper}>
             <View style={styles.input}>
               <InputOutline

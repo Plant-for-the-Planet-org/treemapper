@@ -7,7 +7,7 @@ export const PlotPlantedSpecies: ObjectSchema = {
     plot_plant_id: { type: 'string', default: '' },
     tag: { type: 'string', default: '' },
     guid: { type: 'string', default: '' },
-    scientific_name: { type: 'string', default: '' },
+    scientificName: { type: 'string', default: '' },
     aliases: { type: 'string', default: '' },
     count: { type: 'int', default: 1 },
     image: { type: 'string', default: '' },

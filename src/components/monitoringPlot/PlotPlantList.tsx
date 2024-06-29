@@ -42,7 +42,7 @@ const PlotPlantList = (props: Props) => {
         // Filter the array based on whether the name or species partially or fully matches the search string
         const searchData = plantData.filter(item =>
             item.tag.toLowerCase().includes(lowerCaseSearchString) ||
-            item.scientific_name.toLowerCase().includes(lowerCaseSearchString)
+            item.scientificName.toLowerCase().includes(lowerCaseSearchString)
         );
         setPlandData(searchData)
         if (searchData.length === 0) {

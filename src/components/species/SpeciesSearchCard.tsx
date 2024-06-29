@@ -16,18 +16,18 @@ interface Props {
 const SpeciesSearchCard = (props: Props) => {
   const { item, toogleFavSpecies, handleCard, hideFav } = props
   const handleIconPress = () => {
-    toogleFavSpecies(item, !item.is_user_species)
+    toogleFavSpecies(item, !item.isUserSpecies)
   }
   const handleCardPress = () => {
-    handleCard(item, !item.is_user_species)
+    handleCard(item, !item.isUserSpecies)
   }
   return (
     <TouchableOpacity style={styles.container} onPress={handleCardPress}>
       <View style={styles.wrapper}>
-        <Text style={styles.scientificName}>{item.scientific_name}</Text>
+        <Text style={styles.scientificName}>{item.scientificName}</Text>
         <View style={styles.divider} />
         {!hideFav && <TouchableOpacity style={styles.iconWrapper} onPress={handleIconPress}>
-          {item.is_user_species ? <PinkHeart /> : <GreyHeart />}
+          {item.isUserSpecies ? <PinkHeart /> : <GreyHeart />}
         </TouchableOpacity>}
       </View>
     </TouchableOpacity>

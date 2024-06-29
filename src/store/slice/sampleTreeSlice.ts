@@ -11,7 +11,7 @@ const initialState: SampleTreeSlice = {
   image_url: '',
   current_species: {
     guid: '',
-    scientific_name: '',
+    scientificName: '',
     aliases: '',
     count: 0,
     image:''

@@ -12,10 +12,10 @@ interface Props {
 }
 
 const SpeciesInfoHeader = (props: Props) => {
-  const {scientific_name, is_user_species, guid} = props.item
+  const {scientificName, isUserSpecies, guid} = props.item
   const {updateUserFavSpecies} = useManageScientificSpecies()
   const handleUpdate = () => {
-    updateUserFavSpecies(guid, !is_user_species)
+    updateUserFavSpecies(guid, !isUserSpecies)
   }
 
   return (
@@ -27,9 +27,9 @@ const SpeciesInfoHeader = (props: Props) => {
           justifyContent: 'space-between',
           padding: 16,
         }}>
-        <Text style={styles.specieName}>{scientific_name}</Text>
+        <Text style={styles.specieName}>{scientificName}</Text>
         <TouchableOpacity onPress={handleUpdate}>
-          {is_user_species ? <PinkHeart /> : <GreyHeart />}
+          {isUserSpecies ? <PinkHeart /> : <GreyHeart />}
         </TouchableOpacity>
       </View>
     </View>
