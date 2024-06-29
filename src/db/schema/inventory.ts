@@ -13,6 +13,7 @@ export const Inventory: ObjectSchema = {
     donationType: 'string?',
     locateTree: 'string?',
     lastScreen: 'string?',
+    species: `${RealmSchema.Species}[]`,
     polygons: `${RealmSchema.Polygon}[]`,
     specieDiameter: 'double?',
     specieHeight: 'double?', // <*IMPORTANT*> ONLY FOR SINGLE TREE
@@ -21,7 +22,7 @@ export const Inventory: ObjectSchema = {
     // stores the count of sample trees which are to be recorded
     sampleTreesCount: 'int?',
     // stores the sample trees having length equal to tree count
-    sampleTrees: `${RealmSchema.SampleTree}[]`,
+    sampleTrees: `${RealmSchema.SampleTree}[]`,//TODO
     // stores the number of sample trees which are already recorded
     completedSampleTreesCount: {
       type: 'int',

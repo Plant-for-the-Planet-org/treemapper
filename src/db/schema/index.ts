@@ -20,13 +20,13 @@ import { Intervention } from './intervention'
 import { YesNo } from './yesOrNo'
 import { GeoSpatial } from './geoSpatial'
 import { FormElement } from './FormElements'
-import { AdditonalDetailsForm } from './AdditonalDetailsForm'
+import { AdditonalDetailsForm } from './additonalDetailsForm'
 import { MonitoringPlot } from './monitotingPlot'
 import { PlotGroups } from './plotGroups'
 import { PlantTimeline } from './plantTimeline'
 import { PlotPlantedSpecies } from './plotPlantedSpecies'
 import { PlotObservation } from './PlotObservation'
-
+import { Species } from './species'
 
 export default [
   MonitoringPlot,
@@ -52,6 +52,7 @@ export default [
   InterventionPlantedSpecies,
   User,
   YesNo,
+  Species,
   Intervention,
   GeoSpatial,
   AdditonalDetailsForm,
