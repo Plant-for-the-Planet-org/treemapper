@@ -1,6 +1,7 @@
 import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
+
 export interface AppInitialState {
   isLogedIn: boolean
   accessToken: string
@@ -19,6 +20,71 @@ export interface MonitoringPlotSlice {
   updateScreen: string
 }
 
+export interface TempStateSlice {
+  webAuthLoading: boolean
+}
+
+export interface OldSampleTree {
+ latitude: number
+ longitude: number
+ deviceLatitude:number
+ deviceLongitude: number
+ locationAccuracy: number
+ imageUrl: number
+ cdnImageUrl: number
+ specieId: number
+ specieName: number
+ specieDiameter: number
+ specieHeight: number
+ tagId: string
+ status: string
+ plantationDate: string
+ locationId: string
+ treeType:string
+ additionalDetails:  Array<{
+  key: string
+  value: string
+  accessType: string
+}>
+ appMetadata: string
+ hid: string
+}
+export interface Inventory {
+  inventory_id: string
+  plantation_date: string
+  treeType: string
+  status: string
+  projectId: string
+  donationType: string
+  locateTree: string
+  lastScreen: string
+  species: Array<{
+    aliases: string
+    treeCount: number
+    id: string
+  }>
+  polygons: Array<{
+    type: string
+    coordinates: string
+  }>
+  specieDiameter: number
+  specieHeight: number
+  tagId: number
+  registrationDate: string
+  sampleTreesCount: number
+  sampleTrees: OldSampleTree[]
+  completedSampleTreesCount: number
+  uploadedSampleTreesCount: number
+  locationId: string
+  additionalDetails: Array<{
+    key: string
+    value: string
+    accessType: string
+  }>
+  appMetadata: string
+  hid: string
+  originalGeometry: string
+}
 
 
 
