@@ -1,8 +1,8 @@
 import { ObjectSchema } from 'realm';
 import { RealmSchema } from 'src/types/enum/db.enum';
 
-export const SampleTree: ObjectSchema = {
-  name: RealmSchema.SampleTree,
+export const SampleTrees: ObjectSchema = {
+  name: RealmSchema.SampleTrees,
   properties: {
     // stores the latitude of the tree
     latitude: 'double',

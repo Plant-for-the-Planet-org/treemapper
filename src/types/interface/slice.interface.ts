@@ -30,10 +30,10 @@ export interface OldSampleTree {
  deviceLatitude:number
  deviceLongitude: number
  locationAccuracy: number
- imageUrl: number
- cdnImageUrl: number
- specieId: number
- specieName: number
+ imageUrl: string
+ cdnImageUrl: string
+ specieId: string
+ specieName: string
  specieDiameter: number
  specieHeight: number
  tagId: string

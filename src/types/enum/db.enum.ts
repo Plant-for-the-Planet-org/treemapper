@@ -3,7 +3,7 @@ export enum RealmSchema {
   Polygon = 'Polygon',
   OfflineMap = 'OfflineMap',
   AdditionalDetail = 'AdditionalDetail',
-  SampleTree = 'SampleTree',
+  SampleTrees = 'SampleTrees',
   TreeDetail = 'TreeDetail',
   Inventory = 'Inventory',
   Intervention = 'Intervention',

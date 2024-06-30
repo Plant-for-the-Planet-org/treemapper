@@ -10,9 +10,10 @@ import { Inventory } from './inventory'
 import { Metadata } from './metaData'
 import { OfflineMap } from './offlineMap'
 import { Polygon } from './polygon'
+import { Polygons } from './polygons'
 import { ProjectSite } from './projectSites'
 import { Projects } from './projects'
-import { SampleTree } from './sampleTree'
+import { SampleTrees } from './sampleTree'
 import { TreeDetail } from './treeDetail'
 import { ScientificSpecies } from './scientificSpecies'
 import { InterventionPlantedSpecies } from './InterventionPlantedSpecies'
@@ -46,9 +47,10 @@ export default [
   Metadata,
   OfflineMap,
   Polygon,
+  Polygons,
   Projects,
   ProjectSite,
-  SampleTree,
+  SampleTrees,
   TreeDetail,
   ScientificSpecies,
   InterventionPlantedSpecies,

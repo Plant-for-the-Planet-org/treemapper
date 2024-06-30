@@ -10,5 +10,4 @@ export const runRealmMigrations = ({
 }) => {
   console.log("old Realm",oldRealm);
   console.log("new Realm",newRealm);
-
 };
