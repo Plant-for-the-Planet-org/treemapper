@@ -76,6 +76,7 @@ const useMonitoringPlotMangement = () => {
           type: 'Point',
           coordinates: [coordinate[0][0][0]]
         }
+        plotData.is_complete = true
         plotData.lastScreen = 'location'
         if (isEdit) {
           plotData.length = dimensions.h

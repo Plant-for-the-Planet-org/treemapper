@@ -25,29 +25,29 @@ export interface TempStateSlice {
 }
 
 export interface OldSampleTree {
- latitude: number
- longitude: number
- deviceLatitude:number
- deviceLongitude: number
- locationAccuracy: number
- imageUrl: string
- cdnImageUrl: string
- specieId: string
- specieName: string
- specieDiameter: number
- specieHeight: number
- tagId: string
- status: string
- plantationDate: string
- locationId: string
- treeType:string
- additionalDetails:  Array<{
-  key: string
-  value: string
-  accessType: string
-}>
- appMetadata: string
- hid: string
+  latitude: number
+  longitude: number
+  deviceLatitude: number
+  deviceLongitude: number
+  locationAccuracy: number
+  imageUrl: string
+  cdnImageUrl: string
+  specieId: string
+  specieName: string
+  specieDiameter: number
+  specieHeight: number
+  tagId: string
+  status: string
+  plantationDate: string
+  locationId: string
+  treeType: string
+  additionalDetails: Array<{
+    key: string
+    value: string
+    accessType: string
+  }>
+  appMetadata: string
+  hid: string
 }
 export interface Inventory {
   inventory_id: string
@@ -103,6 +103,7 @@ export interface DisplayMapSlice {
   interventionFilter: INTERVENTION_FILTER
   selectedFilters: INTERVENTION_TYPE[]
   mainMapView: MAP_VIEW
+  showPlots: boolean
 }
 
 export interface ProjectStateSlice {

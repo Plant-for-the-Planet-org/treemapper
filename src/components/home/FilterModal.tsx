@@ -6,7 +6,7 @@ import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
 import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateInterventionFilter } from 'src/store/slice/displayMapSlice'
+import { updateInterventionFilter, updateShowlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
@@ -22,10 +22,9 @@ const FilterModal = (props: Props) => {
   const [showTimeModal, setTimeModal] = useState(false)
   const [showTypeModal, setTypeModal] = useState(false)
 
-  const [showMonitoringPlots, setMonitoringPlots] = useState(false)
   const [showRemeasurment, setShowRemeasurment] = useState(false)
 
-  const { interventionFilter } = useSelector(
+  const { interventionFilter, showPlots } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -112,7 +111,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLable}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={showMonitoringPlots} onValueChange={() => { setMonitoringPlots(!showMonitoringPlots) }} disabled={false} />
+              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowlots(!showPlots)) }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
               <Text style={styles.cardLable}>{i18next.t('label.intervention')}</Text>

@@ -6,7 +6,7 @@ import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
-import { InterventionData } from 'src/types/interface/slice.interface'
+import { InterventionData, MonitoringPlot } from 'src/types/interface/slice.interface'
 import MapMarkers from './MapMarkers'
 import { updateActiveIndex, updateActiveInterventionIndex, updateAdjacentIntervention, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -21,6 +21,9 @@ import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { getRandomPointInPolygon } from 'src/utils/helpers/genratePointInPolygon'
 import MapMarkersOverlay from './MapMarkersOverlay'
 import SatteliteLayer from 'assets/mapStyle/satteliteView'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -35,10 +38,10 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
+  const { showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
   )
-
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
@@ -48,14 +51,17 @@ const DisplayMap = () => {
       return data.filtered('is_complete==true')
     },
   )
+  const plotData = useQuery<MonitoringPlot>(
+    RealmSchema.MonitoringPlot,
+    data => {
+      return data.filtered('is_complete==true')
+    },
+  )
 
 
 
 
   const handleGeoJSONData = () => {
-    if (interventionFilter === 'none') {
-      return []
-    }
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
     const feature = filterData.map((el: InterventionData, index: number) => {
@@ -75,9 +81,36 @@ const DisplayMap = () => {
       }
       return result.geoJSON
     })
-    return feature.length ? [...feature] : []
+    let f = feature
+    let m = displayPlots()
+    if (!showPlots) {
+      m = []
+    }
+    if (interventionFilter === 'none') {
+      f = []
+    }
+    return [...m, ...f]
   }
-
+  const displayPlots = () => {
+    const feature = plotData.map((el: MonitoringPlot) => {
+      const coords = JSON.parse(el.location.coordinates)
+      const result = {
+        "type": "Feature",
+        "properties": {
+          "id": el.plot_id,
+          "key": "single-tree-registration",
+          "site": false,
+          "isPlot": true
+        },
+        "geometry": {
+          "coordinates": coords,
+          "type": "Polygon"
+        }
+      }
+      return result
+    })
+    return feature
+  }
 
   useEffect(() => {
     if (cameraRef && cameraRef.current !== null) {
@@ -122,7 +155,11 @@ const DisplayMap = () => {
     }
   }, [showOverlay, activeInterventionIndex])
 
-  const setSelectedGeoJson = (id: string) => {
+  const setSelectedGeoJson = (id: string, isPlot: boolean) => {
+    if (isPlot) {
+      navigation.navigate('PlotDetails', { id })
+      return
+    }
     const intervention = realm.objectForPrimaryKey<InterventionData>(
       RealmSchema.Intervention,
       id,

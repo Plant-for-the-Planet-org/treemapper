@@ -12,7 +12,7 @@ const polyline: StyleProp<LineLayerStyle> = {
 
 interface Props {
   geoJSON: any
-  onShapeSourcePress: (id: string) => void
+  onShapeSourcePress: (id: string, isPlot?: boolean) => void
 }
 
 const FillColor: any = [
@@ -46,7 +46,7 @@ const PolygonShapeSource = (props: Props) => {
       shape={geoJSON}
       onPress={(e) => {
         if (e && e.features && e.features[0]) {
-          onShapeSourcePress(e.features[0].properties.id || '')
+          onShapeSourcePress(e.features[0].properties.id || '', e.features[0].properties.isPlot || false)
         }
       }}>
       <MapLibreGL.FillLayer

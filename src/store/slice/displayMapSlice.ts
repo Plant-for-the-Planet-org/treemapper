@@ -12,8 +12,8 @@ const initialState: DisplayMapSlice = {
   activeInterventionIndex: 0,
   interventionFilter: 'always',
   selectedFilters: [...AllIntervenionType],
-  mainMapView: 'VECTOR'
-
+  mainMapView: 'VECTOR',
+  showPlots: true
 }
 
 const displayMapSlice = createSlice({
@@ -54,9 +54,12 @@ const displayMapSlice = createSlice({
     updateMainMapView(state, action: PayloadAction<MAP_VIEW>) {
       state.mainMapView = action.payload
     },
+    updateShowlots(state, action: PayloadAction<boolean>) {
+      state.showPlots = action.payload
+    },
   },
 })
 
-export const { updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
+export const { updateShowlots, updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
 
 export default displayMapSlice.reducer
