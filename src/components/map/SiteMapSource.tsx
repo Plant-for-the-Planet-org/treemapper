@@ -2,7 +2,7 @@ import { StyleProp } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
-import {useRealm } from '@realm/react'
+import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -14,7 +14,11 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 }
 
-const SiteMapSource = () => {
+interface Props {
+  isSattelite: boolean
+}
+
+const SiteMapSource = (props: Props) => {
   const [geoJSON, setGeoJSON] = useState<any[]>([])
   const realm = useRealm()
   const { currentProject, projectSite, projectAdded } = useSelector(
@@ -22,11 +26,11 @@ const SiteMapSource = () => {
   )
 
   useEffect(() => {
-    if(!projectAdded){
+    if (!projectAdded) {
       setGeoJSON([])
       return;
     }
-    if(currentProject && currentProject.projectId===''){
+    if (currentProject && currentProject.projectId === '') {
       return
     }
     const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
@@ -35,7 +39,7 @@ const SiteMapSource = () => {
     )
     extractSiteCoordinates(ProjectData)
 
-  }, [projectSite,currentProject, projectAdded])
+  }, [projectSite, currentProject, projectAdded])
 
   const extractSiteCoordinates = (data: ProjectInterface) => {
     try {
@@ -89,11 +93,11 @@ const SiteMapSource = () => {
       type: 'FeatureCollection',
       features: geoJSON.length ? [...geoJSON] : [],
     }}>
-    <MapLibreGL.LineLayer
-      id={'projectSitesPolyline'}
-      style={{ ...polyline, lineColor: Colors.PLANET_BLACK }}
-    />
-  </MapLibreGL.ShapeSource>
+      <MapLibreGL.LineLayer
+        id={'projectSitesPolyline'}
+        style={{ ...polyline, lineColor: props.isSattelite ? Colors.WHITE : Colors.PLANET_BLACK }}
+      />
+    </MapLibreGL.ShapeSource>
   )
 }
 

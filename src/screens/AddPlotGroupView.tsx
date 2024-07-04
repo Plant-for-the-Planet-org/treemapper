@@ -99,7 +99,7 @@ const AddPlotGroup = () => {
                 </Text>
             </View>}
             <CustomButton
-                label={isEdiatble ? i18next.t('label.add_group') : i18next.t('label.create_group')}
+                label={isEdiatble ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}

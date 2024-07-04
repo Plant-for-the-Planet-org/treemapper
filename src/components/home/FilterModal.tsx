@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, Pressable } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -92,7 +92,7 @@ const FilterModal = (props: Props) => {
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
-        <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
+        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal}/>
       )}
       style={{ paddingTop: 20 }}
     >

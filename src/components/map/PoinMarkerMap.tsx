@@ -25,6 +25,7 @@ import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -154,6 +155,7 @@ const PointMarkerMap = (props: Props) => {
       const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
       const validSampleTree = handleMarkerValidation(centerCoordinates)
       if (!validSampleTree) {
+        errotHaptic()
         toast.show("Point is very close to already registerd sample tree.", {
           type: "normal",
           placement: "bottom",
@@ -162,6 +164,7 @@ const PointMarkerMap = (props: Props) => {
         })
       }
       if (!validSampleTree || !validMarker) {
+        errotHaptic()
         setOutOfBoundry(true)
       } else {
         setOutOfBoundry(false)

@@ -278,7 +278,7 @@ const DisplayMap = () => {
         showOverlay ?
           <ClusterdShapSource geoJSON={overlayGeoJSON}
             onShapeSourcePress={setActiveIntervetnion} /> : null}
-      <SiteMapSource />
+      <SiteMapSource isSattelite={mainMapView === 'SATELLITE'} />
       {selectedIntervention && !showOverlay ? (
         <MapMarkers
           sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />

@@ -63,6 +63,14 @@ const PlotPlantRemeasureView = () => {
             updateDetails()
             return
         }
+        if (height.length === 0) {
+            toast.show('Height can not be empty')
+            return
+        }
+        if (width.length === 0) {
+            toast.show('Diameter can not be empty')
+            return
+        }
         const updateTimeline: PlantTimeLine = {
             status: isAlive ? 'REMEASURMENT' : 'DESCEASED',
             length: Number(height),
@@ -132,7 +140,7 @@ const PlotPlantRemeasureView = () => {
         }
     }
 
-//todo
+    //todo
 
     return (
         <SafeAreaView style={styles.cotnainer}>

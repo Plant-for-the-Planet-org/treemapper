@@ -20,6 +20,7 @@ import distanceCalculator from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -117,6 +118,7 @@ const PolygonMarkerMap = (props: Props) => {
       // if the current marker position is less than one meter to already present markers nearby,
       // then makes the current marker position invalid
       if (distanceInMeters < 1) {
+        errotHaptic()
         toast.show("Marker is close to previous point.", {
           type: "normal",
           placement: "bottom",
@@ -126,6 +128,7 @@ const PolygonMarkerMap = (props: Props) => {
         isValidMarkers = false;
       }
       if (distanceInMeters > 100) {
+        errotHaptic()
         toast.show("Marker is too far from previous point.", {
           type: "normal",
           placement: "bottom",

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -152,7 +152,7 @@ const ProjectModal = (props: Props) => {
       handleStyle={styles.handleIndicatorStyle}      enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={({ style }) => (
-        <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
+        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal}/>
       )}
     >
       <BottomSheetView style={styles.container} >
