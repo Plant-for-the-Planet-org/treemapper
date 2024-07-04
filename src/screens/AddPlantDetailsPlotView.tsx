@@ -22,7 +22,7 @@ import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
-//todo
+import i18next from 'src/locales/index'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
@@ -174,40 +174,40 @@ const AddPlantDetailsPlotView = () => {
                     <PlantPlotListModal isVisible={speciesModal} toogleModal={toogleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>
                         <PlaceHolderSwitch
-                            description={'This tree was planted'}
+                            description={i18next.t('label.tree_planted')}
                             selectHandler={setIsPlanted}
                             value={isPlanted}
-                            infoText={"Whether the tree is planted or if it is a recruit (naturally occurring in the plot)."}
+                            infoText={i18next.t('label.tree_planted_note')}
                             showInfoIcon={true}
                         />
                         {!isEdit && <InterventionDatePicker
-                            placeHolder={'Measurment Date'}
+                            placeHolder={i18next.t('label.measurment_date')}
                             value={mesaurmentDate}
                             callBack={setIsMeasurmentDate}
                         />}
-                        <StaticOutlineInput placeHolder={'Species'} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
+                        <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
                         {!isEdit && <>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={'Height'}
+                                    placeholder={i18next.t('label.height')}
                                     changeHandler={setHeight}
                                     keyboardType={'decimal-pad'}
                                     trailingtext={'m'} errMsg={''} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={'Diameter'}
+                                    placeholder={i18next.t('label.diameter')}
                                     changeHandler={setWidth}
                                     keyboardType={'decimal-pad'}
                                     trailingtext={'cm'} errMsg={''} />
                             </View>
                             <PlaceHolderSwitch
-                                description={'This tree is still alive'}
+                                description={i18next.t('label.tree_alive')}
                                 selectHandler={setIsTreeAlive}
                                 value={isTreeAlive}
                             />
                             <InterventionDatePicker
-                                placeHolder={'Measurment Date'}
+                                placeHolder={i18next.t('label.planting_date')}
                                 value={plantingDate}
                                 callBack={setPlantingDate}
                             />
@@ -215,7 +215,7 @@ const AddPlantDetailsPlotView = () => {
 
                         <View style={styles.inputWrapper}>
                             <OutlinedTextInput
-                                placeholder={'Tag'}
+                                placeholder={i18next.t('label.tag')}
                                 changeHandler={setTag}
                                 keyboardType={'default'}
                                 defaultValue={tag}
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.BACKDROP_COLOR,
         alignItems: 'center',
         paddingTop: 20,
-        paddingBottom: 100
+        paddingBottom: 140
     },
     inputWrapper: {
         width: '95%'

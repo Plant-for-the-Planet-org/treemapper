@@ -16,6 +16,8 @@ import { useRealm } from '@realm/react'
 import { PLOT_SHAPE } from 'src/types/type/app.type'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import NewDimensionModal from 'src/components/monitoringPlot/NewDimensionModal'
+import i18next from 'src/locales/index'
+
 
 const CreatePlotMapView = () => {
 
@@ -73,9 +75,9 @@ const CreatePlotMapView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Plot Center' rightComponet={<GpsAccuracyTile showModalInfo={() => null} />} />
+            <Header label={i18next.t('label.center')} rightComponet={<GpsAccuracyTile showModalInfo={() => null} />} />
             <View style={styles.noteWrapper}>
-                <Text style={styles.noteLabel}>Go to the center of the plot and insert a painted rebar post labeled {plotName} or another permanent labeled marking.</Text>
+                <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
             </View>
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {

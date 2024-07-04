@@ -10,6 +10,7 @@ import CustomButton from '../common/CustomButton'
 import EmptyStaticScreen from '../common/EmptyStaticScreen'
 import EmptyIcom from 'assets/images/svg/EmptyGroupIcon.svg'
 import PlotPlantSearch from './PlotPlantSearch'
+import i18next from 'src/locales/index'
 
 interface Props {
     plants: PlantedPlotSpecies[]
@@ -60,7 +61,7 @@ const PlotPlantList = (props: Props) => {
             <FlatList
                 ListHeaderComponent={<PlotPlantSearch onChangeText={onChangeText} />
                 }
-                ListEmptyComponent={<EmptyStaticScreen label={noResult ? "No searched result found" : 'No Plots to Show Yet'} note={'Tap the button below to add a new plant.'}
+                ListEmptyComponent={<EmptyStaticScreen label={noResult ? i18next.t('label.no_search') : i18next.t('label.no_plants')} note={i18next.t('label.no_plant_note')}
                     marginTop={{}}
                     image={<EmptyIcom />} />}
                 ListFooterComponent={() => { return (<View style={{ width: '100%', height: 100 }} />) }}
@@ -68,7 +69,7 @@ const PlotPlantList = (props: Props) => {
                 data={plantData}
             />
             <CustomButton
-                label="Add Plants"
+                label={i18next.t('label.add_plants')}
                 containerStyle={styles.btnContainer}
                 pressHandler={addMorePlants}
                 showAdd

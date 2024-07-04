@@ -12,6 +12,8 @@ import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import Popover from 'react-native-popover-view';
+import i18next from 'src/locales/index'
+import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 
 const PlotView = () => {
@@ -31,6 +33,7 @@ const PlotView = () => {
   }
 
   const tooglePopup = () => {
+    ctaHaptic()
     setPopupVisible(!popupVisible)
   }
 
@@ -48,7 +51,7 @@ const PlotView = () => {
         <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE} /></Pressable>
       )}>
       <View style={styles.popOverWrapper}>
-        <Pressable onPress={addGroups}><Text style={styles.menuLabel}>Plot Group</Text></Pressable>
+        <Pressable onPress={addGroups}><Text style={styles.menuLabel}>{i18next.t('label.plot_group')}</Text></Pressable>
       </View>
 
     </Popover>
@@ -57,7 +60,7 @@ const PlotView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <Header label='Monitoring Plots' showBackIcon={false} rightComponet={renderIcon()} />
+      <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponet={renderIcon()} />
       <View style={styles.wrapper}>
         <PlotList data={plotData} />
       </View>

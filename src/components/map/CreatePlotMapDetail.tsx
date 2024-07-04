@@ -20,6 +20,7 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import { PlantedPlotSpecies } from 'src/types/interface/slice.interface';
 import { isPointInPolygon, validateMarkerForSampleTree } from 'src/utils/helpers/turfHelpers';
 import PlotMarker from './PlotMarker';
+import i18next from 'src/locales/index'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -276,14 +277,14 @@ const CreatePlotMapDetail = (props: Props) => {
       {plotCoordinates.length > 0 && !isMarking && !isEdit ? (
         <View style={styles.btnFooter}>
           <CustomButton
-            label="Reset"
+            label={i18next.t('label.reset')}
             containerStyle={styles.btnWrapper}
             pressHandler={() => { setPlotCoordinates([]) }}
             wrapperStyle={styles.borderWrapper}
             labelStyle={styles.highlightLabel}
           />
           <CustomButton
-            label="Continue"
+            label={i18next.t('label.continue')}
             containerStyle={styles.btnWrapper}
             pressHandler={continueForm}
             wrapperStyle={styles.opaqueWrapper}
@@ -294,7 +295,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {isMarking && (
         <CustomButton
-          label="Save"
+          label={i18next.t('label.select_center')}
           containerStyle={styles.btnContainer}
           pressHandler={setSampleMarker}
           disable={loading}

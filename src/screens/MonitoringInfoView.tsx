@@ -3,6 +3,7 @@ import React from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
 import YoutubePlayer from "react-native-youtube-iframe";
+import i18next from 'src/locales/index'
 
 const MonitoringInfoView = () => {
     return (
@@ -12,7 +13,7 @@ const MonitoringInfoView = () => {
                 <View style={styles.headerSection}>
                     <View style={styles.backDrop}></View>
                     <Text style={styles.headerNote}>
-                        How do I set up a monitoring plot?
+                        {i18next.t('label.m_info_h1')}
                     </Text>
                     <View style={styles.videoWrapper}>
                         <View style={styles.loaderWrapper}>
@@ -27,43 +28,31 @@ const MonitoringInfoView = () => {
                 </View>
                 <View style={styles.sectionWrapper}>
                     <Text style={styles.h2Label}>
-                        We recommend working in a team of two; one person to measure, one person to record in TreeMapper. Together it should take you about four hours per plot.
-                        {'\n'} {'\n'}
-                        Once set up, the plots have to be remeasured at the same time every year.
-                        {'\n'} {'\n'}
-                        In seasonally dry forests, the ideal time to set up the plot is at the beginning of the wet season.
-                        {'\n'}
+                    {i18next.t('label.m_info_n1')}
                     </Text>
                     <Text style={styles.h1Label}>
-                        What do I need for a standard 25m by 2m plot?
-                        {'\n'}
+                    {i18next.t('label.m_info_h2')}
                     </Text>
                     <Text style={styles.h3Label}>
-                        1. ca. 300 metal tree-tags (ca. €30){'\n'}
-                        2. 10 meters of 3mm wire{'\n'}
-                        3. Wire clippers{'\n'}
-                        4. Two 50m measuring tapes{'\n'}
+                    {i18next.t('label.m_info_n2')}
                     </Text>
                     <Text style={styles.h1Label}>
-                        How many plots do I need?
+                    {i18next.t('label.m_info_h3')}
                     </Text>
                     <Text style={styles.h2Label}>
-                        You should set up 5 plots plus 1 for every 5 hectares. A project restoring 10 ha would have 7 plots.  {'\n'}  {'\n'}
+                    {i18next.t('label.m_info_n3')}
                     </Text>
                     <Text style={styles.h1Label}>
-                        How do I choose the locations?
+                    {i18next.t('label.m_info_h4')}
                     </Text>
                     <Text style={styles.h2Label}>
-                        Plot locations need to be chosen at random, including plots near and at the edge of the site. But you do not need to worry about that, since TreeMapper suggests optimal plot locations.
-                        {'\n'}  {'\n'}
+                    {i18next.t('label.m_info_n4')}
                     </Text>
                     <Text style={styles.h1Label}>
-                        What are control plots?
+                    {i18next.t('label.m_info_h5')}
                     </Text>
                     <Text style={styles.h2Label}>
-                        Control plots allow you to understand how your site would have developed if you had not planted trees. Therefore we purposefully keep a few sites "unplanted", register them as control sites and measure what naturally grows there. About 5% of your monitoring plots should have a paired control plot.
-                        {'\n'}  {'\n'}
-                        This process is based on XYZ et al. 2022.
+                    {i18next.t('label.m_info_n5')}
                     </Text>
                 </View>
                 <View style={styles.divider}></View>
@@ -105,8 +94,8 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.GRAY_LIGHT,
     },
     loaderWrapper: {
-        width:'100%',
-        height:'100%',
+        width: '100%',
+        height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
         position: 'absolute',

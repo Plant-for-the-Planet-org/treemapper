@@ -3,6 +3,7 @@ import React from 'react'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
+import i18next from 'src/locales/index'
 
 interface Props{
     onChangeText:(t:string)=>void
@@ -17,7 +18,7 @@ const PlotPlantSearch = (props:Props) => {
                     <SearchIcon style={styles.searchIcon} />
                     <TextInput
                         style={styles.input}
-                        placeholder={'search'}
+                        placeholder={i18next.t('label.search')}
                         onChangeText={onChangeText}
                         underlineColorAndroid="transparent"
                     />

@@ -23,6 +23,7 @@ import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { DropdownData } from 'src/types/interface/app.interface'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
+import i18next from 'src/locales/index'
 
 
 const CreatePlotDetailsView = () => {
@@ -151,46 +152,46 @@ const CreatePlotDetailsView = () => {
             <AvoidSoftInputView
                 avoidOffset={20}
                 style={styles.container}>
-                <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+                <Header label={i18next.t('label.create_plot_header')} rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                 <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
                     <View style={styles.wrapper}>
                         <View style={{ paddingHorizontal: 20 }}>
                             <AddPlotImage image={plotImage} plotID={plotID} />
                             <OutlinedTextInput
-                                placeholder={'Plot Name'}
+                                placeholder={i18next.t('label.plot_name')}
                                 changeHandler={setPlotName}
                                 keyboardType={'default'}
                                 trailingtext={''}
                                 errMsg={''} />
-                            {plotShape === 'RECTANGULAR' ? <><OutlinedTextInput
-                                placeholder={'Plot Length'}
+                            {plotShape == 'RECTANGULAR' ? <><OutlinedTextInput
+                                placeholder={i18next.t('label.plot_length')}
                                 changeHandler={setPlotLength}
                                 keyboardType={'decimal-pad'}
                                 trailingtext={'m'}
                                 errMsg={''} />
                                 <Text style={styles.noteWrapper}>
-                                    25 meters or more recommended
+                                    {i18next.t('label.plot_radius_note')}
                                 </Text>
                                 <OutlinedTextInput
-                                    placeholder={'Plot Width'}
+                                    placeholder={i18next.t('label.plot_width')}
                                     changeHandler={setPlotWidth}
                                     keyboardType={'decimal-pad'}
                                     trailingtext={'m'}
                                     errMsg={''} />
                                 <Text style={styles.noteWrapper}>
-                                    4 meters or more recommended
+                                    {i18next.t('label.plot_width_note')}
                                 </Text></> : <><OutlinedTextInput
-                                    placeholder={'Plot Radius'}
+                                    placeholder={i18next.t('label.plot_radius')}
                                     changeHandler={setPlotRadius}
                                     keyboardType={'decimal-pad'}
                                     trailingtext={'m'}
                                     errMsg={''} /><Text style={styles.noteWrapper}>
-                                    25 meters or more recommended
+                                    {i18next.t('label.plot_radius_note')}
                                 </Text></>}
                         </View>
                         {dropDownList.length > 0 && <View style={{ marginLeft: '3%', width: '94%', justifyContent: 'center', alignItems: "center" }}>
                             <CustomDropDownPicker
-                                label={'Plot Group (Optional)'}
+                                label={i18next.t('label.plot_group_input')}
                                 data={dropDownList}
                                 onSelect={setType}
                                 selectedValue={type}
@@ -202,7 +203,7 @@ const CreatePlotDetailsView = () => {
                 </ScrollView>
             </AvoidSoftInputView>
             <CustomButton
-                label="Create"
+                label={i18next.t('label.create')}
                 containerStyle={styles.btnContainer}
                 pressHandler={submitHandler}
                 hideFadein

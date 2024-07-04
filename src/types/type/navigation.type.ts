@@ -149,7 +149,7 @@ type PlotPlantDetails = {
 type AddRemeasurementView = {
   id: string,
   plantID: string
-  timelineId: string
+  timelineId?: string
 }
 
 type AddObservation = {

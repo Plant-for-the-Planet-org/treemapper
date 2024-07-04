@@ -11,6 +11,7 @@ import { useRealm } from '@realm/react'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import BouncyCheckbox from 'react-native-bouncy-checkbox/build/dist/BouncyCheckbox'
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import i18next from 'src/locales/index'
 
 const AddPlotToGroupView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotsToGroup'>>()
@@ -109,7 +110,7 @@ const AddPlotToGroupView = () => {
                             return (
                                 <View style={styles.emptyWrapper}>
                                     <Text style={styles.emptyLabel}>
-                                        No Plot's to show{'\n'}
+                                        {i18next.t('label.no_plots')}
                                     </Text>
                                 </View>
                             )

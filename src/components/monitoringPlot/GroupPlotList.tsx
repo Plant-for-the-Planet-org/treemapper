@@ -14,6 +14,8 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
 import EmptyIcom from 'assets/images/svg/EmptyGroupIcon.svg'
 import EmptyStaticScreen from '../common/EmptyStaticScreen'
+import i18next from 'src/locales/index'
+
 
 const GroupPlotList = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -44,10 +46,10 @@ const GroupPlotList = () => {
                     item={item} handleSelection={handleSelection} />)}
                 data={groupList} estimatedItemSize={100}
                 contentContainerStyle={styles.container}
-                ListEmptyComponent={<EmptyStaticScreen label={'No Groups to Show '} note={'Tap the below button \nto add Plot Group'} image={<EmptyIcom />} marginTop={{ marginTop: '25%' }} />}
+                ListEmptyComponent={<EmptyStaticScreen label={i18next.t('label.no_plots')} note={i18next.t('label.no_groups_note')} image={<EmptyIcom />} marginTop={{ marginTop: '25%' }} />}
             />
             <CustomButton
-                label="Add Group"
+                label={i18next.t('label.add_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
                 hideFadein

@@ -3,6 +3,7 @@ import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from 'src/types/type/app.type';
+import i18next from 'src/locales/index'
 
 
 interface Props {
@@ -27,7 +28,7 @@ const CreatePlotCard = (props: Props) => {
         <View style={styles.container}>
             <View style={[styles.wrapper, { backgroundColor: disabled ? Colors.GRAY_LIGHT : Colors.WHITE }]}>
                 {disabled && <View style={styles.comingSoonWrapper}>
-                    <Text style={styles.comingSoonLabel}>Coming Soon</Text>
+                    <Text style={styles.comingSoonLabel}>{i18next.t('label.coming_soon')}</Text>
                 </View>}
                 <Text style={styles.headerLabel}>
                     {header}

@@ -14,6 +14,7 @@ import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangeme
 import { newPlotDetails } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { PLOT_TYPE, PLOT_SHAPE, PLOT_COMPLEXITY } from 'src/types/type/app.type'
 import { useToast } from 'react-native-toast-notifications'
+import i18next from 'src/locales/index'
 
 const CreatePlotView = () => {
     const [plotType, setPlotType] = useState<PLOT_TYPE | any>('INTERVENTION');
@@ -40,39 +41,39 @@ const CreatePlotView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label='Create Plot' rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+            <Header label={i18next.t('label.create_plot_header')} rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
             <View style={styles.wrapper}>
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
                     key: 'STANDARD',
-                    value: 'Standard'
+                    value: i18next.t('label.standard')
                 }} labelTwo={{
                     key: 'SIMPLE',
-                    value: 'Simple'
+                    value: i18next.t('label.simple')
                 }} disabled={true}
                     selectedValue={plotComplexity}
                     onSelect={setPlotComplexity}
                 />
-                <CreatePlotCard header={'Plot Shape'} labelOne={{
+                <CreatePlotCard header={i18next.t('label.plot_shape')} labelOne={{
                     key: 'RECTANGULAR',
-                    value: 'Rectangular'
+                    value: i18next.t('label.rectangular')
                 }} labelTwo={{
                     key: 'CIRCULAR',
-                    value: 'Circular'
+                    value: i18next.t('label.circular')
                 }} disabled={false}
                     selectedValue={plotShape}
                     onSelect={setPlotShape} />
-                <CreatePlotCard header={'Plot type'} labelOne={{
+                <CreatePlotCard header={i18next.t('label.plot_type')} labelOne={{
                     key: 'INTERVENTION',
-                    value: 'Intervention'
+                    value:  i18next.t('label.intervention')
                 }} labelTwo={{
                     key: 'CONTROL',
-                    value: 'Control'
+                    value:  i18next.t('label.control')
                 }} disabled={false}
                     selectedValue={plotType}
                     onSelect={setPlotType} />
             </View>
             <CustomButton
-                label="Continue"
+                label={i18next.t('label.continue')}
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
                 hideFadein
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom:30,
+        bottom: 30,
     },
     infoWrapper: {
         width: 50,

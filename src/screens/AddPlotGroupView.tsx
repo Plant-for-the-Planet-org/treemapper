@@ -16,6 +16,8 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import GrouplistPlot from 'src/components/monitoringPlot/GrouplistPlot'
+import i18next from 'src/locales/index'
+
 
 const AddPlotGroup = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotGroup'>>()
@@ -80,10 +82,10 @@ const AddPlotGroup = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={`${isEdiatble ? "Edit" : "Add"} Plot Group`} />
+            <Header label={isEdiatble ? i18next.t('label.edit_group_header') : i18next.t('label.create_group_header')} />
             <View style={styles.inputWrapper}>
                 <OutlinedTextInput
-                    placeholder={`Group Name`}
+                    placeholder={i18next.t('label.group_name')}
                     changeHandler={handleGroupName}
                     keyboardType={'default'}
                     autoFocus
@@ -93,11 +95,11 @@ const AddPlotGroup = () => {
             {gID && <GrouplistPlot gid={gID} />}
             {!isEdiatble && <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>
-                    Create Group and start {'\n'} adding plots
+                    {i18next.t('label.create_group_note')}
                 </Text>
             </View>}
             <CustomButton
-                label={isEdiatble ? 'Add Plot' : 'Create Group'}
+                label={isEdiatble ? i18next.t('label.add_group') : i18next.t('label.create_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}

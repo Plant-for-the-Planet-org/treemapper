@@ -8,6 +8,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { Typography, Colors } from 'src/utils/constants'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import i18next from 'src/locales/index'
 
 interface Props {
     gid
@@ -46,8 +47,7 @@ const GrouplistPlot = ({ gid }: Props) => {
                         return (
                             <View style={styles.emptyWrapper}>
                                 <Text style={styles.emptyLabel}>
-                                    No plots to show{'\n'}
-                                    Tap the below button to add plots
+                                    {i18next.t('label.empty_plots_note')}
                                 </Text>
                             </View>
                         )

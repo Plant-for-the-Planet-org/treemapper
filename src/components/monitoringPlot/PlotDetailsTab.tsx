@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
+import i18next from 'src/locales/index'
 
 
 interface Props {
@@ -17,7 +18,7 @@ const PlotDetailsTab = (props: Props) => {
                     changeIndex(0)
                 }}>
                     <Text style={[styles.cardLabel, { color: selectedIndex === 0 ? Colors.NEW_PRIMARY : Colors.TEXT_COLOR }]}>
-                        Plants
+                        {i18next.t("label.plants")}
                     </Text>
                     {selectedIndex === 0 && <View style={styles.activeMarker}>
                         <Text style={styles.invisibleLabel}>
@@ -29,7 +30,7 @@ const PlotDetailsTab = (props: Props) => {
                     changeIndex(1)
                 }}>
                     <Text style={[styles.cardLabel, { color: selectedIndex === 1 ? Colors.NEW_PRIMARY : Colors.TEXT_COLOR }]}>
-                    Ecosystem
+                    {i18next.t("label.ecosystem")}
                     </Text>
                     {selectedIndex === 1 && <View style={styles.activeMarker}>
                         <Text style={styles.invisibleLabel}>
@@ -41,7 +42,7 @@ const PlotDetailsTab = (props: Props) => {
                     changeIndex(2)
                 }}>
                     <Text style={[styles.cardLabel, { color: selectedIndex === 2 ? Colors.NEW_PRIMARY : Colors.TEXT_COLOR }]}>
-                    Map
+                    {i18next.t("label.map")}
                     </Text>
                     {selectedIndex === 2 && <View style={styles.activeMarker}>
                         <Text style={styles.invisibleLabel}>

@@ -12,6 +12,7 @@ import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'
+import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 
 
@@ -28,6 +29,7 @@ const AddBottomTabIcon = () => {
   }))
 
   const onAddPress = () => {
+    ctaHaptic()
     setOpen(prev => !prev)
   }
 

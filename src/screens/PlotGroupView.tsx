@@ -8,6 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import GroupPlotList from 'src/components/monitoringPlot/GroupPlotList'
+import i18next from 'src/locales/index'
 
 
 const PlotGroupView = () => {
@@ -17,7 +18,7 @@ const PlotGroupView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <Header label='Plot Groups'  rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+      <Header label={i18next.t('label.plot_groups_header')}  rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
       <View style={styles.wrapper}>
         <GroupPlotList />
       </View>
