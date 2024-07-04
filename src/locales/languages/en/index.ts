@@ -19,6 +19,7 @@ import SpeciesSyncError from './user/speciesSyncError.json';
 import AdditionalData from './user/additionalData.json';
 import Projects from './user/projects.json';
 import Intervention from './user/intervention.json'
+import MonitoringPlot from './user/monitoringPlot.json'
 
 export default {
   ...WelcomeScreen,
@@ -41,5 +42,6 @@ export default {
   ...SpeciesSyncError,
   ...AdditionalData,
   ...Projects,
-  ...Intervention
+  ...Intervention,
+  ...MonitoringPlot
 };
