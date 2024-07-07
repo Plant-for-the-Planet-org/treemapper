@@ -115,7 +115,7 @@ const MainFormSection = (props: Props) => {
         index: 1, // index of the active route
         routes: [
           { name: 'Home' },
-          { name: 'InterventionPreview', params: { id: 'review', intervention: '' } },
+          { name: 'InterventionPreview', params: { id: 'review', intervention: '', interventionId: interventionID } },
         ],
       })
     )

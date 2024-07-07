@@ -2,8 +2,7 @@ import { FlatList, StyleSheet, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'src/store'
+import { useDispatch } from 'react-redux'
 import { SpecieCard } from 'src/components/species/ManageSpeciesCard'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import CustomButton from 'src/components/common/CustomButton'
@@ -15,31 +14,51 @@ import {
   updateCurrentSpecies,
 } from 'src/store/slice/sampleTreeSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { PlantedSpecies } from 'src/types/interface/slice.interface'
+import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useToast } from 'react-native-toast-notifications'
+
+
+
 const TotalTreesView = () => {
-  const { has_sample_trees, plantedSpecies, form_id } = useSelector((state: RootState) => state.formFlowState)
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
-  const dispatch = useDispatch()
   const { updateInterventionLastScreen } = useInterventionManagement()
+  const dispatch = useDispatch()
+  const realm = useRealm()
   const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
+  const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
+  const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+  const toast = useToast()
   const goBack = () => {
     navigation.goBack()
   }
 
+
+
   const navigationToNext = async () => {
-    await updateInterventionLastScreen(form_id, 'totalTrees')
-    navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees })
+    const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
+    const result = await updateInterventionLastScreen(intervention.form_id, 'totalTrees')
+    if (!result) {
+      errotHaptic()
+      toast.show("Error occured while updating data")
+      return
+    }
+    console.log("opi")
+    navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees, id: intervention.form_id })
   }
 
 
 
   const cardpress = (item: PlantedSpecies) => {
     if (isSelectSpecies) {
-      dispatch(updateCurrentSpecies(item))
+      dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
       navigation.navigate('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
       return
@@ -47,7 +66,7 @@ const TotalTreesView = () => {
   }
 
   const removeHandler = (item: PlantedSpecies) => {
-    const filterdData = plantedSpecies.filter(
+    const filterdData = intervention.planted_species.filter(
       el => el.guid !== item.guid,
     )
     dispatch(updatePlantedSpecies(filterdData))
@@ -68,12 +87,14 @@ const TotalTreesView = () => {
   }
 
 
+
+
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Total Trees" note='List all species planted at the location'/>
+      <Header label="Total Trees" note='List all species planted at the location' />
       <View style={styles.wrapper}>
         <FlatList
-          data={plantedSpecies}
+          data={intervention.planted_species}
           renderItem={({ item }) => renderSpecieCard(item)}
           keyExtractor={({ guid }) => guid}
           ListFooterComponent={() => <View style={styles.footerWrapper} />}
@@ -91,7 +112,7 @@ const TotalTreesView = () => {
               label="Continue"
               containerStyle={styles.btnWrapper}
               pressHandler={navigationToNext}
-              disable={plantedSpecies.length === 0}
+              disable={intervention.planted_species.length === 0}
             />
           </View>
         )}

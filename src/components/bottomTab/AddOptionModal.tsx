@@ -26,6 +26,8 @@ import MultipleTreeIcon from 'assets/images/svg/MultipleTreeIcon.svg'
 import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
+import { useToast } from 'react-native-toast-notifications'
+
 
 const { width, height } = Dimensions.get('screen')
 
@@ -49,6 +51,7 @@ const AddOptionModal = (props: Props) => {
     transform: [{ translateY: heightValue.value }],
     opacity: opacity.value,
   }))
+  const toast = useToast()
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -68,10 +71,10 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.project_sites'),
       coming_soon: true,
       onPress: () => {
-        // navigation.navigate('InterventionForm', {id: 'UNKOWN'})
+        toast.show(i18next.t('label.coming_soon'))
         props.setVisible(false)
       },
-      disabled: true,
+      disabled: false,
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,

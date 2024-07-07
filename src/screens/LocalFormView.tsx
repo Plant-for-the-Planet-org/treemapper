@@ -15,15 +15,14 @@ import { Colors, Typography } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
-import { useNavigation } from '@react-navigation/native'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { FormElement } from 'src/types/interface/form.interface'
-import { useDispatch, useSelector } from 'react-redux'
-import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
-import { RootState } from 'src/store'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useToast } from 'react-native-toast-notifications'
 
 const width = Dimensions.get('screen').width
 
@@ -33,13 +32,14 @@ const LocalForm = () => {
   const [loading, setLoading] = useState(true)
   const [formPages, setFormPages] = useState<IAdditonalDetailsForm[]>([])
   const [currentPage, setCurrentPage] = useState(0)
-  const formFlowData = useSelector((state: RootState) => state.formFlowState)
+  const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
+  const paramId = route.params ? route.params.id : ''
   const [finalData, setFinalData] = useState<Array<{ page: string, elements: FormElement[] }>>([])
   const realm = useRealm()
   const flatlistRef = useRef<FlatList>(null)
   const { updateLocalFormDetailsIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const dispatch = useDispatch()
+  const toast = useToast()
   useEffect(() => {
     getDetails()
   }, [])
@@ -47,7 +47,7 @@ const LocalForm = () => {
   const getDetails = async () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
     if (!checkForNonEmptyForm(data)) {
-      await updateLocalFormDetailsIntervention(formFlowData.form_id, [])
+      await updateLocalFormDetailsIntervention(paramId, [])
       navigation.replace("DynamicForm")
       return
     }
@@ -57,8 +57,8 @@ const LocalForm = () => {
 
 
   const checkForNonEmptyForm = (data) => {
-    return data.some(form => 
-      form.elements.some(el => 
+    return data.some(form =>
+      form.elements.some(el =>
         el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH'
       )
     );
@@ -94,9 +94,13 @@ const LocalForm = () => {
     const updatedData = allData.map(el => {
       return ({ ...el, element_id: uuid() })
     })
-    dispatch(updateAdditionalData(updatedData))
-    await updateLocalFormDetailsIntervention(formFlowData.form_id, updatedData)
-    navigation.replace("DynamicForm")
+    const result = await updateLocalFormDetailsIntervention(paramId, updatedData)
+    if (!result) {
+      errotHaptic()
+      toast.show('Error occured while updating data')
+      return
+    }
+    navigation.replace("DynamicForm", { id: paramId })
   }
 
 
@@ -104,7 +108,7 @@ const LocalForm = () => {
     return (
       <View style={styles.pageWrapper}>
         <Text style={styles.pageLabel}>{data.title || `Page ${i + 1}`}</Text>
-        <MainFormSection formData={data} completeLocalForm={handleCompletion} page={data.form_id} interventionID={formFlowData.form_id} />
+        <MainFormSection formData={data} completeLocalForm={handleCompletion} page={data.form_id} interventionID={paramId} />
       </View>
     )
   }

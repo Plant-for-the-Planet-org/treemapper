@@ -28,7 +28,7 @@ const InterventionList = (props: Props) => {
   const handleNavigation = (item: InterventionData) => {
     dispatch(resetRegisterationForm())
     dispatch(resetSampleTreeform())
-    navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id })
+    navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id, interventionId: item.intervention_id })
   }
 
   const emptyInterventoin = () => {

@@ -1,46 +1,56 @@
 import { StyleSheet } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import ManageSpeciesHome from 'src/components/species/ManageSpeciesHome'
 import RemoveSpeciesModal from 'src/components/species/RemoveSpeciesModal'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import { useQuery } from '@realm/react'
+import { useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import TreeCountModal from 'src/components/species/TreeCountModal'
-
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateTreesSpecies } from 'src/store/slice/interventionSlice'
-import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
-import { PlantedSpecies } from 'src/types/interface/slice.interface'
+import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { useToast } from 'react-native-toast-notifications'
+
+
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveModal] = useState(false)
   const [delteSpeciedId, setDeleteSpecieID] = useState('')
-  const [treeModalDetails, setTreeModalDetails] =
-    useState<IScientificSpecies | null>(null)
+  const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
+  const [treeModalDetails, setTreeModalDetails] = useState<IScientificSpecies | null>(null)
 
-  const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
-  const isManageSpecies = route.params && route.params.manageSpecies
-  const EditInterventionSpecies = route.params && route.params.reviewTreeSpecies
-
-  const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const InterventionState = useSelector((state: RootState) => state.interventionState)
 
-  const { updateInterventionPlantedSpecies } = useInterventionManagement()
 
+
+  const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
+  const realm = useRealm()
+  const { updateInterventionPlantedSpecies, updateSampleTreeSpecies } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
   const { updateUserFavSpecies } = useManageScientificSpecies()
-  const { updateSampleTreeSpecies } = useInterventionManagement()
-
-
   const dispatch = useDispatch()
+  const toast = useToast()
+
+  const isManageSpecies = route.params && route.params.manageSpecies
+  const EditInterventionSpecies = route.params && route.params.reviewTreeSpecies
+  const interventionID = route.params && route.params.id ? route.params.id : ''
+
+  useEffect(() => {
+    const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+    if (InterventionData) {
+      setInterventionData(InterventionData)
+    }
+  }, [interventionID])
+
+
   const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
     return data.filtered('isUserSpecies == true')
   })
@@ -74,23 +84,23 @@ const ManageSpeciesView = () => {
       count: Number(count),
       image: treeModalDetails.image
     }
-
-    const filteredData = formFlowData.plantedSpecies.filter(
-      el => el.guid !== speciesDetails.guid,
-    )
-    dispatch(updatePlantedSpecies([...filteredData, speciesDetails]))
-    await updateInterventionPlantedSpecies(formFlowData.form_id, speciesDetails)
     setTreeModalDetails(null)
-    navigation.navigate('TotalTrees', { isSelectSpecies: false })
+    const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
+    if (!result) {
+      toast.show("Error occured while adding speceis")
+      return
+    }
+    navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
   }
 
-  const handleSelecteMultiSpecies = (item: IScientificSpecies) => {
+  const handleSelecteMultiSpecies = async (item: IScientificSpecies) => {
     const finalData = JSON.parse(JSON.stringify(item))
     if (EditInterventionSpecies) {
       editInterventionSpecies(finalData);
       return;
     }
-    if (formFlowData.species_count_required) {
+    const { species_count_required } = setUpIntervention(interventionData.intervention_key)
+    if (species_count_required) {
       setTreeModalDetails(finalData)
     } else {
       const speciesDetails: PlantedSpecies = {
@@ -100,12 +110,12 @@ const ManageSpeciesView = () => {
         count: 1,
         image: finalData.image
       }
-      const filteredData = formFlowData.plantedSpecies.filter(
-        el => el.guid !== finalData.guid,
-      )
-
-      dispatch(updatePlantedSpecies([...filteredData, speciesDetails]))
-      navigation.navigate('TotalTrees', { isSelectSpecies: false })
+      const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
+      if (!result) {
+        toast.show("Error occured while adding speceis")
+        return
+      }
+      navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
     }
   }
 
@@ -114,8 +124,9 @@ const ManageSpeciesView = () => {
       <ManageSpeciesHome
         toogleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={userFavSpecies}
+        interventionKey={interventionData ? interventionData.intervention_key : 'single-tree-registration'}
+        form_id={interventionData ? interventionData.form_id : ""}
         isManageSpecies={isManageSpecies}
-        formData={formFlowData}
         showTreeModal={handleSelecteMultiSpecies}
         interventionEdit={EditInterventionSpecies}
       />

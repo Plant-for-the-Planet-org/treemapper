@@ -44,9 +44,11 @@ export const createBasePath = async () => {
         const baseFolderExists = await RNFS.exists(basePath);
         if (!baseFolderExists) {
             await RNFS.mkdir(basePath);
+            return { msg: 'Root folder created', hasError: false }
         }
+        return { msg: 'Root folder exists', hasError: false, newFolder: false }
     } catch (error) {
-        console.error("Error creating base path:", error);
+        return { msg: JSON.stringify(error), hasError: true, newFolder: false }
     }
 }
 

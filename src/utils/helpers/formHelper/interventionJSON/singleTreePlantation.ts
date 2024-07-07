@@ -1,11 +1,12 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
 import i18next from 'src/locales/index'
+import { interventionHeader } from '../../interventionHelper/interventionLocaleHelper'
 
 
 export const SingleTeePlantation: RegisterFormSliceInitalState = {
   form_id: '',
   key: 'single-tree-registration',
-  title: 'Single Tree Plantation',
+  title: interventionHeader('single-tree-registration'),
   intervention_date: 0,
   skip_intervention_form: true,
   user_type: 'normal',

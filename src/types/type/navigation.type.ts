@@ -10,15 +10,15 @@ export type BottomTabParamList = {
 export type RootStackParamList = {
   Home: undefined
   TakePicture: TakePictureView
-  PolygonMarker: undefined
+  PolygonMarker: PolygonMarkerView
   SyncSpecies: SyncSpeciesView
   HomeSideDrawer: undefined
   InterventionPreview: InterventionPreviewView
   ManageSpecies: ManageSpeciesView
   SpeciesInfo: SpeciesInfoView
   SpeciesSearch: SearchSpeciesView
-  PointMarker: undefined
-  DynamicForm: undefined
+  PointMarker: PointMarkerView
+  DynamicForm: LocalFormView
   InterventionForm: IntermediateFormView
   AddMeasurment: undefined
   TotalTrees: TotalTreesView
@@ -32,7 +32,7 @@ export type RootStackParamList = {
   MetaDataElement: MetaDataElementView
   AdditionDataElement: AdditionDataElementView
   SelectElement: SelectElementView
-  LocalForm: undefined
+  LocalForm: LocalFormView
   ImportForm: undefined
   EditAdditionData: EditAdditionDataView
   EditPolygon: undefined
@@ -68,7 +68,8 @@ type IntermediateFormView = {
 type InterventionPreviewView = {
   id: 'preview' | 'review'
   intervention: string
-  sampleTree?: string
+  sampleTree?: string,
+  interventionId: string
 }
 
 
@@ -80,15 +81,18 @@ type SyncSpeciesView = {
 type ManageSpeciesView = {
   manageSpecies: boolean
   reviewTreeSpecies?: string
+  id?: string
 }
 type TotalTreesView = {
   isSelectSpecies: boolean
+  interventionId: string
 }
 
 type ReviewTreeDetailsView = {
   detailsCompleted: boolean
   interventionID?: string
   synced?: boolean
+  id: string
 }
 
 type SearchSpeciesView = {
@@ -118,6 +122,15 @@ type EditAdditionDataView = {
   interventionID: string
 }
 
+type PointMarkerView = {
+  id: string
+}
+type PolygonMarkerView = {
+  id: string
+}
+type LocalFormView = {
+  id: string
+}
 
 type CreatePlotDetails = {
   id: string,

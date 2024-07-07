@@ -9,14 +9,17 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
-import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
-import { PlantedSpecies, RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { PlantedSpecies } from 'src/types/interface/slice.interface'
 import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import { getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { INTERVENTION_TYPE } from 'src/types/type/app.type'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useToast } from 'react-native-toast-notifications'
 
 const cardSize = scaleSize(60)
 
@@ -24,9 +27,10 @@ interface Props {
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[] | any
   isManageSpecies: boolean
-  formData: RegisterFormSliceInitalState | undefined
   showTreeModal: (item: IScientificSpecies) => void
   interventionEdit: string
+  form_id: string
+  interventionKey: INTERVENTION_TYPE
 }
 
 const ManageSpeciesHome = (props: Props) => {
@@ -34,16 +38,20 @@ const ManageSpeciesHome = (props: Props) => {
     toogleFavSpecies,
     userFavSpecies,
     isManageSpecies,
-    formData,
     interventionEdit,
     showTreeModal,
+    form_id,
+    interventionKey
   } = props
+  const [loading, setLoading] = useState(false)
+
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
   const { updateInterventionPlantedSpecies } = useInterventionManagement()
   const { userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
-  const [loading, setLoading] = useState(false)
+  const toast = useToast()
 
   useEffect(() => {
     if (!userSpecies && isLogedIn) {
@@ -78,8 +86,9 @@ const ManageSpeciesHome = (props: Props) => {
       showTreeModal(item);
       return;
     }
+    const { is_multi_species, tree_details_required } = setUpIntervention(interventionKey)
     if (!isManageSpecies) {
-      if (formData.is_multi_species) {
+      if (is_multi_species) {
         showTreeModal(item)
       } else {
         const updatedSPecies: PlantedSpecies = {
@@ -89,9 +98,13 @@ const ManageSpeciesHome = (props: Props) => {
           count: 1,
           image: item.image
         }
-        dispatch(updatePlantedSpecies([updatedSPecies]))
-        await updateInterventionPlantedSpecies(formData.form_id, updatedSPecies)
-        if (formData.tree_details_required) {
+        const result = await updateInterventionPlantedSpecies(form_id, updatedSPecies)
+        if (!result) {
+          errotHaptic()
+          toast.show('Error occured while adding species')
+          return
+        }
+        if (tree_details_required) {
           navigation.navigate('ReviewTreeDetails')
         } else {
           navigation.navigate('LocalForm')

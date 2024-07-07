@@ -1,13 +1,12 @@
 import { KeyboardType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'src/store'
+import { useDispatch } from 'react-redux'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { updateBoundry, updateSingleTreeDetails } from 'src/store/slice/sampleTreeSlice'
-import { SampleTree, SampleTreeSlice } from 'src/types/interface/slice.interface'
+import { InterventionData, SampleTree, SampleTreeSlice } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
@@ -26,55 +25,63 @@ import PenIcon from 'assets/images/svg/PenIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 import { updateSampleTreeReviewTree } from 'src/store/slice/registerFormSlice'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { useRealm } from '@realm/react'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { v4 as uuid } from 'uuid'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
 
 
 const ReviewTreeDetails = () => {
-    const FormData = useSelector((state: RootState) => state.formFlowState)
+    const realm = useRealm()
+    const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
+    const interventionId = route.params && route.params.id ? route.params.id : ''
+    const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+    const FormData = setUpIntervention(Intervention.intervention_key)
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
-    const currentTreeIndex = FormData.tree_details.length
+    const currentTreeIndex = Intervention.sample_trees.length
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [showDatePicker, setDatePicker] = useState(false)
     const { updateSampleTreeDetails } = useInterventionManagement()
-    const InterventionData = useSelector(
-        (state: RootState) => state.interventionState,
-    )
-    const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
     const detailsCompleted = route.params && route.params.detailsCompleted
     const editTree = route.params && route.params.interventionID
     const synced = route.params && route.params.synced
     const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
 
+
+
+
+
     useEffect(() => {
         if (!editTree) {
+            console.log("eede")
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
                     navigation.replace('LocalForm')
                 } else if (FormData.form_details.length > 0) {
                     navigation.replace('LocalForm')
                 } else {
-                    setTreeDetails(FormData.tree_details[currentTreeIndex - 1])
+                    console.log("LOSdjc", JSON.stringify(Intervention, null, 2))
+                    setTreeDetails(Intervention.sample_trees[currentTreeIndex - 1])
                 }
             } else {
+                console.log("LOSdjc sd")
+
                 setupTreeDetailsFlow()
             }
         }
     }, [detailsCompleted])
 
 
-
-
-
-
     useEffect(() => {
         if (editTree) {
-            const filterdData = InterventionData.sample_trees.filter(el => el.tree_id === route.params.interventionID)
+            const filterdData = Intervention.sample_trees.filter(el => el.tree_id === route.params.interventionID)
             setTreeDetails(filterdData[0])
         }
-    }, [InterventionData])
+    }, [interventionId])
 
 
 
@@ -85,25 +92,22 @@ const ReviewTreeDetails = () => {
 
 
     const addAnotherTree = () => {
-        navigation.navigate('PointMarker')
+        const { geoJSON } = makeInterventionGeoJson("Polygon", JSON.parse(Intervention.location.coordinates), Intervention.form_id)
+        const bounds = bbox(geoJSON)
+        dispatch(updateBoundry({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
+        dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
+        navigation.navigate('PointMarker', { id: interventionId })
     }
-
-
-
-
-
-
 
     const setupTreeDetailsFlow = () => {
         if (!FormData.has_sample_trees) {
-            const speciesDetails = FormData.plantedSpecies[0]
+            const speciesDetails = Intervention.planted_species[0]
             const treeDetailsFlow: SampleTreeSlice = {
-                form_id: FormData.form_id,
+                form_id: Intervention.form_id,
+                tree_id: uuid(),
                 sample_tree_count: 1,
-                move_next_primary: '',
-                move_next_secondary: '',
-                boundry: [FormData.coordinates[0]],
-                coordinates: [FormData.coordinates[0]],
+                boundry: JSON.parse(Intervention.location.coordinates),
+                coordinates: JSON.parse(Intervention.location.coordinates),
                 image_url: '',
                 current_species: speciesDetails,
             }
@@ -111,17 +115,18 @@ const ReviewTreeDetails = () => {
             const newID = String(new Date().getTime())
             navigation.replace('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
         } else {
-            const { geoJSON } = makeInterventionGeoJson("Polygon", FormData.coordinates, FormData.form_id)
+            const { geoJSON } = makeInterventionGeoJson("Polygon", JSON.parse(Intervention.location.coordinates), Intervention.form_id)
             const bounds = bbox(geoJSON)
-            dispatch(updateBoundry({ coord: FormData.coordinates, id: FormData.form_id }))
+            dispatch(updateBoundry({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
             dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
-            navigation.navigate('PointMarker')
+            navigation.navigate('PointMarker', { id: interventionId })
+            console.log("Sodi")
         }
     }
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
         if (label === 'sepcies') {
-            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id })
+            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: 'ss' })
             return;
         }
         if (label === 'date') {
@@ -175,6 +180,7 @@ const ReviewTreeDetails = () => {
 
 
     if (!treeDetails) {
+        console.log("ksldcj", treeDetails)
         return null
     }
     const headerLabel = editTree ? "Tree Details" : `Review Tree Details`
@@ -335,7 +341,7 @@ const styles = StyleSheet.create({
         color: Colors.TEXT_COLOR,
         marginLeft: 20,
         marginTop: 10,
-        marginBottom:10
+        marginBottom: 10
     },
     valueLable: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -365,8 +371,8 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'absolute',
         bottom: 25,
-        marginHorizontal:'2%',
-        justifyContent:'center'
+        marginHorizontal: '2%',
+        justifyContent: 'center'
     },
     btnWrapper: {
         flex: 1,

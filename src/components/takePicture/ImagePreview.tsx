@@ -25,7 +25,7 @@ interface Props {
 
 const ImagePreview = (props: Props) => {
   const { imageData, id, screen, retakePicture } = props
-  const interventionID = useSelector((state: RootState) => state.formFlowState.form_id)
+  const interventionID = useSelector((state: RootState) => state.sampleTree.form_id)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 

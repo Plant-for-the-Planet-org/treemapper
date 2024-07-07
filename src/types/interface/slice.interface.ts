@@ -218,14 +218,13 @@ export interface AdditionalDetail {
 }
 
 export interface SampleTreeSlice {
-  form_id: string
+  tree_id: string
   sample_tree_count: number
-  move_next_primary: string
-  move_next_secondary: string
   boundry: Array<number[]>
   coordinates: Array<number[]>
   image_url: string
-  current_species: PlantedSpecies
+  current_species: PlantedSpecies,
+  form_id: string
 }
 
 
@@ -252,6 +251,7 @@ export interface InterventionLocation {
 }
 
 export interface InterventionData {
+  form_id: string,
   intervention_id: string
   intervention_key: INTERVENTION_TYPE
   intervention_title: string
@@ -261,7 +261,17 @@ export interface InterventionData {
   site_name: string
   location_type: string
   location: InterventionLocation
-  cover_image_url: string
+  image: string
+  image_data: {
+    latitude: number
+    longitude: number
+    imageUrl: string
+    cdnImageUrl: string
+    currentloclat: number
+    currentloclong: number
+    isImageUploaded: boolean
+    coordinateID: string
+  },
   has_species: boolean
   species: string[]
   has_sample_trees: boolean
@@ -281,7 +291,10 @@ export interface InterventionData {
   },
   entire_site: boolean
   active?: boolean
-  lastScreen: string,
+  last_screen: string
+  location_id: string
+  locate_tree: string
+  registration_date: number
   planted_species: PlantedSpecies[]
 }
 

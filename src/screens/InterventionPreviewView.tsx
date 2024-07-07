@@ -12,7 +12,6 @@ import InterventionArea from 'src/components/previewIntervention/InterventionAre
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import {
-  handleIncompleteIntervention,
   makeInterventionGeoJson,
   metaDataTranformer,
 } from 'src/utils/helpers/interventionFormHelper'
@@ -22,11 +21,9 @@ import SampleTreePreviewList from 'src/components/previewIntervention/SampleTree
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { InterventionData } from 'src/types/interface/slice.interface'
-import { updateInerventionData } from 'src/store/slice/interventionSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { useRealm } from '@realm/react'
+import { useObject, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { initiateForm } from 'src/store/slice/registerFormSlice'
 import InterventionDeleteContainer from 'src/components/previewIntervention/InterventionDeleteContainer'
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
@@ -37,29 +34,26 @@ import { Metadata } from 'src/types/interface/app.interface'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const formFlowData = useSelector((state: RootState) => state.formFlowState)
-  const [interventionId, setInterventoinId] = useState('')
   const [loading, setLoading] = useState(true)
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
+  const interventionID = route.params && route.params.interventionId ? route.params.interventionId : ''
+  console.log(":LSDKAC:",interventionID)
   const { addNewLog } = useLogManagement()
-  const InterventionData = useSelector(
-    (state: RootState) => state.interventionState,
+  const InterventionData = useObject<InterventionData>(
+    RealmSchema.Intervention, interventionID
   )
-
-
+  console.log(":LSDKAC: InterventionData",InterventionData)
   const { saveIntervention, updateInterventionMetaData } = useInterventionManagement()
   const dispatch = useDispatch()
 
   useEffect(() => {
     if (route.params.id === 'review') {
-      setInterventoinId(formFlowData.form_id)
-      dispatch(updateNewIntervention())
       setupMetaData()
-    } else {
-      setInterventoinId(route.params.intervention)
     }
+    setLoading(false)
+    checkIsTree()
   }, [])
 
 
@@ -86,44 +80,24 @@ const InterventionPreviewView = () => {
         "type": "Point"
       },
     }
-    const parsedMeta = JSON.parse(formFlowData.meta_data)
+    const parsedMeta = JSON.parse(InterventionData.meta_data)
     if (Object.keys(parsedMeta).length === 0) {
       const finalMeta = metaDataTranformer(parsedMeta, updatedMetadata)
-      await updateInterventionMetaData(formFlowData.form_id, finalMeta)
+      await updateInterventionMetaData(InterventionData.form_id, finalMeta)
     }
 
   }
 
-  useEffect(() => {
-    if (interventionId) {
-      getAndSetIntervention()
-    }
-  }, [InterventionData.last_updated_at, interventionId])
 
-  const getAndSetIntervention = async () => {
-    const selectedIntervention = realm.objectForPrimaryKey(
-      RealmSchema.Intervention,
-      interventionId,
-    )
-    const finalData = JSON.parse(JSON.stringify(selectedIntervention))
-    if (route.params.id === 'preview') {
-      setupIncompleteForm(finalData)
-    }
-    dispatch(updateInerventionData(finalData))
-    setLoading(false)
+
+  const checkIsTree = async () => {
     if (route.params && route.params.sampleTree) {
-      navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true })
+      navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
 
 
-  const setupIncompleteForm = async (data: InterventionData) => {
-    const getFormDetails = handleIncompleteIntervention(data)
-    if (getFormDetails.screen !== 'InterventionPreview') {
-      dispatch(initiateForm(getFormDetails.formData))
-      navigation.replace(getFormDetails.screen, { ...getFormDetails.params })
-    }
-  }
+
 
 
   const navigateToNext = async () => {
@@ -178,7 +152,6 @@ const InterventionPreviewView = () => {
       <ScrollView style={styles.scrollWrapper}>
         <Header label="Review" rightComponet={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
-        {/* <IterventionCoverImage image={InterventionData.cover_image_url} interventionID={InterventionData.intervention_id} tag={'EDIT_INTERVENTION'} /> */}
         <InterventionBasicInfo
           data={InterventionData}
         />

@@ -3,9 +3,8 @@ import { PlantedSpecies, SampleTreeSlice } from 'src/types/interface/slice.inter
 
 const initialState: SampleTreeSlice = {
   form_id: '',
+  tree_id: '',
   sample_tree_count: 2,
-  move_next_primary: '',
-  move_next_secondary: '',
   boundry: [],
   coordinates: [],
   image_url: '',
@@ -14,7 +13,7 @@ const initialState: SampleTreeSlice = {
     scientificName: '',
     aliases: '',
     count: 0,
-    image:''
+    image: ''
   },
 }
 
@@ -24,10 +23,11 @@ const sampleTreeSlice = createSlice({
   reducers: {
     updateBoundry(
       state,
-      action: PayloadAction<{ coord: Array<number[]>; id: string }>,
+      action: PayloadAction<{ coord: Array<number[]>; id: string, form_ID: string }>,
     ) {
       state.boundry = action.payload.coord
-      state.form_id = action.payload.id
+      state.tree_id = action.payload.id
+      state.form_id = action.payload.form_ID
     },
     updateSampleTreeCoordinates(state, action: PayloadAction<Array<number[]>>) {
       state.coordinates = action.payload
@@ -42,7 +42,7 @@ const sampleTreeSlice = createSlice({
       state.sample_tree_count = state.sample_tree_count - 1
     },
     updateSingleTreeDetails(_state, action: PayloadAction<SampleTreeSlice>) {
-      return {...action.payload}
+      return { ...action.payload }
     },
     resetSampleTreeform() {
       return { ...initialState }

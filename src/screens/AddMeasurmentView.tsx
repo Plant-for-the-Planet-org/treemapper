@@ -10,7 +10,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { SampleTree } from 'src/types/interface/slice.interface'
+import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import { v4 as uuidv4 } from 'uuid'
 import { updateTree_details } from 'src/store/slice/registerFormSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -22,9 +22,14 @@ import AlertModal from 'src/components/common/AlertModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { DBHInMeter, diameterMaxCm, diameterMaxInch, diameterMinCm, diameterMinInch, footToMeter, heightMaxFoot, heightMaxM, heightMinFoot, heightMinM, inchToCm, nonISUCountries } from 'src/utils/constants/appConstant'
 import { getIsMeasurementRatioCorrect } from 'src/utils/constants/mesaurments'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 
 const AddMeasurment = () => {
+  const realm = useRealm()
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
+  const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, SampleTreeData.form_id);
   const [showOptimalAlert, setOptimalAlert] = useState(false)
   const [height, setHeight] = useState('')
   const [width, setWidth] = useState('')
@@ -38,7 +43,6 @@ const AddMeasurment = () => {
   const [heightErrorMessage, setHeightErrorMessgae] = useState('')
   const [widthErrorMessage, setWidthErrorMessage] = useState('')
   const [tagIdErrorMessage, settagIdErrorMessage] = useState('')
-  const formFlowData = useSelector((state: RootState) => state.formFlowState)
   const Country = useSelector((state: RootState) => state.userState.country)
 
   const id = uuidv4()
@@ -155,7 +159,7 @@ const AddMeasurment = () => {
     const treeDetails: SampleTree = {
       tree_id: id,
       species_guid: SampleTreeData.current_species.guid,
-      intervention_id: formFlowData.form_id,
+      intervention_id: Intervention.form_id,
       count: SampleTreeData.current_species.count,
       latitude: SampleTreeData.coordinates[0][1],
       longitude: SampleTreeData.coordinates[0][0],
@@ -171,16 +175,16 @@ const AddMeasurment = () => {
       plantation_date: new Date().getTime(),
       status_complete: true,
       location_id: '',
-      tree_type: formFlowData.has_sample_trees ? 'sample' : 'single',
+      tree_type: setUpIntervention(Intervention.intervention_key).has_sample_trees ? 'sample' : 'single',
       additional_details: '',
       app_meta_data: '',
       hid: '',
       local_name: SampleTreeData.current_species.aliases,
     }
-    const filterdData = formFlowData.tree_details.filter(el => el.tree_id !== treeDetails.tree_id)
+    const filterdData = Intervention.sample_trees.filter(el => el.tree_id !== treeDetails.tree_id)
     dispatch(updateTree_details([...filterdData, treeDetails]))
-    await addSampleTrees(formFlowData.form_id, treeDetails)
-    navigation.navigate('ReviewTreeDetails', { detailsCompleted: true })
+    await addSampleTrees(Intervention.form_id, treeDetails)
+    navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
   }
 
   // returns the converted height by checking the user's country metric

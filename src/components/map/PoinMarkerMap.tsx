@@ -9,8 +9,7 @@ import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { updateFormCoordinates } from 'src/store/slice/registerFormSlice'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { SampleTree } from 'src/types/interface/slice.interface'
 import { v4 as uuidv4 } from 'uuid'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
@@ -26,16 +25,21 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { useToast } from 'react-native-toast-notifications'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 interface Props {
-  formData: RegisterFormSliceInitalState
+  form_id: string
+  interventionKey: INTERVENTION_TYPE
+  tree_details: SampleTree[]
 }
 
 const PointMarkerMap = (props: Props) => {
-  const { species_required, is_multi_species, has_sample_trees, tree_details, key, form_id } = props.formData
+  const { tree_details, interventionKey, form_id } = props
+  const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
   const [loading, setLoading] = useState(true)
@@ -53,7 +57,6 @@ const PointMarkerMap = (props: Props) => {
   const toast = useToast()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
-
 
   useEffect(() => {
     if (cameraRef && cameraRef.current) {
@@ -94,7 +97,8 @@ const PointMarkerMap = (props: Props) => {
 
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: key })
+    console.log("soidjc", JSON.stringify(boundry, null, 2))
+    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: interventionKey })
     setGeoJSON(data.geoJSON)
   }
 
@@ -104,14 +108,18 @@ const PointMarkerMap = (props: Props) => {
       dispatch(updateSampleTreeCoordinates([centerCoordinates]))
     } else {
       const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
-      await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
-      dispatch(updateFormCoordinates([centerCoordinates]))
+      const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
+      if (!result) {
+        errotHaptic()
+        toast.show("Error occured while updating intervention location")
+        return;
+      }
     }
     if (species_required) {
       if (is_multi_species) {
-        navigation.navigate('TotalTrees', { isSelectSpecies: true })
+        navigation.navigate('TotalTrees', { isSelectSpecies: true, interventionId: form_id })
       } else {
-        navigation.navigate('ManageSpecies', { manageSpecies: false })
+        navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       }
     } else {
       navigation.navigate('LocalForm')

@@ -14,15 +14,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  initiateForm,
-  resetRegisterationForm,
-  updateEntireSiteIntervention,
-  updateFormProject,
-  updateFormProjectSite,
-  updteInterventionDate,
-} from 'src/store/slice/registerFormSlice'
+import { useSelector } from 'react-redux'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
@@ -37,73 +29,82 @@ import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { makeInterventionGeoJson, metaDataTranformer } from 'src/utils/helpers/interventionFormHelper'
-import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
-import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 import SelectionLocationType from 'src/components/intervention/SelectLocationType'
+import { useToast } from 'react-native-toast-notifications'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
+import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
 
 const InterventionFormView = () => {
-  const realm = useRealm()
-  const dispatch = useDispatch()
-  const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const userType = useSelector((state: RootState) => state.userState.type)
-  const InterventionFormData = useSelector(
-    (state: RootState) => state.formFlowState,
-  )
-  const { currentProject, projectSite } = useSelector(
-    (state: RootState) => state.projectState,
-  )
-  const { initializeIntervention, updateInterventionLocation } = useInterventionManagement()
-  const [loading, setLoading] = useState(true)
-  const [projectStateData, setProjectData] = useState<any>([])
-  const [projectSies, setProjectSites] = useState<any>([])
+  const [projectStateData, setProjectData] = useState<DropdownData[]>([])
+  const [projectSies, setProjectSites] = useState<DropdownData[]>([])
   const [locationName, setLocationName] = useState('')
   const [furtherInfo, setFurtherInfo] = useState('')
   const [allIntervention] = useState([...AllIntervention.filter(el => el.value !== 'single-tree-registration' && el.value !== 'multi-tree-registration')])
-  const [interventionType, setInterventionType] = useState<DropdownData>({
-    label: '',
-    value: '',
-    index: 0,
-  })
   const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
+  const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitalState | null>(null)
+  const userType = useSelector((state: RootState) => state.userState.type)
+  const { addNewLog } = useLogManagement()
+  const { currentProject, projectSite } = useSelector(
+    (state: RootState) => state.projectState,
+  )
+
+  const { initializeIntervention, updateInterventionLocation } = useInterventionManagement()
+
+  const realm = useRealm()
+  const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const toast = useToast()
   const isTpoUser = userType === 'tpo'
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
-    dispatch(resetRegisterationForm())
-    dispatch(resetSampleTreeform())
     setUpRegisterFlow()
-  }, [])
-
-  useEffect(() => {
-    // This should be run when screen gains focus - enable the module where it's needed
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
-      // This should be run when screen loses focus - disable the module where it's not needed, to make a cleanup
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
   }, [])
 
+
+
   const setUpRegisterFlow = async () => {
-    await createBasePath()
+    const result = await createBasePath()
+    if (result.hasError) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: "Error Occured while creating root folder",
+        logLevel: 'error',
+        statusCode: '',
+        logStack: result.msg
+      })
+      errotHaptic()
+      toast.show("Something went wrong")
+      navigation.goBack()
+      return
+    }
+    addNewLog({
+      logType: 'INTERVENTION',
+      message: result.msg,
+      logLevel: 'info',
+      statusCode: '',
+    })
     if (paramId) {
-      disptachFormDetails(paramId, true, true)
+      skipForm(paramId)
     } else {
+      handleInterventionType({ label: "Fencing", value: 'fencing', index: 0 })
       if (isTpoUser) {
         setupProjectAndSiteDropDown()
       }
-      setLoading(false)
     }
   }
 
-  const disptachFormDetails = async (
+  const skipForm = async (
     key: INTERVENTION_TYPE,
-    skip: boolean,
-    defaultProject: boolean,
   ) => {
-    const InterventionJSON = setUpIntervention(key)
+    const InterventionJSON = { ...setUpIntervention(key) }
     InterventionJSON.form_id = uuidv4()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
@@ -115,26 +116,20 @@ const InterventionFormView = () => {
       app: appMeta
     })
     InterventionJSON.meta_data = finalMetaData
-    if (defaultProject) {
-      InterventionJSON.project_name = currentProject.projectName
-      InterventionJSON.project_id = currentProject.projectId
-      InterventionJSON.site_name = projectSite.siteName
-      InterventionJSON.site_id = projectSite.siteId
-    } else {
-      InterventionJSON.project_name = InterventionFormData.project_name
-      InterventionJSON.project_id = InterventionFormData.project_id
-      InterventionJSON.site_name = InterventionFormData.site_name
-      InterventionJSON.site_id = InterventionFormData.site_id
-    }
-    dispatch(initiateForm({ ...InterventionJSON }))
-    await initializeIntervention(InterventionJSON)
-    dispatch(updateNewIntervention())
-    if (skip && InterventionJSON.skip_intervention_form) {
+    InterventionJSON.project_name = currentProject.projectName
+    InterventionJSON.project_id = currentProject.projectId
+    InterventionJSON.site_name = projectSite.siteName
+    InterventionJSON.site_id = projectSite.siteId
+    const result = await initializeIntervention(InterventionJSON)
+    if (result) {
       if (InterventionJSON.location_type === 'Point') {
-        navigation.replace('PointMarker')
+        navigation.replace('PointMarker', { id: InterventionJSON.form_id })
       } else {
-        navigation.replace('PolygonMarker')
+        navigation.replace('PolygonMarker', { id: InterventionJSON.form_id })
       }
+    } else {
+      toast.show("Error occured while adding intervention")
+      errotHaptic()
     }
   }
 
@@ -157,15 +152,7 @@ const InterventionFormView = () => {
         }
       })
       setProjectSites(siteMapedData)
-      dispatch(
-        updateFormProject({ name: mapedData[0].label, id: mapedData[0].value }),
-      )
-      dispatch(
-        updateFormProjectSite({
-          name: siteMapedData[0].label,
-          id: siteMapedData[0].value,
-        }),
-      )
+      handleProjectSelect({ label: currentProject.projectName, value: currentProject.projectId, index: 0 })
     }
   }
 
@@ -181,15 +168,9 @@ const InterventionFormView = () => {
         index: i,
       }
     })
-    dispatch(updateFormProject({ name: ProjectData.name, id: ProjectData.id }))
     if (siteValidate && siteValidate.length > 0) {
       setProjectSites(siteValidate)
-      dispatch(
-        updateFormProjectSite({
-          name: siteValidate[0].label,
-          id: siteValidate[0].value,
-        }),
-      )
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
     } else {
       setProjectSites([
         {
@@ -198,39 +179,61 @@ const InterventionFormView = () => {
           index: 0,
         },
       ])
-      dispatch(
-        updateFormProjectSite({
-          name: '',
-          id: '',
-        }),
-      )
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
     }
   }
 
   const handleSiteSelect = (item: DropdownData) => {
     if (item.value) {
-      dispatch(
-        updateFormProjectSite({
-          name: item.label,
-          id: item.value,
-        }),
-      )
+      setRegisterForm({
+        ...registerForm, site_name: item.label, site_id: item.value
+      })
     }
   }
 
   const handleInterventionType = (item: any) => {
-    disptachFormDetails(item.value, false, false)
-    setInterventionType(item)
+    const InterventionJSON = setUpIntervention(item.value)
+    InterventionJSON.form_id = uuidv4()
+    InterventionJSON.intervention_date = new Date().getTime()
+    InterventionJSON.user_type = userType
+    if (registerForm) {
+      InterventionJSON.project_name = registerForm.project_name
+      InterventionJSON.project_id = registerForm.project_id
+      InterventionJSON.site_name = registerForm.site_name
+      InterventionJSON.site_id = registerForm.site_id
+    }
+    setRegisterForm(InterventionJSON)
   }
 
+  const handleDateSelection = (n: number) => {
+    setRegisterForm(prevstate => ({ ...prevstate, intervention_date: n }))
+  }
+
+  const handleEntireSiteArea = (b: boolean) => {
+    setRegisterForm(prevstate => ({ ...prevstate, entire_site_selected: b }))
+  }
+
+  const siteCoordinatesSelect = () => {
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      registerForm.project_id,
+    )
+    const currentSiteData = ProjectData.sites.filter(
+      el => el.id === registerForm.site_id,
+    )
+    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+    return parsedGeometry.coordinates[0]
+  }
+
+
+
   const pressContinue = async () => {
-    const finalData = { ...InterventionFormData }
-    if (InterventionFormData.entire_site_selected) {
-      finalData.coordinates = siteCoordinatesSelect()
+    if (registerForm.entire_site_selected) {
+      registerForm.coordinates = siteCoordinatesSelect()
     }
 
-    if (InterventionFormData.optionalLocation) {
-      finalData.location_type = locationType
+    if (registerForm.optionalLocation) {
+      registerForm.location_type = locationType
     }
 
     const metaData = {}
@@ -240,60 +243,53 @@ const InterventionFormView = () => {
     if (furtherInfo && furtherInfo.length > 0) {
       metaData["Info"] = furtherInfo
     }
-    const existingMetaData = JSON.parse(finalData.meta_data);
+    const existingMetaData = JSON.parse(registerForm.meta_data);
     const appMeta = getDeviceDetails()
     const finalMetaData = metaDataTranformer(existingMetaData, {
       public: metaData,
       private: {},
       app: appMeta
     })
-    finalData.meta_data = finalMetaData
-    dispatch(initiateForm({ ...finalData }))
-    await initializeIntervention(finalData)
-    dispatch(updateNewIntervention())
-    if (finalData.entire_site_selected) {
-      const { coordinates, } = makeInterventionGeoJson(finalData.location_type, siteCoordinatesSelect(), finalData.form_id, '')
-      await updateInterventionLocation(finalData.form_id, { type: 'Polygon', coordinates: coordinates }, true)
-      if (finalData.species_required) {
-        navigation.replace('ManageSpecies', { manageSpecies: false })
-      } else if (finalData.form_details.length > 0) {
-        navigation.replace('LocalForm')
-      } else {
-        navigation.replace('InterventionPreview', { id: 'review', intervention: '' })
+    registerForm.meta_data = finalMetaData
+    const result = await initializeIntervention(registerForm)
+    if (result) {
+      if (registerForm.entire_site_selected) {
+        const { coordinates, } = makeInterventionGeoJson(registerForm.location_type, siteCoordinatesSelect(), registerForm.form_id, '')
+        const locationUpdated = await updateInterventionLocation(registerForm.form_id, { type: 'Polygon', coordinates: coordinates }, true)
+        if (!locationUpdated) {
+          errotHaptic()
+          toast.show("Error occured while updating location")
+          return
+        }
+        if (registerForm.species_required) {
+          navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id })
+        } else if (registerForm.form_details.length > 0) {
+          navigation.replace('LocalForm', { id: registerForm.form_id })
+        } else {
+          navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id })
+        }
+        return
       }
-      return
-    }
-
-    if (finalData.location_type === 'Point') {
-      navigation.replace('PointMarker')
+      if (registerForm.location_type === 'Point') {
+        navigation.replace('PointMarker', { id: registerForm.form_id })
+      } else {
+        navigation.replace('PolygonMarker', { id: registerForm.form_id })
+      }
     } else {
-      navigation.replace('PolygonMarker')
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occured while creating intervention',
+        logLevel: 'error',
+        statusCode: ''
+      })
+      toast.show("Error occured while creating intervention")
+      errotHaptic()
     }
   }
 
-  const siteCoordinatesSelect = () => {
-    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
-      RealmSchema.Projects,
-      InterventionFormData.project_id,
-    )
-    const currentSiteData = ProjectData.sites.filter(
-      el => el.id === InterventionFormData.site_id,
-    )
-    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    return parsedGeometry.coordinates[0]
-  }
-
-  const handleDateSelection = (n: number) => {
-    dispatch(updteInterventionDate(n))
-  }
-
-  const handleEntireSiteArea = (b: boolean) => {
-    dispatch(updateEntireSiteIntervention(b))
-  }
 
 
-
-  if (loading) {
+  if (!registerForm) {
     return (
       <View style={styles.container}>
         <ActivityIndicator size="small" color={Colors.PRIMARY} />
@@ -316,8 +312,8 @@ const InterventionFormView = () => {
                   data={projectStateData}
                   onSelect={handleProjectSelect}
                   selectedValue={{
-                    label: InterventionFormData.project_name,
-                    value: InterventionFormData.project_id,
+                    label: registerForm.project_name,
+                    value: registerForm.project_id,
                     index: 0,
                   }}
                 />
@@ -328,8 +324,8 @@ const InterventionFormView = () => {
                   data={projectSies}
                   onSelect={handleSiteSelect}
                   selectedValue={{
-                    label: InterventionFormData.site_name,
-                    value: InterventionFormData.site_id,
+                    label: registerForm.site_name,
+                    value: registerForm.site_id,
                     index: 0,
                   }}
                 />
@@ -339,9 +335,13 @@ const InterventionFormView = () => {
                 label={'Intervention Type'}
                 data={allIntervention}
                 onSelect={handleInterventionType}
-                selectedValue={interventionType}
+                selectedValue={{
+                  label: registerForm.title,
+                  value: registerForm.key,
+                  index: 0
+                }}
               />
-              {InterventionFormData.optionalLocation && <SelectionLocationType header={'Location Type'} labelOne={{
+              {registerForm.optionalLocation && <SelectionLocationType header={'Location Type'} labelOne={{
                 key: 'Polygon',
                 value: 'Polygon'
               }} labelTwo={{
@@ -351,16 +351,16 @@ const InterventionFormView = () => {
                 selectedValue={locationType}
                 onSelect={setLocationType}
               />}
-              {InterventionFormData.can_be_entire_site && isTpoUser ? (
+              {registerForm.can_be_entire_site && isTpoUser ? (
                 <PlaceHolderSwitch
                   description={'Apply Intervention to entire site'}
                   selectHandler={handleEntireSiteArea}
-                  value={InterventionFormData.entire_site_selected}
+                  value={registerForm.entire_site_selected}
                 />
               ) : null}
               <InterventionDatePicker
                 placeHolder={'Intervention Date'}
-                value={InterventionFormData.intervention_date || Date.now()}
+                value={registerForm.intervention_date || Date.now()}
                 callBack={handleDateSelection}
               />
               <CustomTextInput
@@ -381,7 +381,7 @@ const InterventionFormView = () => {
           pressHandler={pressContinue}
           containerStyle={styles.btnContainer}
           wrapperStyle={styles.btnWrapper}
-          disable={interventionType.value === ''}
+          disable={!registerForm}
         />
       </AvoidSoftInputView>
     </SafeAreaView>

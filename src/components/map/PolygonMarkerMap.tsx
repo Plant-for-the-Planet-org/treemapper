@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
@@ -11,9 +11,6 @@ import AlphabetMarkers from './AlphabetMarkers'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import {
-  updateFormCoordinates,
-} from 'src/store/slice/registerFormSlice'
 import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
 import distanceCalculator from 'src/utils/helpers/turfHelpers'
@@ -28,27 +25,23 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 interface Props {
   species_required: boolean
-  has_dynamic_form: boolean
+  form_id: string
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const { species_required } = props
+  const { species_required, form_id } = props
+
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
   })
   const [loading, setLoading] = useState(true)
-
   const [lineError, setLineErorr] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const form_id = useSelector(
-    (state: RootState) => state.formFlowState.form_id,
-  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
-  const dispatch = useDispatch()
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const [coordinates, setCoordinates] = useState([])
@@ -115,8 +108,6 @@ const PolygonMarkerMap = (props: Props) => {
         [oneMarker[1], oneMarker[0]],
         'meters',
       );
-      // if the current marker position is less than one meter to already present markers nearby,
-      // then makes the current marker position invalid
       if (distanceInMeters < 1) {
         errotHaptic()
         toast.show("Marker is close to previous point.", {
@@ -148,10 +139,14 @@ const PolygonMarkerMap = (props: Props) => {
     }
     setCoordinates([...finalCoordinates, finalCoordinates[0]])
     const data = makeInterventionGeoJson('Point', finalCoordinates, form_id)
-    await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
-    dispatch(updateFormCoordinates(finalCoordinates))
+    const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
+    if (!result) {
+      errotHaptic()
+      toast.show('Error occured while updating location')
+      return
+    }
     if (species_required) {
-      navigation.navigate('ManageSpecies', { manageSpecies: false })
+      navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
       navigation.navigate('LocalForm')
     }
