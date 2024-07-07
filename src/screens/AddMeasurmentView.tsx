@@ -6,13 +6,12 @@ import TagSwitch from 'src/components/formBuilder/TagSwitch'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { RootState } from 'src/store'
-import { useDispatch, useSelector } from 'react-redux'
+import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import { v4 as uuidv4 } from 'uuid'
-import { updateTree_details } from 'src/store/slice/registerFormSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
@@ -39,7 +38,6 @@ const AddMeasurment = () => {
   const [diameterLabel, setDiameterLabel] = useState<string>(
     i18next.t('label.measurement_basal_diameter'),
   );
-  const dispatch = useDispatch()
   const [heightErrorMessage, setHeightErrorMessgae] = useState('')
   const [widthErrorMessage, setWidthErrorMessage] = useState('')
   const [tagIdErrorMessage, settagIdErrorMessage] = useState('')
@@ -181,8 +179,6 @@ const AddMeasurment = () => {
       hid: '',
       local_name: SampleTreeData.current_species.aliases,
     }
-    const filterdData = Intervention.sample_trees.filter(el => el.tree_id !== treeDetails.tree_id)
-    dispatch(updateTree_details([...filterdData, treeDetails]))
     await addSampleTrees(Intervention.form_id, treeDetails)
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
   }

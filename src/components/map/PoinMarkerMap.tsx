@@ -97,7 +97,6 @@ const PointMarkerMap = (props: Props) => {
 
 
   const getMarkerJSON = () => {
-    console.log("soidjc", JSON.stringify(boundry, null, 2))
     const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: interventionKey })
     setGeoJSON(data.geoJSON)
   }

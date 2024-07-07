@@ -39,12 +39,10 @@ const InterventionPreviewView = () => {
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params && route.params.interventionId ? route.params.interventionId : ''
-  console.log(":LSDKAC:",interventionID)
   const { addNewLog } = useLogManagement()
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
   )
-  console.log(":LSDKAC: InterventionData",InterventionData)
   const { saveIntervention, updateInterventionMetaData } = useInterventionManagement()
   const dispatch = useDispatch()
 

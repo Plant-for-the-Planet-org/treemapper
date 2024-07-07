@@ -94,23 +94,24 @@ const useInterventionManagement = () => {
 
 
 
-  // const addNewIntervention = async (
-  //   interventoin: InterventionData,
-  // ): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       realm.create(
-  //         RealmSchema.Intervention,
-  //         interventoin,
-  //         Realm.UpdateMode.All,
-  //       )
-  //     })
-  //     return Promise.resolve(true)
-  //   } catch (error) {
-  //     console.error('Error during write:', error)
-  //     return Promise.reject(false)
-  //   }
-  // }
+  const addNewIntervention = async (
+    interventoin: InterventionData,
+  ): Promise<boolean> => {
+    try {
+      console.log("interventoin", interventoin)
+      // realm.write(() => {
+      //   realm.create(
+      //     RealmSchema.Intervention,
+      //     interventoin,
+      //     Realm.UpdateMode.All,
+      //   )
+      // })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return Promise.reject(false)
+    }
+  }
   const addSampleTrees = async (id: string, treeDetails: SampleTree): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -462,7 +463,7 @@ const useInterventionManagement = () => {
 
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention }
 }
 
 export default useInterventionManagement

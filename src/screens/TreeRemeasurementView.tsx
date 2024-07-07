@@ -54,6 +54,7 @@ const TreeRemeasurementView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'TreeRemeasurement'>>()
     const [isAlive, setIsAlive] = useState(true)
     const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
+    console.log("interventionId", interventionId)
     const treeId = route.params && route.params.treeId ? route.params.treeId : ''
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
@@ -68,7 +69,6 @@ const TreeRemeasurementView = () => {
     }, [treeId])
 
     const submitHadler = () => {
-        console.log("ALCJd", interventionId)
         navigation.goBack()
     }
 

@@ -225,8 +225,6 @@ const InterventionFormView = () => {
     return parsedGeometry.coordinates[0]
   }
 
-
-
   const pressContinue = async () => {
     if (registerForm.entire_site_selected) {
       registerForm.coordinates = siteCoordinatesSelect()

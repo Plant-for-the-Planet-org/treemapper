@@ -207,8 +207,8 @@ const DisplayMap = () => {
         features: [...feature],
       })
       dispatch(updateAdjacentIntervention(updatedData))
-    } catch (err) {
-      console.log("errorr rerr", err)
+    } catch (error) {
+      //error
     }
   }
 

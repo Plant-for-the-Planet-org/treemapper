@@ -61,12 +61,9 @@ const ImportFormView = () => {
       .then(() => {
         //
       })
-      .catch(err => {
+      .catch(() => {
         // shows error if occurred and not canceled by the user
-        if (err?.error?.code != 'ECANCELLED500' && err?.message !== 'User did not share') {
-          // iOS cancel button pressed
-          console.log("iOS cancel button pressed")
-        }
+
       });
   }
 

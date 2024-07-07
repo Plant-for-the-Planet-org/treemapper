@@ -57,19 +57,15 @@ const ReviewTreeDetails = () => {
 
     useEffect(() => {
         if (!editTree) {
-            console.log("eede")
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
                     navigation.replace('LocalForm')
                 } else if (FormData.form_details.length > 0) {
                     navigation.replace('LocalForm')
                 } else {
-                    console.log("LOSdjc", JSON.stringify(Intervention, null, 2))
                     setTreeDetails(Intervention.sample_trees[currentTreeIndex - 1])
                 }
             } else {
-                console.log("LOSdjc sd")
-
                 setupTreeDetailsFlow()
             }
         }
@@ -120,7 +116,6 @@ const ReviewTreeDetails = () => {
             dispatch(updateBoundry({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
             dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
             navigation.navigate('PointMarker', { id: interventionId })
-            console.log("Sodi")
         }
     }
 
@@ -180,7 +175,6 @@ const ReviewTreeDetails = () => {
 
 
     if (!treeDetails) {
-        console.log("ksldcj", treeDetails)
         return null
     }
     const headerLabel = editTree ? "Tree Details" : `Review Tree Details`

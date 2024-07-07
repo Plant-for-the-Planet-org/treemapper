@@ -50,7 +50,6 @@ const TotalTreesView = () => {
       toast.show("Error occured while updating data")
       return
     }
-    console.log("opi")
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees, id: intervention.form_id })
   }
 
