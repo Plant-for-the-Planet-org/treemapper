@@ -62,7 +62,7 @@ const InterventionFormView = () => {
 
   useEffect(() => {
     setUpRegisterFlow()
-    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
     return () => {
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };

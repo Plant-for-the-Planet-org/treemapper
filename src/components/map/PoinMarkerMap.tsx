@@ -38,43 +38,45 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
+
   const { tree_details, interventionKey, form_id } = props
-  const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
+  const [outOfBoundry, setOutOfBoundry] = useState(false)
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
-
-  const [outOfBoundry, setOutOfBoundry] = useState(false)
-  const { updateInterventionLocation } = useInterventionManagement()
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-
+  const { updateInterventionLocation } = useInterventionManagement()
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
+
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
+  const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
+
+
   useEffect(() => {
-    if (cameraRef && cameraRef.current) {
       handleCameraViewChange()
-    }
-  }, [MapBounds, currentUserLocation])
+  }, [MapBounds])
 
   const handleCameraViewChange = () => {
-    const { bounds, key } = MapBounds
-    if (key === 'POINT_MAP') {
-      cameraRef.current.fitBounds(
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]],
-        40,
-        1000,
-      )
-    } else {
-      handleCamera()
+    if (cameraRef && cameraRef.current) {
+      const { bounds, key } = MapBounds
+      if (key === 'POINT_MAP') {
+        cameraRef.current.fitBounds(
+          [bounds[0], bounds[1]],
+          [bounds[2], bounds[3]],
+          40,
+          1000,
+        )
+      } else {
+        handleCamera()
+      }
     }
   }
 
@@ -86,9 +88,13 @@ const PointMarkerMap = (props: Props) => {
     })
   }
 
+  const getMarkerJSON = () => {
+    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: interventionKey })
+    setGeoJSON(data.geoJSON)
+  }
+
 
   useEffect(() => {
-    //This condition will only be true if the flow was already registerd with polygon
     if (has_sample_trees) {
       getMarkerJSON()
     }
@@ -96,10 +102,7 @@ const PointMarkerMap = (props: Props) => {
 
 
 
-  const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: interventionKey })
-    setGeoJSON(data.geoJSON)
-  }
+
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
@@ -121,7 +124,7 @@ const PointMarkerMap = (props: Props) => {
         navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       }
     } else {
-      navigation.navigate('LocalForm')
+      navigation.navigate('LocalForm',{ id:form_id })
     }
   }
 
@@ -187,6 +190,7 @@ const PointMarkerMap = (props: Props) => {
         logoEnabled={false}
         attributionEnabled={false}
         onRegionDidChange={handleDrag}
+        onDidFinishLoadingMap={handleCameraViewChange}
         onRegionIsChanging={() => {
           setLoading(true)
         }}

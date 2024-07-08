@@ -37,33 +37,33 @@ const PolygonMarkerMap = (props: Props) => {
   })
   const [loading, setLoading] = useState(true)
   const [lineError, setLineErorr] = useState(false)
+  const [coordinates, setCoordinates] = useState([])
+  const [polygonComplete, setPolygonComplete] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
+  const toast = useToast();
+
   const cameraRef = useRef<Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
-  const [coordinates, setCoordinates] = useState([])
-  const [polygonComplete, setPolygonComplete] = useState(false)
-  const toast = useToast();
+
 
 
 
   useEffect(() => {
-    setTimeout(() => {
-      if (currentUserLocation && cameraRef.current !== null) {
-        handleCamera()
-      }
-    }, 500);
+    handleCamera()
   }, [currentUserLocation])
 
   const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
-      animationDuration: 1000,
-    })
+    if(cameraRef && cameraRef.current){
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        zoomLevel: 20,
+        animationDuration: 1000,
+      })
+    }
   }
 
   const handlePreviousPoint = () => {
@@ -85,6 +85,7 @@ const PolygonMarkerMap = (props: Props) => {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
       setLineErorr(!checkValidDistance)
       if (!checkValidDistance) {
+        errotHaptic()
         return
       }
       setCoordinates([...coordinates, centerCoordinates])
@@ -137,7 +138,7 @@ const PolygonMarkerMap = (props: Props) => {
     if (coordinates.length === 3) {
       finalCoordinates.push(coordinates[0])
     }
-    setCoordinates([...finalCoordinates, finalCoordinates[0]])
+    // setCoordinates([...finalCoordinates])
     const data = makeInterventionGeoJson('Point', finalCoordinates, form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
@@ -148,7 +149,7 @@ const PolygonMarkerMap = (props: Props) => {
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
-      navigation.navigate('LocalForm')
+      navigation.navigate('LocalForm',{ id:form_id })
     }
   }
 
@@ -156,8 +157,6 @@ const PolygonMarkerMap = (props: Props) => {
     setLoading(false)
     setLineErorr(false)
   }
-
-
 
 
   return (
@@ -172,6 +171,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
+        onDidFinishLoadingMap={handleCamera}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)

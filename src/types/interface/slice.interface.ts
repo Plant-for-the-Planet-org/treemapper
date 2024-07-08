@@ -273,7 +273,7 @@ export interface InterventionData {
     coordinateID: string
   },
   has_species: boolean
-  species: string[]
+  planted_species: PlantedSpecies[]
   has_sample_trees: boolean
   sample_trees: SampleTree[]
   is_complete: boolean
@@ -295,7 +295,6 @@ export interface InterventionData {
   location_id: string
   locate_tree: string
   registration_date: number
-  planted_species: PlantedSpecies[]
 }
 
 export interface LogDetails {
