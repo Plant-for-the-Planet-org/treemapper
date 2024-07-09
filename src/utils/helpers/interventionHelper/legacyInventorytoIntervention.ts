@@ -50,18 +50,18 @@ const getGeometry = (g: any) => {
 }
 
 
-const speciesData = (s: any) => {
-    if (s === null || !s) {
-        return []
-    }
-    const finalData = [];
-    for (let index = 0; index < s.length; index++) {
-        if (s[index] && s[index].scientificSpecies) {
-            finalData.push(s[index].scientificSpecies)
-        }
-    }
-    return finalData
-}
+// const speciesData = (s: any) => {
+//     if (s === null || !s) {
+//         return []
+//     }
+//     const finalData = [];
+//     for (let index = 0; index < s.length; index++) {
+//         if (s[index] && s[index].scientificSpecies) {
+//             finalData.push(s[index].scientificSpecies)
+//         }
+//     }
+//     return finalData
+// }
 
 
 const setPlantedSpecies = (s: any) => {
@@ -112,6 +112,15 @@ const singleTreeDetails = (d: any): SampleTree => {
         app_meta_data: "",
         hid: d.hid,
         device_latitude: d.deviceLocation.coordinates[1],
+        history: [],
+        remeasurement_requires:d.nextMeasurementDate?true:false,
+        remeasurement_dates: {
+            sampleTreeId: "",
+            created: 0,
+            lastMeasurement: d.nextMeasurementDate? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
+            remeasureBy: 0,
+            nextMeasurement: d.nextMeasurementDate? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
+        }
     }
     return details
 }
@@ -151,8 +160,6 @@ const checkAndConvertMetaData = (m: any) => {
 
 
 export const convertInevtoryToIntervention = (data: any): InterventionData => {
-
-
     const extraData = interventionTitlteSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
@@ -174,9 +181,8 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         site_name: "",
         location_type: geometryData.type,
         location: geometryData,
-        cover_image_url: "",
         has_species: false,
-        species: speciesData(data.plantedSpecies),
+        // species: speciesData(data.plantedSpecies),
         has_sample_trees: extraData.hasSampleTrees,
         sample_trees: sample_trees,
         is_complete: true,
@@ -192,8 +198,25 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
             coordinates: geometryData.geoSpatail
         },
         entire_site: false,
-        lastScreen: "",
-        planted_species: setPlantedSpecies(data.plantedSpecies || [])
+        last_screen: "FORM",
+        planted_species: setPlantedSpecies(data.plantedSpecies || []),
+        form_id: data.id,
+        image: "",
+        image_data: {
+            latitude: 0,
+            longitude: 0,
+            imageUrl: "",
+            cdnImageUrl: "",
+            currentloclat: 0,
+            currentloclong: 0,
+            isImageUploaded: false,
+            coordinateID: ""
+        },
+        location_id: data.id,
+        locate_tree: "",
+        registration_date: moment(data.plantDate).valueOf() || 0,
+        remeasuremnt_required: data.nextMeasurementDate?true:false,
+        next_measurement_date:  data.nextMeasurementDate? moment(data.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
     }
     return finalData
 }

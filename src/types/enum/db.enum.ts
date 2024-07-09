@@ -29,5 +29,7 @@ export enum RealmSchema {
   PlotGroups = 'PlotGroups',
   PlotObservation = 'PlotObservation',
   Polygons = 'Polygons',
-  Species = 'Species'
+  Species = 'Species',
+  RemeasurementDate = 'RemeasurementDate',
+  PlantLocationHistory = 'PlantLocationHistory'
 }

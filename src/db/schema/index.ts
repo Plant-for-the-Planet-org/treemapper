@@ -29,6 +29,8 @@ import { PlantTimeline } from './plantTimeline'
 import { PlotPlantedSpecies } from './plotPlantedSpecies'
 import { PlotObservation } from './PlotObservation'
 import { Species } from './species'
+import { RemeasurementDate } from './remeasurementDates'
+import { PlantLocationHistory } from './plantLocationHistory'
 
 export default [
   MonitoringPlot,
@@ -61,5 +63,7 @@ export default [
   GeoSpatial,
   AdditonalDetailsForm,
   FormElement,
-  PlotObservation
+  PlotObservation,
+  PlantLocationHistory,
+  RemeasurementDate
 ]

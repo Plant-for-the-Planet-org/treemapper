@@ -35,6 +35,8 @@ export const Intervention: ObjectSchema = {
     last_screen: { type: 'string', default: 'FORM' },
     location_id: { type: 'string', default: '' },
     locate_tree: { type: 'string', default: 'ONSITE' },
-    registration_date: { type: 'double', default: 0 }
+    registration_date: { type: 'double', default: 0 },
+    remeasuremnt_required: { type: 'bool', default: false },
+    next_measurement_date: { type: 'double', default: 0 },
   },
 }
