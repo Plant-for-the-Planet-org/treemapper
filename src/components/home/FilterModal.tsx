@@ -6,7 +6,7 @@ import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
 import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateInterventionFilter, updateShowlots } from 'src/store/slice/displayMapSlice'
+import { updateInterventionFilter, updateRemeasurementFilter, updateShowlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
@@ -22,9 +22,8 @@ const FilterModal = (props: Props) => {
   const [showTimeModal, setTimeModal] = useState(false)
   const [showTypeModal, setTypeModal] = useState(false)
 
-  const [showRemeasurment, setShowRemeasurment] = useState(false)
 
-  const { interventionFilter, showPlots } = useSelector(
+  const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
@@ -121,13 +120,12 @@ const FilterModal = (props: Props) => {
             <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
               <Text style={styles.cardLable}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
-              {/* <Image source={FunnelIcon} style={styles.closeWrapper} /> */}
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
             <View style={styles.card}>
               <Text style={styles.cardLable}>{i18next.t('label.only_remeasurment')}</Text>
               <View style={styles.divider} />
-              <Switch value={showRemeasurment} onValueChange={() => { setShowRemeasurment(!showRemeasurment) }} disabled={false} />
+              <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement))}} disabled={false} />
             </View>
             <View />
           </View>

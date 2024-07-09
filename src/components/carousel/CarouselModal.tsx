@@ -34,10 +34,15 @@ const CarouselModal = () => {
   const handleNavigation = (id: string, tree_id?: string) => {
     dispatch(clearCarouselData())
     if (tree_id) {
-      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id, sampleTree: tree_id })
+      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id, sampleTree: tree_id, interventionId:id })
     } else {
-      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id })
+      navigation.navigate('InterventionPreview', { id: 'preview', intervention: id ,  interventionId:id })
     }
+  }
+
+  const remeasure = (id: string, tree_id?: string) => {
+    dispatch(clearCarouselData())
+    navigation.navigate('TreeRemeasurement', { interventionId: id, treeId: tree_id })
   }
 
   const showInterventionDetails = () => {
@@ -71,7 +76,7 @@ const CarouselModal = () => {
     if (showOverlay) {
       return <CarouselIInterventiontem data={item} onPress={showInterventionDetails} />
     } else {
-      return <CarouselItem data={item} onPress={handleNavigation} />
+      return <CarouselItem data={item} onPress={handleNavigation} remeasure={remeasure}/>
     }
   }
 

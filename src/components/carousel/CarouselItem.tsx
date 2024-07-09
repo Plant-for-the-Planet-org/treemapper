@@ -10,10 +10,11 @@ import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 interface Props {
   data: any
   onPress: ((id: string, tree_id?: string) => void)
+  remeasure: ((id: string, tree_id?: string) => void)
 }
 
 const CarouselItem = (props: Props) => {
-  const { data, onPress } = props
+  const { data, onPress , remeasure} = props
   if (data && data.tree_type) {
     const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : data.image_url
     const hasImage = uri.length > 0
@@ -34,6 +35,11 @@ const CarouselItem = (props: Props) => {
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
+     { data.remeasurement_requires &&  <TouchableOpacity style={styles.nextButton} onPress={() => {
+      remeasure(data.intervention_id, data.tree_id)
+    }}>
+        <Text style={styles.nextButtonLabel}>Remeasure</Text>
+      </TouchableOpacity>}
     </TouchableOpacity>
   } else {
     const hasImage = data.cover_image_url.length > 0
@@ -120,5 +126,21 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
+  },
+  nextButton:{
+    width:100,
+    height:35,
+    justifyContent:'center',
+    alignItems:'center',
+    position:'absolute',
+    bottom:10,
+    right:10,
+    backgroundColor:Colors.NEW_PRIMARY,
+    borderRadius:12,
+  },
+  nextButtonLabel:{
+    fontSize:12,
+    fontFamily:Typography.FONT_FAMILY_BOLD,
+    color:Colors.WHITE
   }
 })

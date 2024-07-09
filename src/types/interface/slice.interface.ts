@@ -104,6 +104,7 @@ export interface DisplayMapSlice {
   selectedFilters: INTERVENTION_TYPE[]
   mainMapView: MAP_VIEW
   showPlots: boolean
+  onlyRemeasurement: boolean
 }
 
 export interface ProjectStateSlice {
@@ -199,7 +200,10 @@ export interface SampleTree {
   tree_type: 'sample' | 'single'
   additional_details: string
   app_meta_data: string
-  hid: string
+  hid: string,
+  history: History[],
+  remeasurement_dates: RemeasurementDate
+  remeasurement_requires: boolean
 }
 
 export interface PlantedSpecies {
@@ -250,6 +254,32 @@ export interface InterventionLocation {
   coordinates: string
 }
 
+export interface RemeasurementDate{
+    sampleTreeId: string
+    created: number
+    lastMeasurement:  number
+    remeasureBy: number
+    nextMeasurement:  number
+}
+
+export interface History{
+    history_id: string
+    eventName:string
+    eventDate: number
+    imageUrl: string
+    cdnImageUrl: string
+    diameter:number
+    height: number
+    additionalDetails: any
+    appMetadata: string
+    status: string
+    statusReason:string
+    dataStatus:string
+    parentId: string
+    samplePlantLocationIndex:number
+    lastScreen:string
+}
+
 export interface InterventionData {
   form_id: string,
   intervention_id: string
@@ -294,7 +324,9 @@ export interface InterventionData {
   last_screen: LAST_SCREEN
   location_id: string
   locate_tree: string
-  registration_date: number
+  registration_date: number,
+  remeasuremnt_required: boolean
+  next_measurement_date: number
 }
 
 export interface LogDetails {

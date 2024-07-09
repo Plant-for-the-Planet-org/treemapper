@@ -1,7 +1,7 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { InterventionData, PlantedSpecies, RegisterFormSliceInitalState, SampleTree } from 'src/types/interface/slice.interface'
+import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitalState, SampleTree } from 'src/types/interface/slice.interface'
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
@@ -61,7 +61,9 @@ const useInterventionManagement = () => {
       planted_species: [],
       location_id: '',
       locate_tree: '',
-      registration_date: interventoin.intervention_date
+      registration_date: interventoin.intervention_date,
+      remeasuremnt_required: false,
+      next_measurement_date: 0
     }
     try {
       realm.write(() => {
@@ -95,16 +97,16 @@ const useInterventionManagement = () => {
 
 
   const addNewIntervention = async (
-    // interventoin: InterventionData,
+    interventoin: InterventionData,
   ): Promise<boolean> => {
     try {
-      // realm.write(() => {
-      //   realm.create(
-      //     RealmSchema.Intervention,
-      //     interventoin,
-      //     Realm.UpdateMode.All,
-      //   )
-      // })
+      realm.write(() => {
+        realm.create(
+          RealmSchema.Intervention,
+          interventoin,
+          Realm.UpdateMode.All,
+        )
+      })
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
@@ -488,9 +490,31 @@ const useInterventionManagement = () => {
   // };
 
 
+  const addPlantHistory = async (interventionID: string, treeId: string, e: History): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        const now = new Date();
+        treeDetails.remeasurement_dates= {
+          sampleTreeId: '',
+          created: 0,
+          lastMeasurement: Date.now(),
+          remeasureBy: 0,
+          nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()
+        }
+        treeDetails.history = [...treeDetails.history,e]
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies }
+
+
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory }
 }
 
 export default useInterventionManagement

@@ -7,6 +7,7 @@ import { Colors } from 'src/utils/constants'
 const FillColor: any = [
   'match',
   ['get', 'key'],
+  'remeasurement', 'tomato',
   'single-tree-registration', Colors.SINGLE_TREE,
   'multi-tree-registration', Colors.MULTI_TREE,
   'removal-invasive-species', Colors.INVASIVE_SPECIES,

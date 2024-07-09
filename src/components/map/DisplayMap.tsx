@@ -38,7 +38,7 @@ const DisplayMap = () => {
     (state: RootState) => state.gpsState.user_location,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
+  const { onlyRemeasurement, showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -63,15 +63,23 @@ const DisplayMap = () => {
 
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
-    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key))
+    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el=>{
+      if(onlyRemeasurement){
+        return el.remeasuremnt_required===true
+      }
+      return el
+    })
+    if(onlyRemeasurement){
+      console.log(JSON.stringify(filterData,null,2))
+    }
     const feature = filterData.map((el: InterventionData, index: number) => {
       const result = makeInterventionGeoJson(
         el.location.type,
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.intervention_key,
-          site: el.entire_site
+          key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+          site: el.entire_site,
         }
       )
       if (el.entire_site) {
@@ -196,7 +204,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.intervention_key
+              key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -239,7 +247,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.intervention_key
+            key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
           }
         )
         feature.push(result.geoJSON)

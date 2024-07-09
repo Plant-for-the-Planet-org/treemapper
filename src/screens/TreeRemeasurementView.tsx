@@ -3,7 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
-import { SampleTree } from 'src/types/interface/slice.interface'
+import { History, SampleTree } from 'src/types/interface/slice.interface'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -16,6 +16,9 @@ import CustomButton from 'src/components/common/CustomButton'
 import { TREE_RE_STATUS } from 'src/types/type/app.type'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { DropdownData } from 'src/types/interface/app.interface'
+import {v4 as uuid} from 'uuid'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { useToast } from 'react-native-toast-notifications'
 
 const PredefineReasons: Array<{
     label: string
@@ -51,10 +54,12 @@ const TreeRemeasurementView = () => {
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const {addPlantHistory} = useInterventionManagement()
     const route = useRoute<RouteProp<RootStackParamList, 'TreeRemeasurement'>>()
     const [isAlive, setIsAlive] = useState(true)
+    const [comment, setComment] = useState('')
+    const toast = useToast()
     const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
-    console.log("interventionId", interventionId)
     const treeId = route.params && route.params.treeId ? route.params.treeId : ''
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
@@ -68,8 +73,30 @@ const TreeRemeasurementView = () => {
         }
     }, [treeId])
 
-    const submitHadler = () => {
-        navigation.goBack()
+    const submitHadler = async () => {
+        const param:History={
+            history_id: uuid(),
+            eventName: isAlive?'measurement':'status',
+            eventDate: Date.now(),
+            imageUrl: '',
+            cdnImageUrl: '',
+            diameter: Number(width),
+            height:  Number(height),
+            additionalDetails: undefined,
+            appMetadata: '',
+            status: isAlive?'':type.value,
+            statusReason: comment,
+            dataStatus: '',
+            parentId: '',
+            samplePlantLocationIndex: 0,
+            lastScreen: ''
+        }
+        const result = await addPlantHistory(interventionId,treeId,param)
+        if(result){
+            navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId:interventionId })
+        }else{
+            toast.show("Error occured")
+        }
     }
 
     if (!treeDetails) {
@@ -112,7 +139,7 @@ const TreeRemeasurementView = () => {
                         <View style={styles.inputWrapper}>
                             <OutlinedTextInput
                                 placeholder={'Comments(Optional)'}
-                                changeHandler={setWidth}
+                                changeHandler={setComment}
                                 keyboardType={'decimal-pad'}
                                 defaultValue={width}
                                 trailingtext={''} errMsg={''} />

@@ -13,7 +13,8 @@ const initialState: DisplayMapSlice = {
   interventionFilter: 'always',
   selectedFilters: [...AllIntervenionType],
   mainMapView: 'VECTOR',
-  showPlots: true
+  showPlots: true,
+  onlyRemeasurement: false
 }
 
 const displayMapSlice = createSlice({
@@ -57,9 +58,12 @@ const displayMapSlice = createSlice({
     updateShowlots(state, action: PayloadAction<boolean>) {
       state.showPlots = action.payload
     },
+    updateRemeasurementFilter(state, action: PayloadAction<boolean>) {
+      state.onlyRemeasurement = action.payload
+    },
   },
 })
 
-export const { updateShowlots, updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
+export const { updateRemeasurementFilter, updateShowlots, updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
 
 export default displayMapSlice.reducer

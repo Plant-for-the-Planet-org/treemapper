@@ -42,7 +42,7 @@ const MapMarkers = (props: Props) => {
           handleMarkerPress(i)
         }}>
           <View style={styles.mapPinContainer}>
-            <MapPin fill={showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.NEW_PRIMARY} />
+            <MapPin fill={showActive ? activeIndex === i ?Colors.NEW_PRIMARY : el.remeasurement_requires?'tomato':Colors.TEXT_LIGHT : Colors.NEW_PRIMARY} />
           </View>
           <Text style={[styles.labelText, { color: showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.DARK_TEXT_COLOR }]}>{alphabet(i)}</Text>
         </TouchableOpacity>

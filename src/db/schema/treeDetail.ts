@@ -27,6 +27,9 @@ export const TreeDetail: ObjectSchema = {
     tree_type: 'string',
     additional_details: 'string',
     app_meta_data: 'string',
-    hid: 'string'
+    hid: 'string',
+    history: `${RealmSchema.PlantLocationHistory}[]`,
+    remeasurement_dates:  `${RealmSchema.RemeasurementDate}`,
+    remeasurement_requires: 'bool'
   },
 };
