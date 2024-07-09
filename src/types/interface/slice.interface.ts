@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { FormElement, MainForm } from './form.interface'
 
 
@@ -291,7 +291,7 @@ export interface InterventionData {
   },
   entire_site: boolean
   active?: boolean
-  last_screen: string
+  last_screen: LAST_SCREEN
   location_id: string
   locate_tree: string
   registration_date: number

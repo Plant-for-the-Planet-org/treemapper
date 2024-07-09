@@ -131,7 +131,13 @@ const useManageScientificSpecies = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during bulk write:', error)
+      addNewLog({
+        logType: 'MANAGE_SPECIES',
+        message: "Error occured while adding user species.",
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return Promise.reject(false)
     }
   }

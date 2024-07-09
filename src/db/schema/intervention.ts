@@ -32,7 +32,7 @@ export const Intervention: ObjectSchema = {
     hid: { type: 'string', default: '' },
     coords: `${RealmSchema.GeoSpatial}`,
     entire_site: { type: 'bool', default: false },
-    last_screen: { type: 'string', default: 'form' },
+    last_screen: { type: 'string', default: 'FORM' },
     location_id: { type: 'string', default: '' },
     locate_tree: { type: 'string', default: 'ONSITE' },
     registration_date: { type: 'double', default: 0 }

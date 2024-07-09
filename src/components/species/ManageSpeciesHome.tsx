@@ -82,21 +82,22 @@ const ManageSpeciesHome = (props: Props) => {
 
 
   const handleSpeciesPress = async (item: IScientificSpecies) => {
+    const speciesData = JSON.parse(JSON.stringify(item))
     if (interventionEdit) {
-      showTreeModal(item);
+      showTreeModal(speciesData);
       return;
     }
     const { is_multi_species, tree_details_required } = setUpIntervention(interventionKey)
     if (!isManageSpecies) {
       if (is_multi_species) {
-        showTreeModal(item)
+        showTreeModal(speciesData)
       } else {
         const updatedSPecies: PlantedSpecies = {
-          guid: item.guid,
-          scientificName: item.scientificName,
-          aliases: item.aliases,
+          guid: speciesData.guid,
+          scientificName: speciesData.scientificName,
+          aliases: speciesData.aliases,
           count: 1,
-          image: item.image
+          image: speciesData.image
         }
         const result = await updateInterventionPlantedSpecies(form_id, updatedSPecies)
         if (!result) {
@@ -105,13 +106,14 @@ const ManageSpeciesHome = (props: Props) => {
           return
         }
         if (tree_details_required) {
-          navigation.navigate('ReviewTreeDetails')
+          navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: form_id })
         } else {
-          navigation.navigate('LocalForm')
+          console.log("lksd")
+          navigation.navigate('LocalForm',{id:form_id})
         }
       }
     } else {
-      navigation.navigate('SpeciesInfo', { guid: item.guid })
+      navigation.navigate('SpeciesInfo', { guid: speciesData.guid })
     }
   }
 

@@ -8,10 +8,8 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
-import { useDispatch } from 'react-redux'
-import { resetRegisterationForm } from 'src/store/slice/registerFormSlice'
-import { resetSampleTreeform } from 'src/store/slice/sampleTreeSlice'
 import EmptyIntervention from 'assets/images/svg/EmptyIntervention.svg'
+import { lastScreenNavigationHelper } from 'src/utils/helpers/interventionFormHelper'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
@@ -23,12 +21,13 @@ interface Props {
 
 const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
-  const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+
   const handleNavigation = (item: InterventionData) => {
-    dispatch(resetRegisterationForm())
-    dispatch(resetSampleTreeform())
-    navigation.navigate('InterventionPreview', { id: 'preview', intervention: item.intervention_id, interventionId: item.intervention_id })
+  const navDetails = lastScreenNavigationHelper(item)
+  //@ts-expect-error ignore
+  navigation.navigate(navDetails.screen, {...navDetails.params})
   }
 
   const emptyInterventoin = () => {

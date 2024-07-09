@@ -107,7 +107,8 @@ const MainFormSection = (props: Props) => {
       isEditForm(finalData)
       return
     }
-    await updateInterventionLastScreen(interventionID, 'dynamicForm')
+    console.log("Here")
+    await updateInterventionLastScreen(interventionID, 'DYNAMIC_FORM')
     dispatch(updateAdditionalData(finalData))
     await updateDynamicFormDetails(interventionID, finalData)
     navigation.dispatch(

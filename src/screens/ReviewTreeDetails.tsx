@@ -59,9 +59,9 @@ const ReviewTreeDetails = () => {
         if (!editTree) {
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
-                    navigation.replace('LocalForm')
+                    navigation.replace('LocalForm', {id: interventionId})
                 } else if (FormData.form_details.length > 0) {
-                    navigation.replace('LocalForm')
+                    navigation.replace('LocalForm', {id: interventionId})
                 } else {
                     setTreeDetails(Intervention.sample_trees[currentTreeIndex - 1])
                 }
@@ -83,7 +83,7 @@ const ReviewTreeDetails = () => {
 
 
     const nextTreeButton = () => {
-        navigation.navigate('LocalForm')
+        navigation.replace('LocalForm', {id: interventionId})
     }
 
 
@@ -97,7 +97,7 @@ const ReviewTreeDetails = () => {
 
     const setupTreeDetailsFlow = () => {
         if (!FormData.has_sample_trees) {
-            const speciesDetails = Intervention.planted_species[0]
+            const speciesDetails = JSON.parse(JSON.stringify(Intervention.planted_species[0]))
             const treeDetailsFlow: SampleTreeSlice = {
                 form_id: Intervention.form_id,
                 tree_id: uuid(),
@@ -147,10 +147,9 @@ const ReviewTreeDetails = () => {
             await updateSampleTreeDetails(finalDetails)
             dispatch(updateLastUpdatedAt())
         } else {
-            dispatch(updateSampleTreeReviewTree(treeDetails))
+            dispatch(updateSampleTreeReviewTree(treeDetails))//todo edit review tree details
         }
         setTreeDetails({ ...finalDetails })
-
         setEditModal({ label: '', value: '', type: 'default', open: false });
     }
 
@@ -167,7 +166,7 @@ const ReviewTreeDetails = () => {
             await updateSampleTreeDetails(finalDetails)
             dispatch(updateLastUpdatedAt())
         } else {
-            dispatch(updateSampleTreeReviewTree(treeDetails))
+            dispatch(updateSampleTreeReviewTree(treeDetails))//todo edit review tree details
         }
 
         setTreeDetails({ ...finalDetails })

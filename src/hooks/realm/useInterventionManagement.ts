@@ -5,6 +5,7 @@ import { InterventionData, PlantedSpecies, RegisterFormSliceInitalState, SampleT
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
+import { LAST_SCREEN } from 'src/types/type/app.type'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -42,7 +43,6 @@ const useInterventionManagement = () => {
         coordinateID: ''
       },
       has_species: interventoin.species_required,
-      species: [],
       has_sample_trees: interventoin.has_sample_trees,
       sample_trees: [],
       is_complete: false,
@@ -57,7 +57,7 @@ const useInterventionManagement = () => {
         coordinates: []
       },
       entire_site: interventoin.entire_site_selected,
-      last_screen: 'form',
+      last_screen: 'FORM',
       planted_species: [],
       location_id: '',
       locate_tree: '',
@@ -95,10 +95,9 @@ const useInterventionManagement = () => {
 
 
   const addNewIntervention = async (
-    interventoin: InterventionData,
+    // interventoin: InterventionData,
   ): Promise<boolean> => {
     try {
-      console.log("interventoin", interventoin)
       // realm.write(() => {
       //   realm.create(
       //     RealmSchema.Intervention,
@@ -118,7 +117,7 @@ const useInterventionManagement = () => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, id);
         const updatedTreeDetails = intervention.sample_trees.filter(el => el.tree_id !== treeDetails.tree_id);
         intervention.sample_trees = [...updatedTreeDetails, treeDetails]
-        intervention.last_screen = 'treeDetails'
+        intervention.last_screen = "TREE_DETAILS"
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -279,7 +278,7 @@ const useInterventionManagement = () => {
         intervention.location = location
         intervention.entire_site = isEntireSite
         if (!onlyUpadteLocation) {
-          intervention.last_screen = 'location'
+          intervention.last_screen = "LOCATION"
         }
       });
       addNewLog({
@@ -307,7 +306,7 @@ const useInterventionManagement = () => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies)), species]
-        intervention.last_screen = 'species'
+        intervention.last_screen = "SPECIES"
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -328,12 +327,40 @@ const useInterventionManagement = () => {
     }
   };
 
+
+  const removeInterventionPlantedSpecies = async (intervnetionID: string, species: PlantedSpecies): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
+        intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies))]
+        intervention.last_screen = "SPECIES"
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Speices removed from intervention' + `(${intervnetionID}).`,
+        logLevel: 'info',
+        statusCode: ''
+      })
+      return Promise.resolve(true);
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occured while removing intervention',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return Promise.reject(false);
+    }
+  };
+
   const updateLocalFormDetailsIntervention = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         intervention.form_data = addData
-        intervention.last_screen = 'localForm'
+        intervention.last_screen = "LOCAL_FORM"
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -361,7 +388,7 @@ const useInterventionManagement = () => {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
         intervention.additional_data = addData
-        intervention.last_screen = 'dynamicForm'
+        intervention.last_screen = "DYNAMIC_FORM"
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -382,7 +409,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateInterventionLastScreen = async (intervnetionID: string, screenName: string): Promise<boolean> => {
+  const updateInterventionLastScreen = async (intervnetionID: string, screenName: LAST_SCREEN): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
@@ -463,7 +490,7 @@ const useInterventionManagement = () => {
 
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies }
 }
 
 export default useInterventionManagement

@@ -15,7 +15,6 @@ import {
 } from 'src/store/slice/sampleTreeSlice'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
-import { updatePlantedSpecies } from 'src/store/slice/registerFormSlice'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -29,7 +28,7 @@ const TotalTreesView = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
-  const { updateInterventionLastScreen } = useInterventionManagement()
+  const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
   const realm = useRealm()
   const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
@@ -64,11 +63,14 @@ const TotalTreesView = () => {
     }
   }
 
-  const removeHandler = (item: PlantedSpecies) => {
-    const filterdData = intervention.planted_species.filter(
-      el => el.guid !== item.guid,
-    )
-    dispatch(updatePlantedSpecies(filterdData))
+  const removeHandler = async (item: PlantedSpecies) => {
+    const result = await removeInterventionPlantedSpecies(interventionId, item)
+    if(!result){
+      toast.show("Error occured while removing speices")
+      errotHaptic()
+    }else{
+      toast.show(`${item.scientificName} removed`)
+    }
   }
 
   const renderSpecieCard = (

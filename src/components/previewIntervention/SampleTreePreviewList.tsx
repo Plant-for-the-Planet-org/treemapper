@@ -26,7 +26,7 @@ interface Props {
 
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced } = props
-  const { deleteSampleTreeIntervention } = useInterventionManagement()
+  const { deleteSampleTreeIntervention } = useInterventionManagement()//todo
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const deleteTreeDetails = async (id: string) => {
@@ -35,11 +35,11 @@ const SampleTreePreviewList = (props: Props) => {
   }
 
   const editTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced })
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced, id: id })
   }
 
   const viewTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true })
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true, id: id })
   }
 
   const remeasurement = async (id: string) => {

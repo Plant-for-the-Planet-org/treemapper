@@ -52,7 +52,6 @@ export const convertFormDataToIntervention = (
     },
     image: data.cover_image_url,
     has_species: data.species_required,
-    species: data.species,
     has_sample_trees: data.has_sample_trees,
     sample_trees: data.tree_details,
     is_complete: false,
@@ -68,7 +67,7 @@ export const convertFormDataToIntervention = (
       coordinates: data.coordinates[0]
     },
     entire_site: data.entire_site_selected,
-    last_screen: 'form',
+    last_screen: 'FORM',
     planted_species: data.plantedSpecies,
     form_id: '',
     image_data: {
@@ -229,104 +228,69 @@ export const getInterventionColor = (key) => {
   }
 }
 
-export const handleIncompleteIntervention = (data: InterventionData): { screen: keyof RootStackParamList, params: any, formData: RegisterFormSliceInitalState } => {
-  const getRegsiterationFlow = setUpIntervention(data.intervention_key)
-  const formData: RegisterFormSliceInitalState = {
-    form_id: data.intervention_id,
-    key: data.intervention_key,
-    title: data.intervention_title,
-    intervention_date: data.intervention_date,
-    skip_intervention_form: getRegsiterationFlow.skip_intervention_form,
-    user_type: '',
-    project_id: data.project_id,
-    project_name: data.project_name,
-    site_id: data.site_id,
-    site_name: data.site_name,
-    can_be_entire_site: getRegsiterationFlow.can_be_entire_site,
-    entire_site_selected: data.entire_site,
-    should_register_location: getRegsiterationFlow.should_register_location,
-    location_type: getRegsiterationFlow.location_type,
-    location_title: getRegsiterationFlow.location_title,
-    coordinates: data.location.coordinates.length > 0 ? JSON.parse(data.location.coordinates) : [],
-    preview_blank_polygon: false,
-    cover_image_url: '',
-    species_required: getRegsiterationFlow.species_required,
-    is_multi_species: getRegsiterationFlow.is_multi_species,
-    species_count_required: getRegsiterationFlow.species_count_required,
-    species_modal_message: getRegsiterationFlow.species_modal_message,
-    species_modal_unit: getRegsiterationFlow.species_modal_unit,
-    species: data.species,
-    has_sample_trees: getRegsiterationFlow.has_sample_trees,
-    tree_details_required: getRegsiterationFlow.tree_details_required,
-    tree_details: data.sample_trees,
-    form_details: getRegsiterationFlow.form_details,
-    meta_data: JSON.parse(data.meta_data),
-    additional_data: data.additional_data,
-    form_data: data.form_data,
-    plantedSpecies: data.planted_species
-  }
+type NavigationResult = {
+  screen: keyof RootStackParamList;
+  params?: RootStackParamList[keyof RootStackParamList];
+};
 
-  if (data.last_screen === 'form') {
+export const lastScreenNavigationHelper=(data:InterventionData):NavigationResult=>{
+  const formData = setUpIntervention(data.intervention_key)
+  if (data.last_screen === "FORM") {
     if (formData.location_type === 'Point') {
-      return { screen: 'PointMarker', params: {}, formData }
+      return { screen: 'PointMarker', params: {id:data.intervention_id} }
     }
     if (formData.location_type === 'Polygon') {
-      return { screen: 'PolygonMarker', params: {}, formData }
+      return { screen: 'PolygonMarker', params: {id:data.intervention_id} }
     }
   }
 
 
   //location select
-  if (data.last_screen === 'location') {
+  if (data.last_screen === "LOCATION") {
     if (formData.species_required) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false }, formData }
+      return { screen: 'ManageSpecies', params: { manageSpecies: false ,id:data.intervention_id} }
     }
   }
 
   //species select
-  if (data.last_screen === 'species') {
+  if (data.last_screen === "SPECIES") {
     if (formData.tree_details_required && !formData.is_multi_species) {
-      return { screen: 'ReviewTreeDetails', params: {}, formData }
+      return { screen: 'ReviewTreeDetails', params: {id:data.intervention_id} }
     }
     if (formData.tree_details_required && formData.is_multi_species) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false }, formData }
+      return { screen: 'ManageSpecies', params: { manageSpecies: false,id:data.intervention_id} }
     }
   }
 
 
-  if (data.last_screen === 'totalTrees') {
-    return { screen: 'ReviewTreeDetails', params: { detailsCompleted: false }, formData }
+  if (data.last_screen === "TOTAL_TREES") {
+    return { screen: 'ReviewTreeDetails', params: { id:data.intervention_id} }
   }
 
 
   //treeDetails select
-  if (data.last_screen === 'treeDetails') {
-    return { screen: 'LocalForm', params: {}, formData }
+  if (data.last_screen === "TREE_DETAILS") {
+    return { screen: 'LocalForm', params: {id:data.intervention_id} }
   }
 
 
-  if (data.last_screen === 'location') {
+  if (data.last_screen === "LOCATION") {
     if (!formData.species_required) {
-      return { screen: 'LocalForm', params: {}, formData }
+      return { screen: 'LocalForm', params: {id:data.intervention_id} }
     }
   }
 
 
   //localForm select
-  if (data.last_screen === 'localForm') {
-    return { screen: 'DynamicForm', params: {}, formData }
+  if (data.last_screen === 'LOCAL_FORM') {
+    return { screen: 'DynamicForm', params: {id:data.intervention_id} }
   }
 
-
-
-  //Dynamiform select
-  if (data.last_screen === 'dynamicForm') {
-    return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' }, formData }
+  if (data.last_screen === 'DYNAMIC_FORM') {
+    return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' ,interventionId:data.intervention_id} }
   }
 
-
-
-  return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' }, formData }
+  return { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id,interventionId:data.intervention_id } }
 
 }
 

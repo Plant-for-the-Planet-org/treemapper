@@ -72,9 +72,7 @@ const ManageSpeciesView = () => {
 
   const removeSpecies = () => {
     toogleRemoveFavModal()
-    setTimeout(() => {
-      updateUserFavSpecies(delteSpeciedId, false)
-    }, 300)
+    updateUserFavSpecies(delteSpeciedId, false)
   }
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {

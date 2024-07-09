@@ -32,7 +32,7 @@ const DynamiFormView = () => {
 
   const handleAdditionalData = async () => {
     if (MainFormDetails.length === 0) {
-      await updateInterventionLastScreen(intervention.form_id, 'dynamicForm')
+      await updateInterventionLastScreen(intervention.form_id, 'DYNAMIC_FORM')
       navigation.dispatch(
         CommonActions.reset({
           index: 1, // index of the active route
