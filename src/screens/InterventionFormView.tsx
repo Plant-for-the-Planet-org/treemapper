@@ -226,63 +226,74 @@ const InterventionFormView = () => {
   }
 
   const pressContinue = async () => {
-    if (registerForm.entire_site_selected) {
-      registerForm.coordinates = siteCoordinatesSelect()
-    }
-
-    if (registerForm.optionalLocation) {
-      registerForm.location_type = locationType
-    }
-
-    const metaData = {}
-    if (locationName && locationName.length > 0) {
-      metaData["Location Name"] = locationName
-    }
-    if (furtherInfo && furtherInfo.length > 0) {
-      metaData["Info"] = furtherInfo
-    }
-    const existingMetaData = JSON.parse(registerForm.meta_data);
-    const appMeta = getDeviceDetails()
-    const finalMetaData = metaDataTranformer(existingMetaData, {
-      public: metaData,
-      private: {},
-      app: appMeta
-    })
-    registerForm.meta_data = finalMetaData
-    const result = await initializeIntervention(registerForm)
-    if (result) {
+    try {
       if (registerForm.entire_site_selected) {
-        const { coordinates, } = makeInterventionGeoJson(registerForm.location_type, siteCoordinatesSelect(), registerForm.form_id, '')
-        const locationUpdated = await updateInterventionLocation(registerForm.form_id, { type: 'Polygon', coordinates: coordinates }, true)
-        if (!locationUpdated) {
-          errotHaptic()
-          toast.show("Error occured while updating location")
+        registerForm.coordinates = siteCoordinatesSelect()
+      }
+  
+      if (registerForm.optionalLocation) {
+        registerForm.location_type = locationType
+      }
+  
+      const metaData = {}
+      if (locationName && locationName.length > 0) {
+        metaData["Location Name"] = locationName
+      }
+      if (furtherInfo && furtherInfo.length > 0) {
+        metaData["Info"] = furtherInfo
+      }
+      const existingMetaData = JSON.parse(registerForm.meta_data);
+      const appMeta = getDeviceDetails()
+      const finalMetaData = metaDataTranformer(existingMetaData, {
+        public: metaData,
+        private: {},
+        app: appMeta
+      })
+      registerForm.meta_data = finalMetaData
+      const result = await initializeIntervention(registerForm)
+      if (result) {
+        if (registerForm.entire_site_selected) {
+          const { coordinates, } = makeInterventionGeoJson(registerForm.location_type, siteCoordinatesSelect(), registerForm.form_id, '')
+          const locationUpdated = await updateInterventionLocation(registerForm.form_id, { type: 'Polygon', coordinates: coordinates }, true)
+          if (!locationUpdated) {
+            errotHaptic()
+            toast.show("Error occured while updating location")
+            return
+          }
+          if (registerForm.species_required) {
+            navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id })
+          } else if (registerForm.form_details.length > 0) {
+            navigation.replace('LocalForm', { id: registerForm.form_id })
+          } else {
+            navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id })
+          }
           return
         }
-        if (registerForm.species_required) {
-          navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id })
-        } else if (registerForm.form_details.length > 0) {
-          navigation.replace('LocalForm', { id: registerForm.form_id })
+        if (registerForm.location_type === 'Point') {
+          navigation.replace('PointMarker', { id: registerForm.form_id })
         } else {
-          navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id })
+          navigation.replace('PolygonMarker', { id: registerForm.form_id })
         }
-        return
-      }
-      if (registerForm.location_type === 'Point') {
-        navigation.replace('PointMarker', { id: registerForm.form_id })
       } else {
-        navigation.replace('PolygonMarker', { id: registerForm.form_id })
+        addNewLog({
+          logType: 'INTERVENTION',
+          message: 'Error occured while creating intervention',
+          logLevel: 'error',
+          statusCode: ''
+        })
+        toast.show("Error occured while creating intervention")
+        errotHaptic()
       }
-    } else {
+    } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
         message: 'Error occured while creating intervention',
         logLevel: 'error',
-        statusCode: ''
+        statusCode: '12',
+        logStack:JSON.stringify(error)
       })
-      toast.show("Error occured while creating intervention")
-      errotHaptic()
     }
+    
   }
 
 
