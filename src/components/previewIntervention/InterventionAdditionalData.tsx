@@ -77,7 +77,7 @@ const InterventionAdditionalData = (props: Props) => {
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <TouchableOpacity onPress={editData} style={styles.editWrapper}>
-          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR}  onPress={editData}/>
+          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR}/>
         </TouchableOpacity>
         <Text style={styles.title}>Additional Data</Text>
         {renderData()}
@@ -145,9 +145,13 @@ const styles = StyleSheet.create({
   },
   editWrapper: {
     position: 'absolute',
-    right: 0,
+    right: 10,
     top: 10,
-    width: 50,
-    height: 50
-  }
+    width: 35,
+    height: 35,
+    backgroundColor:Colors.GRAY_BACKDROP,
+    borderRadius:8,
+    justifyContent:'center',
+    alignItems:'center'
+  },
 })

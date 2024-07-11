@@ -18,7 +18,6 @@ import { setUpIntervention } from 'src/utils/helpers/formHelper/selectInterventi
 const PolygonMarker = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
-
   const route = useRoute<RouteProp<RootStackParamList, 'PolygonMarker'>>()
   const realm = useRealm()
 

@@ -47,7 +47,6 @@ const InterventionPreviewView = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    console.log("Here")
     if (route.params.id === 'review') {
       setupMetaData()
     }

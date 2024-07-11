@@ -68,7 +68,7 @@ const useAuthentication = () => {
 
 
 
-  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken}
+  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken }
 }
 
 export default useAuthentication

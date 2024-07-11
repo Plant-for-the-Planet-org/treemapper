@@ -42,16 +42,14 @@ const CarouselItem = (props: Props) => {
       </TouchableOpacity>}
     </TouchableOpacity>
   } else {
-    const hasImage = data.cover_image_url.length > 0
     return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <Image style={styles.imageContainer} source={{ uri: data.cover_image_url }} /> : <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
-        }
+        <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
       </View>
       <View style={styles.sectionWrapper}>
-        <Text style={styles.sectionLabel}>Intervention</Text>
+    <Text style={styles.sectionLabel}>Intervention</Text>
         <Text style={styles.itLabel} ellipsizeMode="tail">
           {data.intervention_title}
         </Text>

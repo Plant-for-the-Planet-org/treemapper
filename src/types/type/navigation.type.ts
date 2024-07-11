@@ -35,7 +35,7 @@ export type RootStackParamList = {
   LocalForm: LocalFormView
   ImportForm: undefined
   EditAdditionData: EditAdditionDataView
-  EditPolygon: undefined
+  EditPolygon: EditPolygonView
   CreatePlot: undefined
   CreatePlotDetail: CreatePlotDetails
   CreatePlotMap: CreatePlotMap
@@ -136,6 +136,11 @@ type CreatePlotDetails = {
   id: string,
   isEdit?: boolean
 }
+
+type EditPolygonView = {
+  id: string
+}
+
 type CreatePlotMap = {
   id: string,
   markLocation?: boolean,

@@ -17,21 +17,19 @@ const GpsAccuracyTile = (props: Props) => {
   };
 
   useEffect(() => {
-    setTimeout(() => {
-      Location.watchPositionAsync(
-        {
-          accuracy: Location.Accuracy.Highest,
-          distanceInterval: 1,
-          mayShowUserSettingsDialog: true,
-          timeInterval: 1000
-        },
-        (location) => {
-          if (location && location.coords && location.coords.accuracy) {
-            setAccuracy(location.coords.accuracy);
-          }
+    Location.watchPositionAsync(
+      {
+        accuracy: Location.Accuracy.Highest,
+        distanceInterval: 1,
+        mayShowUserSettingsDialog: true,
+        timeInterval: 1000
+      },
+      (location) => {
+        if (location && location.coords && location.coords.accuracy) {
+          setAccuracy(location.coords.accuracy);
         }
-      );
-    }, 1000);
+      }
+    );
   }, []);
 
   const activeStyle = {

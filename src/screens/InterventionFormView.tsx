@@ -230,11 +230,11 @@ const InterventionFormView = () => {
       if (registerForm.entire_site_selected) {
         registerForm.coordinates = siteCoordinatesSelect()
       }
-  
+
       if (registerForm.optionalLocation) {
         registerForm.location_type = locationType
       }
-  
+
       const metaData = {}
       if (locationName && locationName.length > 0) {
         metaData["Location Name"] = locationName
@@ -290,10 +290,10 @@ const InterventionFormView = () => {
         message: 'Error occured while creating intervention',
         logLevel: 'error',
         statusCode: '12',
-        logStack:JSON.stringify(error)
+        logStack: JSON.stringify(error)
       })
     }
-    
+
   }
 
 
@@ -311,9 +311,9 @@ const InterventionFormView = () => {
       <AvoidSoftInputView
         avoidOffset={20}
         style={styles.container}>
-        <ScrollView>
+        <Header label="Intervention" />
+        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           <View style={styles.container}>
-            <Header label="Intervention" />
             <View style={styles.wrapper}>
               {isTpoUser && (
                 <CustomDropDown

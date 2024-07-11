@@ -140,56 +140,61 @@ const useInterventionManagement = () => {
     }
   };
 
-  // const updateInterventionCoverImage = async (imageURL: string, intervnetionID: string): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-  //       intervention.cover_image_url = imageURL
-  //     });
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
-
-  // const deleteSampleTreeIntervention = async (treeId: string, intervnetionID: string): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-  //       const filterTress = intervention.sample_trees.filter(el => el.tree_id !== treeId)
-  //       intervention.sample_trees = filterTress
-  //     });
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
-
-  // const updateSampleTreeImage = async (intervnetionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-  //       const index = intervention.sample_trees.findIndex(el => el.tree_id === treeId)
-  //       intervention.sample_trees[index].image_url = imageUrl
-  //     });
-  //     console.log("done writing")
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
-
-  const updateSampleTreeDetails = async (details: SampleTree): Promise<boolean> => {
-    console.log("KLjdc", details)
+  const updateInterventionCoverImage = async (imageURL: string, intervnetionID: string): Promise<boolean> => {
     try {
       // realm.write(() => {
-      //   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, details.intervention_id);
-      //   const index = intervention.sample_trees.findIndex(el => el.tree_id === details.tree_id)
-      //   intervention.sample_trees[index] = { ...details }
+      //   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
       // });
+      console.log("Data", imageURL, intervnetionID)
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  const deleteSampleTreeIntervention = async (treeId: string, intervnetionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const sampleTree = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        const filterTress = intervention.sample_trees.filter(el => el.tree_id !== treeId)
+        intervention.sample_trees = filterTress
+        realm.delete(sampleTree)
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  const updateSampleTreeImage = async (intervnetionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        console.log("intervnetionID", intervnetionID)
+        const intervention = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        intervention.image_url = imageUrl
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  const updateSampleTreeDetails = async (details: SampleTree): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, details.tree_id);
+        treeDetails.specie_height = details.specie_height
+        treeDetails.specie_diameter = details.specie_diameter
+        treeDetails.tag_id = details.tag_id
+        treeDetails.plantation_date = details.plantation_date
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, details.intervention_id);
+        intervention.last_updated_at = Date.now()
+      });
+
       return Promise.resolve(true);
     } catch (error) {
       console.error('Error during update:', error);
@@ -222,35 +227,14 @@ const useInterventionManagement = () => {
     }
   };
 
-  // const deleteIntervention = async (intervnetionID: string): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-  //       if (intervention) {
-  //         realm.delete(intervention);
-  //       }
-  //     });
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
-
-
-  const updateSampleTreeSpecies = async (interventionID: string, treeId: string, speciesDetails: IScientificSpecies): Promise<boolean> => {
+  const deleteIntervention = async (intervnetionID: string): Promise<boolean> => {
     try {
-      console.log("KLjdc", interventionID, treeId, speciesDetails)
-
-      // realm.write(() => {
-      //   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
-      //   const index = intervention.sample_trees.findIndex(el => el.tree_id === treeId)
-      //   intervention.sample_trees[index] = {
-      //     ...intervention.sample_trees[index],
-      //     specie_name: speciesDetails.scientificName,
-      //     species_guid: speciesDetails.guid
-      //   }
-      // });
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        if (intervention) {
+          realm.delete(intervention);
+        }
+      });
       return Promise.resolve(true);
     } catch (error) {
       console.error('Error during update:', error);
@@ -259,18 +243,40 @@ const useInterventionManagement = () => {
   };
 
 
-  // const deleteAllSyncedIntervention = async (): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
-  //       realm.delete(unSyncedObjects);
-  //     });
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
+  const updateSampleTreeSpecies = async (interventionID: string, treeId: string, speciesDetails: IScientificSpecies): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        console.log("intervention", interventionID)
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        treeDetails.specie_name = speciesDetails.scientificName
+        treeDetails.species_guid = speciesDetails.guid
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+
+  const deleteAllSyncedIntervention = async (): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
+        realm.delete(unSyncedObjects);
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occured while clearing synced interventions for logout action.',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return Promise.reject(false);
+    }
+  };
 
 
   const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?: boolean): Promise<boolean> => {
@@ -282,6 +288,7 @@ const useInterventionManagement = () => {
         if (!onlyUpadteLocation) {
           intervention.last_screen = "LOCATION"
         }
+        intervention.last_updated_at = Date.now()
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -461,19 +468,33 @@ const useInterventionManagement = () => {
     }
   };
 
-  // const updateEditAdditionalData = async (intervnetionID: string, form_data: FormElement[], additional_data: FormElement[]): Promise<boolean> => {
-  //   try {
-  //     realm.write(() => {
-  //       const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-  //       intervention.form_data = form_data
-  //       intervention.additional_data = additional_data
-  //     });
-  //     return Promise.resolve(true);
-  //   } catch (error) {
-  //     console.error('Error during update:', error);
-  //     return Promise.reject(false);
-  //   }
-  // };
+  const updateEditAdditionalData = async (intervnetionID: string, form_data: FormElement[], additional_data: FormElement[]): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        intervention.form_data = form_data
+        intervention.additional_data = additional_data
+        intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Updated additional data for intervention' + `(${intervnetionID}).`,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return Promise.resolve(true);
+    } catch (error) {
+      console.log("Error", error)
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error while updating additional for intervention' + `(${intervnetionID}).`,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return Promise.reject(false);
+    }
+  };
 
   // const updateInterventionStatus = async (intervnetionID: string, hid: string): Promise<boolean> => {
   //   try {
@@ -495,14 +516,14 @@ const useInterventionManagement = () => {
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         const now = new Date();
-        treeDetails.remeasurement_dates= {
+        treeDetails.remeasurement_dates = {
           sampleTreeId: '',
           created: 0,
           lastMeasurement: Date.now(),
           remeasureBy: 0,
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()
         }
-        treeDetails.history = [...treeDetails.history,e]
+        treeDetails.history = [...treeDetails.history, e]
       });
       return Promise.resolve(true);
     } catch (error) {
@@ -514,7 +535,7 @@ const useInterventionManagement = () => {
 
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention }
 }
 
 export default useInterventionManagement

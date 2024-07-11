@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { SampleTree } from 'src/types/interface/slice.interface'
@@ -16,6 +16,7 @@ import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import DeleteModal from '../common/DeleteModal'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -26,20 +27,30 @@ interface Props {
 
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced } = props
-  const { deleteSampleTreeIntervention } = useInterventionManagement()//todo
+  const [delteData, setDeleteData] = useState(null)
+
+  const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   const dispatch = useDispatch()
   const deleteTreeDetails = async (id: string) => {
     await deleteSampleTreeIntervention(id, interventionId)
     dispatch(updateLastUpdatedAt())
   }
 
+  const handleDelte = async (item: any) => {
+    deleteTreeDetails(item)
+    setDeleteData(null)
+  }
+
   const editTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced, id: id })
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced, id: interventionId })
   }
 
   const viewTreeDetails = async (id: string) => {
-    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true, id: id })
+    //todo change the naming here or throught the app for interventionID to treeID
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true, id: interventionId })
+
   }
 
   const remeasurement = async (id: string) => {
@@ -53,6 +64,7 @@ const SampleTreePreviewList = (props: Props) => {
     return sampleTress.map((details, i) => {
       return (
         <View style={styles.wrapper} key={i}>
+          <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
           <View style={styles.deleteWrapper}>
             {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               editTreeDetails(details.tree_id)
@@ -60,22 +72,21 @@ const SampleTreePreviewList = (props: Props) => {
               <PenIcon width={30} height={30} />
             </TouchableOpacity>}
             {hasSampleTress && !isSynced ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
-              deleteTreeDetails(details.tree_id)
+              setDeleteData(details.tree_id)
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {isSynced && details.remeasurement_requires ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
               <RemeasurmentIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity>}
+            </TouchableOpacity> : null}
             {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               viewTreeDetails(details.tree_id)
             }}>
               <DetailIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity>}
           </View>
-
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
             <Text style={styles.valueLable}>

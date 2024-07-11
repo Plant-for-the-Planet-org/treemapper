@@ -29,7 +29,6 @@ const width = Dimensions.get('screen').width
 
 
 const LocalForm = () => {
-  console.log("LKJ")
   const [loading, setLoading] = useState(true)
   const [formPages, setFormPages] = useState<IAdditonalDetailsForm[]>([])
   const [currentPage, setCurrentPage] = useState(0)
@@ -47,14 +46,11 @@ const LocalForm = () => {
 
   const getDetails = async () => {
     const data = realm.objects(RealmSchema.AdditonalDetailsForm);
-    console.log("lks jdc",paramId)
     if (!checkForNonEmptyForm(data)) {
       await updateLocalFormDetailsIntervention(paramId, [])
-      console.log("ee")
       navigation.replace("DynamicForm", {id: paramId})
       return
     }
-    console.log("IOJK")
     setFormPages(JSON.parse(JSON.stringify(data)))
     setLoading(false)
   }

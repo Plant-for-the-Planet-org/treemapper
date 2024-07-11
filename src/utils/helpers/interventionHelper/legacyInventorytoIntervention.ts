@@ -182,7 +182,6 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         location_type: geometryData.type,
         location: geometryData,
         has_species: false,
-        // species: speciesData(data.plantedSpecies),
         has_sample_trees: extraData.hasSampleTrees,
         sample_trees: sample_trees,
         is_complete: true,
@@ -191,14 +190,14 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         form_data: [],
         additional_data: [],
         meta_data: metaData,
-        status: 'SYNCED',
+        status: 'SYNCED',//todo check for this condition everywhere before moifying it.
         hid: data.hid || '',
         coords: {
             type: 'Point',
             coordinates: geometryData.geoSpatail
         },
         entire_site: false,
-        last_screen: "FORM",
+        last_screen: "PREVIEW",//todo change this when writing migration code
         planted_species: setPlantedSpecies(data.plantedSpecies || []),
         form_id: data.id,
         image: "",

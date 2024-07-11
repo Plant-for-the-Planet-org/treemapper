@@ -32,7 +32,7 @@ const InterventionArea = (props: Props) => {
   }
 
   const openEdit = () => {
-    navigation.navigate('EditPolygon')
+    navigation.navigate('EditPolygon', { id: data.intervention_id })
   }
 
 

@@ -52,27 +52,23 @@ export const createBasePath = async () => {
     }
 }
 
-export const exportAllInterventionData = async (dataArray: InterventionData[]) => {
+export const exportAllInterventionData = async (dataArray: InterventionData[] | any) => {
     try {
         const createFolderPromises = dataArray.map(data => exportRealmData(data));
         await Promise.all(createFolderPromises);
 
         const writeDataPromises = dataArray.map(data => interData(data));
         await Promise.all(writeDataPromises);
-
-        console.log("Success");
         await zipAndShareFolder();
     } catch (error) {
-        console.error("Error processing data:", error);
+        //error
     }
 }
 
 const zipAndShareFolder = async () => {
     try {
         const zipFilePath = tempDirectory;
-        const path = await zip(basePath, zipFilePath);
-        console.log(`Zip completed at ${path}`);
-
+        await zip(basePath, zipFilePath);
         const shareOptions = {
             title: 'Share Folder',
             url: `file://${zipFilePath}`,
@@ -81,6 +77,6 @@ const zipAndShareFolder = async () => {
 
         await Share.open(shareOptions);
     } catch (error) {
-        console.error('Error zipping and sharing folder:', error);
+        //console.log(error)
     }
 };

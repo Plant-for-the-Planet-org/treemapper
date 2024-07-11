@@ -1,12 +1,11 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'src/store'
+import { useDispatch } from 'react-redux'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
-import { useNavigation } from '@react-navigation/native'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
@@ -20,16 +19,20 @@ import bbox from '@turf/bbox'
 import MapMarkers from 'src/components/map/MapMarkers'
 import DragableMarkers from 'src/components/map/DragableMarkers'
 import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
-// import Icon from '@expo/vector-icons/FontAwesome5';
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { InterventionData } from 'src/types/interface/slice.interface'
+import { useRealm } from '@realm/react'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 
-const PolygonMarkerMap = () => {
-    const Interverntion = useSelector(
-        (state: RootState) => state.interventionState,
-    )
+const EditPolygonMap = () => {
+    const realm = useRealm()
+    const route = useRoute<RouteProp<RootStackParamList, 'EditPolygon'>>()
+    const interventionId = route.params && route.params.id ? route.params.id : ''
+    const Interverntion = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+    console.log("AJC",Interverntion)
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [history, setHistory] = useState<Array<{
         coords: any,
@@ -255,7 +258,7 @@ const PolygonMarkerMap = () => {
     )
 }
 
-export default PolygonMarkerMap
+export default EditPolygonMap
 
 const styles = StyleSheet.create({
     container: {

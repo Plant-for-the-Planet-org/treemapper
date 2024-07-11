@@ -33,9 +33,7 @@ const MapMarkers = (props: Props) => {
     return sampleTreeData.map((el, i) => (
       <Maplibre.MarkerView
         coordinate={[el.longitude, el.latitude]}
-        anchor={
-          { x: 0.55, y: 0.4 }
-        }
+
         id={String(i)}
         key={i}>
         <TouchableOpacity style={styles.container} onPress={() => {

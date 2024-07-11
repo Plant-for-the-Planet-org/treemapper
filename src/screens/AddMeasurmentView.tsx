@@ -24,6 +24,8 @@ import { getIsMeasurementRatioCorrect } from 'src/utils/constants/mesaurments'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useToast } from 'react-native-toast-notifications'
 
 const AddMeasurment = () => {
   const realm = useRealm()
@@ -44,7 +46,7 @@ const AddMeasurment = () => {
   const Country = useSelector((state: RootState) => state.userState.country)
 
   const id = uuidv4()
-
+  const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const onSubmit = () => {
@@ -178,8 +180,21 @@ const AddMeasurment = () => {
       app_meta_data: '',
       hid: '',
       local_name: SampleTreeData.current_species.aliases,
+      history: [],//todo check if need to do things here for remeasurment
+      remeasurement_dates: { //todo check if need to do things here for remeasurment
+        sampleTreeId: '',
+        created: Date.now(),
+        lastMeasurement: 0,
+        remeasureBy: 0,
+        nextMeasurement: 0
+      },
+      remeasurement_requires: false
     }
-    await addSampleTrees(Intervention.form_id, treeDetails)
+    const result = await addSampleTrees(Intervention.form_id, treeDetails)
+    if (!result) {
+      errotHaptic()
+      toast.show("Error occured while registering sample tree.")
+    }
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
   }
 

@@ -23,10 +23,8 @@ import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import EditInputModal from 'src/components/intervention/EditInputModal'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
-import { updateSampleTreeReviewTree } from 'src/store/slice/registerFormSlice'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { useRealm } from '@realm/react'
+import { useObject } from '@realm/react'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { v4 as uuid } from 'uuid'
 
@@ -35,10 +33,11 @@ type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
 
 
 const ReviewTreeDetails = () => {
-    const realm = useRealm()
     const route = useRoute<RouteProp<RootStackParamList, 'ReviewTreeDetails'>>()
     const interventionId = route.params && route.params.id ? route.params.id : ''
-    const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+    const Intervention = useObject<InterventionData>(
+        RealmSchema.Intervention, interventionId
+    )
     const FormData = setUpIntervention(Intervention.intervention_key)
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
     const currentTreeIndex = Intervention.sample_trees.length
@@ -59,9 +58,9 @@ const ReviewTreeDetails = () => {
         if (!editTree) {
             if (detailsCompleted) {
                 if (!FormData.has_sample_trees && FormData.form_details.length === 0) {
-                    navigation.replace('LocalForm', {id: interventionId})
+                    navigation.replace('LocalForm', { id: interventionId })
                 } else if (FormData.form_details.length > 0) {
-                    navigation.replace('LocalForm', {id: interventionId})
+                    navigation.replace('LocalForm', { id: interventionId })
                 } else {
                     setTreeDetails(Intervention.sample_trees[currentTreeIndex - 1])
                 }
@@ -83,7 +82,7 @@ const ReviewTreeDetails = () => {
 
 
     const nextTreeButton = () => {
-        navigation.replace('LocalForm', {id: interventionId})
+        navigation.replace('LocalForm', { id: interventionId })
     }
 
 
@@ -121,7 +120,7 @@ const ReviewTreeDetails = () => {
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
         if (label === 'sepcies') {
-            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: 'ss' })
+            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
             return;
         }
         if (label === 'date') {
@@ -143,12 +142,7 @@ const ReviewTreeDetails = () => {
         if (openEditModal.label === 'treetag') {
             finalDetails.tag_id = openEditModal.value
         }
-        if (editTree) {
-            await updateSampleTreeDetails(finalDetails)
-            dispatch(updateLastUpdatedAt())
-        } else {
-            dispatch(updateSampleTreeReviewTree(treeDetails))//todo edit review tree details
-        }
+        await updateSampleTreeDetails(finalDetails)
         setTreeDetails({ ...finalDetails })
         setEditModal({ label: '', value: '', type: 'default', open: false });
     }
@@ -162,13 +156,7 @@ const ReviewTreeDetails = () => {
         const finalDetails = { ...treeDetails }
         setDatePicker(false)
         finalDetails.plantation_date = convertDateToTimestamp(date)
-        if (editTree) {
-            await updateSampleTreeDetails(finalDetails)
-            dispatch(updateLastUpdatedAt())
-        } else {
-            dispatch(updateSampleTreeReviewTree(treeDetails))//todo edit review tree details
-        }
-
+        await updateSampleTreeDetails(finalDetails)
         setTreeDetails({ ...finalDetails })
     }
 
@@ -181,9 +169,9 @@ const ReviewTreeDetails = () => {
     return (
         <SafeAreaView style={styles.container}>
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
+            <Header label={headerLabel} />
             <ScrollView>
                 <View style={styles.container}>
-                    <Header label={headerLabel} />
                     <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>

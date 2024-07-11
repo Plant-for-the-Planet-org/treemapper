@@ -8,14 +8,11 @@ import { useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { useDispatch, useSelector } from 'react-redux'
-import { RootState } from 'src/store'
 import TreeCountModal from 'src/components/species/TreeCountModal'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateTreesSpecies } from 'src/store/slice/interventionSlice'
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { useToast } from 'react-native-toast-notifications'
@@ -27,16 +24,12 @@ const ManageSpeciesView = () => {
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
   const [treeModalDetails, setTreeModalDetails] = useState<IScientificSpecies | null>(null)
 
-  const InterventionState = useSelector((state: RootState) => state.interventionState)
-
-
 
   const route = useRoute<RouteProp<RootStackParamList, 'ManageSpecies'>>()
   const realm = useRealm()
   const { updateInterventionPlantedSpecies, updateSampleTreeSpecies } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateUserFavSpecies } = useManageScientificSpecies()
-  const dispatch = useDispatch()
   const toast = useToast()
 
   const isManageSpecies = route.params && route.params.manageSpecies
@@ -65,8 +58,7 @@ const ManageSpeciesView = () => {
   }
 
   const editInterventionSpecies = async (item: IScientificSpecies) => {
-    await updateSampleTreeSpecies(InterventionState.intervention_id, EditInterventionSpecies, item)
-    dispatch(updateTreesSpecies({ treeId: EditInterventionSpecies, data: item }))
+    await updateSampleTreeSpecies(interventionID, EditInterventionSpecies, item)
     navigation.goBack()
   }
 

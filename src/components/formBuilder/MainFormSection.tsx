@@ -68,6 +68,10 @@ const MainFormSection = (props: Props) => {
     })
   }
 
+  const checkForNonEmptyForm = (type: any) => {
+    return type === 'INPUT' || type === 'DROPDOWN' || type === 'YES_NO' || type === 'SWITCH'
+  };
+
   const submitHandler = async () => {
     const finalData: FormElement[] = [];
     for (const [key] of Object.entries(formValues)) {
@@ -84,7 +88,7 @@ const MainFormSection = (props: Props) => {
         }
       }
 
-      if (formValues[key].required && formValues[key].value.length === 0) {
+      if (checkForNonEmptyForm(formValues[key].type) && formValues[key].required && formValues[key].value.length === 0) {
         toast.show(`${formValues[key].label} cannot be empty`, {
           type: "normal",
           placement: "bottom",
@@ -107,7 +111,6 @@ const MainFormSection = (props: Props) => {
       isEditForm(finalData)
       return
     }
-    console.log("Here")
     await updateInterventionLastScreen(interventionID, 'DYNAMIC_FORM')
     dispatch(updateAdditionalData(finalData))
     await updateDynamicFormDetails(interventionID, finalData)
