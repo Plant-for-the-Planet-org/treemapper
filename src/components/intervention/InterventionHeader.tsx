@@ -12,7 +12,7 @@ import { exportAllInterventionData } from 'src/utils/helpers/fileManagementHelpe
 
 const InterventionHeader = () => {
     const data = useQuery(RealmSchema.Intervention, data => {
-        return data.filtered('status == "NOT_SYNCED"')
+        return data.filtered('status != "SYNCED"')
     })
     const handleNav = () => {
         exportAllInterventionData(data)

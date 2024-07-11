@@ -50,7 +50,7 @@ const useInterventionManagement = () => {
       form_data: [],
       additional_data: [],
       meta_data: '{}',
-      status: 'NOT_SYNCED',
+      status: 'INIIALIZED',
       hid: '',
       coords: {
         type: 'Point',

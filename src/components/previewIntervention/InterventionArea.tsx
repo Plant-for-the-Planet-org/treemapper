@@ -44,7 +44,7 @@ const InterventionArea = (props: Props) => {
         sampleTrees={data.sample_trees}
         has_sample_trees={data.has_sample_trees}
         openPolygon={openEdit}
-        showEdit={data.status === 'NOT_SYNCED'}
+        showEdit={data.status !== 'SYNCED'}
         isEntireSite={data.entire_site}
       />
       {/* <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} /> */}

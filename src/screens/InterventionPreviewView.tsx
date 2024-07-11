@@ -162,7 +162,7 @@ const InterventionPreviewView = () => {
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
-        {InterventionData.status === 'NOT_SYNCED' && <Text style={styles.versionNote}>Collected With TreeMapper 2.0.3</Text>}
+        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>Collected With TreeMapper 2.0.3</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton

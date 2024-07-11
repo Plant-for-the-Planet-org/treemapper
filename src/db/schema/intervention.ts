@@ -28,7 +28,7 @@ export const Intervention: ObjectSchema = {
     form_data: `${RealmSchema.FormElement}[]`,
     additional_data: `${RealmSchema.FormElement}[]`,
     meta_data: { type: 'string', default: '{}' },
-    status: { type: 'string', default: 'NOT_SYNCED' }, //todo need to add more
+    status: { type: 'string', default: 'INIIALIZED' }, //todo need to add more
     hid: { type: 'string', default: '' },
     coords: `${RealmSchema.GeoSpatial}`,
     entire_site: { type: 'bool', default: false },

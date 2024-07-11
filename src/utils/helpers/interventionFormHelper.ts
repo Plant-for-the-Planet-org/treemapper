@@ -60,7 +60,7 @@ export const convertFormDataToIntervention = (
     form_data: data.form_data,
     additional_data: data.additional_data,
     meta_data: tranformedMetaData,
-    status: 'NOT_SYNCED',
+    status: 'INIIALIZED',
     hid: '',
     coords: {
       type: 'Point',
@@ -82,7 +82,9 @@ export const convertFormDataToIntervention = (
     },
     location_id: '',
     locate_tree: '',
-    registration_date: 0
+    registration_date: 0,
+    remeasuremnt_required: false,
+    next_measurement_date: 0
   }
   return finalData
 }

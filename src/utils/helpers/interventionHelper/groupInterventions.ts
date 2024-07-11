@@ -33,7 +33,7 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
         ...finalObject[i18next.t('label.incomplete')],
       }
     }
-    if (data[index].status === 'NOT_SYNCED' && data[index].is_complete) {
+    if (data[index].status !== 'SYNCED' && data[index].is_complete) {
       finalObject['Unsynced'] = {
         count: (finalObject['Unsynced'].count += 1),
         ...finalObject['Unsynced'],
@@ -69,7 +69,7 @@ export const groupInterventionList = (
   }
 
   if (type === 'unsync') {
-    return data.filter(el => el.status === 'NOT_SYNCED')
+    return data.filter(el => el.status !== 'SYNCED')
   }
 
   if (type === 'all') {

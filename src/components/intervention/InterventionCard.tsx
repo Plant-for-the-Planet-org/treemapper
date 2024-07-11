@@ -51,7 +51,7 @@ const InterventionCard = (props: Props) => {
             </Text>
           </View>
         </View>
-        {item.status === 'NOT_SYNCED' && <View style={styles.editIconWrapper}>
+        {item.status !== 'SYNCED' && <View style={styles.editIconWrapper}>
           <EditInterventionIcon height={30} width={30} />
         </View>}
       </View>

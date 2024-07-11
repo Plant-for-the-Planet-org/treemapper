@@ -12,7 +12,7 @@ export type MAP_BOUNDS = "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_
 export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log'
 
 
-export type INTERVENTION_STATUS = 'SYNCED' | 'NOT_SYNCED'
+export type INTERVENTION_STATUS = 'SYNCED' | 'INIIALIZED' | 'PENDING_DATA_UPLOAD' |'SAMPLE_TREE_UPLOAD' | "SAMPLE_TREE_IMAGE_UPLOAD"
 
 export type INTERVENTION_FILTER = 'always' | 'year' | 'months' | 'days' | 'none'
 

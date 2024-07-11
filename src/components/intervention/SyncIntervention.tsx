@@ -19,17 +19,17 @@ interface Props {
 }
 
 const SyncIntervention = ({ isLogedIn }: Props) => {
-    const toast = useToast()
-    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateInterventionStatus } = useInterventionManagement()
-
     const [syncing, setSyncing] = useState(false)
     const [fullySync, setFullySync] = useState(false)
     const [currentIntervention, setCurrentIntervention] = useState<InterventionData | null>(null)
 
+    const toast = useToast()
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const { updateInterventionStatus } = useInterventionManagement()
+
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
-        data => data.filtered('status == "NOT_SYNCED" AND is_complete == true')
+        data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
 
     const fetchUserData = async () => {
