@@ -113,7 +113,7 @@ const useManageScientificSpecies = () => {
       realm.write(() => {
         item.forEach(specie => {
           const data = {
-            guid: specie.id,
+            guid: specie.scientificSpecies,
             scientificName: specie.scientificName || '',
             isUserSpecies: true,
             isUploaded: true,
