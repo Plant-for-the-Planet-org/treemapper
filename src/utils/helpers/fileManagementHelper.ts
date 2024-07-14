@@ -13,11 +13,12 @@ export const createNewInterventionFolder = async (id: string) => {
         const folderExists = await RNFS.exists(folderPath);
         if (!folderExists) {
             await RNFS.mkdir(folderPath);
+            return { msg: 'Intervention folder created ' + id, hasError: false }
         } else {
-            console.log('Folder already exists at:', folderPath);
+            return { msg: 'Intervention folder already existed ' + id, hasError: false }
         }
     } catch (error) {
-        console.error('Error creating folder:', error);
+        return { msg: JSON.stringify(error), hasError: true }
     }
 }
 

@@ -1,8 +1,13 @@
-import { getUrlApi } from './api.url';
-import { fetchGetCall } from './customFetch';
+import { getUrlApi, postUrlApi } from './api.url';
+import { fetchGetCall, fetchPostCall } from './customFetch';
 
-// export const uploadPostData = async (params: ContentData) => {
-//   const result = await fetchPostCall(postUrlApi.uploadPostData, params);
+export const uploadIntervention = async (params: any) => {
+  const result = await fetchPostCall(postUrlApi.uploadIntervention, params);
+  return result;
+};
+
+// export const uploadInterventionImage = async (body: any) => {
+//   const result = await fetchPostCall(`${postUrlApi.uploadInterventionImage}/${body.locationId}/coordinates/${body.imageId}`, { "imageFile": body.imageFile });
 //   return result;
 // };
 

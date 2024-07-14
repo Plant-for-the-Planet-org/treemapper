@@ -91,8 +91,10 @@ const singleTreeDetails = (d: any): SampleTree => {
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
-        intervention_id: d.parent || d.id,
+        intervention_id: d.type === 'single' ? d.id : d.parent,
         count: 1,
+        parent_id: d.type === 'single' ? d.id : d.parent,
+        sloc_id:d.id,
         latitude: d.geometry.coordinates[1],
         longitude: d.geometry.coordinates[0],
         device_longitude: d.deviceLocation.coordinates[0],
@@ -110,16 +112,27 @@ const singleTreeDetails = (d: any): SampleTree => {
         tree_type: d.type,
         additional_details: "",
         app_meta_data: "",
+        status:"SYNCED",
         hid: d.hid,
         device_latitude: d.deviceLocation.coordinates[1],
         history: [],
-        remeasurement_requires:d.nextMeasurementDate?true:false,
+        remeasurement_requires: d.nextMeasurementDate ? true : false,
         remeasurement_dates: {
             sampleTreeId: "",
             created: 0,
-            lastMeasurement: d.nextMeasurementDate? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
+            lastMeasurement: d.nextMeasurementDate ? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
             remeasureBy: 0,
-            nextMeasurement: d.nextMeasurementDate? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
+            nextMeasurement: d.nextMeasurementDate ? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
+        },
+        image_data: {
+            latitude: d.geometry.coordinates[1],
+            longitude: d.geometry.coordinates[0],
+            imageUrl: "",
+            cdnImageUrl: d.coordinates[0].image || "",
+            currentloclat: 0,
+            currentloclong: 0,
+            isImageUploaded: true,
+            coordinateID: ""
         }
     }
     return details
@@ -201,21 +214,11 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         planted_species: setPlantedSpecies(data.plantedSpecies || []),
         form_id: data.id,
         image: "",
-        image_data: {
-            latitude: 0,
-            longitude: 0,
-            imageUrl: "",
-            cdnImageUrl: "",
-            currentloclat: 0,
-            currentloclong: 0,
-            isImageUploaded: false,
-            coordinateID: ""
-        },
+        image_data: [],
         location_id: data.id,
         locate_tree: "",
-        registration_date: moment(data.plantDate).valueOf() || 0,
-        remeasuremnt_required: data.nextMeasurementDate?true:false,
-        next_measurement_date:  data.nextMeasurementDate? moment(data.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf():0,
+        remeasuremnt_required: data.nextMeasurementDate ? true : false,
+        next_measurement_date: data.nextMeasurementDate ? moment(data.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
     }
     return finalData
 }

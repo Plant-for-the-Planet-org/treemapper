@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
 import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
-import { useDispatch } from 'react-redux'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
@@ -18,7 +17,6 @@ import EditDispalyCurrentPolygonMarker from 'src/components/map/EditDispalyCurre
 import bbox from '@turf/bbox'
 import MapMarkers from 'src/components/map/MapMarkers'
 import DragableMarkers from 'src/components/map/DragableMarkers'
-import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
@@ -32,7 +30,6 @@ const EditPolygonMap = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'EditPolygon'>>()
     const interventionId = route.params && route.params.id ? route.params.id : ''
     const Interverntion = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
-    console.log("AJC",Interverntion)
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [history, setHistory] = useState<Array<{
         coords: any,
@@ -41,7 +38,6 @@ const EditPolygonMap = () => {
     // const [_currentStep, setSteps] = useState(0)
     console.log("history", history)
     const { updateInterventionLocation } = useInterventionManagement()
-    const dispatch = useDispatch()
     const cameraRef = useRef<Camera>(null)
     const mapRef = useRef<MapLibreGL.MapView>(null)
     const [coordinates, setCoordinates] = useState([])
@@ -114,7 +110,6 @@ const EditPolygonMap = () => {
         if (Interverntion.location_type === 'Point') {
             const Data = makeInterventionGeoJson('Point', coordinates, '')
             await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
-            dispatch(updateLastUpdatedAt())
             navigation.goBack()
             return
         }
@@ -123,7 +118,6 @@ const EditPolygonMap = () => {
         const allPointsWithinPolygon = await checkForWithinPolygon(Data.geoJSON);
         if (allPointsWithinPolygon) {
             await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
-            dispatch(updateLastUpdatedAt())
             navigation.goBack()
         } else {
             toast.show("Sample Trees are not within updated polygon.", {

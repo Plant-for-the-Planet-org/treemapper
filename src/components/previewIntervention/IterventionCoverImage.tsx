@@ -12,7 +12,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateImageDetails } from 'src/store/slice/takePictureSlice'
-import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 
 interface Props {
   image: string
@@ -36,10 +35,8 @@ const IterventionCoverImage = (props: Props) => {
     if (imageId === imageDetails.id && imageId !== '') {
       if (tag === 'EDIT_INTERVENTION') {
         updateInterventionCoverImage(imageDetails.url, interventionID)
-        dispatch(updateLastUpdatedAt())
       } else {
         updateSampleTreeImage(interventionID, treeId, imageDetails.url)
-        dispatch(updateLastUpdatedAt())
       }
       dispatch(updateImageDetails({
         id: '',
@@ -60,10 +57,8 @@ const IterventionCoverImage = (props: Props) => {
   const clearImage = () => {
     if (tag === 'EDIT_INTERVENTION') {
       updateInterventionCoverImage('', interventionID)
-      dispatch(updateLastUpdatedAt())
     } else {
       updateSampleTreeImage(interventionID, treeId, '')
-      dispatch(updateLastUpdatedAt())
     }
   }
 

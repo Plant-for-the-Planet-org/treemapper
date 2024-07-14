@@ -1,5 +1,6 @@
 export const postUrlApi = {
     uploadPostData: '',
+    uploadIntervention: '/treemapper/interventions',
   };
   
   export const getUrlApi = {

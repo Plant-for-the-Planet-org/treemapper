@@ -8,6 +8,8 @@ export const TreeDetail: ObjectSchema = {
     tree_id: 'string',
     species_guid: 'string',
     intervention_id: 'string',
+    parent_id: 'string',//remove this later
+    sloc_id: 'string',
     count: 'int',
     latitude: 'double',
     longitude: 'double',
@@ -23,13 +25,15 @@ export const TreeDetail: ObjectSchema = {
     tag_id: 'string',
     plantation_date: 'int',
     status_complete: 'bool',
+    status: 'string',
     location_id: 'string',
     tree_type: 'string',
     additional_details: 'string',
     app_meta_data: 'string',
     hid: 'string',
     history: `${RealmSchema.PlantLocationHistory}[]`,
-    remeasurement_dates:  `${RealmSchema.RemeasurementDate}`,
-    remeasurement_requires: 'bool'
+    remeasurement_dates: `${RealmSchema.RemeasurementDate}`,
+    remeasurement_requires: 'bool',
+    image_data: `${RealmSchema.Coordinates}`,
   },
 };

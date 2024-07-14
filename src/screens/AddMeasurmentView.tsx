@@ -178,17 +178,30 @@ const AddMeasurment = () => {
       tree_type: setUpIntervention(Intervention.intervention_key).has_sample_trees ? 'sample' : 'single',
       additional_details: '',
       app_meta_data: '',
+      sloc_id: '',
+      status: 'INIIALIZED',
       hid: '',
       local_name: SampleTreeData.current_species.aliases,
-      history: [],//todo check if need to do things here for remeasurment
-      remeasurement_dates: { //todo check if need to do things here for remeasurment
+      parent_id: '',
+      history: [], //todo check if need to do things here for remeasurment
+      remeasurement_dates: {
         sampleTreeId: '',
         created: Date.now(),
         lastMeasurement: 0,
         remeasureBy: 0,
         nextMeasurement: 0
       },
-      remeasurement_requires: false
+      remeasurement_requires: false,
+      image_data: {
+        latitude: SampleTreeData.coordinates[0][1],
+        longitude: SampleTreeData.coordinates[0][0],
+        imageUrl: SampleTreeData.image_url,
+        cdnImageUrl: '',
+        currentloclat: 0,
+        currentloclong: 0,
+        isImageUploaded: false,
+        coordinateID: ''
+      }
     }
     const result = await addSampleTrees(Intervention.form_id, treeDetails)
     if (!result) {

@@ -6,40 +6,49 @@ import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { useQuery } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
-import { InterventionData } from 'src/types/interface/slice.interface';
+import { InterventionData, QueeBody } from 'src/types/interface/slice.interface';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
 import { useToast } from 'react-native-toast-notifications';
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement';
 import RotatingView from '../common/RotatingView';
+import { useDispatch, useSelector } from 'react-redux';
+import { RootState } from 'src/store';
+import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
+import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
+import { uploadIntervention } from 'src/api/api.fetch';
 
 interface Props {
     isLogedIn: boolean
 }
 
-const SyncIntervention = ({ isLogedIn }: Props) => {
-    const [syncing, setSyncing] = useState(false)
-    const [fullySync, setFullySync] = useState(false)
-    const [currentIntervention, setCurrentIntervention] = useState<InterventionData | null>(null)
+function delayMimic(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}
 
+
+const SyncIntervention = ({ isLogedIn }: Props) => {
+    const [uploadData, setUploadData] = useState<QueeBody[]>([])
+    const { syncRequired, isSyncing } = useSelector(
+        (state: RootState) => state.syncState,
+    )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateInterventionStatus } = useInterventionManagement()
-
+    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
+    const dispatch = useDispatch()
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
 
-    const fetchUserData = async () => {
-        try {
-            await new Promise(resolve => setTimeout(resolve, 3000));
-            return { success: true, hid: String(Date.now()) };
-        } catch (error) {
-            return { success: false, hid: '' };
+    useEffect(() => {
+        if (uploadData && uploadData.length > 0 && !isSyncing) {
+            syncUploaded()
         }
-    };
+    }, [uploadData])
+
+
 
     const showLogin = () => {
         if (!isLogedIn) {
@@ -55,42 +64,113 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             showLogin()
             return
         }
-        if (interventionData.length > 0) {
-            setSyncing(true)
-            setCurrentIntervention(interventionData[0])
+        const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const prioritizeData = queeData.sort((a, b) => a.priotiry - b.priotiry);
+        if (prioritizeData.length > 0) {
+            dispatch(updateSyncDetails(false))
+            setTimeout(() => {
+                setUploadData(prioritizeData)
+            }, 2000);
         } else {
-            setFullySync(true)
+            dispatch(updateSyncDetails(false))
+            toast.show("All data is synced")
         }
     }
 
-    useEffect(() => {
-        if (currentIntervention) {
-            uploadInterventionData()
-        }
-    }, [currentIntervention])
-
-    useEffect(() => {
-        if (syncing) {
-            startSyncingData()
-        }
-    }, [interventionData])
-
-    const uploadInterventionData = async () => {
-        const response = await fetchUserData();
-        if (response.success) {
-            await updateInterventionStatus(currentIntervention.intervention_id, response.hid)
-        } else {
-            toast.show("Error occurred while uploading data")
-            setSyncing(false)
-        }
+    const syncUploaded = () => {
+        dispatch(updateSyncDetails(true))
+        uploadObjectsSequentially(uploadData);
     }
+
+    const uploadObjectsSequentially = async (d: QueeBody[]) => {
+        for (const el of d) {
+            if (el.type === 'intervention') {
+                try {
+                    const body = getPostBody(el)
+                    if (!body) {
+                        throw "Not able to convert body"
+                    }
+                    console.log("This is body for intervention ", body)
+                    const response = await uploadIntervention(body)
+                    console.log("Reponse intervention", response)
+                    if (response) {
+                        const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
+                        if (!result) {
+                            console.log("Error updating  intervention")
+                        }
+                    }
+                } catch (error) {
+                    console.log("error occured indvidual upload", +error)
+                }
+            }
+
+            if (el.type === 'singleTree') {
+                try {
+                    const body = getPostBody(el)
+                    if (!body) {
+                        throw "Not able to convert body"
+                    }
+                    console.log("This is body for singleTree ", body)
+                    const response = await uploadIntervention(body)
+                    if (response) {
+                        const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
+                        if (result) {
+                            await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates)
+                        } else {
+                            //failed to write to db
+                        }
+                    }
+                } catch (error) {
+                    console.log("error occured indvidual upload", +error)
+                }
+
+            }
+
+            if (el.type === 'sampleTree') {
+                try {
+                    const body = getPostBody(el)
+                    if (!body) {
+                        throw "Not able to convert body"
+                    }
+                    console.log("This is body for sampleTree ", body)
+                    const response = await uploadIntervention(body)
+                    if (response) {
+                        await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.parent, response.coordinates)
+                    } else {
+                        //failed to write to db
+                    }
+                } catch (error) {
+                    console.log("error occured indvidual upload", +error)
+                }
+            }
+
+            if (el.type === 'treeImage') {
+                try {
+                    const body = getPostBody(el)
+                    if (!body) {
+                        throw "Not able to convert body"
+                    }
+                    console.log("This is body for treeImage ", body)
+                    await delayMimic(3000)
+                    await updateTreeImageStatus(el.p2Id, el.p1Id)
+                } catch (error) {
+                    console.log("error occured indivua" + error)
+                }
+            }
+        }
+        startSyncingData()
+    }
+
+
+
+
+
 
     const renderSyncView = () => (
         <View style={styles.container}>
             <RotatingView isClockwise={true}>
                 <RefreshIcon />
             </RotatingView>
-
             <Text style={styles.label}>Syncing</Text>
         </View>
     )
@@ -98,7 +178,8 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     const renderUnsyncView = () => (
         <Pressable style={styles.container} onPress={showLogin}>
             <UnSyncIcon width={20} height={20} />
-            <Text style={styles.label}>{interventionData.length} left</Text>
+            <Text style={styles.label}>Sync Data</Text>
+            {/* <InfoIcon width={15} height={15} style={{marginLeft:5}}/> */}
         </Pressable>
     )
 
@@ -110,14 +191,15 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     )
 
     const renderTile = () => {
-        if (syncing && !fullySync) return renderSyncView()
-        if (!syncing && interventionData.length > 0) return renderUnsyncView()
-        if (syncing && fullySync) return renderFullySyncView()
+        if (isSyncing && !syncRequired) return renderSyncView()
+        if (!isSyncing && interventionData.length > 0) return renderUnsyncView()
+        if (isSyncing && syncRequired) return renderFullySyncView()
         return null
     }
 
     return renderTile()
 }
+
 
 export default SyncIntervention
 
@@ -138,3 +220,7 @@ const styles = StyleSheet.create({
         marginLeft: 5
     }
 })
+
+
+
+

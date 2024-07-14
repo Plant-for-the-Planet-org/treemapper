@@ -1,4 +1,5 @@
 import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
 
@@ -13,6 +14,15 @@ export interface AppInitialState {
   intervention_updated: number
   userSpecies: boolean,
   refreshToken: string,
+}
+
+export interface SyncSlice {
+  syncRequired: boolean
+  isSyncing: boolean
+  message: string
+  intervention: InterventionData[]
+  species: IScientificSpecies[]
+  sampleTrees: SampleTree[]
 }
 
 export interface MonitoringPlotSlice {
@@ -177,10 +187,20 @@ export interface RegisterFormSliceInitalState {
   optionalLocation?: boolean
 }
 
+export interface QueeBody {
+  type: string
+  priotiry: number
+  nextStatus: INTERVENTION_STATUS
+  p1Id?: string
+  p2Id?: string
+  p3Id?: string
+}
+
 export interface SampleTree {
   tree_id: string
   species_guid: string
   intervention_id: string
+  sloc_id: string
   count: number
   latitude: number
   longitude: number
@@ -198,12 +218,24 @@ export interface SampleTree {
   status_complete: boolean
   location_id: string
   tree_type: 'sample' | 'single'
+  parent_id: string
   additional_details: string
   app_meta_data: string
   hid: string,
   history: History[],
+  status: INTERVENTION_STATUS
   remeasurement_dates: RemeasurementDate
-  remeasurement_requires: boolean
+  remeasurement_requires: boolean,
+  image_data: {
+    latitude: number
+    longitude: number
+    imageUrl: string
+    cdnImageUrl: string
+    currentloclat: number
+    currentloclong: number
+    isImageUploaded: boolean
+    coordinateID: string
+  },
 }
 
 export interface PlantedSpecies {
@@ -254,30 +286,30 @@ export interface InterventionLocation {
   coordinates: string
 }
 
-export interface RemeasurementDate{
-    sampleTreeId: string
-    created: number
-    lastMeasurement:  number
-    remeasureBy: number
-    nextMeasurement:  number
+export interface RemeasurementDate {
+  sampleTreeId: string
+  created: number
+  lastMeasurement: number
+  remeasureBy: number
+  nextMeasurement: number
 }
 
-export interface History{
-    history_id: string
-    eventName:string
-    eventDate: number
-    imageUrl: string
-    cdnImageUrl: string
-    diameter:number
-    height: number
-    additionalDetails: any
-    appMetadata: string
-    status: string
-    statusReason:string
-    dataStatus:string
-    parentId: string
-    samplePlantLocationIndex:number
-    lastScreen:string
+export interface History {
+  history_id: string
+  eventName: string
+  eventDate: number
+  imageUrl: string
+  cdnImageUrl: string
+  diameter: number
+  height: number
+  additionalDetails: any
+  appMetadata: string
+  status: string
+  statusReason: string
+  dataStatus: string
+  parentId: string
+  samplePlantLocationIndex: number
+  lastScreen: string
 }
 
 export interface InterventionData {
@@ -292,16 +324,7 @@ export interface InterventionData {
   location_type: string
   location: InterventionLocation
   image: string
-  image_data: {
-    latitude: number
-    longitude: number
-    imageUrl: string
-    cdnImageUrl: string
-    currentloclat: number
-    currentloclong: number
-    isImageUploaded: boolean
-    coordinateID: string
-  },
+  image_data: [],
   has_species: boolean
   planted_species: PlantedSpecies[]
   has_sample_trees: boolean
@@ -324,7 +347,6 @@ export interface InterventionData {
   last_screen: LAST_SCREEN
   location_id: string
   locate_tree: string
-  registration_date: number,
   remeasuremnt_required: boolean
   next_measurement_date: number
 }

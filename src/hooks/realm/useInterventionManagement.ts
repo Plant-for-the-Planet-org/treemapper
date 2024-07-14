@@ -5,7 +5,7 @@ import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitalState
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
-import { LAST_SCREEN } from 'src/types/type/app.type'
+import { INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -15,10 +15,21 @@ const useInterventionManagement = () => {
   const initializeIntervention = async (
     interventoin: RegisterFormSliceInitalState,
   ): Promise<boolean> => {
-    await createNewInterventionFolder(interventoin.form_id)
+    const result = await createNewInterventionFolder(interventoin.form_id)
+    if (result.hasError) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occured while creating Intervention folder ' + interventoin.form_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: result.msg
+      })
+      return Promise.reject(false)
+    }
     const data: InterventionData = {
-      form_id: interventoin.form_id,
-      intervention_id: interventoin.form_id,
+      form_id: interventoin.form_id, // Use form_id when using it locally
+      intervention_id: interventoin.form_id, // Add the id from the server later or replace it
+      location_id: '',
       intervention_key: interventoin.key,
       intervention_title: interventoin.title,
       intervention_date: interventoin.intervention_date,
@@ -32,16 +43,7 @@ const useInterventionManagement = () => {
         coordinates: ''
       },
       image: '',
-      image_data: {
-        latitude: 0,
-        longitude: 0,
-        imageUrl: '',
-        cdnImageUrl: '',
-        currentloclat: 0,
-        currentloclong: 0,
-        isImageUploaded: false,
-        coordinateID: ''
-      },
+      image_data: [],
       has_species: interventoin.species_required,
       has_sample_trees: interventoin.has_sample_trees,
       sample_trees: [],
@@ -59,9 +61,7 @@ const useInterventionManagement = () => {
       entire_site: interventoin.entire_site_selected,
       last_screen: 'FORM',
       planted_species: [],
-      location_id: '',
       locate_tree: '',
-      registration_date: interventoin.intervention_date,
       remeasuremnt_required: false,
       next_measurement_date: 0
     }
@@ -92,10 +92,6 @@ const useInterventionManagement = () => {
     }
   }
 
-
-
-
-
   const addNewIntervention = async (
     interventoin: InterventionData,
   ): Promise<boolean> => {
@@ -109,10 +105,17 @@ const useInterventionManagement = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occured while adding server intervention ' + interventoin.intervention_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return Promise.reject(false)
     }
   }
+
   const addSampleTrees = async (id: string, treeDetails: SampleTree): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -140,6 +143,7 @@ const useInterventionManagement = () => {
     }
   };
 
+  //todo remove this
   const updateInterventionCoverImage = async (imageURL: string, intervnetionID: string): Promise<boolean> => {
     try {
       // realm.write(() => {
@@ -242,7 +246,6 @@ const useInterventionManagement = () => {
     }
   };
 
-
   const updateSampleTreeSpecies = async (interventionID: string, treeId: string, speciesDetails: IScientificSpecies): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -258,11 +261,10 @@ const useInterventionManagement = () => {
     }
   };
 
-
   const deleteAllSyncedIntervention = async (): Promise<boolean> => {
     try {
       realm.write(() => {
-        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
+        const unSyncedObjects = realm.objects(RealmSchema.Intervention);
         realm.delete(unSyncedObjects);
       });
       return Promise.resolve(true);
@@ -277,7 +279,6 @@ const useInterventionManagement = () => {
       return Promise.reject(false);
     }
   };
-
 
   const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?: boolean): Promise<boolean> => {
     try {
@@ -336,7 +337,6 @@ const useInterventionManagement = () => {
     }
   };
 
-
   const removeInterventionPlantedSpecies = async (intervnetionID: string, species: PlantedSpecies): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -389,8 +389,6 @@ const useInterventionManagement = () => {
       return Promise.reject(false);
     }
   };
-
-
 
   const updateDynamicFormDetails = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
@@ -496,12 +494,13 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateInterventionStatus = async (intervnetionID: string, hid: string): Promise<boolean> => {
+  const updateInterventionStatus = async (intervnetionID: string, hid: string, location_id: string, status: INTERVENTION_STATUS): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-        intervention.status = 'SYNCED'
+        intervention.status = status
         intervention.hid = hid
+        intervention.location_id = location_id
       });
       return Promise.resolve(true);
     } catch (error) {
@@ -510,6 +509,45 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateTreeStatus = async (tree_id: string, hid: string, sloc_id: string, status: INTERVENTION_STATUS, parent_id: string, coordinates: any): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
+        treeDetails.parent_id = parent_id
+        treeDetails.hid = hid
+        treeDetails.sloc_id = sloc_id
+        treeDetails.status = status
+        treeDetails.image_data = {
+          ...treeDetails.image_data,
+          coordinateID: coordinates[0].id,
+          isImageUploaded: false,
+        }
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+  const updateTreeImageStatus = async (tree_id: string, interventionId: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+        intervention.status = 'SYNCED'
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
+        treeDetails.status = 'SYNCED'
+        treeDetails.image_data = {
+          ...treeDetails.image_data,
+          isImageUploaded: true,
+        }
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
 
   const addPlantHistory = async (interventionID: string, treeId: string, e: History): Promise<boolean> => {
     try {
@@ -532,13 +570,29 @@ const useInterventionManagement = () => {
     }
   };
 
-
-
-
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention, updateInterventionStatus }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus }
 }
 
 export default useInterventionManagement
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

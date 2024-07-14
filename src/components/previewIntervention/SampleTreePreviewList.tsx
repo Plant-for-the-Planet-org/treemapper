@@ -11,8 +11,6 @@ import DetailIcon from 'assets/images/svg/DetailIcon.svg'
 import RemeasurmentIcon from 'assets/images/svg/RemeasurmentIcon.svg'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { useDispatch } from 'react-redux'
-import { updateLastUpdatedAt } from 'src/store/slice/interventionSlice'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -32,10 +30,8 @@ const SampleTreePreviewList = (props: Props) => {
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const dispatch = useDispatch()
   const deleteTreeDetails = async (id: string) => {
     await deleteSampleTreeIntervention(id, interventionId)
-    dispatch(updateLastUpdatedAt())
   }
 
   const handleDelte = async (item: any) => {
