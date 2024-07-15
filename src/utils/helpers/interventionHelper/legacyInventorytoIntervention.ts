@@ -86,15 +86,47 @@ const setPlantedSpecies = (s: any) => {
 
 
 
+const remeasurementCalcultaor = (nextMeasurementDate: null | any) => {
+    try {
+        // const projectRemasurentDateAfter = 2
+        let timeStamp = 0;
+        if (nextMeasurementDate && typeof nextMeasurementDate === 'string') {
+            const utcDate = moment.utc(nextMeasurementDate);
+            timeStamp = utcDate.valueOf()
+        }
+        if (nextMeasurementDate && nextMeasurementDate.date) {
+            const utcDate = moment.utc(nextMeasurementDate.date);
+            timeStamp = utcDate.valueOf();
+        }
+        if (timeStamp) {
+            const date = moment(timeStamp);
+            const currentDate = moment();
+            const locationNeedRemeasurement = currentDate.isAfter(date);
+            return { requireRemeasurement: locationNeedRemeasurement, d: timeStamp }
+        }
+        // const date = moment(plantationDate);
+        // const twoYearsAgo = moment().subtract(projectRemasurentDateAfter, 'years');
+        // const locationNeedRemeasurement = date.isSameOrBefore(twoYearsAgo);
+        // const futureDate = date.add(projectRemasurentDateAfter, 'years');
+        return { requireRemeasurement: false, d: 0 }
+    } catch (error) {
+        return { requireRemeasurement: false, d: 0 }
+    }
+}
+
+
+
 
 const singleTreeDetails = (d: any): SampleTree => {
+    const rData = remeasurementCalcultaor(d.nextMeasurementDate)
+    const lData = remeasurementCalcultaor(d.lastMeasurementDate)
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
         intervention_id: d.type === 'single' ? d.id : d.parent,
         count: 1,
         parent_id: d.type === 'single' ? d.id : d.parent,
-        sloc_id:d.id,
+        sloc_id: d.id,
         latitude: d.geometry.coordinates[1],
         longitude: d.geometry.coordinates[0],
         device_longitude: d.deviceLocation.coordinates[0],
@@ -112,17 +144,17 @@ const singleTreeDetails = (d: any): SampleTree => {
         tree_type: d.type,
         additional_details: "",
         app_meta_data: "",
-        status:"SYNCED",
+        status: "SYNCED",
         hid: d.hid,
         device_latitude: d.deviceLocation.coordinates[1],
         history: [],
-        remeasurement_requires: d.nextMeasurementDate ? true : false,
+        remeasurement_requires: rData.requireRemeasurement,
         remeasurement_dates: {
             sampleTreeId: "",
-            created: 0,
-            lastMeasurement: d.nextMeasurementDate ? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
+            created: moment(d.plantDate).valueOf() || moment(d.registrationDate).valueOf() || 0,
+            lastMeasurement: lData.d,
             remeasureBy: 0,
-            nextMeasurement: d.nextMeasurementDate ? moment(d.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
+            nextMeasurement: rData.d,
         },
         image_data: {
             latitude: d.geometry.coordinates[1],
@@ -169,13 +201,11 @@ const checkAndConvertMetaData = (m: any) => {
 // }
 
 
-
-
-
 export const convertInevtoryToIntervention = (data: any): InterventionData => {
     const extraData = interventionTitlteSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
+    const rData = remeasurementCalcultaor(data.nextMeasurementDate)
     if (extraData.key !== 'single-tree-registration') {
         data.samplePlantLocations.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
@@ -188,7 +218,7 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         intervention_id: data.id,
         intervention_key: extraData.key,
         intervention_title: extraData.title,
-        intervention_date: moment(data.plantDate).valueOf() || 0,
+        intervention_date: moment(data.registrationDate).valueOf() || moment(data.plantDate).valueOf(),
         project_id: data.plantProject || '',
         project_name: "",
         site_name: "",
@@ -217,8 +247,8 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         image_data: [],
         location_id: data.id,
         locate_tree: "",
-        remeasuremnt_required: data.nextMeasurementDate ? true : false,
-        next_measurement_date: data.nextMeasurementDate ? moment(data.nextMeasurementDate.date, "YYYY-MM-DD HH:mm:ss.SSSSSS").valueOf() : 0,
+        remeasuremnt_required: rData.requireRemeasurement,
+        next_measurement_date: rData.d
     }
     return finalData
 }

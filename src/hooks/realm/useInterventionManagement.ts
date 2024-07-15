@@ -6,6 +6,7 @@ import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHel
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
 import { INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
+import { isAllRemeasurmentDone } from 'src/utils/helpers/remeasurementHelper'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -549,18 +550,17 @@ const useInterventionManagement = () => {
     }
   };
 
-  const addPlantHistory = async (interventionID: string, treeId: string, e: History): Promise<boolean> => {
+  const addPlantHistory = async (treeId: string, e: History): Promise<boolean> => {
     try {
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         const now = new Date();
         treeDetails.remeasurement_dates = {
-          sampleTreeId: '',
-          created: 0,
+          ...treeDetails.remeasurement_dates,
           lastMeasurement: Date.now(),
-          remeasureBy: 0,
-          nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()
+          nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
+        treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
       });
       return Promise.resolve(true);
@@ -570,7 +570,27 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus }
+
+  const checkAndUpdatePlantHistory = async (interventionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        const newStatus = isAllRemeasurmentDone(interventionData.sample_trees);
+        interventionData.remeasuremnt_required = newStatus
+        if(!newStatus){
+          const now = new Date();
+          interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
+        }
+      });
+      return Promise.resolve(true);
+    } catch (error) {
+      console.error('Error during update:', error);
+      return Promise.reject(false);
+    }
+  };
+
+
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory }
 }
 
 export default useInterventionManagement

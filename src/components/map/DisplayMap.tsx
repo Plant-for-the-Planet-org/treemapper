@@ -69,9 +69,7 @@ const DisplayMap = () => {
       }
       return el
     })
-    if(onlyRemeasurement){
-      console.log(JSON.stringify(filterData,null,2))
-    }
+
     const feature = filterData.map((el: InterventionData, index: number) => {
       const result = makeInterventionGeoJson(
         el.location.type,

@@ -16,7 +16,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import { TREE_RE_STATUS } from 'src/types/type/app.type'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import { DropdownData } from 'src/types/interface/app.interface'
-import {v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
 
@@ -54,7 +54,7 @@ const TreeRemeasurementView = () => {
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const {addPlantHistory} = useInterventionManagement()
+    const { addPlantHistory, checkAndUpdatePlantHistory } = useInterventionManagement()
     const route = useRoute<RouteProp<RootStackParamList, 'TreeRemeasurement'>>()
     const [isAlive, setIsAlive] = useState(true)
     const [comment, setComment] = useState('')
@@ -74,27 +74,28 @@ const TreeRemeasurementView = () => {
     }, [treeId])
 
     const submitHadler = async () => {
-        const param:History={
+        const param: History = {
             history_id: uuid(),
-            eventName: isAlive?'measurement':'status',
+            eventName: isAlive ? 'measurement' : 'status',
             eventDate: Date.now(),
             imageUrl: '',
             cdnImageUrl: '',
             diameter: Number(width),
-            height:  Number(height),
+            height: Number(height),
             additionalDetails: undefined,
             appMetadata: '',
-            status: isAlive?'':type.value,
+            status: isAlive ? '' : type.value,
             statusReason: comment,
             dataStatus: '',
             parentId: '',
             samplePlantLocationIndex: 0,
             lastScreen: ''
         }
-        const result = await addPlantHistory(interventionId,treeId,param)
-        if(result){
-            navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId:interventionId })
-        }else{
+        const result = await addPlantHistory(treeId, param)
+        if (result) {
+            await checkAndUpdatePlantHistory(interventionId)
+            navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
+        } else {
             toast.show("Error occured")
         }
     }

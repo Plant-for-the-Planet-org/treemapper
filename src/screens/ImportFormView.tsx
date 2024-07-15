@@ -69,7 +69,7 @@ const ImportFormView = () => {
 
   const importJsonFile = async () => {
     try {
-      await deleteAllAdditionalData()
+      await deleteAllAdditionalData()  
       await deleteAllMetaData()
       const result = await DocumentPicker.getDocumentAsync({
         type: 'application/json'
