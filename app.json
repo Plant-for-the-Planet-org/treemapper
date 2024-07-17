@@ -1,14 +1,15 @@
 {
   "expo": {
-    "name": "treemapper",
+    "name": "TreeMapper",
     "slug": "treemapper",
     "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splashscreen_image.png",
-      "resizeMode": "cover"
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor":"#F0F7EA"
     },
     "assetBundlePatterns": [
       "**/*"
@@ -48,7 +49,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#007A49"
       },
       "permissions": [
         "android.permission.WRITE_EXTERNAL_STORAGE"
