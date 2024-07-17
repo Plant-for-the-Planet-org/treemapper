@@ -2,7 +2,7 @@
   "expo": {
     "name": "treemapper",
     "slug": "treemapper",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -15,17 +15,44 @@
     ],
     "plugins": [
       "@maplibre/maplibre-react-native",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Tracer to use your location."
+        }
+      ],
+      [
+        "react-native-auth0",
+        {
+          "domain": "accounts.plant-for-the-planet.org"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+        }
+      ],
+      "expo-font",
       "expo-localization"
     ],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "org.pftp.treemapper"
+      "bundleIdentifier": "org.pftp.treemapper",
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allows App to use location services in the foreground and background.",
+        "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
+        "NSLocationWhenInUseUsageDescription": "Allows App to use Face ID for a simpler sign in."
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
+      "permissions": [
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ],
       "package": "org.pftp.treemapper"
     },
     "web": {
