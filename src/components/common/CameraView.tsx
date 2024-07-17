@@ -1,11 +1,6 @@
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import {
-  Camera,
-  CameraCapturedPicture,
-  CameraType,
-  PermissionStatus,
-} from 'expo-camera'
+import { CameraCapturedPicture, CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera';
 import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
@@ -16,10 +11,10 @@ interface Props {
   takePicture: (metaData: CameraCapturedPicture) => void
 }
 
-const CameraView = (props: Props) => {
-  const [permission, requestPermission] = Camera.useCameraPermissions()
+const CameraMainView = (props: Props) => {
+  const [permission, requestPermission] = useCameraPermissions()
   const [loading, setLoading] = useState(false)
-  const cameraRef = useRef<Camera>(null)
+  const cameraRef = useRef<CameraView>(null)
 
   useEffect(() => {
     requestPermission()
@@ -27,7 +22,7 @@ const CameraView = (props: Props) => {
 
   const captureImage = async () => {
     setLoading(true)
-    const data = await cameraRef.current.takePictureAsync({skipProcessing:true})
+    const data = await cameraRef.current.takePictureAsync({ skipProcessing: true })
     if (data) {
       props.takePicture(data)
     } else {
@@ -55,11 +50,10 @@ const CameraView = (props: Props) => {
             </Text>
           </>
         ) : (
-          <Camera
-            type={CameraType.back}
+          <CameraView
+            facing='back'
             style={styles.cameraWrapper}
             ref={cameraRef}
-            ratio="1:1"
           />
         )}
       </View>
@@ -75,7 +69,7 @@ const CameraView = (props: Props) => {
   )
 }
 
-export default CameraView
+export default CameraMainView
 
 const styles = StyleSheet.create({
   container: {

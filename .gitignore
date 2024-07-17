@@ -39,6 +39,5 @@ yarn-error.*
 notes.txt
 
 .vscode
-
-android
-ios
+android/
+ios/
