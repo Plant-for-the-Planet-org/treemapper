@@ -65,7 +65,9 @@
         "backgroundColor": "#007A49"
       },
       "permissions": [
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
       ],
       "package": "org.pftp.treemapper"
     },
