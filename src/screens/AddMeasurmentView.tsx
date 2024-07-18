@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import TagSwitch from 'src/components/formBuilder/TagSwitch'
@@ -14,6 +14,7 @@ import { InterventionData, SampleTree } from 'src/types/interface/slice.interfac
 import { v4 as uuidv4 } from 'uuid'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
+import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import i18next from 'i18next'
@@ -48,6 +49,14 @@ const AddMeasurment = () => {
   const id = uuidv4()
   const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  useEffect(() => {
+    AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+    return () => {
+      AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    };
+  }, [])
+
 
   const onSubmit = () => {
 
@@ -232,53 +241,57 @@ const AddMeasurment = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Add Measurments" />
-      <View style={styles.wrapper}>
-        <OutlinedTextInput
-          placeholder={i18next.t('label.select_species_height')}
-          changeHandler={onHeightChange}
-          autoFocus
-          keyboardType={'decimal-pad'}
-          trailingtext={nonISUCountries.includes(Country)
-            ? i18next.t('label.select_species_feet')
-            : 'm'} errMsg={heightErrorMessage} />
-        <OutlinedTextInput
-          placeholder={diameterLabel}
-          changeHandler={(text: string) => {
-            setWidthErrorMessage('');
-            setWidth(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-          }}
-          keyboardType={'decimal-pad'}
-          trailingtext={nonISUCountries.includes(Country)
-            ? i18next.t('label.select_species_inches')
-            : 'cm'} errMsg={widthErrorMessage}
+      <AvoidSoftInputView
+        avoidOffset={0}
+        style={styles.container}>
+        <Header label="Add Measurments" />
+        <View style={styles.wrapper}>
+          <OutlinedTextInput
+            placeholder={i18next.t('label.select_species_height')}
+            changeHandler={onHeightChange}
+            autoFocus
+            keyboardType={'decimal-pad'}
+            trailingtext={nonISUCountries.includes(Country)
+              ? i18next.t('label.select_species_feet')
+              : 'm'} errMsg={heightErrorMessage} />
+          <OutlinedTextInput
+            placeholder={diameterLabel}
+            changeHandler={(text: string) => {
+              setWidthErrorMessage('');
+              setWidth(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
+            }}
+            keyboardType={'decimal-pad'}
+            trailingtext={nonISUCountries.includes(Country)
+              ? i18next.t('label.select_species_inches')
+              : 'cm'} errMsg={widthErrorMessage}
+          />
+          <TagSwitch
+            placeholder={'Tag Tree'}
+            changeHandler={setTagId}
+            keyboardType={'default'}
+            trailingtext={''}
+            switchEnable={tagEnable}
+            description={i18next.t('label.tree_tag_note')}
+            switchHandler={setTagEnabled}
+            errMsg={tagIdErrorMessage}
+          />
+          <CustomButton
+            label="Continue"
+            containerStyle={styles.btnContainer}
+            pressHandler={onSubmit}
+          />
+        </View>
+        <AlertModal
+          showSecondaryButton
+          visible={showOptimalAlert}
+          onPressPrimaryBtn={handleOptimalalert}
+          onPressSecondaryBtn={handleOptimalalert}
+          heading={i18next.t('label.not_optimal_ratio')}
+          secondaryBtnText={i18next.t('label.continue')}
+          primaryBtnText={i18next.t('label.check_again')}
+          message={i18next.t('label.not_optimal_ratio_message')}
         />
-        <TagSwitch
-          placeholder={'Tag Tree'}
-          changeHandler={setTagId}
-          keyboardType={'default'}
-          trailingtext={''}
-          switchEnable={tagEnable}
-          description={i18next.t('label.tree_tag_note')}
-          switchHandler={setTagEnabled}
-          errMsg={tagIdErrorMessage}
-        />
-        <CustomButton
-          label="Continue"
-          containerStyle={styles.btnContainer}
-          pressHandler={onSubmit}
-        />
-      </View>
-      <AlertModal
-        showSecondaryButton
-        visible={showOptimalAlert}
-        onPressPrimaryBtn={handleOptimalalert}
-        onPressSecondaryBtn={handleOptimalalert}
-        heading={i18next.t('label.not_optimal_ratio')}
-        secondaryBtnText={i18next.t('label.continue')}
-        primaryBtnText={i18next.t('label.check_again')}
-        message={i18next.t('label.not_optimal_ratio_message')}
-      />
+      </AvoidSoftInputView>
     </SafeAreaView>
   )
 }
