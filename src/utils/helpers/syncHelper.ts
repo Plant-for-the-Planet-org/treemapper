@@ -33,7 +33,6 @@ export const postDataConvertor = (d: InterventionData[]) => {
     d.forEach(el => {
         if (el.intervention_key === 'single-tree-registration') {
             if (el.hid === '') {
-                console.log("sync helper 1")
                 quee.push({
                     type: 'singleTree',
                     priotiry: 1,
@@ -43,7 +42,6 @@ export const postDataConvertor = (d: InterventionData[]) => {
                 })
             }
             if (el.status === 'PENDING_TREE_IMAGE') {
-                console.log("sync helper 2")
                 quee.push({
                     type: 'treeImage',
                     priotiry: 3,
@@ -54,7 +52,6 @@ export const postDataConvertor = (d: InterventionData[]) => {
             }
         } else {
             if (el.hid === '') {
-                console.log("sync helper 3")
                 quee.push({
                     type: 'intervention',
                     priotiry: 1,
@@ -64,7 +61,6 @@ export const postDataConvertor = (d: InterventionData[]) => {
             }
             el.sample_trees.forEach(trees => {
                 if (el.hid !== '' && trees.sloc_id === '') {
-                    console.log("sync helper 4")
                     quee.push({
                         type: 'sampleTree',
                         priotiry: 2,
@@ -74,7 +70,6 @@ export const postDataConvertor = (d: InterventionData[]) => {
                     })
                 }
                 if (trees.status === 'PENDING_TREE_IMAGE') {
-                    console.log("sync helper 5")
                     quee.push({
                         type: 'treeImage',
                         priotiry: 3,

@@ -349,6 +349,7 @@ export interface InterventionData {
   locate_tree: string
   remeasuremnt_required: boolean
   next_measurement_date: number
+  is_legacy?: boolean
 }
 
 export interface LogDetails {

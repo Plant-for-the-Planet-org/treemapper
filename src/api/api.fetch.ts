@@ -1,8 +1,8 @@
-import { getUrlApi, postUrlApi } from './api.url';
-import { fetchGetCall, fetchPostCall } from './customFetch';
+import { getUrlApi } from './api.url';
+import { fetchGetCall, tempPostFetch } from './customFetch';
 
-export const uploadIntervention = async (params: any) => {
-  const result = await fetchPostCall(postUrlApi.uploadIntervention, params);
+export const uploadIntervention = async (params: any, url: string) => {
+  const result = await tempPostFetch(url, params);
   return result;
 };
 

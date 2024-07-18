@@ -94,11 +94,26 @@ const singleTreeDetails = (d: any): SampleTree => {
         additional_details: JSON.stringify(d.additionalDetails),
         app_meta_data: JSON.stringify(d.appMetadata),
         hid: d.hid,
-        device_latitude: d.deviceLatitude
+        device_latitude: d.deviceLatitude,
+        sloc_id: "",
+        parent_id: "",
+        history: [],
+        status: "PENDING_DATA_UPLOAD",
+        remeasurement_dates: undefined,
+        remeasurement_requires: false,
+        image_data: {
+            latitude: 0,
+            longitude: 0,
+            imageUrl: "",
+            cdnImageUrl: "",
+            currentloclat: 0,
+            currentloclong: 0,
+            isImageUploaded: false,
+            coordinateID: ""
+        }
     }
     return details
 }
-
 
 
 
@@ -129,9 +144,7 @@ export const convertInventoryToIntervention = (data: Inventory[]) => {
                 type: locDetails.coordinatesType,
                 coordinates: JSON.stringify(locDetails.coordinates)
             },
-            cover_image_url: "",
             has_species: true,
-            species: [],
             has_sample_trees: extraData.hasSampleTrees,
             sample_trees: sample_trees,
             is_complete: false,
@@ -147,8 +160,15 @@ export const convertInventoryToIntervention = (data: Inventory[]) => {
                 coordinates: locDetails.coordinatesType === 'Point' ? [locDetails.coordinates][0] : locDetails.coordinates[0][0]
             },
             entire_site: false,
-            lastScreen: "",
-            planted_species: setPlantedSpecies(data[index].species || [])
+            last_screen: 'FORM',
+            planted_species: setPlantedSpecies(data[index].species || []),
+            form_id: "",
+            image: "",
+            image_data: [],
+            location_id: "",
+            locate_tree: "",
+            remeasuremnt_required: false,
+            next_measurement_date: 0
         }
         finalData.push(interventionData)
     }

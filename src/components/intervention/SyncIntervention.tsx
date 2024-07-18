@@ -30,6 +30,7 @@ function delayMimic(ms) {
 
 const SyncIntervention = ({ isLogedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QueeBody[]>([])
+    const [moreUpload, setMoreUplaod] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
@@ -43,7 +44,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     )
 
     useEffect(() => {
-        if (uploadData && uploadData.length > 0 && !isSyncing) {
+        if (uploadData && uploadData.length > 0 && moreUpload) {
             syncUploaded()
         }
     }, [uploadData])
@@ -64,21 +65,25 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             showLogin()
             return
         }
+        if(!isSyncing){
+            dispatch(updateSyncDetails(true))
+        }
         const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const prioritizeData = queeData.sort((a, b) => a.priotiry - b.priotiry);
         if (prioritizeData.length > 0) {
-            dispatch(updateSyncDetails(false))
+            setMoreUplaod(true)
             setTimeout(() => {
                 setUploadData(prioritizeData)
             }, 2000);
         } else {
             dispatch(updateSyncDetails(false))
+            setMoreUplaod(false)
             toast.show("All data is synced")
         }
     }
 
     const syncUploaded = () => {
-        dispatch(updateSyncDetails(true))
+        setMoreUplaod(false)
         uploadObjectsSequentially(uploadData);
     }
 
@@ -90,9 +95,8 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    console.log("This is body for intervention ", body)
-                    const response = await uploadIntervention(body)
-                    console.log("Reponse intervention", response)
+                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
+                    const response = await uploadIntervention(body,url)
                     if (response) {
                         const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
                         if (!result) {
@@ -110,8 +114,8 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    console.log("This is body for singleTree ", body)
-                    const response = await uploadIntervention(body)
+                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
+                    const response = await uploadIntervention(body,url)
                     if (response) {
                         const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
                         if (result) {
@@ -132,10 +136,10 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    console.log("This is body for sampleTree ", body)
-                    const response = await uploadIntervention(body)
+                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
+                    const response = await uploadIntervention(body, url)
                     if (response) {
-                        await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.parent, response.coordinates)
+                        await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates)
                     } else {
                         //failed to write to db
                     }
@@ -150,7 +154,6 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    console.log("This is body for treeImage ", body)
                     await delayMimic(3000)
                     await updateTreeImageStatus(el.p2Id, el.p1Id)
                 } catch (error) {

@@ -35,5 +35,6 @@ export const Intervention: ObjectSchema = {
     locate_tree: { type: 'string', default: 'ONSITE' },
     remeasuremnt_required: { type: 'bool', default: false },
     next_measurement_date: { type: 'double', default: 0 },
+    is_legacy: { type: 'bool', default: false },
   },
 }
