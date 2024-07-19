@@ -75,14 +75,15 @@ export default TagSwitch
 
 const styles = StyleSheet.create({
   container: {
-    width: '100%',
+    flexDirection:'row',
     alignItems: 'center',
     marginVertical: 15,
     justifyContent: 'center',
     borderRadius: 10,
+    width:'100%'
   },
   wrapper: {
-    width: '95%',
+    width:'95%',
     alignItems: 'center',
     justifyContent: 'center',
     borderRadius: 10,
