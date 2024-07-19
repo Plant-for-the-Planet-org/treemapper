@@ -53,6 +53,7 @@ const RootNavigator = () => {
       <Stack.Screen name='AddPlotGroup' component={Screens.AddPlotGroup} />
       <Stack.Screen name='AddPlotsToGroup' component={Screens.AddPlotsToGroup} />
       <Stack.Screen name='TreeRemeasurement' component={Screens.TreeRemeasurement} />
+      <Stack.Screen name='ProjectRemeasurementConfig' component={Screens.ProjectRemeasurementConfig} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

@@ -42,6 +42,7 @@ import AddObservationFormView from './AddObservationFormView'
 import AddPlotGroupView from './AddPlotGroupView'
 import AddPlotsToGroupView from './AddPlotToGroupView'
 import TreeRemeasurement from './TreeRemeasurementView'
+import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -87,5 +88,6 @@ export default {
   AddObservationForm: AddObservationFormView,
   AddPlotGroup: AddPlotGroupView,
   AddPlotsToGroup: AddPlotsToGroupView,
-  TreeRemeasurement: TreeRemeasurement
+  TreeRemeasurement: TreeRemeasurement,
+  ProjectRemeasurementConfig: ProjectRemeasurementConfig
 }

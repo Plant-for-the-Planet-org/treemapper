@@ -19,7 +19,7 @@ import { handleFilter } from 'src/utils/constants/CountryDataFilter'
 
 interface ProjectListProps {
   isSelectable?: boolean
-  onProjectPress?: any
+  onProjectPress?: (id:string)=>void
   selectedProjectId?: string
 }
 
@@ -34,19 +34,6 @@ export default function ProjectList({
   return (
     <FlatList
       data={allProjects}
-      ListHeaderComponent={() => {
-        if (isSelectable) {
-          return (
-            <LargeButton
-              heading={i18next.t('label.continue_without_project')}
-              subHeading={i18next.t('label.continue_without_project_desc')}
-              onPress={() => onProjectPress(null)}
-              active={!selectedProjectId}
-            />
-          )
-        }
-        return <></>
-      }}
       ListFooterComponent={() => {
         return (
           <LargeButton

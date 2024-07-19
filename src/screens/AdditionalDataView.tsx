@@ -21,8 +21,8 @@ const AdditionalDataView = () => {
     return <TouchableOpacity 
     onPress={handleNav}
     style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>
-
   }
+  
   return (
     <SafeAreaView style={styles.container}>
       <Header label="Additional Data" rightComponet={renderRightComponent()}/>
