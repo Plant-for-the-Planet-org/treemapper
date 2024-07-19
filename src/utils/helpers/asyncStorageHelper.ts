@@ -19,3 +19,14 @@ export const getLocalSpeciesSync = async () => {
     return ''
   }
 }
+
+export const checkForMigrateSpecies = async () => {
+  try {
+    const speciesDataPresent = await AsyncStorage.getItem('isLocalSpeciesUpdated')
+    return speciesDataPresent
+  } catch (err) {
+    //error occured return ''
+    return false
+  }
+}
+

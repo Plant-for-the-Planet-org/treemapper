@@ -16,7 +16,7 @@ import { Typography, Colors } from 'src/utils/constants'
 import DownloadBackdrop from 'assets/images/svg/DownloadBackdrop.svg'
 import OnboardingNotes from 'src/components/onboarding/OnboardingNotes'
 import i18next from 'src/locales/index'
-import { getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
+import { checkForMigrateSpecies, getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
 import { isWithin90Days } from 'src/utils/helpers/timeHelper'
 import { useNetInfo } from '@react-native-community/netinfo';
 import Snackbar from 'react-native-snackbar';
@@ -94,6 +94,13 @@ const SyncSpecies = () => {
         downloadFile()
       }
     } else {
+      const oldSpeciesDB = await checkForMigrateSpecies()
+      if(oldSpeciesDB){
+        setTimeout(() => {
+          navigation.replace('Home')
+        }, 1000);
+        return
+      }
       downloadFile()
     }
   }
