@@ -1,6 +1,6 @@
 import {StyleProp} from 'react-native'
 import React from 'react'
-import MapLibreGL, {LineLayerStyle} from '@maplibre/maplibre-react-native'
+import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import {Colors} from 'src/utils/constants'
 
 const polyline: StyleProp<LineLayerStyle> = {
@@ -57,55 +57,55 @@ const MapShapeSource = (props: Props) => {
         switch (feature.geometry.type) {
           case 'Point':
             return (
-              <MapLibreGL.ShapeSource
+              <Maplibre.ShapeSource
                 key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.CircleLayer
+                <Maplibre.CircleLayer
                   id={'singleSelectedPolyCircle' + feature.properties.id}
                   style={bigCircleStyle}
                 />
-              </MapLibreGL.ShapeSource>
+              </Maplibre.ShapeSource>
             )
           case 'Polygon':
             return (
-              <MapLibreGL.ShapeSource
+              <Maplibre.ShapeSource
                 key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.FillLayer
+                <Maplibre.FillLayer
                   id={'polwFill' + feature.properties.id}
                   style={{
                     ...fillStyle,
                     fillColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
-                <MapLibreGL.LineLayer
+                <Maplibre.LineLayer
                   id={'polwyline' + feature.properties.id}
                   style={{
                     ...polyline,
                     lineColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
-              </MapLibreGL.ShapeSource>
+              </Maplibre.ShapeSource>
             )
           case 'LineString':
             return (
-              <MapLibreGL.ShapeSource
+              <Maplibre.ShapeSource
                 key={feature.properties.id}
                 id={id}
                 shape={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.LineLayer id={`${feature.properties.id}-layer`} />
-              </MapLibreGL.ShapeSource>
+                <Maplibre.LineLayer id={`${feature.properties.id}-layer`} />
+              </Maplibre.ShapeSource>
             )
           default:
             return null

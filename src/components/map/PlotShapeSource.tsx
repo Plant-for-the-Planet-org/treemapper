@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 
 
@@ -18,23 +18,23 @@ interface Props {
 const PlotShapeSource = (props: Props) => {
   const { geoJSON, isEdit } = props
   return (
-    <MapLibreGL.ShapeSource
+    <Maplibre.ShapeSource
       id={`plot-polygon-${isEdit}`}
       shape={geoJSON}>
-      <MapLibreGL.FillLayer
+      <Maplibre.FillLayer
         id={`plot-polyfill-${isEdit}`}
         style={{
           fillOpacity: 0.3,
           fillColor: isEdit ? Colors.TEXT_COLOR : Colors.MULTI_TREE
         }}
       />
-      <MapLibreGL.LineLayer
+      <Maplibre.LineLayer
         id={`plot-poline-${isEdit}`}
         style={{
           ...polyline, lineColor: isEdit ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY
         }}
       />
-    </MapLibreGL.ShapeSource>
+    </Maplibre.ShapeSource>
   )
 }
 export default PlotShapeSource

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native';
+import Maplibre from '@maplibre/maplibre-react-native';
 import { MonitoringPlot } from 'src/types/interface/slice.interface';
 import bbox from '@turf/bbox'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper';
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const PlotMapDisplay = (props: Props) => {
-    const cameraRef = useRef<Camera>(null)
+    const cameraRef = useRef<Maplibre.CameraRef>(null)
     const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -66,13 +66,13 @@ const PlotMapDisplay = (props: Props) => {
 
     return (
         <View style={styles.page}>
-            <MapLibreGL.MapView
+            <Maplibre.MapView
                 style={styles.map}
                 logoEnabled={false}
                 attributionEnabled={false}
                 onDidFinishLoadingMap={setupMap}
                 styleURL={JSON.stringify(MapStyle)}>
-                <MapLibreGL.Camera ref={cameraRef} />
+                <Maplibre.Camera ref={cameraRef} />
                 {plotCoordinates.length > 0 && <PlotShapeSource geoJSON={{
                     "type": "FeatureCollection",
                     "features": [
@@ -87,7 +87,7 @@ const PlotMapDisplay = (props: Props) => {
                     ]
                 }} isEdit={false} />}
                 {props.data.plot_plants.length > 0 && <PlotMarker sampleTreeData={props.data.plot_plants} onMarkerPress={onMarkerPress} />}
-            </MapLibreGL.MapView>
+            </Maplibre.MapView>
         </View>
     );
 }

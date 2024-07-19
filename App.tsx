@@ -6,7 +6,7 @@ import { Provider } from 'react-redux'
 import store, { persistor } from 'src/store'
 import { PersistGate } from 'redux-persist/integration/react'
 import 'react-native-gesture-handler'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import Maplibre from '@maplibre/maplibre-react-native'
 import { Auth0Provider } from 'react-native-auth0'
 import { RealmProvider } from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger'
@@ -17,7 +17,7 @@ import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 
-MapLibreGL.setAccessToken(null)
+Maplibre.setAccessToken(null)
 
 export default function App() {
   return (

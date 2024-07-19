@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
@@ -67,18 +67,18 @@ const SingleInterventionSource = (props: Props) => {
     return null
   }
   return (
-    <MapLibreGL.ShapeSource
+    <Maplibre.ShapeSource
       id={'polyagon'}
       shape={geoJSON}>
-      <MapLibreGL.FillLayer
+      <Maplibre.FillLayer
         id={'activePoalyFill'} // Unique ID for active FillLayer
         style={{fillOpacity: 0.5, fillColor: FillColor}}
       />
-      <MapLibreGL.LineLayer
+      <Maplibre.LineLayer
         id={'polylinse'}
         style={{ ...polyline,lineColor: FillColor}}
       />
-    </MapLibreGL.ShapeSource>
+    </Maplibre.ShapeSource>
   )
 }
 

@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 
 
@@ -42,7 +42,7 @@ const FillColor: any = [
 const PolygonShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
   return (
-    <MapLibreGL.ShapeSource
+    <Maplibre.ShapeSource
       id={'polygon'}
       shape={geoJSON}
       onPress={(e) => {
@@ -50,7 +50,7 @@ const PolygonShapeSource = (props: Props) => {
           onShapeSourcePress(e.features[0].properties.id || '', e.features[0].properties.isPlot || false)
         }
       }}>
-      <MapLibreGL.FillLayer
+      <Maplibre.FillLayer
         id={'polyFill'}
         style={{
           fillOpacity: 0.5,
@@ -58,14 +58,14 @@ const PolygonShapeSource = (props: Props) => {
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      <MapLibreGL.LineLayer
+      <Maplibre.LineLayer
         id={'polyline'}
         style={{
           ...polyline, lineColor: FillColor
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      <MapLibreGL.CircleLayer id={'entireSite'} style={{
+      <Maplibre.CircleLayer id={'entireSite'} style={{
         circleOpacity: 0.9, circleColor: FillColor, circleRadius: [
           'interpolate',
           ['linear'],
@@ -81,8 +81,8 @@ const PolygonShapeSource = (props: Props) => {
       }}
         filter={['==', ['get', 'site'], true]}
       />
-      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
-    </MapLibreGL.ShapeSource>
+      <Maplibre.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
+    </Maplibre.ShapeSource>
   )
 }
 export default PolygonShapeSource

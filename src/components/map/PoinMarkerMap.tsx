@@ -1,6 +1,5 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
@@ -27,6 +26,7 @@ import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
+import Maplibre from '@maplibre/maplibre-react-native'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -54,15 +54,15 @@ const PointMarkerMap = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
 
-  const cameraRef = useRef<Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<Maplibre.CameraRef>(null)
+  const mapRef = useRef<Maplibre.MapViewRef>(null)
 
   const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
 
 
   useEffect(() => {
       handleCameraViewChange()
-  }, [MapBounds])
+  }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
     if (cameraRef && cameraRef.current) {
@@ -184,7 +184,7 @@ const PointMarkerMap = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Maplibre.MapView
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
@@ -195,8 +195,8 @@ const PointMarkerMap = (props: Props) => {
           setLoading(true)
         }}
         styleURL={JSON.stringify(MapStyle)}>
-        <MapLibreGL.Camera ref={cameraRef} />
-        <MapLibreGL.UserLocation
+        <Maplibre.Camera ref={cameraRef} />
+        <Maplibre.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
           minDisplacement={1}
@@ -211,7 +211,7 @@ const PointMarkerMap = (props: Props) => {
         {has_sample_trees && <MapMarkers
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
-      </MapLibreGL.MapView>
+      </Maplibre.MapView>
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 20,
     width: '100%',
     height: scaleSize(70),
   },

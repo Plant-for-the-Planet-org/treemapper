@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native';
+import Maplibre from '@maplibre/maplibre-react-native';
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
@@ -44,8 +44,8 @@ interface Props {
 
 const CreatePlotMapDetail = (props: Props) => {
   const { showNewDimentionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plnatedTrees } = props
-  const cameraRef = useRef<Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<Maplibre.CameraRef>(null)
+  const mapRef = useRef<Maplibre.MapViewRef>(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -221,7 +221,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Maplibre.MapView
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
@@ -233,8 +233,8 @@ const CreatePlotMapDetail = (props: Props) => {
           setLoading(true)
         }}
         styleURL={JSON.stringify(MapStyle)}>
-        <MapLibreGL.Camera ref={cameraRef} />
-        <MapLibreGL.UserLocation
+        <Maplibre.Camera ref={cameraRef} />
+        <Maplibre.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
           minDisplacement={1}
@@ -270,7 +270,7 @@ const CreatePlotMapDetail = (props: Props) => {
             ]
           }} />}
         {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} onMarkerPress={() => { }} />}
-      </MapLibreGL.MapView>
+      </Maplibre.MapView>
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
       {isEdit ? <ActiveMarkerIcon /> : null}
 

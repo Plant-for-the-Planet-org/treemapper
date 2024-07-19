@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
+import Maplibre from '@maplibre/maplibre-react-native'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
@@ -43,8 +43,8 @@ const DisplayMap = () => {
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
-  const cameraRef = useRef<Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<Maplibre.CameraRef>(null)
+  const mapRef = useRef<Maplibre.MapViewRef>(null)
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
     data => {
@@ -264,7 +264,7 @@ const DisplayMap = () => {
 
 
   return (
-    <MapLibreGL.MapView
+    <Maplibre.MapView
       style={styles.map}
       logoEnabled={false}
       compassViewPosition={3}
@@ -272,8 +272,8 @@ const DisplayMap = () => {
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
-      <MapLibreGL.Camera ref={cameraRef} />
-      <MapLibreGL.UserLocation showsUserHeadingIndicator
+      <Maplibre.Camera ref={cameraRef} />
+      <Maplibre.UserLocation showsUserHeadingIndicator
         androidRenderMode="gps"
         minDisplacement={1} />
       {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={{
@@ -296,7 +296,7 @@ const DisplayMap = () => {
       {selectedIntervention && !showOverlay ? (
         <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)} />
       ) : null}
-    </MapLibreGL.MapView>
+    </Maplibre.MapView>
   )
 }
 

@@ -1,6 +1,6 @@
 import { StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useRef } from 'react'
-import MapLibreGL, { Camera } from '@maplibre/maplibre-react-native'
+import Maplibre from '@maplibre/maplibre-react-native'
 import { SampleTree } from 'src/types/interface/slice.interface'
 // import MapMarkers from './MapMarkers'
 import MapShapeSource from './MapShapeSource'
@@ -23,7 +23,7 @@ interface Props {
 
 const PreviewMap = (props: Props) => {
   const { geoJSON, has_sample_trees, sampleTrees, openPolygon, showEdit, isEntireSite } = props
-  const cameraRef = useRef<Camera>(null)
+  const cameraRef = useRef<Maplibre.CameraRef>(null)
 
 
   const handleCamera = () => {
@@ -42,20 +42,20 @@ const PreviewMap = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <MapLibreGL.MapView
+        <Maplibre.MapView
           style={styles.map}
           attributionEnabled={false}
           logoEnabled={false}
           scrollEnabled={false}
           onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
-          <MapLibreGL.Camera ref={cameraRef} />
+          <Maplibre.Camera ref={cameraRef} />
           <MapShapeSource
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
           {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} />}
-        </MapLibreGL.MapView>
+        </Maplibre.MapView>
         {showEdit && !isEntireSite?<TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>: null}
