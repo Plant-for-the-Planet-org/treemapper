@@ -9,6 +9,7 @@ interface Props {
     isVisible: boolean
     toogleModal: (b: boolean) => void
     removeFavSpecie: (e: any) => void
+    secondaryHandler?: (e: any) => void
     headerLabel: string
     noteLabel: string
     primeLabel: string
@@ -17,7 +18,7 @@ interface Props {
 }
 
 const DeleteModal = (props: Props) => {
-    const { isVisible, toogleModal, removeFavSpecie, extra } = props
+    const { isVisible, toogleModal, removeFavSpecie, extra, secondaryHandler } = props
     return (
         <Modal
             style={styles.container}
@@ -35,14 +36,14 @@ const DeleteModal = (props: Props) => {
                 </Text>
                 <View style={styles.bottomBtnContainer}>
                     <FlatButton
-                        onPress={() => { toogleModal(null) }}
+                        onPress={() => { secondaryHandler ? secondaryHandler(extra) : toogleModal(null) }}
                         text={props.secondaryLabel}
                         style={styles.secondaryButtonStyle}
                     />
                     <TouchableOpacity
                         onPress={() => { removeFavSpecie(extra) }}
                         style={styles.primaryButtonStyle}>
-                        <Text style={styles.removeLable}>{props.primeLabel}</Text>
+                        <Text style={[styles.removeLable, { color: secondaryHandler ? Colors.NEW_PRIMARY : 'tomato' }]}>{props.primeLabel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>

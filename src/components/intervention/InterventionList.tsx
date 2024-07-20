@@ -1,5 +1,5 @@
 import { RefreshControl, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import { FlashList } from '@shopify/flash-list'
 import InterventionCard from './InterventionCard'
 import InterventionHeaderSelector from 'src/components/intervention/InterventionHeaderList'
@@ -10,6 +10,10 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
 import EmptyIntervention from 'assets/images/svg/EmptyIntervention.svg'
 import { lastScreenNavigationHelper } from 'src/utils/helpers/interventionFormHelper'
+import DeleteModal from '../common/DeleteModal'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import { useDispatch } from 'react-redux'
+import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
@@ -22,13 +26,31 @@ interface Props {
 const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const [delteData, setDeleteData] = useState(null)
+  const { deleteIntervention } = useInterventionManagement()
+  const dispatch = useDispatch()
 
   const handleNavigation = (item: InterventionData) => {
-  const navDetails = lastScreenNavigationHelper(item)
-  //@ts-expect-error ignore
-  navigation.navigate(navDetails.screen, {...navDetails.params})
+    setDeleteData(null)
+    const navDetails = lastScreenNavigationHelper(item)
+    //@ts-expect-error ignore
+    navigation.navigate(navDetails.screen, { ...navDetails.params })
   }
+
+  const handleDelte = async (item: InterventionData) => {
+    setDeleteData(null)
+    await deleteIntervention(item.intervention_id)
+    dispatch(updateNewIntervention())
+  }
+
+  const showInfoModal = (item: InterventionData) => {
+    if(!item.is_complete){
+      setDeleteData(item)
+    }else{
+      handleNavigation(item)
+    }
+  }
+
 
   const emptyInterventoin = () => {
     return (
@@ -41,33 +63,37 @@ const InterventionList = (props: Props) => {
   }
 
   return (
-    <FlashList
-      data={interventionData}
-      renderItem={({ item }) => (
-        <InterventionCard
-          item={item}
-          key={item.intervention_id}
-          openIntervention={handleNavigation}
-        />
-      )}
-      estimatedItemSize={100}
-      refreshControl={
-        <RefreshControl
-          refreshing={loading}
-          onRefresh={refreshHandler}
-        />}
-      ListFooterComponent={<View style={styles.footerWrapper} />}
-      ListEmptyComponent={() => (emptyInterventoin())}
-      ListHeaderComponent={
-        <InterventionHeaderSelector
-          selectedLabel={selectedLabel}
-          setSlectedLabel={setSlectedLabel}
-        />
-      }
-      onEndReachedThreshold={0.3}
-      // keyExtractor={({ intervention_id }) => intervention_id}
-      onEndReached={handlePageIncrement}
-    />
+    <>
+      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={delteData} secondaryHandler={handleDelte} />
+
+      <FlashList
+        data={interventionData}
+        renderItem={({ item }) => (
+          <InterventionCard
+            item={item}
+            key={item.intervention_id}
+            openIntervention={showInfoModal}
+          />
+        )}
+        estimatedItemSize={100}
+        refreshControl={
+          <RefreshControl
+            refreshing={loading}
+            onRefresh={refreshHandler}
+          />}
+        ListFooterComponent={<View style={styles.footerWrapper} />}
+        ListEmptyComponent={() => (emptyInterventoin())}
+        ListHeaderComponent={
+          <InterventionHeaderSelector
+            selectedLabel={selectedLabel}
+            setSlectedLabel={setSlectedLabel}
+          />
+        }
+        onEndReachedThreshold={0.3}
+        // keyExtractor={({ intervention_id }) => intervention_id}
+        onEndReached={handlePageIncrement}
+      />
+    </>
   )
 }
 
