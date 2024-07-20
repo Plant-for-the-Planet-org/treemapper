@@ -46,6 +46,7 @@ const InterventionArea = (props: Props) => {
         openPolygon={openEdit}
         showEdit={data.status !== 'SYNCED'}
         isEntireSite={data.entire_site}
+        intervention={data}
       />
       {/* <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={type} /> */}
     </View>

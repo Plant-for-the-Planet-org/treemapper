@@ -144,6 +144,7 @@ const InterventionPreviewView = () => {
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
   }
+  
 
   return (
     <SafeAreaView style={styles.container}>
