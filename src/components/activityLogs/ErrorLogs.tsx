@@ -32,7 +32,7 @@ const ErrorLogs = () => {
         const end = start + 20;
         const objects = realm
             .objects(RealmSchema.ActivityLogs)
-            .filtered("logType == 'error'")
+            .filtered("logLevel == 'error'")
             .sorted('timestamp', true)
             .slice(start, end);
         setLogs(currentPage ? [...logs, ...objects] : [...objects])
