@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import Maplibre from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
@@ -46,8 +46,8 @@ const PolygonMarkerMap = (props: Props) => {
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
 
-  const cameraRef = useRef<Maplibre.CameraRef>(null)
-  const mapRef = useRef<Maplibre.MapViewRef>(null)
+  const cameraRef = useRef<MapLibreGL.Camera>(null)
+  const mapRef = useRef<MapLibreGL.MapView>(null)
 
 
 
@@ -167,7 +167,7 @@ const PolygonMarkerMap = (props: Props) => {
         id={currentCoordinate.id}
         undo={handlePreviousPoint}
       />
-      <Maplibre.MapView
+      <MapLibreGL.MapView
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
@@ -178,15 +178,15 @@ const PolygonMarkerMap = (props: Props) => {
         }}
         attributionEnabled={false}
         styleURL={JSON.stringify(MapStyle)}>
-        <Maplibre.Camera ref={cameraRef} />
-        <Maplibre.UserLocation
+        <MapLibreGL.Camera ref={cameraRef} />
+        <MapLibreGL.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
           minDisplacement={1}
         />
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
-      </Maplibre.MapView>
+      </MapLibreGL.MapView>
 
       {polygonComplete && (
         <View style={styles.btnFooter}>

@@ -6,7 +6,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import useOfflineMapManager from 'src/hooks/realm/useOfflineMapManger'
-import Maplibre from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import DeleteModal from '../common/DeleteModal'
 
 const OfflineMapList = () => {
@@ -18,7 +18,7 @@ const OfflineMapList = () => {
     return data
   })
   const handleDelte = async (item: any) => {
-    await Maplibre.offlineManager.invalidatePack(item.name)
+    await MapLibreGL.offlineManager.invalidatePack(item.name)
     await deleteOfflineMap(item)
     setDeleteData(null)
   }

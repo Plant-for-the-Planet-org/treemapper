@@ -119,7 +119,7 @@ const InterventionFormView = () => {
     InterventionJSON.project_name = currentProject.projectName
     InterventionJSON.project_id = currentProject.projectId
     InterventionJSON.site_name = projectSite.siteName
-    InterventionJSON.site_id = projectSite.siteId
+    InterventionJSON.site_id = projectSite.siteId// todo inital site data should be selected for RO
     const result = await initializeIntervention(InterventionJSON)
     if (result) {
       if (InterventionJSON.location_type === 'Point') {

@@ -1,5 +1,5 @@
 import React from 'react'
-import Maplibre from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import { PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import { View, StyleSheet, Pressable } from 'react-native'
 import { Typography, Colors } from 'src/utils/constants'
@@ -16,7 +16,7 @@ const PlotMarker = (props: Props) => {
   const renderMarkers = () => {
     const filterdData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
     return filterdData.map((el, i) => (
-      <Maplibre.MarkerView
+      <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
         anchor={
           { x: 0.55, y: 0.4 }
@@ -26,7 +26,7 @@ const PlotMarker = (props: Props) => {
         <Pressable style={styles.container} onPress={() => { onMarkerPress(el.plot_plant_id) }}>
           <View style={[styles.markerContainer, { backgroundColor: !el.is_alive ? Colors.TEXT_LIGHT : el.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]} />
         </Pressable>
-      </Maplibre.MarkerView>
+      </MapLibreGL.MarkerView>
     ))
   }
   return renderMarkers()

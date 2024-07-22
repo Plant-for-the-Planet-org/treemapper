@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React from 'react'
-import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 
 
@@ -42,7 +42,7 @@ interface Props {
 const ClusterdShapSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
   return (
-    <Maplibre.ShapeSource
+    <MapLibreGL.ShapeSource
       id={'polygon'}
       shape={geoJSON}
       onPress={(e) => {
@@ -50,7 +50,7 @@ const ClusterdShapSource = (props: Props) => {
           onShapeSourcePress(e.features[0].properties.id || '')
         }
       }}>
-      <Maplibre.FillLayer
+      <MapLibreGL.FillLayer
         id={'inactivePolyFill'} // Unique ID for inactive FillLayer
         style={{
           fillOpacity: [
@@ -61,11 +61,11 @@ const ClusterdShapSource = (props: Props) => {
           fillColor: FillColor
         }}
       />
-      <Maplibre.LineLayer
+      <MapLibreGL.LineLayer
         id={'polylwne'}
         style={{ ...polyline, lineColor: FillColor }}
       />
-    </Maplibre.ShapeSource>
+    </MapLibreGL.ShapeSource>
   )
 }
 

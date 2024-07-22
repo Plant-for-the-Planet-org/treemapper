@@ -28,8 +28,8 @@ const useInterventionManagement = () => {
       return Promise.reject(false)
     }
     const data: InterventionData = {
-      form_id: interventoin.form_id, // Use form_id when using it locally
-      intervention_id: interventoin.form_id, // Add the id from the server later or replace it
+      form_id: interventoin.form_id,
+      intervention_id: interventoin.form_id,
       location_id: '',
       intervention_key: interventoin.key,
       intervention_title: interventoin.title,

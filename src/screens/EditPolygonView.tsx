@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
-import Maplibre  from '@maplibre/maplibre-react-native'
+import MapLibreGL  from '@maplibre/maplibre-react-native'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
@@ -38,8 +38,8 @@ const EditPolygonMap = () => {
     // const [_currentStep, setSteps] = useState(0)
     console.log("history", history)
     const { updateInterventionLocation } = useInterventionManagement()
-    const cameraRef = useRef<Maplibre.CameraRef>(null)
-    const mapRef = useRef<Maplibre.MapViewRef>(null)
+    const cameraRef = useRef<MapLibreGL.Camera>(null)
+    const mapRef = useRef<MapLibreGL.MapView>(null)
     const [coordinates, setCoordinates] = useState([])
     const toast = useToast();
 
@@ -188,15 +188,15 @@ const EditPolygonMap = () => {
             <EditDispalyCurrentPolygonMarker
                 goBack={goBack}
             />
-            <Maplibre.MapView
+            <MapLibreGL.MapView
                 style={styles.map}
                 ref={mapRef}
                 logoEnabled={false}
                 onDidFinishLoadingMap={setUpPolygon}
                 attributionEnabled={false}
                 styleURL={JSON.stringify(MapStyle)}>
-                <Maplibre.Camera ref={cameraRef} />
-                <Maplibre.UserLocation
+                <MapLibreGL.Camera ref={cameraRef} />
+                <MapLibreGL.UserLocation
                     showsUserHeadingIndicator
                     androidRenderMode="gps"
                     minDisplacement={1}
@@ -207,7 +207,7 @@ const EditPolygonMap = () => {
                     hasSampleTree={Interverntion.has_sample_trees}
                     overLay
                     sampleTreeData={Interverntion.sample_trees} />}
-            </Maplibre.MapView>
+            </MapLibreGL.MapView>
 
 
             <View style={styles.btnFooter}>

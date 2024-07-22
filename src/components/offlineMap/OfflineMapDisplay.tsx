@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
-import Maplibre from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { getAreaName } from 'src/api/api.fetch'
@@ -84,7 +84,7 @@ const OfflineMapDisplay = () => {
         areaName = LocationDetails.features[0].place_name
         setAreaName(areaName)
       }
-      await Maplibre.offlineManager.createPack(
+      await MapLibreGL.offlineManager.createPack(
         {
           name: offlineMapId,
           styleURL: process.env.EXPO_PUBLIC_OFFLINE_LINK,
@@ -107,20 +107,20 @@ const OfflineMapDisplay = () => {
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <View style={styles.mapStyle}>
-          <Maplibre.MapView ref={mapRef} style={styles.mainMapStyle}
+          <MapLibreGL.MapView ref={mapRef} style={styles.mainMapStyle}
             logoEnabled={false}
             compassViewPosition={3}
             attributionEnabled={false}
             onDidFinishLoadingMap={handleCamera}
             compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
             styleURL={JSON.stringify(MapStyle)}>
-            <Maplibre.Camera ref={cameraRef} />
-            <Maplibre.UserLocation
+            <MapLibreGL.Camera ref={cameraRef} />
+            <MapLibreGL.UserLocation
               showsUserHeadingIndicator
               androidRenderMode="gps"
               minDisplacement={1}
             />
-          </Maplibre.MapView>
+          </MapLibreGL.MapView>
         </View>
         <CustomButton
           label="Save Area"

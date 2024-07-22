@@ -4,7 +4,6 @@ import {
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { Colors } from '../constants'
-import { Metadata } from 'src/types/interface/app.interface'
 import { setUpIntervention } from './formHelper/selectIntervention'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 export const getPreviewData = (data: RegisterFormSliceInitalState) => {
@@ -22,72 +21,6 @@ export const getPreviewData = (data: RegisterFormSliceInitalState) => {
   return { previewImage, basicInfo }
 }
 
-export const convertFormDataToIntervention = (
-  data: RegisterFormSliceInitalState,
-  meta_data: Metadata[]
-) => {
-  const interventionLocation = makeInterventionGeoJson(
-    data.location_type,
-    data.coordinates,
-    data.form_id,
-  )
-  // let additional_data = convertAdditionalData(data)
-  // if (data.additional_data.length > 0) {
-  //   const exsitingData = additional_data.length > 0 ? JSON.parse(additional_data) : [];
-  //   additional_data = JSON.stringify({ ...exsitingData, ...JSON.parse(data.additional_data) })
-  // }
-  const tranformedMetaData = convertMetaData(meta_data);
-  const finalData: InterventionData = {
-    intervention_id: data.form_id,
-    intervention_key: data.key,
-    intervention_title: data.title,
-    intervention_date: data.intervention_date,
-    project_id: data.project_id,
-    project_name: data.project_name,
-    site_name: data.site_name,
-    location_type: data.location_type,
-    location: {
-      type: interventionLocation.type,
-      coordinates: interventionLocation.coordinates,
-    },
-    image: data.cover_image_url,
-    has_species: data.species_required,
-    has_sample_trees: data.has_sample_trees,
-    sample_trees: data.tree_details,
-    is_complete: false,
-    site_id: data.site_id,
-    intervention_type: data.key,
-    form_data: data.form_data,
-    additional_data: data.additional_data,
-    meta_data: tranformedMetaData,
-    status: 'INIIALIZED',
-    hid: '',
-    coords: {
-      type: 'Point',
-      coordinates: data.coordinates[0]
-    },
-    entire_site: data.entire_site_selected,
-    last_screen: 'FORM',
-    planted_species: data.plantedSpecies,
-    form_id: '',
-    image_data: {
-      latitude: 0,
-      longitude: 0,
-      imageUrl: '',
-      cdnImageUrl: '',
-      currentloclat: 0,
-      currentloclong: 0,
-      isImageUploaded: false,
-      coordinateID: ''
-    },
-    location_id: '',
-    locate_tree: '',
-    registration_date: 0,
-    remeasuremnt_required: false,
-    next_measurement_date: 0
-  }
-  return finalData
-}
 
 export const makeInterventionGeoJson = (
   type: string,
@@ -167,26 +100,6 @@ export const convertInterventionFormData = (d: FormElement[]) => {
 //     // })
 //     return ''
 //   }
-
-
-const convertMetaData = (d: Metadata[]) => {
-  if (d.length == 0) {
-    return ''
-  }
-  const data = {}
-  d.forEach(el => {
-    data[el.key] = {
-      value: el.value,
-      label: el.key,
-    }
-  })
-  return JSON.stringify({
-    ...{ public: data }
-  })
-}
-
-
-
 
 
 export const getInterventionColor = (key) => {

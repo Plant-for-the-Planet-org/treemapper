@@ -1,6 +1,6 @@
 import {StyleSheet} from 'react-native'
 import React from 'react'
-import Maplibre from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import {Colors} from 'src/utils/constants'
 
 interface Props {
@@ -12,7 +12,7 @@ const LineMarker = (props: Props) => {
     return null
   }
   return (
-    <Maplibre.ShapeSource
+    <MapLibreGL.ShapeSource
       id={'polygon'}
       shape={{
         type: 'FeatureCollection',
@@ -27,8 +27,8 @@ const LineMarker = (props: Props) => {
           },
         ],
       }}>
-      <Maplibre.LineLayer id={'polylwine'} style={styles.lineStyle} />
-    </Maplibre.ShapeSource>
+      <MapLibreGL.LineLayer id={'polylwine'} style={styles.lineStyle} />
+    </MapLibreGL.ShapeSource>
   )
 }
 

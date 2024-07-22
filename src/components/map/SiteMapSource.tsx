@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import Maplibre, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -89,15 +89,15 @@ const SiteMapSource = (props: Props) => {
     return null
   }
   return (
-    <Maplibre.ShapeSource id={'projectSites'} shape={{
+    <MapLibreGL.ShapeSource id={'projectSites'} shape={{
       type: 'FeatureCollection',
       features: geoJSON.length ? [...geoJSON] : [],
     }}>
-      <Maplibre.LineLayer
+      <MapLibreGL.LineLayer
         id={'projectSitesPolyline'}
         style={{ ...polyline, lineColor: props.isSattelite ? Colors.WHITE : Colors.PLANET_BLACK }}
       />
-    </Maplibre.ShapeSource>
+    </MapLibreGL.ShapeSource>
   )
 }
 

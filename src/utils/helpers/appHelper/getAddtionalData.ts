@@ -13,6 +13,7 @@ export const getDeviceDetails = () => {
       "Device Manufacturer": Device.manufacturer,
       "Device System Name": Device.osName,
       "Device OS": Device.osVersion,
+      "App Version": "2.0.1", // todo make it dynamic
     };
   } catch (error) {
     return {
