@@ -7,6 +7,7 @@ import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
 import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
 import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
+import InvetoryIcon from 'assets/images/svg/InterventionIcon.svg'
 import DataExpolrerIcon from 'assets/images/svg/DataExplorerIcon.svg'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -71,6 +72,13 @@ const SideBarList = (props: Props) => {
       icon: <LogoutIcon />,
       visible: isLogedIn,
       key: 'logout'
+    },
+    {
+      label: 'Old Data',
+      screen: 'OldInvenoryDataView',
+      icon: <InvetoryIcon />,
+      visible: true,
+      key: 'inventory'
     },
   ]
   return (

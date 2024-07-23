@@ -43,6 +43,7 @@ import AddPlotGroupView from './AddPlotGroupView'
 import AddPlotsToGroupView from './AddPlotToGroupView'
 import TreeRemeasurement from './TreeRemeasurementView'
 import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
+import OldInvenoryDataView from './OldInvenoryDataView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -89,5 +90,6 @@ export default {
   AddPlotGroup: AddPlotGroupView,
   AddPlotsToGroup: AddPlotsToGroupView,
   TreeRemeasurement: TreeRemeasurement,
-  ProjectRemeasurementConfig: ProjectRemeasurementConfig
+  ProjectRemeasurementConfig: ProjectRemeasurementConfig,
+  OldInvenoryData: OldInvenoryDataView
 }

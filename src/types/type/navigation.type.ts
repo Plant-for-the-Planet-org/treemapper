@@ -51,6 +51,7 @@ export type RootStackParamList = {
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
+  OldInvenoryDataView: undefined
 }
 
 type SpeciesInfoView = {

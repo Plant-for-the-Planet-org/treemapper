@@ -75,7 +75,16 @@ export interface Inventory {
   }>
   polygons: Array<{
     type: string
-    coordinates: string
+    coordinates: Array<{
+      latitude: number,
+      longitude: number
+      imageUrl: string
+      cdnImageUrl: string
+      currentloclat: number
+      currentloclong: number
+      isImageUploaded: boolean
+      coordinateID: string
+    }>
   }>
   specieDiameter: number
   specieHeight: number
