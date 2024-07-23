@@ -8,10 +8,11 @@ import WrapperIcon from 'assets/images/svg/ExportJsonIcon.svg'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 
 import { convertData, onlyExportJSON } from 'src/utils/helpers/exportOldInventory'
+import Header from 'src/components/common/Header'
 
 
 const OldInvenoryDataView = () => {
-  const [inventoryData, setInventoryData] = useState<Inventory[]| any>([])
+  const [inventoryData, setInventoryData] = useState<Inventory[] | any>([])
   const realm = useRealm()
   const [loading, setLoading] = useState(false)
   useEffect(() => {
@@ -49,10 +50,11 @@ const OldInvenoryDataView = () => {
 
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor:"white" }}>
       {loading && <View style={{ position: 'absolute', zIndex: 10, alignItems: 'center', justifyContent: 'center', flex: 1, width: '100%', height: '100%' }}>
         <ActivityIndicator size={'large'} />
       </View>}
+      <Header label='Back' />
       <FlatList
         data={inventoryData}
         renderItem={({ item }) => renderItemElement(item)}
@@ -67,9 +69,10 @@ const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: 100,
-    backgroundColor: 'white',
     justifyContent: 'center',
-    marginVertical: 20
+    marginVertical: 20,
+    borderWidth:0.5,
+    borderColor:'lightgray'
   },
   wrapper: {
     flex: 1,
