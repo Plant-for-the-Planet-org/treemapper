@@ -1,8 +1,8 @@
 import { SafeAreaView, StyleSheet } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
-import { Colors } from 'react-native/Libraries/NewAppScreen'
 import ProjectConfigTabView from 'src/components/remeasurement/ProjectConfigTabView'
+import { Colors } from 'src/utils/constants'
 
 const ProjectRemeasurementConfigView = () => {
 

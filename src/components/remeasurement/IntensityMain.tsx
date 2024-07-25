@@ -5,7 +5,7 @@ import { ScrollView } from 'react-native-gesture-handler';
 import { Colors, Typography } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton';
 import { scaleSize } from 'src/utils/constants/mixins';
-import { IntensitySelector } from './IntensitySelector';
+import IntensitySelector from './IntensitySelector';
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 
 interface Props {
@@ -51,7 +51,7 @@ const Intensity = (props: Props) => {
           />
         </ScrollView>
         <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
-          <Text>{i18next.t('label.cant_change_intensity')}</Text>
+          {/* <Text>{i18next.t('label.cant_change_intensity')}</Text> */}
           <CustomButton
             label={i18next.t('label.save')}
             containerStyle={styles.btnContainer}
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   description: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
+    fontSize: 16,
     color: Colors.TEXT_COLOR,
   },
   descriptionMarginTop: {

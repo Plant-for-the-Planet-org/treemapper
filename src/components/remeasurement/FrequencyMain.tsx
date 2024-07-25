@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     },
     description: {
       fontFamily: Typography.FONT_FAMILY_REGULAR,
-      fontSize: Typography.FONT_SIZE_18,
+      fontSize: 16,
       color: Colors.TEXT_COLOR,
     },
     descriptionMarginTop: {

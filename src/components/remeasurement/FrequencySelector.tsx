@@ -153,8 +153,7 @@ const styles = StyleSheet.create({
   treeCountSelectionText: {
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_18,
-    letterSpacing: 0.5,
+    fontSize: 16,
     textAlign: 'center',
     fontWeight: Typography.FONT_WEIGHT_BOLD,
   },
