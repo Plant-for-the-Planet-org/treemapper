@@ -53,7 +53,7 @@ export const getAllSpeciesArchieve = async () => {
 };
 
 export const getServerIntervention = async (uri?: string) => {
-  const url = uri.length > 0 ? `${getUrlApi.getBaseUrl}${uri}` : getUrlApi.getAllPlantLocations
+  const url = uri.length > 0 ? `${getUrlApi.getBaseUrl}/${uri}` : getUrlApi.getAllPlantLocations
   const result = await fetchGetCall(url, true);
   return result;
 };
