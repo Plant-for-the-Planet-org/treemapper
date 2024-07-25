@@ -9,7 +9,7 @@ const initialState: AppInitialState = {
   expiringAt: 0,
   speciesSync: false,
   serverInterventionAdded: false,
-  lastServerInterventionpage: 'treemapper/plantLocations?limit=10&_scope=extended',
+  lastServerInterventionpage: '',
   intervention_updated: 0,
   userSpecies:false
 }

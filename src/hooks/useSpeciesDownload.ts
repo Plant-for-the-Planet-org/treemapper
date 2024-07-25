@@ -3,14 +3,14 @@ import * as FileSystem from 'expo-file-system'
 import { unzip } from 'react-native-zip-archive'
 import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import useLogManagement from './realm/useLogManagement'
+import { getUrlApi } from 'src/api/api.url'
 
 const useDownloadFile = () => {
   const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
   const [finalURL, setFinalURL] = useState<string | null>(null)
   const { addNewLog } = useLogManagement()
 
-  const API_ENDPOINT = process.env.EXPO_PUBLIC_API_ENDPOINT
-  const fileUrl = `https://${API_ENDPOINT}/treemapper/scientificSpeciesArchive`
+  const fileUrl = getUrlApi.getAllSpeciesArchieve
   const zipFilePath = `${FileSystem.cacheDirectory}archive.zip`
   const targetFilePath = `${FileSystem.cacheDirectory}unzipped`
 
