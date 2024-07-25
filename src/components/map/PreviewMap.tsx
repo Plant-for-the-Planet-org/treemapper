@@ -78,7 +78,7 @@ const PreviewMap = (props: Props) => {
         {showEdit && !isEntireSite ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
-        {intervention && intervention.has_sample_trees ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
+        {intervention && intervention.has_sample_trees && intervention.status !== 'SYNCED' ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
           <Text style={styles.sampleTreeLable}>Sample Tree</Text>
           <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
         </TouchableOpacity> : null}
