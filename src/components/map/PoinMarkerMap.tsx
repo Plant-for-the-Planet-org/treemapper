@@ -132,6 +132,7 @@ const PointMarkerMap = (props: Props) => {
     if (b) {
       setAlertModal(false)
     } else {
+      setAlertModal(false)
       onSelectLocation()
     }
   }
