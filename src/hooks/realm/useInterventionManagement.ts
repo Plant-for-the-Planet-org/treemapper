@@ -265,7 +265,7 @@ const useInterventionManagement = () => {
   const deleteAllSyncedIntervention = async (): Promise<boolean> => {
     try {
       realm.write(() => {
-        const unSyncedObjects = realm.objects(RealmSchema.Intervention);
+        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status==SYNCED');
         realm.delete(unSyncedObjects);
       });
       return Promise.resolve(true);
