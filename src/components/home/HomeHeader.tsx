@@ -121,6 +121,8 @@ const HomeHeader = (props: Props) => {
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
+  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN","loc_fVSURzjYpGU0ozFD60dPrbJF","loc_8HnYd9gTXBt108EUALRiEhnp"]
+
   const addServerIntervention = async () => {
     try {
       const result = await getServerIntervention(lastServerInterventionpage)
@@ -129,9 +131,9 @@ const HomeHeader = (props: Props) => {
         if (!result._links.next || result._links.next === result._links.self) {
           dispatch(updateServerIntervetion(true))
           return;
-        }
+        }//loc_fVSURzjYpGU0ozFD60dPrbJF
         for (let index = 0; index < result.count; index++) {
-          if (result.items[index] && result.items[index].id === 'loc_8HnYd9gTXBt108EUALRiEhnp') {
+          if (result.items[index] && deleteThis.includes(result.items[index].id)) {
             continue;
           }
           const element = convertInevtoryToIntervention(result.items[index]);

@@ -214,6 +214,11 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
+    let remeasuremnt_required = rData.requireRemeasurement
+    const markeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
+    if (markeForRemeasurement) {
+        remeasuremnt_required = true
+    }
     const finalData: InterventionData = {
         intervention_id: data.id,
         intervention_key: extraData.key,
@@ -247,7 +252,7 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         image_data: [],
         location_id: data.id,
         locate_tree: "",
-        remeasuremnt_required: rData.requireRemeasurement,
+        remeasuremnt_required: remeasuremnt_required,
         next_measurement_date: rData.d
     }
     return finalData

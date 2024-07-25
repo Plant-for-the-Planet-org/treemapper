@@ -93,10 +93,7 @@ const InterventionPreviewView = () => {
       navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
-
-
-
-
+  
 
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
