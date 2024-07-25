@@ -65,6 +65,7 @@ const PolygonShapeSource = (props: Props) => {
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
+      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
       <MapLibreGL.CircleLayer id={'entireSite'} style={{
         circleOpacity: 0.9, circleColor: FillColor, circleRadius: [
           'interpolate',
@@ -81,7 +82,6 @@ const PolygonShapeSource = (props: Props) => {
       }}
         filter={['==', ['get', 'site'], true]}
       />
-      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
     </MapLibreGL.ShapeSource>
   )
 }
