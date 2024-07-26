@@ -102,7 +102,7 @@ const CreatePlotDetailsView = () => {
                 return
             }
             if (Number(plotWidth) < 4 || Number(plotLength) < 25) {
-                toast.show("Please add valid Dimenstions as per note")
+                toast.show("Please add valid Dimensions as per note")
                 return
             }
         } else {
@@ -135,7 +135,7 @@ const CreatePlotDetailsView = () => {
             }
             navigation.replace('CreatePlotMap', { id: plotID })
         } else {
-            toast.show("Error occured while adding data")
+            toast.show("Error occurred while adding data")
         }
     }
 

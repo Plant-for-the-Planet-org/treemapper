@@ -118,7 +118,7 @@ const PointMarkerMap = (props: Props) => {
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
       if (!result) {
         errotHaptic()
-        toast.show("Error occured while updating intervention location")
+        toast.show("Error occurred while updating intervention location")
         return;
       }
     }
@@ -172,7 +172,7 @@ const PointMarkerMap = (props: Props) => {
       const validSampleTree = handleMarkerValidation(centerCoordinates)
       if (!validSampleTree) {
         errotHaptic()
-        toast.show("Point is very close to already registerd sample tree.", {
+        toast.show("Point is very close to already registered sample tree.", {
           type: "normal",
           placement: "bottom",
           duration: 2000,

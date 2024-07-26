@@ -77,7 +77,7 @@ const InterventionFormView = () => {
     if (result.hasError) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: "Error Occured while creating root folder",
+        message: "Error occurred while creating root folder",
         logLevel: 'error',
         statusCode: '',
         logStack: result.msg
@@ -131,7 +131,7 @@ const InterventionFormView = () => {
       }
       dispatch(updateNewIntervention())
     } else {
-      toast.show("Error occured while adding intervention")
+      toast.show("Error occurred while adding intervention")
       errotHaptic()
     }
   }
@@ -260,7 +260,7 @@ const InterventionFormView = () => {
           const locationUpdated = await updateInterventionLocation(registerForm.form_id, { type: 'Polygon', coordinates: coordinates }, true)
           if (!locationUpdated) {
             errotHaptic()
-            toast.show("Error occured while updating location")
+            toast.show("Error occurred while updating location")
             return
           }
           if (registerForm.species_required) {
@@ -282,17 +282,17 @@ const InterventionFormView = () => {
       } else {
         addNewLog({
           logType: 'INTERVENTION',
-          message: 'Error occured while creating intervention',
+          message: 'Error occurred while creating intervention',
           logLevel: 'error',
           statusCode: ''
         })
-        toast.show("Error occured while creating intervention")
+        toast.show("Error occurred while creating intervention")
         errotHaptic()
       }
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while creating intervention',
+        message: 'Error occurred while creating intervention',
         logLevel: 'error',
         statusCode: '12',
         logStack: JSON.stringify(error)

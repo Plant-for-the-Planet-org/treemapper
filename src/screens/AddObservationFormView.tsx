@@ -122,7 +122,7 @@ const AddObeservationForm = () => {
             toast.show("Observation deleted")
             navigation.goBack()
         } else {
-            toast.show("Error occured while deleting")
+            toast.show("Error occurred while deleting")
         }
     }
 
@@ -139,7 +139,7 @@ const AddObeservationForm = () => {
             toast.show("Observation details updated")
             navigation.goBack()
         } else {
-            toast.show("Error occured while updating")
+            toast.show("Error occurred while updating")
         }
     }
 

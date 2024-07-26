@@ -73,7 +73,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         } else {
             dispatch(updateSyncDetails(false))
             setMoreUplaod(false)
-            toast.show("Syncing Failed, Please try again")
+            toast.show("Syncing failed, Please try again")
             return
         }
         const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
@@ -109,11 +109,11 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     if (response) {
                         const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
                         if (!result) {
-                            console.log("Error updating  intervention")
+                            console.log("Error updating intervention")
                         }
                     }
                 } catch (error) {
-                    console.log("error occured indvidual upload", +error)
+                    console.log("Error occurred individual upload", +error)
                 }
             }
 
@@ -133,7 +133,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                         }
                     }
                 } catch (error) {
-                    console.log("error occured indvidual upload", +error)
+                    console.log("error occurred individual upload", +error)
                 }
 
             }
@@ -151,7 +151,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                         //failed to write to db
                     }
                 } catch (error) {
-                    console.log("error occured indvidual upload", error)
+                    console.log("error occurred individual upload", error)
                 }
             }
 
@@ -166,7 +166,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                     })
                     await updateTreeImageStatus(el.p2Id, el.p1Id)
                 } catch (error) {
-                    console.log("error occured indivua" + error)
+                    console.log("error occurred individual upload" + error)
                 }
             }
         }
@@ -227,7 +227,3 @@ const styles = StyleSheet.create({
         marginLeft: 5
     }
 })
-
-
-
-
