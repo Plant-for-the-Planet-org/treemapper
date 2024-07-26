@@ -18,6 +18,7 @@ import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
 import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { updateNewIntervention } from 'src/store/slice/appStateSlice';
 
 interface Props {
     isLogedIn: boolean
@@ -82,6 +83,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             setTimeout(() => {
                 setUploadData(prioritizeData)
             }, 2000);
+            dispatch(updateNewIntervention())
         } else {
             dispatch(updateSyncDetails(false))
             setMoreUplaod(false)
