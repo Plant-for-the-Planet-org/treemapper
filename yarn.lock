@@ -1430,10 +1430,10 @@
   resolved "https://registry.yarnpkg.com/@mapbox/sphericalmercator/-/sphericalmercator-1.2.0.tgz#55d4896be906bfff859e22a1d72267329a0fff90"
   integrity sha512-ZTOuuwGuMOJN+HEmG/68bSEw15HHaMWmQ5gdTsWdWsjDe56K1kGvLOK6bOSC8gWgIvEO0w6un/2Gvv1q5hJSkQ==
 
-"@maplibre/maplibre-react-native@10.0.0-alpha.5":
-  version "10.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/@maplibre/maplibre-react-native/-/maplibre-react-native-10.0.0-alpha.5.tgz#6b4ac4de0976ab432de38aeee564970371a30107"
-  integrity sha512-xITqPYnBJxfyM3TpRVjLC+8iLYXrogeTdOqGXLbgK9HbpuW/lIERUez++oPzO/h17tkjFUQ3Rd4ZaXdjYjPxkA==
+"@maplibre/maplibre-react-native@10.0.0-alpha.2":
+  version "10.0.0-alpha.2"
+  resolved "https://registry.yarnpkg.com/@maplibre/maplibre-react-native/-/maplibre-react-native-10.0.0-alpha.2.tgz#8ce709541786306fcdbc869db18b75b4ca4b0e6b"
+  integrity sha512-s65y9umA52W0xzZZ8A0fv7E6ko35DPU2HmvF38l7RicjXFfa3t4rQ55AmvEViz2Lypu5QEZLkFuYWe/lD6FP0g==
   dependencies:
     "@mapbox/geo-viewport" ">= 0.4.0"
     "@turf/along" "6.5.0"
@@ -1443,7 +1443,7 @@
     "@turf/nearest-point-on-line" "6.5.0"
     "@types/geojson" "^7946.0.10"
     "@types/react-native" "0.67.8"
-    debounce "^2.0.0"
+    debounce "^1.2.0"
 
 "@motionone/animation@^10.12.0":
   version "10.18.0"
@@ -5192,10 +5192,10 @@ dayjs@^1.8.15:
   resolved "https://registry.yarnpkg.com/dayjs/-/dayjs-1.11.11.tgz#dfe0e9d54c5f8b68ccf8ca5f72ac603e7e5ed59e"
   integrity sha512-okzr3f11N6WuqYtZSvm+F776mB41wRZMhKP+hc34YdW+KmtYYK9iqvHSwo2k9FEH3fhGXvOPV6yz2IcSrfRUDg==
 
-debounce@^2.0.0:
-  version "2.1.0"
-  resolved "https://registry.yarnpkg.com/debounce/-/debounce-2.1.0.tgz#eab25eaf254b848fcfccffbde75bdaa44842caa3"
-  integrity sha512-OkL3+0pPWCqoBc/nhO9u6TIQNTK44fnBnzuVtJAbp13Naxw9R6u21x+8tVTka87AhDZ3htqZ2pSSsZl9fqL2Wg==
+debounce@^1.2.0:
+  version "1.2.1"
+  resolved "https://registry.yarnpkg.com/debounce/-/debounce-1.2.1.tgz#38881d8f4166a5c5848020c11827b834bcb3e0a5"
+  integrity sha512-XRRe6Glud4rd/ZGQfiV1ruXSfbvfJedlV9Y6zOlP+2K04vBYiJEte6stfFkCP03aMnY5tsipamumUjL14fofug==
 
 debug@2.6.9, debug@^2.2.0, debug@^2.6.9:
   version "2.6.9"
