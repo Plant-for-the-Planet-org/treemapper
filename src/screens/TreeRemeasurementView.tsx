@@ -1,4 +1,4 @@
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
@@ -23,6 +23,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { SCALE_26, SCALE_36 } from 'src/utils/constants/spacing'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 
 const PredefineReasons: Array<{
     label: string
@@ -86,6 +87,13 @@ const TreeRemeasurementView = () => {
         }
     }, [imageDetails])
 
+    useEffect(() => {
+        AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+        return () => {
+            AvoidSoftInput.setShouldMimicIOSBehavior(false);
+        };
+    })
+
     const takePicture = () => {
         const newID = String(new Date().getTime())
         setImageId(newID)
@@ -96,7 +104,7 @@ const TreeRemeasurementView = () => {
     }
 
     const submitHadler = async () => {
-        if(isAlive && imageUri.length==0){
+        if (isAlive && imageUri.length == 0) {
             takePicture()
             return
         }
@@ -132,70 +140,79 @@ const TreeRemeasurementView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} allias={treeDetails.local_name} showRemeasure={true} />
-            <View style={styles.wrapper}>
-                <PlaceHolderSwitch
-                    description={'This tree is still alive'}
-                    selectHandler={setIsAlive}
-                    value={isAlive}
-                />
-                {isAlive ? <>
+            <AvoidSoftInputView
+                avoidOffset={20}
+                style={styles.container}>
+                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} allias={treeDetails.local_name} showRemeasure={true} />
+                <ScrollView>
 
-                    {imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
-                        <Image
-                            source={{
-                                uri: imageUri,
-                            }}
-                            style={styles.imageView}
-                            resizeMode="cover"
+                    <View style={styles.wrapper}>
+                        <PlaceHolderSwitch
+                            description={'This tree is still alive'}
+                            selectHandler={setIsAlive}
+                            value={isAlive}
                         />
-                        <View style={styles.imageControls}>
-                            <TouchableOpacity onPress={takePicture}>
-                                <View style={[styles.iconContainer]}>
-                                    <PenIcon width={SCALE_26} height={SCALE_26} />
+                        {isAlive ? <>
+
+                            {imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
+                                <Image
+                                    source={{
+                                        uri: imageUri,
+                                    }}
+                                    style={styles.imageView}
+                                    resizeMode="cover"
+                                />
+                                <View style={styles.imageControls}>
+                                    <TouchableOpacity onPress={takePicture}>
+                                        <View style={[styles.iconContainer]}>
+                                            <PenIcon width={SCALE_26} height={SCALE_26} />
+                                        </View>
+                                    </TouchableOpacity>
                                 </View>
-                            </TouchableOpacity>
-                        </View>
-                    </View></View>}
-                    <View style={styles.inputWrapper}>
-                        <OutlinedTextInput
-                            placeholder={'Height'}
-                            changeHandler={setHeight}
-                            defaultValue={height}
-                            keyboardType={'decimal-pad'}
-                            trailingtext={'m'} errMsg={''} />
+                            </View></View>}
+                            <View style={styles.inputWrapper}>
+                                <OutlinedTextInput
+                                    placeholder={'Height'}
+                                    changeHandler={setHeight}
+                                    defaultValue={height}
+                                    keyboardType={'decimal-pad'}
+                                    trailingtext={'m'} errMsg={''} />
+                            </View>
+                            <View style={styles.inputWrapper}>
+                                <OutlinedTextInput
+                                    placeholder={'Diameter'}
+                                    changeHandler={setWidth}
+                                    keyboardType={'decimal-pad'}
+                                    defaultValue={width}
+                                    trailingtext={'cm'} errMsg={''} />
+                            </View></> :
+                            <>
+                                <CustomDropDownPicker
+                                    label={'Reason'}
+                                    data={PredefineReasons}
+                                    onSelect={setType}
+                                    selectedValue={type}
+                                />
+                                <View style={styles.inputWrapper}>
+                                    <OutlinedTextInput
+                                        placeholder={'Comments(Optional)'}
+                                        changeHandler={setComment}
+                                        keyboardType={'decimal-pad'}
+                                        defaultValue={width}
+                                        trailingtext={''} errMsg={''} />
+                                </View></>
+                        }
+
                     </View>
-                    <View style={styles.inputWrapper}>
-                        <OutlinedTextInput
-                            placeholder={'Diameter'}
-                            changeHandler={setWidth}
-                            keyboardType={'decimal-pad'}
-                            defaultValue={width}
-                            trailingtext={'cm'} errMsg={''} />
-                    </View></> :
-                    <>
-                        <CustomDropDownPicker
-                            label={'Reason'}
-                            data={PredefineReasons}
-                            onSelect={setType}
-                            selectedValue={type}
-                        />
-                        <View style={styles.inputWrapper}>
-                            <OutlinedTextInput
-                                placeholder={'Comments(Optional)'}
-                                changeHandler={setComment}
-                                keyboardType={'decimal-pad'}
-                                defaultValue={width}
-                                trailingtext={''} errMsg={''} />
-                        </View></>
-                }
-            </View>
-            <CustomButton
-                label={!isAlive?"Save":imageUri.length==0?"Continue":"Save"}
-                containerStyle={styles.btnContainer}
-                pressHandler={submitHadler}
-                hideFadein
-            />
+                </ScrollView>
+
+                <CustomButton
+                    label={!isAlive ? "Save" : imageUri.length == 0 ? "Continue" : "Save"}
+                    containerStyle={styles.btnContainer}
+                    pressHandler={submitHadler}
+                    hideFadein
+                />
+            </AvoidSoftInputView>
         </SafeAreaView>
     )
 }
@@ -220,7 +237,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 40,
+        bottom: 0,
     },
     btnContainedr: {
         width: '100%',
@@ -234,13 +251,13 @@ const styles = StyleSheet.create({
     btnWrapper: {
         width: '48%',
     },
-    imageWrapper:{
-        width:'100%',
-        justifyContent:"center",
-        alignItems:'center',
+    imageWrapper: {
+        width: '100%',
+        justifyContent: "center",
+        alignItems: 'center',
     },
     imageContainer: {
-        width:'90%',
+        width: '90%',
         borderRadius: 50,
         aspectRatio: 1
     },
@@ -254,7 +271,7 @@ const styles = StyleSheet.create({
     },
     imageControls: {
         position: 'absolute',
-        bottom: 10,
+        top: 10,
         right: 10,
 
     },

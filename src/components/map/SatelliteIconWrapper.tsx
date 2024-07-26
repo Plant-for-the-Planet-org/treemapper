@@ -9,8 +9,12 @@ import { RootState } from 'src/store'
 import { updateMainMapView } from 'src/store/slice/displayMapSlice'
 
 
+interface Props {
+    low?: boolean
+}
 
-const SatelliteIconWrapper = () => {
+const SatelliteIconWrapper = (props: Props) => {
+    const { low } = props
     const viewState = useSelector(
         (state: RootState) => state.displayMapState.mainMapView,
     )
@@ -22,7 +26,7 @@ const SatelliteIconWrapper = () => {
     }
 
     return (
-        <TouchableOpacity style={styles.container} onPress={handlePress}>
+        <TouchableOpacity style={[styles.container,{bottom:low?scaleSize(180):scaleSize(220)}]} onPress={handlePress}>
             {viewState === 'SATELLITE' ? <SatteliteIconOn width={25} height={25} /> : <SatteliteIcon width={25} height={25} />}
         </TouchableOpacity>
     )
@@ -40,7 +44,7 @@ const styles = StyleSheet.create({
         height: 40,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:'white',
-        borderRadius:8
+        backgroundColor: 'white',
+        borderRadius: 8
     },
 })

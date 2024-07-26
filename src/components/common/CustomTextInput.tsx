@@ -11,7 +11,7 @@ interface Props {
 }
 
 const CustomTextInput = (props: Props) => {
-  const { label, onChangeHandler } = props
+  const { label, onChangeHandler, value } = props
   return (
     <Pressable style={styles.container}>
       <InputOutline
@@ -21,8 +21,9 @@ const CustomTextInput = (props: Props) => {
         paddingVertical={18}
         activeColor={Colors.PRIMARY}
         returnKeyType="done"
-        inactiveColor={Colors.GRAY_BORDER}
+        value={value}
         placeholderTextColor={Colors.GRAY_BORDER}
+        defaultValue={value}
         onChangeText={onChangeHandler}
         fontSize={scaleFont(18)}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}

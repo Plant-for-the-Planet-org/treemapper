@@ -18,6 +18,8 @@ import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import SatelliteIconWrapper from './SatelliteIconWrapper'
+import SatteliteLayer from 'assets/mapStyle/satteliteView'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -49,7 +51,9 @@ const PolygonMarkerMap = (props: Props) => {
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
-
+  const mainMapView = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView
+  )
 
 
   useEffect(() => {
@@ -177,7 +181,7 @@ const PolygonMarkerMap = (props: Props) => {
           setLoading(true)
         }}
         attributionEnabled={false}
-        styleURL={JSON.stringify(MapStyle)}>
+        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
@@ -187,7 +191,7 @@ const PolygonMarkerMap = (props: Props) => {
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>
-
+      <SatelliteIconWrapper low/>
       {polygonComplete && (
         <View style={styles.btnFooter}>
           <CustomButton

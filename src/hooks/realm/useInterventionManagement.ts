@@ -564,6 +564,9 @@ const useInterventionManagement = () => {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''
         }
+        if(e.status){
+          treeDetails.is_alive = false
+        }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
       });

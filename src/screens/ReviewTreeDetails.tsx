@@ -160,6 +160,14 @@ const ReviewTreeDetails = () => {
         setTreeDetails({ ...finalDetails })
     }
 
+    const renderDecesasedText = () => {
+        if(treeDetails.is_alive){
+            return null
+        }
+        return <View style={styles.rightContainer}>
+            <Text style={styles.deceasedLabel}>Marked Deceased</Text>
+        </View>
+    }
 
     if (!treeDetails) {
         return null
@@ -169,14 +177,14 @@ const ReviewTreeDetails = () => {
     return (
         <SafeAreaView style={styles.container}>
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
-            <Header label={headerLabel} />
+            <Header label={headerLabel} rightComponet={renderDecesasedText()} />
             <ScrollView>
                 <View style={styles.container}>
                     <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (editTree && synced) {
+                            if (editTree && synced && !Intervention.has_sample_trees) {
                                 return
                             }
                             openEdit('sepcies', String(treeDetails.specie_height), 'number-pad')
@@ -184,7 +192,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
-                            {editTree && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            {editTree && !synced && !Intervention.has_sample_trees? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
@@ -358,6 +366,20 @@ const styles = StyleSheet.create({
     btnWrapper: {
         flex: 1,
         width: '90%',
+    },
+    rightContainer:{
+        justifyContent:'center',
+        alignItems:'center',
+        marginRight:10,
+        paddingHorizontal:10,
+        paddingVertical:10,
+        backgroundColor: Colors.GRAY_BACKDROP,
+        borderRadius:12
+    },
+    deceasedLabel:{
+        color:Colors.WHITE,
+        fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
+        fontSize:12,
     },
     borderWrapper: {
         flexDirection: 'row',

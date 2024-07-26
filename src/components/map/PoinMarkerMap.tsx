@@ -27,6 +27,8 @@ import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import MapLibreGL from '@maplibre/maplibre-react-native'
+import SatelliteIconWrapper from './SatelliteIconWrapper'
+import SatteliteLayer from 'assets/mapStyle/satteliteView'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -48,6 +50,9 @@ const PointMarkerMap = (props: Props) => {
   const { boundry } = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
+  )
+  const mainMapView = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView
   )
   const { updateInterventionLocation } = useInterventionManagement()
   const dispatch = useDispatch()
@@ -195,7 +200,7 @@ const PointMarkerMap = (props: Props) => {
         onRegionIsChanging={() => {
           setLoading(true)
         }}
-        styleURL={JSON.stringify(MapStyle)}>
+        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
@@ -213,6 +218,7 @@ const PointMarkerMap = (props: Props) => {
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
+      <SatelliteIconWrapper low/>
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}
