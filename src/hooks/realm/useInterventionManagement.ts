@@ -265,7 +265,7 @@ const useInterventionManagement = () => {
   const deleteAllSyncedIntervention = async (): Promise<boolean> => {
     try {
       realm.write(() => {
-        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status==SYNCED');
+        const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
         realm.delete(unSyncedObjects);
       });
       return Promise.resolve(true);
@@ -559,6 +559,10 @@ const useInterventionManagement = () => {
           ...treeDetails.remeasurement_dates,
           lastMeasurement: Date.now(),
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
+        }
+        if(e.imageUrl && !e.status){
+          treeDetails.image_url = e.imageUrl
+          treeDetails.cdn_image_url = ''
         }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]

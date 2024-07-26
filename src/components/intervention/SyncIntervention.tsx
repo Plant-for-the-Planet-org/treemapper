@@ -17,14 +17,10 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { uploadIntervention } from 'src/api/api.fetch';
+import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 
 interface Props {
     isLogedIn: boolean
-}
-
-function delayMimic(ms) {
-    return new Promise(resolve => setTimeout(resolve, ms));
 }
 
 
@@ -34,10 +30,12 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
+    const [retryCount, setRetry] = useState(10)
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
     const dispatch = useDispatch()
+    const [showFullSync, setFullSync] = useState(false)
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
@@ -52,6 +50,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
 
     const showLogin = () => {
+        setRetry(10)
         if (!isLogedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -65,8 +64,16 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             showLogin()
             return
         }
-        if(!isSyncing){
+        if (!isSyncing) {
             dispatch(updateSyncDetails(true))
+        }
+        if (retryCount > 1) {
+            setRetry(prev => prev-1)
+        } else {
+            dispatch(updateSyncDetails(false))
+            setMoreUplaod(false)
+            toast.show("Syncing Failed, Please try again")
+            return
         }
         const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const prioritizeData = queeData.sort((a, b) => a.priotiry - b.priotiry);
@@ -78,6 +85,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         } else {
             dispatch(updateSyncDetails(false))
             setMoreUplaod(false)
+            setFullSync(true)
             toast.show("All data is synced")
         }
     }
@@ -91,12 +99,11 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         for (const el of d) {
             if (el.type === 'intervention') {
                 try {
-                    const body = getPostBody(el)
+                    const body = await getPostBody(el)
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
-                    const response = await uploadIntervention(body,url)
+                    const response = await uploadIntervention(body)
                     if (response) {
                         const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
                         if (!result) {
@@ -110,12 +117,11 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
             if (el.type === 'singleTree') {
                 try {
-                    const body = getPostBody(el)
+                    const body = await getPostBody(el)
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
-                    const response = await uploadIntervention(body,url)
+                    const response = await uploadIntervention(body)
                     if (response) {
                         const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
                         if (result) {
@@ -132,29 +138,30 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
             if (el.type === 'sampleTree') {
                 try {
-                    const body = getPostBody(el)
+                    const body = await getPostBody(el)
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    const url = process.env.EXPO_PUBLIC_N8N_INTERVENTION;
-                    const response = await uploadIntervention(body, url)
+                    const response = await uploadIntervention(body)
                     if (response) {
                         await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates)
                     } else {
                         //failed to write to db
                     }
                 } catch (error) {
-                    console.log("error occured indvidual upload", +error)
+                    console.log("error occured indvidual upload", error)
                 }
             }
 
             if (el.type === 'treeImage') {
                 try {
-                    const body = getPostBody(el)
+                    const body = await getPostBody(el)
                     if (!body) {
                         throw "Not able to convert body"
                     }
-                    await delayMimic(3000)
+                    await uploadInterventionImage(body.locationId, body.imageId, {
+                        imageFile: body.imageFile
+                    })
                     await updateTreeImageStatus(el.p2Id, el.p1Id)
                 } catch (error) {
                     console.log("error occured indivua" + error)
@@ -163,11 +170,6 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         }
         startSyncingData()
     }
-
-
-
-
-
 
     const renderSyncView = () => (
         <View style={styles.container}>
@@ -196,7 +198,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     const renderTile = () => {
         if (isSyncing && !syncRequired) return renderSyncView()
         if (!isSyncing && interventionData.length > 0) return renderUnsyncView()
-        if (isSyncing && syncRequired) return renderFullySyncView()
+        if (showFullSync) return renderFullySyncView()
         return null
     }
 

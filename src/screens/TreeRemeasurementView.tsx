@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { Image, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
@@ -15,10 +15,14 @@ import { BACKDROP_COLOR } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
 import { TREE_RE_STATUS } from 'src/types/type/app.type'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
 import { DropdownData } from 'src/types/interface/app.interface'
 import { v4 as uuid } from 'uuid'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { SCALE_26, SCALE_36 } from 'src/utils/constants/spacing'
 
 const PredefineReasons: Array<{
     label: string
@@ -58,11 +62,14 @@ const TreeRemeasurementView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'TreeRemeasurement'>>()
     const [isAlive, setIsAlive] = useState(true)
     const [comment, setComment] = useState('')
+    const imageDetails = useSelector((state: RootState) => state.cameraState)
+    const [imageId, setImageId] = useState('')
     const toast = useToast()
     const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
     const treeId = route.params && route.params.treeId ? route.params.treeId : ''
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
+    const [imageUri, setImageUri] = useState('')
 
     useEffect(() => {
         if (treeId) {
@@ -73,12 +80,31 @@ const TreeRemeasurementView = () => {
         }
     }, [treeId])
 
+    useEffect(() => {
+        if (imageId === imageDetails.id && imageId !== '') {
+            setImageUri(imageDetails.url)
+        }
+    }, [imageDetails])
+
+    const takePicture = () => {
+        const newID = String(new Date().getTime())
+        setImageId(newID)
+        navigation.navigate('TakePicture', {
+            id: newID,
+            screen: 'REMEASUREMENT_IMAGE',
+        })
+    }
+
     const submitHadler = async () => {
+        if(isAlive && imageUri.length==0){
+            takePicture()
+            return
+        }
         const param: History = {
             history_id: uuid(),
             eventName: isAlive ? 'measurement' : 'status',
             eventDate: Date.now(),
-            imageUrl: '',
+            imageUrl: imageUri,
             cdnImageUrl: '',
             diameter: Number(width),
             height: Number(height),
@@ -114,6 +140,23 @@ const TreeRemeasurementView = () => {
                     value={isAlive}
                 />
                 {isAlive ? <>
+
+                    {imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
+                        <Image
+                            source={{
+                                uri: imageUri,
+                            }}
+                            style={styles.imageView}
+                            resizeMode="cover"
+                        />
+                        <View style={styles.imageControls}>
+                            <TouchableOpacity onPress={takePicture}>
+                                <View style={[styles.iconContainer]}>
+                                    <PenIcon width={SCALE_26} height={SCALE_26} />
+                                </View>
+                            </TouchableOpacity>
+                        </View>
+                    </View></View>}
                     <View style={styles.inputWrapper}>
                         <OutlinedTextInput
                             placeholder={'Height'}
@@ -148,7 +191,7 @@ const TreeRemeasurementView = () => {
                 }
             </View>
             <CustomButton
-                label="Save"
+                label={!isAlive?"Save":imageUri.length==0?"Continue":"Save"}
                 containerStyle={styles.btnContainer}
                 pressHandler={submitHadler}
                 hideFadein
@@ -177,7 +220,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 50,
+        bottom: 40,
     },
     btnContainedr: {
         width: '100%',
@@ -190,5 +233,38 @@ const styles = StyleSheet.create({
     },
     btnWrapper: {
         width: '48%',
+    },
+    imageWrapper:{
+        width:'100%',
+        justifyContent:"center",
+        alignItems:'center',
+    },
+    imageContainer: {
+        width:'90%',
+        borderRadius: 50,
+        aspectRatio: 1
+    },
+    imageView: {
+        borderRadius: 12,
+        resizeMode: 'cover',
+        width: '100%',
+        height: '100%',
+        backgroundColor: Colors.TEXT_COLOR,
+        aspectRatio: 1
+    },
+    imageControls: {
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
+
+    },
+    iconContainer: {
+        backgroundColor: Colors.WHITE,
+        borderRadius: 8,
+        width: SCALE_36,
+        height: SCALE_36,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginVertical: 8
     },
 })

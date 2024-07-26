@@ -206,6 +206,8 @@ export interface QueeBody {
 }
 
 export interface SampleTree {
+  project_id?: string
+  site_id?: string
   tree_id: string
   species_guid: string
   intervention_id: string
@@ -235,6 +237,7 @@ export interface SampleTree {
   status: INTERVENTION_STATUS
   remeasurement_dates: RemeasurementDate
   remeasurement_requires: boolean,
+  is_alive: boolean,
   image_data: {
     latitude: number
     longitude: number

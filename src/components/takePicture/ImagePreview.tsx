@@ -38,7 +38,7 @@ const ImagePreview = (props: Props) => {
         url: finalURL,
       }),
     )
-    if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE' || screen === 'PLOT_IMAGE') {
+    if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE' || screen === 'PLOT_IMAGE' || screen === 'REMEASUREMENT_IMAGE') {
       navigation.goBack()
       return;
     }
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   imageContainer: {
-    widht: '100%',
+    width: '100%',
     height: '100%',
   },
   borderWrapper: {

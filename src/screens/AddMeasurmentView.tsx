@@ -201,6 +201,7 @@ const AddMeasurment = () => {
         nextMeasurement: 0
       },
       remeasurement_requires: false,
+      is_alive: true,
       image_data: {
         latitude: SampleTreeData.coordinates[0][1],
         longitude: SampleTreeData.coordinates[0][0],

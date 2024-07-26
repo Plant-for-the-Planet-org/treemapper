@@ -35,5 +35,6 @@ export const TreeDetail: ObjectSchema = {
     remeasurement_dates: `${RealmSchema.RemeasurementDate}`,
     remeasurement_requires: 'bool',
     image_data: `${RealmSchema.Coordinates}`,
+    is_alive: { type: 'bool', default: true },
   },
 };

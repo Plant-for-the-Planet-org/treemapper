@@ -100,6 +100,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         history: [],
         status: "PENDING_DATA_UPLOAD",
         remeasurement_dates: undefined,
+        is_alive: true,
         remeasurement_requires: false,
         image_data: {
             latitude: 0,

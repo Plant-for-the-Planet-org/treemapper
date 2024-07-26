@@ -14,7 +14,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
@@ -36,6 +36,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectData] = useState<DropdownData[]>([])
@@ -46,6 +47,7 @@ const InterventionFormView = () => {
   const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
   const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitalState | null>(null)
   const userType = useSelector((state: RootState) => state.userState.type)
+  const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
   const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
@@ -127,6 +129,7 @@ const InterventionFormView = () => {
       } else {
         navigation.replace('PolygonMarker', { id: InterventionJSON.form_id })
       }
+      dispatch(updateNewIntervention())
     } else {
       toast.show("Error occured while adding intervention")
       errotHaptic()
@@ -267,6 +270,7 @@ const InterventionFormView = () => {
           } else {
             navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id })
           }
+          dispatch(updateNewIntervention())
           return
         }
         if (registerForm.location_type === 'Point') {
@@ -274,6 +278,7 @@ const InterventionFormView = () => {
         } else {
           navigation.replace('PolygonMarker', { id: registerForm.form_id })
         }
+        dispatch(updateNewIntervention())
       } else {
         addNewLog({
           logType: 'INTERVENTION',

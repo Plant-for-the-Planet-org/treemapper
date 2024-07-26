@@ -15,11 +15,11 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { SafeAreaView } from 'react-native-safe-area-context'
 import EditDispalyCurrentPolygonMarker from 'src/components/map/EditDispalyCurrentPolygonMarker'
 import bbox from '@turf/bbox'
-import MapMarkers from 'src/components/map/MapMarkers'
 import DragableMarkers from 'src/components/map/DragableMarkers'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
+import MapMarkersOverlay from 'src/components/map/MapMarkersOverlay'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -203,7 +203,7 @@ const EditPolygonMap = () => {
                 />
                 <LineMarker coordinates={coordinates} />
                 <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
-                {Interverntion.has_sample_trees && <MapMarkers
+                {Interverntion.has_sample_trees && <MapMarkersOverlay
                     hasSampleTree={Interverntion.has_sample_trees}
                     overLay
                     sampleTreeData={Interverntion.sample_trees} />}

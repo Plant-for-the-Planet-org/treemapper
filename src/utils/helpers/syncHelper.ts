@@ -84,7 +84,7 @@ export const postDataConvertor = (d: InterventionData[]) => {
     return quee
 }
 
-export const getPostBody = (r: QueeBody) => {
+export const getPostBody = async (r: QueeBody) => {
     if (r.type === 'intervention') {
         const InterventionD = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
         return convertInterventiontoBody(JSON.parse(JSON.stringify(InterventionD)))
@@ -106,10 +106,10 @@ export const getPostBody = (r: QueeBody) => {
         if (TreeDetails.sloc_id === '') {
             return null
         }
-        const base64Image = getImageAsBase64(TreeDetails.image_url)
+        const base64Image = await getImageAsBase64(TreeDetails.image_url)
         const body = {
             imageFile: `data:image/png;base64,${base64Image}`,
-            locationId: TreeDetails.parent_id,
+            locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
             imageId: TreeDetails.image_data.coordinateID
         };
         return body
@@ -133,8 +133,12 @@ export const convertInterventiontoBody = (d: InterventionData) => {
             private: [metaData.private],
             app: metaData.app
         },
-        plantProject: "proj_WZkyugryh35sMmZMmXCwq7YY",// todo dynamic
-        plantProjectSite: "site_ybVo0Vn007jQl56",// todo dynamic
+    }
+    if (d.project_id) {
+        postData.plantProject = d.project_id
+    }
+    if (d.site_id) {
+        postData.plantProjectSite = d.site_id
     }
     if (interventionForm.species_required) {
         const planted_species = d.planted_species.map(el => {
@@ -171,12 +175,16 @@ export const convertTreetoBody = (i: InterventionData, d: SampleTree) => {
             private: [metaData.private],
             app: metaData.app
         },
-        plantProject: "proj_WZkyugryh35sMmZMmXCwq7YY",// todo dynamic
-        plantProjectSite: "site_ybVo0Vn007jQl56",// todo dynamic
         measurements: {
             height: d.specie_height,
             width: d.specie_diameter
         },
+    }
+    if (d.project_id) {
+        postData.plantProject = d.project_id
+    }
+    if (d.site_id) {
+        postData.plantProjectSite = d.site_id
     }
     if (d.species_guid === 'undefined') {
         postData.otherSpecies = d.species_guid
@@ -189,5 +197,6 @@ export const convertTreetoBody = (i: InterventionData, d: SampleTree) => {
     if (d.tag_id) {
         postData.tag = d.tag_id
     }
+
     return postData
 }

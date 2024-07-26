@@ -149,6 +149,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         device_latitude: d.deviceLocation.coordinates[1],
         history: [],
         remeasurement_requires: rData.requireRemeasurement,
+        is_alive: d.status? false : true,
         remeasurement_dates: {
             sampleTreeId: "",
             created: moment(d.plantDate).valueOf() || moment(d.registrationDate).valueOf() || 0,
