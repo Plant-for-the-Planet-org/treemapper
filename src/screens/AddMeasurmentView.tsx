@@ -216,7 +216,7 @@ const AddMeasurment = () => {
     const result = await addSampleTrees(Intervention.form_id, treeDetails)
     if (!result) {
       errotHaptic()
-      toast.show("Error occured while registering sample tree.")
+      toast.show("Error occurred while registering sample tree.")
     }
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
   }
@@ -245,7 +245,7 @@ const AddMeasurment = () => {
       <AvoidSoftInputView
         avoidOffset={0}
         style={styles.container}>
-        <Header label="Add Measurments" />
+        <Header label="Add Measurements" />
         <View style={styles.wrapper}>
           <OutlinedTextInput
             placeholder={i18next.t('label.select_species_height')}

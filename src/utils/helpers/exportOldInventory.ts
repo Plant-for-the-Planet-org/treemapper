@@ -25,7 +25,7 @@ const sharedData = async (filePath: string, id: string) => {
         console.error(error);
       });
   } catch (error) {
-    Alert.alert('Error occured while writting ' + filePath);
+    Alert.alert('Error occurred while writing ' + filePath);
   }
 };
 
@@ -33,7 +33,7 @@ const writeJSON = async (data: any, filePath: string) => {
   try {
     await RNFS.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');
   } catch (error) {
-    Alert.alert('Error occured while writting ' + '');
+    Alert.alert('Error occurred while writing ' + '');
   }
 };
 
@@ -82,10 +82,10 @@ export const convertData = async (inventory: any) => {
       })
       .catch(err => {
         console.log("lkj",err)
-        Alert.alert('Error occured at folder creation');
+        Alert.alert('Error occurred at folder creation');
       });
   } catch (error) {
-    Alert.alert('Error occured ' + JSON.stringify(error));
+    Alert.alert('Error occurred ' + JSON.stringify(error));
   }
 };
 
@@ -109,9 +109,9 @@ export const onlyExportJSON = async (inventory: any) => {
       })
       .catch(err => {
         console.log("lkj",err)
-        Alert.alert('Error occured at folder creation');
+        Alert.alert('Error occurred at folder creation');
       });
   } catch (error) {
-    Alert.alert('Error occured ' + JSON.stringify(error));
+    Alert.alert('Error occurred ' + JSON.stringify(error));
   }
 };

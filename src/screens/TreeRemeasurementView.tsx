@@ -130,7 +130,7 @@ const TreeRemeasurementView = () => {
             await checkAndUpdatePlantHistory(interventionId)
             navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
         } else {
-            toast.show("Error occured")
+            toast.show("Error occurred")
         }
     }
 

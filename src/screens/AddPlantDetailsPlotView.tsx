@@ -84,16 +84,16 @@ const AddPlantDetailsPlotView = () => {
             toast.show("Details updated successfully")
             navigation.goBack()
         } else {
-            toast.show("Error Occured")
+            toast.show("Error occurred")
         }
     }
     const deleteHandler = async () => {
         const result = await deltePlantDetails(plotID, plantId)
         if (result) {
-            toast.show("Plant Deleted")
+            toast.show("Plant deleted")
             navigation.pop(2);
         } else {
-            toast.show("Error Occured")
+            toast.show("Error occurred")
         }
     }
 

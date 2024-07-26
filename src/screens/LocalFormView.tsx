@@ -97,7 +97,7 @@ const LocalForm = () => {
     const result = await updateLocalFormDetailsIntervention(paramId, updatedData)
     if (!result) {
       errotHaptic()
-      toast.show('Error occured while updating data')
+      toast.show('Error occurred while updating data')
       return
     }
     navigation.replace("DynamicForm", { id: paramId })

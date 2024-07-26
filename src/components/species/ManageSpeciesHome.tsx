@@ -102,7 +102,7 @@ const ManageSpeciesHome = (props: Props) => {
         const result = await updateInterventionPlantedSpecies(form_id, updatedSPecies)
         if (!result) {
           errotHaptic()
-          toast.show('Error occured while adding species')
+          toast.show('Error occurred while adding species')
           return
         }
         if (tree_details_required) {

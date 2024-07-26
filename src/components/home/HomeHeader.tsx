@@ -144,20 +144,20 @@ const HomeHeader = (props: Props) => {
         dispatch(updateLastServerIntervetion(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
-          message: "Intervention Fetched successfully",
+          message: "Intervention fetched successfully",
           logLevel: 'info',
           statusCode: '000',
         })
       } else {
         addNewLog({
           logType: 'DATA_SYNC',
-          message: "Intrevntion Fetched(Response error)",
+          message: "Intervention fetched (Response error)",
           logLevel: 'error',
           statusCode: '000',
         })
       }
     } catch (err) {
-      console.log("Error Occured", err)
+      console.log("Error occurred", err)
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Error while fetching intervention",
@@ -192,7 +192,7 @@ const HomeHeader = (props: Props) => {
     } else {
       addNewLog({
         logType: 'PROJECTS',
-        message: "Project Fetching failed(response error)",
+        message: "Project fetching failed (response error)",
         logLevel: 'error',
         statusCode: '400',
       })
