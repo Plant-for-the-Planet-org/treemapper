@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
-import MapLibreGL  from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
@@ -205,7 +205,6 @@ const EditPolygonMap = () => {
                 <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
                 {Interverntion.has_sample_trees && <MapMarkersOverlay
                     hasSampleTree={Interverntion.has_sample_trees}
-                    overLay
                     sampleTreeData={Interverntion.sample_trees} />}
             </MapLibreGL.MapView>
 

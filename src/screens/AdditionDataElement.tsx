@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Switch, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
@@ -18,7 +18,6 @@ import { v4 as uuid } from 'uuid'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { ScrollView } from 'react-native-gesture-handler'
 import { useToast } from 'react-native-toast-notifications'
 import { FORM_TYPE } from 'src/types/type/app.type'
 import i18next from 'src/locales/index'
@@ -52,11 +51,11 @@ const AdditionDataElement = () => {
   const [advanceMode, setAdvanceMode] = useState(false)
   const [fieldKey, setFieldKey] = useState(`Element-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)
-  const [showOptionModal, setShowDropDownOption] = useState(false)
+  const [showOptionModal, setShowOptionModal] = useState(false)
   const realm = useRealm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [dropDownElement, setDropDownElement] = useState<Array<{ key: string, value: string, id: string }>>([])
-  const [selectedDropDown, setSelectedDropdonw] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
+  const [selectedDropDown, setSelectedDropDown] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
 
 
   const toast = useToast()
@@ -122,7 +121,7 @@ const AdditionDataElement = () => {
 
 
   const toogleOptionModal = () => {
-    setShowDropDownOption(!showOptionModal)
+    setShowOptionModal(!showOptionModal)
   }
 
 
@@ -135,7 +134,7 @@ const AdditionDataElement = () => {
     const index = allElements.findIndex(el => el.id === d.id);
     allElements[index] = { ...d }
     setDropDownElement(allElements)
-    setSelectedDropdonw({
+    setSelectedDropDown({
       key: '',
       value: "",
       id: ""
@@ -146,12 +145,12 @@ const AdditionDataElement = () => {
   const deleteElement = (d: { key: string, value: string, id: string }) => {
     const allElements = dropDownElement.filter(el => el.id !== d.id)
     setDropDownElement(allElements)
-    setSelectedDropdonw({
+    setSelectedDropDown({
       key: '',
       value: "",
       id: ""
     })
-    setShowDropDownOption(false)
+    setShowOptionModal(false)
   }
   const seletDataType = (el: DropdownData) => {
     setDataType(el)
@@ -248,8 +247,8 @@ const AdditionDataElement = () => {
   }
 
   const handleOptionEdit = (d: { key: string, value: string, id: string }) => {
-    setSelectedDropdonw(d)
-    setShowDropDownOption(true)
+    setSelectedDropDown(d)
+    setShowOptionModal(true)
   }
 
   const renderOptionDD = () => {

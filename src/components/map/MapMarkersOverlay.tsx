@@ -7,10 +7,6 @@ import { Typography } from 'src/utils/constants'
 interface Props {
   sampleTreeData: SampleTree[]
   hasSampleTree: boolean
-  showActive?: boolean
-  activeIndex?: number
-  onMarkerPress?: (index: number) => void
-  overLay?: boolean
 }
 
 const MapMarkersOverlay = (props: Props) => {

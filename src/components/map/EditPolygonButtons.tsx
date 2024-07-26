@@ -17,7 +17,6 @@ interface IEditPolygonButtonsProps {
   redoGeoJSON: any;
   resetGeoJSON: any;
   disableButtons: boolean;
-  hid: string;
   isPointJSON?: boolean;
 }
 
@@ -140,7 +139,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   imageContainer: {
-    widht: '100%',
+    width: '100%',
     height: '100%',
   },
   borderWrapper: {

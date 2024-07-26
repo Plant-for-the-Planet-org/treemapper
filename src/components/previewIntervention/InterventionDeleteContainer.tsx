@@ -13,7 +13,7 @@ interface Props {
 const InterventionDeleteContainer = (props: Props) => {
     const { interventionId, resetData } = props;
     const { deleteIntervention } = useInterventionManagement()
-    const [delteData, setDeleteData] = useState(null)
+    const [deleteData, setDeleteData] = useState(null)
 
     const pressHandler = () => {
         resetData()
@@ -22,7 +22,7 @@ const InterventionDeleteContainer = (props: Props) => {
 
     return (
         <View style={styles.container}>
-            <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
+            <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
             <TouchableOpacity style={styles.wrapper} onPress={() => { setDeleteData('') }}>
                 <Text style={styles.label}>Delete</Text>
                 <DeletIcon width={15} height={15} fill={Colors.TEXT_COLOR} />

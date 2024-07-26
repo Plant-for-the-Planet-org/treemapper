@@ -63,9 +63,9 @@ const DisplayMap = () => {
 
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
-    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el=>{
-      if(onlyRemeasurement){
-        return el.remeasuremnt_required===true
+    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
+      if (onlyRemeasurement) {
+        return el.remeasuremnt_required === true
       }
       return el
     })
@@ -76,7 +76,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+          key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -202,7 +202,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+              key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -245,7 +245,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+            key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -287,11 +287,11 @@ const DisplayMap = () => {
       <SiteMapSource isSattelite={mainMapView === 'SATELLITE'} />
       {selectedIntervention && !showOverlay ? (
         <MapMarkers
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} />
       ) : null}
       {selectedIntervention && showOverlay ? (
         <MapMarkersOverlay
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
+          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees}/>
       ) : null}
       {selectedIntervention && !showOverlay ? (
         <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)} />

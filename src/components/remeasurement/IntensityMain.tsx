@@ -1,7 +1,6 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
-import { ScrollView } from 'react-native-gesture-handler';
+import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton';
 import { scaleSize } from 'src/utils/constants/mixins';

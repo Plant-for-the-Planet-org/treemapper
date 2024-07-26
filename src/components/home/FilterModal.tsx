@@ -19,8 +19,8 @@ interface Props {
 }
 
 const FilterModal = (props: Props) => {
-  const [showTimeModal, setTimeModal] = useState(false)
-  const [showTypeModal, setTypeModal] = useState(false)
+  const [showTimeModal, setShowTimeModal] = useState(false)
+  const [showTypeModal, setShowTypeModal] = useState(false)
 
 
   const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
@@ -47,31 +47,31 @@ const FilterModal = (props: Props) => {
   }, []);
   const closeModal = () => {
     toogleModal()
-    setTypeModal(false)
+    setShowTypeModal(false)
     dismiss();
   }
 
   const toogleIntervention = () => {
     if (interventionFilter === 'none') {
       dispatch(updateInterventionFilter('always'))
-      setTimeModal(true)
+      setShowTimeModal(true)
     } else {
-      setTimeModal(false)
+      setShowTimeModal(false)
       dispatch(updateInterventionFilter('none'))
     }
   }
 
   const toogleTimeModal = () => {
-    setTimeModal(!showTimeModal)
+    setShowTimeModal(!showTimeModal)
   }
 
 
   const toogleTypeModal = () => {
-    setTypeModal(!showTypeModal)
+    setShowTypeModal(!showTypeModal)
   }
 
   const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    setTimeModal(false)
+    setShowTimeModal(false)
     dispatch(updateInterventionFilter(e))
   }
 

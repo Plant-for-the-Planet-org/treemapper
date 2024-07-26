@@ -13,7 +13,6 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
   onPressSpecies: (item: PlantedSpecies | IScientificSpecies) => void
-  isSampleTreeSpecies?: boolean
   actionName: string
   handleRemoveFavourite?: any
   isSelectSpecies: boolean

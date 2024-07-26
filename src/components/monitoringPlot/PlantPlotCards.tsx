@@ -13,7 +13,6 @@ import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTim
 interface Props {
     item: PlantedPlotSpecies
     handleSelection: (plantID: string) => void,
-    index: number
 }
 
 const PlantPlotCards = (props: Props) => {

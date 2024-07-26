@@ -12,7 +12,9 @@ const realmConfig = {
 
 export const appRealm = new Realm(realmConfig)
 
-export function RealmProvider({ children }: { children: React.ReactNode }) {
+interface Props { children: React.ReactNode }
+
+export function RealmProvider(props: Props) {
   return (
     <Provider
       schema={schema}
@@ -20,7 +22,7 @@ export function RealmProvider({ children }: { children: React.ReactNode }) {
       onMigration={(oldRealm, newRealm) => {
         runRealmMigrations({ oldRealm, newRealm })
       }}>
-      {children}
+      {props.children}
     </Provider>
   )
 }

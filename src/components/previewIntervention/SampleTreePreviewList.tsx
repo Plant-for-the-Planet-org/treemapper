@@ -25,7 +25,7 @@ interface Props {
 
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced } = props
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
 
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -60,7 +60,7 @@ const SampleTreePreviewList = (props: Props) => {
     return sampleTress.map((details, i) => {
       return (
         <View style={styles.wrapper} key={i}>
-          <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
+          <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               editTreeDetails(details.tree_id)

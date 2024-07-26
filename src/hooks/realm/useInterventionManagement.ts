@@ -25,7 +25,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: result.msg
       })
-      return Promise.reject(false)
+      return false
     }
     const data: InterventionData = {
       form_id: interventoin.form_id,
@@ -89,7 +89,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -113,7 +113,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -131,7 +131,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -140,7 +140,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false
     }
   };
 
@@ -151,10 +151,10 @@ const useInterventionManagement = () => {
       //   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
       // });
       console.log("Data", imageURL, intervnetionID)
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -167,10 +167,10 @@ const useInterventionManagement = () => {
         intervention.sample_trees = filterTress
         realm.delete(sampleTree)
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -181,10 +181,10 @@ const useInterventionManagement = () => {
         const intervention = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         intervention.image_url = imageUrl
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -200,10 +200,10 @@ const useInterventionManagement = () => {
         intervention.last_updated_at = Date.now()
       });
 
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -219,7 +219,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -228,7 +228,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -240,10 +240,10 @@ const useInterventionManagement = () => {
           realm.delete(intervention);
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -255,10 +255,10 @@ const useInterventionManagement = () => {
         treeDetails.specie_name = speciesDetails.scientificName
         treeDetails.species_guid = speciesDetails.guid
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -268,7 +268,7 @@ const useInterventionManagement = () => {
         const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
         realm.delete(unSyncedObjects);
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -277,7 +277,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -298,7 +298,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -307,7 +307,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -325,7 +325,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -334,7 +334,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -352,7 +352,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -361,7 +361,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -378,7 +378,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -387,7 +387,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -404,7 +404,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -413,7 +413,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -429,7 +429,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -438,7 +438,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -454,7 +454,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -463,7 +463,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -481,7 +481,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.log("Error", error)
       addNewLog({
@@ -491,7 +491,7 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -503,10 +503,10 @@ const useInterventionManagement = () => {
         intervention.hid = hid
         intervention.location_id = location_id
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -524,10 +524,10 @@ const useInterventionManagement = () => {
           isImageUploaded: false,
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -543,10 +543,10 @@ const useInterventionManagement = () => {
           isImageUploaded: true,
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -560,20 +560,20 @@ const useInterventionManagement = () => {
           lastMeasurement: Date.now(),
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
-        if(e.imageUrl && !e.status){
+        if (e.imageUrl && !e.status) {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''
         }
-        if(e.status){
+        if (e.status) {
           treeDetails.is_alive = false
         }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -584,15 +584,15 @@ const useInterventionManagement = () => {
         const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const newStatus = isAllRemeasurmentDone(interventionData.sample_trees);
         interventionData.remeasuremnt_required = newStatus
-        if(!newStatus){
+        if (!newStatus) {
           const now = new Date();
           interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 

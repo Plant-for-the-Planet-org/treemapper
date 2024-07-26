@@ -11,7 +11,7 @@ import DeleteModal from '../common/DeleteModal'
 
 const OfflineMapList = () => {
 
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
 
   const { deleteOfflineMap } = useOfflineMapManager()
   const allData = useQuery(RealmSchema.OfflineMap, data => {
@@ -25,7 +25,7 @@ const OfflineMapList = () => {
 
   return (
     <View style={styles.container}>
-      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
+      <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
       <FlatList
         data={allData}
         renderItem={({ item, index }) => <OfflineMapCards data={item} index={index} delete={setDeleteData} />}

@@ -42,12 +42,12 @@ const ReviewTreeDetails = () => {
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
     const currentTreeIndex = Intervention.sample_trees.length
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const [showDatePicker, setDatePicker] = useState(false)
+    const [showDatePicker, setShowDatePicker] = useState(false)
     const { updateSampleTreeDetails } = useInterventionManagement()
     const detailsCompleted = route.params && route.params.detailsCompleted
     const editTree = route.params && route.params.interventionID
     const synced = route.params && route.params.synced
-    const [openEditModal, setEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
+    const [openEditModal, setOpenEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
 
 
@@ -124,10 +124,10 @@ const ReviewTreeDetails = () => {
             return;
         }
         if (label === 'date') {
-            setDatePicker(true)
+            setShowDatePicker(true)
             return;
         }
-        setEditModal({ label, value: currentValue, type, open: true });
+        setOpenEditModal({ label, value: currentValue, type, open: true });
     }
 
 
@@ -144,17 +144,17 @@ const ReviewTreeDetails = () => {
         }
         await updateSampleTreeDetails(finalDetails)
         setTreeDetails({ ...finalDetails })
-        setEditModal({ label: '', value: '', type: 'default', open: false });
+        setOpenEditModal({ label: '', value: '', type: 'default', open: false });
     }
 
 
     const setCurrentValue = (d: any) => {
-        setEditModal({ ...openEditModal, value: d })
+        setOpenEditModal({ ...openEditModal, value: d })
     }
 
     const onDateSelect = async (_event, date: Date) => {
         const finalDetails = { ...treeDetails }
-        setDatePicker(false)
+        setShowDatePicker(false)
         finalDetails.plantation_date = convertDateToTimestamp(date)
         await updateSampleTreeDetails(finalDetails)
         setTreeDetails({ ...finalDetails })
@@ -180,7 +180,7 @@ const ReviewTreeDetails = () => {
             <Header label={headerLabel} rightComponet={renderDecesasedText()} />
             <ScrollView>
                 <View style={styles.container}>
-                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} isRegistered={false} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
+                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length ? true : false} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
@@ -289,7 +289,7 @@ const ReviewTreeDetails = () => {
                     wrapperStyle={styles.noBorderWrapper}
                 />
             </View>}
-            <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={closeModal} isOpenModal={openEditModal.open} setIsOpenModal={closeModal} inputType={openEditModal.type} />
+            <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={closeModal} isOpenModal={openEditModal.open}inputType={openEditModal.type} />
         </SafeAreaView >
     )
 }

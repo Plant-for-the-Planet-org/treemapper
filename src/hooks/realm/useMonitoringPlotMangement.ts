@@ -31,7 +31,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -51,7 +51,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -87,7 +87,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -103,7 +103,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -120,7 +120,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -137,7 +137,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
   const upatePlotPlantLocation = async (
@@ -157,7 +157,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -170,10 +170,9 @@ const useMonitoringPlotMangement = () => {
           realm.delete(plot);
         }
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -191,10 +190,9 @@ const useMonitoringPlotMangement = () => {
           plotData.plot_updated_at = Date.now()
         })
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -214,7 +212,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -247,7 +245,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -270,7 +268,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -303,7 +301,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -318,10 +316,9 @@ const useMonitoringPlotMangement = () => {
         realm.delete(plantDetails)
         plotDetails.plot_updated_at = Date.now()
       })
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -338,7 +335,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -359,7 +356,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -377,7 +374,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -396,7 +393,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -412,7 +409,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -432,7 +429,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -451,7 +448,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 

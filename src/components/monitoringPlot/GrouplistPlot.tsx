@@ -1,6 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, FlatList } from 'react-native'
 import React from 'react'
-import { FlatList } from 'react-native'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { useObject } from '@realm/react'

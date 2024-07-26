@@ -166,8 +166,6 @@ const PolygonMarkerMap = (props: Props) => {
   return (
     <View style={styles.container}>
       <DispalyCurrentPolygonMarker
-        lat={coordinates[currentCoordinate.index[0]]}
-        long={coordinates[currentCoordinate.index[1]]}
         id={currentCoordinate.id}
         undo={handlePreviousPoint}
       />

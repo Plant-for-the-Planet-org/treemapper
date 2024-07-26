@@ -11,7 +11,6 @@ interface Props {
     label: string
     type: PLOT_PLANT
     species: string
-    allias: string
     showRemeasure: boolean
     rightComponent?: ReactElement,
     tree?: boolean

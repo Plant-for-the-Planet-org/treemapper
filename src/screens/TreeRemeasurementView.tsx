@@ -143,7 +143,7 @@ const TreeRemeasurementView = () => {
             <AvoidSoftInputView
                 avoidOffset={20}
                 style={styles.container}>
-                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} allias={treeDetails.local_name} showRemeasure={true} />
+                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
                 <ScrollView>
 
                     <View style={styles.wrapper}>

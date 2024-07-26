@@ -35,9 +35,9 @@ const EidPlantModal = (props: Props) => {
   const snapPoints = useMemo(() => ['40%'], []);
   const [showEdit, setShowEdit] = useState('')
 
-  const [plotName, setPlotname] = useState('')
+  const [plotName, setPlotName] = useState('')
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [dropDownList, setDropDrownList] = useState<DropdownData[]>([])
+  const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
   const [type, setType] = useState<DropdownData>({
     label: '',
     value: '',
@@ -49,7 +49,7 @@ const EidPlantModal = (props: Props) => {
     if (isVisible) {
       handlePresentModalPress()
       setGroupData()
-      setPlotname(plotData.name)
+      setPlotName(plotData.name)
     }
   }, [isVisible])
 
@@ -72,7 +72,7 @@ const EidPlantModal = (props: Props) => {
         value: el.group_id,
         index: i
       }))
-      setDropDrownList(updateList)
+      setDropDownList(updateList)
       if (plotData.plot_group && plotData.plot_group[0]) {
         setType({
           label: plotData.plot_group[0].name,
@@ -128,7 +128,7 @@ const EidPlantModal = (props: Props) => {
         <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
       )}
     >
-      <EditInputModal value={showEdit} setValue={setPlotname} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} setIsOpenModal={showEdit} inputType={'default'} />
+      <EditInputModal value={showEdit} setValue={setPlotName} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} inputType={'default'} />
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>

@@ -33,10 +33,10 @@ const CreatePlotMapView = () => {
     const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
     const plantId = route.params && route.params.plantId ? route.params.plantId : ''
-    const [initialPolygon, setInitalPloygon] = useState<any>([])
-    const [plnatedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
+    const [initialPolygon, setInitialPloygon] = useState<any>([])
+    const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
-    const [showDimensionModal, setDimensionModal] = useState(false)
+    const [showDimensionModal, setShowDimensionModal] = useState(false)
 
     useEffect(() => {
         getPlotDetails()
@@ -54,10 +54,10 @@ const CreatePlotMapView = () => {
             setPlotName(plotData.name)
             setPlantedTrees(plotData.plot_plants)
             if (markLocation || isEdit) {
-                setInitalPloygon(JSON.parse(plotData.location.coordinates))
+                setInitialPloygon(JSON.parse(plotData.location.coordinates))
             }
             if (isEdit) {
-                setDimensionModal(true)
+                setShowDimensionModal(true)
             }
         } else {
             toast.show("No plot details found")
@@ -69,7 +69,7 @@ const CreatePlotMapView = () => {
         setPlotLength(h)
         setPlotWidth(w)
         setPlotRadius(r)
-        setDimensionModal(false)
+        setShowDimensionModal(false)
     }
 
 
@@ -81,7 +81,7 @@ const CreatePlotMapView = () => {
             </View>
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {
-                    setDimensionModal(!showDimensionModal)
+                    setShowDimensionModal(!showDimensionModal)
                 }} updatedDimensions={handleUpdateDimension} initalValue={{
                     h: String(plotLength),
                     w: String(plotWidth),
@@ -90,10 +90,10 @@ const CreatePlotMapView = () => {
             <CreatePlotMapDetail
                 initialPolygon={initialPolygon}
                 isMarking={markLocation}
-                showNewDimentionModal={() => { setDimensionModal(true) }}
+                showNewDimentionModal={() => { setShowDimensionModal(true) }}
                 plantId={plantId}
                 isEdit={isEdit}
-                plnatedTrees={plnatedTrees}
+                plnatedTrees={plantedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
             <UserlocationMarker />
         </SafeAreaView>

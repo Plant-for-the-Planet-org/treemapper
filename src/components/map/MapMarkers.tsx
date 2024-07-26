@@ -11,7 +11,6 @@ interface Props {
   showActive?: boolean
   activeIndex?: number
   onMarkerPress?: (index: number) => void
-  overLay?: boolean
 }
 
 const MapMarkers = (props: Props) => {

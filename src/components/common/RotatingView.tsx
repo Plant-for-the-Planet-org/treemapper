@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Animated, Easing } from 'react-native';
 
-
-export default function RotatingView({ children, isClockwise = true }: { children: React.ReactElement, isClockwise: boolean }) {
+interface Props { children: React.ReactElement, isClockwise: boolean }
+export default function RotatingView(props: Props) {
+    const { isClockwise = true, children } = props
     const [spinValue] = useState(new Animated.Value(0));
 
     useEffect(() => {

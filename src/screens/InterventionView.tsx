@@ -11,8 +11,8 @@ import { RootState } from 'src/store'
 import InterventionHeader from 'src/components/intervention/InterventionHeader'
 
 const InterventionView = () => {
-  const [selectedLabel, setSlectedLabel] = useState('all')
-  const [allIntervention, setInterventionData] = useState<InterventionData[] | any[]>([])
+  const [selectedLabel, setSelectedLabel] = useState('all')
+  const [allIntervention, setAllIntervention] = useState<InterventionData[] | any[]>([])
   const { intervention_updated } = useSelector((state: RootState) => state.appState)
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -32,7 +32,7 @@ const InterventionView = () => {
       .objects(RealmSchema.Intervention)
       .filtered(query)
       .slice(start, end);
-    setInterventionData([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
+      setAllIntervention([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
     setLoading(false)
   }
 
@@ -48,14 +48,14 @@ const InterventionView = () => {
   }
 
   const handleLable = (s: string) => {
-    setInterventionData([])
-    setSlectedLabel(s)
+    setAllIntervention([])
+    setSelectedLabel(s)
     setCurrentPage(0)
   }
 
   const refreshHandler = () => {
     setLoading(true)
-    setInterventionData([])
+    setAllIntervention([])
     setCurrentPage(0);
   }
 

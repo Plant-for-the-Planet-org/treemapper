@@ -13,13 +13,13 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 
 const ActivityLogsView = () => {
-    const [loading, showLoading] = useState(false)
+    const [loading, setLoading] = useState(false)
     const realm = useRealm();
     const UseDetails = useSelector(
         (state: RootState) => state.userState,
     )
     const getAllLogs = async () => {
-        showLoading(true)
+        setLoading(true)
         const meteData = getDeviceDetails()
         const allLogs = realm
             .objects(RealmSchema.ActivityLogs)
@@ -40,10 +40,10 @@ const ActivityLogsView = () => {
         };
         Share.open(options)
             .then(() => {
-                showLoading(false)
+                setLoading(false)
             })
             .catch(() => {
-                showLoading(false)
+                setLoading(false)
             });
     }
 

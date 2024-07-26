@@ -27,16 +27,16 @@ interface Props {
 
 const SyncIntervention = ({ isLogedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QueeBody[]>([])
-    const [moreUpload, setMoreUplaod] = useState(false)
+    const [moreUpload, setMoreUpload] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
-    const [retryCount, setRetry] = useState(10)
+    const [retryCount, setRetryCount] = useState(10)
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
     const dispatch = useDispatch()
-    const [showFullSync, setFullSync] = useState(false)
+    const [showFullSync, setShowFullSync] = useState(false)
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
@@ -51,7 +51,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
 
     const showLogin = () => {
-        setRetry(10)
+        setRetryCount(10)
         if (!isLogedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -69,31 +69,31 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             dispatch(updateSyncDetails(true))
         }
         if (retryCount > 1) {
-            setRetry(prev => prev-1)
+            setRetryCount(prev => prev - 1)
         } else {
             dispatch(updateSyncDetails(false))
-            setMoreUplaod(false)
+            setMoreUpload(false)
             toast.show("Syncing Failed, Please try again")
             return
         }
         const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const prioritizeData = queeData.sort((a, b) => a.priotiry - b.priotiry);
         if (prioritizeData.length > 0) {
-            setMoreUplaod(true)
+            setMoreUpload(true)
             setTimeout(() => {
                 setUploadData(prioritizeData)
             }, 2000);
             dispatch(updateNewIntervention())
         } else {
             dispatch(updateSyncDetails(false))
-            setMoreUplaod(false)
-            setFullSync(true)
+            setMoreUpload(false)
+            setShowFullSync(true)
             toast.show("All data is synced")
         }
     }
 
     const syncUploaded = () => {
-        setMoreUplaod(false)
+        setMoreUpload(false)
         uploadObjectsSequentially(uploadData);
     }
 
@@ -103,7 +103,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                 try {
                     const body = await getPostBody(el)
                     if (!body) {
-                        throw "Not able to convert body"
+                        throw { error: true, message: "Not able to convert body" }
                     }
                     const response = await uploadIntervention(body)
                     if (response) {
@@ -121,7 +121,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                 try {
                     const body = await getPostBody(el)
                     if (!body) {
-                        throw "Not able to convert body"
+                        throw { error: true, message: "Not able to convert body" }
                     }
                     const response = await uploadIntervention(body)
                     if (response) {
@@ -142,7 +142,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                 try {
                     const body = await getPostBody(el)
                     if (!body) {
-                        throw "Not able to convert body"
+                        throw { error: true, message: "Not able to convert body" }
                     }
                     const response = await uploadIntervention(body)
                     if (response) {
@@ -159,7 +159,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
                 try {
                     const body = await getPostBody(el)
                     if (!body) {
-                        throw "Not able to convert body"
+                        throw { error: true, message: "Not able to convert body" }
                     }
                     await uploadInterventionImage(body.locationId, body.imageId, {
                         imageFile: body.imageFile

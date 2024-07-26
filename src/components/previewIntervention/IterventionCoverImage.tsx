@@ -17,7 +17,6 @@ interface Props {
   image: string
   interventionID: string
   tag: 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
-  isRegistered?: boolean
   treeId?: string
   isCDN?:boolean
 }

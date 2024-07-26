@@ -46,7 +46,7 @@ const CreatePlotDetailsView = () => {
         value: '',
         index: 0
     })
-    const [dropDownList, setDropDrownList] = useState<DropdownData[]>([])
+    const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
     const toast = useToast()
 
     useEffect(() => {
@@ -79,7 +79,7 @@ const CreatePlotDetailsView = () => {
                 value: el.group_id,
                 index: i
             }))
-            setDropDrownList(updateList)
+            setDropDownList(updateList)
         }
     }
 

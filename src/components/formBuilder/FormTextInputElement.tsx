@@ -1,8 +1,7 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, Text } from 'react-native'
 import React from 'react'
 import { FormElement } from 'src/types/interface/form.interface'
 import { InputOutline } from 'react-native-input-outline'
-import { Text } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 
 interface Props {

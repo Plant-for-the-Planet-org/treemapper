@@ -26,7 +26,7 @@ interface Props {
 const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
   const { deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
@@ -64,7 +64,7 @@ const InterventionList = (props: Props) => {
 
   return (
     <>
-      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={delteData} secondaryHandler={handleDelte} />
+      <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelte} />
 
       <FlashList
         data={interventionData}

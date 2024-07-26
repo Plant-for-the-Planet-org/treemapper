@@ -19,8 +19,8 @@ import { useToast } from 'react-native-toast-notifications'
 
 
 const ManageSpeciesView = () => {
-  const [showRemoveFavModal, setShowRemoveModal] = useState(false)
-  const [delteSpeciedId, setDeleteSpecieID] = useState('')
+  const [showRemoveFavModal, setShowRemoveFavModal] = useState(false)
+  const [deleteSpeciedId, setDeleteSpecieId] = useState('')
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
   const [treeModalDetails, setTreeModalDetails] = useState<IScientificSpecies | null>(null)
 
@@ -49,11 +49,11 @@ const ManageSpeciesView = () => {
   })
 
   const toogleRemoveFavModal = () => {
-    setShowRemoveModal(!showRemoveFavModal)
+    setShowRemoveFavModal(!showRemoveFavModal)
   }
 
   const addRemoveUserFavSpecies = (item: IScientificSpecies) => {
-    setDeleteSpecieID(item.guid)
+    setDeleteSpecieId(item.guid)
     toogleRemoveFavModal()
   }
 
@@ -64,7 +64,7 @@ const ManageSpeciesView = () => {
 
   const removeSpecies = () => {
     toogleRemoveFavModal()
-    updateUserFavSpecies(delteSpeciedId, false)
+    updateUserFavSpecies(deleteSpeciedId, false)
   }
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {

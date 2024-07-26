@@ -4,9 +4,9 @@ import {
   TextStyle,
   TouchableOpacity,
   View,
+  Text
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { Text } from 'react-native'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { groupIntervention } from 'src/utils/helpers/interventionHelper/groupInterventions'

@@ -1,6 +1,5 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { TouchableOpacity } from 'react-native'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import GreyHeart from 'assets/images/svg/GreyHeart.svg'
 import { Typography, Colors } from 'src/utils/constants'

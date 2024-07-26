@@ -7,13 +7,13 @@ import ClearSpaceModal from './ClearSpaceModal';
 import i18next from 'src/locales/index'
 
 const FreeUpSaceButton = () => {
-  const [showModal, setModal] = useState(false)
+  const [showModal, setShowModal] = useState(false)
   const tooglemodal = () => {
-    setModal(!showModal)
+    setShowModal(!showModal)
   }
 
   const handleFreeSpace = () => {
-    setModal(false)
+    setShowModal(false)
   }
 
 

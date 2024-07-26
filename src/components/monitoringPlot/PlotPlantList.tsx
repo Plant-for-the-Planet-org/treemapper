@@ -19,15 +19,15 @@ interface Props {
 
 const PlotPlantList = (props: Props) => {
     const { plants, plotID } = props;
-    const [plantData, setPlandData] = useState<PlantedPlotSpecies[]>([])
-    const [noResult, setResult] = useState(false)
+    const [plantData, setPlantData] = useState<PlantedPlotSpecies[]>([])
+    const [noResult, setNoResult] = useState(false)
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleSelection = (plantID: string) => {
         navigation.navigate('AddRemeasurment', { id: plotID, plantID: plantID })
     }
 
     useEffect(() => {
-        setPlandData(plants)
+        setPlantData(plants)
     }, [plants])
 
 
@@ -36,7 +36,7 @@ const PlotPlantList = (props: Props) => {
     }
     function onChangeText(t: string): void {
         if (noResult) {
-            setResult(false)
+            setNoResult(false)
         }
         // Convert the search string to lowercase for case-insensitive matching
         const lowerCaseSearchString = t.toLowerCase();
@@ -45,12 +45,12 @@ const PlotPlantList = (props: Props) => {
             item.tag.toLowerCase().includes(lowerCaseSearchString) ||
             item.scientificName.toLowerCase().includes(lowerCaseSearchString)
         );
-        setPlandData(searchData)
+        setPlantData(searchData)
         if (searchData.length === 0) {
-            setResult(true)
+            setNoResult(true)
         }
         if (t.length === 0) {
-            setPlandData(plants)
+            setPlantData(plants)
         }
     }
 
@@ -65,7 +65,7 @@ const PlotPlantList = (props: Props) => {
                     marginTop={{}}
                     image={<EmptyIcom />} />}
                 ListFooterComponent={() => { return (<View style={{ width: '100%', height: 100 }} />) }}
-                renderItem={({ item, index }) => (<PlantPlotCards item={item} handleSelection={handleSelection} index={index} />)}
+                renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection}/>)}
                 data={plantData}
             />
             <CustomButton

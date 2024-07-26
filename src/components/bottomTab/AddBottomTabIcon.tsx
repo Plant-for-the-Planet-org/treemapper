@@ -1,7 +1,6 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native'
 import React, {useState} from 'react'
 import AddOptionModal from './AddOptionModal'
-import {TouchableOpacity} from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,

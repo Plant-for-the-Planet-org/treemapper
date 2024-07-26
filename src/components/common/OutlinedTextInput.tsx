@@ -1,7 +1,6 @@
-import { KeyboardTypeOptions, StyleSheet, View } from 'react-native'
+import { KeyboardTypeOptions, StyleSheet, View, Text } from 'react-native'
 import React from 'react'
 import { InputOutline } from 'react-native-input-outline'
-import { Text } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 

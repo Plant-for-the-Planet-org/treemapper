@@ -32,18 +32,18 @@ const AddMeasurment = () => {
   const realm = useRealm()
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, SampleTreeData.form_id);
-  const [showOptimalAlert, setOptimalAlert] = useState(false)
+  const [showOptimalAlert, setShowOptimalAlert] = useState(false)
   const [height, setHeight] = useState('')
   const [width, setWidth] = useState('')
-  const [tagEnable, setTagEnabled] = useState(false)
+  const [tagEnable, setTagEnable] = useState(false)
   const [tagId, setTagId] = useState('')
   const { addSampleTrees } = useInterventionManagement()
   const [diameterLabel, setDiameterLabel] = useState<string>(
     i18next.t('label.measurement_basal_diameter'),
   );
-  const [heightErrorMessage, setHeightErrorMessgae] = useState('')
+  const [heightErrorMessage, setHeightErrorMessage] = useState('')
   const [widthErrorMessage, setWidthErrorMessage] = useState('')
-  const [tagIdErrorMessage, settagIdErrorMessage] = useState('')
+  const [tagIdErrorMessage, setTagIdErrorMessage] = useState('')
   const Country = useSelector((state: RootState) => state.userState.country)
 
   const id = uuidv4()
@@ -77,7 +77,7 @@ const AddMeasurment = () => {
     const widthValidation = validateNumber(width, 'Diameter', 'width')
 
     if (heightValidation.hasError || widthValidation.errorMessage) {
-      setHeightErrorMessgae(heightValidation.errorMessage)
+      setHeightErrorMessage(heightValidation.errorMessage)
       setWidthErrorMessage(widthValidation.errorMessage)
       return;
     }
@@ -105,24 +105,24 @@ const AddMeasurment = () => {
 
     // sets height error if height is not in between the minimum and maximum values or is invalid input
     if (!height || Number(height) < heightMinValue || Number(height) > heightMaxValue) {
-      setHeightErrorMessgae(
+      setHeightErrorMessage(
         i18next.t('label.select_species_height_more_than_error', {
           minValue: heightMinValue,
           maxValue: heightMaxValue,
         }),
       );
     } else if (!dimensionRegex.test(height)) {
-      setHeightErrorMessgae(i18next.t('label.select_species_height_invalid'));
+      setHeightErrorMessage(i18next.t('label.select_species_height_invalid'));
     } else {
-      setHeightErrorMessgae('');
+      setHeightErrorMessage('');
       isHeightValid = true;
     }
 
     // checks if tag id is present and sets error accordingly
     if (tagEnable && !tagId) {
-      settagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
+      setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
     } else {
-      settagIdErrorMessage('');
+      setTagIdErrorMessage('');
       isTagIdValid = true;
     }
 
@@ -137,7 +137,7 @@ const AddMeasurment = () => {
       if (isRatioCorrect) {
         submitDetails();
       } else {
-        setOptimalAlert(true)
+        setShowOptimalAlert(true)
       }
     }
 
@@ -146,9 +146,9 @@ const AddMeasurment = () => {
 
   const handleOptimalalert = (p: boolean) => {
     if (p) {
-      setOptimalAlert(false)
+      setShowOptimalAlert(false)
     } else {
-      setOptimalAlert(false)
+      setShowOptimalAlert(false)
       submitDetails();
     }
   }
@@ -231,7 +231,7 @@ const AddMeasurment = () => {
 
   const onHeightChange = (t: string) => {
     const convertedHeight = t ? getConvertedHeight(t) : 0;
-    setHeightErrorMessgae('');
+    setHeightErrorMessage('');
     setHeight(t.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
     if (convertedHeight < DBHInMeter) {
       setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
@@ -273,7 +273,7 @@ const AddMeasurment = () => {
             trailingtext={''}
             switchEnable={tagEnable}
             description={i18next.t('label.tree_tag_note')}
-            switchHandler={setTagEnabled}
+            switchHandler={setTagEnable}
             errMsg={tagIdErrorMessage}
           />
           <CustomButton

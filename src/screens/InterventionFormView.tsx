@@ -39,8 +39,8 @@ import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interfac
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 
 const InterventionFormView = () => {
-  const [projectStateData, setProjectData] = useState<DropdownData[]>([])
-  const [projectSies, setProjectSites] = useState<DropdownData[]>([])
+  const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
+  const [projectSites, setProjectSites] = useState<DropdownData[]>([])
   const [locationName, setLocationName] = useState('')
   const [furtherInfo, setFurtherInfo] = useState('')
   const [allIntervention] = useState([...AllIntervention.filter(el => el.value !== 'single-tree-registration' && el.value !== 'multi-tree-registration')])
@@ -146,7 +146,7 @@ const InterventionFormView = () => {
       }
     })
     if (mapedData && mapedData.length) {
-      setProjectData(mapedData)
+      setProjectStateData(mapedData)
       const siteMapedData = projectData[0].sites.map((el, i) => {
         return {
           label: el.name,
@@ -335,7 +335,7 @@ const InterventionFormView = () => {
               {isTpoUser && (
                 <CustomDropDown
                   label={'Site'}
-                  data={projectSies}
+                  data={projectSites}
                   onSelect={handleSiteSelect}
                   selectedValue={{
                     label: registerForm.site_name,

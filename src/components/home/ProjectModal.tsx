@@ -33,7 +33,7 @@ const ProjectModal = (props: Props) => {
 
   const { isVisible, toogleModal } = props
   const [projectData, setProjectData] = useState<any>([])
-  const [projectSies, setProjectSites] = useState<any>([])
+  const [projectSites, setProjectSites] = useState<any>([])
   const [selectedProject, setSelectedProject] = useState<{
     label: string
     value: string
@@ -177,16 +177,16 @@ const ProjectModal = (props: Props) => {
             <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
             <View style={styles.siteContainer}>
               <FlatList
-                data={projectSies}
+                data={projectSites}
                 indicatorStyle="white"
-                renderItem={({ item, index }: { item: any, index: number }) => {
+                renderItem={({ item, index }) => {
                   return (
                     <TouchableOpacity
                       style={[
                         styles.siteCard,
                         {
                           borderBottomWidth:
-                            index < projectSies.length - 1 ? 1 : 0,
+                            index < projectSites.length - 1 ? 1 : 0,
                         },
                       ]}
                       key={index}

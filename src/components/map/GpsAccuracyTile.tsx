@@ -1,9 +1,8 @@
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View, Text } from 'react-native';
 import React, { useEffect, useState } from 'react';
 import { Colors, Typography } from 'src/utils/constants';
 import * as Location from 'expo-location';
-import { Text } from 'react-native';
-import GPSICON from 'assets/images/svg/GPSIcon.svg';
+import GpsIcon from 'assets/images/svg/GPSIcon.svg';
 
 interface Props {
   showModalInfo: (b: boolean) => void;
@@ -50,7 +49,7 @@ const GpsAccuracyTile = (props: Props) => {
   return (
     <View style={styles.container}>
       <TouchableOpacity style={[styles.wrapper, { backgroundColor: activeStyle.bgColor }]} onPress={showModal}>
-        <GPSICON style={styles.iconWrapper} fill={activeStyle.iconColor} />
+        <GpsIcon style={styles.iconWrapper} fill={activeStyle.iconColor} />
         <Text style={styles.boldText}>
           GPS <Text style={styles.lightText}>{accuracy.toFixed(0)} m</Text>
         </Text>

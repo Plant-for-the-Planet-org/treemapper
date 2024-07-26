@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet , TouchableOpacity} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 
 interface ICustomTabBarProps {
@@ -9,19 +9,19 @@ interface ICustomTabBarProps {
   navigationState: any;
 }
 
-export default function AdditionalFormTabBar({
-  tabRoutes,
-  layout,
-  setRouteIndex,
-  navigationState,
-}: ICustomTabBarProps) {
+export default function AdditionalFormTabBar(props: ICustomTabBarProps) {
+  const {
+    tabRoutes,
+    layout,
+    setRouteIndex,
+    navigationState,
+  } = props
   return (
     <View style={[{ width: layout.width }]}>
       <View style={styles.tabMainContainer}>
-        {tabRoutes &&
-          tabRoutes.map((route: any, index: number) => (
+        {tabRoutes?.map((route: any, index: number) => (
             <TouchableOpacity
-              key={index}
+              key={String(index)}
               style={[styles.tabItemContainer, { width: layout.width / 2 }]}
               onPress={() => setRouteIndex(index)}>
               <Text
@@ -47,7 +47,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     position: 'relative',
     zIndex: 1,
-    backgroundColor:Colors.WHITE,
+    backgroundColor: Colors.WHITE,
   },
   tabItemContainer: {
     position: 'relative',

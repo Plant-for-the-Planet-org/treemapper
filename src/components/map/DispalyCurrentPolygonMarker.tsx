@@ -5,8 +5,6 @@ import { Colors, Typography } from 'src/utils/constants'
 import Icon from '@expo/vector-icons/FontAwesome5';
 
 interface Props {
-  lat: number
-  long: number
   id: string
   undo: () => void
 }

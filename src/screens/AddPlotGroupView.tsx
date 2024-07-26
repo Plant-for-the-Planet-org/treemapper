@@ -26,7 +26,7 @@ const AddPlotGroup = () => {
 
     const [groupName, setGroupName] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const [isEdiatble, setIsEditable] = useState(false)
+    const [isEditable, setIsEditable] = useState(false)
     const [gID, setGID] = useState('')
     const realm = useRealm()
     const { createNewPlotGroup, editGroupName } = useMonitoringPlotMangement()
@@ -48,7 +48,7 @@ const AddPlotGroup = () => {
     }
 
     const continuePress = async () => {
-        if (!isEdiatble) {
+        if (!isEditable) {
             const newGroupId = generateUniquePlotId()
             const groupDetails: PlotGroups = {
                 name: groupName,
@@ -75,14 +75,14 @@ const AddPlotGroup = () => {
 
     const handleGroupName = (t: string) => {
         setGroupName(t)
-        if (isEdiatble) {
+        if (isEditable) {
             editGroupName(gID, t)
         }
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={isEdiatble ? i18next.t('label.edit_group_header') : i18next.t('label.create_group_header')} />
+            <Header label={isEditable ? i18next.t('label.edit_group_header') : i18next.t('label.create_group_header')} />
             <View style={styles.inputWrapper}>
                 <OutlinedTextInput
                     placeholder={i18next.t('label.group_name')}
@@ -93,13 +93,13 @@ const AddPlotGroup = () => {
                     trailingtext={''} errMsg={''} />
             </View>
             {gID && <GrouplistPlot gid={gID} />}
-            {!isEdiatble && <View style={styles.emptyWrapper}>
+            {!isEditable && <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>
                     {i18next.t('label.create_group_note')}
                 </Text>
             </View>}
             <CustomButton
-                label={isEdiatble ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
+                label={isEditable ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
         width: '90%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {
