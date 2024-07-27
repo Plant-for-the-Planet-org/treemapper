@@ -156,6 +156,7 @@ export const lastScreenNavigationHelper = (data: InterventionData): NavigationRe
       if (formData.tree_details_required) {
         if (!formData.is_multi_species) {
           result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
+          break;
         }
         result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
       }

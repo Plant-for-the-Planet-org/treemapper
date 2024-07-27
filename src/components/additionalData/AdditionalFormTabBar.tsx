@@ -9,19 +9,22 @@ interface ICustomTabBarProps {
   navigationState: any;
 }
 
-export default function AdditionalFormTabBar(props: ICustomTabBarProps) {
+// Mark the props as read-only
+type ReadonlyCustomTabBarProps = Readonly<ICustomTabBarProps>;
+
+export default function AdditionalFormTabBar(props: ReadonlyCustomTabBarProps) {
   const {
     tabRoutes,
     layout,
     setRouteIndex,
     navigationState,
-  } = props
+  } = props;
   return (
     <View style={[{ width: layout.width }]}>
       <View style={styles.tabMainContainer}>
         {tabRoutes?.map((route: any, index: number) => (
             <TouchableOpacity
-              key={String(index)}
+              key={String(route.title)}
               style={[styles.tabItemContainer, { width: layout.width / 2 }]}
               onPress={() => setRouteIndex(index)}>
               <Text

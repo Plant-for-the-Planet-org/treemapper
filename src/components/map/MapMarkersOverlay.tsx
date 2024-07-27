@@ -20,7 +20,7 @@ const MapMarkersOverlay = (props: Props) => {
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
         id={String(i)}
-        key={String(i)}>
+        key={String(el.longitude)}>
         <View style={styles.container}>
           <View style={styles.markerContainer} />
         </View>

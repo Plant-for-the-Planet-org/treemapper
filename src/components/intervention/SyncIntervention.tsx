@@ -101,7 +101,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         try {
             const body = await getPostBody(el);
             if (!body) {
-                throw { error: true, message: "Not able to convert body" };
+                throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
             if (response) {
@@ -119,7 +119,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         try {
             const body = await getPostBody(el);
             if (!body) {
-                throw { error: true, message: "Not able to convert body" };
+                throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
             if (response) {
@@ -139,7 +139,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         try {
             const body = await getPostBody(el);
             if (!body) {
-                throw { error: true, message: "Not able to convert body" };
+                throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
             if (response) {
@@ -156,7 +156,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         try {
             const body = await getPostBody(el);
             if (!body) {
-                throw { error: true, message: "Not able to convert body" };
+                throw new Error("Not able to convert body");
             }
             await uploadInterventionImage(body.locationId, body.imageId, {
                 imageFile: body.imageFile

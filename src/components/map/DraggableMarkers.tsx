@@ -22,7 +22,7 @@ const DraggableMarkers = (props: Props) => {
 
     return props.coordinates.map((d, i) => {
       if (props.isSinglePoint) {
-        return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(i)} draggable onDragEnd={(e) => {
+        return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)} draggable onDragEnd={(e) => {
           props.onDragEnd(i, e.geometry.coordinates)
         }}>
           <View style={styles.container}>
@@ -37,7 +37,7 @@ const DraggableMarkers = (props: Props) => {
         return null
       }
       // @ts-expect-error: Property 'foo' does not exist on type 'Bar'.
-      return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(i)} draggable onDragEnd={(e) => {
+      return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)} draggable onDragEnd={(e) => {
         props.onDragEnd(i, e.geometry.coordinates)
       }}>
         <View style={styles.container}>

@@ -43,7 +43,7 @@ const InterventionBasicInfo = (props: Props) => {
         <Text style={styles.cardTitle}>Planted species</Text>
         <View style={styles.plantedSpeciesWrapper}>
           {planted_species.map((el, i) => (
-            <View key={String(i)} style={{ marginVertical: 5 }}>
+            <View key={el.id} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
               {el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? "Unknown" : el.scientificName}</Text>}
               {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}

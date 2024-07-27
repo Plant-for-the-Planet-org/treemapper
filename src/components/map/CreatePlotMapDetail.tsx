@@ -43,7 +43,7 @@ interface Props {
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { showNewDimensionModal: showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees: plantedTrees } = props
+  const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees: plantedTrees } = props
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(

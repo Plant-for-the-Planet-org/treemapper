@@ -18,12 +18,15 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { handleFilter } from 'src/utils/constants/CountryDataFilter'
 
 interface ProjectListProps {
-  isSelectable?: boolean
-  onProjectPress?: (id: string) => void
-  selectedProjectId?: string
+  isSelectable?: boolean;
+  onProjectPress?: (id: string) => void;
+  selectedProjectId?: string;
 }
 
-export default function ProjectList(props: ProjectListProps) {
+// Mark the props as read-only
+type ReadonlyProjectListProps = Readonly<ProjectListProps>;
+
+export default function ProjectList(props: ReadonlyProjectListProps) {
   const {
     isSelectable,
     onProjectPress,

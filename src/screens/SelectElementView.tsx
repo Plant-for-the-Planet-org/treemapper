@@ -89,9 +89,9 @@ const SelectElement = () => {
           label={i18next.t('label.select_element')}
         />
         <View style={styles.elementParent}>
-          {elements.map((element: any, i) => (
+          {elements.map((element: any) => (
             <TouchableOpacity
-              key={String(i)}
+              key={element.name}
               onPress={() => handleElementPress(element.type)}
               style={styles.elementShadowContainer}>
               <IconSwitcher

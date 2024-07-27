@@ -49,9 +49,10 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
       };
     }
     if (finalObject[item.intervention_title]) {
+      finalObject[item.intervention_title].count += 1;
       finalObject[item.intervention_title] = {
-        count: (finalObject[item.intervention_title].count += 1),
         ...finalObject[item.intervention_title],
+        count: finalObject[item.intervention_title].count,
       };
     } else {
       finalObject[item.intervention_title] = {

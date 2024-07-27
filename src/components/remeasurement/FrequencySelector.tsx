@@ -9,8 +9,8 @@ import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins';
 
 interface FrequencyData {
-    type: string
-    description: string
+  type: string
+  description: string
 }
 
 export const FrequencySelector = ({
@@ -19,7 +19,7 @@ export const FrequencySelector = ({
 }: {
   selectedFrequency: string;
   setSelectedFrequency: React.Dispatch<React.SetStateAction<string>>;
-}) => {  
+}) => {
   const allFrequencies: FrequencyData[] = [
     {
       type: 'Default',
@@ -47,11 +47,11 @@ export const FrequencySelector = ({
           const isSelected = frequency.type === selectedFrequency;
           return (
             <TouchableOpacity
-            key={String(i)}
+              key={String(frequency) + String(i)}
               onPress={() => {
                 setSelectedFrequency(frequency.type);
               }}
-             >
+            >
               <View
                 style={[
                   styles.treeCountSelection,

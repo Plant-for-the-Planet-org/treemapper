@@ -6,13 +6,13 @@ import AdditionalFormTabBar from '../additionalData/AdditionalFormTabBar'
 import Intensity from './IntensityMain'
 import Frequency from './FrequencyMain'
 
+const IntensityComp = () => {
+  return <Intensity intensity={75} />
+}
+
 
 const ProjectConfigTabView = () => {
   const layout = useWindowDimensions()
-
-  const IntensityComp = () => {
-    return <Intensity intensity={75} />
-  }
 
   const renderScene = SceneMap({
     intensity: IntensityComp,

@@ -24,7 +24,7 @@ const IntensitySelector = ({
           const isSelected = intensity === selectedIntensity;
           return (
             <TouchableOpacity
-              key={String(index)}
+              key={String(intensity)+String(index)}
               onPress={() => {
                 setIsCustomSelected(false);
                 setSelectedIntensity(intensity);

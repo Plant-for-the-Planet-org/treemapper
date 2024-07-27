@@ -128,7 +128,7 @@ const HomeHeader = (props: Props) => {
   const addServerIntervention = async () => {
     try {
       const result = await getServerIntervention(lastServerInterventionpage)
-      const interventions: InterventionData[] = []
+      const interventions: InterventionData[] = [];
       if (result?.items) {
         if (!result._links.next || result._links.next === result._links.self) {
           dispatch(updateServerIntervention(true))

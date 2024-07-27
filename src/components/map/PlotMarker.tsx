@@ -14,13 +14,17 @@ const PlotMarker = (props: Props) => {
   const { sampleTreeData, onMarkerPress } = props
 
   const backgroundColor = (el: PlantedPlotSpecies) => {
-    return !el.is_alive
-      ? Colors.TEXT_LIGHT
-      : el.type === 'PLANTED'
-        ? Colors.NEW_PRIMARY
-        : Colors.RECRUIT_PLANT_THEME;
+    let color: string;
+    if (!el.is_alive) {
+      color = Colors.TEXT_LIGHT;
+    } else if (el.type === 'PLANTED') {
+      color = Colors.NEW_PRIMARY;
+    } else {
+      color = Colors.RECRUIT_PLANT_THEME;
+    }
+    
+    return color;
   }
-
   const renderMarkers = () => {
     const filterData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
     return filterData.map((el, i) => (
@@ -30,7 +34,7 @@ const PlotMarker = (props: Props) => {
           { x: 0.55, y: 0.4 }
         }
         id={String(i)}
-        key={String(i)}>
+        key={String(el.longitude)}>
         <Pressable style={styles.container} onPress={() => { onMarkerPress(el.plot_plant_id) }}>
           <View style={[styles.markerContainer, { backgroundColor: backgroundColor(el) }]} />
         </Pressable>

@@ -85,34 +85,40 @@ const CreatePlotDetailsView = () => {
 
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
+    const validatePlotDimensions = (plotShape: string) => {
+        if (plotShape === 'RECTANGULAR') {
+            return isRectangularPlotValid(plotWidth, plotLength);
+        } else if (plotShape === 'CIRCULAR') {
+            if (!isCircularPlotValid(plotRadius)) return false;
+    
+            const validWidth = validateNumber(plotWidth, 'width', 'width');
+            const validHeight = validateNumber(plotLength, 'length', 'length');
+            if (validHeight.hasError) {
+                toast.show(validHeight.errorMessage);
+                return false;
+            }
+            if (validWidth.hasError) {
+                toast.show(validWidth.errorMessage);
+                return false;
+            }
+            if (Number(plotWidth) < 4 || Number(plotLength) < 25) {
+                toast.show("Please add valid Dimensions as per note");
+                return false;
+            }
+            return true;
+        } else {
+            toast.show("Invalid plot shape");
+            return false;
+        }
+    };
+    
     const submitHandler = async () => {
         if (!isPlotNameValid(plotName)) {
             toast.show("Please add valid Plot Name");
             return;
         }
     
-        if (plotShape === 'RECTANGULAR') {
-            if (!isRectangularPlotValid(plotWidth, plotLength)) return;
-        } else if (plotShape === 'CIRCULAR') {
-            if (!isCircularPlotValid(plotRadius)) return;
-            const validWidth = validateNumber(plotWidth, 'width', 'width')
-            const validHeight = validateNumber(plotLength, 'length', 'length')
-            if (validHeight.hasError) {
-                toast.show(validHeight.errorMessage)
-                return
-            }
-            if (validWidth.hasError) {
-                toast.show(validWidth.errorMessage)
-                return
-            }
-            if (Number(plotWidth) < 4 || Number(plotLength) < 25) {
-                toast.show("Please add valid Dimensions as per note")
-                return
-            }
-        } else {
-            toast.show("Invalid plot shape");
-            return;
-        }
+        if (!validatePlotDimensions(plotShape)) return;
     
         if (!isPlotImageValid(plotImage)) {
             toast.show("Please add Plot Image");
@@ -132,9 +138,10 @@ const CreatePlotDetailsView = () => {
             await handlePostUpdate();
             navigation.replace('CreatePlotMap', { id: plotID });
         } else {
-            toast.show("Error occurred while adding data")
+            toast.show("Error occurred while adding data");
         }
     };
+    
     
     const isPlotNameValid = (name: string) => name.trim().length > 0;
     

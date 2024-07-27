@@ -52,7 +52,7 @@ const MapMarkers = (props: Props) => {
         coordinate={[el.longitude, el.latitude]}
 
         id={String(i)}
-        key={String(i)}>
+        key={String(el.longitude)}>
         <TouchableOpacity style={styles.container} onPress={() => {
           handleMarkerPress(i)
         }}>

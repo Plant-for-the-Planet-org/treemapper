@@ -16,7 +16,7 @@ interface Props {
 }
 
 const Header = (props: Props) => {
-  const { rightComponent: rightComponent, label, showBackIcon = true, note, backFunc } = props
+  const { rightComponent, label, showBackIcon = true, note, backFunc } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
     if (backFunc) {

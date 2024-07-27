@@ -40,7 +40,7 @@ const CoordinatesList = (props: Props) => {
         return null
       }
       return (
-        <View style={styles.wrapper} key={String(i)}>
+        <View style={styles.wrapper} key={`${String.fromCharCode(i + 65)}`}>
           <View style={styles.card}>
             <View style={styles.metaWrapper}>
               <Text style={styles.coordinateTitle}>Coordinate {type === 'Polygon' ? `${String.fromCharCode(i + 65)}` : ""}</Text>

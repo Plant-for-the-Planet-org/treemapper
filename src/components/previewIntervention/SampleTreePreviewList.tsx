@@ -56,9 +56,9 @@ const SampleTreePreviewList = (props: Props) => {
 
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
-    return sampleTress.map((details, i) => {
+    return sampleTress.map((details) => {
       return (
-        <View style={styles.wrapper} key={String(i)}>
+        <View style={styles.wrapper} key={details.tree_id}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
