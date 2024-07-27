@@ -29,7 +29,7 @@ interface Props {
 const HomeHeader = (props: Props) => {
   const { addAllProjects } = useProjectManagement()
   const { addUserSpecies } = useManageScientificSpecies()
-  const { toggleFilterModal: toggleFilterModal, toggleProjectModal: toggleProjectModal } = props
+  const { toggleFilterModal: toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)

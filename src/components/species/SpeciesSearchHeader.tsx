@@ -18,7 +18,7 @@ interface Props {
 const SpeciesSearchHeader = (props: Props) => {
   const [searchText, setSearchText] = useState('')
   const realm = useRealm()
-  const { backPress, toggleSyncModal: toggleSyncModal, setSpicesList: setSpicesList } = props
+  const { backPress, toggleSyncModal, setSpicesList } = props
 
   const inputRef = useRef<TextInput>(null)
 

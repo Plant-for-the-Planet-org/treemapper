@@ -47,7 +47,7 @@ const PointMarkerMap = (props: Props) => {
   const [outOfBoundary, setOutOfBoundary] = useState(false)
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { boundary: boundary } = useSelector((state: RootState) => state.sampleTree)
+  const { boundary } = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -66,7 +66,7 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-      handleCameraViewChange()
+    handleCameraViewChange()
   }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
@@ -129,7 +129,7 @@ const PointMarkerMap = (props: Props) => {
         navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       }
     } else {
-      navigation.navigate('LocalForm',{ id:form_id })
+      navigation.navigate('LocalForm', { id: form_id })
     }
   }
 
@@ -218,7 +218,7 @@ const PointMarkerMap = (props: Props) => {
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper low/>
+      <SatelliteIconWrapper low />
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}

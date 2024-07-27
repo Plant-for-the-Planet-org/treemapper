@@ -39,7 +39,7 @@ const FillColor: any = [
 ]
 
 const SingleInterventionSource = (props: Props) => {
-  const { intervention: intervention } = props
+  const { intervention } = props
   const [geoJSON, setGeoJSON] = useState(
     {
       type: 'FeatureCollection',

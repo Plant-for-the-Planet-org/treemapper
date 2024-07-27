@@ -28,7 +28,7 @@ const ImportFormView = () => {
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [showSecondaryButton, setShowSecondaryButton] = useState<boolean>(false);
   const toast = useToast()
-  const { bulkMetaDataAddition: bulkMetaDataAddition, deleteAllMetaData } = useMetaData()
+  const { bulkMetaDataAddition, deleteAllMetaData } = useMetaData()
   const { bulkFormAddition, deleteAllAdditionalData } = useAdditionalForm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 

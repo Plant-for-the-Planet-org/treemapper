@@ -18,7 +18,7 @@ interface Props {
 }
 
 const DeleteModal = (props: Props) => {
-    const { isVisible, toggleModal: toggleModal, removeFavSpecie, extra, secondaryHandler } = props
+    const { isVisible, toggleModal, removeFavSpecie, extra, secondaryHandler } = props
     return (
         <Modal
             style={styles.container}

@@ -11,7 +11,7 @@ interface Props {
 }
 
 const ClearSpaceModal = (props: Props) => {
-    const { isVisible, toggleModal: toggleModal, handleFreeSpace } = props
+    const { isVisible, toggleModal, handleFreeSpace } = props
 
     return (
         <Modal

@@ -15,7 +15,7 @@ interface Props {
 }
 
 const InterventionTimeModal = (props: Props) => {
-    const { isVisible, toggleModal: toggleModal, selectedFilter, changeInterventionFilter } = props
+    const { isVisible, toggleModal, selectedFilter, changeInterventionFilter } = props
     const handleClose = () => {
         toggleModal(!isVisible)
     }

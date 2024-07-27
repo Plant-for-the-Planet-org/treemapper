@@ -18,7 +18,7 @@ interface Props {
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { isManageSpecies: isManageSpecies } = props
+  const { isManageSpecies } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
 

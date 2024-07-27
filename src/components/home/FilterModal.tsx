@@ -30,7 +30,7 @@ const FilterModal = (props: Props) => {
   const { dismiss } = useBottomSheetModal()
   // variables
   const snapPoints = useMemo(() => ['50%', '85%'], []);
-  const { isVisible, toggleModal: toggleModal } = props
+  const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
     if (isVisible) {

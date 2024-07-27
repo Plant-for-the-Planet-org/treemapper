@@ -41,10 +41,14 @@ const MapMarkers = (props: Props) => {
   };
 
   const textColor = (i: number) => {
-    return showActive
-      ? (activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT)
-      : Colors.DARK_TEXT_COLOR;
+    let color: string;
+    if (showActive) {
+      color = (activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT);
+    } else {
+      color = Colors.DARK_TEXT_COLOR;
+    }
 
+    return color;
   }
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (

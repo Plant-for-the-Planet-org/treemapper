@@ -31,7 +31,7 @@ const ProjectModal = (props: Props) => {
   // variables
   const snapPoints = useMemo(() => ['65%'], []);
 
-  const { isVisible, toggleModal: toggleModal } = props
+  const { isVisible, toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])
   const [selectedProject, setSelectedProject] = useState<{
@@ -146,11 +146,11 @@ const ProjectModal = (props: Props) => {
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
   )
 
-  const emptyListRenderUI=() => {
+  const emptyListRenderUI = () => {
     return (
       <View style={styles.siteCard}>
         <Text style={styles.siteCardLabel}>
-        {i18next.t('label.no_site_found')}
+          {i18next.t('label.no_site_found')}
         </Text>
         <View style={styles.divider} />
       </View>
@@ -163,7 +163,7 @@ const ProjectModal = (props: Props) => {
       index={0}
       handleIndicatorStyle={styles.handleIndicatorStyle}
       detached
-      handleStyle={styles.handleIndicatorStyle}      enableContentPanningGesture={false}
+      handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
     >
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     width: '95%',
-    borderRadius:30
+    borderRadius: 30
   },
   card: {
     height: 50,
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   headerLabel: {
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    color:Colors.DARK_TEXT
+    color: Colors.DARK_TEXT
   },
   cardLabel: {
     fontSize: 16,
@@ -275,8 +275,8 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_14,
     marginHorizontal: 20,
-    color:Colors.DARK_TEXT,
-    marginVertical:10
+    color: Colors.DARK_TEXT,
+    marginVertical: 10
   },
   siteContainer: {
     width: '100%',
@@ -301,10 +301,10 @@ const styles = StyleSheet.create({
   siteCardLabel: {
     fontSize: 14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    color:Colors.DARK_TEXT_COLOR
+    color: Colors.DARK_TEXT_COLOR
   },
   handleIndicatorStyle: {
     backgroundColor: Colors.WHITE,
-    borderRadius:30
+    borderRadius: 30
   }
 })

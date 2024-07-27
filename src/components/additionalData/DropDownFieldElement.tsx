@@ -19,7 +19,7 @@ interface Props {
 }
 
 const DropDownFieldElement = (props: Props) => {
-    const { isVisible, toggleModal: toggleModal, addOption, selectedElement, updateElement, deleteElement } = props
+    const { isVisible, toggleModal, addOption, selectedElement, updateElement, deleteElement } = props
     const [inputKey, setInputKey] = useState('')
     const [inputValue, setInputValue] = useState('')
     const toast = useToast();

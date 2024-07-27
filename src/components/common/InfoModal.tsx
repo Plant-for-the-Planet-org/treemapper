@@ -11,7 +11,7 @@ interface Props {
 }
 
 const InfoModal = (props: Props) => {
-    const { isVisible, toggleModal: toggleModal } = props
+    const { isVisible, toggleModal } = props
     const handleClose=()=>{
         toggleModal(!isVisible)
     }

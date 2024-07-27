@@ -25,7 +25,7 @@ const AddRemeasurementView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
     const plotID = route.params?.id ?? '';
     const plantID = route.params?.plantID ?? '';
-    const [selectedTimeline, setSelectedTimeLine] = useState<PlantedPlotSpecies>()
+    const [selectedTimeline, setSelectedTimeline] = useState<PlantedPlotSpecies>();
 
     const plotDetails = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID
@@ -35,7 +35,7 @@ const AddRemeasurementView = () => {
         if (plantID) {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
-                setSelectedTimeLine(getPlantDetails)
+                setSelectedTimeline(getPlantDetails)
             }
         }
     }, [plotID])

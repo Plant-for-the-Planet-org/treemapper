@@ -30,7 +30,7 @@ const AddPlantDetailsPlotView = () => {
     const plantId = route.params?.plantId ?? '';
     const isEdit = route.params?.isEdit ?? false;
     const [isPlanted, setIsPlanted] = useState(true)
-    const [measurementDate, setIsMeasurementDate] = useState(Date.now())
+    const [measurementDate, setMeasurementDate] = useState(Date.now())
     const [species, setSpecies] = useState<IScientificSpecies | null>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
@@ -136,8 +136,11 @@ const AddPlantDetailsPlotView = () => {
             toast.show("Please select a species")
             return
         }
+        const checkIsPlanted = () => {
+            return isPlanted ? 'PLANTED' : 'RECRUIT'
+        }
         const plantTimeline: PlantTimeLine = {
-            status: !isTreeAlive ? 'DECEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
+            status: !isTreeAlive ? 'DECEASED' : checkIsPlanted(),
             length: Number(height),
             width: Number(width),
             date: measurementDate,
@@ -186,7 +189,7 @@ const AddPlantDetailsPlotView = () => {
                         {!isEdit && <InterventionDatePicker
                             placeHolder={i18next.t('label.measurement_date')}
                             value={measurementDate}
-                            callBack={setIsMeasurementDate}
+                            callBack={setMeasurementDate}
                         />}
                         <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toggleSpeciesModal} />
                         {!isEdit && <>

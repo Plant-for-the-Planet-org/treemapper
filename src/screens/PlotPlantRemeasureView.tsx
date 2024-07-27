@@ -43,7 +43,7 @@ const PlotPlantRemeasureView = () => {
     const [disableDelete, setDisableDelete] = useState(false)
 
     const toast = useToast()
-    const { addNewMeasurementPlantPlots: addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
+    const { addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
     const realm = useRealm()
 
     useEffect(() => {

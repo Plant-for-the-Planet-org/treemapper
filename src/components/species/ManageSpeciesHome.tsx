@@ -35,7 +35,7 @@ interface Props {
 
 const ManageSpeciesHome = (props: Props) => {
   const {
-    toggleFavSpecies: toggleFavSpecies,
+    toggleFavSpecies,
     userFavSpecies,
     isManageSpecies,
     interventionEdit,
@@ -108,7 +108,7 @@ const ManageSpeciesHome = (props: Props) => {
         if (tree_details_required) {
           navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: form_id })
         } else {
-          navigation.navigate('LocalForm',{id:form_id})
+          navigation.navigate('LocalForm', { id: form_id })
         }
       }
     } else {
