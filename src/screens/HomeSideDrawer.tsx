@@ -14,11 +14,11 @@ const HomeSideDrawer = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header label={''} />
-      <SidebarHeader/>
+      <SidebarHeader />
       <View style={styles.wrapper}>
         <SideBarList isLogedIn={isLogedIn} />
       </View>
-      <SideBarFooter isLogedIn={isLogedIn}/>
+      <SideBarFooter isLogedIn={isLogedIn} />
     </SafeAreaView>
   )
 }

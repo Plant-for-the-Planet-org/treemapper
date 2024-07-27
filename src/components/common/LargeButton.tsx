@@ -55,7 +55,7 @@ const LargeButton = ({
             {heading}
           </Text>
         </View>
-        {subHeading && (
+        {!!subHeading && (
           <View style={styles.subContainer}>
             <Text
               style={[
@@ -68,7 +68,7 @@ const LargeButton = ({
           </View>
         )}
       </View>
-      {rightIcon && (
+      {!!rightIcon && (
         <View style={styles.rightIconCont}>
           <Text>{rightIcon}</Text>
         </View>

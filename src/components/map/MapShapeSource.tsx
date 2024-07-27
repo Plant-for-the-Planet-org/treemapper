@@ -9,7 +9,6 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 }
 const fillStyle = {fillOpacity: 0.1}
-// const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
 const bigCircleStyle = {
   circleColor: Colors.NEW_PRIMARY,
   circleOpacity: 0.5,

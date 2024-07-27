@@ -39,7 +39,7 @@ const useLocationPermission = () => {
       const userLocationDetails = await Location.getCurrentPositionAsync({
         accuracy: Location.LocationAccuracy.Highest
       })
-      if (userLocationDetails.coords && userLocationDetails.coords.longitude && userLocationDetails.coords.latitude) {//todo check this for android(Redux immutable issue)
+      if (userLocationDetails?.coords?.longitude && userLocationDetails?.coords?.latitude) {
         dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
         dispatch(updateAccurracy(userLocationDetails.coords.accuracy))
       }
@@ -51,7 +51,7 @@ const useLocationPermission = () => {
   const getLastKnowLocation = async () => {
     try {
       const lastLocation = await Location.getLastKnownPositionAsync()
-      if (lastLocation && lastLocation.coords) {
+      if (lastLocation?.coords) {
         dispatch(updateUserLocation([lastLocation.coords.longitude, lastLocation.coords.latitude]))
         dispatch(updateAccurracy(lastLocation.coords.accuracy))
       }

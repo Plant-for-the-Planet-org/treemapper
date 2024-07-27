@@ -26,28 +26,35 @@ import i18next from 'src/locales/index'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantId = route.params && route.params.plantId ? route.params.plantId : ''
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
+    const plotID = route.params?.id ?? '';
+    const plantId = route.params?.plantId ?? '';
+    const isEdit = route.params?.isEdit ?? false;
     const [isPlanted, setIsPlanted] = useState(true)
-    const [mesaurmentDate, setIsMeasurmentDate] = useState(Date.now())
+    const [measurementDate, setIsMeasurementDate] = useState(Date.now())
     const [species, setSpecies] = useState<IScientificSpecies | null>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const [isTreeAlive, setIsTreeAlive] = useState(true)
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
-    const [speciesModal, setShowSpeciesModal] = useState(false)
+    const [speciesModal, setSpeciesModal] = useState(false)
     const { addPlantDetailsPlot, updatePlotPlatDetails, deltePlantDetails } = useMonitoringPlotMangement()
     const toogleSpeciesModal = () => {
-        setShowSpeciesModal(!speciesModal)
+        setSpeciesModal(!speciesModal)
     }
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const toast = useToast()
 
     const getSpeciesNames = () => {
-        return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientificName}` : 'Select Species'
-    }
+        if (!species) {
+            return 'Select Species';
+        }
+
+        const aliases = species.aliases.length > 0 ? species.aliases : ''; // Convert array to comma-separated string
+        const scientificName = species.scientificName;
+
+        return `${aliases} ${scientificName}`.trim(); // Use trim() to remove any leading/trailing spaces
+    };
     const realm = useRealm()
 
     useEffect(() => {
@@ -129,15 +136,11 @@ const AddPlantDetailsPlotView = () => {
             toast.show("Please select a species")
             return
         }
-        // if (tag.trim().length === 0) {
-        //     toast.show("Please add valid Tag")
-        //     return
-        // }
         const plantTimeline: PlantTimeLine = {
             status: !isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
             length: Number(height),
             width: Number(width),
-            date: mesaurmentDate,
+            date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
             image: '',
@@ -182,8 +185,8 @@ const AddPlantDetailsPlotView = () => {
                         />
                         {!isEdit && <InterventionDatePicker
                             placeHolder={i18next.t('label.measurment_date')}
-                            value={mesaurmentDate}
-                            callBack={setIsMeasurmentDate}
+                            value={measurementDate}
+                            callBack={setIsMeasurementDate}
                         />}
                         <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
                         {!isEdit && <>
@@ -308,7 +311,7 @@ const styles = StyleSheet.create({
         width: '48%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {

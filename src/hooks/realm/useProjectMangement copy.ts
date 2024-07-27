@@ -45,7 +45,7 @@ const useProjectMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error while adding projects', error)
-      return Promise.reject(false)
+ return false
     }
   }
 

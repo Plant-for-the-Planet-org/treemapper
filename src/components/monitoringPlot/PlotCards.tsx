@@ -6,7 +6,7 @@ import DividerDot from '../common/DividerDot'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 interface Props {
-    item: MonitoringPlot | any
+    item: MonitoringPlot
     handleSelection: (id: string, lastScreen: string) => void
 }
 

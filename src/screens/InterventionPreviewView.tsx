@@ -38,7 +38,7 @@ const InterventionPreviewView = () => {
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
-  const interventionID = route.params && route.params.interventionId ? route.params.interventionId : ''
+  const interventionID = route.params?.interventionId ?? "";
   const { addNewLog } = useLogManagement()
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
@@ -62,7 +62,7 @@ const InterventionPreviewView = () => {
       public: {},
       app: {}
     };
-    if (localMetada && localMetada.length) {
+    if (localMetada?.length) {
       localMetada.forEach(el => {
         if (el.accessType === 'private') {
           updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
@@ -89,7 +89,7 @@ const InterventionPreviewView = () => {
 
 
   const checkIsTree = async () => {
-    if (route.params && route.params.sampleTree) {
+    if (route?.params?.sampleTree) {
       navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
@@ -146,7 +146,7 @@ const InterventionPreviewView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollWrapper}>
-        <Header label="Review" rightComponet={renderRightContainer()} />
+        <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}

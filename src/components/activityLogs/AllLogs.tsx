@@ -7,7 +7,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 
 
 const AllLogs = () => {
-    const [logs, setLogs] = useState<LogDetails[] | any>([])
+    const [logs, setLogs] = useState<LogDetails[]>([])
     const [loading, setLoading] = useState(false)
     const [currentPage, setCurrentPage] = useState(0);
     const realm = useRealm()
@@ -28,7 +28,7 @@ const AllLogs = () => {
         const start = currentPage * 20;
         const end = start + 20;
         const objects = realm
-            .objects(RealmSchema.ActivityLogs)
+            .objects<LogDetails>(RealmSchema.ActivityLogs)
             .filtered("logLevel != 'error'")
             .sorted('timestamp', true)
             .slice(start, end);

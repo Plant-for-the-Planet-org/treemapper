@@ -1,7 +1,7 @@
 import React from 'react';
 import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
 import Icon from '@expo/vector-icons/FontAwesome5';
-import { Colors, Typography}from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales/index';
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins';
 import CustomButton from '../common/CustomButton';
@@ -17,51 +17,50 @@ interface IEditPolygonButtonsProps {
   redoGeoJSON: any;
   resetGeoJSON: any;
   disableButtons: boolean;
-  hid: string;
   isPointJSON?: boolean;
 }
 
-const EditPolygonButtons = ({
-  isUndoDisabled = true,
-  isRedoDisabled = true,
-  saveGeoJSON,
-  undoGeoJSON,
-  redoGeoJSON,
-  resetGeoJSON,
-  disableButtons = true,
-  isPointJSON = false,
-}: IEditPolygonButtonsProps) => {
+const EditPolygonButtons = (props: IEditPolygonButtonsProps) => {
+  const {
+    isUndoDisabled = true,
+    isRedoDisabled = true,
+    saveGeoJSON,
+    undoGeoJSON,
+    redoGeoJSON,
+    resetGeoJSON,
+    disableButtons = true,
+    isPointJSON = false,
+  } = props
   return (
-    <>
-      <View style={styles.bottomButtons}>
-        {/* maps the undo redo buttons only visible if geometry is not point */}
-        {!isPointJSON ? (
-          <View style={styles.undoRedoContainer}>
-            <TouchableOpacity
-              disabled={isUndoDisabled}
-              onPress={() => undoGeoJSON()}
-              style={[styles.backIconContainer, { marginRight: 8 }]}>
-              <Icon
-                name="undo-alt"
-                size={16}
-                color={isUndoDisabled ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              disabled={isRedoDisabled}
-              onPress={() => redoGeoJSON()}
-              style={styles.backIconContainer}>
-              <Icon
-                name="redo-alt"
-                size={16}
-                color={isRedoDisabled ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
-              />
-            </TouchableOpacity>
-          </View>
-        ) : (
-          []
-        )}
-        <View style={styles.btnContainer}>
+    <View style={styles.bottomButtons}>
+      {/* maps the undo redo buttons only visible if geometry is not point */}
+      {!isPointJSON ? (
+        <View style={styles.undoRedoContainer}>
+          <TouchableOpacity
+            disabled={isUndoDisabled}
+            onPress={() => undoGeoJSON()}
+            style={[styles.backIconContainer, { marginRight: 8 }]}>
+            <Icon
+              name="undo-alt"
+              size={16}
+              color={isUndoDisabled ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+          <TouchableOpacity
+            disabled={isRedoDisabled}
+            onPress={() => redoGeoJSON()}
+            style={styles.backIconContainer}>
+            <Icon
+              name="redo-alt"
+              size={16}
+              color={isRedoDisabled ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
+            />
+          </TouchableOpacity>
+        </View>
+      ) : (
+        []
+      )}
+      <View style={styles.btnContainer}>
         <CustomButton
           label={i18next.t('label.reset')}
           containerStyle={styles.btnWrapper}
@@ -78,8 +77,7 @@ const EditPolygonButtons = ({
           disable={disableButtons}
         />
       </View>
-      </View>
-    </>
+    </View>
   );
 };
 
@@ -140,7 +138,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   imageContainer: {
-    widht: '100%',
+    width: '100%',
     height: '100%',
   },
   borderWrapper: {

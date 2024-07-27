@@ -4,7 +4,7 @@ import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateInterventionFilter, updateRemeasurementFilter, updateShowlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
@@ -19,8 +19,8 @@ interface Props {
 }
 
 const FilterModal = (props: Props) => {
-  const [showTimeModal, setTimeModal] = useState(false)
-  const [showTypeModal, setTypeModal] = useState(false)
+  const [showTimeModal, setShowTimeModal] = useState(false)
+  const [showTypeModal, setShowTypeModal] = useState(false)
 
 
   const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
@@ -47,31 +47,31 @@ const FilterModal = (props: Props) => {
   }, []);
   const closeModal = () => {
     toogleModal()
-    setTypeModal(false)
+    setShowTypeModal(false)
     dismiss();
   }
 
   const toogleIntervention = () => {
     if (interventionFilter === 'none') {
       dispatch(updateInterventionFilter('always'))
-      setTimeModal(true)
+      setShowTimeModal(true)
     } else {
-      setTimeModal(false)
+      setShowTimeModal(false)
       dispatch(updateInterventionFilter('none'))
     }
   }
 
   const toogleTimeModal = () => {
-    setTimeModal(!showTimeModal)
+    setShowTimeModal(!showTimeModal)
   }
 
 
   const toogleTypeModal = () => {
-    setTypeModal(!showTypeModal)
+    setShowTypeModal(!showTypeModal)
   }
 
   const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    setTimeModal(false)
+    setShowTimeModal(false)
     dispatch(updateInterventionFilter(e))
   }
 
@@ -80,6 +80,10 @@ const FilterModal = (props: Props) => {
     bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
     toogleTypeModal()
   }
+
+  const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+    <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+  )
 
   return (
     <BottomSheetModal
@@ -90,9 +94,7 @@ const FilterModal = (props: Props) => {
       handleStyle={styles.handleIndicatorStyle}
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
-      backdropComponent={({ style }) => (
-        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal}/>
-      )}
+      backdropComponent={backdropModal}
       style={{ paddingTop: 20 }}
     >
       <InterventionTimeModal isVisible={showTimeModal} toogleModal={toogleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
@@ -125,7 +127,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLable}>{i18next.t('label.only_remeasurment')}</Text>
               <View style={styles.divider} />
-              <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement))}} disabled={false} />
+              <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement)) }} disabled={false} />
             </View>
             <View />
           </View>

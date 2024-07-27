@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 interface Props {
-    item: PlotObservation | any
+    item: PlotObservation
     plotId: string
 }
 

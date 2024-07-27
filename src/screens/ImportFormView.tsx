@@ -92,7 +92,7 @@ const ImportFormView = () => {
       { encoding: 'utf8' },
     )
     const parsedData = JSON.parse(jsonData)
-    if (parsedData && parsedData.version) {
+    if (parsedData?.version) {
       const { formData, metaData } = parsedData
       await bulkMetaDataAdditoin(metaData)
       await bulkFormAddition(formData)

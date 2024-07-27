@@ -21,7 +21,7 @@ const PointMarkerView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'PointMarker'>>()
   const realm = useRealm()
 
-  const interventionID = route.params && route.params.id ? route.params.id : ''
+  const interventionID = route.params?.id ?? '';
 
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
@@ -39,8 +39,8 @@ const PointMarkerView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        label={"Mark Location"} //todo add translations
-        rightComponet={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
+        label={"Mark Location"}
+        rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
       />
       <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} />
       <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />

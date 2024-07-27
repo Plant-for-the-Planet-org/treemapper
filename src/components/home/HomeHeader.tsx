@@ -19,6 +19,7 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
+import { InterventionData } from 'src/types/interface/slice.interface'
 
 interface Props {
   toogleFilterModal: () => void
@@ -121,13 +122,13 @@ const HomeHeader = (props: Props) => {
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
-  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN","loc_fVSURzjYpGU0ozFD60dPrbJF","loc_8HnYd9gTXBt108EUALRiEhnp"]
+  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN", "loc_fVSURzjYpGU0ozFD60dPrbJF", "loc_8HnYd9gTXBt108EUALRiEhnp"]
 
   const addServerIntervention = async () => {
     try {
       const result = await getServerIntervention(lastServerInterventionpage)
-      const interventions = []
-      if (result && result.items) {
+      const interventions: InterventionData[] = []
+      if (result?.items) {
         if (!result._links.next || result._links.next === result._links.self) {
           dispatch(updateServerIntervetion(true))
           return;
@@ -207,14 +208,12 @@ const HomeHeader = (props: Props) => {
       <SyncIntervention isLogedIn={isLogedIn} />
       <View style={styles.sectionWrapper} />
       {userType && userType === 'tpo' ? (
-        <>
-          <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleProjectModal}>
-            <HomeMapIcon
-              onPress={toogleProjectModal}
-              width={22} height={22}
-            />
-          </Pressable>
-        </>
+        <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleProjectModal}>
+          <HomeMapIcon
+            onPress={toogleProjectModal}
+            width={22} height={22}
+          />
+        </Pressable>
       ) : null}
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleFilterModal}>
         <FilterMapIcon

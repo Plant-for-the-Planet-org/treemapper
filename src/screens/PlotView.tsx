@@ -60,7 +60,7 @@ const PlotView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponet={renderIcon()} />
+      <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
       <View style={styles.wrapper}>
         <PlotList data={plotData} />
       </View>

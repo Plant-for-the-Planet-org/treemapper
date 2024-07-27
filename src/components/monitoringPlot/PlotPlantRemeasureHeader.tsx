@@ -11,7 +11,6 @@ interface Props {
     label: string
     type: PLOT_PLANT
     species: string
-    allias: string
     showRemeasure: boolean
     rightComponent?: ReactElement,
     tree?: boolean
@@ -37,7 +36,7 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightCo
                     {species}
                 </Text>
             </View>
-            {rightComponent && rightComponent}
+            {!!rightComponent && rightComponent}
         </View>
     )
 }

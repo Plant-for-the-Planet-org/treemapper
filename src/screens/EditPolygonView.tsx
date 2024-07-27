@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
-import MapLibreGL  from '@maplibre/maplibre-react-native'
+import MapLibreGL from '@maplibre/maplibre-react-native'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
@@ -28,7 +28,7 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 const EditPolygonMap = () => {
     const realm = useRealm()
     const route = useRoute<RouteProp<RootStackParamList, 'EditPolygon'>>()
-    const interventionId = route.params && route.params.id ? route.params.id : ''
+    const interventionId = route.params?.id ?? '';
     const Interverntion = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [history, setHistory] = useState<Array<{
@@ -161,28 +161,6 @@ const EditPolygonMap = () => {
         navigation.goBack()
     }
 
-    // const changeSteps = (method: 'redo' | 'undo') => {
-    //     console.log("KLJ", method)
-    //     console.log("HI", history)
-    //     console.log("in", currentStep)
-    //     const updateCoords = [...coordinates]
-    //     updateCoords[history[currentStep - 1].index] = history[currentStep - 1].coords
-    //     console.log("O:K", updateCoords)
-    //     setCoordinates(updateCoords)
-    //     // let updatedStep = currentStep
-    //     // if (method === 'redo') {
-    //     //     setSteps(currentStep + 1)
-    //     //     updatedStep += 1
-    //     // } else {
-    //     //     setSteps(currentStep - 1)
-    //     //     updatedStep -= 1
-    //     // }
-    //     // const updateCoords = [...coordinates]
-    //     // updateCoords[history[updatedStep].index] = history[updatedStep].coords
-    //     // setCoordinates(updateCoords)
-    // }
-
-
     return (
         <SafeAreaView style={styles.container}>
             <EditDispalyCurrentPolygonMarker
@@ -205,7 +183,6 @@ const EditPolygonMap = () => {
                 <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
                 {Interverntion.has_sample_trees && <MapMarkersOverlay
                     hasSampleTree={Interverntion.has_sample_trees}
-                    overLay
                     sampleTreeData={Interverntion.sample_trees} />}
             </MapLibreGL.MapView>
 
@@ -226,28 +203,6 @@ const EditPolygonMap = () => {
                     labelStyle={styles.normalLable}
                 />
             </View>
-            {/* {history.length > 0 && <View style={styles.undoRedoContainer}>
-                <TouchableOpacity
-                    disabled={currentStep > 1}
-                    onPress={() => { changeSteps('undo') }}
-                    style={[styles.backIconContainer, { marginRight: 8 }]}>
-                    <Icon
-                        name="undo-alt"
-                        size={16}
-                        color={currentStep > 1 ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
-                    />
-                </TouchableOpacity>
-                <TouchableOpacity
-                    disabled={currentStep < history.length - 1}
-                    onPress={() => { changeSteps('redo') }}
-                    style={styles.backIconContainer}>
-                    <Icon
-                        name="redo-alt"
-                        size={16}
-                        color={currentStep < history.length - 1 ? Colors.GRAY_DARK : Colors.TEXT_COLOR}
-                    />
-                </TouchableOpacity>
-            </View>} */}
         </SafeAreaView>
     )
 }

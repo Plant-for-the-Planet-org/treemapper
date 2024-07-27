@@ -21,7 +21,7 @@ const PolygonMarker = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'PolygonMarker'>>()
   const realm = useRealm()
 
-  const interventionID = route.params && route.params.id ? route.params.id : ''
+  const interventionID = route.params?.id ?? '';
 
 
   useEffect(() => {
@@ -42,7 +42,7 @@ const PolygonMarker = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header label={location_title}
-        rightComponet={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
+        rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
       <PolygonMarkerMap species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
       <UserlocationMarker />
       <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />

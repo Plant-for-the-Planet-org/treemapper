@@ -4,7 +4,6 @@ import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { useDispatch } from 'react-redux'
 import { SpecieCard } from 'src/components/species/ManageSpeciesCard'
-import { IScientificSpecies } from 'src/types/interface/app.interface'
 import CustomButton from 'src/components/common/CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
@@ -32,7 +31,7 @@ const TotalTreesView = () => {
   const dispatch = useDispatch()
   const realm = useRealm()
   const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
-  const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
+  const interventionId = route.params?.interventionId ?? "";
   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
   const toast = useToast()
   const goBack = () => {
@@ -59,7 +58,6 @@ const TotalTreesView = () => {
       dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
       navigation.navigate('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
-      return
     }
   }
 
@@ -74,7 +72,7 @@ const TotalTreesView = () => {
   }
 
   const renderSpecieCard = (
-    item: IScientificSpecies | any,
+    item: PlantedSpecies
   ) => {
     return (
       <SpecieCard
@@ -87,7 +85,7 @@ const TotalTreesView = () => {
     )
   }
 
-
+  const renderFooter = () => <View style={styles.footerWrapper} />
 
 
   return (
@@ -98,7 +96,7 @@ const TotalTreesView = () => {
           data={intervention.planted_species}
           renderItem={({ item }) => renderSpecieCard(item)}
           keyExtractor={({ guid }) => guid}
-          ListFooterComponent={() => <View style={styles.footerWrapper} />}
+          ListFooterComponent={renderFooter}
         />
         {!isSelectSpecies && (
           <View style={styles.btnContainer}>
@@ -160,7 +158,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   imageContainer: {
-    widht: '100%',
+    width: '100%',
     height: '100%',
   },
   borderWrapper: {

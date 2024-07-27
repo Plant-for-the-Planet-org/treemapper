@@ -70,7 +70,7 @@ const PointMarkerMap = (props: Props) => {
   }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
-    if (cameraRef && cameraRef.current) {
+    if (cameraRef?.current) {
       const { bounds, key } = MapBounds
       if (key === 'POINT_MAP') {
         cameraRef.current.fitBounds(

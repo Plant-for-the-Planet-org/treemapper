@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View, } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import EditDimension from 'assets/images/svg/EditDimension.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
@@ -35,9 +35,9 @@ const EidPlantModal = (props: Props) => {
   const snapPoints = useMemo(() => ['40%'], []);
   const [showEdit, setShowEdit] = useState('')
 
-  const [plotName, setPlotname] = useState('')
+  const [plotName, setPlotName] = useState('')
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [dropDownList, setDropDrownList] = useState<DropdownData[]>([])
+  const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
   const [type, setType] = useState<DropdownData>({
     label: '',
     value: '',
@@ -49,7 +49,7 @@ const EidPlantModal = (props: Props) => {
     if (isVisible) {
       handlePresentModalPress()
       setGroupData()
-      setPlotname(plotData.name)
+      setPlotName(plotData.name)
     }
   }, [isVisible])
 
@@ -72,8 +72,8 @@ const EidPlantModal = (props: Props) => {
         value: el.group_id,
         index: i
       }))
-      setDropDrownList(updateList)
-      if (plotData.plot_group && plotData.plot_group[0]) {
+      setDropDownList(updateList)
+      if (plotData?.plot_group[0]) {
         setType({
           label: plotData.plot_group[0].name,
           value: plotData.plot_group[0].group_id,
@@ -116,6 +116,10 @@ const EidPlantModal = (props: Props) => {
     navigation.navigate("PlotGroup")
   }
 
+  const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+    <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+  )
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -124,11 +128,9 @@ const EidPlantModal = (props: Props) => {
       detached
       handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
       snapPoints={snapPoints}
-      backdropComponent={({ style }) => (
-        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
-      )}
+      backdropComponent={backdropModal}
     >
-      <EditInputModal value={showEdit} setValue={setPlotname} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} setIsOpenModal={showEdit} inputType={'default'} />
+      <EditInputModal value={showEdit} setValue={setPlotName} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} inputType={'default'} />
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
           <View style={styles.contnetWrapper}>

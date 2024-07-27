@@ -2,23 +2,23 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
-import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from 'src/types/type/app.type';
+import {PlotAttributes } from 'src/types/type/app.type';
 import i18next from 'src/locales/index'
 
 
 interface Props {
     header: string
     labelOne: {
-        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
+        key: PlotAttributes
         value: string
     }
     labelTwo: {
-        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
+        key: PlotAttributes
         value: string
     },
     disabled: boolean,
     selectedValue: string,
-    onSelect: (v: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE) => void
+    onSelect: (v: PlotAttributes) => void
 }
 
 const CreatePlotCard = (props: Props) => {

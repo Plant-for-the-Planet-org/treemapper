@@ -6,7 +6,7 @@ import { interventionHeader } from '../../interventionHelper/interventionLocaleH
 export const SingleTeePlantation: RegisterFormSliceInitalState = {
   form_id: '',
   key: 'single-tree-registration',
-  title: interventionHeader('single-tree-registration'),// todo add this for other intervention
+  title: interventionHeader('single-tree-registration'),
   intervention_date: 0,
   skip_intervention_form: true,
   user_type: 'normal',

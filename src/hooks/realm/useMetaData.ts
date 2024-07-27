@@ -19,7 +19,7 @@ const useMetaData = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
   const updateMetaData = async (data: Metadata): Promise<boolean> => {
@@ -32,10 +32,9 @@ const useMetaData = () => {
         intervention.order = data.order
 
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
   const deleteMetaData = async (id: string): Promise<boolean> => {
@@ -44,10 +43,9 @@ const useMetaData = () => {
         const intervention = realm.objectForPrimaryKey<Metadata>(RealmSchema.Metadata, id);
         realm.delete(intervention);
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -67,7 +65,7 @@ const useMetaData = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -81,7 +79,7 @@ const useMetaData = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 

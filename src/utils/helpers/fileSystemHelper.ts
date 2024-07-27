@@ -9,7 +9,7 @@ export const copyImageAndGetData = async (imagePath: string, interventionId: str
     // Calling an async function inside the Promise executor
     handleImageCopy(imagePath, interventionId, isSpecies)
       .then(resolve)
-      .catch(() => reject(''));
+      .catch((error) => reject(new Error(`Image copy failed: ${error.message || error}`)));
   });
 };
 

@@ -425,6 +425,10 @@ export interface MonitoringPlot {
   observations: PlotObservation[]
 }
 
+export interface ValidationResult {
+  hasError: boolean,
+  errorMessage: string, key: string
+}
 
 export interface PlantedPlotSpecies {
   plot_plant_id: string

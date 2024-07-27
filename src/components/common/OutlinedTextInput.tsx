@@ -1,7 +1,6 @@
-import { KeyboardTypeOptions, StyleSheet, View } from 'react-native'
+import { KeyboardTypeOptions, StyleSheet, View, Text } from 'react-native'
 import React from 'react'
 import { InputOutline } from 'react-native-input-outline'
-import { Text } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 
@@ -17,6 +16,9 @@ interface Props {
 
 const OutlinedTextInput = (props: Props) => {
   const { placeholder, changeHandler, keyboardType, trailingtext, errMsg, autoFocus, defaultValue } = props
+  const renderTrailinComma = () => {
+    return <Text style={styles.unitLabel}>{trailingtext}</Text>
+  }
   return (
     <View style={styles.container}>
       <InputOutline
@@ -34,10 +36,8 @@ const OutlinedTextInput = (props: Props) => {
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}
-        value={defaultValue ? defaultValue : ""}
-        trailingIcon={() => (
-          <Text style={styles.unitLabel}>{trailingtext}</Text>
-        )}
+        value={defaultValue || ""}
+        trailingIcon={renderTrailinComma}
       />
     </View>
   )

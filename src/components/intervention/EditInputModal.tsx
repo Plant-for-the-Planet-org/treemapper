@@ -20,7 +20,6 @@ interface IInputModalProps {
   setValue: any;
   onSubmitInputField: any;
   isOpenModal: any;
-  setIsOpenModal: any;
   inputType: KeyboardType;
   isRequired?: boolean;
   placeholder?: string;

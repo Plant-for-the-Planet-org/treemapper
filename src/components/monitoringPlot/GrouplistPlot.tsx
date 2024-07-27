@@ -1,6 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, FlatList } from 'react-native'
 import React from 'react'
-import { FlatList } from 'react-native'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { useObject } from '@realm/react'
@@ -37,21 +36,23 @@ const GrouplistPlot = ({ gid }: Props) => {
         </View>)
     }
 
+    const renderEmptyList=() => {
+        return (
+            <View style={styles.emptyWrapper}>
+                <Text style={styles.emptyLabel}>
+                    {i18next.t('label.empty_plots_note')}
+                </Text>
+            </View>
+        )
+    }
+
 
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <FlatList
                     style={[styles.flatlistWrapper, { backgroundColor: plotDetails.plots.length > 0 ? Colors.WHITE : 'transparent' }]}
-                    ListEmptyComponent={() => {
-                        return (
-                            <View style={styles.emptyWrapper}>
-                                <Text style={styles.emptyLabel}>
-                                    {i18next.t('label.empty_plots_note')}
-                                </Text>
-                            </View>
-                        )
-                    }}
+                    ListEmptyComponent={renderEmptyList}
                     data={plotDetails.plots}
                     renderItem={({ item, index }) => renderCardItems(item, index)} />
             </View>

@@ -12,7 +12,7 @@ import Header from 'src/components/common/Header'
 
 
 const OldInvenoryDataView = () => {
-  const [inventoryData, setInventoryData] = useState<Inventory[] | any>([])
+  const [inventoryData, setInventoryData] = useState<Inventory[]>([])
   const realm = useRealm()
   const [loading, setLoading] = useState(false)
   useEffect(() => {
@@ -20,8 +20,8 @@ const OldInvenoryDataView = () => {
   }, [])
 
   const showOldData = async () => {
-    const data = realm.objects<Inventory[]>(RealmSchema.Inventory).filtered('status != "SYNCED"')
-    setInventoryData(data)
+    const data = realm.objects<Inventory>(RealmSchema.Inventory).filtered('status != "SYNCED"')
+    setInventoryData([...data])
   }
 
   const exportData = async (el: Inventory) => {

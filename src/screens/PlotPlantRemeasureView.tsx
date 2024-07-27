@@ -18,17 +18,26 @@ import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangeme
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
+import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
+
+interface Params {
+    l: number,
+    w: number,
+    date: number,
+    status: PLOT_PLANT_STATUS,
+
+}
 
 const PlotPlantRemeasureView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddRemeasurment'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
-    const timelineId = route.params && route.params.timelineId ? route.params.timelineId : ''
+    const plotID = route.params?.id ?? '';
+    const plantID = route.params?.plantID ?? '';
+    const timelineId = route.params?.timelineId ?? '';
     const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
-    const [mesaurementDate, setMesaurmentDate] = useState(Date.now())
+    const [measurementDate, setMeasurementDate] = useState(Date.now())
     const [isAlive, setIsAlive] = useState(true)
     const [isEdit, setIsEdit] = useState(false)
     const [disableDelte, setDisableDelte] = useState(false)
@@ -49,7 +58,7 @@ const PlotPlantRemeasureView = () => {
                         setHeight(String(timelineDetails.length))
                         setWidth(String(timelineDetails.width))
                         setIsEdit(true)
-                        setMesaurmentDate(timelineDetails.date)
+                        setMeasurementDate(timelineDetails.date)
                         setIsAlive(timelineDetails.status !== 'DESCEASED')
                         setDisableDelte(timelineDetails.status === 'PLANTED')
                     }
@@ -75,7 +84,7 @@ const PlotPlantRemeasureView = () => {
             status: isAlive ? 'REMEASURMENT' : 'DESCEASED',
             length: Number(height),
             width: Number(width),
-            date: mesaurementDate,
+            date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
             image: '',
@@ -122,14 +131,15 @@ const PlotPlantRemeasureView = () => {
             toast.show("Please delete all the other measurement next to this measurement before marking it deceased.")
             return
         }
-        if (!dateCheck(index, mesaurementDate)) {
+        if (!dateCheck(index, measurementDate)) {
             return
         }
-        const updateTimeline = {
+        const latestStatus = () => isAlive ? 'REMEASURMENT' : 'DESCEASED'
+        const updateTimeline: Params = {
             l: Number(height),
             w: Number(width),
-            date: mesaurementDate,
-            status: isEdit && index === 0 ? 'PLANTED' : isAlive ? 'REMEASURMENT' : 'DESCEASED',
+            date: measurementDate,
+            status: isEdit && index === 0 ? 'PLANTED' : latestStatus()
         }
         const result = await updateTimelineDetails(plotID, plantID, timelineId, updateTimeline)
         if (result) {
@@ -139,12 +149,9 @@ const PlotPlantRemeasureView = () => {
             toast.show("Error occurred")
         }
     }
-
-    //todo
-
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} allias={selectedTimeline.aliases} showRemeasure={true} />
+            <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={true} />
             <View style={styles.wrapper}>
                 <PlaceHolderSwitch
                     description={'This tree is still alive'}
@@ -153,8 +160,8 @@ const PlotPlantRemeasureView = () => {
                 />
                 {isAlive && <><InterventionDatePicker
                     placeHolder={'Measurement Date'}
-                    value={mesaurementDate}
-                    callBack={setMesaurmentDate}
+                    value={measurementDate}
+                    callBack={setMeasurementDate}
                 />
                     <View style={styles.inputWrapper}>
                         <OutlinedTextInput
@@ -238,7 +245,7 @@ const styles = StyleSheet.create({
         width: '48%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {

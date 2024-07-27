@@ -11,8 +11,8 @@ import { RootState } from 'src/store'
 import InterventionHeader from 'src/components/intervention/InterventionHeader'
 
 const InterventionView = () => {
-  const [selectedLabel, setSlectedLabel] = useState('all')
-  const [allIntervention, setInterventionData] = useState<InterventionData[] | any[]>([])
+  const [selectedLabel, setSelectedLabel] = useState('all')
+  const [allIntervention, setAllIntervention] = useState<InterventionData[] | any[]>([])
   const { intervention_updated } = useSelector((state: RootState) => state.appState)
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -24,15 +24,27 @@ const InterventionView = () => {
     getReleatedIntervention()
   }, [currentPage, selectedLabel])
 
+  const getQuery = (label) => {
+    if (label === 'unsync') {
+      return 'status != "SYNCED" AND is_complete == true';
+    } else if (label === 'incomplete') {
+      return 'is_complete==false';
+    } else if (label === 'all') {
+      return 'intervention_id!=""';
+    } else {
+      return `intervention_key=="${label}"`;
+    }
+  };
+
   const getReleatedIntervention = () => {
-    const query = selectedLabel === 'unsync' ? 'status != "SYNCED" AND is_complete == true' : selectedLabel === 'incomplete' ? 'is_complete==false' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
+    const query = getQuery(selectedLabel);
     const start = currentPage * 20;
     const end = start + 20;
     const objects = realm
       .objects(RealmSchema.Intervention)
       .filtered(query)
       .slice(start, end);
-    setInterventionData([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
+    setAllIntervention([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
     setLoading(false)
   }
 
@@ -48,14 +60,14 @@ const InterventionView = () => {
   }
 
   const handleLable = (s: string) => {
-    setInterventionData([])
-    setSlectedLabel(s)
+    setAllIntervention([])
+    setSelectedLabel(s)
     setCurrentPage(0)
   }
 
   const refreshHandler = () => {
     setLoading(true)
-    setInterventionData([])
+    setAllIntervention([])
     setCurrentPage(0);
   }
 

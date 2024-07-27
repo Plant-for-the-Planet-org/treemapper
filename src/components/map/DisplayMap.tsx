@@ -63,9 +63,9 @@ const DisplayMap = () => {
 
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
-    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el=>{
-      if(onlyRemeasurement){
-        return el.remeasuremnt_required===true
+    const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
+      if (onlyRemeasurement) {
+        return el.remeasuremnt_required === true
       }
       return el
     })
@@ -76,7 +76,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+          key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -202,7 +202,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+              key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -245,7 +245,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasuremnt_required?'remeasurement':el.intervention_key,
+            key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -263,6 +263,65 @@ const DisplayMap = () => {
   }
 
 
+  const renderShapeSource = () => {
+    if (!showOverlay && selectedIntervention.length === 0) {
+      return (
+        <PolygonShapeSource
+          geoJSON={{
+            type: 'FeatureCollection',
+            features: handleGeoJSONData()
+          }}
+          onShapeSourcePress={setSelectedGeoJson}
+        />
+      );
+    } else if (showOverlay) {
+      return (
+        <ClusterdShapSource
+          geoJSON={overlayGeoJSON}
+          onShapeSourcePress={setActiveIntervetnion}
+        />
+      );
+    }
+    return null;
+  };
+  
+  const renderMapMarkers = () => {
+    if (selectedIntervention) {
+      const interventionData = JSON.parse(selectedIntervention);
+      if (!showOverlay) {
+        return (
+          <MapMarkers
+            sampleTreeData={interventionData.sample_trees}
+            hasSampleTree={interventionData.has_sample_trees}
+            activeIndex={activeIndex}
+            showActive
+            onMarkerPress={handleMarkerPress}
+          />
+        );
+      } else {
+        return (
+          <MapMarkersOverlay
+            sampleTreeData={interventionData.sample_trees}
+            hasSampleTree={interventionData.has_sample_trees}
+          />
+        );
+      }
+    }
+    return null;
+  };
+  
+  const renderSingleInterventionSource = () => {
+    if (selectedIntervention && !showOverlay) {
+      return (
+        <SingleInterventionSource
+          intervetnion={JSON.parse(selectedIntervention)}
+        />
+      );
+    }
+    return null;
+  };
+  const mapStyleURL = JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle);
+
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -271,33 +330,20 @@ const DisplayMap = () => {
       attributionEnabled={false}
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
-      styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
+      styleURL={mapStyleURL}
+    >
       <MapLibreGL.Camera ref={cameraRef} />
-      <MapLibreGL.UserLocation showsUserHeadingIndicator
+      <MapLibreGL.UserLocation
+        showsUserHeadingIndicator
         androidRenderMode="gps"
-        minDisplacement={1} />
-      {!showOverlay && selectedIntervention.length === 0 ? <PolygonShapeSource geoJSON={{
-        type: 'FeatureCollection',
-        features: handleGeoJSONData()
-      }}
-        onShapeSourcePress={setSelectedGeoJson} /> :
-        showOverlay ?
-          <ClusterdShapSource geoJSON={overlayGeoJSON}
-            onShapeSourcePress={setActiveIntervetnion} /> : null}
+        minDisplacement={1}
+      />
+      {renderShapeSource()}
       <SiteMapSource isSattelite={mainMapView === 'SATELLITE'} />
-      {selectedIntervention && !showOverlay ? (
-        <MapMarkers
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
-      ) : null}
-      {selectedIntervention && showOverlay ? (
-        <MapMarkersOverlay
-          sampleTreeData={JSON.parse(selectedIntervention).sample_trees} hasSampleTree={JSON.parse(selectedIntervention).has_sample_trees} activeIndex={activeIndex} showActive onMarkerPress={handleMarkerPress} overLay={showOverlay} />
-      ) : null}
-      {selectedIntervention && !showOverlay ? (
-        <SingleInterventionSource intervetnion={JSON.parse(selectedIntervention)} />
-      ) : null}
+      {renderMapMarkers()}
+      {renderSingleInterventionSource()}
     </MapLibreGL.MapView>
-  )
+  );
 }
 
 export default DisplayMap

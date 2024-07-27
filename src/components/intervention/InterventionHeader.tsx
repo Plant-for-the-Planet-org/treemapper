@@ -1,7 +1,6 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, TouchableOpacity } from 'react-native'
 import React from 'react'
 import FreeUpSaceButton from './FreeUpSaceButton'
-import { TouchableOpacity } from 'react-native'
 import Icon from '@expo/vector-icons/MaterialIcons';
 
 import { Colors } from 'src/utils/constants'

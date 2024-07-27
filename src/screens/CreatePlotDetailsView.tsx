@@ -36,7 +36,7 @@ const CreatePlotDetailsView = () => {
     const { updatePlotDetails, addPlotToGroup } = useMonitoringPlotMangement()
 
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
+    const plotID = route.params?.id ?? '';
     const [plotImage, setPlotImage] = useState('')
     const { lastUpdateAt } = useSelector(
         (state: RootState) => state.monitoringPlotState,
@@ -46,7 +46,7 @@ const CreatePlotDetailsView = () => {
         value: '',
         index: 0
     })
-    const [dropDownList, setDropDrownList] = useState<DropdownData[]>([])
+    const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
     const toast = useToast()
 
     useEffect(() => {
@@ -79,18 +79,22 @@ const CreatePlotDetailsView = () => {
                 value: el.group_id,
                 index: i
             }))
-            setDropDrownList(updateList)
+            setDropDownList(updateList)
         }
     }
 
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
     const submitHandler = async () => {
-        if (plotName.trim().length === 0) {
-            toast.show("Please add valid Plot Name")
-            return
+        if (!isPlotNameValid(plotName)) {
+            toast.show("Please add valid Plot Name");
+            return;
         }
+    
         if (plotShape === 'RECTANGULAR') {
+            if (!isRectangularPlotValid(plotWidth, plotLength)) return;
+        } else if (plotShape === 'CIRCULAR') {
+            if (!isCircularPlotValid(plotRadius)) return;
             const validWidth = validateNumber(plotWidth, 'width', 'width')
             const validHeight = validateNumber(plotLength, 'length', 'length')
             if (validHeight.hasError) {
@@ -106,38 +110,74 @@ const CreatePlotDetailsView = () => {
                 return
             }
         } else {
-            const validRadius = validateNumber(plotRadius, 'Radius', 'Radius')
-            if (!validRadius) {
-                toast.show(validRadius.errorMessage)
-                return
-            }
-            if (Number(plotRadius) < 25) {
-                toast.show("Please add valid Radius as per note")
-                return
-            }
+            toast.show("Invalid plot shape");
+            return;
         }
-        if (plotImage === '') {
-            toast.show("Please add Plot Image")
-            return
+    
+        if (!isPlotImageValid(plotImage)) {
+            toast.show("Please add Plot Image");
+            return;
         }
+    
         const data: PlotDetailsParams = {
             name: plotName,
             length: Number(plotLength),
             width: Number(plotWidth),
             radius: Number(plotRadius),
             group: null
-        }
-        const result = await updatePlotDetails(plotID, data)
+        };
+    
+        const result = await updatePlotDetails(plotID, data);
         if (result) {
-            if (type.value) {
-                const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
-                await addPlotToGroup(type.value, plotData)
-            }
-            navigation.replace('CreatePlotMap', { id: plotID })
+            await handlePostUpdate();
+            navigation.replace('CreatePlotMap', { id: plotID });
         } else {
             toast.show("Error occurred while adding data")
         }
-    }
+    };
+    
+    const isPlotNameValid = (name: string) => name.trim().length > 0;
+    
+    const isRectangularPlotValid = (width: string, length: string) => {
+        const validWidth = validateNumber(width, 'width', 'width');
+        const validHeight = validateNumber(length, 'length', 'length');
+    
+        if (validHeight.hasError) {
+            toast.show(validHeight.errorMessage);
+            return false;
+        }
+        if (validWidth.hasError) {
+            toast.show(validWidth.errorMessage);
+            return false;
+        }
+        if (Number(width) < 4 || Number(length) < 25) {
+            toast.show("Please add valid Dimensions as per note");
+            return false;
+        }
+        return true;
+    };
+    
+    const isCircularPlotValid = (radius: string) => {
+        const validRadius = validateNumber(radius, 'Radius', 'Radius');
+        if (validRadius.hasError) {
+            toast.show(validRadius.errorMessage);
+            return false;
+        }
+        if (Number(radius) < 25) {
+            toast.show("Please add valid Radius as per note");
+            return false;
+        }
+        return true;
+    };
+    
+    const isPlotImageValid = (image: string) => image.trim() !== '';
+    
+    const handlePostUpdate = async () => {
+        if (type.value) {
+            const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
+            await addPlotToGroup(type.value, plotData);
+        }
+    };
 
     const openInfo = () => {
         navigation.navigate('MonitoringInfo')
@@ -152,7 +192,7 @@ const CreatePlotDetailsView = () => {
             <AvoidSoftInputView
                 avoidOffset={20}
                 style={styles.container}>
-                <Header label={i18next.t('label.create_plot_header')} rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+                <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                 <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
                     <View style={styles.wrapper}>
                         <View style={{ paddingHorizontal: 20 }}>

@@ -25,7 +25,7 @@ const cardSize = scaleSize(60)
 
 interface Props {
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
-  userFavSpecies: IScientificSpecies[] | any
+  userFavSpecies: IScientificSpecies[]
   isManageSpecies: boolean
   showTreeModal: (item: IScientificSpecies) => void
   interventionEdit: string
@@ -121,7 +121,7 @@ const ManageSpeciesHome = (props: Props) => {
     toogleFavSpecies(item, false)
   }
 
-  const renderSpecieCard = (item: IScientificSpecies | any) => {
+  const renderSpecieCard = (item: IScientificSpecies) => {
     return (
       <SpecieCard
         item={item}

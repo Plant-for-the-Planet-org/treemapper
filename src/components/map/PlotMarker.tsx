@@ -13,6 +13,14 @@ interface Props {
 const PlotMarker = (props: Props) => {
   const { sampleTreeData, onMarkerPress } = props
 
+  const backgroundColor = (el: PlantedPlotSpecies) => {
+    return !el.is_alive
+      ? Colors.TEXT_LIGHT
+      : el.type === 'PLANTED'
+        ? Colors.NEW_PRIMARY
+        : Colors.RECRUIT_PLANT_THEME;
+  }
+
   const renderMarkers = () => {
     const filterdData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
     return filterdData.map((el, i) => (
@@ -22,9 +30,9 @@ const PlotMarker = (props: Props) => {
           { x: 0.55, y: 0.4 }
         }
         id={String(i)}
-        key={i}>
+        key={String(i)}>
         <Pressable style={styles.container} onPress={() => { onMarkerPress(el.plot_plant_id) }}>
-          <View style={[styles.markerContainer, { backgroundColor: !el.is_alive ? Colors.TEXT_LIGHT : el.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]} />
+          <View style={[styles.markerContainer, { backgroundColor: backgroundColor(el) }]} />
         </Pressable>
       </MapLibreGL.MarkerView>
     ))

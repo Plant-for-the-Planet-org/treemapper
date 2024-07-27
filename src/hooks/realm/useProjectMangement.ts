@@ -46,7 +46,7 @@ const useProjectMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error while adding projects', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -57,10 +57,9 @@ const useProjectMangement = () => {
         const unSyncedObjects = realm.objects(RealmSchema.Projects);
         realm.delete(unSyncedObjects);
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 

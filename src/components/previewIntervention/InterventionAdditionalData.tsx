@@ -31,11 +31,10 @@ const InterventionAdditionalData = (props: Props) => {
   }
 
   const renderValue = (d: FormElement) => {
-    switch (d.type) {
-      case "DROPDOWN":
-        return d.value.length ? JSON.parse(d.value).value : d.value + d.unit
-      default:
-        return d.value + " " + d.unit
+    if (d.type === "DROPDOWN") {
+      return d.value.length ? JSON.parse(d.value).value : d.value + d.unit;
+    } else {
+      return d.value + " " + d.unit;
     }
   }
 
@@ -70,14 +69,14 @@ const InterventionAdditionalData = (props: Props) => {
   }
 
   const editData = () => {
-    navigation.navigate('EditAdditionData',{'interventionID':id})
+    navigation.navigate('EditAdditionData', { 'interventionID': id })
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <TouchableOpacity onPress={editData} style={styles.editWrapper}>
-          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR}/>
+          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>
         <Text style={styles.title}>Additional Data</Text>
         {renderData()}
@@ -149,9 +148,9 @@ const styles = StyleSheet.create({
     top: 10,
     width: 35,
     height: 35,
-    backgroundColor:Colors.GRAY_BACKDROP,
-    borderRadius:8,
-    justifyContent:'center',
-    alignItems:'center'
+    backgroundColor: Colors.GRAY_BACKDROP,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 })

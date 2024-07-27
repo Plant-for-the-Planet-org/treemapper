@@ -16,16 +16,16 @@ import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import PEN_ICON from 'assets/images/svg/EditPenIcon.svg'
+import PenIcon from 'assets/images/svg/EditPenIcon.svg'
 
 
 
 
 const AddRemeasurmentView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
-    const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>()
+    const plotID = route.params?.id ?? '';
+    const plantID = route.params?.plantID ?? '';
+    const [selectedTimeline, setSelectedTimeLine] = useState<PlantedPlotSpecies>()
 
     const plotDetails = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID
@@ -35,7 +35,7 @@ const AddRemeasurmentView = () => {
         if (plantID) {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
-                setSelectedTimeLIne(getPlantDetails)
+                setSelectedTimeLine(getPlantDetails)
             }
         }
     }, [plotID])
@@ -99,18 +99,20 @@ const AddRemeasurmentView = () => {
     if (!selectedTimeline) {
         return null
     }
-    //todo
+
+    const renderFooter=() => (<View style={styles.footerWrapper} />)
+
     return (
         <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
-                <PEN_ICON width={20} height={20} />
+            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
+                <PenIcon width={20} height={20} />
             </Pressable>} />
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
                     <FlatList
                         showsVerticalScrollIndicator={false}
                         style={styles.flatlistWrapper}
-                        ListFooterComponent={() => (<View style={styles.footerWrapper} />)}
+                        ListFooterComponent={renderFooter}
                         renderItem={({ item, index }) => { return renderCard(item, index) }}
                         data={selectedTimeline ? selectedTimeline.timeline : []} />
                 </View>

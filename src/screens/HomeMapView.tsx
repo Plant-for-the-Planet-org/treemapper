@@ -14,18 +14,18 @@ import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 const HomeMapView = () => {
 
-  const [showFilterModal, setFileterModal] = useState(false)
-  const [showProjectModal, setProjectModal] = useState(false)
+  const [showFilterModal, setShowFilterModal] = useState(false)
+  const [showProjectModal, setShowProjectModal] = useState(false)
 
   const showCarousel = useSelector(
     (state: RootState) => state.displayMapState.showCarousel,
   )
   const toogleFilterModal = () => {
-    setFileterModal(!showFilterModal)
+    setShowFilterModal(!showFilterModal)
   }
 
   const toogleProjectModal = () => {
-    setProjectModal(!showProjectModal)
+    setShowProjectModal(!showProjectModal)
   }
 
 

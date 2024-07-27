@@ -19,38 +19,40 @@ import { handleFilter } from 'src/utils/constants/CountryDataFilter'
 
 interface ProjectListProps {
   isSelectable?: boolean
-  onProjectPress?: (id:string)=>void
+  onProjectPress?: (id: string) => void
   selectedProjectId?: string
 }
 
-export default function ProjectList({
-  isSelectable,
-  onProjectPress,
-  selectedProjectId,
-}: ProjectListProps) {
+export default function ProjectList(props: ProjectListProps) {
+  const {
+    isSelectable,
+    onProjectPress,
+    selectedProjectId,
+  } = props
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
+  const renderFooter = () => {
+    return (
+      <LargeButton
+        onPress={() =>
+          openWebView(
+            `${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_WEBAPP_URL}/manage-projects/add-project`,
+          )
+        }
+        style={{ marginTop: 20 }}
+        heading={i18next.t('label.add_new_project')}
+        subHeading={i18next.t('label.add_new_project_desc')}
+        testID={'add_new_project_button'}
+        accessibilityLabel={'add_new_project_button'}
+      />
+    )
+  }
   return (
     <FlatList
       data={allProjects}
-      ListFooterComponent={() => {
-        return (
-          <LargeButton
-            onPress={() =>
-              openWebView(
-                `${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_WEBAPP_URL}/manage-projects/add-project`,
-              )
-            }
-            style={{ marginTop: 20 }}
-            heading={i18next.t('label.add_new_project')}
-            subHeading={i18next.t('label.add_new_project_desc')}
-            testID={'add_new_project_button'}
-            accessibilityLabel={'add_new_project_button'}
-          />
-        )
-      }}
-      renderItem={({ item }: { item: any }) => {
+      ListFooterComponent={renderFooter}
+      renderItem={({ item }) => {
         if (isSelectable) {
           return (
             <TouchableProjectItem
@@ -114,10 +116,10 @@ const ProjectItem = ({
             styles.projectText,
             { fontFamily: Typography.FONT_FAMILY_REGULAR },
           ]}>
-          {country ? country : item.country}
+          {country || item.country}
         </Text>
       )}
-      <View style={[styles.chipWrapper, {  borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
+      <View style={[styles.chipWrapper, { borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
         <Text style={[styles.chipLabel, { color: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>{item.purpose.toUpperCase()}</Text>
       </View>
     </View>
@@ -179,6 +181,6 @@ const styles = StyleSheet.create({
     color: Colors.NEW_PRIMARY,
     fontSize: 12,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    letterSpacing:0.5
+    letterSpacing: 0.5
   }
 })

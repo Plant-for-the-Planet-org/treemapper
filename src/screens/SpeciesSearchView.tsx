@@ -16,7 +16,7 @@ import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
 
 const SpeciesSearchView = () => {
-  const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
+  const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -30,7 +30,7 @@ const SpeciesSearchView = () => {
     item: IScientificSpecies,
     status: boolean,
   ) => {
-    setSpciesList(prevSpecies => {
+    setSpecieList(prevSpecies => {
       return prevSpecies.map(species =>
         species.guid === item.guid
           ? { ...species, isUserSpecies: status }
@@ -76,7 +76,7 @@ const SpeciesSearchView = () => {
           <SpeciesSearchHeader
             backPress={handleBackPress}
             toogleSyncModal={setShowSpeciesSyncAlert}
-            setSpciesList={setSpciesList}
+            setSpciesList={setSpecieList}
           />
         }
         keyboardDismissMode='interactive'

@@ -19,13 +19,7 @@ export const FrequencySelector = ({
 }: {
   selectedFrequency: string;
   setSelectedFrequency: React.Dispatch<React.SetStateAction<string>>;
-}) => {
-  // const [isCustomSelected, setIsCustomSelected] = useState(false);
-  // const [showIntervalOptions, setShowIntervalOptions] = useState(false);
-  // const [selectedIntervalOption, setSelectedIntervalOption] = useState(false);
-  // const customInputRef = useRef(null);
-
-  
+}) => {  
   const allFrequencies: FrequencyData[] = [
     {
       type: 'Default',
@@ -48,21 +42,20 @@ export const FrequencySelector = ({
       {/* if sample tree count is present and has length greater than zero then maps the array */}
       {allFrequencies &&
         allFrequencies.length > 0 &&
-        allFrequencies.map((frequency: FrequencyData, index: number) => {
+        allFrequencies.map((frequency: FrequencyData, i) => {
           // used to show the selected tree count selected by user
           const isSelected = frequency.type === selectedFrequency;
           return (
             <TouchableOpacity
+            key={String(i)}
               onPress={() => {
-                // setIsCustomSelected(false);
                 setSelectedFrequency(frequency.type);
               }}
-              key={`tree-number-selection-${index}`}>
+             >
               <View
                 style={[
                   styles.treeCountSelection,
                   isSelected ? styles.treeCountSelectionActive : {},
-                  // { marginRight: index % 2 == 0 ? '10%' : 0 },
                 ]}>
                 <Text
                   style={[

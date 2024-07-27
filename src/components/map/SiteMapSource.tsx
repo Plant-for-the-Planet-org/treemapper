@@ -43,48 +43,39 @@ const SiteMapSource = (props: Props) => {
 
   const extractSiteCoordinates = (data: ProjectInterface) => {
     try {
-      const allProjectSites = [...data.sites]
-      const reducedSites = []
-      for (let index = 0; index < allProjectSites.length; index++) {
-        const siteDetails = allProjectSites[index]
-        if (siteDetails && siteDetails.geometry) {
-          const parsedData = JSON.parse(siteDetails.geometry)
-          if (
-            parsedData &&
-            parsedData.coordinates &&
-            parsedData.type === 'Polygon'
-          ) {
-            reducedSites.push({
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Polygon',
-                coordinates: [...parsedData.coordinates],
-              },
-            })
-          }
-
-          if (
-            parsedData &&
-            parsedData.coordinates &&
-            parsedData.type === 'MultiPolygon'
-          ) {
-            reducedSites.push({
-              type: 'Feature',
-              properties: {},
-              geometry: {
-                type: 'Polygon',
-                coordinates: [...parsedData.coordinates[0]],
-              },
-            })
+      const allProjectSites = [...data.sites];
+      const reducedSites = [];
+      for (const siteDetails of allProjectSites) {
+        if (siteDetails?.geometry) {
+          const parsedData = JSON.parse(siteDetails.geometry);
+          if (parsedData?.coordinates) {
+            if (parsedData.type === 'Polygon') {
+              reducedSites.push({
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [...parsedData.coordinates],
+                },
+              });
+            } else if (parsedData.type === 'MultiPolygon') {
+              reducedSites.push({
+                type: 'Feature',
+                properties: {},
+                geometry: {
+                  type: 'Polygon',
+                  coordinates: [...parsedData.coordinates[0]],
+                },
+              });
+            }
           }
         }
       }
-      setGeoJSON(reducedSites)
+      setGeoJSON(reducedSites);
     } catch (error) {
       console.log('error occurred at siteGeojson', error)
     }
-  }
+  };
   if (!geoJSON) {
     return null
   }

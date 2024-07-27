@@ -9,11 +9,6 @@ const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
 }
 
-// const checkForIncompleteOrCorruptData = () => {
-
-// }
-
-
 
 const getImageAsBase64 = async (fileUri: string) => {
     try {

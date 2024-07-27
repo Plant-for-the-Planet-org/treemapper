@@ -51,8 +51,8 @@ const AllObservaiton: Array<{
 const AddObeservationForm = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddObservationForm'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const obsId = route.params && route.params.obsId ? route.params.obsId : ''
+    const plotID = route.params?.id ?? '';
+    const obsId = route.params?.obsId ?? '';
 
     const [type, setType] = useState<{
         label: string
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
         width: '48%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {

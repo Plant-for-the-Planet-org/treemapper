@@ -18,10 +18,10 @@ const useAdditionalForm = () => {
           Realm.UpdateMode.All,
         )
       })
-      return Promise.resolve(true)
+      return true
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -37,7 +37,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -56,7 +56,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -76,7 +76,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -96,7 +96,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -123,7 +123,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -134,10 +134,9 @@ const useAdditionalForm = () => {
         const form = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, id);
         realm.delete(form);
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false
     }
   };
 
@@ -151,7 +150,7 @@ const useAdditionalForm = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+      return false
     }
   }
 
