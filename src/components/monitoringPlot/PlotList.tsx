@@ -12,7 +12,7 @@ import EmptyPlotIcon from 'assets/images/svg/EmptyPlotIcon.svg'
 import i18next from 'src/locales/index'
 
 interface Props {
-    data: MonitoringPlot[] | any
+    data: MonitoringPlot[]
 }
 
 const PlotList = (props: Props) => {
@@ -30,7 +30,6 @@ const PlotList = (props: Props) => {
         }
         if (lastScreen === 'location') {
             navigation.navigate('PlotDetails', { id })
-            return
         }
     }
     return (

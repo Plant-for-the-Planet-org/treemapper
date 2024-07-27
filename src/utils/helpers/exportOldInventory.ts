@@ -4,9 +4,9 @@ import { zip } from 'react-native-zip-archive';
 import Share from 'react-native-share';
 
 const sharedData = async (filePath: string, id: string) => {
-  const filePatsh = `${RNFS.DocumentDirectoryPath}/${id}.zip`;
+  const filePaths = `${RNFS.DocumentDirectoryPath}/${id}.zip`;
   try {
-    zip(filePath, filePatsh)
+    zip(filePath, filePaths)
       .then(path => {
         console.log(`zip completed at ${path}`);
         const options = {
@@ -15,10 +15,10 @@ const sharedData = async (filePath: string, id: string) => {
         };
         Share.open(options)
           .then(() => {
-            console.log('Ackjl done');
+            console.log('done');
           })
           .catch(err => {
-            console.log('Ackjl err',err);
+            console.log('err',err);
           });
       })
       .catch(error => {

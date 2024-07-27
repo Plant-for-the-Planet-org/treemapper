@@ -27,7 +27,7 @@
   "atleast_1_registration_type_required": "At least one registration type is required",
   "field_key_required": "Field key is required",
   "invalid_key_error": "Field key can only contain letter, numbers and special characters (-, _ and space)",
-  "atleast_2_dropdown_option_required": "Atleast two dropdown options are required",
+  "at_least_2_dropdown_option_required": "At least two dropdown options are required",
   "field_value_required": "Field value is required",
   "field_name_required": "Field name is required",
   "get_started_forms": "Get started with forms",

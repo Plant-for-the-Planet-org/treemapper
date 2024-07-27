@@ -33,7 +33,7 @@ export const interventionHeader = (key: INTERVENTION_TYPE): string => {
             return "Stop Tree Harvesting";
         case 'direct-seeding':
             return "Direct Seeding";
-        case 'enrichement-planting':
+        case 'enrichment-planting':
             return "Enrichment Planting";
         case 'other-intervention':
             return "Other Intervention";

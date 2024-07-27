@@ -1,75 +1,58 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
 
 
-// const BirdPercheType: FormElement = {
-//     index: 0,
-//     key: 'bird-perche-type',
-//     label: 'Type of ',
-//     default: '',
-//     type: 'DROPDOWN',
-//     placeholder: 'Width ff strip',
-//     unit: 'm',
-//     visibility: 'public',
-//     condition: null,
-//     data_type: 'number',
-//     keyboard_type: 'number-pad',
-//     sub_form: undefined,
-//     editable: true,
-//     value: '',
-//     required: true
-//   }
 
-  const NumberOfBirdPerche: FormElement = {
-    index: 0,
-    key: 'number-of-bird-perche',
-    label: 'Number of bird perche',
-    default: '',
-    type: 'INPUT',
-    placeholder: 'Number of bird perche',
-    unit: '',
-    visibility: 'public',
-    condition: null,
-    data_type: 'number',
-    keyboard_type: 'number-pad',
-    sub_form: undefined,
-    editable: true,
-    value: '',
-    required: true,
-    dropDownData: '',
-    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"    
-  }
-  
-  const heightOfBirdPerche: FormElement = {
-    index: 0,
-    key: 'height-of-bird-perche',
-    label: 'Average Height of bird perche',
-    default: '',
-    type: 'INPUT',
-    placeholder: 'Average Height of bird perche',
-    unit: '',
-    visibility: 'public',
-    condition: null,
-    data_type: 'number',
-    keyboard_type: 'number-pad',
-    sub_form: undefined,
-    editable: true,
-    value: '',
-    required: true,
-    dropDownData: '',
-    validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
-  }
-  
-  
-  const assistingSeedRainForm: MainForm = {
-    title: 'Bird Perche Details',
-    key: '',
-    elements: [NumberOfBirdPerche, heightOfBirdPerche ],
-  }
+const NumberOfBirdPerch: FormElement = {
+  index: 0,
+  key: 'number-of-bird-perch',
+  label: 'Number of bird perch',
+  default: '',
+  type: 'INPUT',
+  placeholder: 'Number of bird perch',
+  unit: '',
+  visibility: 'public',
+  condition: null,
+  data_type: 'number',
+  keyboard_type: 'number-pad',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: true,
+  dropDownData: '',
+  validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+}
 
-export const AssistingSeedRain: RegisterFormSliceInitalState = {
+const heightOfBirdPerch: FormElement = {
+  index: 0,
+  key: 'height-of-bird-perch',
+  label: 'Average Height of bird perch',
+  default: '',
+  type: 'INPUT',
+  placeholder: 'Average Height of bird perch',
+  unit: '',
+  visibility: 'public',
+  condition: null,
+  data_type: 'number',
+  keyboard_type: 'number-pad',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: true,
+  dropDownData: '',
+  validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+}
+
+
+const assistingSeedRainForm: MainForm = {
+  title: 'Bird Perch Details',
+  key: '',
+  elements: [NumberOfBirdPerch, heightOfBirdPerch],
+}
+
+export const AssistingSeedRain: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Assisting Seed Rain',
   intervention_date: 0,

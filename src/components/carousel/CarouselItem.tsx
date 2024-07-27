@@ -15,7 +15,7 @@ interface Props {
 
 const CarouselItem = (props: Props) => {
   const { data, onPress , remeasure} = props
-  if (data && data.tree_type) {
+  if (data?.tree_type) {
     const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : data.image_url
     const hasImage = uri.length > 0
     return <TouchableOpacity style={styles.container} onPress={() => {
@@ -31,7 +31,7 @@ const CarouselItem = (props: Props) => {
           {data.specie_name}
         </Text>
         <Text style={styles.sectionLabel}>Intervention Date</Text>
-        <Text style={styles.vauleLabel}>
+        <Text style={styles.valueLabel}>
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.DARK_TEXT_COLOR,
   },
-  vauleLabel: {
+  valueLabel: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,

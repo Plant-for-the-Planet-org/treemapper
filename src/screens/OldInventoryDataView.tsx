@@ -11,8 +11,8 @@ import { convertData, onlyExportJSON } from 'src/utils/helpers/exportOldInventor
 import Header from 'src/components/common/Header'
 
 
-const OldInvenoryDataView = () => {
-  const [inventoryData, setInventoryData] = useState<Inventory[] | any>([])
+const OldInventoryDataView = () => {
+  const [inventoryData, setInventoryData] = useState<Inventory[]>([])
   const realm = useRealm()
   const [loading, setLoading] = useState(false)
   useEffect(() => {
@@ -20,8 +20,8 @@ const OldInvenoryDataView = () => {
   }, [])
 
   const showOldData = async () => {
-    const data = realm.objects<Inventory[]>(RealmSchema.Inventory).filtered('status != "SYNCED"')
-    setInventoryData(data)
+    const data = realm.objects<Inventory>(RealmSchema.Inventory).filtered('status != "SYNCED"')
+    setInventoryData([...data])
   }
 
   const exportData = async (el: Inventory) => {
@@ -34,8 +34,8 @@ const OldInvenoryDataView = () => {
     return <View style={styles.container}>
       <View style={styles.wrapper}>
         <View style={{ flex: 1 }}>
-          <Text style={styles.lableText}>{i.inventory_id}</Text>
-          <Text style={styles.lableText}>{i.status}</Text>
+          <Text style={styles.labelText}>{i.inventory_id}</Text>
+          <Text style={styles.labelText}>{i.status}</Text>
         </View>
         <Pressable style={styles.rightCorner} onPress={() => { exportData(i) }}>
           <WrapperIcon />
@@ -63,7 +63,7 @@ const OldInvenoryDataView = () => {
   )
 }
 
-export default OldInvenoryDataView
+export default OldInventoryDataView
 
 const styles = StyleSheet.create({
   container: {
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  lableText: {
+  labelText: {
     color: "red",
     fontSize: 20,
     marginTop: 20,

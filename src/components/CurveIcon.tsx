@@ -12,7 +12,7 @@ const windowWidth = Dimensions.get('screen').width
 let width = windowWidth/4-10
 const buttonWidth = scaleSize(56);
 const buttonGutter = scaleSize(10);
-const tabbarHeight =scaleSize(100);
+const tabBarHeight =scaleSize(100);
 
 const tabWidth = buttonWidth + buttonGutter * 2;
 width = (width - tabWidth) / 2;
@@ -50,8 +50,8 @@ const getPath = (): string => {
     .y(d => d[1])([
       [0 + tabWidth, 0],
       [width * 2 + tabWidth, 0],
-      [width * 2 + tabWidth, tabbarHeight],
-      [0, tabbarHeight],
+      [width * 2 + tabWidth, tabBarHeight],
+      [0, tabBarHeight],
       [0, 0],
     ]);
   return `${left} ${tab} ${right}`;
@@ -65,7 +65,7 @@ const BottomBar = () => {
     <View style={style.container}>
       <Svg
         width={'100%'}
-        height={tabbarHeight}>
+        height={tabBarHeight}>
         <Path {...{ d }} fill={Colors.WHITE} />
       </Svg>
     <View style={style.rightPadding}/>

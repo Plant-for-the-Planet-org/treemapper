@@ -15,9 +15,9 @@ export interface PlotDetailsParams {
 
 
 
-const useMonitoringPlotMangement = () => {
+const useMonitoringPlotManagement = () => {
   const realm = useRealm()
-  const initateNewPlot = async (
+  const initializeNewPlot = async (
     plotDetails: MonitoringPlot,
   ): Promise<boolean> => {
     try {
@@ -31,7 +31,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -51,7 +51,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -87,7 +87,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -103,7 +103,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -120,7 +120,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -137,10 +137,10 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
-  const upatePlotPlantLocation = async (
+  const updatePlotPlantLocation = async (
     id: string,
     plantId: string,
     lat: number,
@@ -157,12 +157,12 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
 
-  const delteMonitoringPlot = async (plotID: string): Promise<boolean> => {
+  const deleteMonitoringPlot = async (plotID: string): Promise<boolean> => {
     try {
       realm.write(() => {
         const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
@@ -170,10 +170,9 @@ const useMonitoringPlotMangement = () => {
           realm.delete(plot);
         }
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -191,14 +190,13 @@ const useMonitoringPlotMangement = () => {
           plotData.plot_updated_at = Date.now()
         })
       });
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
-  const addNewMeasurmentPlantPlots = async (
+  const addNewMeasurementPlantPlots = async (
     id: string,
     plantId: string,
     timeLine: PlantTimeLine
@@ -209,12 +207,12 @@ const useMonitoringPlotMangement = () => {
         const index = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
         plotData.plot_plants[index].timeline.push(timeLine)
         plotData.plot_updated_at = Date.now()
-        plotData.plot_plants[index].is_alive = timeLine.status !== 'DESCEASED'
+        plotData.plot_plants[index].is_alive = timeLine.status !== 'DECEASED'
       })
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -229,7 +227,7 @@ const useMonitoringPlotMangement = () => {
       l: number,
       w: number,
       date: number,
-      status: PLOT_PLANT_STATUS | any,
+      status: PLOT_PLANT_STATUS,
     }
   ): Promise<boolean> => {
     try {
@@ -242,12 +240,12 @@ const useMonitoringPlotMangement = () => {
         timelineDetails.width = details.w
         timelineDetails.status = details.status
         plotData.plot_updated_at = Date.now()
-        plotData.plot_plants[index].is_alive = details.status !== 'DESCEASED'
+        plotData.plot_plants[index].is_alive = details.status !== 'DECEASED'
       })
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -264,13 +262,13 @@ const useMonitoringPlotMangement = () => {
         const timelineDetails = plotData.plot_plants[index].timeline.find(el => el.timeline_id === timelineId)
         plotData.plot_plants[index].timeline = plotData.plot_plants[index].timeline.filter(el => timelineDetails.timeline_id !== el.timeline_id)
         plotData.plot_updated_at = Date.now()
-        plotData.plot_plants[index].is_alive = timelineDetails.status === 'DESCEASED' ? true : plotData.plot_plants[index].is_alive
+        plotData.plot_plants[index].is_alive = timelineDetails.status === 'DECEASED' ? true : plotData.plot_plants[index].is_alive
         realm.delete(timelineDetails)
       })
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -303,12 +301,12 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
 
-  const deltePlantDetails = async (id: string, plantId: string): Promise<boolean> => {
+  const deletePlantDetails = async (id: string, plantId: string): Promise<boolean> => {
     try {
       realm.write(() => {
         const plotDetails = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, id);
@@ -318,10 +316,9 @@ const useMonitoringPlotMangement = () => {
         realm.delete(plantDetails)
         plotDetails.plot_updated_at = Date.now()
       })
-      return Promise.resolve(true);
-    } catch (error) {
+      return true    } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+ return false;
     }
   };
 
@@ -338,7 +335,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -359,11 +356,11 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
-  const deltePlotObservation = async (
+  const deletePlotObservation = async (
     id: string,
     obsId: string
   ): Promise<boolean> => {
@@ -377,7 +374,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -396,7 +393,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -412,7 +409,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -432,7 +429,7 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -451,16 +448,16 @@ const useMonitoringPlotMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
 
 
-  return { updatePlotObservation, deltePlotObservation, deletePlotTimeline, updateTimelineDetails, deltePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, upatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, delteMonitoringPlot, initateNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurmentPlantPlots }
+  return { updatePlotObservation, deletePlotObservation: deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation: updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot: deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots: addNewMeasurementPlantPlots }
 }
 
-export default useMonitoringPlotMangement
+export default useMonitoringPlotManagement
 
 
 

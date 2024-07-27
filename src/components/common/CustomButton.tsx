@@ -11,7 +11,7 @@ import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import FadeBackground from './FadeBackground'
-import AddIcon from 'assets/images/svg/Addicon.svg'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
 
 interface Props {
   label: string
@@ -22,7 +22,7 @@ interface Props {
   loading?: boolean
   leftIcon?: React.ReactNode
   disable?: boolean
-  hideFadein?: boolean
+  hideFadeIn?: boolean
   showAdd?: boolean
 }
 
@@ -36,7 +36,7 @@ const CustomButton = (props: Props) => {
     loading,
     leftIcon,
     disable,
-    hideFadein,
+    hideFadeIn,
     showAdd
   } = props
 
@@ -54,7 +54,7 @@ const CustomButton = (props: Props) => {
     <TouchableOpacity
       style={[styles.container, { ...containerStyle }]}
       onPress={handlePress}>
-      {!hideFadein && <FadeBackground />}
+      {!hideFadeIn && <FadeBackground />}
       <View
         style={[
           styles.wrapper,
@@ -66,7 +66,7 @@ const CustomButton = (props: Props) => {
         ) : (
           <View style={styles.labelWrapper}>
             {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
-            <Text style={[styles.lableStyle, { ...labelStyle }]}>{label}</Text>
+            <Text style={[styles.labelStyle, { ...labelStyle }]}>{label}</Text>
           </View>
         )}
         {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 12,
   },
-  lableStyle: {
+  labelStyle: {
     fontSize: scaleFont(16),
     color: Colors.WHITE,
     letterSpacing: 0.2,

@@ -11,8 +11,8 @@ import CustomButton from '../common/CustomButton'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
-import EmptyIcom from 'assets/images/svg/EmptyGroupIcon.svg'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
+import EmptyIcon from 'assets/images/svg/EmptyGroupIcon.svg'
 import EmptyStaticScreen from '../common/EmptyStaticScreen'
 import i18next from 'src/locales/index'
 
@@ -22,7 +22,7 @@ const GroupPlotList = () => {
     const handleSelection = (gid: string) => {
         navigation.navigate('AddPlotGroup', { isEdit: true, groupId: gid })
     }
-    const { deletePlotGroup } = useMonitoringPlotMangement()
+    const { deletePlotGroup } = useMonitoringPlotManagement()
     const handleNav = () => {
         navigation.navigate('AddPlotGroup')
     }
@@ -44,15 +44,15 @@ const GroupPlotList = () => {
                 renderItem={({ item }) => (<GroupPlotCards
                     deleteGroup={deleteGroupData}
                     item={item} handleSelection={handleSelection} />)}
-                data={groupList} estimatedItemSize={100}
+                data={[...groupList]} estimatedItemSize={100}
                 contentContainerStyle={styles.container}
-                ListEmptyComponent={<EmptyStaticScreen label={i18next.t('label.no_plots')} note={i18next.t('label.no_groups_note')} image={<EmptyIcom />} marginTop={{ marginTop: '25%' }} />}
+                ListEmptyComponent={<EmptyStaticScreen label={i18next.t('label.no_plots')} note={i18next.t('label.no_groups_note')} image={<EmptyIcon />} marginTop={{ marginTop: '25%' }} />}
             />
             <CustomButton
                 label={i18next.t('label.add_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
-                hideFadein
+                hideFadeIn
                 showAdd
             />
         </>

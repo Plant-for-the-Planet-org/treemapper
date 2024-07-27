@@ -8,9 +8,9 @@ import bbox from '@turf/bbox'
 import { Colors, Typography } from 'src/utils/constants'
 import MapMarkers from './MapMarkers'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
-import AddIcon from 'assets/images/svg/Addicon.svg'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
-import { updateBoundry } from 'src/store/slice/sampleTreeSlice'
+import { updateBoundary } from 'src/store/slice/sampleTreeSlice'
 import { useDispatch } from 'react-redux'
 import { v4 as uuid } from 'uuid'
 import { useNavigation } from '@react-navigation/native'
@@ -48,8 +48,8 @@ const PreviewMap = (props: Props) => {
 
   const addAnotherTree = () => {
     const bounds = bbox(geoJSON)
-    dispatch(updateBoundry({ coord: JSON.parse(intervention.location.coordinates), id: uuid(), form_ID: intervention.form_id, }))
-    dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
+    dispatch(updateBoundary({ coord: JSON.parse(intervention.location.coordinates), id: uuid(), form_ID: intervention.form_id, }))
+    dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
     navigation.navigate('PointMarker', { id: intervention.intervention_id })
   }
 
@@ -79,7 +79,7 @@ const PreviewMap = (props: Props) => {
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
         {intervention && intervention.has_sample_trees && intervention.status !== 'SYNCED' ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
-          <Text style={styles.sampleTreeLable}>Sample Tree</Text>
+          <Text style={styles.sampleTreeLabel}>Sample Tree</Text>
           <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
         </TouchableOpacity> : null}
       </View>
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     height: 35,
     backgroundColor: Colors.NEW_PRIMARY + '1A'
   },
-  sampleTreeLable: {
+  sampleTreeLabel: {
     fontSize: 12,
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     color: Colors.NEW_PRIMARY,

@@ -17,7 +17,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 
-const DynamiFormView = () => {
+const DynamicFormView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const paramId = route.params ? route.params.id : ''
   const realm = useRealm()
@@ -60,7 +60,7 @@ const DynamiFormView = () => {
   )
 }
 
-export default DynamiFormView
+export default DynamicFormView
 
 const styles = StyleSheet.create({
   container: {

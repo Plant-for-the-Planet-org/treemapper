@@ -8,7 +8,7 @@ import { Colors } from 'src/utils/constants'
 
 const OfflineMapSelectionView = () => {
   return (
-    <SafeAreaView style={styles.cotainer}>
+    <SafeAreaView style={styles.container}>
       <Header label="Confirm Area Selection" />
       <OfflineSelectionMapHeader />
       <OfflineMapDisplay />
@@ -19,7 +19,7 @@ const OfflineMapSelectionView = () => {
 export default OfflineMapSelectionView
 
 const styles = StyleSheet.create({
-  cotainer: {
+  container: {
     flex: 1,
     backgroundColor: Colors.WHITE
   },

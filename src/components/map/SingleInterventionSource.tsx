@@ -12,34 +12,34 @@ const polyline: StyleProp<LineLayerStyle> = {
 }
 
 interface Props {
-  intervetnion: InterventionData
+  intervention: InterventionData
 }
-const FillColor:any = [
+const FillColor: any = [
   'match',
   ['get', 'key'],
   'remeasurement', 'tomato',
   'single-tree-registration', Colors.SINGLE_TREE,
   'multi-tree-registration', Colors.MULTI_TREE,
   'removal-invasive-species', Colors.INVASIVE_SPECIES,
-  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-suppression', Colors.FIRE_SUPPRESSION,
   'fire-patrol', Colors.FIRE_PATROL,
   'fencing', Colors.FENCING,
   'marking-regenerant', Colors.MARKING_REGENERANT,
   'liberating-regenerant', Colors.LIBERATING_REGENERANT,
-  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'grass-suppression', Colors.GRASS_SUPPRESSION,
   'firebreaks', Colors.FIREBREAKS,
   'assisting-seed-rain', Colors.SEED_RAIN,
   'soil-improvement', Colors.SOIL_IMPROVEMENT,
   'stop-tree-harvesting', Colors.STOP_HARVESTING,
   'direct-seeding', Colors.DIRECT_SEEDING,
-  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'enrichment-planting', Colors.ENRICHMENT_PLANTING,
   'other-intervention', Colors.OTHER_INTERVENTION,
-  'maintenance', Colors.MAINTAINEANCE,
+  'maintenance', Colors.MAINTENANCE,
   Colors.SINGLE_TREE
 ]
 
 const SingleInterventionSource = (props: Props) => {
-  const {intervetnion} = props
+  const { intervention: intervention } = props
   const [geoJSON, setGeoJSON] = useState(
     {
       type: 'FeatureCollection',
@@ -47,36 +47,36 @@ const SingleInterventionSource = (props: Props) => {
     }
   )
   useEffect(() => {
-    const data  = makeInterventionGeoJson(
-      intervetnion.location.type,
-      JSON.parse(intervetnion.location.coordinates),
-      intervetnion.intervention_id,
+    const data = makeInterventionGeoJson(
+      intervention.location.type,
+      JSON.parse(intervention.location.coordinates),
+      intervention.intervention_id,
       {
-        key: intervetnion.remeasuremnt_required?'remeasurement':intervetnion.intervention_key,
-        site: intervetnion.entire_site
+        key: intervention.remeasurement_required ? 'remeasurement' : intervention.intervention_key,
+        site: intervention.entire_site
       }
     )
 
-    setGeoJSON(  {
+    setGeoJSON({
       type: 'FeatureCollection',
       features: [data.geoJSON],
     })
   }, [])
-  
+
   if (geoJSON.features.length === 0) {
     return null
   }
   return (
     <MapLibreGL.ShapeSource
-      id={'polyagon'}
+      id={'polygon_shape_source'}
       shape={geoJSON}>
       <MapLibreGL.FillLayer
-        id={'activePoalyFill'} // Unique ID for active FillLayer
-        style={{fillOpacity: 0.5, fillColor: FillColor}}
+        id={'poly_shape_source_fill'} // Unique ID for active FillLayer
+        style={{ fillOpacity: 0.5, fillColor: FillColor }}
       />
       <MapLibreGL.LineLayer
-        id={'polylinse'}
-        style={{ ...polyline,lineColor: FillColor}}
+        id={'poly_line_shape_source'}
+        style={{ ...polyline, lineColor: FillColor }}
       />
     </MapLibreGL.ShapeSource>
   )

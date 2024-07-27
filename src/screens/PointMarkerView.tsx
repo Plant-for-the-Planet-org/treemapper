@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
-import PointMarkerMap from 'src/components/map/PoinMarkerMap'
+import PointMarkerMap from 'src/components/map/PointMarkerMap'
 import GpsAccuracyTile from 'src/components/map/GpsAccuracyTile'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
@@ -21,7 +21,7 @@ const PointMarkerView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'PointMarker'>>()
   const realm = useRealm()
 
-  const interventionID = route.params && route.params.id ? route.params.id : ''
+  const interventionID = route.params?.id ?? '';
 
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
@@ -39,11 +39,11 @@ const PointMarkerView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        label={"Mark Location"} //todo add translations
-        rightComponet={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
+        label={"Mark Location"}
+        rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
       />
       <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} />
-      <InfoModal isVisible={showInfoModal} toogleModal={setShowInfoModal} />
+      <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
       <UserlocationMarker stopAutoFocus />
       <LocationPermissionModal required />
     </SafeAreaView>

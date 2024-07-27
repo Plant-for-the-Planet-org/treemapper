@@ -1,14 +1,13 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native'
 import React, {useState} from 'react'
 import AddOptionModal from './AddOptionModal'
-import {TouchableOpacity} from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated'
 
-import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
+import AddTabIcon from 'assets/images/svg/AddTabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'

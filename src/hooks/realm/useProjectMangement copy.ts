@@ -1,7 +1,7 @@
 import {useRealm, Realm} from '@realm/react'
 import {RealmSchema} from 'src/types/enum/db.enum'
 
-const useProjectMangement = () => {
+const useProjectManagement = () => {
   const realm = useRealm()
 
   const addAllProjects = async (projectData: any[]): Promise<boolean> => {
@@ -45,11 +45,11 @@ const useProjectMangement = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error while adding projects', error)
-      return Promise.reject(false)
+ return false
     }
   }
 
   return {addAllProjects}
 }
 
-export default useProjectMangement
+export default useProjectManagement

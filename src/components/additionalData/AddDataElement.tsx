@@ -116,7 +116,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
   }
 
   return (
-    <View style={styles.cotnainer}>
+    <View style={styles.container}>
       {renderBody()}
     </View>
   )
@@ -143,7 +143,7 @@ const AddDataElement = (props: Props) => {
   }
 
   return (
-    <View style={styles.cotnainer}>
+    <View style={styles.container}>
       <View style={styles.headerTitleWrapper}>
         <Text style={styles.headerLabel}>Page {pageNo + 1}</Text>
         <TouchableOpacity style={styles.deleteWrapper} onPress={deleteFormHandler}>
@@ -162,7 +162,7 @@ const AddDataElement = (props: Props) => {
 export default AddDataElement
 
 const styles = StyleSheet.create({
-  cotnainer: {
+  container: {
     width: '100%',
     marginLeft: '2%'
   },
@@ -269,7 +269,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 20
   },
-  deletelabel: {
+  deletable: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',

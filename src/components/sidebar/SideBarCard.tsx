@@ -23,7 +23,7 @@ const SideBarCard = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
 
-  const handleNavigaiton = () => {
+  const handleNavigation = () => {
     if (disable) {
       return
     }
@@ -52,7 +52,7 @@ const SideBarCard = (props: Props) => {
   }
 
   return (
-    <Pressable style={styles.container} onPress={handleNavigaiton}>
+    <Pressable style={styles.container} onPress={handleNavigation}>
       <View style={[styles.wrapper, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
         <View style={styles.iconWrapper}>{icon}</View>
         <View style={styles.labelWrapper}>

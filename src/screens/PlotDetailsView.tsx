@@ -6,7 +6,7 @@ import { Colors } from 'src/utils/constants'
 import MainHeaderPlot from 'src/components/monitoringPlot/MainHeaderPlot'
 import PlotDetailsTab from 'src/components/monitoringPlot/PlotDetailsTab'
 import PlotPlantList from 'src/components/monitoringPlot/PlotPlantList'
-import EcosystemList from 'src/components/monitoringPlot/EcosystemtList'
+import EcosystemList from 'src/components/monitoringPlot/EcosystemList'
 import PlotMapDisplay from 'src/components/monitoringPlot/PlotMapDisplay'
 import EidPlantModal from 'src/components/monitoringPlot/EidPlantModal'
 import { useObject } from '@realm/react'
@@ -17,7 +17,7 @@ import { RouteProp, useRoute } from '@react-navigation/native'
 
 const PlotDetailsView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
+    const plotID = route.params?.id ?? '';
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [showEdit, setShowEdit] = useState(false)
 
@@ -31,8 +31,8 @@ const PlotDetailsView = () => {
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={observations.length} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             <View style={styles.mainSection}>
-                {selectedIndex === 0 && <>
-                    <PlotPlantList plants={plot_plants} plotID={plotID} /></>}
+                {selectedIndex === 0 &&
+                    <PlotPlantList plants={plot_plants} plotID={plotID} />}
                 {selectedIndex === 1 && <EcosystemList plotID={plotID} data={monitoringPlot} />}
                 {selectedIndex === 2 && <PlotMapDisplay data={monitoringPlot} />}
             </View>

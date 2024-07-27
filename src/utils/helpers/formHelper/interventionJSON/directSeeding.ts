@@ -1,7 +1,7 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
-export const DirectSeeding: RegisterFormSliceInitalState = {
+export const DirectSeeding: RegisterFormSliceInitialState = {
     form_id: '',
     title: 'Direct Seeding',
     intervention_date: 0,

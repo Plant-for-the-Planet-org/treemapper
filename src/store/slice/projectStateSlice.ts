@@ -3,7 +3,7 @@ import { ProjectStateSlice } from 'src/types/interface/slice.interface'
 
 const initialState: ProjectStateSlice = {
   projectAdded: false,
-  errorOccured: false,
+  errorOccurred: false,
   currentProject: {
     projectName: '',
     projectId: '',

@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
   btnIcon: {
     marginRight: 10,
   },
-  btnLable: {
+  btnLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE,
     fontSize: scaleFont(14),

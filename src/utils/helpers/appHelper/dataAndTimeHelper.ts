@@ -7,11 +7,14 @@ export const timestampToBasicDate = (timestamp: number) => {
 }
 
 
-
 export const filterToTime = (i: INTERVENTION_FILTER) => {
+  const continueDate = () => {
+    return i === 'days' ? 1 : 12
+  }
+
   const currentDate = new Date();
   if (i === 'months' || i === 'days' || i === 'year') {
-    const sub = i === 'months' ? 6 : i === 'days' ? 1 : 12
+    const sub = i === 'months' ? 6 : continueDate()
     const oneMonthAgo = new Date(currentDate);
     oneMonthAgo.setMonth(oneMonthAgo.getMonth() - sub);
     const timestampOneMonthAgo = oneMonthAgo.getTime();
@@ -53,6 +56,6 @@ export const formatRelativeTimeCustom = (timestamp: number) => {
 }
 
 
-export const displayYearDate=(t:number)=>{
+export const displayYearDate = (t: number) => {
   return moment(t).format('MMMM D, YYYY');
 }

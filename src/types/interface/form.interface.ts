@@ -1,5 +1,5 @@
 import { KeyboardType } from 'react-native'
-import { DATA_VISIBLITY, FORM_TYPE } from '../type/app.type'
+import { DATA_VISIBILITY, FORM_TYPE } from '../type/app.type'
 
 
 
@@ -14,7 +14,7 @@ export interface FormElement {
   type?: FORM_TYPE
   placeholder?: string
   unit: string
-  visibility: DATA_VISIBLITY
+  visibility: DATA_VISIBILITY
   condition?: { [key: string]: boolean } | null
   data_type?: 'number' | 'string' | 'boolean'
   keyboard_type: KeyboardType

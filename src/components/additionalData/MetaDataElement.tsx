@@ -15,7 +15,7 @@ const MetaDataElement = (props:Props) => {
     handleSelection(data)
   }
   return (
-    <View style={styles.cotnainer}>
+    <View style={styles.container}>
       <TouchableOpacity style={styles.wrapper} onPress={editDetails}>
         <View style={styles.sectionWrapper}>
           <Text style={styles.keyLabel}>{data.key}</Text>
@@ -29,7 +29,7 @@ const MetaDataElement = (props:Props) => {
 export default MetaDataElement
 
 const styles = StyleSheet.create({
-  cotnainer: {
+  container: {
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',

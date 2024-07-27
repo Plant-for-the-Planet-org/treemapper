@@ -14,12 +14,12 @@ interface Props {
 
 const PlaceHolderSwitch = (props: Props) => {
   const { description, selectHandler, value, infoText, showInfoIcon } = props;
-  const [showInfoData, setInfoData] = useState(false)
+  const [showInfoData, setShowInfoData] = useState(false)
   const changeHandler = () => {
     selectHandler(!value)
   }
   const handleInfoIcon = () => {
-    setInfoData(!showInfoData)
+    setShowInfoData(!showInfoData)
   }
   return (
     <View style={styles.container}>

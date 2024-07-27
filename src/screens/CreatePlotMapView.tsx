@@ -29,14 +29,14 @@ const CreatePlotMapView = () => {
     const [plotName, setPlotName] = useState('');
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotMap'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
+    const plotID = route.params?.id ?? '';
+    const isEdit = route.params?.isEdit ?? false;
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
-    const plantId = route.params && route.params.plantId ? route.params.plantId : ''
-    const [initialPolygon, setInitalPloygon] = useState<any>([])
-    const [plnatedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
+    const plantId = route.params?.plantId ?? '';
+    const [initialPolygon, setInitialPolygon] = useState<any>([])
+    const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
-    const [showDimensionModal, setDimensionModal] = useState(false)
+    const [showDimensionModal, setShowDimensionModal] = useState(false)
 
     useEffect(() => {
         getPlotDetails()
@@ -54,10 +54,10 @@ const CreatePlotMapView = () => {
             setPlotName(plotData.name)
             setPlantedTrees(plotData.plot_plants)
             if (markLocation || isEdit) {
-                setInitalPloygon(JSON.parse(plotData.location.coordinates))
+                setInitialPolygon(JSON.parse(plotData.location.coordinates))
             }
             if (isEdit) {
-                setDimensionModal(true)
+                setShowDimensionModal(true)
             }
         } else {
             toast.show("No plot details found")
@@ -69,20 +69,20 @@ const CreatePlotMapView = () => {
         setPlotLength(h)
         setPlotWidth(w)
         setPlotRadius(r)
-        setDimensionModal(false)
+        setShowDimensionModal(false)
     }
 
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={i18next.t('label.center')} rightComponet={<GpsAccuracyTile showModalInfo={() => null} />} />
+            <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={() => null} />} />
             <View style={styles.noteWrapper}>
                 <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
             </View>
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {
-                    setDimensionModal(!showDimensionModal)
-                }} updatedDimensions={handleUpdateDimension} initalValue={{
+                    setShowDimensionModal(!showDimensionModal)
+                }} updatedDimensions={handleUpdateDimension} initialValue={{
                     h: String(plotLength),
                     w: String(plotWidth),
                     r: String(plotRadius),
@@ -90,10 +90,10 @@ const CreatePlotMapView = () => {
             <CreatePlotMapDetail
                 initialPolygon={initialPolygon}
                 isMarking={markLocation}
-                showNewDimentionModal={() => { setDimensionModal(true) }}
+                showNewDimensionModal={() => { setShowDimensionModal(true) }}
                 plantId={plantId}
                 isEdit={isEdit}
-                plnatedTrees={plnatedTrees}
+                plantedTrees={plantedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
             <UserlocationMarker />
         </SafeAreaView>

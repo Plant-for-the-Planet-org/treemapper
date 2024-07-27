@@ -14,7 +14,7 @@ interface Props {
 const DropDownFormElement = (props: Props) => {
     const { data, formValues, changeHandler } = props
     const dropDownOption = JSON.parse(data.dropDownData)
-    const tranformData = dropDownOption.map((el, i) => {
+    const transformData = dropDownOption.map((el, i) => {
         return {
             label: el.key,
             value: el.value,
@@ -30,7 +30,7 @@ const DropDownFormElement = (props: Props) => {
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
-                <DropdownComponent label={data.label} data={tranformData} onSelect={handleSelection} selectedValue={formValues[data.key].value ? JSON.parse(formValues[data.key].value) : { label: '', value: '', index: 0 }} />
+                <DropdownComponent label={data.label} data={transformData} onSelect={handleSelection} selectedValue={formValues[data.key].value ? JSON.parse(formValues[data.key].value) : { label: '', value: '', index: 0 }} />
             </View>
         </View>
     )

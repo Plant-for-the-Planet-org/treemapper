@@ -19,8 +19,8 @@ const InterventionFilterModal = () => {
   const handleSelection = (e: INTERVENTION_TYPE) => {
     const index = selectedFilters.includes(e)
     if (index) {
-      const filterdData = selectedFilters.filter(el => el !== e);
-      dispatch(updateSelectedFilters([...filterdData]))
+      const filterData = selectedFilters.filter(el => el !== e);
+      dispatch(updateSelectedFilters([...filterData]))
     } else {
       dispatch(updateSelectedFilters([...selectedFilters, e]))
     }

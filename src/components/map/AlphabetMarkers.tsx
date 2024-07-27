@@ -17,7 +17,7 @@ const AlphabetMarkers = (props: Props) => {
       return String.fromCharCode(i + 65)
     }
     return props.coordinates.map((d, i) => (
-      <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={i}>
+      <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={Colors.NEW_PRIMARY}/>

@@ -23,13 +23,13 @@ const InterventionCardHeader = (props: Props) => {
 
   switch (item.intervention_type) {
     case 'fire-suppression':
-      return <Text style={styles.label}>Fire Supression Team</Text>
+      return <Text style={styles.label}>Fire Suppression Team</Text>
     case 'fire-patrol':
       return <Text style={styles.label}>Fire Patrol</Text>
     case 'firebreaks':
       return <Text style={styles.label}>Fire Breaks</Text>
     case 'grass-suppression':
-      return <Text style={styles.label}>Grass Supression</Text>
+      return <Text style={styles.label}>Grass Suppression</Text>
     case 'fencing':
       return <Text style={styles.label}>Fencing</Text>
     case 'removal-invasive-species':
@@ -38,7 +38,7 @@ const InterventionCardHeader = (props: Props) => {
       return <Text style={styles.label}>Direct Seeding</Text>
     case 'multi-tree-registration':
       return <Text style={styles.label}>{totalTressCount()} Trees Planted</Text>
-    case 'enrichement-planting':
+    case 'enrichment-planting':
       return <Text style={styles.label}>{totalTressCount()} Trees Planted</Text>
     case 'single-tree-registration':
       return <Text style={styles.label}>Single Tree Planted</Text>

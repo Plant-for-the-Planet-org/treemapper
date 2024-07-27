@@ -11,21 +11,21 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 
 import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
 import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
-import RemeasurmentIcon from 'assets/images/svg/RemeasurmentIcon.svg'
+import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
 import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import PEN_ICON from 'assets/images/svg/EditPenIcon.svg'
+import PenIcon from 'assets/images/svg/EditPenIcon.svg'
 
 
 
 
-const AddRemeasurmentView = () => {
+const AddRemeasurementView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
-    const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>()
+    const plotID = route.params?.id ?? '';
+    const plantID = route.params?.plantID ?? '';
+    const [selectedTimeline, setSelectedTimeLine] = useState<PlantedPlotSpecies>()
 
     const plotDetails = useObject<MonitoringPlot>(
         RealmSchema.MonitoringPlot, plotID
@@ -35,7 +35,7 @@ const AddRemeasurmentView = () => {
         if (plantID) {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
-                setSelectedTimeLIne(getPlantDetails)
+                setSelectedTimeLine(getPlantDetails)
             }
         }
     }, [plotID])
@@ -58,9 +58,9 @@ const AddRemeasurmentView = () => {
     const renderCard = (item: PlantTimeLine, index: number) => {
         const renderIcon = () => {
             switch (item.status) {
-                case 'REMEASURMENT':
-                    return <RemeasurmentIcon />
-                case 'DESCEASED':
+                case 'REMEASUREMENT':
+                    return <RemeasurementIcon />
+                case 'DECEASED':
                     return <DeceasedTreeIcon />
                 default:
                     return <PlantedIcon />
@@ -68,9 +68,9 @@ const AddRemeasurmentView = () => {
         }
         const label = () => {
             switch (item.status) {
-                case 'REMEASURMENT':
+                case 'REMEASUREMENT':
                     return `Measurement ${index}: ${item.length}${item.length_unit} high,${item.width}${item.width_unit} wide`
-                case 'DESCEASED':
+                case 'DECEASED':
                     return 'Marked deceased'
                 default:
                     return `Tree Planted : ${item.length}${item.length_unit} high,${item.width}${item.width_unit} wide`
@@ -80,10 +80,10 @@ const AddRemeasurmentView = () => {
         return (
             <Pressable style={styles.cardContainer} onPress={() => { handlePress(item.timeline_id) }}>
                 <View style={styles.iconWrapper}>
-                    <View style={[styles.icon, { backgroundColor: item.status === 'DESCEASED' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
+                    <View style={[styles.icon, { backgroundColor: item.status === 'DECEASED' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
                         {renderIcon()}
                     </View>
-                    {item.status !== 'DESCEASED' && <View style={styles.divider} />}
+                    {item.status !== 'DECEASED' && <View style={styles.divider} />}
                 </View>
                 <View style={styles.cardSection}>
                     <Text style={styles.cardHeader}>
@@ -99,18 +99,20 @@ const AddRemeasurmentView = () => {
     if (!selectedTimeline) {
         return null
     }
-    //todo
+
+    const renderFooter=() => (<View style={styles.footerWrapper} />)
+
     return (
-        <SafeAreaView style={styles.cotnainer}>
-            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} allias={selectedTimeline.aliases} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
-                <PEN_ICON width={20} height={20} />
+        <SafeAreaView style={styles.container}>
+            <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
+                <PenIcon width={20} height={20} />
             </Pressable>} />
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
                     <FlatList
                         showsVerticalScrollIndicator={false}
-                        style={styles.flatlistWrapper}
-                        ListFooterComponent={() => (<View style={styles.footerWrapper} />)}
+                        style={styles.flatListWrapper}
+                        ListFooterComponent={renderFooter}
                         renderItem={({ item, index }) => { return renderCard(item, index) }}
                         data={selectedTimeline ? selectedTimeline.timeline : []} />
                 </View>
@@ -119,16 +121,16 @@ const AddRemeasurmentView = () => {
                 label="Add Remeasurement"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleSelection}
-                hideFadein
+                hideFadeIn
             />}
         </SafeAreaView>
     )
 }
 
-export default AddRemeasurmentView
+export default AddRemeasurementView
 
 const styles = StyleSheet.create({
-    cotnainer: {
+    container: {
         flex: 1,
         alignItems: 'center',
         backgroundColor: Colors.WHITE
@@ -163,7 +165,7 @@ const styles = StyleSheet.create({
         height: 100,
         width: '100%'
     },
-    flatlistWrapper: {
+    flatListWrapper: {
         width: '90%',
     },
     cardContainer: {

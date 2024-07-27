@@ -21,7 +21,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { FormElement } from 'src/types/interface/form.interface'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 
 const width = Dimensions.get('screen').width
@@ -36,7 +36,7 @@ const LocalForm = () => {
   const paramId = route.params ? route.params.id : ''
   const [finalData, setFinalData] = useState<Array<{ page: string, elements: FormElement[] }>>([])
   const realm = useRealm()
-  const flatlistRef = useRef<FlatList>(null)
+  const flatListRef = useRef<FlatList>(null)
   const { updateLocalFormDetailsIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
@@ -68,7 +68,7 @@ const LocalForm = () => {
     const filterData = finalData.filter(el => el.page !== id);
     setFinalData([...filterData, { elements: data, page: id }])
     if (formPages.length > currentPage + 1) {
-      flatlistRef.current.scrollToIndex({ index: currentPage + 1 });
+      flatListRef.current.scrollToIndex({ index: currentPage + 1 });
       setCurrentPage(currentPage + 1)
     } else {
       updateFinalData([...filterData, { elements: data, page: id }])
@@ -79,7 +79,7 @@ const LocalForm = () => {
     if (currentPage < 1) {
       navigation.goBack()
     } else {
-      flatlistRef.current.scrollToIndex({ index: currentPage - 1 });
+      flatListRef.current.scrollToIndex({ index: currentPage - 1 });
       setCurrentPage(currentPage - 1)
     }
   }
@@ -96,7 +96,7 @@ const LocalForm = () => {
     })
     const result = await updateLocalFormDetailsIntervention(paramId, updatedData)
     if (!result) {
-      errotHaptic()
+      errorHaptic()
       toast.show('Error occurred while updating data')
       return
     }
@@ -127,7 +127,7 @@ const LocalForm = () => {
         <FlatList
           snapToAlignment='center'
           pagingEnabled
-          ref={flatlistRef}
+          ref={flatListRef}
           scrollEnabled={false}
           data={formPages} renderItem={({ item, index }) => renderPages(item, index)} horizontal showsHorizontalScrollIndicator={false} />
       </ScrollView>

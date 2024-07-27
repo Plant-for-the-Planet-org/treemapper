@@ -1,8 +1,8 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
-const Descitption: FormElement = {
+const Description: FormElement = {
     index: 0,
     key: 'description',
     label: 'Describe more about fencing',
@@ -25,11 +25,11 @@ const Descitption: FormElement = {
   const fencingForm: MainForm = {
       title: 'Team Details',
       key: '',
-      elements: [Descitption, ],
+      elements: [Description],
     }
     
 
-export const Fencing: RegisterFormSliceInitalState = {
+export const Fencing: RegisterFormSliceInitialState = {
     form_id: '',
     title: 'Fencing',
     intervention_date: 0,

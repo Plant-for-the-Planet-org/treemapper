@@ -16,7 +16,7 @@ import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
 
 const SpeciesSearchView = () => {
-  const [specieList, setSpciesList] = useState<IScientificSpecies[]>([])
+  const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -30,7 +30,7 @@ const SpeciesSearchView = () => {
     item: IScientificSpecies,
     status: boolean,
   ) => {
-    setSpciesList(prevSpecies => {
+    setSpecieList(prevSpecies => {
       return prevSpecies.map(species =>
         species.guid === item.guid
           ? { ...species, isUserSpecies: status }
@@ -62,11 +62,11 @@ const SpeciesSearchView = () => {
 
 
   return (
-    <SafeAreaView style={styles.contnetWrapper}>
+    <SafeAreaView style={styles.contentWrapper}>
       <FlashList
         data={specieList}
         renderItem={({ item }) => (
-          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
+          <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
         )}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"
@@ -75,8 +75,8 @@ const SpeciesSearchView = () => {
         ListHeaderComponent={
           <SpeciesSearchHeader
             backPress={handleBackPress}
-            toogleSyncModal={setShowSpeciesSyncAlert}
-            setSpciesList={setSpciesList}
+            toggleSyncModal={setShowSpeciesSyncAlert}
+            setSpicesList={setSpecieList}
           />
         }
         keyboardDismissMode='interactive'
@@ -99,7 +99,7 @@ const SpeciesSearchView = () => {
 export default SpeciesSearchView
 
 const styles = StyleSheet.create({
-  contnetWrapper: {
+  contentWrapper: {
     flex: 1,
     backgroundColor: Colors.WHITE,
   },

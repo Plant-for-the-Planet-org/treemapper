@@ -1,13 +1,13 @@
 import store from 'src/store/index'
 import 'react-native-get-random-values'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuid } from 'uuid'
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const setAndGetSessionId = async () => {
   let sessionId: any = await AsyncStorage.getItem('session-id');
   // if session ID is empty in AsyncStorage then creates a new unique session ID and and sores in AsyncStorage
   if (!sessionId) {
-    sessionId = uuidv4();
+    sessionId = uuid();
     await AsyncStorage.setItem('session-id', sessionId);
   }
   return sessionId

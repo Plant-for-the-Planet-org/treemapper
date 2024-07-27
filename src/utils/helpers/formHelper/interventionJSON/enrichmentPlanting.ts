@@ -1,7 +1,7 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
-export const EnrichmentPlannting: RegisterFormSliceInitalState = {
+export const EnrichmentPlanting: RegisterFormSliceInitialState = {
     form_id: '',
     title: 'Enrichment Planting',
     intervention_date: 0,
@@ -31,7 +31,7 @@ export const EnrichmentPlannting: RegisterFormSliceInitalState = {
     additional_data: [],
     can_be_entire_site: true,
     entire_site_selected: false,
-    key: 'enrichement-planting',
+    key: 'enrichment-planting',
     should_register_location: false,
     plantedSpecies: []
 }

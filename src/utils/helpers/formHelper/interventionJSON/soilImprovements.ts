@@ -1,53 +1,8 @@
-// import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
-// const FertilizerQuanity: FormElement = {
-//     index: 0,
-//     key: 'fertilizer-quantity',
-//     label: 'Fertilizer Quantity',
-//     default: '',
-//     type: 'INPUT',
-//     placeholder: 'Fertilizer Quantity',
-//     unit: 'kg',
-//     visibility: 'public',
-//     condition: null,
-//     data_type: 'number',
-//     keyboard_type: 'number-pad',
-//     sub_form: undefined,
-//     editable: true,
-//     value: '',
-//     required: true,
-//     dropDownData: []
-// }
 
-// const heightOfBirdPerche: FormElement = {
-//     index: 0,
-//     key: 'height-of-bird-perche',
-//     label: 'Height of bird perche',
-//     default: '',
-//     type: 'INPUT',
-//     placeholder: 'Height of bird perche',
-//     unit: '',
-//     visibility: 'public',
-//     condition: null,
-//     data_type: 'number',
-//     keyboard_type: 'number-pad',
-//     sub_form: undefined,
-//     editable: true,
-//     value: '',
-//     required: true,
-//     dropDownData: []
-// }
-
-
-// const soildImprovementForm: MainForm = {
-//   title: 'Dettails',
-//   key: '',
-//   elements: [NumberOfBirdPerche, heightOfBirdPerche ],
-// }
-
-export const SoilImprovements: RegisterFormSliceInitalState = {
+export const SoilImprovements: RegisterFormSliceInitialState = {
     form_id: '',
     title: 'Soil Improvement',
     intervention_date: 0,

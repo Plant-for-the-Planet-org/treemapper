@@ -9,8 +9,6 @@ import CustomButton from '../common/CustomButton'
 import { CommonActions, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { useDispatch } from 'react-redux'
-import { updateAdditionalData } from 'src/store/slice/registerFormSlice'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
 import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
@@ -20,6 +18,7 @@ import YeNoFormElement from './YeNoFormElement'
 import DropDownFormElement from './DropDownElement'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
+
 interface Props {
   formData: MainForm | IAdditonalDetailsForm | any
   completeLocalForm?: (d: FormElement[], page: string) => void
@@ -38,7 +37,6 @@ const MainFormSection = (props: Props) => {
   const toast = useToast();
   const { updateInterventionLastScreen, updateDynamicFormDetails } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const dispatch = useDispatch()
   useEffect(() => {
     setFormKeyValues()
   }, [formData])
@@ -112,7 +110,6 @@ const MainFormSection = (props: Props) => {
       return
     }
     await updateInterventionLastScreen(interventionID, 'DYNAMIC_FORM')
-    dispatch(updateAdditionalData(finalData))
     await updateDynamicFormDetails(interventionID, finalData)
     navigation.dispatch(
       CommonActions.reset({
@@ -124,7 +121,6 @@ const MainFormSection = (props: Props) => {
       })
     )
   }
-
   const renderElement = (formElements: FormElement[]) => {
     return formElements.map(element => {
       switch (element.type) {

@@ -22,17 +22,17 @@ const EcosystemListHeader = (props: Props) => {
         borderColor: Colors.NEW_PRIMARY,
         backgroundColor: Colors.NEW_PRIMARY,
     }
-    const unslectedTextWrapper = {
+    const unelectedTextWrapper = {
         borderColor: Colors.GRAY_LIGHT,
         backgroundColor: Colors.WHITE,
     }
-    const unslectedTextStyle = {
+    const unelectedTextStyle = {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR
     }
     const canopyLength = item.filter(el => el.type === 'CANOPY').length
     const soilMoistureLength = item.filter(el => el.type === 'SOIL_MOISTURE').length
-    const bioacusticsLength = item.filter(el => el.type === 'BIOACUSTICS').length
+    const bioacousticsLength = item.filter(el => el.type === 'BIOACOUSTICS').length
 
 
     const headerData = [{
@@ -52,9 +52,9 @@ const EcosystemListHeader = (props: Props) => {
 
     },
     {
-        key: 'bioacustics',
-        label: `${bioacusticsLength} Bioacoustics`,
-        hide: bioacusticsLength === 0
+        key: 'bioacoustics',
+        label: `${bioacousticsLength} Bioacoustics`,
+        hide: bioacousticsLength === 0
 
     }
     ]
@@ -73,10 +73,10 @@ const EcosystemListHeader = (props: Props) => {
                     return null
                 }
                 return (
-                    <Pressable style={[styles.sectionWrapper, selectedLabel === item.key ? selectedWrapper : unslectedTextWrapper]} onPress={() => {
+                    <Pressable style={[styles.sectionWrapper, selectedLabel === item.key ? selectedWrapper : unelectedTextWrapper]} onPress={() => {
                         onPress(item.key)
                     }}>
-                        <Text style={[styles.sectionHeader, selectedLabel === item.key ? selectedTextStyle : unslectedTextStyle]}>{item.label}</Text>
+                        <Text style={[styles.sectionHeader, selectedLabel === item.key ? selectedTextStyle : unelectedTextStyle]}>{item.label}</Text>
                     </Pressable>
                 )
 

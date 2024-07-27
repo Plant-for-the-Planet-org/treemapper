@@ -2,34 +2,27 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
-import Icon from '@expo/vector-icons/FontAwesome5';
+import BackIcon from 'assets/images/svg/BackIcon.svg'
 
 interface Props {
-  lat: number
-  long: number
-  id: string
-  undo: () => void
+
+  goBack: () => void
 }
 
-const DispalyCurrentPolygonMarker = (props: Props) => {
-  const { id, undo } = props
+const EditDisplayCurrentPolygonMarker = (props: Props) => {
+  const {goBack} = props
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Corner {id}</Text>
-      <Text style={styles.note}>Please select the {id === 'A' ? 'first' : 'next'} corner</Text>
-      {id !== 'A' && <TouchableOpacity style={styles.undoButton} onPress={undo}>
-      <Text style={styles.undoLable}>Undo</Text>
-        <Icon
-          name="undo-alt"
-          size={16}
-          color={Colors.GRAY_DARK}
-        />
-      </TouchableOpacity>}
+      <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>
+      <View style={styles.wrapper}>
+        <Text style={styles.label}>Corner</Text>
+        <Text style={styles.note}>Please select the point and drag</Text>
+      </View>
     </View>
   )
 }
 
-export default DispalyCurrentPolygonMarker
+export default EditDisplayCurrentPolygonMarker
 
 const styles = StyleSheet.create({
   container: {
@@ -37,7 +30,19 @@ const styles = StyleSheet.create({
     height: scaleSize(50),
     backgroundColor: Colors.WHITE,
     paddingHorizontal: 20,
-    zIndex: 1
+    zIndex: 1,
+    flexDirection: 'row',
+    alignItems: 'flex-start'
+  },
+  wrapper: {
+    height: '100%',
+    flex: 1
+  },
+  backIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 20,
+    marginTop: 5
   },
   label: {
     fontSize: scaleFont(18),
@@ -61,7 +66,7 @@ const styles = StyleSheet.create({
     right: 10,
     bottom: 10,
   },
-  undoLable: {
+  undoLabel: {
     fontSize: scaleFont(12),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginRight: 5,

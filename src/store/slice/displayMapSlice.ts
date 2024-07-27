@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { DisplayMapSlice, InterventionData } from 'src/types/interface/slice.interface'
 import { INTERVENTION_FILTER, INTERVENTION_TYPE, MAP_VIEW } from 'src/types/type/app.type'
-import { AllIntervenionType } from 'src/utils/constants/knownIntervention'
+import { AllInterventionType } from 'src/utils/constants/knownIntervention'
 
 const initialState: DisplayMapSlice = {
   selectedIntervention: '',
@@ -11,7 +11,7 @@ const initialState: DisplayMapSlice = {
   showOverlay: false,
   activeInterventionIndex: 0,
   interventionFilter: 'always',
-  selectedFilters: [...AllIntervenionType],
+  selectedFilters: [...AllInterventionType],
   mainMapView: 'VECTOR',
   showPlots: true,
   onlyRemeasurement: false
@@ -55,7 +55,7 @@ const displayMapSlice = createSlice({
     updateMainMapView(state, action: PayloadAction<MAP_VIEW>) {
       state.mainMapView = action.payload
     },
-    updateShowlots(state, action: PayloadAction<boolean>) {
+    updateShowPlots(state, action: PayloadAction<boolean>) {
       state.showPlots = action.payload
     },
     updateRemeasurementFilter(state, action: PayloadAction<boolean>) {
@@ -64,6 +64,6 @@ const displayMapSlice = createSlice({
   },
 })
 
-export const { updateRemeasurementFilter, updateShowlots, updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
+export const { updateRemeasurementFilter, updateShowPlots, updateMainMapView, updateSelectedIntervention, updateInterventionFilter, clearCarouselData, updateActiveInterventionIndex, updateActiveIndex, updateAdjacentIntervention, updateShowOverlay, updateSelectedFilters } = displayMapSlice.actions
 
 export default displayMapSlice.reducer

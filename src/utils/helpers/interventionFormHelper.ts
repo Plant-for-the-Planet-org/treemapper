@@ -1,12 +1,12 @@
 import {
   InterventionData,
-  RegisterFormSliceInitalState,
+  RegisterFormSliceInitialState,
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { Colors } from '../constants'
 import { setUpIntervention } from './formHelper/selectIntervention'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-export const getPreviewData = (data: RegisterFormSliceInitalState) => {
+export const getPreviewData = (data: RegisterFormSliceInitialState) => {
   const { intervention_date, title, project_name, site_name } = data
 
   const basicInfo = {
@@ -36,7 +36,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            ...extra ? extra : {}
+            ...extra || {}
           },
           geometry: {
             type: 'Point',
@@ -52,7 +52,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            ...extra ? extra : {}
+            ...extra || {}
           },
           geometry: {
             type: 'Polygon',
@@ -83,24 +83,6 @@ export const convertInterventionFormData = (d: FormElement[]) => {
   return data;
 }
 
-// const convertAdditionalData = (d: RegisterFormSliceInitalState) => {
-
-//   // const form_data = convertInterventionFormData(d.form_data)
-//   // let deviceLocation = {
-//   //   label: "Device Location",
-//   //   value: ""
-//   // };
-
-//   // if (lat && long) {
-//   //   deviceLocation.value = `${long.toFixed(6)},${lat.toFixed(6)}`
-//   // }
-// //ToDO
-//   // return JSON.stringify({
-//     //   ...form_data
-//     // })
-//     return ''
-//   }
-
 
 export const getInterventionColor = (key) => {
   switch (key) {
@@ -111,7 +93,7 @@ export const getInterventionColor = (key) => {
     case 'removal-invasive-species':
       return Colors.INVASIVE_SPECIES;
     case 'fire-suppression':
-      return Colors.FIRE_SUPRESSION;
+      return Colors.FIRE_SUPPRESSION;
     case 'fire-patrol':
       return Colors.FIRE_PATROL;
     case 'fencing':
@@ -121,7 +103,7 @@ export const getInterventionColor = (key) => {
     case 'liberating-regenerant':
       return Colors.LIBERATING_REGENERANT;
     case 'grass-suppression':
-      return Colors.GRASS_SUPRESSION;
+      return Colors.GRASS_SUPPRESSION;
     case 'firebreaks':
       return Colors.FIREBREAKS;
     case 'assisting-seed-rain':
@@ -132,12 +114,12 @@ export const getInterventionColor = (key) => {
       return Colors.STOP_HARVESTING;
     case 'direct-seeding':
       return Colors.DIRECT_SEEDING;
-    case 'enrichement-planting':
+    case 'enrichment-planting':
       return Colors.ENRICHMENT_PLANTING;
     case 'other-intervention':
       return Colors.OTHER_INTERVENTION;
     case 'maintenance':
-      return Colors.MAINTAINEANCE;
+      return Colors.MAINTENANCE;
     default:
       return Colors.SINGLE_TREE;
   }
@@ -148,84 +130,74 @@ type NavigationResult = {
   params?: RootStackParamList[keyof RootStackParamList];
 };
 
-export const lastScreenNavigationHelper=(data:InterventionData):NavigationResult=>{
-  const formData = setUpIntervention(data.intervention_key)
-  if (data.last_screen === "FORM") {
-    if (formData.location_type === 'Point') {
-      return { screen: 'PointMarker', params: {id:data.intervention_id} }
-    }
-    if (formData.location_type === 'Polygon') {
-      return { screen: 'PolygonMarker', params: {id:data.intervention_id} }
-    }
+export const lastScreenNavigationHelper = (data: InterventionData): NavigationResult => {
+  const formData = setUpIntervention(data.intervention_key);
+  let result : NavigationResult;
+  switch (data.last_screen) {
+    case "FORM":
+      if (formData.location_type === 'Point') {
+        result = { screen: 'PointMarker', params: { id: data.intervention_id } };
+      }
+      if (formData.location_type === 'Polygon') {
+        result = { screen: 'PolygonMarker', params: { id: data.intervention_id } };
+      }
+      break;
+
+    case "LOCATION":
+      if (formData.species_required) {
+        result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
+      }
+      if (!formData.species_required) {
+        result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+      }
+      break;
+
+    case "SPECIES":
+      if (formData.tree_details_required) {
+        if (!formData.is_multi_species) {
+          result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
+          break;
+        }
+        result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
+      }
+      break;
+    case "TOTAL_TREES":
+      result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
+      break;
+    case "TREE_DETAILS":
+      result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+      break;
+    case "LOCAL_FORM":
+      result = { screen: 'DynamicForm', params: { id: data.intervention_id } };
+      break;
+    case "DYNAMIC_FORM":
+      result = { screen: 'InterventionPreview', params: { id: 'review', intervention: '', interventionId: data.intervention_id } };
+      break;
+    default:
+      result = { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id, interventionId: data.intervention_id } };
   }
-
-
-  //location select
-  if (data.last_screen === "LOCATION") {
-    if (formData.species_required) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false ,id:data.intervention_id} }
-    }
+  if (Object.keys(result).length === 0) {
+    result = { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id, interventionId: data.intervention_id } };
   }
-
-  //species select
-  if (data.last_screen === "SPECIES") {
-    if (formData.tree_details_required && !formData.is_multi_species) {
-      return { screen: 'ReviewTreeDetails', params: {id:data.intervention_id} }
-    }
-    if (formData.tree_details_required && formData.is_multi_species) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false,id:data.intervention_id} }
-    }
-  }
-
-
-  if (data.last_screen === "TOTAL_TREES") {
-    return { screen: 'ReviewTreeDetails', params: { id:data.intervention_id} }
-  }
-
-
-  //treeDetails select
-  if (data.last_screen === "TREE_DETAILS") {
-    return { screen: 'LocalForm', params: {id:data.intervention_id} }
-  }
-
-
-  if (data.last_screen === "LOCATION") {
-    if (!formData.species_required) {
-      return { screen: 'LocalForm', params: {id:data.intervention_id} }
-    }
-  }
-
-
-  //localForm select
-  if (data.last_screen === 'LOCAL_FORM') {
-    return { screen: 'DynamicForm', params: {id:data.intervention_id} }
-  }
-
-  if (data.last_screen === 'DYNAMIC_FORM') {
-    return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' ,interventionId:data.intervention_id} }
-  }
-
-  return { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id,interventionId:data.intervention_id } }
-
+  return result
 }
 
-
-export const metaDataTranformer = (exsitingData: any, data: { public: any, private: any, app: any }) => {
-  const finalData = { ...exsitingData }
-  if (exsitingData['public']) {
-    finalData['public'] = { ...exsitingData['public'], ...data.public }
+export const metaDataTransformer = (existingData: any, data: { public: any, private: any, app: any }) => {
+  const finalData = { ...existingData }
+  if (existingData['public']) {
+    finalData['public'] = { ...existingData['public'], ...data.public }
   } else {
     finalData['public'] = { ...data.public }
   }
 
-  if (exsitingData['private']) {
-    finalData['private'] = { ...exsitingData['private'], ...data.private }
+  if (existingData['private']) {
+    finalData['private'] = { ...existingData['private'], ...data.private }
   } else {
     finalData['private'] = { ...data.private }
   }
 
-  if (exsitingData['app']) {
-    finalData['app'] = { ...exsitingData['app'], ...data.app }
+  if (existingData['app']) {
+    finalData['app'] = { ...existingData['app'], ...data.app }
   } else {
     finalData['app'] = { ...data.app }
   }

@@ -1,6 +1,6 @@
 import Auth0, { Credentials, useAuth0 } from 'react-native-auth0'
 import useInterventionManagement from './realm/useInterventionManagement'
-import useProjectMangement from './realm/useProjectMangement'
+import useProjectManagement from './realm/useProjectManagement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
 
 const auth0 = new Auth0({ domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN, clientId: process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0 });
@@ -9,7 +9,7 @@ const auth0 = new Auth0({ domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN, clientId
 const useAuthentication = () => {
   const { authorize, getCredentials, clearSession, clearCredentials, user } = useAuth0()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
-  const { deleteAllProjects } = useProjectMangement()
+  const { deleteAllProjects } = useProjectManagement()
   const { deleteAllUserSpecies } = useManageScientificSpecies()
 
   const getUserCredentials = async () => {
@@ -39,16 +39,16 @@ const useAuthentication = () => {
     success: boolean
   }> => {
     try {
-      const authCreds = await authorize({
+      const authCred = await authorize({
         scope: 'openid email profile offline_access',
         audience: 'urn:plant-for-the-planet',
       })
-      if (!authCreds) {
+      if (!authCred) {
         throw 'No token found'
       }
 
       return {
-        credentials: authCreds,
+        credentials: authCred,
         success: true,
       }
     } catch (error) {
