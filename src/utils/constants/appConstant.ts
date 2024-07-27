@@ -45,9 +45,9 @@ interface ILogTypes {
   
   // defines the log levels
   interface ILogLevels {
-    // this is used when the expected behaviour is correct
+    // this is used when the expected behavior is correct
     INFO: 'INFO';
-    // this is used when behaviour of the app is correct but some precaution or suspicious activity needs to be attended
+    // this is used when behavior of the app is correct but some precaution or suspicious activity needs to be attended
     WARN: 'WARN';
     // this is used when some error occurred and needs to be attended on priority
     ERROR: 'ERROR';

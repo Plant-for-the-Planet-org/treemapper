@@ -16,8 +16,8 @@ import {
   
   // regex for diameter and height to validate the same
   export const measurementRegex = /^\d{0,5}(\.\d{1,3})?$/;
-  
-  // checks if diamter or height passed as measurement is valid
+
+  // checks if diameter or height passed as measurement is valid
   export const getIsValidMeasurement = (measurement: string) => measurementRegex.test(measurement);
   
   // returns the converted diameter by checking the user's country metric

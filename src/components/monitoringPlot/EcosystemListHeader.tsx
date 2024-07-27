@@ -53,7 +53,7 @@ const EcosystemListHeader = (props: Props) => {
     },
     {
         key: 'bioacustics',
-        label: `${bioacusticsLength} Bioacustics`,
+        label: `${bioacusticsLength} Bioacoustics`,
         hide: bioacusticsLength === 0
 
     }

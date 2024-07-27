@@ -12,7 +12,7 @@ export const AllIntervention: Array<{
   },
   {label: 'Multi Tree Plantation', value: 'multi-tree-registration', index: 0},
   {label: 'Fire Patrol', value: 'fire-patrol', index: 0},
-  {label: 'Fire Supression Team', value: 'fire-suppression', index: 0},
+  {label: 'Fire Suppression Team', value: 'fire-suppression', index: 0},
   {label: 'Establish Fire Breaks', value: 'firebreaks', index: 0},
   {label: 'Fencing', value: 'fencing', index: 0},
   {
