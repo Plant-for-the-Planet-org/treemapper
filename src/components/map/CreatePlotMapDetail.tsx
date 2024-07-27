@@ -203,7 +203,7 @@ const CreatePlotMapDetail = (props: Props) => {
       }
     })
     if (!isValid) {
-      toast.show("Previously marked poins are not within new location")
+      toast.show("Previously marked points are not within new location")
       return
     }
     const result = await updatePlotLocation(plotId, updatedCoords, isEdit, {

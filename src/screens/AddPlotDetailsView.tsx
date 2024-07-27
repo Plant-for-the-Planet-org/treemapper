@@ -59,7 +59,7 @@ const AddPlotDetailsView = () => {
               trailingtext={'stumps'} errMsg={''} />
           </View>
           <InterventionDatePicker
-            placeHolder={'Measurment Date'}
+            placeHolder={'Measurement Date'}
             value={Date.now()}
             callBack={() => { }}
           />
