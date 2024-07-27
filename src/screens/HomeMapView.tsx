@@ -20,23 +20,23 @@ const HomeMapView = () => {
   const showCarousel = useSelector(
     (state: RootState) => state.displayMapState.showCarousel,
   )
-  const toogleFilterModal = () => {
+  const toggleFilterModal = () => {
     setShowFilterModal(!showFilterModal)
   }
 
-  const toogleProjectModal = () => {
+  const toggleProjectModal = () => {
     setShowProjectModal(!showProjectModal)
   }
 
 
   return (
-    <View style={[styles.contaner]}>
+    <View style={[styles.container]}>
       {showCarousel ? (
         <CarouselHeader />
       ) : (
         <HomeHeader
-          toogleFilterModal={toogleFilterModal}
-          toogleProjectModal={toogleProjectModal}
+          toggleFilterModal={toggleFilterModal}
+          toggleProjectModal={toggleProjectModal}
         />
       )}
       <DisplayMap />
@@ -44,11 +44,11 @@ const HomeMapView = () => {
       <UserlocationMarker />
       <FilterModal
         isVisible={showFilterModal}
-        toogleModal={toogleFilterModal}
+        toggleModal={toggleFilterModal}
       />
       <ProjectModal
         isVisible={showProjectModal}
-        toogleModal={toogleProjectModal}
+        toggleModal={toggleProjectModal}
       />
       {showCarousel && <CarouselModal />}
       <LocationPermissionModal />
@@ -59,7 +59,7 @@ const HomeMapView = () => {
 export default HomeMapView
 
 const styles = StyleSheet.create({
-  contaner: {
+  container: {
     flex: 1,
   },
 })

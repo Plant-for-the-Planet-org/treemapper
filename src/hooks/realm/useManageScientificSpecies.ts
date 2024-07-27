@@ -75,14 +75,14 @@ const useManageScientificSpecies = () => {
 
 
 
-  const updateUserFavSpecies = async (guid: string, isFavourite: boolean) => {
+  const updateUserFavSpecies = async (guid: string, isFavorite: boolean) => {
     try {
       realm.write(() => {
         const specieToUpdate = realm.objectForPrimaryKey<IScientificSpecies>(
           RealmSchema.ScientificSpecies,
           guid,
         )
-        specieToUpdate.isUserSpecies = isFavourite
+        specieToUpdate.isUserSpecies = isFavorite
       })
     } catch (error) {
       console.error('Error during species update:', error)

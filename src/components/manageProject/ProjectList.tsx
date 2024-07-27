@@ -8,7 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native'
-import PlantProjectBackfrop from 'assets/images/svg/PlantProjectIcon.svg'
+import PlantProjectBackdrop from 'assets/images/svg/PlantProjectIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
@@ -100,7 +100,7 @@ const ProjectItem = ({
         />
       ) : (
         <View style={[styles.image, { paddingBottom: 10 }]}>
-          <PlantProjectBackfrop />
+          <PlantProjectBackdrop />
         </View>
       )}
       <Text

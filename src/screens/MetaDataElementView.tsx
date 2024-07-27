@@ -39,7 +39,7 @@ const MetaDataElementView = () => {
         }
         return (
             <TouchableOpacity style={styles.deleteWrapper} onPress={handleDelete}>
-                <Text style={styles.deletelabel}>Delete</Text>
+                <Text style={styles.deletable}>Delete</Text>
             </TouchableOpacity>
         )
     }
@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
         borderRadius:10,
         marginRight:10
       },
-      deletelabel:{
+      deletable:{
         fontSize:16,
         fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
         color:'tomato',

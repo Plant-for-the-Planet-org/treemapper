@@ -13,7 +13,7 @@ interface Props {
     isVisible: boolean
     toogleModal: () => void
     updatedDimensions: (length: number, width: number, radius: number) => void
-    initalValue: {
+    initialValue: {
         h: string,
         w: string,
         r: string
@@ -22,17 +22,17 @@ interface Props {
 }
 
 const NewDimensionModal = (props: Props) => {
-    const { isVisible, toogleModal, updatedDimensions, initalValue, shape } = props
-    const [dimensionHeight, setDimenstionHeight] = useState('')
+    const { isVisible, toogleModal, updatedDimensions, initialValue, shape } = props
+    const [dimensionHeight, setDimensionHeight] = useState('')
     const [dimensionWidth, setDimensionWidth] = useState('')
-    const [dimesionRadius, setimensionRadius] = useState('')
+    const [dimensionRadius, setDimensionRadius] = useState('')
     const toast = useToast()
 
     useEffect(() => {
         if (isVisible) {
-            setDimenstionHeight(initalValue.h)
-            setDimensionWidth(initalValue.w)
-            setimensionRadius(initalValue.r)
+            setDimensionHeight(initialValue.h)
+            setDimensionWidth(initialValue.w)
+            setDimensionRadius(initialValue.r)
         }
     }, [isVisible, shape])
 
@@ -50,17 +50,17 @@ const NewDimensionModal = (props: Props) => {
                 return
             }
         } else {
-            const validRadius = validateNumber(dimesionRadius, 'Radius', 'Radius')
+            const validRadius = validateNumber(dimensionRadius, 'Radius', 'Radius')
             if (!validRadius) {
                 toast.show(validRadius.errorMessage)
                 return
             }
-            if (Number(dimesionRadius) < 25) {
+            if (Number(dimensionRadius) < 25) {
                 toast.show("Please add valid Radius as per note")
                 return
             }
         }
-        updatedDimensions(Number(dimensionHeight), Number(dimensionWidth), Number(dimesionRadius))
+        updatedDimensions(Number(dimensionHeight), Number(dimensionWidth), Number(dimensionRadius))
     }
 
 
@@ -72,7 +72,7 @@ const NewDimensionModal = (props: Props) => {
                 {shape === "RECTANGULAR" ? <>
                     <CustomTextInput
                         label="Height"
-                        onChangeHandler={setDimenstionHeight}
+                        onChangeHandler={setDimensionHeight}
                         value={dimensionHeight}
                     />
                     <CustomTextInput
@@ -83,14 +83,14 @@ const NewDimensionModal = (props: Props) => {
                 </> :
                     <CustomTextInput
                         label="Radius"
-                        onChangeHandler={setimensionRadius}
-                        value={dimesionRadius}
+                        onChangeHandler={setDimensionRadius}
+                        value={dimensionRadius}
                     />}
                 <CustomButton
                     label={"Continue"}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
-                    hideFadein
+                    hideFadeIn
                 />
             </View>
         </Modal>

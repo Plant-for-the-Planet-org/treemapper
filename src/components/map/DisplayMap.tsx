@@ -15,12 +15,12 @@ import bbox from '@turf/bbox'
 import SiteMapSource from './SiteMapSource'
 import PolygonShapeSource from './PolygonShapeSource'
 import { GeoBox } from 'realm'
-import ClusterdShapSource from './ClusterdShapSource'
+import ClusteredShapeSource from './ClusteredShapeSource'
 import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import { getRandomPointInPolygon } from 'src/utils/helpers/genratePointInPolygon'
+import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import MapMarkersOverlay from './MapMarkersOverlay'
-import SatteliteLayer from 'assets/mapStyle/satteliteView'
+import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -65,7 +65,7 @@ const DisplayMap = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
       if (onlyRemeasurement) {
-        return el.remeasuremnt_required === true
+        return el.remeasurement_required === true
       }
       return el
     })
@@ -76,7 +76,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
+          key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -173,11 +173,11 @@ const DisplayMap = () => {
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
     getBoundsAndSetIntervention(bounds, intervention)
-    dispatch(updateMapBounds({ bodunds: bounds, key: 'DISPLAY_MAP' }))
+    dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }
 
-  const setActiveIntervetnion = (id: string) => {
+  const setActiveIntervention = (id: string) => {
     const index = adjacentIntervention.findIndex(el => el.intervention_id === id)
     dispatch(updateActiveInterventionIndex(index))
   }
@@ -202,7 +202,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
+              key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -225,7 +225,7 @@ const DisplayMap = () => {
     }
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
-    dispatch(updateMapBounds({ bodunds: bounds, key: 'DISPLAY_MAP' }))
+    dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
     const feature = []
     const updatedData = adjacentIntervention.map(el => {
@@ -245,7 +245,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasuremnt_required ? 'remeasurement' : el.intervention_key,
+            key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -276,9 +276,9 @@ const DisplayMap = () => {
       );
     } else if (showOverlay) {
       return (
-        <ClusterdShapSource
+        <ClusteredShapeSource
           geoJSON={overlayGeoJSON}
-          onShapeSourcePress={setActiveIntervetnion}
+          onShapeSourcePress={setActiveIntervention}
         />
       );
     }
@@ -314,13 +314,13 @@ const DisplayMap = () => {
     if (selectedIntervention && !showOverlay) {
       return (
         <SingleInterventionSource
-          intervetnion={JSON.parse(selectedIntervention)}
+          intervention={JSON.parse(selectedIntervention)}
         />
       );
     }
     return null;
   };
-  const mapStyleURL = JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle);
+  const mapStyleURL = JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle);
 
   return (
     <MapLibreGL.MapView
@@ -339,7 +339,7 @@ const DisplayMap = () => {
         minDisplacement={1}
       />
       {renderShapeSource()}
-      <SiteMapSource isSattelite={mainMapView === 'SATELLITE'} />
+      <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} />
       {renderMapMarkers()}
       {renderSingleInterventionSource()}
     </MapLibreGL.MapView>

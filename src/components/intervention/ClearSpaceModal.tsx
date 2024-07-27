@@ -6,18 +6,18 @@ import FolderIcon from 'assets/images/svg/FolderIcon.svg'
 
 interface Props {
     isVisible: boolean
-    toogleModal: ()=>void
+    toggleModal: ()=>void
     handleFreeSpace: () => void
 }
 
 const ClearSpaceModal = (props: Props) => {
-    const { isVisible, toogleModal, handleFreeSpace } = props
+    const { isVisible, toggleModal: toggleModal, handleFreeSpace } = props
 
     return (
         <Modal
             style={styles.container}
             isVisible={isVisible}
-            onBackdropPress={toogleModal}>
+            onBackdropPress={toggleModal}>
             <View style={styles.sectionWrapper}>
                 <View style={styles.contentContainer}>
                     <FolderIcon />

@@ -12,7 +12,7 @@ const EmptyManageSpeciesList = () => {
         {i18next.t('label.select_species_looks_empty_here')}
       </Text>
       <Text style={styles.subHeadingText}>
-        {i18next.t('label.select_species_add_species_desscription')}
+        {i18next.t('label.select_species_add_species_description')}
       </Text>
     </View>
   )

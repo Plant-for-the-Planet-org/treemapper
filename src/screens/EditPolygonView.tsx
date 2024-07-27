@@ -13,9 +13,9 @@ import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import EditDispalyCurrentPolygonMarker from 'src/components/map/EditDispalyCurrentPolygonMarker'
+import EditDisplayCurrentPolygonMarker from 'src/components/map/EditDisplayCurrentPolygonMarker'
 import bbox from '@turf/bbox'
-import DragableMarkers from 'src/components/map/DragableMarkers'
+import DraggableMarkers from 'src/components/map/DraggableMarkers'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
@@ -29,7 +29,7 @@ const EditPolygonMap = () => {
     const realm = useRealm()
     const route = useRoute<RouteProp<RootStackParamList, 'EditPolygon'>>()
     const interventionId = route.params?.id ?? '';
-    const Interverntion = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+    const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [history, setHistory] = useState<Array<{
         coords: any,
@@ -46,8 +46,8 @@ const EditPolygonMap = () => {
 
 
     const setUpPolygon = () => {
-        const interventionCoords = JSON.parse(Interverntion.location.coordinates)
-        handleCamera(interventionCoords, Interverntion.location_type)
+        const interventionCoords = JSON.parse(Intervention.location.coordinates)
+        handleCamera(interventionCoords, Intervention.location_type)
         setCoordinates(interventionCoords)
     }
 
@@ -97,7 +97,7 @@ const EditPolygonMap = () => {
     };
 
     const checkForWithinPolygon = async (geoJSON) => {
-        for (const el of Interverntion.sample_trees) {
+        for (const el of Intervention.sample_trees) {
             const validMarker = isPointInPolygon([el.longitude, el.latitude], geoJSON);
             if (!validMarker) {
                 return false;
@@ -107,9 +107,9 @@ const EditPolygonMap = () => {
     };
 
     const saveUpdate = async () => {
-        if (Interverntion.location_type === 'Point') {
+        if (Intervention.location_type === 'Point') {
             const Data = makeInterventionGeoJson('Point', coordinates, '')
-            await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
+            await updateInterventionLocation(Intervention.intervention_id, { type: Intervention.location.type, coordinates: Data.coordinates }, false, true)
             navigation.goBack()
             return
         }
@@ -117,7 +117,7 @@ const EditPolygonMap = () => {
         const Data = makeInterventionGeoJson('Polygon', finalCoordinates, '')
         const allPointsWithinPolygon = await checkForWithinPolygon(Data.geoJSON);
         if (allPointsWithinPolygon) {
-            await updateInterventionLocation(Interverntion.intervention_id, { type: Interverntion.location.type, coordinates: Data.coordinates }, false, true)
+            await updateInterventionLocation(Intervention.intervention_id, { type: Intervention.location.type, coordinates: Data.coordinates }, false, true)
             navigation.goBack()
         } else {
             toast.show("Sample Trees are not within updated polygon.", {
@@ -130,7 +130,7 @@ const EditPolygonMap = () => {
     }
 
     const reset = () => {
-        const interventionCoords = JSON.parse(Interverntion.location.coordinates)
+        const interventionCoords = JSON.parse(Intervention.location.coordinates)
         setCoordinates(interventionCoords)
         // setSteps(0)
         setHistory([])
@@ -163,7 +163,7 @@ const EditPolygonMap = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <EditDispalyCurrentPolygonMarker
+            <EditDisplayCurrentPolygonMarker
                 goBack={goBack}
             />
             <MapLibreGL.MapView
@@ -180,10 +180,10 @@ const EditPolygonMap = () => {
                     minDisplacement={1}
                 />
                 <LineMarker coordinates={coordinates} />
-                <DragableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Interverntion.location_type === 'Point'} />
-                {Interverntion.has_sample_trees && <MapMarkersOverlay
-                    hasSampleTree={Interverntion.has_sample_trees}
-                    sampleTreeData={Interverntion.sample_trees} />}
+                <DraggableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Intervention.location_type === 'Point'} />
+                {Intervention.has_sample_trees && <MapMarkersOverlay
+                    hasSampleTree={Intervention.has_sample_trees}
+                    sampleTreeData={Intervention.sample_trees} />}
             </MapLibreGL.MapView>
 
 
@@ -200,7 +200,7 @@ const EditPolygonMap = () => {
                     containerStyle={styles.btnWrapper}
                     pressHandler={saveUpdate}
                     wrapperStyle={styles.opaqueWrapper}
-                    labelStyle={styles.normalLable}
+                    labelStyle={styles.normalLabel}
                 />
             </View>
         </SafeAreaView>
@@ -270,7 +270,7 @@ const styles = StyleSheet.create({
         color: Colors.PRIMARY_DARK,
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(16),
         color: Colors.WHITE,
         textAlign: 'center',

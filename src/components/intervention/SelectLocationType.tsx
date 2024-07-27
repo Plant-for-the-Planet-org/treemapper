@@ -39,7 +39,7 @@ const SelectionLocationType = (props: Props) => {
                         <View style={[styles.outerCircle, { borderColor: isCheckedOne && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
                             {isCheckedOne && !disabled ? <View style={styles.innerCircle}></View> : null}
                         </View>
-                        <Text style={[styles.checkBoxLable, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
+                        <Text style={[styles.checkBoxLabel, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelOne.value}
                         </Text>
                     </Pressable>
@@ -53,7 +53,7 @@ const SelectionLocationType = (props: Props) => {
                         <View style={[styles.outerCircle, { borderColor: !isCheckedOne ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
                             {!isCheckedOne && <View style={styles.innerCircle}></View>}
                         </View>
-                        <Text style={[styles.checkBoxLable, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
+                        <Text style={[styles.checkBoxLabel, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelTwo.value}
                         </Text>
                     </Pressable>
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: Colors.NEW_PRIMARY
     },
-    checkBoxLable: {
+    checkBoxLabel: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,

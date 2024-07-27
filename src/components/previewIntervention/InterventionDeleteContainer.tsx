@@ -1,7 +1,7 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import DeletIcon from 'assets/images/svg/BinIcon.svg'
+import DeleteIcon from 'assets/images/svg/BinIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import DeleteModal from '../common/DeleteModal'
 
@@ -22,10 +22,10 @@ const InterventionDeleteContainer = (props: Props) => {
 
     return (
         <View style={styles.container}>
-            <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
+            <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
             <TouchableOpacity style={styles.wrapper} onPress={() => { setDeleteData('') }}>
                 <Text style={styles.label}>Delete</Text>
-                <DeletIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
+                <DeleteIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity>
         </View>
     )

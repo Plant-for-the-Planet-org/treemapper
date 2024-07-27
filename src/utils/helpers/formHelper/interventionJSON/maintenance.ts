@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
 const Description: FormElement = {
@@ -32,7 +32,7 @@ const maintenanceForm: MainForm = {
 }
 
 
-export const Maintenance: RegisterFormSliceInitalState = {
+export const Maintenance: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Maintenance',
   intervention_date: 0,

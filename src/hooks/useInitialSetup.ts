@@ -3,7 +3,7 @@ import useManageScientificSpecies from "./realm/useManageScientificSpecies"
 
 
 
-const useInitalSetup = () => {
+const useInitialSetup = () => {
   const { addUndefinedSpecies} = useManageScientificSpecies()
 
   const setupApp = async () => {
@@ -15,4 +15,4 @@ const useInitalSetup = () => {
   return { setupApp }
 }
 
-export default useInitalSetup
+export default useInitialSetup

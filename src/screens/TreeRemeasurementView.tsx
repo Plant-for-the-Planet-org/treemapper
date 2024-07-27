@@ -103,7 +103,7 @@ const TreeRemeasurementView = () => {
         })
     }
 
-    const submitHadler = async () => {
+    const submitHandler = async () => {
         if (isAlive && imageUri.length == 0) {
             takePicture()
             return
@@ -178,7 +178,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={setHeight}
                                     defaultValue={height}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'m'} errMsg={''} />
+                                    trailingText={'m'} errMsg={''} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
@@ -186,7 +186,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={setWidth}
                                     keyboardType={'decimal-pad'}
                                     defaultValue={width}
-                                    trailingtext={'cm'} errMsg={''} />
+                                    trailingText={'cm'} errMsg={''} />
                             </View></> :
                             <>
                                 <CustomDropDownPicker
@@ -201,7 +201,7 @@ const TreeRemeasurementView = () => {
                                         changeHandler={setComment}
                                         keyboardType={'decimal-pad'}
                                         defaultValue={width}
-                                        trailingtext={''} errMsg={''} />
+                                        trailingText={''} errMsg={''} />
                                 </View></>
                         }
 
@@ -211,8 +211,8 @@ const TreeRemeasurementView = () => {
                 <CustomButton
                     label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
-                    pressHandler={submitHadler}
-                    hideFadein
+                    pressHandler={submitHandler}
+                    hideFadeIn
                 />
             </AvoidSoftInputView>
         </SafeAreaView>
@@ -241,7 +241,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
     },
-    btnContainedr: {
+    btnMinorContainer: {
         width: '100%',
         height: 70,
         flexDirection: 'row',

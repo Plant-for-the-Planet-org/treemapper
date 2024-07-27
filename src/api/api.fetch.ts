@@ -13,8 +13,8 @@ export const uploadInterventionImage = async (location_id: string, coordinate_id
   return result;
 };
 
-export const remeasurment = async (tree_id: string, params: any) => {
-  const uri = `${postUrlApi.remeasurment}/${tree_id}/event`
+export const remeasurement = async (tree_id: string, params: any) => {
+  const uri = `${postUrlApi.remeasurement}/${tree_id}/event`
   const result = await fetchPostCall(uri, params);
   return result;
 };
@@ -35,7 +35,7 @@ export const getAllProjects = async () => {
 
 
 export const getAreaName = async (coords: number[],) => {
-  const uri = `${getUrlApi.getAreaName}/${coords[0]},${coords[1]}.json?types=place&access_token=${process.env.EXPO_PUBLIC_MAPBOX_TOKEN}`
+  const uri = `${getUrlApi.getAreaName}/${coords[0]},${coords[1]}.json?types=place&access_token=${process.env.EXPO_PUBLIC_MAP_BOX_TOKEN}`
   const result = await fetchGetCall(uri, false);
   return result;
 }
@@ -46,8 +46,8 @@ export const getUserSpecies = async () => {
   return result;
 };
 
-export const getAllSpeciesArchieve = async () => {
-  const uri = `${getUrlApi.getAllSpeciesArchieve}`;
+export const getAllSpeciesAchieve = async () => {
+  const uri = `${getUrlApi.getAllSpeciesAchieve}`;
   const result = await fetchGetCall(uri, false);
   return result;
 };

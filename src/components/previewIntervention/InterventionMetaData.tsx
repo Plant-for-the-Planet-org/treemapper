@@ -10,7 +10,7 @@ interface Props {
 
 const InterventionMetaData = (props: Props) => {
 
-  const [additiionalData, setAdditiionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
+  const [additionalData, setAdditionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
 
   const { data } = props
   useEffect(() => {
@@ -20,19 +20,19 @@ const InterventionMetaData = (props: Props) => {
         return
       }
       if (parsedData.length !== 0) {
-        setAdditiionalData(parsedData)
+        setAdditionalData(parsedData)
       }
     }
   }, [data])
 
-  if (Object.keys(additiionalData).length === 0) {
+  if (Object.keys(additionalData).length === 0) {
     return null
   }
 
 
   const renderData = () => {
     const finalData = []
-    const publicData = additiionalData.public;
+    const publicData = additionalData.public;
     let i = 0
     for (const prop in publicData) {
       i++
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginVertical: 10,
   },
-  cardBotttomWrapper: {
+  cardBottomWrapper: {
     width: '90%',
     height: 1,
     backgroundColor: Colors.TEXT_COLOR

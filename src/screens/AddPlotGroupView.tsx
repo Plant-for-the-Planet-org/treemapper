@@ -9,13 +9,13 @@ import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { StackNavigationProp } from '@react-navigation/stack'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import GrouplistPlot from 'src/components/monitoringPlot/GrouplistPlot'
+import GroupListPlot from 'src/components/monitoringPlot/GroupListPlot'
 import i18next from 'src/locales/index'
 
 
@@ -29,7 +29,7 @@ const AddPlotGroup = () => {
     const [isEditable, setIsEditable] = useState(false)
     const [gID, setGID] = useState('')
     const realm = useRealm()
-    const { createNewPlotGroup, editGroupName } = useMonitoringPlotMangement()
+    const { createNewPlotGroup, editGroupName } = useMonitoringPlotManagement()
     const toast = useToast()
     useEffect(() => {
         if (isEdit) {
@@ -90,9 +90,9 @@ const AddPlotGroup = () => {
                     keyboardType={'default'}
                     autoFocus
                     defaultValue={groupName}
-                    trailingtext={''} errMsg={''} />
+                    trailingText={''} errMsg={''} />
             </View>
-            {gID && <GrouplistPlot gid={gID} />}
+            {gID && <GroupListPlot gid={gID} />}
             {!isEditable && <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>
                     {i18next.t('label.create_group_note')}
@@ -103,7 +103,7 @@ const AddPlotGroup = () => {
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}
-                hideFadein
+                hideFadeIn
                 showAdd
             />
         </SafeAreaView>
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: Colors.PRIMARY_DARK,
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(14),
         fontWeight: '400',
         color: Colors.WHITE,

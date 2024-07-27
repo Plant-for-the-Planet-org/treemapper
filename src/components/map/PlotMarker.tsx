@@ -22,8 +22,8 @@ const PlotMarker = (props: Props) => {
   }
 
   const renderMarkers = () => {
-    const filterdData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
-    return filterdData.map((el, i) => (
+    const filterData = sampleTreeData.filter(el => (el.latitude !== 0 && el.longitude !== 0))
+    return filterData.map((el, i) => (
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
         anchor={

@@ -20,7 +20,7 @@ export type RootStackParamList = {
   PointMarker: PointMarkerView
   DynamicForm: LocalFormView
   InterventionForm: IntermediateFormView
-  AddMeasurment: undefined
+  AddMeasurement: undefined
   TotalTrees: TotalTreesView
   ManageProjects: undefined
   DataExplorer: undefined
@@ -45,13 +45,13 @@ export type RootStackParamList = {
   AddPlantDetailsPlot: AddPlantDetailsPlot
   AddPlotDetails: undefined
   MonitoringInfo: undefined
-  AddRemeasurment: AddRemeasurementView
+  AddRemeasurement: AddRemeasurementView
   PlotGroup: undefined
   AddPlotGroup: AddPlotGroup,
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
-  OldInvenoryDataView: undefined
+  OldInventoryDataView: undefined
 }
 
 type SpeciesInfoView = {

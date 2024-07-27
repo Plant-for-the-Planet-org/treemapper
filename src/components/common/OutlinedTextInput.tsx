@@ -8,16 +8,16 @@ interface Props {
   placeholder: string
   changeHandler: (h: string) => void
   keyboardType: KeyboardTypeOptions
-  trailingtext: string
+  trailingText: string
   errMsg: string
   autoFocus?: boolean
   defaultValue?: string
 }
 
 const OutlinedTextInput = (props: Props) => {
-  const { placeholder, changeHandler, keyboardType, trailingtext, errMsg, autoFocus, defaultValue } = props
-  const renderTrailinComma = () => {
-    return <Text style={styles.unitLabel}>{trailingtext}</Text>
+  const { placeholder, changeHandler, keyboardType, trailingText, errMsg, autoFocus, defaultValue } = props
+  const renderTrailingComma = () => {
+    return <Text style={styles.unitLabel}>{trailingText}</Text>
   }
   return (
     <View style={styles.container}>
@@ -37,7 +37,7 @@ const OutlinedTextInput = (props: Props) => {
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}
         value={defaultValue || ""}
-        trailingIcon={renderTrailinComma}
+        trailingIcon={renderTrailingComma}
       />
     </View>
   )

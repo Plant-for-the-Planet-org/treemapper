@@ -1,4 +1,4 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 // import {FormElement, MainForm} from 'src/types/interface/form.interface'
 import {FormElement, MainForm} from 'src/types/interface/form.interface'
@@ -43,14 +43,14 @@ const NumberOfMembers: FormElement = {
 
 
 
-const fireSupressionForm: MainForm = {
+const fireSuppressionForm: MainForm = {
   title: 'Team Details',
   key: '',
   elements: [TeamName, NumberOfMembers, ],
 }
 
 
-export const FireSupresionTeam: RegisterFormSliceInitalState = {
+export const FireSuppressionTeam: RegisterFormSliceInitialState = {
   form_id: '',
   key: 'fire-suppression',
   title: 'Fire Suppression Team',
@@ -78,7 +78,7 @@ export const FireSupresionTeam: RegisterFormSliceInitalState = {
   has_sample_trees: false,
   tree_details_required: false,
   tree_details: [],
-  form_details: [fireSupressionForm],
+  form_details: [fireSuppressionForm],
   meta_data: '{}',
   additional_data: [],
   form_data: [],

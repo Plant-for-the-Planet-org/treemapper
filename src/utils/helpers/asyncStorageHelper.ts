@@ -5,7 +5,6 @@ export const updateLocalSpeciesSync = async () => {
     await AsyncStorage.setItem('localSpeciesSync', `${new Date().getTime()}`)
     return true
   } catch (err) {
-    //error occured return false
     return false
   }
 }
@@ -15,8 +14,7 @@ export const getLocalSpeciesSync = async () => {
     const speciesTimeStamp = await AsyncStorage.getItem('localSpeciesSync')
     return speciesTimeStamp
   } catch (err) {
-    //error occured return ''
-    return ''
+ return ''
   }
 }
 
@@ -25,7 +23,6 @@ export const checkForMigrateSpecies = async () => {
     const speciesDataPresent = await AsyncStorage.getItem('isLocalSpeciesUpdated')
     return speciesDataPresent
   } catch (err) {
-    //error occured return ''
     return false
   }
 }

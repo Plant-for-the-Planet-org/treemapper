@@ -8,7 +8,7 @@ import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import DetailIcon from 'assets/images/svg/DetailIcon.svg'
-import RemeasurmentIcon from 'assets/images/svg/RemeasurmentIcon.svg'
+import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useNavigation } from '@react-navigation/native'
@@ -34,7 +34,7 @@ const SampleTreePreviewList = (props: Props) => {
     await deleteSampleTreeIntervention(id, interventionId)
   }
 
-  const handleDelte = async (item: any) => {
+  const handleDelete = async (item: any) => {
     deleteTreeDetails(item)
     setDeleteData(null)
   }
@@ -59,7 +59,7 @@ const SampleTreePreviewList = (props: Props) => {
     return sampleTress.map((details, i) => {
       return (
         <View style={styles.wrapper} key={String(i)}>
-          <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
+          <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               editTreeDetails(details.tree_id)
@@ -74,7 +74,7 @@ const SampleTreePreviewList = (props: Props) => {
             {isSynced && details.remeasurement_requires ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
-              <RemeasurmentIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+              <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
             {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               viewTreeDetails(details.tree_id)
@@ -84,7 +84,7 @@ const SampleTreePreviewList = (props: Props) => {
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>Intervention Date</Text>
-            <Text style={styles.valueLable}>
+            <Text style={styles.valueLabel}>
               {timestampToBasicDate(details.plantation_date)}
             </Text>
           </View>
@@ -94,7 +94,7 @@ const SampleTreePreviewList = (props: Props) => {
           </View>}
           {!!details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Local common name</Text>
-            <Text style={styles.valueLable}>{details.local_name}</Text>
+            <Text style={styles.valueLabel}>{details.local_name}</Text>
           </View>}
           <View style={styles.dimensionWrapper}>
             <View style={styles.iconWrapper}>
@@ -117,7 +117,7 @@ const SampleTreePreviewList = (props: Props) => {
           {!!details.tag_id && (
             <View style={styles.metaWrapper}>
               <Text style={styles.title}>Tag Id</Text>
-              <Text style={styles.valueLable}>{details.tag_id}</Text>
+              <Text style={styles.valueLabel}>{details.tag_id}</Text>
             </View>
           )}
         </View>
@@ -198,7 +198,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_LIGHT,
     marginLeft: 20,
   },
-  valueLable: {
+  valueLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(16),
     color: Colors.TEXT_COLOR,

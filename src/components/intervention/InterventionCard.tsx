@@ -30,7 +30,7 @@ const InterventionCard = (props: Props) => {
         <InterventionIconSwitch icon={item.intervention_type} />
         {!item.is_complete ? (
           <View style={styles.incompleteTagWrapper}>
-            <Text style={styles.incompleteTagLable}>INCOMPLETE</Text>
+            <Text style={styles.incompleteTagLabel}>INCOMPLETE</Text>
           </View>
         ) : null}
         <View style={styles.sectionWrapper}>
@@ -43,10 +43,10 @@ const InterventionCard = (props: Props) => {
                 <SyncIcon width={15} height={15} />
               )}
             </View>
-            <Text style={styles.metaLable}>{item.location_type}</Text>
+            <Text style={styles.metaLabel}>{item.location_type}</Text>
             <DividerDot width={20} height={20} size={20} color={Colors.TEXT_COLOR}/>
             <InterventionMetaInfo item={item} />
-            <Text style={styles.metaLable}>
+            <Text style={styles.metaLabel}>
               {timestampToBasicDate(item.intervention_date)}
             </Text>
           </View>
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 10,
   },
-  incompleteTagLable: {
+  incompleteTagLabel: {
     fontSize: scaleFont(8),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
   },
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  metaLable: {
+  metaLabel: {
     fontSize: scaleFont(12),
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },

@@ -7,7 +7,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated'
 
-import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
+import AddTabIcon from 'assets/images/svg/AddTabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'

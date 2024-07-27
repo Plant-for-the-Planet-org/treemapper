@@ -60,7 +60,7 @@ const PlotMapDisplay = (props: Props) => {
     }
 
     const onMarkerPress = (id: string) => {
-        navigation.navigate('AddRemeasurment', { id: props.data.plot_id, plantID: id })
+        navigation.navigate('AddRemeasurement', { id: props.data.plot_id, plantID: id })
 
     }
 

@@ -7,15 +7,15 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
   item: IScientificSpecies
-  toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
+  toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   handleCard: (item: IScientificSpecies, status: boolean) => void
   hideFav?: boolean
 }
 
 const SpeciesSearchCard = (props: Props) => {
-  const { item, toogleFavSpecies, handleCard, hideFav } = props
+  const { item, toggleFavSpecies, handleCard, hideFav } = props
   const handleIconPress = () => {
-    toogleFavSpecies(item, !item.isUserSpecies)
+    toggleFavSpecies(item, !item.isUserSpecies)
   }
   const handleCardPress = () => {
     handleCard(item, !item.isUserSpecies)

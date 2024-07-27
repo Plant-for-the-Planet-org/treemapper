@@ -11,14 +11,14 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
   backPress: () => void
-  toogleSyncModal: (b: boolean) => void
-  setSpciesList: (d: IScientificSpecies[]) => void
+  toggleSyncModal: (b: boolean) => void
+  setSpicesList: (d: IScientificSpecies[]) => void
 }
 
 const SpeciesSearchHeader = (props: Props) => {
   const [searchText, setSearchText] = useState('')
   const realm = useRealm()
-  const { backPress, toogleSyncModal, setSpciesList } = props
+  const { backPress, toggleSyncModal: toggleSyncModal, setSpicesList: setSpicesList } = props
 
   const inputRef = useRef<TextInput>(null)
 
@@ -43,7 +43,7 @@ const SpeciesSearchHeader = (props: Props) => {
         .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
         .filtered('scientificName CONTAINS[c] $0 OR aliases CONTAINS[c] $0', searchText)
     )
-    setSpciesList(specieArray)
+    setSpicesList(specieArray)
   }
 
   return (
@@ -85,7 +85,7 @@ const SpeciesSearchHeader = (props: Props) => {
           )}
         </View>
       </View>
-      <TouchableOpacity onPress={() => { toogleSyncModal(true) }}>
+      <TouchableOpacity onPress={() => { toggleSyncModal(true) }}>
         <SyncIcon width={20} height={20} />
       </TouchableOpacity>
     </View>

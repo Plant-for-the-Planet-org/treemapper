@@ -8,7 +8,7 @@ import {
   getIsHeightInRange,
   getIsMeasurementRatioCorrect,
   getIsValidMeasurement,
-} from 'src/utils/constants/mesaurments';
+} from 'src/utils/constants/measurements';
 
 /**
  * Checks if diameter is not in between the minimum and maximum values or is

@@ -49,7 +49,7 @@ const useMetaData = () => {
     }
   };
 
-  const bulkMetaDataAdditoin = async (
+  const bulkMetaDataAddition = async (
     data: Metadata[]
   ): Promise<boolean> => {
     try {
@@ -85,7 +85,7 @@ const useMetaData = () => {
 
 
 
-  return { addNewMetadata, updateMetaData, deleteMetaData, bulkMetaDataAdditoin, deleteAllMetaData }
+  return { addNewMetadata, updateMetaData, deleteMetaData, bulkMetaDataAddition, deleteAllMetaData }
 }
 
 export default useMetaData;

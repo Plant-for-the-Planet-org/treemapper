@@ -1,17 +1,17 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
 
 
 
-const NumberOfBirdPerche: FormElement = {
+const NumberOfBirdPerch: FormElement = {
   index: 0,
-  key: 'number-of-bird-perche',
-  label: 'Number of bird perche',
+  key: 'number-of-bird-perch',
+  label: 'Number of bird perch',
   default: '',
   type: 'INPUT',
-  placeholder: 'Number of bird perche',
+  placeholder: 'Number of bird perch',
   unit: '',
   visibility: 'public',
   condition: null,
@@ -25,13 +25,13 @@ const NumberOfBirdPerche: FormElement = {
   validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }
 
-const heightOfBirdPerche: FormElement = {
+const heightOfBirdPerch: FormElement = {
   index: 0,
-  key: 'height-of-bird-perche',
-  label: 'Average Height of bird perche',
+  key: 'height-of-bird-perch',
+  label: 'Average Height of bird perch',
   default: '',
   type: 'INPUT',
-  placeholder: 'Average Height of bird perche',
+  placeholder: 'Average Height of bird perch',
   unit: '',
   visibility: 'public',
   condition: null,
@@ -47,12 +47,12 @@ const heightOfBirdPerche: FormElement = {
 
 
 const assistingSeedRainForm: MainForm = {
-  title: 'Bird Perche Details',
+  title: 'Bird Perch Details',
   key: '',
-  elements: [NumberOfBirdPerche, heightOfBirdPerche],
+  elements: [NumberOfBirdPerch, heightOfBirdPerch],
 }
 
-export const AssistingSeedRain: RegisterFormSliceInitalState = {
+export const AssistingSeedRain: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Assisting Seed Rain',
   intervention_date: 0,

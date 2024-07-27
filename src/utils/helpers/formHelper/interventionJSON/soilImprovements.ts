@@ -1,8 +1,8 @@
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
 
-export const SoilImprovements: RegisterFormSliceInitalState = {
+export const SoilImprovements: RegisterFormSliceInitialState = {
     form_id: '',
     title: 'Soil Improvement',
     intervention_date: 0,

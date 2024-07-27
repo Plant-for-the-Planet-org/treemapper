@@ -10,7 +10,7 @@ import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useNavigation } from '@react-navigation/native'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { newPlotDetails } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useToast } from 'react-native-toast-notifications'
 import i18next from 'src/locales/index'
@@ -21,12 +21,12 @@ const CreatePlotView = () => {
     const [plotComplexity, setPlotComplexity] = useState<string>('STANDARD');
 
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { initateNewPlot } = useMonitoringPlotMangement()
+    const { initializeNewPlot } = useMonitoringPlotManagement()
     const toast = useToast()
 
     const handleNav = async () => {
         const details = newPlotDetails(plotShape === 'CIRCULAR' ? 'CIRCULAR' : 'RECTANGULAR', plotType === 'INTERVENTION' ? 'INTERVENTION' : 'CONTROL', plotComplexity === 'SIMPLE' ? 'SIMPLE' : 'STANDARD')
-        const result = await initateNewPlot(details)
+        const result = await initializeNewPlot(details)
         if (result) {
             navigation.replace('CreatePlotDetail', { id: details.plot_id })
         } else {
@@ -75,7 +75,7 @@ const CreatePlotView = () => {
                 label={i18next.t('label.continue')}
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
-                hideFadein
+                hideFadeIn
             />
         </SafeAreaView>
     )

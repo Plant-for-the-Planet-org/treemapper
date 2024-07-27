@@ -6,14 +6,13 @@ import CustomButton from 'src/components/common/CustomButton'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { scaleSize } from 'src/utils/constants/mixins'
 import Header from 'src/components/common/Header'
-// import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import {
   makeInterventionGeoJson,
-  metaDataTranformer,
+  metaDataTransformer,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { Colors, Typography } from 'src/utils/constants'
@@ -56,14 +55,14 @@ const InterventionPreviewView = () => {
 
 
   const setupMetaData = async () => {
-    const localMetada = realm.objects<Metadata>(RealmSchema.Metadata)
+    const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
     const updatedMetadata = {
       private: {},
       public: {},
       app: {}
     };
-    if (localMetada?.length) {
-      localMetada.forEach(el => {
+    if (localMeta?.length) {
+      localMeta.forEach(el => {
         if (el.accessType === 'private') {
           updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
         }
@@ -80,7 +79,7 @@ const InterventionPreviewView = () => {
     }
     const parsedMeta = JSON.parse(InterventionData.meta_data)
     if (Object.keys(parsedMeta).length === 0) {
-      const finalMeta = metaDataTranformer(parsedMeta, updatedMetadata)
+      const finalMeta = metaDataTransformer(parsedMeta, updatedMetadata)
       await updateInterventionMetaData(InterventionData.form_id, finalMeta)
     }
 
@@ -112,7 +111,7 @@ const InterventionPreviewView = () => {
     const bounds = bbox(geoJSON)
     dispatch(
       updateMapBounds({
-        bodunds: bounds,
+        bounds: bounds,
         key: 'DISPLAY_MAP',
       }),
     )

@@ -12,20 +12,20 @@ const FillColor: any = [
   'single-tree-registration', Colors.SINGLE_TREE,
   'multi-tree-registration', Colors.MULTI_TREE,
   'removal-invasive-species', Colors.INVASIVE_SPECIES,
-  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-suppression', Colors.FIRE_SUPPRESSION,
   'fire-patrol', Colors.FIRE_PATROL,
   'fencing', Colors.FENCING,
   'marking-regenerant', Colors.MARKING_REGENERANT,
   'liberating-regenerant', Colors.LIBERATING_REGENERANT,
-  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'grass-suppression', Colors.GRASS_SUPPRESSION,
   'firebreaks', Colors.FIREBREAKS,
   'assisting-seed-rain', Colors.SEED_RAIN,
   'soil-improvement', Colors.SOIL_IMPROVEMENT,
   'stop-tree-harvesting', Colors.STOP_HARVESTING,
   'direct-seeding', Colors.DIRECT_SEEDING,
-  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'enrichment-planting', Colors.ENRICHMENT_PLANTING,
   'other-intervention', Colors.OTHER_INTERVENTION,
-  'maintenance', Colors.MAINTAINEANCE,
+  'maintenance', Colors.MAINTENANCE,
   Colors.SINGLE_TREE
 ]
 
@@ -40,7 +40,7 @@ interface Props {
   onShapeSourcePress: (id: string) => void
 }
 
-const ClusterdShapSource = (props: Props) => {
+const ClusteredShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
   const handlePress = (e: OnPressEvent) => {
     if (e?.features?.[0]) {
@@ -49,7 +49,7 @@ const ClusterdShapSource = (props: Props) => {
   }
   return (
     <MapLibreGL.ShapeSource
-      id={'polygon'}
+      id={'polygon_cluster'}
       shape={geoJSON}
       onPress={handlePress}>
       <MapLibreGL.FillLayer
@@ -64,11 +64,11 @@ const ClusterdShapSource = (props: Props) => {
         }}
       />
       <MapLibreGL.LineLayer
-        id={'polylwne'}
+        id={'polygon_cluster_line'}
         style={{ ...polyline, lineColor: FillColor }}
       />
     </MapLibreGL.ShapeSource>
   )
 }
 
-export default ClusterdShapSource
+export default ClusteredShapeSource

@@ -9,7 +9,7 @@ interface Props {
   placeholder: string
   changeHandler: (t: string) => void
   keyboardType: KeyboardTypeOptions
-  trailingtext: string
+  trailingText: string
   switchEnable: boolean
   description: string
   switchHandler: (b: boolean) => void
@@ -21,14 +21,14 @@ const TagSwitch = (props: Props) => {
     placeholder,
     changeHandler,
     keyboardType,
-    trailingtext,
+    trailingText,
     switchEnable,
     description,
     switchHandler,
   errMsg
   } = props
-  const rendertrail=() => (
-    <Text style={styles.unitLabel}>{trailingtext}</Text>
+  const renderTrail=() => (
+    <Text style={styles.unitLabel}>{trailingText}</Text>
   )
   return (
     <View style={styles.container}>
@@ -63,7 +63,7 @@ const TagSwitch = (props: Props) => {
             fontSize={18}
             returnKeyType="done"
             error={errMsg.length?errMsg:undefined}
-            trailingIcon={rendertrail}
+            trailingIcon={renderTrail}
           />
         </View>}
       </View>

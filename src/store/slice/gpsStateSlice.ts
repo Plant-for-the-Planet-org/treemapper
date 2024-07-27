@@ -1,7 +1,7 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
-import { GpsSliceInitalState } from 'src/types/interface/slice.interface'
+import { GpsSliceInitialState } from 'src/types/interface/slice.interface'
 
-const initialState: GpsSliceInitalState = {
+const initialState: GpsSliceInitialState = {
   user_location: [51.1657, 10.4515],
   showBlockerModal: false,
   accuracy: 0
@@ -14,15 +14,15 @@ const gpsStateSlice = createSlice({
     updateUserLocation(state, action: PayloadAction<number[]>) {
       state.user_location = [...action.payload]
     },
-    updaeBlockerModal(state, action: PayloadAction<boolean>) {
+    updateBlockerModal(state, action: PayloadAction<boolean>) {
       state.showBlockerModal = action.payload
     },
-    updateAccurracy(state, action: PayloadAction<number>) {
+    updateAccuracy(state, action: PayloadAction<number>) {
       state.accuracy = action.payload
     },
   },
 })
 
-export const { updateUserLocation, updaeBlockerModal, updateAccurracy } = gpsStateSlice.actions
+export const { updateUserLocation, updateBlockerModal, updateAccuracy } = gpsStateSlice.actions
 
 export default gpsStateSlice.reducer

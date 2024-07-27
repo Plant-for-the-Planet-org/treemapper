@@ -33,7 +33,7 @@ const CreatePlotMapView = () => {
     const isEdit = route.params?.isEdit ?? false;
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
     const plantId = route.params?.plantId ?? '';
-    const [initialPolygon, setInitialPloygon] = useState<any>([])
+    const [initialPolygon, setInitialPolygon] = useState<any>([])
     const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
     const [showDimensionModal, setShowDimensionModal] = useState(false)
@@ -54,7 +54,7 @@ const CreatePlotMapView = () => {
             setPlotName(plotData.name)
             setPlantedTrees(plotData.plot_plants)
             if (markLocation || isEdit) {
-                setInitialPloygon(JSON.parse(plotData.location.coordinates))
+                setInitialPolygon(JSON.parse(plotData.location.coordinates))
             }
             if (isEdit) {
                 setShowDimensionModal(true)
@@ -82,7 +82,7 @@ const CreatePlotMapView = () => {
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {
                     setShowDimensionModal(!showDimensionModal)
-                }} updatedDimensions={handleUpdateDimension} initalValue={{
+                }} updatedDimensions={handleUpdateDimension} initialValue={{
                     h: String(plotLength),
                     w: String(plotWidth),
                     r: String(plotRadius),

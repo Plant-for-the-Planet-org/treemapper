@@ -9,7 +9,7 @@ import {RootStackParamList} from 'src/types/type/navigation.type'
 const PreviewPolygon = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const navigateToNext = () => {
-    navigation.navigate('PreviewFormData')
+    navigation.goBack()
   }
   return (
     <View style={styles.container}>

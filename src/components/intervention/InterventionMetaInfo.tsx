@@ -26,7 +26,7 @@ const InterventionMetaInfo = (props: Props) => {
         return <Text style={styles.label}>{item.planted_species.length} Species</Text>
       case 'removal-invasive-species':
         return <Text style={styles.label}>{item.planted_species.length} Species</Text>
-      case 'enrichement-planting':
+      case 'enrichment-planting':
         return <Text style={styles.label}>{item.planted_species.length} Species</Text>
       case 'stop-tree-harvesting':
         return null

@@ -7,7 +7,7 @@ import FlatButton from '../common/FlatButton'
 
 interface Props {
     isVisible: boolean
-    toogleModal: (b: boolean) => void
+    toggleModal: (b: boolean) => void
     removeFavSpecie: (e: any) => void
     secondaryHandler?: (e: any) => void
     headerLabel: string
@@ -18,12 +18,12 @@ interface Props {
 }
 
 const DeleteModal = (props: Props) => {
-    const { isVisible, toogleModal, removeFavSpecie, extra, secondaryHandler } = props
+    const { isVisible, toggleModal: toggleModal, removeFavSpecie, extra, secondaryHandler } = props
     return (
         <Modal
             style={styles.container}
             isVisible={isVisible}
-            onBackdropPress={() => { toogleModal(null) }}>
+            onBackdropPress={() => { toggleModal(null) }}>
             <View style={styles.subContainer}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <PinkHeart />
@@ -36,14 +36,14 @@ const DeleteModal = (props: Props) => {
                 </Text>
                 <View style={styles.bottomBtnContainer}>
                     <FlatButton
-                        onPress={() => { secondaryHandler ? secondaryHandler(extra) : toogleModal(null) }}
+                        onPress={() => { secondaryHandler ? secondaryHandler(extra) : toggleModal(null) }}
                         text={props.secondaryLabel}
                         style={styles.secondaryButtonStyle}
                     />
                     <TouchableOpacity
                         onPress={() => { removeFavSpecie(extra) }}
                         style={styles.primaryButtonStyle}>
-                        <Text style={[styles.removeLable, { color: secondaryHandler ? Colors.NEW_PRIMARY : 'tomato' }]}>{props.primeLabel}</Text>
+                        <Text style={[styles.removeLabel, { color: secondaryHandler ? Colors.NEW_PRIMARY : 'tomato' }]}>{props.primeLabel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
-    contnetWrapper: {
+    contentWrapper: {
         flex: 1,
         paddingTop: 10,
         justifyContent: 'center',
@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end',
         marginTop: 24,
     },
-    removeLable: {
+    removeLabel: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         fontSize: Typography.FONT_SIZE_16,
         color: 'tomato',

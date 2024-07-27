@@ -9,7 +9,7 @@ interface Props {
   goBack: () => void
 }
 
-const EditDispalyCurrentPolygonMarker = (props: Props) => {
+const EditDisplayCurrentPolygonMarker = (props: Props) => {
   const {goBack} = props
   return (
     <View style={styles.container}>
@@ -22,7 +22,7 @@ const EditDispalyCurrentPolygonMarker = (props: Props) => {
   )
 }
 
-export default EditDispalyCurrentPolygonMarker
+export default EditDisplayCurrentPolygonMarker
 
 const styles = StyleSheet.create({
   container: {
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     right: 10,
     bottom: 10,
   },
-  undoLable: {
+  undoLabel: {
     fontSize: scaleFont(12),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginRight: 5,

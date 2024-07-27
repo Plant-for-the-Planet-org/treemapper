@@ -10,7 +10,7 @@ interface Props {
   isSinglePoint: boolean
 }
 
-const DragableMarkers = (props: Props) => {
+const DraggableMarkers = (props: Props) => {
   if (props.coordinates.length === 0) {
     return null
   }
@@ -52,7 +52,7 @@ const DragableMarkers = (props: Props) => {
   return renderMarkers()
 }
 
-export default DragableMarkers
+export default DraggableMarkers
 
 const styles = StyleSheet.create({
   container: {

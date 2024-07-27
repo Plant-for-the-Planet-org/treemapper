@@ -6,7 +6,7 @@ import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { useQuery } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
-import { InterventionData, QueeBody } from 'src/types/interface/slice.interface';
+import { InterventionData, QuaeBody } from 'src/types/interface/slice.interface';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
@@ -21,12 +21,12 @@ import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateNewIntervention } from 'src/store/slice/appStateSlice';
 
 interface Props {
-    isLogedIn: boolean
+    isLoggedIn: boolean
 }
 
 
-const SyncIntervention = ({ isLogedIn }: Props) => {
-    const [uploadData, setUploadData] = useState<QueeBody[]>([])
+const SyncIntervention = ({ isLoggedIn }: Props) => {
+    const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
@@ -52,7 +52,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
     const showLogin = () => {
         setRetryCount(10)
-        if (!isLogedIn) {
+        if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
         } else {
@@ -61,7 +61,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
     }
 
     const startSyncingData = () => {
-        if (!isLogedIn) {
+        if (!isLoggedIn) {
             showLogin()
             return
         }
@@ -76,8 +76,8 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             toast.show("Syncing Failed, Please try again")
             return
         }
-        const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
-        const prioritizeData = [...queeData].sort((a, b) => a.priotiry - b.priotiry);
+        const quaeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const prioritizeData = [...quaeData].sort((a, b) => a.priority - b.priority);
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
             setTimeout(() => {
@@ -167,7 +167,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         }
     };
     
-    const uploadObjectsSequentially = async (d: QueeBody[]) => {
+    const uploadObjectsSequentially = async (d: QuaeBody[]) => {
         for (const el of d) {
             switch (el.type) {
                 case 'intervention':
@@ -198,7 +198,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         </View>
     )
 
-    const renderUnsyncView = () => (
+    const renderUnSyncView = () => (
         <Pressable style={styles.container} onPress={showLogin}>
             <UnSyncIcon width={20} height={20} />
             <Text style={styles.label}>Sync Data</Text>
@@ -215,7 +215,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
 
     const renderTile = () => {
         if (isSyncing && !syncRequired) return renderSyncView()
-        if (!isSyncing && interventionData.length > 0) return renderUnsyncView()
+        if (!isSyncing && interventionData.length > 0) return renderUnSyncView()
         if (showFullSync) return renderFullySyncView()
         return null
     }

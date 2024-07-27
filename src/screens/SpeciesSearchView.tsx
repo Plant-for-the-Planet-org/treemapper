@@ -62,11 +62,11 @@ const SpeciesSearchView = () => {
 
 
   return (
-    <SafeAreaView style={styles.contnetWrapper}>
+    <SafeAreaView style={styles.contentWrapper}>
       <FlashList
         data={specieList}
         renderItem={({ item }) => (
-          <SpeciesSearchCard item={item} toogleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
+          <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
         )}
         keyExtractor={item => item.guid}
         keyboardShouldPersistTaps="always"
@@ -75,8 +75,8 @@ const SpeciesSearchView = () => {
         ListHeaderComponent={
           <SpeciesSearchHeader
             backPress={handleBackPress}
-            toogleSyncModal={setShowSpeciesSyncAlert}
-            setSpciesList={setSpecieList}
+            toggleSyncModal={setShowSpeciesSyncAlert}
+            setSpicesList={setSpecieList}
           />
         }
         keyboardDismissMode='interactive'
@@ -99,7 +99,7 @@ const SpeciesSearchView = () => {
 export default SpeciesSearchView
 
 const styles = StyleSheet.create({
-  contnetWrapper: {
+  contentWrapper: {
     flex: 1,
     backgroundColor: Colors.WHITE,
   },

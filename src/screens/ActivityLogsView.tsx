@@ -8,7 +8,7 @@ import Share from 'react-native-share';
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { toBase64 } from 'src/utils/constants/base64'
 import ShareIcon from 'assets/images/svg/ShareIcon.svg';
-import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
+import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 
@@ -35,7 +35,7 @@ const ActivityLogsView = () => {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(logs)),
             message: "All user logs for TreeMapper app",
             title: "Activity Logs",
-            filename: `TreeMapper_Activitylogs.json`,
+            filename: `TreeMapper_Activity_logs.json`,
             saveToFiles: true,
         };
         Share.open(options)

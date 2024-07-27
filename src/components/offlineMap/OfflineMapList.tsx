@@ -17,7 +17,7 @@ const OfflineMapList = () => {
   const allData = useQuery(RealmSchema.OfflineMap, data => {
     return data
   })
-  const handleDelte = async (item: any) => {
+  const handleDelete = async (item: any) => {
     await MapLibreGL.offlineManager.invalidatePack(item.name)
     await deleteOfflineMap(item)
     setDeleteData(null)
@@ -33,7 +33,7 @@ const OfflineMapList = () => {
 
   return (
     <View style={styles.container}>
-      <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
       <FlatList
         data={allData}
         renderItem={({ item }) => <OfflineMapCards data={item} delete={setDeleteData} />}

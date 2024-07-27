@@ -3,7 +3,7 @@ import { NavigationContainer } from '@react-navigation/native'
 import RootNavigator from './src/navigation/RootNavigator'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
-import store, { persistor } from 'src/store'
+import store, { persister } from 'src/store'
 import { PersistGate } from 'redux-persist/integration/react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import { Auth0Provider } from 'react-native-auth0'
@@ -28,7 +28,7 @@ export default function App() {
         <RealmProvider>
           <Provider store={store}>
             <ToastProvider>
-              <PersistGate loading={null} persistor={persistor}>
+              <PersistGate loading={null} persistor={persister}>
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <BottomSheetModalProvider>
                     <NavigationContainer>

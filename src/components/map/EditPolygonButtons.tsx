@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,

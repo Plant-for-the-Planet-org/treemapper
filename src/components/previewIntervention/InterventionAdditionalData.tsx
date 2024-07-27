@@ -15,18 +15,18 @@ interface Props {
 
 const InterventionAdditionalData = (props: Props) => {
 
-  const [additiionalData, setAdditiionalData] = useState<FormElement[]>([])
+  const [additionalData, setAdditionalData] = useState<FormElement[]>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const { data, id } = props
 
   useEffect(() => {
     if (data.length > 0) {
-      setAdditiionalData(data)
+      setAdditionalData(data)
     }
   }, [data])
 
-  if (Object.keys(additiionalData).length === 0) {
+  if (Object.keys(additionalData).length === 0) {
     return null
   }
 
@@ -40,11 +40,11 @@ const InterventionAdditionalData = (props: Props) => {
 
   const renderData = () => {
     const finalData = []
-    additiionalData.forEach(el => {
+    additionalData.forEach(el => {
       if (el.type === 'GAP') {
         finalData.push(
           <View style={styles.cardWrapper} key={el.key}>
-            <View style={styles.cardBotttomWrapper} />
+            <View style={styles.cardBottomWrapper} />
           </View>
         )
       } else if (el.type === 'HEADING') {
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginVertical: 10,
   },
-  cardBotttomWrapper: {
+  cardBottomWrapper: {
     width: '90%',
     height: 1,
     backgroundColor: Colors.TEXT_COLOR

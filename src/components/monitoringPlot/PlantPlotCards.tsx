@@ -2,9 +2,7 @@ import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import RecruitTreeIcon from 'assets/images/svg/RecruitTreeIcon.svg'
-
-// import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
-import Addicon from 'assets/images/svg/Addicon.svg'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
@@ -17,12 +15,12 @@ interface Props {
 
 const PlantPlotCards = (props: Props) => {
     const { handleSelection, item } = props;
-    const handlePlantSelction = () => {
+    const handlePlantSelection = () => {
         handleSelection(item.plot_plant_id)
     }
     return (
         <View style={styles.container}>
-            <TouchableOpacity style={styles.wrapper} onPress={handlePlantSelction}>
+            <TouchableOpacity style={styles.wrapper} onPress={handlePlantSelection}>
                 <View style={styles.avatar}>
                     {item.type === 'PLANTED' ? <SingleTreeIcon /> : <RecruitTreeIcon />}
                 </View>
@@ -33,13 +31,13 @@ const PlantPlotCards = (props: Props) => {
                         <Text style={styles.dateLabel}>{formatRelativeTimeCustom(item.details_updated_at)}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{item.type === 'PLANTED' ? "Planted" : "Recruit"}</Text>
+                        <Text style={styles.plantedLabel}>{item.type === 'PLANTED' ? "Planted" : "Recruit"}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
                         <Text style={styles.speciesLabel}>{item.scientificName}</Text>
                     </View>
                 </View>
                 <View style={[styles.addIconWrapper, { backgroundColor: item.type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>
-                    <Addicon fill={Colors.WHITE} />
+                    <AddIcon fill={Colors.WHITE} />
                 </View>
             </TouchableOpacity>
         </View>
@@ -91,7 +89,7 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
-    planetedLabel: {
+    plantedLabel: {
         fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR

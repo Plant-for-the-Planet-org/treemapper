@@ -13,7 +13,7 @@ const LineMarker = (props: Props) => {
   }
   return (
     <MapLibreGL.ShapeSource
-      id={'polygon'}
+      id={'polygon_line_marker'}
       shape={{
         type: 'FeatureCollection',
         features: [
@@ -27,7 +27,7 @@ const LineMarker = (props: Props) => {
           },
         ],
       }}>
-      <MapLibreGL.LineLayer id={'polylwine'} style={styles.lineStyle} />
+      <MapLibreGL.LineLayer id={'poly_line_marker'} style={styles.lineStyle} />
     </MapLibreGL.ShapeSource>
   )
 }

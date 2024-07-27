@@ -11,9 +11,9 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { SCALE_36, SCALE_26 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { useToast } from 'react-native-toast-notifications'
-import { updateMonitorinPlotData } from 'src/store/slice/monitoringPlotStateSlice'
+import { updateMonitoringPlotData } from 'src/store/slice/monitoringPlotStateSlice'
 
 interface Props {
     image: string,
@@ -25,7 +25,7 @@ const SpecieInfoImageSection = (props: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const imageDetails = useSelector((state: RootState) => state.cameraState)
     const [imageId, setImageId] = useState('')
-    const { updatePlotImage } = useMonitoringPlotMangement()
+    const { updatePlotImage } = useMonitoringPlotManagement()
     const toast = useToast()
     const dispatch = useDispatch()
     useEffect(() => {
@@ -40,7 +40,7 @@ const SpecieInfoImageSection = (props: Props) => {
     const handleUpdate = async (url: string) => {
         const result = await updatePlotImage(plotID, url)
         if (result) {
-            dispatch(updateMonitorinPlotData('PlotScreen'))
+            dispatch(updateMonitoringPlotData('PlotScreen'))
         } else {
             toast.show("Something went wrong")
         }

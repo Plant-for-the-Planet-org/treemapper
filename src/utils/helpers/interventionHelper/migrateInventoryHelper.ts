@@ -8,7 +8,7 @@ function dateStringToTimestamp(dateString) {
 }
 
 
-const interventionTitlteSwitch = (t: string): {
+const interventionTittleSwitch = (t: string): {
     title: string
     key: INTERVENTION_TYPE
     hasSampleTrees: boolean
@@ -114,7 +114,7 @@ export const convertInventoryToIntervention = (data: Inventory[]): InterventionD
     const finalData: InterventionData[] = [];
   
     for (const inventory of data) {
-      const extraData = interventionTitlteSwitch(inventory.treeType);
+      const extraData = interventionTittleSwitch(inventory.treeType);
       const locDetails = getCoordinatesAndType(inventory);
       const sample_trees: SampleTree[] = [];
   
@@ -162,7 +162,7 @@ export const convertInventoryToIntervention = (data: Inventory[]): InterventionD
         image_data: [],
         location_id: "",
         locate_tree: "",
-        remeasuremnt_required: false,
+        remeasurement_required: false,
         next_measurement_date: 0,
       };
   

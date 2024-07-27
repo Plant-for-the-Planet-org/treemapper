@@ -18,13 +18,13 @@ import { RefreshControl } from 'react-native'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 
 const cardSize = scaleSize(60)
 
 interface Props {
-  toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
+  toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[]
   isManageSpecies: boolean
   showTreeModal: (item: IScientificSpecies) => void
@@ -35,7 +35,7 @@ interface Props {
 
 const ManageSpeciesHome = (props: Props) => {
   const {
-    toogleFavSpecies,
+    toggleFavSpecies: toggleFavSpecies,
     userFavSpecies,
     isManageSpecies,
     interventionEdit,
@@ -50,11 +50,11 @@ const ManageSpeciesHome = (props: Props) => {
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
   const { updateInterventionPlantedSpecies } = useInterventionManagement()
-  const { userSpecies, isLogedIn } = useSelector((state: RootState) => state.appState)
+  const { userSpecies, isLoggedIn } = useSelector((state: RootState) => state.appState)
   const toast = useToast()
 
   useEffect(() => {
-    if (!userSpecies && isLogedIn) {
+    if (!userSpecies && isLoggedIn) {
       setTimeout(() => {
         syncUserSpecies()
       }, 3000);
@@ -67,8 +67,8 @@ const ManageSpeciesHome = (props: Props) => {
     try {
       const result = await getUserSpecies()
       if (result && result.length > 0) {
-        const resposne = await addUserSpecies(result)
-        if (resposne) {
+        const response = await addUserSpecies(result)
+        if (response) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
@@ -101,14 +101,13 @@ const ManageSpeciesHome = (props: Props) => {
         }
         const result = await updateInterventionPlantedSpecies(form_id, updatedSPecies)
         if (!result) {
-          errotHaptic()
+          errorHaptic()
           toast.show('Error occurred while adding species')
           return
         }
         if (tree_details_required) {
           navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: form_id })
         } else {
-          console.log("lksd")
           navigation.navigate('LocalForm',{id:form_id})
         }
       }
@@ -118,7 +117,7 @@ const ManageSpeciesHome = (props: Props) => {
   }
 
   const handleRemoveFav = (item: IScientificSpecies) => {
-    toogleFavSpecies(item, false)
+    toggleFavSpecies(item, false)
   }
 
   const renderSpecieCard = (item: IScientificSpecies) => {
@@ -127,7 +126,7 @@ const ManageSpeciesHome = (props: Props) => {
         item={item}
         onPressSpecies={handleSpeciesPress}
         actionName={''}
-        handleRemoveFavourite={handleRemoveFav} isSelectSpecies={false} />
+        handleRemoveFavorite={handleRemoveFav} isSelectSpecies={false} />
     )
   }
   return (
@@ -135,7 +134,7 @@ const ManageSpeciesHome = (props: Props) => {
       data={userFavSpecies}
       renderItem={({ item }) => renderSpecieCard(item)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader isManageSecies={isManageSpecies} />}
+      ListHeaderComponent={<ManageSpeciesHeader isManageSpecies={isManageSpecies} />}
       ListEmptyComponent={<EmptyManageSpeciesList />}
       refreshControl={
         <RefreshControl

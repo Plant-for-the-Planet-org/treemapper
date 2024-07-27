@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
 const WidthOfStrip: FormElement = {
@@ -66,7 +66,7 @@ const WidthOfStrip: FormElement = {
   
   
 
-export const FireBreaks: RegisterFormSliceInitalState = {
+export const FireBreaks: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Establish FireBreaks',
   intervention_date: 0,

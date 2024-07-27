@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
-import { updaeBlockerModal, updateAccurracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
+import { updateBlockerModal, updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 import useLogManagement from './realm/useLogManagement';
 
 const useLocationPermission = () => {
@@ -11,7 +11,7 @@ const useLocationPermission = () => {
 
   useEffect(() => {
     if (status && status.status === Location.PermissionStatus.DENIED) {
-      dispatch(updaeBlockerModal(true))
+      dispatch(updateBlockerModal(true))
       addNewLog({
         logType: 'LOCATION',
         message: "Location permission denied",
@@ -21,7 +21,7 @@ const useLocationPermission = () => {
     }
 
     if (status && status.status === Location.PermissionStatus.GRANTED) {
-      dispatch(updaeBlockerModal(false))
+      dispatch(updateBlockerModal(false))
       userCurrentLocation()
     }
 
@@ -41,7 +41,7 @@ const useLocationPermission = () => {
       })
       if (userLocationDetails?.coords?.longitude && userLocationDetails?.coords?.latitude) {
         dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
-        dispatch(updateAccurracy(userLocationDetails.coords.accuracy))
+        dispatch(updateAccuracy(userLocationDetails.coords.accuracy))
       }
     } else {
       await requestLocationPermission();
@@ -53,7 +53,7 @@ const useLocationPermission = () => {
       const lastLocation = await Location.getLastKnownPositionAsync()
       if (lastLocation?.coords) {
         dispatch(updateUserLocation([lastLocation.coords.longitude, lastLocation.coords.latitude]))
-        dispatch(updateAccurracy(lastLocation.coords.accuracy))
+        dispatch(updateAccuracy(lastLocation.coords.accuracy))
       }
     } catch (error) {
       addNewLog({

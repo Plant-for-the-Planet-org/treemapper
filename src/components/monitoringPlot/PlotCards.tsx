@@ -34,9 +34,9 @@ const PlotCards = (props: Props) => {
                         </View>}
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{renderLabel()}</Text>
+                        <Text style={styles.plantedLabel}>{renderLabel()}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.DARK_TEXT_COLOR} />
-                        <Text style={styles.planetedLabel}>{item.observations.length} obs.</Text>
+                        <Text style={styles.plantedLabel}>{item.observations.length} obs.</Text>
                     </View>
                     <Text style={styles.speciesLabel}>{formatRelativeTimeCustom(item.plot_created_at)}</Text>
                 </View>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT
     },
-    planetedLabel: {
+    plantedLabel: {
         fontSize: 11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,

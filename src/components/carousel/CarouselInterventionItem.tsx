@@ -11,7 +11,7 @@ interface Props {
   onPress: ((id: string) => void)
 }
 
-const CarouselIInterventiontem = (props: Props) => {
+const CarouselInterventionItem = (props: Props) => {
   const { data, onPress } = props
   if(data.sample_trees.length>0){
     return (
@@ -27,7 +27,7 @@ const CarouselIInterventiontem = (props: Props) => {
             {data.intervention_title}
           </Text>
           <Text style={styles.sectionLabel}>Intervention Date</Text>
-          <Text style={styles.vauleLabel}>
+          <Text style={styles.valueLabel}>
             {timestampToBasicDate(data.intervention_date)}
           </Text>
           {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show Tree Details</Text>
@@ -48,7 +48,7 @@ const CarouselIInterventiontem = (props: Props) => {
           {data.intervention_title}
         </Text>
         <Text style={styles.sectionLabel}>Intervention Date</Text>
-        <Text style={styles.vauleLabel}>
+        <Text style={styles.valueLabel}>
           {timestampToBasicDate(data.intervention_date)}
         </Text>
         {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show More Details</Text>
@@ -58,7 +58,7 @@ const CarouselIInterventiontem = (props: Props) => {
   }
 }
 
-export default CarouselIInterventiontem
+export default CarouselInterventionItem
 
 
 const styles = StyleSheet.create({
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.DARK_TEXT_COLOR,
   },
-  vauleLabel: {
+  valueLabel: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,

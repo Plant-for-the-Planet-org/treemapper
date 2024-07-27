@@ -10,13 +10,13 @@ const monitoringPlotSlice = createSlice({
   name: 'monitoringPlotSlice',
   initialState,
   reducers: {
-    updateMonitorinPlotData(state, action: PayloadAction<string>) {
+    updateMonitoringPlotData(state, action: PayloadAction<string>) {
       state.lastUpdateAt = Date.now()
       state.updateScreen = action.payload
     },
   },
 })
 
-export const { updateMonitorinPlotData } = monitoringPlotSlice.actions
+export const { updateMonitoringPlotData } = monitoringPlotSlice.actions
 
 export default monitoringPlotSlice.reducer

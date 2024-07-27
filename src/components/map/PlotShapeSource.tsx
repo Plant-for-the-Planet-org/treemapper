@@ -29,7 +29,7 @@ const PlotShapeSource = (props: Props) => {
         }}
       />
       <MapLibreGL.LineLayer
-        id={`plot-poline-${isEdit}`}
+        id={`plot-poly_line-${isEdit}`}
         style={{
           ...polyline, lineColor: isEdit ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY
         }}

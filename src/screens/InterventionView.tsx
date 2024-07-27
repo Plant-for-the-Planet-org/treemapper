@@ -21,7 +21,7 @@ const InterventionView = () => {
 
 
   useEffect(() => {
-    getReleatedIntervention()
+    getRelatedIntervention()
   }, [currentPage, selectedLabel])
 
   const getQuery = (label) => {
@@ -36,7 +36,7 @@ const InterventionView = () => {
     }
   };
 
-  const getReleatedIntervention = () => {
+  const getRelatedIntervention = () => {
     const query = getQuery(selectedLabel);
     const start = currentPage * 20;
     const end = start + 20;
@@ -59,7 +59,7 @@ const InterventionView = () => {
     setCurrentPage(currentPage + 1)
   }
 
-  const handleLable = (s: string) => {
+  const handleLabel = (s: string) => {
     setAllIntervention([])
     setSelectedLabel(s)
     setCurrentPage(0)
@@ -74,10 +74,10 @@ const InterventionView = () => {
 
 
   return (
-    <SafeAreaView style={styles.cotnainer}>
+    <SafeAreaView style={styles.container}>
       <InterventionHeader />
       <View style={styles.section}>
-        <InterventionList interventionData={allIntervention} setSlectedLabel={handleLable} selectedLabel={selectedLabel} handlePageIncrement={handlePageIncrement} refreshHandler={refreshHandler} loading={loading} />
+        <InterventionList interventionData={allIntervention} setSelectedLabel={handleLabel} selectedLabel={selectedLabel} handlePageIncrement={handlePageIncrement} refreshHandler={refreshHandler} loading={loading} />
       </View>
     </SafeAreaView>
   )
@@ -86,7 +86,7 @@ const InterventionView = () => {
 export default InterventionView
 
 const styles = StyleSheet.create({
-  cotnainer: {
+  container: {
     flex: 1,
     backgroundColor: Colors.WHITE
   },

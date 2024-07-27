@@ -15,7 +15,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
-import useMonitoringPlotMangement, { PlotDetailsParams } from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement, { PlotDetailsParams } from 'src/hooks/realm/useMonitoringPlotManagement'
 import AddPlotImage from 'src/components/monitoringPlot/AddPlotImage'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -33,7 +33,7 @@ const CreatePlotDetailsView = () => {
     const [plotRadius, setPlotRadius] = useState('');
     const [plotShape, setPlotShape] = useState<PLOT_SHAPE>('CIRCULAR');
     const realm = useRealm()
-    const { updatePlotDetails, addPlotToGroup } = useMonitoringPlotMangement()
+    const { updatePlotDetails, addPlotToGroup } = useMonitoringPlotManagement()
 
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotDetail'>>()
     const plotID = route.params?.id ?? '';
@@ -201,13 +201,13 @@ const CreatePlotDetailsView = () => {
                                 placeholder={i18next.t('label.plot_name')}
                                 changeHandler={setPlotName}
                                 keyboardType={'default'}
-                                trailingtext={''}
+                                trailingText={''}
                                 errMsg={''} />
                             {plotShape == 'RECTANGULAR' ? <><OutlinedTextInput
                                 placeholder={i18next.t('label.plot_length')}
                                 changeHandler={setPlotLength}
                                 keyboardType={'decimal-pad'}
-                                trailingtext={'m'}
+                                trailingText={'m'}
                                 errMsg={''} />
                                 <Text style={styles.noteWrapper}>
                                     {i18next.t('label.plot_radius_note')}
@@ -216,7 +216,7 @@ const CreatePlotDetailsView = () => {
                                     placeholder={i18next.t('label.plot_width')}
                                     changeHandler={setPlotWidth}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'m'}
+                                    trailingText={'m'}
                                     errMsg={''} />
                                 <Text style={styles.noteWrapper}>
                                     {i18next.t('label.plot_width_note')}
@@ -224,7 +224,7 @@ const CreatePlotDetailsView = () => {
                                     placeholder={i18next.t('label.plot_radius')}
                                     changeHandler={setPlotRadius}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'m'}
+                                    trailingText={'m'}
                                     errMsg={''} /><Text style={styles.noteWrapper}>
                                     {i18next.t('label.plot_radius_note')}
                                 </Text></>}
@@ -246,7 +246,7 @@ const CreatePlotDetailsView = () => {
                 label={i18next.t('label.create')}
                 containerStyle={styles.btnContainer}
                 pressHandler={submitHandler}
-                hideFadein
+                hideFadeIn
             />
         </SafeAreaView >
     )

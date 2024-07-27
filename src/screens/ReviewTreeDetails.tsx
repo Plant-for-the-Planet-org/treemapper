@@ -5,13 +5,13 @@ import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import DateTimePicker from '@react-native-community/datetimepicker'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { updateBoundry, updateSingleTreeDetails } from 'src/store/slice/sampleTreeSlice'
+import { updateBoundary, updateSingleTreeDetails } from 'src/store/slice/sampleTreeSlice'
 import { InterventionData, SampleTree, SampleTreeSlice } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import Header from 'src/components/common/Header'
-import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
+import InterventionCoverImage from 'src/components/previewIntervention/InterventionCoverImage'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
@@ -29,7 +29,7 @@ import { setUpIntervention } from 'src/utils/helpers/formHelper/selectInterventi
 import { v4 as uuid } from 'uuid'
 
 
-type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'sepcies' | 'date'
+type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
 
 
 const ReviewTreeDetails = () => {
@@ -73,8 +73,8 @@ const ReviewTreeDetails = () => {
 
     useEffect(() => {
         if (editTree) {
-            const filterdData = Intervention.sample_trees.filter(el => el.tree_id === route.params.interventionID)
-            setTreeDetails(filterdData[0])
+            const filterData = Intervention.sample_trees.filter(el => el.tree_id === route.params.interventionID)
+            setTreeDetails(filterData[0])
         }
     }, [interventionId])
 
@@ -89,8 +89,8 @@ const ReviewTreeDetails = () => {
     const addAnotherTree = () => {
         const { geoJSON } = makeInterventionGeoJson("Polygon", JSON.parse(Intervention.location.coordinates), Intervention.form_id)
         const bounds = bbox(geoJSON)
-        dispatch(updateBoundry({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
-        dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
+        dispatch(updateBoundary({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
+        dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
         navigation.navigate('PointMarker', { id: interventionId })
     }
 
@@ -101,7 +101,7 @@ const ReviewTreeDetails = () => {
                 form_id: Intervention.form_id,
                 tree_id: uuid(),
                 sample_tree_count: 1,
-                boundry: JSON.parse(Intervention.location.coordinates),
+                boundary: JSON.parse(Intervention.location.coordinates),
                 coordinates: JSON.parse(Intervention.location.coordinates),
                 image_url: '',
                 current_species: speciesDetails,
@@ -112,14 +112,14 @@ const ReviewTreeDetails = () => {
         } else {
             const { geoJSON } = makeInterventionGeoJson("Polygon", JSON.parse(Intervention.location.coordinates), Intervention.form_id)
             const bounds = bbox(geoJSON)
-            dispatch(updateBoundry({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
-            dispatch(updateMapBounds({ bodunds: bounds, key: 'POINT_MAP' }))
+            dispatch(updateBoundary({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
+            dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
             navigation.navigate('PointMarker', { id: interventionId })
         }
     }
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
-        if (label === 'sepcies') {
+        if (label === 'species') {
             navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
             return;
         }
@@ -160,7 +160,7 @@ const ReviewTreeDetails = () => {
         setTreeDetails({ ...finalDetails })
     }
 
-    const renderDecesasedText = () => {
+    const renderDeceasedText = () => {
         if (treeDetails.is_alive) {
             return null
         }
@@ -177,17 +177,17 @@ const ReviewTreeDetails = () => {
     return (
         <SafeAreaView style={styles.container}>
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
-            <Header label={headerLabel} rightComponent={renderDecesasedText()} />
+            <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
                 <View style={styles.container}>
-                    <IterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} />
+                    <InterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Species</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (!!editTree && synced && !Intervention.has_sample_trees) {
                                 return
                             }
-                            openEdit('sepcies', String(treeDetails.specie_height), 'number-pad')
+                            openEdit('species', String(treeDetails.specie_height), 'number-pad')
                         }}>
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
@@ -204,7 +204,7 @@ const ReviewTreeDetails = () => {
                             openEdit('height', String(treeDetails.specie_height), 'number-pad')
                         }}>
                             <HeightIcon width={14} height={20} style={styles.iconwrapper} />
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {treeDetails.specie_height}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
@@ -219,7 +219,7 @@ const ReviewTreeDetails = () => {
                             openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
                         }}>
                             <WidthIcon width={18} height={8} style={styles.iconwrapper} />
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {treeDetails.specie_diameter}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
@@ -233,7 +233,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('date', String(treeDetails.specie_height), 'number-pad')
                         }}>
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {timestampToBasicDate(treeDetails.plantation_date)}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
@@ -247,7 +247,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('treetag', String(treeDetails.tag_id), 'default')
                         }}>
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {treeDetails.tag_id || 'Not Tagged'}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
@@ -256,7 +256,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Location</Text>
                         <View style={styles.metaSectionWrapper}>
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {treeDetails.longitude.toFixed(5)} , {treeDetails.latitude.toFixed(5)}
                             </Text>
                         </View>
@@ -265,7 +265,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>Device Location</Text>
                         <View style={styles.metaSectionWrapper}>
-                            <Text style={styles.valueLable}>
+                            <Text style={styles.valueLabel}>
                                 {treeDetails.device_longitude} , {treeDetails.device_latitude}
                             </Text>
                         </View>
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
         marginTop: 10,
         marginBottom: 10
     },
-    valueLable: {
+    valueLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: scaleSize(16),
         color: Colors.TEXT_COLOR,
@@ -421,7 +421,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: Colors.PRIMARY_DARK,
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(14),
         fontWeight: '400',
         color: Colors.WHITE,

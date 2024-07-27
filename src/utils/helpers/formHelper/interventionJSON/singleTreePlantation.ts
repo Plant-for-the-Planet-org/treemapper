@@ -1,9 +1,9 @@
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import i18next from 'src/locales/index'
 import { interventionHeader } from '../../interventionHelper/interventionLocaleHelper'
 
 
-export const SingleTeePlantation: RegisterFormSliceInitalState = {
+export const SingleTeePlantation: RegisterFormSliceInitialState = {
   form_id: '',
   key: 'single-tree-registration',
   title: interventionHeader('single-tree-registration'),

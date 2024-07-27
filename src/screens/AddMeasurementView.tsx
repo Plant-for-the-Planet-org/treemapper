@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { InterventionData, SampleTree, ValidationResult } from 'src/types/interface/slice.interface'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuid } from 'uuid'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
@@ -21,14 +21,14 @@ import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { DBHInMeter, diameterMaxCm, diameterMaxInch, diameterMinCm, diameterMinInch, footToMeter, heightMaxFoot, heightMaxM, heightMinFoot, heightMinM, inchToCm, nonISUCountries } from 'src/utils/constants/appConstant'
-import { getIsMeasurementRatioCorrect } from 'src/utils/constants/mesaurments'
+import { getIsMeasurementRatioCorrect } from 'src/utils/constants/measurements'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 
-const AddMeasurment = () => {
+const AddMeasurement = () => {
   const realm = useRealm()
   const SampleTreeData = useSelector((state: RootState) => state.sampleTree)
   const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, SampleTreeData.form_id);
@@ -46,7 +46,7 @@ const AddMeasurment = () => {
   const [tagIdErrorMessage, setTagIdErrorMessage] = useState('')
   const Country = useSelector((state: RootState) => state.userState.country)
 
-  const id = uuidv4()
+  const id = uuid()
   const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -137,7 +137,7 @@ const AddMeasurment = () => {
     }
   };
 
-  const handleOptimalalert = (p: boolean) => {
+  const handleOptimalAlert = (p: boolean) => {
     if (p) {
       setShowOptimalAlert(false)
     } else {
@@ -181,7 +181,7 @@ const AddMeasurment = () => {
       additional_details: '',
       app_meta_data: '',
       sloc_id: '',
-      status: 'INIIALIZED',
+      status: 'INITIALIZED',
       hid: '',
       local_name: SampleTreeData.current_species.aliases,
       parent_id: '',
@@ -208,7 +208,7 @@ const AddMeasurment = () => {
     }
     const result = await addSampleTrees(Intervention.form_id, treeDetails)
     if (!result) {
-      errotHaptic()
+      errorHaptic()
       toast.show("Error occurred while registering sample tree.")
     }
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
@@ -245,7 +245,7 @@ const AddMeasurment = () => {
             changeHandler={onHeightChange}
             autoFocus
             keyboardType={'decimal-pad'}
-            trailingtext={nonISUCountries.includes(Country)
+            trailingText={nonISUCountries.includes(Country)
               ? i18next.t('label.select_species_feet')
               : 'm'} errMsg={heightErrorMessage} />
           <OutlinedTextInput
@@ -255,7 +255,7 @@ const AddMeasurment = () => {
               setWidth(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
             }}
             keyboardType={'decimal-pad'}
-            trailingtext={nonISUCountries.includes(Country)
+            trailingText={nonISUCountries.includes(Country)
               ? i18next.t('label.select_species_inches')
               : 'cm'} errMsg={widthErrorMessage}
           />
@@ -263,7 +263,7 @@ const AddMeasurment = () => {
             placeholder={'Tag Tree'}
             changeHandler={setTagId}
             keyboardType={'default'}
-            trailingtext={''}
+            trailingText={''}
             switchEnable={tagEnable}
             description={i18next.t('label.tree_tag_note')}
             switchHandler={setTagEnable}
@@ -278,8 +278,8 @@ const AddMeasurment = () => {
         <AlertModal
           showSecondaryButton
           visible={showOptimalAlert}
-          onPressPrimaryBtn={handleOptimalalert}
-          onPressSecondaryBtn={handleOptimalalert}
+          onPressPrimaryBtn={handleOptimalAlert}
+          onPressSecondaryBtn={handleOptimalAlert}
           heading={i18next.t('label.not_optimal_ratio')}
           secondaryBtnText={i18next.t('label.continue')}
           primaryBtnText={i18next.t('label.check_again')}
@@ -290,7 +290,7 @@ const AddMeasurment = () => {
   )
 }
 
-export default AddMeasurment
+export default AddMeasurement
 
 const styles = StyleSheet.create({
   container: {

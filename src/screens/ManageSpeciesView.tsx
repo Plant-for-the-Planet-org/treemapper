@@ -20,7 +20,7 @@ import { useToast } from 'react-native-toast-notifications'
 
 const ManageSpeciesView = () => {
   const [showRemoveFavModal, setShowRemoveFavModal] = useState(false)
-  const [deleteSpeciedId, setDeleteSpecieId] = useState('')
+  const [deleteSpecieId, setDeleteSpecieId] = useState('')
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
   const [treeModalDetails, setTreeModalDetails] = useState<IScientificSpecies | null>(null)
 
@@ -48,13 +48,13 @@ const ManageSpeciesView = () => {
     return data.filtered('isUserSpecies == true')
   })
 
-  const toogleRemoveFavModal = () => {
+  const toggleRemoveFavModal = () => {
     setShowRemoveFavModal(!showRemoveFavModal)
   }
 
   const addRemoveUserFavSpecies = (item: IScientificSpecies) => {
     setDeleteSpecieId(item.guid)
-    toogleRemoveFavModal()
+    toggleRemoveFavModal()
   }
 
   const editInterventionSpecies = async (item: IScientificSpecies) => {
@@ -63,8 +63,8 @@ const ManageSpeciesView = () => {
   }
 
   const removeSpecies = () => {
-    toogleRemoveFavModal()
-    updateUserFavSpecies(deleteSpeciedId, false)
+    toggleRemoveFavModal()
+    updateUserFavSpecies(deleteSpecieId, false)
   }
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {
@@ -83,7 +83,7 @@ const ManageSpeciesView = () => {
     navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
   }
 
-  const handleSelecteMultiSpecies = async (item: IScientificSpecies) => {
+  const handleSelectedMultiSpecies = async (item: IScientificSpecies) => {
     const finalData = JSON.parse(JSON.stringify(item))
     if (EditInterventionSpecies) {
       editInterventionSpecies(finalData);
@@ -112,17 +112,17 @@ const ManageSpeciesView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ManageSpeciesHome
-        toogleFavSpecies={addRemoveUserFavSpecies}
+        toggleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={[...userFavSpecies]}
         interventionKey={interventionData ? interventionData.intervention_key : 'single-tree-registration'}
         form_id={interventionData ? interventionData.form_id : ""}
         isManageSpecies={isManageSpecies}
-        showTreeModal={handleSelecteMultiSpecies}
+        showTreeModal={handleSelectedMultiSpecies}
         interventionEdit={EditInterventionSpecies}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
-        toogleModal={toogleRemoveFavModal}
+        toogleModal={toggleRemoveFavModal}
         removeFavSpecie={removeSpecies}
       />
       <TreeCountModal

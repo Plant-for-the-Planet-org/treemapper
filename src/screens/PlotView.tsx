@@ -28,11 +28,11 @@ const PlotView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const addGroups = () => {
-    tooglePopup()
+    togglePopup()
     navigation.navigate('PlotGroup')
   }
 
-  const tooglePopup = () => {
+  const togglePopup = () => {
     ctaHaptic()
     setPopupVisible(!popupVisible)
   }
@@ -46,9 +46,9 @@ const PlotView = () => {
       popoverStyle={{
 
       }}
-      onRequestClose={tooglePopup}
+      onRequestClose={togglePopup}
       from={(
-        <Pressable onPress={tooglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE} /></Pressable>
+        <Pressable onPress={togglePopup} style={styles.rightContainer}><AddIcon width={16} height={16} fill={Colors.WHITE} /></Pressable>
       )}>
       <View style={styles.popOverWrapper}>
         <Pressable onPress={addGroups}><Text style={styles.menuLabel}>{i18next.t('label.plot_group')}</Text></Pressable>
@@ -62,7 +62,7 @@ const PlotView = () => {
     <SafeAreaView style={styles.container}>
       <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
       <View style={styles.wrapper}>
-        <PlotList data={plotData} />
+        <PlotList data={[...plotData]} />
       </View>
     </SafeAreaView>
   )

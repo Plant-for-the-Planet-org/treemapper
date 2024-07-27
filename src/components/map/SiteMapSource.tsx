@@ -15,7 +15,7 @@ const polyline: StyleProp<LineLayerStyle> = {
 }
 
 interface Props {
-  isSattelite: boolean
+  isSatellite: boolean
 }
 
 const SiteMapSource = (props: Props) => {
@@ -86,7 +86,7 @@ const SiteMapSource = (props: Props) => {
     }}>
       <MapLibreGL.LineLayer
         id={'projectSitesPolyline'}
-        style={{ ...polyline, lineColor: props.isSattelite ? Colors.WHITE : Colors.PLANET_BLACK }}
+        style={{ ...polyline, lineColor: props.isSatellite ? Colors.WHITE : Colors.PLANET_BLACK }}
       />
     </MapLibreGL.ShapeSource>
   )

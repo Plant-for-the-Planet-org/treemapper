@@ -22,7 +22,7 @@ const RootNavigator = () => {
         name="InterventionForm"
         component={Screens.InterventionForm}
       />
-      <Stack.Screen name="AddMeasurment" component={Screens.AddMeasurment} />
+      <Stack.Screen name="AddMeasurement" component={Screens.AddMeasurement} />
       <Stack.Screen name="TotalTrees" component={Screens.TotalTrees} />
       <Stack.Screen name="ManageProjects" component={Screens.ManageProjects} />
       <Stack.Screen name="DataExplorer" component={Screens.DataExplore} />
@@ -47,14 +47,14 @@ const RootNavigator = () => {
       <Stack.Screen name='AddPlantDetailsPlot' component={Screens.AddPlantDetailsPlot} />
       <Stack.Screen name='AddPlotDetails' component={Screens.AddPlotDetails} />
       <Stack.Screen name='MonitoringInfo' component={Screens.MonitoringInfo} />
-      <Stack.Screen name='AddRemeasurment' component={Screens.AddRemeasurment} />
+      <Stack.Screen name='AddRemeasurement' component={Screens.AddRemeasurement} />
       <Stack.Screen name='AddObservationForm' component={Screens.AddObservationForm} />
       <Stack.Screen name='PlotGroup' component={Screens.PlotGroup} />
       <Stack.Screen name='AddPlotGroup' component={Screens.AddPlotGroup} />
       <Stack.Screen name='AddPlotsToGroup' component={Screens.AddPlotsToGroup} />
       <Stack.Screen name='TreeRemeasurement' component={Screens.TreeRemeasurement} />
       <Stack.Screen name='ProjectRemeasurementConfig' component={Screens.ProjectRemeasurementConfig} />
-      <Stack.Screen name='OldInvenoryDataView' component={Screens.OldInvenoryData} />
+      <Stack.Screen name='OldInventoryDataView' component={Screens.OldInventoryData} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

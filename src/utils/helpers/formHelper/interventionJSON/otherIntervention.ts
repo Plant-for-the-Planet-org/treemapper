@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
 const Description: FormElement = {
@@ -23,13 +23,13 @@ const Description: FormElement = {
   
 
   
-  const otherIntervetnionForm: MainForm = {
+  const otherInterventionForm: MainForm = {
     title: 'Details',
     key: '',
     elements: [Description],
   }
 
-export const OtherIntervention: RegisterFormSliceInitalState = {
+export const OtherIntervention: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Other Intervention',
   intervention_date: 0,
@@ -53,7 +53,7 @@ export const OtherIntervention: RegisterFormSliceInitalState = {
   tree_details_required: false,
   has_sample_trees: false,
   tree_details: [],
-  form_details: [otherIntervetnionForm],
+  form_details: [otherInterventionForm],
   meta_data: '{}',
   form_data: [],
   additional_data: [],

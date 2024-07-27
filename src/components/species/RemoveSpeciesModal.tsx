@@ -38,7 +38,7 @@ const RemoveSpeciesModal = (props: Props) => {
           <TouchableOpacity
             onPress={removeFavSpecie}
             style={styles.primaryButtonStyle}>
-            <Text style={styles.removeLable}>{i18next.t('label.remove')}</Text>
+            <Text style={styles.removeLabel}>{i18next.t('label.remove')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  contnetWrapper: {
+  contentWrapper: {
     flex: 1,
     paddingTop: 10,
     justifyContent: 'center',
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     marginTop: 24,
   },
-  removeLable: {
+  removeLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.NEW_PRIMARY,

@@ -1,5 +1,5 @@
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface';
-import { getDeviceDetails } from '../appHelper/getAddtionalData';
+import { getDeviceDetails } from '../appHelper/getAdditionalData';
 
 
 export function convertTreeDetailsToGeoJSON(treeDetails: SampleTree) {

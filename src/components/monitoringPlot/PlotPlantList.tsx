@@ -8,7 +8,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { PlantedPlotSpecies } from 'src/types/interface/slice.interface'
 import CustomButton from '../common/CustomButton'
 import EmptyStaticScreen from '../common/EmptyStaticScreen'
-import EmptyIcom from 'assets/images/svg/EmptyGroupIcon.svg'
+import EmptyIcon from 'assets/images/svg/EmptyGroupIcon.svg'
 import PlotPlantSearch from './PlotPlantSearch'
 import i18next from 'src/locales/index'
 
@@ -23,7 +23,7 @@ const PlotPlantList = (props: Props) => {
     const [noResult, setNoResult] = useState(false)
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const handleSelection = (plantID: string) => {
-        navigation.navigate('AddRemeasurment', { id: plotID, plantID: plantID })
+        navigation.navigate('AddRemeasurement', { id: plotID, plantID: plantID })
     }
 
     useEffect(() => {
@@ -64,7 +64,7 @@ const PlotPlantList = (props: Props) => {
                 }
                 ListEmptyComponent={<EmptyStaticScreen label={noResult ? i18next.t('label.no_search') : i18next.t('label.no_plants')} note={i18next.t('label.no_plant_note')}
                     marginTop={{}}
-                    image={<EmptyIcom />} />}
+                    image={<EmptyIcon />} />}
                 ListFooterComponent={renderFooter}
                 renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection} />)}
                 data={plantData}

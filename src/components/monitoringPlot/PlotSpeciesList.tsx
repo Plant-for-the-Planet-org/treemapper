@@ -69,7 +69,7 @@ const PlantPlotListModal = (props: Props) => {
                 item={item}
                 onPressSpecies={handleItemSelection}
                 actionName={''}
-                handleRemoveFavourite={() => { }}
+                handleRemoveFavorite={() => { }}
                 isSelectSpecies={true} />
         )
     }
@@ -85,7 +85,7 @@ const PlantPlotListModal = (props: Props) => {
 
     const renderEmptyList=() => {
         return (<View style={styles.emptyWrapper}>
-            <Text style={styles.empttyLabel}>
+            <Text style={styles.emptyLabel}>
                 {search.length === 0 || search === 'Search for species' ? "Start searching for species on \nthe search input." : "Type at least 3 words for \n better result"}
             </Text>
         </View>)
@@ -121,7 +121,7 @@ const PlantPlotListModal = (props: Props) => {
                             />
                         </View>
                     </View>
-                    <View style={styles.contnetWrapper}>
+                    <View style={styles.contentWrapper}>
                         <FlashList
                             estimatedItemSize={100}
                             ListEmptyComponent={renderEmptyList}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT
     },
-    contnetWrapper: {
+    contentWrapper: {
         width: '100%',
         borderRadius: 30,
         flex: 1,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
         marginTop: 100,
         paddingHorizontal: 50
     },
-    empttyLabel: {
+    emptyLabel: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR,

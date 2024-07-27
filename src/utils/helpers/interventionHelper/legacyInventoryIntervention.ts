@@ -13,7 +13,7 @@ export const getExtendedPageParam = (str: string) => {
 
 
 
-const interventionTitlteSwitch = (t: string): {
+const interventionTittleSwitch = (t: string): {
     title: string
     key: INTERVENTION_TYPE
     hasSampleTrees: boolean
@@ -39,7 +39,7 @@ const getGeometry = (g: any) => {
     return {
         type: g.type,
         coordinates: g.type === 'Point' ? JSON.stringify([g.coordinates]) : JSON.stringify(g.coordinates[0]),
-        geoSpatail: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
+        geoSpatial: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
     }
 }
 
@@ -65,7 +65,7 @@ const setPlantedSpecies = (s: any) => {
 
 
 
-const remeasurementCalcultaor = (nextMeasurementDate: null | string | { date: string }) => {
+const remeasurementCalculator = (nextMeasurementDate: null | string | { date: string }) => {
     try {
         let timeStamp = 0;
 
@@ -93,8 +93,8 @@ const remeasurementCalcultaor = (nextMeasurementDate: null | string | { date: st
 
 
 const singleTreeDetails = (d: any): SampleTree => {
-    const rData = remeasurementCalcultaor(d.nextMeasurementDate)
-    const lData = remeasurementCalcultaor(d.lastMeasurementDate)
+    const rData = remeasurementCalculator(d.nextMeasurementDate)
+    const lData = remeasurementCalculator(d.lastMeasurementDate)
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
@@ -153,11 +153,11 @@ const checkAndConvertMetaData = (m: any) => {
     return '{}'
 }
 
-export const convertInevtoryToIntervention = (data: any): InterventionData => {
-    const extraData = interventionTitlteSwitch(data.type);
+export const convertInventoryToIntervention = (data: any): InterventionData => {
+    const extraData = interventionTittleSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
-    const rData = remeasurementCalcultaor(data.nextMeasurementDate)
+    const rData = remeasurementCalculator(data.nextMeasurementDate)
     if (extraData.key !== 'single-tree-registration') {
         data.samplePlantLocations.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
@@ -166,10 +166,10 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
-    let remeasuremnt_required = rData.requireRemeasurement
-    const markeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
-    if (markeForRemeasurement) {
-        remeasuremnt_required = true
+    let remeasurement_required = rData.requireRemeasurement
+    const makeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
+    if (makeForRemeasurement) {
+        remeasurement_required = true
     }
     const finalData: InterventionData = {
         intervention_id: data.id,
@@ -194,7 +194,7 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         hid: data.hid || '',
         coords: {
             type: 'Point',
-            coordinates: geometryData.geoSpatail
+            coordinates: geometryData.geoSpatial
         },
         entire_site: false,
         last_screen: "PREVIEW",
@@ -204,7 +204,7 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         image_data: [],
         location_id: data.id,
         locate_tree: "",
-        remeasuremnt_required: remeasuremnt_required,
+        remeasurement_required: remeasurement_required,
         next_measurement_date: rData.d
     }
     return finalData

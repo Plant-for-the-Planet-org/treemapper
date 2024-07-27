@@ -21,7 +21,7 @@ interface Props {
   isCDN?:boolean
 }
 
-const IterventionCoverImage = (props: Props) => {
+const InterventionCoverImage = (props: Props) => {
   const { image, tag, interventionID, treeId, isCDN } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
@@ -54,7 +54,7 @@ const IterventionCoverImage = (props: Props) => {
   }
 
 
-  const uri  = isCDN?`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}`:image
+  const uri  = isCDN?`${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/project/large/${image}`:image
   return (
     <View style={styles.container}>
       {uri.length>0 && <View style={styles.wrapper}>
@@ -66,7 +66,7 @@ const IterventionCoverImage = (props: Props) => {
       </TouchableOpacity>}
       <Image source={{ uri: uri }} style={styles.imageWrapper} />
       </View>}
-      {uri.length===0 && <View style={styles.emprtyConainter}>
+      {uri.length===0 && <View style={styles.emptyContainer}>
       {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
         <PenIcon width={30} height={30} />
       </TouchableOpacity>}
@@ -78,7 +78,7 @@ const IterventionCoverImage = (props: Props) => {
   )
 }
 
-export default IterventionCoverImage
+export default InterventionCoverImage
 
 const styles = StyleSheet.create({
   container: {
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'black',
   },
-  emprtyConainter:{
+  emptyContainer:{
     width: '100%',
     height: scaleSize(60),
     justifyContent: 'center',

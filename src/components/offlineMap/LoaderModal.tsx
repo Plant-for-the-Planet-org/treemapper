@@ -12,7 +12,7 @@ const LoaderModal =(props:Props) => {
         const {isLoaderShow,areaName} = props
       return (
         <Modal isVisible={isLoaderShow} style={styles.container}>
-          <View style={styles.dowloadModalContainer}>
+          <View style={styles.downloadModalContainer}>
             <View style={styles.contentContainer}>
               <ActivityIndicator size="large" color={Colors.NEW_PRIMARY} style={styles.loader} />
               <Text style={styles.areaName}>{areaName}</Text>
@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
         color:Colors.TEXT_COLOR,
         fontFamily:Typography.FONT_FAMILY_SEMI_BOLD
       },
-      dowloadModalContainer: {
+      downloadModalContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',

@@ -13,7 +13,7 @@ interface Props {
 
 const InterventionBasicInfo = (props: Props) => {
   const { intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species, location_type } = props.data
-  const dateFormated = () => {
+  const dateFormatted = () => {
     if (intervention_date) {
       return timestampToBasicDate(intervention_date)
     } else {
@@ -34,14 +34,14 @@ const InterventionBasicInfo = (props: Props) => {
     return areaInHa
   }
 
-  const planetedSpecies = () => {
+  const plantedSpecies = () => {
     if (planted_species.length === 0) {
       return null
     }
     return <View style={styles.plantedSpeciesContainer}>
       <View style={styles.cardWrapper}>
         <Text style={styles.cardTitle}>Planted species</Text>
-        <View style={styles.planetedSpeciesWrapper}>
+        <View style={styles.plantedSpeciesWrapper}>
           {planted_species.map((el, i) => (
             <View key={String(i)} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
@@ -67,14 +67,9 @@ const InterventionBasicInfo = (props: Props) => {
           <View style={styles.timeContainer}>
             <View style={styles.cardDateLabel}>
               <Text style={styles.cardLabel}>
-                {dateFormated()}
+                {dateFormatted()}
               </Text>
             </View>
-            {/* <View style={styles.cardDateLabel}>
-              <Text style={styles.cardLabel}>
-                {dateFormated()}
-              </Text>
-            </View> */}
           </View>
         </View>
         {location_type === 'Polygon' && <View style={styles.cardWrapper}>
@@ -97,7 +92,7 @@ const InterventionBasicInfo = (props: Props) => {
             <Text style={styles.cardLabel}>{site_name}</Text>
           </View>
         )}
-        {planetedSpecies()}
+        {plantedSpecies()}
       </View>
     </View>
   )
@@ -166,7 +161,7 @@ const styles = StyleSheet.create({
   plantedSpeciesContainer: {
     width: '100%',
   },
-  planetedSpeciesWrapper: {
+  plantedSpeciesWrapper: {
     width: '100%',
     backgroundColor: Colors.GRAY_DARK + '1A',
     borderRadius: 10,

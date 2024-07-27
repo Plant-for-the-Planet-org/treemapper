@@ -9,7 +9,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { PlotObservation } from 'src/types/interface/slice.interface'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { OBSERVATION_TYPE } from 'src/types/type/app.type'
@@ -22,7 +22,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 
 
 
-const AllObservaiton: Array<{
+const AllObservation: Array<{
     label: string
     value: OBSERVATION_TYPE
     index: number
@@ -37,18 +37,11 @@ const AllObservaiton: Array<{
             value: 'CANOPY',
             index: 0,
         }
-        //  {
-        //     label: 'Bioacusitcs',
-        //     value: 'BIOACUSTICS',
-        //     index: 0,
-        //     unit: '',
-        //     disabled: true
-        // },
     ]
 
 
 
-const AddObeservationForm = () => {
+const AddObservationForm = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddObservationForm'>>()
     const plotID = route.params?.id ?? '';
@@ -59,12 +52,12 @@ const AddObeservationForm = () => {
         value: OBSERVATION_TYPE
         index: number
     }
-    >(AllObservaiton[0])
+    >(AllObservation[0])
     const [observationDate, setObservationDate] = useState(Date.now())
     const [value, setValue] = useState('')
     const [unit, setUnit] = useState('kpa')
 
-    const { addPlotObservation, updatePlotObservation, deltePlotObservation } = useMonitoringPlotMangement()
+    const { addPlotObservation, updatePlotObservation, deletePlotObservation } = useMonitoringPlotManagement()
     const toast = useToast()
     const realm = useRealm()
 
@@ -100,7 +93,7 @@ const AddObeservationForm = () => {
     }
 
 
-    const submitHadler = async () => {
+    const submitHandler = async () => {
         if (value.trim().length === 0) {
             toast.show("Please add valid Plot Name")
             return
@@ -117,7 +110,7 @@ const AddObeservationForm = () => {
     }
 
     const deleteHandler = async () => {
-        const result = await deltePlotObservation(plotID, obsId)
+        const result = await deletePlotObservation(plotID, obsId)
         if (result) {
             toast.show("Observation deleted")
             navigation.goBack()
@@ -146,12 +139,12 @@ const AddObeservationForm = () => {
 
 
     return (
-        <SafeAreaView style={styles.cotnainer}>
+        <SafeAreaView style={styles.container}>
             <Header label='Add Observation' />
             <View style={styles.wrapper}>
                 <CustomDropDownPicker
                     label={'Project'}
-                    data={AllObservaiton}
+                    data={AllObservation}
                     onSelect={handleDropDown}
                     selectedValue={type}
                 />
@@ -166,41 +159,41 @@ const AddObeservationForm = () => {
                         changeHandler={setValue}
                         defaultValue={value}
                         keyboardType={'decimal-pad'}
-                        trailingtext={unit} errMsg={''} />
+                        trailingText={unit} errMsg={''} />
                 </View>
             </View>
             {obsId && obsId.length > 0 ?
-                <View style={styles.btnContainedr}>
+                <View style={styles.btnMinorContainer}>
                     <CustomButton
                         label={'Delete'}
                         containerStyle={styles.btnWrapper}
                         pressHandler={deleteHandler}
                         wrapperStyle={styles.borderWrapper}
                         labelStyle={styles.highlightLabel}
-                        hideFadein
+                        hideFadeIn
                     />
                     <CustomButton
                         label={'Save'}
                         containerStyle={styles.btnWrapper}
                         pressHandler={updateDetails}
                         wrapperStyle={styles.noBorderWrapper}
-                        hideFadein
+                        hideFadeIn
                     />
                 </View> :
                 <CustomButton
                     label="Save"
                     containerStyle={styles.btnContainer}
-                    pressHandler={submitHadler}
-                    hideFadein
+                    pressHandler={submitHandler}
+                    hideFadeIn
                 />}
         </SafeAreaView>
     )
 }
 
-export default AddObeservationForm
+export default AddObservationForm
 
 const styles = StyleSheet.create({
-    cotnainer: {
+    container: {
         flex: 1,
         backgroundColor: Colors.WHITE
     },
@@ -220,7 +213,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 50,
     },
-    btnContainedr: {
+    btnMinorContainer: {
         width: '100%',
         height: scaleSize(70),
         flexDirection: 'row',
@@ -276,7 +269,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: 'tomato'
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(14),
         fontWeight: '400',
         color: Colors.WHITE,

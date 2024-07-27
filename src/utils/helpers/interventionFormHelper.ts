@@ -1,12 +1,12 @@
 import {
   InterventionData,
-  RegisterFormSliceInitalState,
+  RegisterFormSliceInitialState,
 } from 'src/types/interface/slice.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import { Colors } from '../constants'
 import { setUpIntervention } from './formHelper/selectIntervention'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-export const getPreviewData = (data: RegisterFormSliceInitalState) => {
+export const getPreviewData = (data: RegisterFormSliceInitialState) => {
   const { intervention_date, title, project_name, site_name } = data
 
   const basicInfo = {
@@ -93,7 +93,7 @@ export const getInterventionColor = (key) => {
     case 'removal-invasive-species':
       return Colors.INVASIVE_SPECIES;
     case 'fire-suppression':
-      return Colors.FIRE_SUPRESSION;
+      return Colors.FIRE_SUPPRESSION;
     case 'fire-patrol':
       return Colors.FIRE_PATROL;
     case 'fencing':
@@ -103,7 +103,7 @@ export const getInterventionColor = (key) => {
     case 'liberating-regenerant':
       return Colors.LIBERATING_REGENERANT;
     case 'grass-suppression':
-      return Colors.GRASS_SUPRESSION;
+      return Colors.GRASS_SUPPRESSION;
     case 'firebreaks':
       return Colors.FIREBREAKS;
     case 'assisting-seed-rain':
@@ -114,12 +114,12 @@ export const getInterventionColor = (key) => {
       return Colors.STOP_HARVESTING;
     case 'direct-seeding':
       return Colors.DIRECT_SEEDING;
-    case 'enrichement-planting':
+    case 'enrichment-planting':
       return Colors.ENRICHMENT_PLANTING;
     case 'other-intervention':
       return Colors.OTHER_INTERVENTION;
     case 'maintenance':
-      return Colors.MAINTAINEANCE;
+      return Colors.MAINTENANCE;
     default:
       return Colors.SINGLE_TREE;
   }
@@ -181,22 +181,22 @@ export const lastScreenNavigationHelper = (data: InterventionData): NavigationRe
   return result
 }
 
-export const metaDataTranformer = (exsitingData: any, data: { public: any, private: any, app: any }) => {
-  const finalData = { ...exsitingData }
-  if (exsitingData['public']) {
-    finalData['public'] = { ...exsitingData['public'], ...data.public }
+export const metaDataTransformer = (existingData: any, data: { public: any, private: any, app: any }) => {
+  const finalData = { ...existingData }
+  if (existingData['public']) {
+    finalData['public'] = { ...existingData['public'], ...data.public }
   } else {
     finalData['public'] = { ...data.public }
   }
 
-  if (exsitingData['private']) {
-    finalData['private'] = { ...exsitingData['private'], ...data.private }
+  if (existingData['private']) {
+    finalData['private'] = { ...existingData['private'], ...data.private }
   } else {
     finalData['private'] = { ...data.private }
   }
 
-  if (exsitingData['app']) {
-    finalData['app'] = { ...exsitingData['app'], ...data.app }
+  if (existingData['app']) {
+    finalData['app'] = { ...existingData['app'], ...data.app }
   } else {
     finalData['app'] = { ...data.app }
   }

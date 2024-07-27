@@ -18,7 +18,7 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 
 
@@ -44,7 +44,7 @@ const TotalTreesView = () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
     const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
     if (!result) {
-      errotHaptic()
+      errorHaptic()
       toast.show("Error occurred while updating data")
       return
     }
@@ -53,7 +53,7 @@ const TotalTreesView = () => {
 
 
 
-  const cardpress = (item: PlantedSpecies) => {
+  const cardPress = (item: PlantedSpecies) => {
     if (isSelectSpecies) {
       dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
@@ -65,7 +65,7 @@ const TotalTreesView = () => {
     const result = await removeInterventionPlantedSpecies(interventionId, item)
     if (!result) {
       toast.show("Error occurred while removing species")
-      errotHaptic()
+      errorHaptic()
     } else {
       toast.show(`${item.scientificName} removed`)
     }
@@ -77,9 +77,9 @@ const TotalTreesView = () => {
     return (
       <SpecieCard
         item={item}
-        onPressSpecies={cardpress}
+        onPressSpecies={cardPress}
         actionName={'remove'}
-        handleRemoveFavourite={removeHandler}
+        handleRemoveFavorite={removeHandler}
         isSelectSpecies={isSelectSpecies}
       />
     )
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
     height: scaleSize(80),
     backgroundColor: 'red',
   },
-  textLable: {
+  textLabel: {
     fontSize: 16,
     marginLeft: 20,
     marginTop: 20,
@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,

@@ -38,7 +38,7 @@ const EditInputModal = ({
 }: IInputModalProps) => {
 
   const textInput = useRef<TextInput>(null);
-  const setfocus = () => {
+  const setFocus = () => {
     setTimeout(() => {
       textInput?.current.focus();
     }, 300)
@@ -47,7 +47,7 @@ const EditInputModal = ({
     <Modal
       transparent={true}
       visible={isOpenModal}
-      onShow={setfocus}
+      onShow={setFocus}
     >
       <View style={styles.cont}>
         <View style={styles.cont} />

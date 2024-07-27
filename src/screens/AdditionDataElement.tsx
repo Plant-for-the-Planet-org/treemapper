@@ -120,7 +120,7 @@ const AdditionDataElement = () => {
   }
 
 
-  const toogleOptionModal = () => {
+  const toggleOptionModal = () => {
     setShowOptionModal(!showOptionModal)
   }
 
@@ -152,7 +152,7 @@ const AdditionDataElement = () => {
     })
     setShowOptionModal(false)
   }
-  const seletDataType = (el: DropdownData) => {
+  const selectDataType = (el: DropdownData) => {
     setDataType(el)
   }
 
@@ -177,7 +177,7 @@ const AdditionDataElement = () => {
     if (!validationInput()) {
       return;
     }
-    const noValidatoinRequired: FORM_TYPE[] = ['HEADING', 'GAP', 'PAGE']
+    const noValidationRequired: FORM_TYPE[] = ['HEADING', 'GAP', 'PAGE']
     const details: FormElement = {
       element_id: uuid(),
       index: element_order,
@@ -193,7 +193,7 @@ const AdditionDataElement = () => {
       keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
-      validation: noValidatoinRequired.includes(elementType) ? '' : ".+",
+      validation: noValidationRequired.includes(elementType) ? '' : ".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
 
@@ -253,12 +253,12 @@ const AdditionDataElement = () => {
 
   const renderOptionDD = () => {
     return dropDownElement.map(el => {
-      return <TouchableOpacity key={el.id} style={styles.dwrapper} onPress={() => {
+      return <TouchableOpacity key={el.id} style={styles.wrapper} onPress={() => {
         handleOptionEdit(el)
       }}>
-        <View style={styles.dsectionWrapper}>
-          <Text style={styles.dkeyLabel}>{el.key}</Text>
-          <Text style={styles.dkeyValue}>{el.value}</Text>
+        <View style={styles.sectionWrapper}>
+          <Text style={styles.keyLabel}>{el.key}</Text>
+          <Text style={styles.keyValue}>{el.value}</Text>
         </View>
       </TouchableOpacity>
     })
@@ -267,12 +267,12 @@ const AdditionDataElement = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
+        <DropDownFieldElement isVisible={showOptionModal} toggleModal={toggleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
         <Header label='' rightComponent={renderHeaderRight()} />
         <View style={styles.headerTitleWrapper}>
           <Text style={styles.header}>Add {renderTitle()}</Text>
           {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
-            <Text style={styles.deletelabel}>{i18next.t('label.save_areas_delete')}</Text>
+            <Text style={styles.deletable}>{i18next.t('label.save_areas_delete')}</Text>
           </TouchableOpacity>}
         </View>
         {elementType !== 'GAP' && <CustomTextInput
@@ -283,7 +283,7 @@ const AdditionDataElement = () => {
         {elementType === 'INPUT' && <CustomDropDown
           label={'Field Type'}
           data={fieldType}
-          onSelect={(el) => { seletDataType(el) }}
+          onSelect={(el) => { selectDataType(el) }}
           selectedValue={dataType}
         />}
         {advanceMode && <CustomTextInput
@@ -311,7 +311,7 @@ const AdditionDataElement = () => {
         {elementType === 'DROPDOWN' && <>
           <Text style={styles.dropDownOption}>{i18next.t('label.dropdown_options')}</Text>
           {renderOptionDD()}
-          <Text style={styles.addDropDown} onPress={toogleOptionModal}>{i18next.t('label.add_dropdown_option')}</Text>
+          <Text style={styles.addDropDown} onPress={toggleOptionModal}>{i18next.t('label.add_dropdown_option')}</Text>
           <View style={styles.btnWrapper}></View>
           <View style={styles.footer} />
         </>}
@@ -412,30 +412,30 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 20
   },
-  deletelabel: {
+  deletable: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
   },
-  dwrapper: {
+  wrapper: {
     width: "90%",
     paddingVertical: 10,
     marginLeft: '5%'
   },
-  dsectionWrapper: {
+  sectionWrapper: {
     backgroundColor: Colors.NEW_PRIMARY + '1A',
     paddingBottom: 20,
     paddingLeft: 10,
     borderRadius: 8
   },
-  dkeyLabel: {
+  keyLabel: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginVertical: 10
   },
-  dkeyValue: {
+  keyValue: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,

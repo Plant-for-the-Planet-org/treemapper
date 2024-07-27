@@ -21,7 +21,7 @@ import i18next from 'src/locales/index'
 
 interface Props {
   isVisible: boolean
-  toogleModal: () => void
+  toggleModal: () => void
 }
 
 const ProjectModal = (props: Props) => {
@@ -31,7 +31,7 @@ const ProjectModal = (props: Props) => {
   // variables
   const snapPoints = useMemo(() => ['65%'], []);
 
-  const { isVisible, toogleModal } = props
+  const { isVisible, toggleModal: toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])
   const [selectedProject, setSelectedProject] = useState<{
@@ -86,7 +86,7 @@ const ProjectModal = (props: Props) => {
     }
   }, [projectAdded])
 
-  const handlSiteSelection = (id: string, item: any) => {
+  const handelSiteSelection = (id: string, item: any) => {
     dispatch(
       updateProjectSite({
         name: item.name,
@@ -98,15 +98,15 @@ const ProjectModal = (props: Props) => {
     const bounds = bbox(geometry)
     dispatch(
       updateMapBounds({
-        bodunds: bounds,
+        bounds: bounds,
         key: 'DISPLAY_MAP',
       }),
     )
     dismiss()
-    toogleModal()
+    toggleModal()
   }
 
-  const handleProjectSelction = (data: {
+  const handleProjectSelection = (data: {
     label: string
     value: string
     index: number
@@ -139,7 +139,7 @@ const ProjectModal = (props: Props) => {
     bottomSheetModalRef.current?.present();
   }, []);
   const closeModal = () => {
-    toogleModal()
+    toggleModal()
     dismiss();
   }
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
@@ -169,10 +169,10 @@ const ProjectModal = (props: Props) => {
     >
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
-          <View style={styles.contnetWrapper}>
+          <View style={styles.contentWrapper}>
             <View style={styles.header}>
               <ZoomSiteIcon style={styles.iconWrapper} />
-              <Text style={styles.headerLable}>{i18next.t('label.zoom_to_site')}</Text>
+              <Text style={styles.headerLabel}>{i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
                 <CloseIcon />
@@ -182,7 +182,7 @@ const ProjectModal = (props: Props) => {
             <CustomDropDownPicker
               label={'Project'}
               data={projectData}
-              onSelect={handleProjectSelction}
+              onSelect={handleProjectSelection}
               selectedValue={selectedProject}
             />
 
@@ -203,7 +203,7 @@ const ProjectModal = (props: Props) => {
                       ]}
                       key={index}
                       onPress={() => {
-                        handlSiteSelection(item.id, item)
+                        handelSiteSelection(item.id, item)
                       }}>
                       <Text style={styles.siteCardLabel}>{item.name}</Text>
                       <View style={styles.divider} />
@@ -236,7 +236,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     alignItems: 'center',
   },
-  contnetWrapper: {
+  contentWrapper: {
     width: '95%',
     borderRadius:30
   },
@@ -259,12 +259,12 @@ const styles = StyleSheet.create({
   iconWrapper: {
     marginHorizontal: 10,
   },
-  headerLable: {
+  headerLabel: {
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color:Colors.DARK_TEXT
   },
-  cardLable: {
+  cardLabel: {
     fontSize: 16,
     marginHorizontal: 10,
   },
