@@ -18,13 +18,22 @@ import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangeme
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
+import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
+
+interface Params {
+    l: number,
+    w: number,
+    date: number,
+    status: PLOT_PLANT_STATUS,
+
+}
 
 const PlotPlantRemeasureView = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'AddRemeasurment'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
-    const timelineId = route.params && route.params.timelineId ? route.params.timelineId : ''
+    const plotID = route.params?.id ?? '';
+    const plantID = route.params?.plantID ?? '';
+    const timelineId = route.params?.timelineId ?? '';
     const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
@@ -125,11 +134,12 @@ const PlotPlantRemeasureView = () => {
         if (!dateCheck(index, measurementDate)) {
             return
         }
-        const updateTimeline = {
+        const latestStatus = () => isAlive ? 'REMEASURMENT' : 'DESCEASED'
+        const updateTimeline: Params = {
             l: Number(height),
             w: Number(width),
             date: measurementDate,
-            status: isEdit && index === 0 ? 'PLANTED' : isAlive ? 'REMEASURMENT' : 'DESCEASED',
+            status: isEdit && index === 0 ? 'PLANTED' : latestStatus()
         }
         const result = await updateTimelineDetails(plotID, plantID, timelineId, updateTimeline)
         if (result) {
@@ -139,9 +149,6 @@ const PlotPlantRemeasureView = () => {
             toast.show("Error occured")
         }
     }
-
-    //todo
-
     return (
         <SafeAreaView style={styles.cotnainer}>
             <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={true} />

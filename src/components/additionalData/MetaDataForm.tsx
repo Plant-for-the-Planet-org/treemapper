@@ -13,7 +13,7 @@ import { Metadata } from 'src/types/interface/app.interface'
 
 const MetaDataForm = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [metaData, setMetaData] = useState<Metadata[] | any>([])
+  const [metaData, setMetaData] = useState<Metadata[]>([])
 
   const allMetaData = useQuery<Metadata>(
     RealmSchema.Metadata,
@@ -23,7 +23,7 @@ const MetaDataForm = () => {
   )
 
   useEffect(() => {
-    setMetaData(allMetaData)
+    setMetaData([...allMetaData])
   }, [allMetaData])
   
 

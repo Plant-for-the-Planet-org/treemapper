@@ -46,7 +46,7 @@ const SiteMapSource = (props: Props) => {
       const allProjectSites = [...data.sites];
       const reducedSites = [];
       for (const siteDetails of allProjectSites) {
-        if (siteDetails && siteDetails.geometry) {
+        if (siteDetails?.geometry) {
           const parsedData = JSON.parse(siteDetails.geometry);
           if (parsedData?.coordinates) {
             if (parsedData.type === 'Polygon') {

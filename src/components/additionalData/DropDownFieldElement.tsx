@@ -25,7 +25,7 @@ const DropDownFieldElement = (props: Props) => {
     const toast = useToast();
 
     useEffect(() => {
-        if (selectedElement && selectedElement.key) {
+        if (selectedElement?.key) {
             setInputKey(selectedElement.key)
             setInputValue(selectedElement.value)
         }else{

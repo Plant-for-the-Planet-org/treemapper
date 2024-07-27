@@ -24,28 +24,37 @@ const GpsAccuracyTile = (props: Props) => {
         timeInterval: 1000
       },
       (location) => {
-        if (location && location.coords && location.coords.accuracy) {
-          setAccuracy(location.coords.accuracy);
-        }
+        setAccuracy(location?.coords?.accuracy ?? accuracy);
       }
     );
   }, []);
 
-  const activeStyle = {
-    bgColor:
-      accuracy < 10
-        ? Colors.NEW_PRIMARY + '1A'
-        : accuracy < 30
-          ? Colors.LIGHT_AMBER + '1A'
-          : Colors.LIGHT_RED + '1A',
-    iconColor:
-      accuracy < 10
-        ? Colors.NEW_PRIMARY
-        : accuracy < 30
-          ? Colors.LIGHT_AMBER
-          : Colors.LIGHT_RED,
-  };
+  // Define variables for colors based on accuracy
+const getBackgroundColor = (accuracy) => {
+  if (accuracy < 10) {
+    return Colors.NEW_PRIMARY + '1A';
+  } else if (accuracy < 30) {
+    return Colors.LIGHT_AMBER + '1A';
+  } else {
+    return Colors.LIGHT_RED + '1A';
+  }
+};
 
+const getIconColor = (accuracy) => {
+  if (accuracy < 10) {
+    return Colors.NEW_PRIMARY;
+  } else if (accuracy < 30) {
+    return Colors.LIGHT_AMBER;
+  } else {
+    return Colors.LIGHT_RED;
+  }
+};
+
+// Use the functions to set the styles
+const activeStyle = {
+  bgColor: getBackgroundColor(accuracy),
+  iconColor: getIconColor(accuracy),
+};
   return (
     <View style={styles.container}>
       <TouchableOpacity style={[styles.wrapper, { backgroundColor: activeStyle.bgColor }]} onPress={showModal}>

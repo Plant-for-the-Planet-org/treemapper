@@ -46,7 +46,6 @@ const ImagePreview = (props: Props) => {
     if (screen === 'SAMPLE_TREE') {
       dispatch(updateSampleImageUrl(finalURL))
       navigation.navigate('AddMeasurment')
-      return
     }
   }
 

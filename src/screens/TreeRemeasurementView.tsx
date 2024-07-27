@@ -66,8 +66,8 @@ const TreeRemeasurementView = () => {
     const imageDetails = useSelector((state: RootState) => state.cameraState)
     const [imageId, setImageId] = useState('')
     const toast = useToast()
-    const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
-    const treeId = route.params && route.params.treeId ? route.params.treeId : ''
+    const interventionId = route.params?.interventionId ?? "";
+    const treeId = route.params?.treeId ?? '';
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
     const [imageUri, setImageUri] = useState('')
@@ -88,7 +88,7 @@ const TreeRemeasurementView = () => {
     }, [imageDetails])
 
     useEffect(() => {
-        AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+        AvoidSoftInput.setShouldMimicIOSBehavior(true);
         return () => {
             AvoidSoftInput.setShouldMimicIOSBehavior(false);
         };
@@ -137,6 +137,8 @@ const TreeRemeasurementView = () => {
     if (!treeDetails) {
         return null
     }
+
+    const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
     return (
         <SafeAreaView style={styles.container}>
@@ -207,7 +209,7 @@ const TreeRemeasurementView = () => {
                 </ScrollView>
 
                 <CustomButton
-                    label={!isAlive ? "Save" : imageUri.length == 0 ? "Continue" : "Save"}
+                    label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
                     pressHandler={submitHadler}
                     hideFadein

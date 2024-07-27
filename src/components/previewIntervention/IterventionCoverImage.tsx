@@ -25,18 +25,14 @@ const IterventionCoverImage = (props: Props) => {
   const { image, tag, interventionID, treeId, isCDN } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
-  const { updateInterventionCoverImage, updateSampleTreeImage } = useInterventionManagement()
+  const {updateSampleTreeImage } = useInterventionManagement()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch();
 
 
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
-      if (tag === 'EDIT_INTERVENTION') {
-        updateInterventionCoverImage(imageDetails.url, interventionID)
-      } else {
         updateSampleTreeImage(interventionID, treeId, imageDetails.url)
-      }
       dispatch(updateImageDetails({
         id: '',
         url: ''
@@ -54,11 +50,7 @@ const IterventionCoverImage = (props: Props) => {
   }
 
   const clearImage = () => {
-    if (tag === 'EDIT_INTERVENTION') {
-      updateInterventionCoverImage('', interventionID)
-    } else {
       updateSampleTreeImage(interventionID, treeId, '')
-    }
   }
 
 

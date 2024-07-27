@@ -44,7 +44,6 @@ const SampleTreePreviewList = (props: Props) => {
   }
 
   const viewTreeDetails = async (id: string) => {
-    //todo change the naming here or throught the app for interventionID to treeID
     navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true, id: interventionId })
 
   }
@@ -59,7 +58,7 @@ const SampleTreePreviewList = (props: Props) => {
   const renderCard = () => {
     return sampleTress.map((details, i) => {
       return (
-        <View style={styles.wrapper} key={i}>
+        <View style={styles.wrapper} key={String(i)}>
           <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
@@ -89,11 +88,11 @@ const SampleTreePreviewList = (props: Props) => {
               {timestampToBasicDate(details.plantation_date)}
             </Text>
           </View>
-          {details.specie_name && <View style={styles.metaWrapper}>
+          {!!details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Species</Text>
             <Text style={styles.speciesName}>{details.specie_name}</Text>
           </View>}
-          {details.specie_name && <View style={styles.metaWrapper}>
+          {!!details.specie_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>Local common name</Text>
             <Text style={styles.valueLable}>{details.local_name}</Text>
           </View>}
@@ -115,7 +114,7 @@ const SampleTreePreviewList = (props: Props) => {
               </View>
             </View>
           </View>
-          {details.tag_id && (
+          {!!details.tag_id && (
             <View style={styles.metaWrapper}>
               <Text style={styles.title}>Tag Id</Text>
               <Text style={styles.valueLable}>{details.tag_id}</Text>

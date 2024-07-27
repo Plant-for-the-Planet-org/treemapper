@@ -35,6 +35,8 @@ const FormTextInputElement = (props: Props) => {
     return null
   }
 
+  const renderTrail=() => <Text style={styles.unitLabel}>{data.unit}</Text>
+
   return (
     <View style={styles.container}>
       <InputOutline
@@ -50,7 +52,7 @@ const FormTextInputElement = (props: Props) => {
         onChangeText={handleChange}
         returnKeyType='done'
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
-        trailingIcon={() => <Text style={styles.unitLabel}>{data.unit}</Text>}
+        trailingIcon={renderTrail}
       />
     </View>
   )

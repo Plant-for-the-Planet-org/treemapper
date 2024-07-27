@@ -29,10 +29,7 @@ export const diameterValidation = (diameter: string | number, isNonISUCountry: b
     });
   } else if (!getIsValidMeasurement(diameter.toString())) {
     diameterErrorMessage = i18next.t('label.select_species_diameter_invalid');
-  } else {
-    diameterErrorMessage = '';
   }
-
   return diameterErrorMessage;
 };
 
@@ -55,8 +52,6 @@ export const heightValidation = (height: string | number, isNonISUCountry: boole
     });
   } else if (!getIsValidMeasurement(height.toString())) {
     heightErrorMessage = i18next.t('label.select_species_height_invalid');
-  } else {
-    heightErrorMessage = '';
   }
 
   return heightErrorMessage;

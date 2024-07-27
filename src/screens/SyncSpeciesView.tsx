@@ -64,7 +64,7 @@ const SyncSpecies = () => {
         backgroundColor: '#e74c3c',
       });
       setTimeout(() => {
-        if (route.params && route.params.inApp) {
+        if (route.params?.inApp) {
           navigation.replace('Home')
         } else {
           dispatch(updateSpeciesSyncStatus(false))
@@ -75,7 +75,7 @@ const SyncSpecies = () => {
     }
     const localSyncTimeStamp = await getLocalSpeciesSync()
     if (localSyncTimeStamp) {
-      if (route.params && route.params.inApp) {
+      if (route.params?.inApp) {
         downloadFile()
         return
       }
@@ -121,7 +121,7 @@ const SyncSpecies = () => {
         logLevel: 'info',
         statusCode: '000',
       })
-      if (route.params && route.params.inApp) {
+      if (route.params?.inApp) {
         navigation.goBack()
       } else {
         navigation.replace('Home')

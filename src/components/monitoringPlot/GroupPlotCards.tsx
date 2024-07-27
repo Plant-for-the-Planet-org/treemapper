@@ -6,7 +6,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 interface Props {
-    item: PlotGroups | any
+    item: PlotGroups
     handleSelection: (gid: string) => void
     deleteGroup: (gid: string) => void
 }

@@ -30,7 +30,7 @@ const MetaDataElementView = () => {
 
     const {addNewMetadata, updateMetaData, deleteMetaData} = useMetaData()
     const isEdit = route.params && route.params.edit
-    const order = route.params && route.params.order? route.params.order: 0
+    const order = route.params?.order ?? 0;
     const elementId =  route.params && route.params.id? route.params.id: ''
 
     const renderRightElement=()=>{
@@ -117,7 +117,7 @@ const MetaDataElementView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={''} rightComponet={renderRightElement()}/>
+            <Header label={''} rightComponent={renderRightElement()}/>
             <Text style={styles.headerLabel}>Add metadata</Text>
             <CustomTextInput
                 label="Field key"

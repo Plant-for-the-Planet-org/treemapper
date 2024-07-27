@@ -32,9 +32,9 @@ const ManageSpeciesView = () => {
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const toast = useToast()
 
-  const isManageSpecies = route.params && route.params.manageSpecies
-  const EditInterventionSpecies = route.params && route.params.reviewTreeSpecies
-  const interventionID = route.params && route.params.id ? route.params.id : ''
+  const isManageSpecies = route.params?.manageSpecies;
+  const EditInterventionSpecies = route.params?.reviewTreeSpecies;
+  const interventionID = route.params?.id ?? '';
 
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
@@ -44,7 +44,7 @@ const ManageSpeciesView = () => {
   }, [interventionID])
 
 
-  const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
+  const userFavSpecies = useQuery<IScientificSpecies>(RealmSchema.ScientificSpecies, data => {
     return data.filtered('isUserSpecies == true')
   })
 
@@ -113,7 +113,7 @@ const ManageSpeciesView = () => {
     <SafeAreaView style={styles.container}>
       <ManageSpeciesHome
         toogleFavSpecies={addRemoveUserFavSpecies}
-        userFavSpecies={userFavSpecies}
+        userFavSpecies={[...userFavSpecies]}
         interventionKey={interventionData ? interventionData.intervention_key : 'single-tree-registration'}
         form_id={interventionData ? interventionData.form_id : ""}
         isManageSpecies={isManageSpecies}

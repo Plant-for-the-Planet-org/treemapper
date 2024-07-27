@@ -1,7 +1,7 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { useRealm } from '@realm/react'
 import { Colors, Typography } from 'src/utils/constants'
@@ -25,7 +25,7 @@ const PlantPlotListModal = (props: Props) => {
     const snapPoints = useMemo(() => ['70%'], []);
 
     const { isVisible, toogleModal, setSpecies } = props
-    const [plantData, setPlantData] = useState<IScientificSpecies[] | any>([])
+    const [plantData, setPlantData] = useState<IScientificSpecies[]>([])
     const [search, setSearch] = useState('Search for species')
 
     const realm = useRealm()
@@ -63,7 +63,7 @@ const PlantPlotListModal = (props: Props) => {
         querySearchResult()
     }, [search])
 
-    const renderSpecieCard = (item: IScientificSpecies | any) => {
+    const renderSpecieCard = (item: IScientificSpecies) => {
         return (
             <SpecieCard
                 item={item}
@@ -74,6 +74,24 @@ const PlantPlotListModal = (props: Props) => {
         )
     }
 
+    const closeModal = () => {
+        bottomSheetModalRef.current.dismiss()
+        toogleModal()
+    }
+
+    const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+    )
+
+    const renderEmptyList=() => {
+        return (<View style={styles.emptyWrapper}>
+            <Text style={styles.empttyLabel}>
+                {search.length === 0 || search === 'Search for species' ? "Start searching for species on \nthe search input." : "Type at least 3 words for \n better result"}
+            </Text>
+        </View>)
+    }
+
+
     return (
         <BottomSheetModal
             ref={bottomSheetModalRef}
@@ -82,9 +100,7 @@ const PlantPlotListModal = (props: Props) => {
             detached
             handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
             snapPoints={snapPoints}
-            backdropComponent={({ style }) => (
-                <View style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} />
-            )}
+            backdropComponent={backdropModal}
         >
             <BottomSheetView style={styles.container} >
                 <View style={styles.sectionWrapper}>
@@ -108,13 +124,7 @@ const PlantPlotListModal = (props: Props) => {
                     <View style={styles.contnetWrapper}>
                         <FlashList
                             estimatedItemSize={100}
-                            ListEmptyComponent={() => {
-                                return (<View style={styles.emptyWrapper}>
-                                    <Text style={styles.empttyLabel}>
-                                        {search.length === 0 || search === 'Search for species' ? "Start searching for species on \nthe search input." : "Type at least 3 words for \n better result"}
-                                    </Text>
-                                </View>)
-                            }}
+                            ListEmptyComponent={renderEmptyList}
                             data={plantData}
                             renderItem={({ item }) => renderSpecieCard(item)}
                         />

@@ -25,16 +25,26 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
     id: 'unsync',
   };
 
+  const key = i18next.t('label.incomplete');
+  if (finalObject[key]) {
+    finalObject[key].count += 1;
+  }
+
   for (const item of data) {
     if (!item.is_complete) {
       finalObject[i18next.t('label.incomplete')] = {
-        count: (finalObject[i18next.t('label.incomplete')].count += 1),
+        count: finalObject[key]?.count ?? 0,
         ...finalObject[i18next.t('label.incomplete')],
       };
     }
+    if (finalObject['Unsynced']) {
+      finalObject['Unsynced'].count += 1;
+    } else {
+      finalObject['Unsynced'] = { count: 1 }; // Initialize if not exists
+    }
     if (item.status !== 'SYNCED' && item.is_complete) {
       finalObject['Unsynced'] = {
-        count: (finalObject['Unsynced'].count += 1),
+        count:  finalObject['Unsynced'].count,
         ...finalObject['Unsynced'],
       };
     }

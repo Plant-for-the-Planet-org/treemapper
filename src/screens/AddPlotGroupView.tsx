@@ -21,8 +21,8 @@ import i18next from 'src/locales/index'
 
 const AddPlotGroup = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotGroup'>>()
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : ''
-    const groupId = route.params && route.params.groupId ? route.params.groupId : ''
+    const isEdit = route.params?.isEdit ?? '';
+    const groupId = route.params?.groupId ?? '';
 
     const [groupName, setGroupName] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()

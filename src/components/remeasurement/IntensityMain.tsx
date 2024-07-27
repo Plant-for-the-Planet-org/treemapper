@@ -18,7 +18,7 @@ const Intensity = (props: Props) => {
 
 
   useEffect(() => {
-    AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
       AvoidSoftInput.setShouldMimicIOSBehavior(true);
     };

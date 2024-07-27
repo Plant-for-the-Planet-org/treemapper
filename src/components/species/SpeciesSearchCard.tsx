@@ -6,7 +6,7 @@ import { Typography, Colors } from 'src/utils/constants'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
-  item: IScientificSpecies | any
+  item: IScientificSpecies
   toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   handleCard: (item: IScientificSpecies, status: boolean) => void
   hideFav?: boolean

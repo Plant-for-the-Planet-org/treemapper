@@ -39,11 +39,11 @@ const fieldType: Array<{
 
 const AdditionDataElement = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AdditionDataElement'>>()
-  const elementType = route.params && route.params.element ? route.params.element : 'INPUT'
-  const form_id = route.params && route.params.form_id ? route.params.form_id : ''
-  const element_order = route.params && route.params.element_order ? route.params.element_order : 0
-  const element_id = route.params && route.params.element_id ? route.params.element_id : ''
-  const edit = route.params && route.params.edit ? route.params.edit : false
+  const elementType = route.params?.element ?? 'INPUT';
+  const form_id = route.params?.form_id ?? '';
+  const element_order = route.params?.element_order ?? 0;
+  const element_id = route.params?.element_id ?? '';
+  const edit = route.params?.edit ?? false;
 
   const [inputKey, setInputKey] = useState('')
   const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
@@ -214,8 +214,8 @@ const AdditionDataElement = () => {
     myElement.key = fieldKey
     myElement.label = inputKey
     myElement.visibility = isPublic ? "public" : 'private'
-    myElement.data_type = dataType.value === 'string' ? 'string' : 'number',
-      myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
+    myElement.data_type = dataType.value === 'string' ? 'string' : 'number'
+    myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
       myElement.required = isRequired
     myElement.dropDownData = JSON.stringify(dropDownElement)
     await updateElementInForm(element_id, form_id, myElement)
@@ -268,7 +268,7 @@ const AdditionDataElement = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView>
         <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
-        <Header label='' rightComponet={renderHeaderRight()} />
+        <Header label='' rightComponent={renderHeaderRight()} />
         <View style={styles.headerTitleWrapper}>
           <Text style={styles.header}>Add {renderTitle()}</Text>
           {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>

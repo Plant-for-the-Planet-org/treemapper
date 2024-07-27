@@ -29,10 +29,10 @@ const CreatePlotMapView = () => {
     const [plotName, setPlotName] = useState('');
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotMap'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
+    const plotID = route.params?.id ?? '';
+    const isEdit = route.params?.isEdit ?? false;
     const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
-    const plantId = route.params && route.params.plantId ? route.params.plantId : ''
+    const plantId = route.params?.plantId ?? '';
     const [initialPolygon, setInitialPloygon] = useState<any>([])
     const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
@@ -75,7 +75,7 @@ const CreatePlotMapView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={i18next.t('label.center')} rightComponet={<GpsAccuracyTile showModalInfo={() => null} />} />
+            <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={() => null} />} />
             <View style={styles.noteWrapper}>
                 <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
             </View>
@@ -90,10 +90,10 @@ const CreatePlotMapView = () => {
             <CreatePlotMapDetail
                 initialPolygon={initialPolygon}
                 isMarking={markLocation}
-                showNewDimentionModal={() => { setShowDimensionModal(true) }}
+                showNewDimensionModal={() => { setShowDimensionModal(true) }}
                 plantId={plantId}
                 isEdit={isEdit}
-                plnatedTrees={plantedTrees}
+                plantedTrees={plantedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
             <UserlocationMarker />
         </SafeAreaView>

@@ -55,7 +55,7 @@ const ActivityLogsView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label="Activity Logs" rightComponet={renderShareIcon()} />
+            <Header label="Activity Logs" rightComponent={renderShareIcon()} />
             <ActivityLogsTab />
             {loading && <View style={styles.modal} ><ActivityIndicator size='small' color={Colors.NEW_PRIMARY}></ActivityIndicator></View>}
         </SafeAreaView>

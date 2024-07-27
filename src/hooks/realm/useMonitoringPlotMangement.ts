@@ -227,7 +227,7 @@ const useMonitoringPlotMangement = () => {
       l: number,
       w: number,
       date: number,
-      status: PLOT_PLANT_STATUS | any,
+      status: PLOT_PLANT_STATUS,
     }
   ): Promise<boolean> => {
     try {

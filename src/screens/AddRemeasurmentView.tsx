@@ -23,8 +23,8 @@ import PenIcon from 'assets/images/svg/EditPenIcon.svg'
 
 const AddRemeasurmentView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'PlotPlantRemeasure'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantID = route.params && route.params.plantID ? route.params.plantID : ''
+    const plotID = route.params?.id ?? '';
+    const plantID = route.params?.plantID ?? '';
     const [selectedTimeline, setSelectedTimeLine] = useState<PlantedPlotSpecies>()
 
     const plotDetails = useObject<MonitoringPlot>(
@@ -99,7 +99,9 @@ const AddRemeasurmentView = () => {
     if (!selectedTimeline) {
         return null
     }
-    //todo
+
+    const renderFooter=() => (<View style={styles.footerWrapper} />)
+
     return (
         <SafeAreaView style={styles.cotnainer}>
             <PlotPlantRemeasureHeader label={selectedTimeline.tag} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={false} rightComponent={<Pressable style={styles.rightComp} onPress={editPlant}>
@@ -110,7 +112,7 @@ const AddRemeasurmentView = () => {
                     <FlatList
                         showsVerticalScrollIndicator={false}
                         style={styles.flatlistWrapper}
-                        ListFooterComponent={() => (<View style={styles.footerWrapper} />)}
+                        ListFooterComponent={renderFooter}
                         renderItem={({ item, index }) => { return renderCard(item, index) }}
                         data={selectedTimeline ? selectedTimeline.timeline : []} />
                 </View>

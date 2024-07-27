@@ -77,7 +77,7 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
             return
         }
         const queeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
-        const prioritizeData = queeData.sort((a, b) => a.priotiry - b.priotiry);
+        const prioritizeData = [...queeData].sort((a, b) => a.priotiry - b.priotiry);
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
             setTimeout(() => {
@@ -97,81 +97,97 @@ const SyncIntervention = ({ isLogedIn }: Props) => {
         uploadObjectsSequentially(uploadData);
     }
 
+    const handleIntervention = async (el) => {
+        try {
+            const body = await getPostBody(el);
+            if (!body) {
+                throw { error: true, message: "Not able to convert body" };
+            }
+            const response = await uploadIntervention(body);
+            if (response) {
+                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+                if (!result) {
+                    console.log("Error updating intervention");
+                }
+            }
+        } catch (error) {
+            console.log("Error occurred during individual upload:", error);
+        }
+    };
+    
+    const handleSingleTree = async (el) => {
+        try {
+            const body = await getPostBody(el);
+            if (!body) {
+                throw { error: true, message: "Not able to convert body" };
+            }
+            const response = await uploadIntervention(body);
+            if (response) {
+                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+                if (result) {
+                    await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
+                } else {
+                    console.log("Failed to write to db");
+                }
+            }
+        } catch (error) {
+            console.log("Error occurred during individual upload:", error);
+        }
+    };
+    
+    const handleSampleTree = async (el) => {
+        try {
+            const body = await getPostBody(el);
+            if (!body) {
+                throw { error: true, message: "Not able to convert body" };
+            }
+            const response = await uploadIntervention(body);
+            if (response) {
+                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates);
+            } else {
+                console.log("Failed to write to db");
+            }
+        } catch (error) {
+            console.log("Error occurred during individual upload:", error);
+        }
+    };
+    
+    const handleTreeImage = async (el) => {
+        try {
+            const body = await getPostBody(el);
+            if (!body) {
+                throw { error: true, message: "Not able to convert body" };
+            }
+            await uploadInterventionImage(body.locationId, body.imageId, {
+                imageFile: body.imageFile
+            });
+            await updateTreeImageStatus(el.p2Id, el.p1Id);
+        } catch (error) {
+            console.log("Error occurred during individual upload:", error);
+        }
+    };
+    
     const uploadObjectsSequentially = async (d: QueeBody[]) => {
         for (const el of d) {
-            if (el.type === 'intervention') {
-                try {
-                    const body = await getPostBody(el)
-                    if (!body) {
-                        throw { error: true, message: "Not able to convert body" }
-                    }
-                    const response = await uploadIntervention(body)
-                    if (response) {
-                        const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
-                        if (!result) {
-                            console.log("Error updating  intervention")
-                        }
-                    }
-                } catch (error) {
-                    console.log("error occured indvidual upload", +error)
-                }
-            }
-
-            if (el.type === 'singleTree') {
-                try {
-                    const body = await getPostBody(el)
-                    if (!body) {
-                        throw { error: true, message: "Not able to convert body" }
-                    }
-                    const response = await uploadIntervention(body)
-                    if (response) {
-                        const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus)
-                        if (result) {
-                            await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates)
-                        } else {
-                            //failed to write to db
-                        }
-                    }
-                } catch (error) {
-                    console.log("error occured indvidual upload", +error)
-                }
-
-            }
-
-            if (el.type === 'sampleTree') {
-                try {
-                    const body = await getPostBody(el)
-                    if (!body) {
-                        throw { error: true, message: "Not able to convert body" }
-                    }
-                    const response = await uploadIntervention(body)
-                    if (response) {
-                        await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates)
-                    } else {
-                        //failed to write to db
-                    }
-                } catch (error) {
-                    console.log("error occured indvidual upload", error)
-                }
-            }
-
-            if (el.type === 'treeImage') {
-                try {
-                    const body = await getPostBody(el)
-                    if (!body) {
-                        throw { error: true, message: "Not able to convert body" }
-                    }
-                    await uploadInterventionImage(body.locationId, body.imageId, {
-                        imageFile: body.imageFile
-                    })
-                    await updateTreeImageStatus(el.p2Id, el.p1Id)
-                } catch (error) {
-                    console.log("error occured indivua" + error)
-                }
+            switch (el.type) {
+                case 'intervention':
+                    await handleIntervention(el);
+                    break;
+                case 'singleTree':
+                    await handleSingleTree(el);
+                    break;
+                case 'sampleTree':
+                    await handleSampleTree(el);
+                    break;
+                case 'treeImage':
+                    await handleTreeImage(el);
+                    break;
+                default:
+                    console.log("Unknown type:", el.type);
             }
         }
-        startSyncingData()
-    }
+        startSyncingData();
+    };
 
     const renderSyncView = () => (
         <View style={styles.container}>

@@ -54,6 +54,7 @@ const PlotPlantList = (props: Props) => {
         }
     }
 
+    const renderFooter = () => { return (<View style={{ width: '100%', height: 100 }} />) }
 
 
     return (
@@ -64,8 +65,8 @@ const PlotPlantList = (props: Props) => {
                 ListEmptyComponent={<EmptyStaticScreen label={noResult ? i18next.t('label.no_search') : i18next.t('label.no_plants')} note={i18next.t('label.no_plant_note')}
                     marginTop={{}}
                     image={<EmptyIcom />} />}
-                ListFooterComponent={() => { return (<View style={{ width: '100%', height: 100 }} />) }}
-                renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection}/>)}
+                ListFooterComponent={renderFooter}
+                renderItem={({ item }) => (<PlantPlotCards item={item} handleSelection={handleSelection} />)}
                 data={plantData}
             />
             <CustomButton

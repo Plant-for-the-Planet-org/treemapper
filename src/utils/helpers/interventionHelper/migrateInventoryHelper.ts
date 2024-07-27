@@ -8,25 +8,19 @@ function dateStringToTimestamp(dateString) {
 }
 
 
-
 const interventionTitlteSwitch = (t: string): {
     title: string
     key: INTERVENTION_TYPE
     hasSampleTrees: boolean
 } => {
     switch (t) {
-        case 'multi':
-            return {
-                title: "Multi Tree Plantation",
-                key: 'multi-tree-registration',
-                hasSampleTrees: true
-            }
         case 'single':
             return {
                 title: "Single Tree Plantation",
                 key: 'single-tree-registration',
                 hasSampleTrees: false
             }
+        case 'multi':
         default:
             return {
                 title: "Multi Tree Plantation",
@@ -35,7 +29,6 @@ const interventionTitlteSwitch = (t: string): {
             }
     }
 }
-
 const getCoordinatesAndType = (inventory: any) => {
     const coords = inventory.polygons[0].coordinates;
 

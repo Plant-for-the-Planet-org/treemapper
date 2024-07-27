@@ -23,18 +23,22 @@ const OfflineMapList = () => {
     setDeleteData(null)
   }
 
+  const renderHeader = () => (
+    <Text style={styles.header}>Saved Offline Areas</Text>
+  )
+
+  const renderEmptyComp = () => (
+    <Text style={styles.emptylabel}>No Offline Map to show</Text>
+  )
+
   return (
     <View style={styles.container}>
       <DeleteModal isVisible={deleteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
       <FlatList
         data={allData}
-        renderItem={({ item, index }) => <OfflineMapCards data={item} index={index} delete={setDeleteData} />}
-        ListEmptyComponent={() => (
-          <Text style={styles.emptylabel}>No Offline Map to show</Text>
-        )}
-        ListHeaderComponent={() => (
-          <Text style={styles.header}>Saved Offline Areas</Text>
-        )}
+        renderItem={({ item }) => <OfflineMapCards data={item} delete={setDeleteData} />}
+        ListEmptyComponent={renderEmptyComp}
+        ListHeaderComponent={renderHeader}
       />
     </View>
   )

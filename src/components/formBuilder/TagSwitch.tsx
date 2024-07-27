@@ -27,6 +27,9 @@ const TagSwitch = (props: Props) => {
     switchHandler,
   errMsg
   } = props
+  const rendertrail=() => (
+    <Text style={styles.unitLabel}>{trailingtext}</Text>
+  )
   return (
     <View style={styles.container}>
       <View
@@ -60,9 +63,7 @@ const TagSwitch = (props: Props) => {
             fontSize={18}
             returnKeyType="done"
             error={errMsg.length?errMsg:undefined}
-            trailingIcon={() => (
-              <Text style={styles.unitLabel}>{trailingtext}</Text>
-            )}
+            trailingIcon={rendertrail}
           />
         </View>}
       </View>

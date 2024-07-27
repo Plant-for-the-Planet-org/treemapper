@@ -36,7 +36,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            ...extra ? extra : {}
+            ...extra || {}
           },
           geometry: {
             type: 'Point',
@@ -52,7 +52,7 @@ export const makeInterventionGeoJson = (
           type: 'Feature',
           properties: {
             id,
-            ...extra ? extra : {}
+            ...extra || {}
           },
           geometry: {
             type: 'Polygon',
@@ -82,24 +82,6 @@ export const convertInterventionFormData = (d: FormElement[]) => {
   })
   return data;
 }
-
-// const convertAdditionalData = (d: RegisterFormSliceInitalState) => {
-
-//   // const form_data = convertInterventionFormData(d.form_data)
-//   // let deviceLocation = {
-//   //   label: "Device Location",
-//   //   value: ""
-//   // };
-
-//   // if (lat && long) {
-//   //   deviceLocation.value = `${long.toFixed(6)},${lat.toFixed(6)}`
-//   // }
-// //ToDO
-//   // return JSON.stringify({
-//     //   ...form_data
-//     // })
-//     return ''
-//   }
 
 
 export const getInterventionColor = (key) => {
@@ -148,67 +130,56 @@ type NavigationResult = {
   params?: RootStackParamList[keyof RootStackParamList];
 };
 
-export const lastScreenNavigationHelper=(data:InterventionData):NavigationResult=>{
-  const formData = setUpIntervention(data.intervention_key)
-  if (data.last_screen === "FORM") {
-    if (formData.location_type === 'Point') {
-      return { screen: 'PointMarker', params: {id:data.intervention_id} }
-    }
-    if (formData.location_type === 'Polygon') {
-      return { screen: 'PolygonMarker', params: {id:data.intervention_id} }
-    }
+export const lastScreenNavigationHelper = (data: InterventionData): NavigationResult => {
+  const formData = setUpIntervention(data.intervention_key);
+  let result : NavigationResult;
+  switch (data.last_screen) {
+    case "FORM":
+      if (formData.location_type === 'Point') {
+        result = { screen: 'PointMarker', params: { id: data.intervention_id } };
+      }
+      if (formData.location_type === 'Polygon') {
+        result = { screen: 'PolygonMarker', params: { id: data.intervention_id } };
+      }
+      break;
+
+    case "LOCATION":
+      if (formData.species_required) {
+        result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
+      }
+      if (!formData.species_required) {
+        result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+      }
+      break;
+
+    case "SPECIES":
+      if (formData.tree_details_required) {
+        if (!formData.is_multi_species) {
+          result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
+        }
+        result = { screen: 'ManageSpecies', params: { manageSpecies: false, id: data.intervention_id } };
+      }
+      break;
+    case "TOTAL_TREES":
+      result = { screen: 'ReviewTreeDetails', params: { id: data.intervention_id } };
+      break;
+    case "TREE_DETAILS":
+      result = { screen: 'LocalForm', params: { id: data.intervention_id } };
+      break;
+    case "LOCAL_FORM":
+      result = { screen: 'DynamicForm', params: { id: data.intervention_id } };
+      break;
+    case "DYNAMIC_FORM":
+      result = { screen: 'InterventionPreview', params: { id: 'review', intervention: '', interventionId: data.intervention_id } };
+      break;
+    default:
+      result = { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id, interventionId: data.intervention_id } };
   }
-
-
-  //location select
-  if (data.last_screen === "LOCATION") {
-    if (formData.species_required) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false ,id:data.intervention_id} }
-    }
+  if (Object.keys(result).length === 0) {
+    result = { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id, interventionId: data.intervention_id } };
   }
-
-  //species select
-  if (data.last_screen === "SPECIES") {
-    if (formData.tree_details_required && !formData.is_multi_species) {
-      return { screen: 'ReviewTreeDetails', params: {id:data.intervention_id} }
-    }
-    if (formData.tree_details_required && formData.is_multi_species) {
-      return { screen: 'ManageSpecies', params: { manageSpecies: false,id:data.intervention_id} }
-    }
-  }
-
-
-  if (data.last_screen === "TOTAL_TREES") {
-    return { screen: 'ReviewTreeDetails', params: { id:data.intervention_id} }
-  }
-
-
-  //treeDetails select
-  if (data.last_screen === "TREE_DETAILS") {
-    return { screen: 'LocalForm', params: {id:data.intervention_id} }
-  }
-
-
-  if (data.last_screen === "LOCATION") {
-    if (!formData.species_required) {
-      return { screen: 'LocalForm', params: {id:data.intervention_id} }
-    }
-  }
-
-
-  //localForm select
-  if (data.last_screen === 'LOCAL_FORM') {
-    return { screen: 'DynamicForm', params: {id:data.intervention_id} }
-  }
-
-  if (data.last_screen === 'DYNAMIC_FORM') {
-    return { screen: 'InterventionPreview', params: { id: 'review', intervention: '' ,interventionId:data.intervention_id} }
-  }
-
-  return { screen: 'InterventionPreview', params: { id: 'preview', intervention: data.intervention_id,interventionId:data.intervention_id } }
-
+  return result
 }
-
 
 export const metaDataTranformer = (exsitingData: any, data: { public: any, private: any, app: any }) => {
   const finalData = { ...exsitingData }

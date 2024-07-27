@@ -2,6 +2,7 @@ import { StyleProp } from 'react-native'
 import React from 'react'
 import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { Colors } from 'src/utils/constants'
+import OnPressEvent from '@maplibre/maplibre-react-native/javascript/types/OnPressEvent'
 
 
 const polyline: StyleProp<LineLayerStyle> = {
@@ -41,15 +42,16 @@ const FillColor: any = [
 
 const PolygonShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
+  const handlePress = (e: OnPressEvent) => {
+    if (e?.features?.[0]) {
+      onShapeSourcePress(e.features[0].properties.id || '', e.features[0].properties.isPlot || false)
+    }
+  }
   return (
     <MapLibreGL.ShapeSource
       id={'polygon'}
       shape={geoJSON}
-      onPress={(e) => {
-        if (e && e.features && e.features[0]) {
-          onShapeSourcePress(e.features[0].properties.id || '', e.features[0].properties.isPlot || false)
-        }
-      }}>
+      onPress={handlePress}>
       <MapLibreGL.FillLayer
         id={'polyFill'}
         style={{

@@ -16,7 +16,7 @@ import {
 } from 'src/store/slice/projectStateSlice'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
 
 interface Props {
@@ -142,6 +142,20 @@ const ProjectModal = (props: Props) => {
     toogleModal()
     dismiss();
   }
+  const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+    <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+  )
+
+  const emptyListRenderUI=() => {
+    return (
+      <View style={styles.siteCard}>
+        <Text style={styles.siteCardLabel}>
+        {i18next.t('label.no_site_found')}
+        </Text>
+        <View style={styles.divider} />
+      </View>
+    )
+  }
 
   return (
     <BottomSheetModal
@@ -151,9 +165,7 @@ const ProjectModal = (props: Props) => {
       detached
       handleStyle={styles.handleIndicatorStyle}      enableContentPanningGesture={false}
       snapPoints={snapPoints}
-      backdropComponent={({ style }) => (
-        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal}/>
-      )}
+      backdropComponent={backdropModal}
     >
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
@@ -202,16 +214,7 @@ const ProjectModal = (props: Props) => {
                   )
                 }}
                 style={styles.siteWrapper}
-                ListEmptyComponent={() => {
-                  return (
-                    <View style={styles.siteCard}>
-                      <Text style={styles.siteCardLabel}>
-                      {i18next.t('label.no_site_found')}
-                      </Text>
-                      <View style={styles.divider} />
-                    </View>
-                  )
-                }}
+                ListEmptyComponent={emptyListRenderUI}
               />
             </View>
           </View>

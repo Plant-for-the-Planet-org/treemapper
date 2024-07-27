@@ -43,7 +43,7 @@ const InterventionBasicInfo = (props: Props) => {
         <Text style={styles.cardTitle}>Planted species</Text>
         <View style={styles.planetedSpeciesWrapper}>
           {planted_species.map((el, i) => (
-            <View key={i} style={{ marginVertical: 5 }}>
+            <View key={String(i)} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
               {el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? "Unknown" : el.scientificName}</Text>}
               {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}
@@ -58,7 +58,7 @@ const InterventionBasicInfo = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        {hid && <View style={styles.cardWrapper}>
+        {!!hid && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>HID</Text>
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
@@ -85,13 +85,13 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>Type</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
-        {project_name && (
+        {!!project_name && (
           <View style={styles.cardWrapper}>
             <Text style={styles.cardTitle}>Project</Text>
             <Text style={styles.cardLabel}>{project_name}</Text>
           </View>
         )}
-        {site_name && (
+        {!!site_name && (
           <View style={styles.cardWrapper}>
             <Text style={styles.cardTitle}>Site</Text>
             <Text style={styles.cardLabel}>{site_name}</Text>

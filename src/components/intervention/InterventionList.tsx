@@ -82,7 +82,7 @@ const InterventionList = (props: Props) => {
             onRefresh={refreshHandler}
           />}
         ListFooterComponent={<View style={styles.footerWrapper} />}
-        ListEmptyComponent={() => (emptyInterventoin())}
+        ListEmptyComponent={emptyInterventoin}
         ListHeaderComponent={
           <InterventionHeaderSelector
             selectedLabel={selectedLabel}

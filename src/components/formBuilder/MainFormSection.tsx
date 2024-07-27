@@ -124,7 +124,6 @@ const MainFormSection = (props: Props) => {
       })
     )
   }
-
   const renderElement = (formElements: FormElement[]) => {
     return formElements.map(element => {
       switch (element.type) {

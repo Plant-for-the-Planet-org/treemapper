@@ -24,15 +24,27 @@ const InterventionView = () => {
     getReleatedIntervention()
   }, [currentPage, selectedLabel])
 
+  const getQuery = (label) => {
+    if (label === 'unsync') {
+      return 'status != "SYNCED" AND is_complete == true';
+    } else if (label === 'incomplete') {
+      return 'is_complete==false';
+    } else if (label === 'all') {
+      return 'intervention_id!=""';
+    } else {
+      return `intervention_key=="${label}"`;
+    }
+  };
+
   const getReleatedIntervention = () => {
-    const query = selectedLabel === 'unsync' ? 'status != "SYNCED" AND is_complete == true' : selectedLabel === 'incomplete' ? 'is_complete==false' : selectedLabel === 'all' ? 'intervention_id!=""' : `intervention_key=="${selectedLabel}"`;
+    const query = getQuery(selectedLabel);
     const start = currentPage * 20;
     const end = start + 20;
     const objects = realm
       .objects(RealmSchema.Intervention)
       .filtered(query)
       .slice(start, end);
-      setAllIntervention([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
+    setAllIntervention([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
     setLoading(false)
   }
 

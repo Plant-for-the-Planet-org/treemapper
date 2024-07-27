@@ -26,9 +26,9 @@ import i18next from 'src/locales/index'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantId = route.params && route.params.plantId ? route.params.plantId : ''
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
+    const plotID = route.params?.id ?? '';
+    const plantId = route.params?.plantId ?? '';
+    const isEdit = route.params?.isEdit ?? false;
     const [isPlanted, setIsPlanted] = useState(true)
     const [measurementDate, setIsMeasurementDate] = useState(Date.now())
     const [species, setSpecies] = useState<IScientificSpecies | null>(null)
@@ -46,8 +46,15 @@ const AddPlantDetailsPlotView = () => {
     const toast = useToast()
 
     const getSpeciesNames = () => {
-        return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientificName}` : 'Select Species'
-    }
+        if (!species) {
+            return 'Select Species';
+        }
+
+        const aliases = species.aliases.length > 0 ? species.aliases : ''; // Convert array to comma-separated string
+        const scientificName = species.scientificName;
+
+        return `${aliases} ${scientificName}`.trim(); // Use trim() to remove any leading/trailing spaces
+    };
     const realm = useRealm()
 
     useEffect(() => {
@@ -129,10 +136,6 @@ const AddPlantDetailsPlotView = () => {
             toast.show("Please select a species")
             return
         }
-        // if (tag.trim().length === 0) {
-        //     toast.show("Please add valid Tag")
-        //     return
-        // }
         const plantTimeline: PlantTimeLine = {
             status: !isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
             length: Number(height),

@@ -1,9 +1,9 @@
 import * as React from 'react'
-import {createBottomTabNavigator} from '@react-navigation/bottom-tabs'
-import {BottomTabParamList} from 'src/types/type/navigation.type'
+import { createBottomTabNavigator } from '@react-navigation/bottom-tabs'
+import { BottomTabParamList } from 'src/types/type/navigation.type'
 import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
-import {StyleSheet} from 'react-native'
+import { StyleSheet } from 'react-native'
 import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
@@ -13,6 +13,26 @@ const Blank = () => {
 }
 
 const BottomStack = () => {
+  const mapIcon = ({ focused }) => {
+    return <BottomTabIcon label={'Map'} index={0} isFocused={focused} />
+  }
+  const interventionIcon = ({ focused }) => {
+    return (
+      <BottomTabIcon
+        label={'Interventions'}
+        index={1}
+        isFocused={focused}
+      />
+    )
+  }
+  const plotIcon = ({ focused }) => {
+    return (
+      <BottomTabIcon label={'Plots'} index={2} isFocused={focused} />
+    )
+  }
+  const addIcon = () => {
+    return <AddBottomTabIcon />
+  }
   return (
     <BottomTabStack.Navigator
       backBehavior="none"
@@ -20,50 +40,34 @@ const BottomStack = () => {
       screenOptions={{
         headerShown: false,
         tabBarShowLabel: false,
-        tabBarStyle: {...styles.container},
+        tabBarStyle: { ...styles.container },
       }}>
       <BottomTabStack.Screen
         name="Map"
         component={Screens.HomeMapView}
         options={{
-          tabBarIcon: ({focused}) => {
-            return <BottomTabIcon label={'Map'} index={0} isFocused={focused} />
-          },
+          tabBarIcon: mapIcon,
         }}
       />
       <BottomTabStack.Screen
         name="Interventions"
         component={Screens.Interventions}
         options={{
-          tabBarIcon: ({focused}) => {
-            return (
-              <BottomTabIcon
-                label={'Interventions'}
-                index={1}
-                isFocused={focused}
-              />
-            )
-          },
+          tabBarIcon: interventionIcon,
         }}
       />
       <BottomTabStack.Screen
         name="Plots"
         component={Screens.PlotView}
         options={{
-          tabBarIcon: ({focused}) => {
-            return (
-              <BottomTabIcon label={'Plots'} index={2} isFocused={focused} />
-            )
-          },
+          tabBarIcon: plotIcon
         }}
       />
       <BottomTabStack.Screen
         name="Add"
         component={Blank}
         options={{
-          tabBarIcon: () => {
-            return <AddBottomTabIcon />
-          },
+          tabBarIcon: addIcon
         }}
       />
     </BottomTabStack.Navigator>
@@ -78,7 +82,7 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     borderTopWidth: 0,
-    width:'100%',
+    width: '100%',
     height: 100,
     position: 'absolute',
     elevation: 0,

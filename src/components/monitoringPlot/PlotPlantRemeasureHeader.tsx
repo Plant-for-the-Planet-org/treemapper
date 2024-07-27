@@ -36,7 +36,7 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightCo
                     {species}
                 </Text>
             </View>
-            {rightComponent && rightComponent}
+            {!!rightComponent && rightComponent}
         </View>
     )
 }

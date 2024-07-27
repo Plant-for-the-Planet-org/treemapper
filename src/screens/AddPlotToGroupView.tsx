@@ -18,7 +18,7 @@ const AddPlotToGroupView = () => {
     const [groupPlots, setGroupPlots] = useState<string[]>([])
     const [groupName, setGroupName] = useState<string>('')
     const [plotList, setPlotList] = useState<MonitoringPlot[] | any>([])
-    const groupId = route.params && route.params.groupId ? route.params.groupId : ''
+    const groupId = route.params?.groupId ?? '';
     const realm = useRealm()
     const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotMangement()
 
@@ -97,7 +97,15 @@ const AddPlotToGroupView = () => {
         </View>)
     }
 
-
+    const renderEmptyComp = () => {
+        return (
+            <View style={styles.emptyWrapper}>
+                <Text style={styles.emptyLabel}>
+                    {i18next.t('label.no_plots')}
+                </Text>
+            </View>
+        )
+    }
 
     return (
         <SafeAreaView style={styles.container}>
@@ -106,15 +114,8 @@ const AddPlotToGroupView = () => {
                 <View style={styles.wrapper}>
                     <FlatList
                         style={[styles.flatListWrapper, { backgroundColor: plotList.length > 0 ? Colors.WHITE : 'transparent' }]}
-                        data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)} ListEmptyComponent={() => {
-                            return (
-                                <View style={styles.emptyWrapper}>
-                                    <Text style={styles.emptyLabel}>
-                                        {i18next.t('label.no_plots')}
-                                    </Text>
-                                </View>
-                            )
-                        }} />
+                        data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)}
+                        ListEmptyComponent={renderEmptyComp} />
                 </View>
             </View>
         </SafeAreaView>
