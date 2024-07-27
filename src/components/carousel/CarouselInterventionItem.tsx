@@ -1,65 +1,58 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
-import { InterventionData } from 'src/types/interface/slice.interface'
-import { scaleFont } from 'src/utils/constants/mixins'
-import { Colors, Typography } from 'src/utils/constants'
-import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { InterventionData } from 'src/types/interface/slice.interface';
+import { scaleFont } from 'src/utils/constants/mixins';
+import { Colors, Typography } from 'src/utils/constants';
+import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
+import InterventionIconSwitch from '../intervention/InterventionIconSwitch';
+import { INTERVENTION_TYPE } from 'src/types/type/app.type';
 
 interface Props {
-  data: InterventionData
-  onPress: ((id: string) => void)
+  data: InterventionData;
+  onPress: (id: string) => void;
 }
 
-const CarouselInterventionItem = (props: Props) => {
-  const { data, onPress } = props
-  if(data.sample_trees.length>0){
-    return (
-      <TouchableOpacity style={styles.container} onPress={() => {
-        onPress(data.intervention_id)
-      }}>
-        <View style={styles.imageWrapper}>
-          <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
-        </View>
-        <View style={styles.sectionWrapper}>
-          <Text style={styles.sectionLabel}>Intervention</Text>
-          <Text style={styles.speciesName} ellipsizeMode="tail">
-            {data.intervention_title}
-          </Text>
-          <Text style={styles.sectionLabel}>Intervention Date</Text>
-          <Text style={styles.valueLabel}>
-            {timestampToBasicDate(data.intervention_date)}
-          </Text>
-          {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show Tree Details</Text>
-          }
-        </View>
-      </TouchableOpacity>
-    )
-  }else{
-    return <TouchableOpacity style={styles.container} onPress={() => {
-      onPress(data.intervention_id)
-    }}>
-      <View style={styles.imageWrapper}>
-        <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
-      </View>
-      <View style={styles.sectionWrapper}>
-        <Text style={styles.sectionLabel}>Intervention</Text>
-        <Text style={styles.speciesName} ellipsizeMode="tail">
-          {data.intervention_title}
-        </Text>
-        <Text style={styles.sectionLabel}>Intervention Date</Text>
-        <Text style={styles.valueLabel}>
-          {timestampToBasicDate(data.intervention_date)}
-        </Text>
-        {data.sample_trees.length > 0 && <Text style={styles.sampleLabel}>Show More Details</Text>
-        }
-      </View>
-    </TouchableOpacity>
-  }
-}
+const InterventionItemContent: React.FC<{
+  icon: INTERVENTION_TYPE;
+  title: string;
+  date: string;
+  sampleTreesLength: number;
+  onPress: () => void;
+  showMoreText: string;
+}> = ({ icon, title, date, sampleTreesLength, onPress, showMoreText }) => (
+  <TouchableOpacity style={styles.container} onPress={onPress}>
+    <View style={styles.imageWrapper}>
+      <InterventionIconSwitch icon={icon} dimension={true} />
+    </View>
+    <View style={styles.sectionWrapper}>
+      <Text style={styles.sectionLabel}>Intervention</Text>
+      <Text style={styles.speciesName} ellipsizeMode="tail">
+        {title}
+      </Text>
+      <Text style={styles.sectionLabel}>Intervention Date</Text>
+      <Text style={styles.valueLabel}>
+        {date}
+      </Text>
+      {sampleTreesLength > 0 && <Text style={styles.sampleLabel}>{showMoreText}</Text>}
+    </View>
+  </TouchableOpacity>
+);
 
-export default CarouselInterventionItem
+const CarouselInterventionItem: React.FC<Props> = ({ data, onPress }) => {
+  const showMoreText = data.sample_trees.length > 0 ? 'Show Tree Details' : 'Show More Details';
+  return (
+    <InterventionItemContent
+      icon={data.intervention_key}
+      title={data.intervention_title}
+      date={timestampToBasicDate(data.intervention_date)}
+      sampleTreesLength={data.sample_trees.length}
+      onPress={() => onPress(data.intervention_id)}
+      showMoreText={showMoreText}
+    />
+  );
+};
 
+export default CarouselInterventionItem;
 
 const styles = StyleSheet.create({
   container: {
@@ -78,12 +71,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  imageUrl: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 20,
-  },
-
   sectionWrapper: {
     marginLeft: '5%',
     justifyContent: 'center',
@@ -110,4 +97,4 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
   }
-})
+});

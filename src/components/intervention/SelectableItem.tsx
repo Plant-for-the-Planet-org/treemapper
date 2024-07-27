@@ -1,46 +1,44 @@
 import React from 'react';
-import { View, Text, StyleSheet } from 'react-native';
-import SelectableItem from './SelectableItem';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { Typography } from 'src/utils/constants';
+import { View, Text, Pressable, StyleSheet } from 'react-native';
+import { Colors, Typography } from 'src/utils/constants';
 import { scaleFont } from 'src/utils/constants/mixins';
 
-interface Props {
-    header: string;
-    labelOne: { key: string; value: string };
-    labelTwo: { key: string; value: string };
+interface SelectableItemProps {
+    label: { key: string; value: string };
+    isChecked: boolean;
     disabled: boolean;
-    selectedValue: string;
-    onSelect: (key: "Polygon" | "Point") => void;
+    onSelect: (key: string) => void;
 }
 
-const SelectionLocationType: React.FC<Props> = ({ header, labelOne, labelTwo, disabled, selectedValue, onSelect }) => {
-    const isCheckedOne = selectedValue === labelOne.key;
-
-    return (
-        <View style={styles.container}>
-            <View style={styles.wrapper}>
-                <Text style={styles.headerLabel}>{header}</Text>
-                <View style={styles.checkWrapper}>
-                    <SelectableItem
-                        label={labelOne}
-                        isChecked={isCheckedOne}
-                        disabled={disabled}
-                        onSelect={onSelect}
-                    />
-                    <SelectableItem
-                        label={labelTwo}
-                        isChecked={!isCheckedOne}
-                        disabled={disabled}
-                        onSelect={onSelect}
-                    />
-                </View>
-            </View>
+const SelectableItem: React.FC<SelectableItemProps> = ({ label, isChecked, disabled, onSelect }) => (
+    <Pressable
+        style={styles.selectWrapper}
+        onPress={() => {
+            if (!disabled) {
+                onSelect(label.key);
+            }
+        }}
+    >
+        <View
+            style={[
+                styles.outerCircle,
+                { borderColor: isChecked && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }
+            ]}
+        >
+            {isChecked && !disabled && <View style={styles.innerCircle} />}
         </View>
-    );
-};
+        <Text
+            style={[
+                styles.checkBoxLabel,
+                { color: isChecked && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }
+            ]}
+        >
+            {label.value}
+        </Text>
+    </Pressable>
+);
 
-export default SelectionLocationType;
+export default SelectableItem;
 
 
 const styles = StyleSheet.create({
@@ -48,12 +46,12 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingBottom: 25,
-        marginTop: 8
+        paddingBottom:25,
+        marginTop:8
     },
     wrapper: {
         width: '92%',
-        height: 50,
+        height:50,
         borderRadius: 12,
         justifyContent: 'center',
         paddingHorizontal: 20,

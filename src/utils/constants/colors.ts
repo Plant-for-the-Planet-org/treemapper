@@ -84,3 +84,27 @@ export const DIRECT_SEEDING = '#6FCF97';
 export const ENRICHMENT_PLANTING = '#EB67CE';
 export const MAINTENANCE = '#6C63FF';
 export const OTHER_INTERVENTION = '#9B51E0';
+
+export const FillColor: any = [
+    'match',
+    ['get', 'key'],
+    'remeasurement', 'tomato',
+    'single-tree-registration',SINGLE_TREE,
+    'multi-tree-registration',MULTI_TREE,
+    'removal-invasive-species',INVASIVE_SPECIES,
+    'fire-suppression',FIRE_SUPPRESSION,
+    'fire-patrol',FIRE_PATROL,
+    'fencing',FENCING,
+    'marking-regenerant',MARKING_REGENERANT,
+    'liberating-regenerant',LIBERATING_REGENERANT,
+    'grass-suppression',GRASS_SUPPRESSION,
+    'firebreaks',FIREBREAKS,
+    'assisting-seed-rain',SEED_RAIN,
+    'soil-improvement',SOIL_IMPROVEMENT,
+    'stop-tree-harvesting',STOP_HARVESTING,
+    'direct-seeding',DIRECT_SEEDING,
+    'enrichment-planting',ENRICHMENT_PLANTING,
+    'other-intervention',OTHER_INTERVENTION,
+    'maintenance',MAINTENANCE,
+    SINGLE_TREE
+  ]
