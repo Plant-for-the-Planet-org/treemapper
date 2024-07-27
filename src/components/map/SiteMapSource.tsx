@@ -73,7 +73,7 @@ const SiteMapSource = (props: Props) => {
       }
       setGeoJSON(reducedSites);
     } catch (error) {
-      console.log('error occurred at siteGeojson', error);
+      console.log('error occurred at siteGeojson', error)
     }
   };
   if (!geoJSON) {

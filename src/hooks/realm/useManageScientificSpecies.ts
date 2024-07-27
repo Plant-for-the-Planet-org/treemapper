@@ -64,7 +64,7 @@ const useManageScientificSpecies = () => {
     } catch (error) {
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "DB error occured while adding undefined species.",
+        message: "DB error occurred while adding undefined species.",
         logLevel: 'error',
         statusCode: '000',
         logStack: JSON.stringify(error)
@@ -133,7 +133,7 @@ const useManageScientificSpecies = () => {
     } catch (error) {
       addNewLog({
         logType: 'MANAGE_SPECIES',
-        message: "Error occured while adding user species.",
+        message: "Error occurred while adding user species.",
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)

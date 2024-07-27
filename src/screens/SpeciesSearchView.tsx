@@ -39,9 +39,9 @@ const SpeciesSearchView = () => {
     })
     updateUserFavSpecies(item.guid, status)
     if (status) {
-      toast.show(`"${item.scientificName}" added to favourites`)
+      toast.show(`"${item.scientificName}" added to favorites`)
     } else {
-      toast.show(`"${item.scientificName}" removed from favourites`)
+      toast.show(`"${item.scientificName}" removed from favorites`)
     }
   }
 

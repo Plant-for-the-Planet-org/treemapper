@@ -110,11 +110,11 @@ const PlotPlantRemeasureView = () => {
 
     const dateCheck = (index: number, newDate: number) => {
         if (index > 0 && newDate <= selectedTimeline.timeline[index - 1].date) {
-            toast.show("Selected date cannot be less than the previous measurment.")
+            toast.show("Selected date cannot be less than the previous measurement.")
             return false
         }
         if (index < selectedTimeline.timeline.length - 1 && newDate >= selectedTimeline.timeline[index + 1].date) {
-            toast.show("Selected date cannot be more than the next measurment.")
+            toast.show("Selected date cannot be more than the next measurement.")
             return false
         }
 
@@ -124,11 +124,11 @@ const PlotPlantRemeasureView = () => {
     const updateDetails = async () => {
         const index = selectedTimeline.timeline.findIndex(el => el.timeline_id === timelineId)
         if (index === 0 && !isAlive) {
-            toast.show("Planted Status cannot be marked as dseceased.\nPlease create new measurment and mark it as desceased.")
+            toast.show("Planted Status cannot be marked as deceased.\nPlease create new measurement and mark it as deceased.")
             return
         }
         if (index !== selectedTimeline.timeline.length - 1 && !isAlive) {
-            toast.show("Please delete all the other measurement next to this measurment before marking it desceased.")
+            toast.show("Please delete all the other measurement next to this measurement before marking it deceased.")
             return
         }
         if (!dateCheck(index, measurementDate)) {
@@ -146,7 +146,7 @@ const PlotPlantRemeasureView = () => {
             toast.show("Details updated")
             navigation.goBack()
         } else {
-            toast.show("Error occured")
+            toast.show("Error occurred")
         }
     }
     return (
@@ -159,7 +159,7 @@ const PlotPlantRemeasureView = () => {
                     value={isAlive}
                 />
                 {isAlive && <><InterventionDatePicker
-                    placeHolder={'Measurment Date'}
+                    placeHolder={'Measurement Date'}
                     value={measurementDate}
                     callBack={setMeasurementDate}
                 />

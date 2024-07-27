@@ -118,7 +118,7 @@ const AddRemeasurmentView = () => {
                 </View>
             </View>
             {selectedTimeline.is_alive && <CustomButton
-                label="Add Remeasurment"
+                label="Add Remeasurement"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleSelection}
                 hideFadein

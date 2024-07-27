@@ -45,7 +45,7 @@ const TotalTreesView = () => {
     const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
     if (!result) {
       errotHaptic()
-      toast.show("Error occured while updating data")
+      toast.show("Error occurred while updating data")
       return
     }
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees, id: intervention.form_id })
@@ -64,7 +64,7 @@ const TotalTreesView = () => {
   const removeHandler = async (item: PlantedSpecies) => {
     const result = await removeInterventionPlantedSpecies(interventionId, item)
     if (!result) {
-      toast.show("Error occured while removing speices")
+      toast.show("Error occurred while removing species")
       errotHaptic()
     } else {
       toast.show(`${item.scientificName} removed`)

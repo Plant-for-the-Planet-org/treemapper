@@ -20,7 +20,7 @@ const useInterventionManagement = () => {
     if (result.hasError) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while creating Intervention folder ' + interventoin.form_id,
+        message: 'Error occurred while creating Intervention folder ' + interventoin.form_id,
         logLevel: 'error',
         statusCode: '',
         logStack: result.msg
@@ -84,7 +84,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while creating intervention' + `(${interventoin.title}).`,
+        message: 'Error occurred while creating intervention' + `(${interventoin.title}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -108,7 +108,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while adding server intervention ' + interventoin.intervention_id,
+        message: 'Error occurred while adding server intervention ' + interventoin.intervention_id,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -135,7 +135,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while adding sample tree' + `(${treeDetails.intervention_id}).`,
+        message: 'Error occurred while adding sample tree' + `(${treeDetails.intervention_id}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -211,7 +211,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: `Error occured while marking Intervention(${intervnetionID}) complete.`,
+        message: `Error occurred while marking Intervention(${intervnetionID}) complete.`,
         logLevel: 'info',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -260,7 +260,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while clearing synced interventions for logout action.',
+        message: 'Error occurred while clearing synced interventions for logout action.',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -290,7 +290,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while updating intervention location',
+        message: 'Error occurred while updating intervention location',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -309,7 +309,7 @@ const useInterventionManagement = () => {
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Speices added to intervention' + `(${intervnetionID}).`,
+        message: 'Species added to intervention' + `(${intervnetionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
@@ -317,7 +317,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while adding intervention',
+        message: 'Error occurred while adding intervention',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -336,7 +336,7 @@ const useInterventionManagement = () => {
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Speices removed from intervention' + `(${intervnetionID}).`,
+        message: 'Species removed from intervention' + `(${intervnetionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
@@ -344,7 +344,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while removing intervention',
+        message: 'Error occurred while removing intervention',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -370,7 +370,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occured while adding additional data',
+        message: 'Error occurred while adding additional data',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -396,7 +396,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error w while adding form data',
+        message: 'Error while adding form data',
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -413,7 +413,7 @@ const useInterventionManagement = () => {
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Updated lastscreen for intervention' + `(${intervnetionID}).`,
+        message: 'Updated last screen for intervention' + `(${intervnetionID}).`,
         logLevel: 'info',
         statusCode: '',
       })
@@ -421,7 +421,7 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error while updating lastscreen for intervention' + `(${intervnetionID}).`,
+        message: 'Error while updating last screen for intervention' + `(${intervnetionID}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
@@ -438,7 +438,7 @@ const useInterventionManagement = () => {
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Updated metadaa for intervention' + `(${intervnetionID}).`,
+        message: 'Updated metadata for intervention' + `(${intervnetionID}).`,
         logLevel: 'info',
         statusCode: '',
       })
@@ -589,25 +589,3 @@ const useInterventionManagement = () => {
 }
 
 export default useInterventionManagement
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

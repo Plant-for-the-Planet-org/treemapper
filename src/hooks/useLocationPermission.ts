@@ -14,7 +14,7 @@ const useLocationPermission = () => {
       dispatch(updaeBlockerModal(true))
       addNewLog({
         logType: 'LOCATION',
-        message: "Location Permission Deined",
+        message: "Location permission denied",
         logLevel: 'warn',
         statusCode: '',
       })

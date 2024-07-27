@@ -54,7 +54,7 @@ const SyncSpecies = () => {
     if (!isConnected) {
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Species data sync stoped due to network",
+        message: "Species data sync stopped due to network",
         logLevel: 'warn',
         statusCode: '000',
       })
@@ -129,7 +129,7 @@ const SyncSpecies = () => {
     } catch (error) {
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Error occured while syncing species data",
+        message: "Error occurred while syncing species data",
         logLevel: 'info',
         statusCode: '000',
       })

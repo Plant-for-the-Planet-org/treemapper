@@ -40,7 +40,7 @@ const EcosystemCard = (props: Props) => {
         let l = ''
         if (type === 'SOIL_MOISTURE') l = "Soil Moisture"
         if (type === 'CANOPY') l = "Canopy"
-        if (type === 'BIOACUSTICS') l = "Bioacustics"
+        if (type === 'BIOACUSTICS') l = "Bioacoustics"
         return l
     }
 

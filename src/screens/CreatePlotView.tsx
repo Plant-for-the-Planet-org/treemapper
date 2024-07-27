@@ -30,7 +30,7 @@ const CreatePlotView = () => {
         if (result) {
             navigation.replace('CreatePlotDetail', { id: details.plot_id })
         } else {
-            toast.show("Error while cretaing plots")
+            toast.show("Error while creating plots")
         }
     }
 

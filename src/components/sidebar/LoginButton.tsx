@@ -58,7 +58,7 @@ const LoginButton = () => {
         });
         addNewLog({
           logType: 'USER',
-          message: "Loged in failed(Credentials not found)",
+          message: "Logged in failed (Credentials not found)",
           logLevel: 'error',
           statusCode: '',
         })

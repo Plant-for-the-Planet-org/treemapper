@@ -77,7 +77,7 @@ const InterventionFormView = () => {
     if (result.hasError) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: "Error Occured while creating root folder",
+        message: "Error occurred while creating root folder",
         logLevel: 'error',
         statusCode: '',
         logStack: result.msg
@@ -131,7 +131,7 @@ const InterventionFormView = () => {
       }
       dispatch(updateNewIntervention())
     } else {
-      toast.show("Error occured while adding intervention")
+      toast.show("Error occurred while adding intervention")
       errotHaptic()
     }
   }

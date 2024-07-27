@@ -52,7 +52,7 @@ const ImportFormView = () => {
         metaData,
         version: 1
       })),
-      message: "Exporting Additinal/MetaData",
+      message: "Exporting Additional/MetaData",
       title: "Export",
       filename: `formData_v1.json`,
       saveToFiles: true,

@@ -243,7 +243,3 @@ const styles = StyleSheet.create({
         marginLeft: 5
     }
 })
-
-
-
-

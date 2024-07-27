@@ -38,10 +38,10 @@ const useDownloadFile = () => {
       setCurrentState(SPECIES_SYNC_STATE.UNZIPPING_FILE)
       await unzipFile(zipFilePath, targetFilePath)
     } catch (error) {
-      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURED)
+      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Error occured while downloading species",
+        message: "Error occurred while downloading species",
         logLevel: 'error',
         statusCode: '000',
         logStack: JSON.stringify(error)
@@ -60,7 +60,7 @@ const useDownloadFile = () => {
       await unzip(zipFilePath, targetFilePath)
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Species data unziped successfully",
+        message: "Species data unzipped successfully",
         logLevel: 'info',
         statusCode: '000',
       })
@@ -75,12 +75,12 @@ const useDownloadFile = () => {
     } catch (error) {
       addNewLog({
         logType: 'DATA_SYNC',
-        message: "Error occured while unziping species data",
+        message: "Error occurred while unzipping species data",
         logLevel: 'error',
         statusCode: '000',
         logStack: JSON.stringify(error)
       })
-      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURED)
+      setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
     }
   }
 

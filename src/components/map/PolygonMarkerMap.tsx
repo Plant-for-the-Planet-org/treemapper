@@ -147,7 +147,7 @@ const PolygonMarkerMap = (props: Props) => {
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
       errotHaptic()
-      toast.show('Error occured while updating location')
+      toast.show('Error occurred while updating location')
       return
     }
     if (species_required) {

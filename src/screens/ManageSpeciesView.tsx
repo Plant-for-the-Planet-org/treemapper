@@ -77,7 +77,7 @@ const ManageSpeciesView = () => {
     setTreeModalDetails(null)
     const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
     if (!result) {
-      toast.show("Error occured while adding speceis")
+      toast.show("Error occurred while adding species")
       return
     }
     navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
@@ -102,7 +102,7 @@ const ManageSpeciesView = () => {
       }
       const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
       if (!result) {
-        toast.show("Error occured while adding speceis")
+        toast.show("Error occurred while adding species")
         return
       }
       navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
