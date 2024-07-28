@@ -2,6 +2,7 @@ import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface
 
 // import {FormElement, MainForm} from 'src/types/interface/form.interface'
 import {FormElement, MainForm} from 'src/types/interface/form.interface'
+import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 const TeamName: FormElement = {
   index: 0,
@@ -51,36 +52,20 @@ const fireSuppressionForm: MainForm = {
 
 
 export const FireSuppressionTeam: RegisterFormSliceInitialState = {
-  form_id: '',
+  ...initialInterventionState,
   key: 'fire-suppression',
   title: 'Fire Suppression Team',
-  intervention_date: 0,
   skip_intervention_form: false,
-  user_type: '',
-  project_id: '',
-  project_name: '',
-  site_id: '',
-  site_name: '',
   can_be_entire_site: false,
   entire_site_selected: false,
   should_register_location: false,
   location_type: 'Point',
   location_title: 'Select Location',
-  coordinates: [],
   preview_blank_polygon: false,
-  cover_image_url: '',
   species_required: false,
   is_multi_species: false,
   species_count_required: false,
-  species_modal_message: '',
-  species_modal_unit: '',
-  species: [],
   has_sample_trees: false,
   tree_details_required: false,
-  tree_details: [],
-  form_details: [fireSuppressionForm],
-  meta_data: '{}',
-  additional_data: [],
-  form_data: [],
-  plantedSpecies: []
+  form_details: [fireSuppressionForm]
 }

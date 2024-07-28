@@ -16,6 +16,9 @@ import { OtherIntervention } from './interventionJSON/otherIntervention'
 import { StopTreeHarvesting } from './interventionJSON/stopTreeHarvesting'
 import { SoilImprovements } from './interventionJSON/soilImprovements'
 import { RemovalOfInvasiveSpecies } from './interventionJSON/removalOfInvasiveSpecies'
+import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
+
+
 
 
 export const setUpIntervention = (type: INTERVENTION_TYPE) => {
@@ -55,6 +58,6 @@ export const setUpIntervention = (type: INTERVENTION_TYPE) => {
     case 'other-intervention':
       return OtherIntervention
     default:
-      return SingleTeePlantation
+      return initialInterventionState
   }
 }
