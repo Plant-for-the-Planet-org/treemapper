@@ -30,6 +30,7 @@ import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { Metadata } from 'src/types/interface/app.interface'
+import * as Application from 'expo-application'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -159,7 +160,7 @@ const InterventionPreviewView = () => {
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
-        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>Collected With TreeMapper 2.0.3</Text>}
+        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{Application.nativeApplicationVersion}</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton

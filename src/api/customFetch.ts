@@ -2,6 +2,9 @@ import store from 'src/store/index'
 import 'react-native-get-random-values'
 import { v4 as uuid } from 'uuid'
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Application from 'expo-application'
+import { Platform } from 'react-native';
+
 
 const setAndGetSessionId = async () => {
   let sessionId: any = await AsyncStorage.getItem('session-id');
@@ -16,7 +19,7 @@ const setAndGetSessionId = async () => {
 const defaultHeaders = {
   "x-accept-versions": "2.0.0",
   "Content-Type": "application/json",
-  "User-Agent": "treemapper/android/1.0.11"
+  "User-Agent": `treemapper/${Platform.OS}/${Application.nativeApplicationVersion}`
 }
 
 

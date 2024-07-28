@@ -5,7 +5,7 @@ import {Spacing, Typography, Colors} from 'src/utils/constants'
 import {scaleSize} from 'src/utils/constants/mixins'
 import LoginButton from './LoginButton'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
-
+import * as Application from 'expo-application'
 interface Props {
   isLoggedIn: boolean
 }
@@ -25,7 +25,7 @@ const SideBarFooter = (props: Props) => {
     <View style={[styles.versionContainer]}>
       {!isLoggedIn && <LoginButton />}
       <View key="version" style={styles.version}>
-        <Text style={styles.itemText}>2.0.1</Text>
+        <Text style={styles.itemText}>{Application.nativeApplicationVersion}</Text>
       </View>
       <View style={styles.termsContainer}>
         <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>
