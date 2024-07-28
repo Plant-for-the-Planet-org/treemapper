@@ -21,7 +21,7 @@ interface Props {
 }
 
 const InterventionHeaderList = (props: Props) => {
-  const { selectedLabel, setSelectedLabel: setSelectedLabel } = props
+  const { selectedLabel, setSelectedLabel } = props
   const [headerData, setHeaderData] = useState([])
   const { lastServerInterventionpage, intervention_updated } = useSelector((state: RootState) => state.appState)
 

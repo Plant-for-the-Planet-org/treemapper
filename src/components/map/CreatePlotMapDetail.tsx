@@ -43,7 +43,7 @@ interface Props {
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees: plantedTrees } = props
+  const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees } = props
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(
@@ -52,7 +52,7 @@ const CreatePlotMapDetail = (props: Props) => {
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
   const [updatedCoords, setUpdatedCoords] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const { updatePlotLocation, updatePlotPlantLocation: updatePlotPlantLocation } = useMonitoringPlotManagement()
+  const { updatePlotLocation, updatePlotPlantLocation } = useMonitoringPlotManagement()
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -66,7 +66,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
 
   useEffect(() => {
-    if (initialPolygon && initialPolygon.length) {
+    if (initialPolygon?.length) {
       setPlotCoordinates(initialPolygon)
     }
   }, [initialPolygon, isEdit])

@@ -19,7 +19,6 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
-import { InterventionData } from 'src/types/interface/slice.interface'
 
 interface Props {
   toggleFilterModal: () => void
@@ -29,7 +28,7 @@ interface Props {
 const HomeHeader = (props: Props) => {
   const { addAllProjects } = useProjectManagement()
   const { addUserSpecies } = useManageScientificSpecies()
-  const { toggleFilterModal: toggleFilterModal, toggleProjectModal } = props
+  const { toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
@@ -128,7 +127,6 @@ const HomeHeader = (props: Props) => {
   const addServerIntervention = async () => {
     try {
       const result = await getServerIntervention(lastServerInterventionpage)
-      const interventions: InterventionData[] = [];
       if (result?.items) {
         if (!result._links.next || result._links.next === result._links.self) {
           dispatch(updateServerIntervention(true))
@@ -139,7 +137,6 @@ const HomeHeader = (props: Props) => {
             continue;
           }
           const element = convertInventoryToIntervention(result.items[index]);
-          interventions.push(element)
           await addNewIntervention(element)
         }
         const nextPage = getExtendedPageParam(result._links.next)

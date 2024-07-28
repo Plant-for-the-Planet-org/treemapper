@@ -24,7 +24,7 @@ interface Props {
 }
 
 const InterventionList = (props: Props) => {
-  const { interventionData, selectedLabel, setSelectedLabel: setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
+  const { interventionData, selectedLabel, setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [deleteData, setDeleteData] = useState(null)
   const { deleteIntervention } = useInterventionManagement()
