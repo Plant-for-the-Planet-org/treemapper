@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 
 const Description: FormElement = {
@@ -23,39 +23,7 @@ const Description: FormElement = {
 
 
 
-// const TagIdSwitch: FormElement = {
-//   index: 0,
-//   key: 'is-tree-tagged',
-//   label: 'This tree has been tagged for identification',
-//   default: 'false',
-//   type: 'SWITCH',
-//   placeholder: '',
-//   unit: '',
-//   visibility: 'public',
-//   condition: null,
-//   data_type: 'boolean',
-//   keyboard_type: 'default',
-//   sub_form: undefined,
-//   editable: true
-// }
 
-// const TagId: FormElement = {
-//   index: 0,
-//   key: 'tag-id',
-//   label: 'Tag Id',
-//   default: '',
-//   type: 'INPUT',
-//   placeholder: 'Tag id',
-//   unit: '',
-//   visibility: 'public',
-//   condition: {
-//     'is-tree-tagged': true,
-//   },
-//   data_type: 'number',
-//   keyboard_type: 'default',
-//   sub_form: undefined,
-//   editable: true
-// }
 
 const maintenanceForm: MainForm = {
   title: 'Details',
@@ -64,7 +32,7 @@ const maintenanceForm: MainForm = {
 }
 
 
-export const Maintenance: RegisterFormSliceInitalState = {
+export const Maintenance: RegisterFormSliceInitialState = {
   form_id: '',
   title: 'Maintenance',
   intervention_date: 0,

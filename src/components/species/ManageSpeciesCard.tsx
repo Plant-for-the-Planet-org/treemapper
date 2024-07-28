@@ -13,16 +13,15 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
   onPressSpecies: (item: PlantedSpecies | IScientificSpecies) => void
-  isSampleTreeSpecies?: boolean
   actionName: string
-  handleRemoveFavourite?: any
+  handleRemoveFavorite?: any
   isSelectSpecies: boolean
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
   item,
   onPressSpecies,
-  handleRemoveFavourite,
+  handleRemoveFavorite,
   actionName,
   isSelectSpecies
 }) => {
@@ -77,7 +76,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {!isSelectSpecies && <TouchableOpacity onPress={() => handleRemoveFavourite(item)}>
+          {!isSelectSpecies && <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (

@@ -29,7 +29,7 @@ const PlotMapDisplay = (props: Props) => {
 
     const setupMap = () => {
         const coords = JSON.parse(props.data.location.coordinates)
-        if (coords && coords.length) {
+        if (coords?.length) {
             setPlotCoordinates(coords)
         }
     }
@@ -45,7 +45,7 @@ const PlotMapDisplay = (props: Props) => {
         //@ts-expect-error:error
         const { geoJSON } = makeInterventionGeoJson('Polygon', plotCoordinates[0], '');
         const bounds = bbox(geoJSON)
-        if (cameraRef && cameraRef.current) {
+        if (cameraRef?.current) {
             cameraRef.current.fitBounds(
                 [bounds[0], bounds[1]],
                 [bounds[2], bounds[3]],
@@ -60,7 +60,7 @@ const PlotMapDisplay = (props: Props) => {
     }
 
     const onMarkerPress = (id: string) => {
-        navigation.navigate('AddRemeasurment', { id: props.data.plot_id, plantID: id })
+        navigation.navigate('AddRemeasurement', { id: props.data.plot_id, plantID: id })
 
     }
 

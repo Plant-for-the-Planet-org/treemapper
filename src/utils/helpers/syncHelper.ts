@@ -1,5 +1,5 @@
 import moment from "moment";
-import { InterventionData, QueeBody, SampleTree } from "src/types/interface/slice.interface";
+import { InterventionData, QuaeBody, SampleTree } from "src/types/interface/slice.interface";
 import { setUpIntervention } from "./formHelper/selectIntervention";
 import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
@@ -8,11 +8,6 @@ import * as FileSystem from 'expo-file-system';
 const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
 }
-
-// const checkForIncompleteOrCorruptData = () => {
-
-// }
-
 
 
 const getImageAsBase64 = async (fileUri: string) => {
@@ -29,22 +24,22 @@ const getImageAsBase64 = async (fileUri: string) => {
 
 
 export const postDataConvertor = (d: InterventionData[]) => {
-    const quee: QueeBody[] = []
+    const quae: QuaeBody[] = []
     d.forEach(el => {
         if (el.intervention_key === 'single-tree-registration') {
             if (el.hid === '') {
-                quee.push({
+                quae.push({
                     type: 'singleTree',
-                    priotiry: 1,
+                    priority: 1,
                     nextStatus: 'PENDING_TREE_IMAGE',
                     p1Id: el.intervention_id,
                     p2Id: el.sample_trees[0].tree_id,
                 })
             }
             if (el.status === 'PENDING_TREE_IMAGE') {
-                quee.push({
+                quae.push({
                     type: 'treeImage',
-                    priotiry: 3,
+                    priority: 3,
                     nextStatus: 'SYNCED',
                     p1Id: el.intervention_id,
                     p2Id: el.sample_trees[0].tree_id,
@@ -52,27 +47,27 @@ export const postDataConvertor = (d: InterventionData[]) => {
             }
         } else {
             if (el.hid === '') {
-                quee.push({
+                quae.push({
                     type: 'intervention',
-                    priotiry: 1,
+                    priority: 1,
                     nextStatus: el.sample_trees.length !== 0 ? 'PENDING_SAMPLE_TREE' : 'SYNCED',
                     p1Id: el.intervention_id,
                 })
             }
             el.sample_trees.forEach(trees => {
                 if (el.hid !== '' && trees.sloc_id === '') {
-                    quee.push({
+                    quae.push({
                         type: 'sampleTree',
-                        priotiry: 2,
+                        priority: 2,
                         nextStatus: 'PENDING_TREE_IMAGE',
                         p1Id: el.intervention_id,
                         p2Id: trees.tree_id,
                     })
                 }
                 if (trees.status === 'PENDING_TREE_IMAGE') {
-                    quee.push({
+                    quae.push({
                         type: 'treeImage',
-                        priotiry: 3,
+                        priority: 3,
                         nextStatus: 'SYNCED',
                         p1Id: el.intervention_id,
                         p2Id: trees.tree_id,
@@ -81,17 +76,17 @@ export const postDataConvertor = (d: InterventionData[]) => {
             });
         }
     });
-    return quee
+    return quae
 }
 
-export const getPostBody = async (r: QueeBody) => {
+export const getPostBody = async (r: QuaeBody) => {
     if (r.type === 'intervention') {
         const InterventionD = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertInterventiontoBody(JSON.parse(JSON.stringify(InterventionD)))
+        return convertInterventionBody(JSON.parse(JSON.stringify(InterventionD)))
     }
     if (r.type === 'singleTree') {
         const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertTreetoBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])))
+        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])))
     }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -99,7 +94,7 @@ export const getPostBody = async (r: QueeBody) => {
         if (Intervention.location_id === '') {
             return null
         }
-        return convertTreetoBody(Intervention, TreeDetails)
+        return convertTreeToBody(Intervention, TreeDetails)
     }
     if (r.type === 'treeImage') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -116,7 +111,7 @@ export const getPostBody = async (r: QueeBody) => {
     }
 }
 
-export const convertInterventiontoBody = (d: InterventionData) => {
+export const convertInterventionBody = (d: InterventionData) => {
     const metaData = JSON.parse(d.meta_data);
     const interventionForm = setUpIntervention(d.intervention_key)
     const postData: any = {
@@ -145,7 +140,7 @@ export const convertInterventiontoBody = (d: InterventionData) => {
             const species: any = {}
             species.treeCount = el.count
             if (el.guid === 'undefined') {
-                species.otherSpecies = "Unkown"
+                species.otherSpecies = "Unknown"
             } else {
                 species.scientificSpecies = el.guid
             }
@@ -159,7 +154,7 @@ export const convertInterventiontoBody = (d: InterventionData) => {
     return postData
 }
 
-export const convertTreetoBody = (i: InterventionData, d: SampleTree) => {
+export const convertTreeToBody = (i: InterventionData, d: SampleTree) => {
     const metaData = JSON.parse(i.meta_data);
     const postData: any = {
         type: i.intervention_type === 'single-tree-registration' ? 'single-tree-registration' : 'sample-tree-registration',

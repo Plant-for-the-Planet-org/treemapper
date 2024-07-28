@@ -10,7 +10,7 @@ const useDownloadFile = () => {
   const [finalURL, setFinalURL] = useState<string | null>(null)
   const { addNewLog } = useLogManagement()
 
-  const fileUrl = getUrlApi.getAllSpeciesArchieve
+  const fileUrl = getUrlApi.getAllSpeciesAchieve
   const zipFilePath = `${FileSystem.cacheDirectory}archive.zip`
   const targetFilePath = `${FileSystem.cacheDirectory}unzipped`
 

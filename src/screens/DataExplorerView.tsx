@@ -27,7 +27,7 @@ const DataExplorerView = () => {
           Learn from your data with DataExplorer or
         </Text>
         <Text style={styles.section}>
-          download it to analyse it in Excel or Python
+          download it to analyze it in Excel or Python
         </Text>
         <Text>
           {'\n'}

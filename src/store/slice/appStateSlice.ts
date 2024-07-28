@@ -2,16 +2,16 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { AppInitialState } from 'src/types/interface/slice.interface'
 
 const initialState: AppInitialState = {
-  isLogedIn: false,
+  isLoggedIn: false,
   accessToken: '',
   idToken: '',
-  refreshToken:'',
+  refreshToken: '',
   expiringAt: 0,
   speciesSync: false,
   serverInterventionAdded: false,
   lastServerInterventionpage: '',
   intervention_updated: 0,
-  userSpecies:false
+  userSpecies: false
 }
 
 const appStateSlice = createSlice({
@@ -19,7 +19,7 @@ const appStateSlice = createSlice({
   initialState,
   reducers: {
     updateUserLogin(state, action: PayloadAction<boolean>) {
-      state.isLogedIn = action.payload
+      state.isLoggedIn = action.payload
     },
     updateUserToken(
       state,
@@ -38,16 +38,16 @@ const appStateSlice = createSlice({
     updateSpeciesSyncStatus(state, action: PayloadAction<boolean>) {
       state.speciesSync = action.payload
     },
-    updateServerIntervetion(state, action: PayloadAction<boolean>) {
+    updateServerIntervention(state, action: PayloadAction<boolean>) {
       state.serverInterventionAdded = action.payload
     },
-    updateLastServerIntervetion(state, action: PayloadAction<string>) {
+    updateLastServerIntervention(state, action: PayloadAction<string>) {
       state.lastServerInterventionpage = action.payload
     },
     updateNewIntervention(state) {
       state.intervention_updated = Date.now()
     },
-    updateUserSpeciesadded(state,action: PayloadAction<boolean>){
+    updateUserSpeciesadded(state, action: PayloadAction<boolean>) {
       state.userSpecies = action.payload
     },
     logoutAppUser() {
@@ -56,6 +56,6 @@ const appStateSlice = createSlice({
   },
 })
 
-export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervetion, updateLastServerIntervetion, logoutAppUser, updateUserSpeciesadded,updateNewIntervention } = appStateSlice.actions
+export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention } = appStateSlice.actions
 
 export default appStateSlice.reducer

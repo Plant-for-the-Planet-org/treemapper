@@ -15,7 +15,7 @@ import { FormElement } from 'src/types/interface/form.interface'
 
 const AdditionalDataForm = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [allFormData, setAllFromData] = useState<any>([])
+  const [allFormData, setAllFormData] = useState<any>([])
   const { addNewForm } = useAdditionalForm()
   const formData = useQuery<any>(
     RealmSchema.AdditonalDetailsForm,
@@ -25,7 +25,7 @@ const AdditionalDataForm = () => {
   )
 
   useEffect(() => {
-    setAllFromData(formData)
+    setAllFormData(formData)
   }, [formData])
 
 

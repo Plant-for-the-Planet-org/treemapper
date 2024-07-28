@@ -9,27 +9,27 @@ import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { StackNavigationProp } from '@react-navigation/stack'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import GrouplistPlot from 'src/components/monitoringPlot/GrouplistPlot'
+import GroupListPlot from 'src/components/monitoringPlot/GrouplistPlot' //Need to debug this import. If it's throw error please rename the GrouplistPlot to GroupListPlot
 import i18next from 'src/locales/index'
 
 
 const AddPlotGroup = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotGroup'>>()
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : ''
-    const groupId = route.params && route.params.groupId ? route.params.groupId : ''
+    const isEdit = route.params?.isEdit ?? '';
+    const groupId = route.params?.groupId ?? '';
 
     const [groupName, setGroupName] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const [isEdiatble, setIsEditable] = useState(false)
+    const [isEditable, setIsEditable] = useState(false)
     const [gID, setGID] = useState('')
     const realm = useRealm()
-    const { createNewPlotGroup, editGroupName } = useMonitoringPlotMangement()
+    const { createNewPlotGroup, editGroupName } = useMonitoringPlotManagement()
     const toast = useToast()
     useEffect(() => {
         if (isEdit) {
@@ -48,7 +48,7 @@ const AddPlotGroup = () => {
     }
 
     const continuePress = async () => {
-        if (!isEdiatble) {
+        if (!isEditable) {
             const newGroupId = generateUniquePlotId()
             const groupDetails: PlotGroups = {
                 name: groupName,
@@ -75,14 +75,14 @@ const AddPlotGroup = () => {
 
     const handleGroupName = (t: string) => {
         setGroupName(t)
-        if (isEdiatble) {
+        if (isEditable) {
             editGroupName(gID, t)
         }
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={isEdiatble ? i18next.t('label.edit_group_header') : i18next.t('label.create_group_header')} />
+            <Header label={isEditable ? i18next.t('label.edit_group_header') : i18next.t('label.create_group_header')} />
             <View style={styles.inputWrapper}>
                 <OutlinedTextInput
                     placeholder={i18next.t('label.group_name')}
@@ -90,20 +90,20 @@ const AddPlotGroup = () => {
                     keyboardType={'default'}
                     autoFocus
                     defaultValue={groupName}
-                    trailingtext={''} errMsg={''} />
+                    trailingText={''} errMsg={''} />
             </View>
-            {gID && <GrouplistPlot gid={gID} />}
-            {!isEdiatble && <View style={styles.emptyWrapper}>
+            {gID && <GroupListPlot gid={gID} />}
+            {!isEditable && <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>
                     {i18next.t('label.create_group_note')}
                 </Text>
             </View>}
             <CustomButton
-                label={isEdiatble ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
+                label={isEditable ? i18next.t('label.add_plot') : i18next.t('label.create_group')}
                 containerStyle={styles.btnContainer}
                 pressHandler={continuePress}
                 disable={groupName.trim() === ''}
-                hideFadein
+                hideFadeIn
                 showAdd
             />
         </SafeAreaView>
@@ -139,7 +139,7 @@ const styles = StyleSheet.create({
         width: '90%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {
@@ -182,7 +182,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: Colors.PRIMARY_DARK,
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(14),
         fontWeight: '400',
         color: Colors.WHITE,

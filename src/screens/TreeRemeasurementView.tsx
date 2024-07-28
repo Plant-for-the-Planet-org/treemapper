@@ -66,8 +66,8 @@ const TreeRemeasurementView = () => {
     const imageDetails = useSelector((state: RootState) => state.cameraState)
     const [imageId, setImageId] = useState('')
     const toast = useToast()
-    const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
-    const treeId = route.params && route.params.treeId ? route.params.treeId : ''
+    const interventionId = route.params?.interventionId ?? "";
+    const treeId = route.params?.treeId ?? '';
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
     const [imageUri, setImageUri] = useState('')
@@ -88,7 +88,7 @@ const TreeRemeasurementView = () => {
     }, [imageDetails])
 
     useEffect(() => {
-        AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+        AvoidSoftInput.setShouldMimicIOSBehavior(true);
         return () => {
             AvoidSoftInput.setShouldMimicIOSBehavior(false);
         };
@@ -103,7 +103,7 @@ const TreeRemeasurementView = () => {
         })
     }
 
-    const submitHadler = async () => {
+    const submitHandler = async () => {
         if (isAlive && imageUri.length == 0) {
             takePicture()
             return
@@ -138,12 +138,14 @@ const TreeRemeasurementView = () => {
         return null
     }
 
+    const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
+
     return (
         <SafeAreaView style={styles.container}>
             <AvoidSoftInputView
                 avoidOffset={20}
                 style={styles.container}>
-                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} allias={treeDetails.local_name} showRemeasure={true} />
+                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
                 <ScrollView>
 
                     <View style={styles.wrapper}>
@@ -176,7 +178,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={setHeight}
                                     defaultValue={height}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'m'} errMsg={''} />
+                                    trailingText={'m'} errMsg={''} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
@@ -184,7 +186,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={setWidth}
                                     keyboardType={'decimal-pad'}
                                     defaultValue={width}
-                                    trailingtext={'cm'} errMsg={''} />
+                                    trailingText={'cm'} errMsg={''} />
                             </View></> :
                             <>
                                 <CustomDropDownPicker
@@ -199,7 +201,7 @@ const TreeRemeasurementView = () => {
                                         changeHandler={setComment}
                                         keyboardType={'decimal-pad'}
                                         defaultValue={width}
-                                        trailingtext={''} errMsg={''} />
+                                        trailingText={''} errMsg={''} />
                                 </View></>
                         }
 
@@ -207,10 +209,10 @@ const TreeRemeasurementView = () => {
                 </ScrollView>
 
                 <CustomButton
-                    label={!isAlive ? "Save" : imageUri.length == 0 ? "Continue" : "Save"}
+                    label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
-                    pressHandler={submitHadler}
-                    hideFadein
+                    pressHandler={submitHandler}
+                    hideFadeIn
                 />
             </AvoidSoftInputView>
         </SafeAreaView>
@@ -239,7 +241,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
     },
-    btnContainedr: {
+    btnMinorContainer: {
         width: '100%',
         height: 70,
         flexDirection: 'row',

@@ -1,7 +1,7 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
-export const MultiTreePlantation: RegisterFormSliceInitalState = {
+export const MultiTreePlantation: RegisterFormSliceInitialState = {
   form_id: '',
   key: 'multi-tree-registration',
   title: 'Multi Tree Plantation',

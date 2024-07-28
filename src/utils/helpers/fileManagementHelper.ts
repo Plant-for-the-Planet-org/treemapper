@@ -53,7 +53,7 @@ export const createBasePath = async () => {
     }
 }
 
-export const exportAllInterventionData = async (dataArray: InterventionData[] | any) => {
+export const exportAllInterventionData = async (dataArray: InterventionData[]) => {
     try {
         const createFolderPromises = dataArray.map(data => exportRealmData(data));
         await Promise.all(createFolderPromises);

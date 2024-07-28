@@ -7,10 +7,6 @@ import { Typography } from 'src/utils/constants'
 interface Props {
   sampleTreeData: SampleTree[]
   hasSampleTree: boolean
-  showActive?: boolean
-  activeIndex?: number
-  onMarkerPress?: (index: number) => void
-  overLay?: boolean
 }
 
 const MapMarkersOverlay = (props: Props) => {
@@ -24,7 +20,7 @@ const MapMarkersOverlay = (props: Props) => {
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
         id={String(i)}
-        key={i}>
+        key={String(el.longitude)}>
         <View style={styles.container}>
           <View style={styles.markerContainer} />
         </View>

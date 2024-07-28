@@ -8,18 +8,18 @@ import Share from 'react-native-share';
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { toBase64 } from 'src/utils/constants/base64'
 import ShareIcon from 'assets/images/svg/ShareIcon.svg';
-import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
+import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 
 const ActivityLogsView = () => {
-    const [loading, showLoading] = useState(false)
+    const [loading, setLoading] = useState(false)
     const realm = useRealm();
     const UseDetails = useSelector(
         (state: RootState) => state.userState,
     )
     const getAllLogs = async () => {
-        showLoading(true)
+        setLoading(true)
         const meteData = getDeviceDetails()
         const allLogs = realm
             .objects(RealmSchema.ActivityLogs)
@@ -35,15 +35,15 @@ const ActivityLogsView = () => {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(logs)),
             message: "All user logs for TreeMapper app",
             title: "Activity Logs",
-            filename: `TreeMapper_Activitylogs.json`,
+            filename: `TreeMapper_Activity_logs.json`,
             saveToFiles: true,
         };
         Share.open(options)
             .then(() => {
-                showLoading(false)
+                setLoading(false)
             })
             .catch(() => {
-                showLoading(false)
+                setLoading(false)
             });
     }
 
@@ -55,7 +55,7 @@ const ActivityLogsView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label="Activity Logs" rightComponet={renderShareIcon()} />
+            <Header label="Activity Logs" rightComponent={renderShareIcon()} />
             <ActivityLogsTab />
             {loading && <View style={styles.modal} ><ActivityIndicator size='small' color={Colors.NEW_PRIMARY}></ActivityIndicator></View>}
         </SafeAreaView>

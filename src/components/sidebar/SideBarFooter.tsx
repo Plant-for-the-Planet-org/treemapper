@@ -7,11 +7,11 @@ import LoginButton from './LoginButton'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 
 interface Props {
-  isLogedIn: boolean
+  isLoggedIn: boolean
 }
 
 const SideBarFooter = (props: Props) => {
-  const {isLogedIn} = props
+  const {isLoggedIn} = props
   const onPressImprint = () => {
     openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
   };
@@ -23,7 +23,7 @@ const SideBarFooter = (props: Props) => {
   };
   return (
     <View style={[styles.versionContainer]}>
-      {!isLogedIn && <LoginButton />}
+      {!isLoggedIn && <LoginButton />}
       <View key="version" style={styles.version}>
         <Text style={styles.itemText}>2.0.1</Text>
       </View>

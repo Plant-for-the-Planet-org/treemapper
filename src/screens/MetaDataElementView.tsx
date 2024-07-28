@@ -1,10 +1,9 @@
-import { StyleSheet, Text, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import Header from 'src/components/common/Header'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import CustomTextInput from 'src/components/common/CustomTextInput'
-import { View } from 'react-native'
 import Switch from 'src/components/common/Switch'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -31,7 +30,7 @@ const MetaDataElementView = () => {
 
     const {addNewMetadata, updateMetaData, deleteMetaData} = useMetaData()
     const isEdit = route.params && route.params.edit
-    const order = route.params && route.params.order? route.params.order: 0
+    const order = route.params?.order ?? 0;
     const elementId =  route.params && route.params.id? route.params.id: ''
 
     const renderRightElement=()=>{
@@ -40,7 +39,7 @@ const MetaDataElementView = () => {
         }
         return (
             <TouchableOpacity style={styles.deleteWrapper} onPress={handleDelete}>
-                <Text style={styles.deletelabel}>Delete</Text>
+                <Text style={styles.deletable}>Delete</Text>
             </TouchableOpacity>
         )
     }
@@ -118,7 +117,7 @@ const MetaDataElementView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={''} rightComponet={renderRightElement()}/>
+            <Header label={''} rightComponent={renderRightElement()}/>
             <Text style={styles.headerLabel}>Add metadata</Text>
             <CustomTextInput
                 label="Field key"
@@ -190,7 +189,7 @@ const styles = StyleSheet.create({
         borderRadius:10,
         marginRight:10
       },
-      deletelabel:{
+      deletable:{
         fontSize:16,
         fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
         color:'tomato',

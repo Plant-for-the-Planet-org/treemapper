@@ -6,14 +6,14 @@ import CleanerPhone from 'assets/images/svg/ClearPhone.svg';
 import ClearSpaceModal from './ClearSpaceModal';
 import i18next from 'src/locales/index'
 
-const FreeUpSaceButton = () => {
-  const [showModal, setModal] = useState(false)
+const FreeUpSpaceButton = () => {
+  const [showModal, setShowModal] = useState(false)
   const tooglemodal = () => {
-    setModal(!showModal)
+    setShowModal(!showModal)
   }
 
   const handleFreeSpace = () => {
-    setModal(false)
+    setShowModal(false)
   }
 
 
@@ -22,16 +22,16 @@ const FreeUpSaceButton = () => {
       <TouchableOpacity style={styles.container} onPress={tooglemodal}>
         <View style={styles.wrapper}>
           <CleanerPhone width={25} height={25} />
-          <Text style={styles.lable}>{i18next.t('label.free_up_space')}</Text>
+          <Text style={styles.label}>{i18next.t('label.free_up_space')}</Text>
         </View>
       </TouchableOpacity>
-      <ClearSpaceModal isVisible={showModal} toogleModal={tooglemodal} handleFreeSpace={handleFreeSpace} />
+      <ClearSpaceModal isVisible={showModal} toggleModal={tooglemodal} handleFreeSpace={handleFreeSpace} />
     </>
 
   )
 }
 
-export default FreeUpSaceButton
+export default FreeUpSpaceButton
 
 const styles = StyleSheet.create({
   container: {
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-around'
   },
-  lable: {
+  label: {
     fontSize: scaleFont(12),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginRight: 10,

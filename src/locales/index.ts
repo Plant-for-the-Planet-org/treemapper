@@ -11,7 +11,7 @@ import ptBRlabels from './languages/pt-BR';
 
 let userLang = undefined;
 const lang = getLocales()[0];
-userLang = lang && lang.languageCode;
+userLang = lang?.languageCode;
 
 
 i18next.init({

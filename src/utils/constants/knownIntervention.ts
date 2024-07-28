@@ -23,7 +23,7 @@ export const AllIntervention: Array<{
   {label: 'Direct Seeding', value: 'direct-seeding', index: 0},
   {label: 'Grass Suppression', value: 'grass-suppression', index: 0},
   {label: 'Marking Regenerant', value: 'marking-regenerant', index: 0},
-  {label: 'Enrichment Planting', value: 'enrichement-planting', index: 0},
+  {label: 'Enrichment Planting', value: 'enrichment-planting', index: 0},
   {label: 'Liberating Regenerant', value: 'liberating-regenerant', index: 0},
   {label: 'Soil Improvement', value: 'soil-improvement', index: 0},
   {label: 'Assisting Seed Rain', value: 'assisting-seed-rain', index: 0},
@@ -33,4 +33,4 @@ export const AllIntervention: Array<{
 ]
 
 
-export const AllIntervenionType  = AllIntervention.map(el=>el.value)
+export const AllInterventionType  = AllIntervention.map(el=>el.value)

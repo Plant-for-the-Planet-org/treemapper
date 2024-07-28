@@ -45,8 +45,7 @@ const ImagePreview = (props: Props) => {
 
     if (screen === 'SAMPLE_TREE') {
       dispatch(updateSampleImageUrl(finalURL))
-      navigation.navigate('AddMeasurment')
-      return
+      navigation.navigate('AddMeasurement')
     }
   }
 
@@ -66,14 +65,14 @@ const ImagePreview = (props: Props) => {
           pressHandler={retakePicture}
           wrapperStyle={styles.borderWrapper}
           labelStyle={styles.highlightLabel}
-          hideFadein
+          hideFadeIn
         />
         <CustomButton
           label={i18next.t('label.continue')}
           containerStyle={styles.btnWrapper}
           pressHandler={navigateToNext}
           wrapperStyle={styles.noBorderWrapper}
-          hideFadein
+          hideFadeIn
         />
       </View>
     </View>
@@ -151,7 +150,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,

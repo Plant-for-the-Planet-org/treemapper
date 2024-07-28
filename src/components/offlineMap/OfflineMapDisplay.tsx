@@ -62,7 +62,7 @@ const OfflineMapDisplay = () => {
         areaName: areaName,
         size: status.completedTileSize,
       }
-      const result = createNewOfflineMap(writeData)
+      const result = await createNewOfflineMap(writeData)
       if (result) {
         alert(i18next.t('label.download_map_complete'));
         navigation.goBack()
@@ -78,12 +78,12 @@ const OfflineMapDisplay = () => {
       const offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
       const coords = await mapRef.current.getCenter();
       const bounds = await mapRef.current.getVisibleBounds();
-      let areaName = ''
+      const areaName = ''
       const LocationDetails = await getAreaName(coords)
-      if (LocationDetails && LocationDetails.features && LocationDetails.features[0] && LocationDetails.features[0].place_name) {
-        areaName = LocationDetails.features[0].place_name
-        setAreaName(areaName)
-      }
+      const placeName = LocationDetails?.features?.[0]?.place_name;
+      if (placeName) {
+        setAreaName(placeName);
+      }      
       await MapLibreGL.offlineManager.createPack(
         {
           name: offlineMapId,

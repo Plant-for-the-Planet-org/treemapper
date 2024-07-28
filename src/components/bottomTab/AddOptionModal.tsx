@@ -113,9 +113,9 @@ const AddOptionModal = (props: Props) => {
   ]
 
   const calcComponents = useMemo(() => {
-    return addOptions.map((option, index) => (
+    return addOptions.map((option) => (
       <TouchableOpacity
-        key={`addOption${index}`}
+      key={String(option.title)}
         style={styles.addButtonOptionWrap}
         disabled={option.disabled}
         onPress={option.onPress}>

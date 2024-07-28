@@ -1,9 +1,9 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
-export const MarkingRegenrant: RegisterFormSliceInitalState = {
+export const MarkingRegenerant: RegisterFormSliceInitialState = {
     form_id: '',
-    title: 'Marking Regenrant',
+    title: 'Marking Regenerant',
     intervention_date: 0,
     skip_intervention_form: false,
     user_type: 'normal',

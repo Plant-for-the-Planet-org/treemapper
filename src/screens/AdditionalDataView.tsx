@@ -25,7 +25,7 @@ const AdditionalDataView = () => {
   
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Additional Data" rightComponet={renderRightComponent()}/>
+      <Header label="Additional Data" rightComponent={renderRightComponent()}/>
       <AdditionalTabView />
     </SafeAreaView>
   )

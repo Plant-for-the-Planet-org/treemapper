@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 
 const NumberOfPeople: FormElement = {
@@ -55,7 +55,7 @@ const firePatrolForm: MainForm = {
   }
   
 
-export const FirePatrol: RegisterFormSliceInitalState = {
+export const FirePatrol: RegisterFormSliceInitialState = {
   form_id: '',
   key: 'fire-patrol',
   title: 'Fire Patrol',

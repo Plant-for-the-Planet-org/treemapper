@@ -1,7 +1,7 @@
 import { StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
-import SatteliteIcon from 'assets/images/svg/SatteliteIcon.svg'
-import SatteliteIconOn from 'assets/images/svg/SatteliteIconOn.svg'
+import SatelliteIcon from 'assets/images/svg/SatelliteIcon.svg'
+import SatelliteIconOn from 'assets/images/svg/SatelliteIconOn.svg'
 
 import { scaleSize } from 'src/utils/constants/mixins'
 import { useDispatch, useSelector } from 'react-redux'
@@ -27,7 +27,7 @@ const SatelliteIconWrapper = (props: Props) => {
 
     return (
         <TouchableOpacity style={[styles.container,{bottom:low?scaleSize(180):scaleSize(220)}]} onPress={handlePress}>
-            {viewState === 'SATELLITE' ? <SatteliteIconOn width={25} height={25} /> : <SatteliteIcon width={25} height={25} />}
+            {viewState === 'SATELLITE' ? <SatelliteIconOn width={25} height={25} /> : <SatelliteIcon width={25} height={25} />}
         </TouchableOpacity>
     )
 }

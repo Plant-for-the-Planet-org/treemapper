@@ -1,22 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
-import { TouchableOpacity } from 'react-native'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
 import GreyHeart from 'assets/images/svg/GreyHeart.svg'
 import { Typography, Colors } from 'src/utils/constants'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface Props {
-  item: IScientificSpecies | any
-  toogleFavSpecies: (item: IScientificSpecies, status: boolean) => void
+  item: IScientificSpecies
+  toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   handleCard: (item: IScientificSpecies, status: boolean) => void
   hideFav?: boolean
 }
 
 const SpeciesSearchCard = (props: Props) => {
-  const { item, toogleFavSpecies, handleCard, hideFav } = props
+  const { item, toggleFavSpecies, handleCard, hideFav } = props
   const handleIconPress = () => {
-    toogleFavSpecies(item, !item.isUserSpecies)
+    toggleFavSpecies(item, !item.isUserSpecies)
   }
   const handleCardPress = () => {
     handleCard(item, !item.isUserSpecies)

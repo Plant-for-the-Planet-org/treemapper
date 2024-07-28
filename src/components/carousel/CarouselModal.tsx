@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { clearCarouselData, updateActiveIndex, updateActiveInterventionIndex, updateShowOverlay } from 'src/store/slice/displayMapSlice'
-import CarouselIInterventiontem from './CarouselIInterventiontem'
+import CarouselInterventionItem from './CarouselInterventionItem'
 
 const { width } = Dimensions.get('window') // Get screen width
 
@@ -72,9 +72,9 @@ const CarouselModal = () => {
   }, [activeInterventionIndex])
 
 
-  const renderCaroulselItem = (item: any) => {
+  const renderCarouselItem = (item: any) => {
     if (showOverlay) {
-      return <CarouselIInterventiontem data={item} onPress={showInterventionDetails} />
+      return <CarouselInterventionItem data={item} onPress={showInterventionDetails} />
     } else {
       return <CarouselItem data={item} onPress={handleNavigation} remeasure={remeasure}/>
     }
@@ -111,7 +111,7 @@ const CarouselModal = () => {
           parallaxScrollingScale: 0.9,
           parallaxScrollingOffset: 60,
         }}
-        renderItem={({ item }) => (renderCaroulselItem(item))}
+        renderItem={({ item }) => (renderCarouselItem(item))}
       />
     </View>
   )

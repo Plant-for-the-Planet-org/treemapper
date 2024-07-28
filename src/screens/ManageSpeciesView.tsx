@@ -19,8 +19,8 @@ import { useToast } from 'react-native-toast-notifications'
 
 
 const ManageSpeciesView = () => {
-  const [showRemoveFavModal, setShowRemoveModal] = useState(false)
-  const [delteSpeciedId, setDeleteSpecieID] = useState('')
+  const [showRemoveFavModal, setShowRemoveFavModal] = useState(false)
+  const [deleteSpecieId, setDeleteSpecieId] = useState('')
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
   const [treeModalDetails, setTreeModalDetails] = useState<IScientificSpecies | null>(null)
 
@@ -32,9 +32,9 @@ const ManageSpeciesView = () => {
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const toast = useToast()
 
-  const isManageSpecies = route.params && route.params.manageSpecies
-  const EditInterventionSpecies = route.params && route.params.reviewTreeSpecies
-  const interventionID = route.params && route.params.id ? route.params.id : ''
+  const isManageSpecies = route.params?.manageSpecies;
+  const EditInterventionSpecies = route.params?.reviewTreeSpecies;
+  const interventionID = route.params?.id ?? '';
 
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
@@ -44,17 +44,17 @@ const ManageSpeciesView = () => {
   }, [interventionID])
 
 
-  const userFavSpecies = useQuery(RealmSchema.ScientificSpecies, data => {
+  const userFavSpecies = useQuery<IScientificSpecies>(RealmSchema.ScientificSpecies, data => {
     return data.filtered('isUserSpecies == true')
   })
 
-  const toogleRemoveFavModal = () => {
-    setShowRemoveModal(!showRemoveFavModal)
+  const toggleRemoveFavModal = () => {
+    setShowRemoveFavModal(!showRemoveFavModal)
   }
 
   const addRemoveUserFavSpecies = (item: IScientificSpecies) => {
-    setDeleteSpecieID(item.guid)
-    toogleRemoveFavModal()
+    setDeleteSpecieId(item.guid)
+    toggleRemoveFavModal()
   }
 
   const editInterventionSpecies = async (item: IScientificSpecies) => {
@@ -63,8 +63,8 @@ const ManageSpeciesView = () => {
   }
 
   const removeSpecies = () => {
-    toogleRemoveFavModal()
-    updateUserFavSpecies(delteSpeciedId, false)
+    toggleRemoveFavModal()
+    updateUserFavSpecies(deleteSpecieId, false)
   }
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {
@@ -83,7 +83,7 @@ const ManageSpeciesView = () => {
     navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
   }
 
-  const handleSelecteMultiSpecies = async (item: IScientificSpecies) => {
+  const handleSelectedMultiSpecies = async (item: IScientificSpecies) => {
     const finalData = JSON.parse(JSON.stringify(item))
     if (EditInterventionSpecies) {
       editInterventionSpecies(finalData);
@@ -112,17 +112,17 @@ const ManageSpeciesView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ManageSpeciesHome
-        toogleFavSpecies={addRemoveUserFavSpecies}
-        userFavSpecies={userFavSpecies}
+        toggleFavSpecies={addRemoveUserFavSpecies}
+        userFavSpecies={[...userFavSpecies]}
         interventionKey={interventionData ? interventionData.intervention_key : 'single-tree-registration'}
         form_id={interventionData ? interventionData.form_id : ""}
         isManageSpecies={isManageSpecies}
-        showTreeModal={handleSelecteMultiSpecies}
+        showTreeModal={handleSelectedMultiSpecies}
         interventionEdit={EditInterventionSpecies}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
-        toogleModal={toogleRemoveFavModal}
+        toogleModal={toggleRemoveFavModal}
         removeFavSpecie={removeSpecies}
       />
       <TreeCountModal

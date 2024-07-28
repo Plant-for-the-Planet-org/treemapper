@@ -2,23 +2,23 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
-import { PLOT_COMPLEXITY, PLOT_SHAPE, PLOT_TYPE } from 'src/types/type/app.type';
+import {PlotAttributes } from 'src/types/type/app.type';
 import i18next from 'src/locales/index'
 
 
 interface Props {
     header: string
     labelOne: {
-        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
+        key: PlotAttributes
         value: string
     }
     labelTwo: {
-        key: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE
+        key: PlotAttributes
         value: string
     },
     disabled: boolean,
     selectedValue: string,
-    onSelect: (v: PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE) => void
+    onSelect: (v: PlotAttributes) => void
 }
 
 const CreatePlotCard = (props: Props) => {
@@ -44,7 +44,7 @@ const CreatePlotCard = (props: Props) => {
                         <View style={[styles.outerCircle, { borderColor: isCheckedOne && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
                             {isCheckedOne && !disabled ? <View style={styles.innerCircle}></View> : null}
                         </View>
-                        <Text style={[styles.checkBoxLable, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
+                        <Text style={[styles.checkBoxLabel, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelOne.value}
                         </Text>
                     </Pressable>
@@ -58,7 +58,7 @@ const CreatePlotCard = (props: Props) => {
                         <View style={[styles.outerCircle, { borderColor: !isCheckedOne ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
                             {!isCheckedOne && <View style={styles.innerCircle}></View>}
                         </View>
-                        <Text style={[styles.checkBoxLable, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
+                        <Text style={[styles.checkBoxLabel, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
                             {labelTwo.value}
                         </Text>
                     </Pressable>
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: Colors.NEW_PRIMARY
     },
-    checkBoxLable: {
+    checkBoxLabel: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,

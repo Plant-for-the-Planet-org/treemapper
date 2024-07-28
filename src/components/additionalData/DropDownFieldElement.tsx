@@ -11,7 +11,7 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 
 interface Props {
     isVisible: boolean
-    toogleModal: () => void
+    toggleModal: () => void
     addOption: (d: { key: string, value: string, id: string }) => void
     selectedElement: { key: string, value: string, id: string }
     updateElement: (d: { key: string, value: string, id: string }) => void
@@ -19,13 +19,13 @@ interface Props {
 }
 
 const DropDownFieldElement = (props: Props) => {
-    const { isVisible, toogleModal, addOption, selectedElement, updateElement, deleteElement } = props
+    const { isVisible, toggleModal, addOption, selectedElement, updateElement, deleteElement } = props
     const [inputKey, setInputKey] = useState('')
     const [inputValue, setInputValue] = useState('')
     const toast = useToast();
 
     useEffect(() => {
-        if (selectedElement && selectedElement.key) {
+        if (selectedElement?.key) {
             setInputKey(selectedElement.key)
             setInputValue(selectedElement.value)
         }else{
@@ -62,7 +62,7 @@ const DropDownFieldElement = (props: Props) => {
         }
 
 
-        toogleModal()
+        toggleModal()
     }
 
     const handleDelete = () => {
@@ -70,7 +70,7 @@ const DropDownFieldElement = (props: Props) => {
     }
 
     return (
-        <Modal style={styles.container} isVisible={isVisible} onBackButtonPress={toogleModal} onBackdropPress={toogleModal}>
+        <Modal style={styles.container} isVisible={isVisible} onBackButtonPress={toggleModal} onBackdropPress={toggleModal}>
             <View style={styles.sectionWrapper}>
                 {selectedElement.key.length > 0 && <TouchableOpacity
                     onPress={handleDelete}
@@ -90,7 +90,7 @@ const DropDownFieldElement = (props: Props) => {
                     label={selectedElement.key.length > 0 ? "Update Option" : "Add Option"}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
-                    hideFadein
+                    hideFadeIn
                 />
             </View>
         </Modal>

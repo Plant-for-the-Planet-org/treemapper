@@ -1,4 +1,4 @@
-const SatteliteLayer = {
+const SatelliteLayer = {
     "version": 8,
     "metadata": "PFTP",
     "name": "",
@@ -40,4 +40,4 @@ const SatteliteLayer = {
         }
     ]
 }
-export default SatteliteLayer
+export default SatelliteLayer

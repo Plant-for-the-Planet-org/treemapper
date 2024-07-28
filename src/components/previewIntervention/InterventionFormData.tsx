@@ -30,7 +30,7 @@ const InterventionFormData = (props: Props) => {
     <View style={styles.container}>
       <View style={styles.wrapper}>
         {formValues.map((el, i) => {
-          return <View style={styles.cardWrapper} key={i}>
+          return <View style={styles.cardWrapper} key={`${el.value}+${i}`}>
             <Text style={styles.cardTitle}>{el.placeholder}</Text>
             <Text style={styles.cardLabel}>
               {el.value} {el.unit}

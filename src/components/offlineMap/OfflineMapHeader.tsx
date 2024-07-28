@@ -3,7 +3,7 @@ import React from 'react'
 import LayerBackDrop from 'assets/images/svg/LayerBackdrop.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont} from 'src/utils/constants/mixins'
-import AddIcon from 'assets/images/svg/Addicon.svg'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -25,7 +25,7 @@ const OfflineMapHeader = () => {
       </Text>
       <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
         <AddIcon style={styles.btnIcon} fill={Colors.WHITE}/>
-        <Text style={styles.btnLable}>Add Area</Text>
+        <Text style={styles.btnLabel}>Add Area</Text>
       </TouchableOpacity>
     </View>
   )
@@ -78,7 +78,7 @@ const styles = StyleSheet.create({
   btnIcon: {
     marginRight: 10,
   },
-  btnLable: {
+  btnLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE,
     fontSize: scaleFont(14),

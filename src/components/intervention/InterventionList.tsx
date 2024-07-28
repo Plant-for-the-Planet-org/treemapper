@@ -17,16 +17,16 @@ import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
-  setSlectedLabel: (s: string) => void
+  setSelectedLabel: (s: string) => void
   handlePageIncrement: () => void
   loading: boolean
   refreshHandler: () => void
 }
 
 const InterventionList = (props: Props) => {
-  const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
+  const { interventionData, selectedLabel, setSelectedLabel: setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
   const { deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
@@ -37,7 +37,7 @@ const InterventionList = (props: Props) => {
     navigation.navigate(navDetails.screen, { ...navDetails.params })
   }
 
-  const handleDelte = async (item: InterventionData) => {
+  const handleDelete = async (item: InterventionData) => {
     setDeleteData(null)
     await deleteIntervention(item.intervention_id)
     dispatch(updateNewIntervention())
@@ -52,19 +52,19 @@ const InterventionList = (props: Props) => {
   }
 
 
-  const emptyInterventoin = () => {
+  const emptyIntervention = () => {
     return (
       <View style={styles.emptyBox}>
         <EmptyIntervention />
-        <Text style={styles.emptyHeaderLable}>No Interventions to Show Yet</Text>
-        <Text style={styles.emptyLable}>Start mapping your tree interventions to {'\n'} keep track of your progress.</Text>
+        <Text style={styles.emptyHeaderLabel}>No Interventions to Show Yet</Text>
+        <Text style={styles.emptyLabel}>Start mapping your tree interventions to {'\n'} keep track of your progress.</Text>
       </View>
     )
   }
 
   return (
     <>
-      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={delteData} secondaryHandler={handleDelte} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelete} />
 
       <FlashList
         data={interventionData}
@@ -82,11 +82,11 @@ const InterventionList = (props: Props) => {
             onRefresh={refreshHandler}
           />}
         ListFooterComponent={<View style={styles.footerWrapper} />}
-        ListEmptyComponent={() => (emptyInterventoin())}
+        ListEmptyComponent={emptyIntervention}
         ListHeaderComponent={
           <InterventionHeaderSelector
             selectedLabel={selectedLabel}
-            setSlectedLabel={setSlectedLabel}
+            setSelectedLabel={setSelectedLabel}
           />
         }
         onEndReachedThreshold={0.3}
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 80
   },
-  emptyHeaderLable: {
+  emptyHeaderLabel: {
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     textAlign: 'center',
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     color: Colors.DARK_TEXT_COLOR
   },
-  emptyLable: {
+  emptyLabel: {
     fontSize: 14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     textAlign: 'center',

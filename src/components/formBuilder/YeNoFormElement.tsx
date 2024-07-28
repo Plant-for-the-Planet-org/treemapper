@@ -12,7 +12,7 @@ interface Props {
 const YeNoFormElement = (props: Props) => {
     const { data, formValues, changeHandler } = props
 
-    const handleChnage = () => {
+    const handleChange = () => {
         changeHandler(
             data.key,
             String(`${formValues[data.key].value === 'false' ? 'true' : 'false'}`),
@@ -24,10 +24,10 @@ const YeNoFormElement = (props: Props) => {
             <View style={styles.mainWrapper}>
                 <Text style={styles.noteLabel}>{data.label}</Text>
                 <View style={styles.container}>
-                    <Pressable style={[styles.singleWrapper, { backgroundColor: isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChnage}>
+                    <Pressable style={[styles.singleWrapper, { backgroundColor: isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChange}>
                         <Text style={[styles.label, { color: isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>Yes</Text>
                     </Pressable>
-                    <Pressable style={[styles.singleWrapper, { backgroundColor: !isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChnage}>
+                    <Pressable style={[styles.singleWrapper, { backgroundColor: !isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChange}>
                         <Text style={[styles.label, { color: !isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>No</Text>
                     </Pressable>
                 </View>

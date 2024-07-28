@@ -1,7 +1,7 @@
 import React from 'react'
 import { PermissionBlockedAlert } from '../common/LocationPermissionAlerts'
 import { useDispatch, useSelector } from 'react-redux'
-import { updaeBlockerModal } from 'src/store/slice/gpsStateSlice'
+import { updateBlockerModal } from 'src/store/slice/gpsStateSlice'
 import { RootState } from 'src/store'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -14,11 +14,11 @@ interface Props {
 
 const LocationPermissionModal = (props: Props) => {
     const { required } = props
-    const showAlerModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
+    const showAlertModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
     const dispatch = useDispatch()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-    if (!showAlerModal) {
+    if (!showAlertModal) {
         return null
     }
     const handlePrimaryBtn = () => {
@@ -26,19 +26,19 @@ const LocationPermissionModal = (props: Props) => {
     }
     const handleSecondaryBtn = () => {
         if (required) {
-            dispatch(updaeBlockerModal(false))
+            dispatch(updateBlockerModal(false))
             setTimeout(() => {
                 navigation.goBack()
             }, 300);
         } else {
-            dispatch(updaeBlockerModal(false))
+            dispatch(updateBlockerModal(false))
         }
         return null
     }
 
     return (
         <PermissionBlockedAlert
-            isPermissionBlockedAlertShow={showAlerModal}
+            isPermissionBlockedAlertShow={showAlertModal}
             setIsPermissionBlockedAlertShow={() => null}
             onPressPrimaryBtn={handlePrimaryBtn}
             onPressSecondaryBtn={handleSecondaryBtn}

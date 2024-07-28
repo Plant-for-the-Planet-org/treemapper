@@ -1,7 +1,6 @@
-import { KeyboardTypeOptions, StyleSheet, View } from 'react-native'
+import { KeyboardTypeOptions, StyleSheet, View, Text } from 'react-native'
 import React from 'react'
 import { InputOutline } from 'react-native-input-outline'
-import { Text } from 'react-native'
 import { Colors } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import Switch from '../common/Switch'
@@ -10,7 +9,7 @@ interface Props {
   placeholder: string
   changeHandler: (t: string) => void
   keyboardType: KeyboardTypeOptions
-  trailingtext: string
+  trailingText: string
   switchEnable: boolean
   description: string
   switchHandler: (b: boolean) => void
@@ -22,12 +21,15 @@ const TagSwitch = (props: Props) => {
     placeholder,
     changeHandler,
     keyboardType,
-    trailingtext,
+    trailingText,
     switchEnable,
     description,
     switchHandler,
   errMsg
   } = props
+  const renderTrail=() => (
+    <Text style={styles.unitLabel}>{trailingText}</Text>
+  )
   return (
     <View style={styles.container}>
       <View
@@ -61,9 +63,7 @@ const TagSwitch = (props: Props) => {
             fontSize={18}
             returnKeyType="done"
             error={errMsg.length?errMsg:undefined}
-            trailingIcon={() => (
-              <Text style={styles.unitLabel}>{trailingtext}</Text>
-            )}
+            trailingIcon={renderTrail}
           />
         </View>}
       </View>

@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     width: '100%',
   },
-  headerLable: {
+  headerLabel: {
     textAlign: 'center',
   },
   backDropWrapper: {

@@ -13,9 +13,9 @@ const mapBoundSlice = createSlice({
   reducers: {
     updateMapBounds(
       state,
-      action: PayloadAction<{bodunds: number[]; key: MAP_BOUNDS}>,
+      action: PayloadAction<{bounds: number[]; key: MAP_BOUNDS}>,
     ) {
-      state.bounds = action.payload.bodunds
+      state.bounds = action.payload.bounds
       state.key = action.payload.key
     },
   },

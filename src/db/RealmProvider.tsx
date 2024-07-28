@@ -3,7 +3,7 @@ import { RealmProvider as Provider } from '@realm/react'
 import schema from './schema'
 import { runRealmMigrations } from './migrations'
 import Realm from 'realm'
-const schemaVersion = 26
+const schemaVersion = 27
 
 const realmConfig = {
   schemaVersion: schemaVersion,
@@ -12,15 +12,24 @@ const realmConfig = {
 
 export const appRealm = new Realm(realmConfig)
 
-export function RealmProvider({ children }: { children: React.ReactNode }) {
+
+interface Props { 
+  children: React.ReactNode;
+}
+
+// Mark the props as read-only
+type ReadonlyProps = Readonly<Props>;
+
+export function RealmProvider(props: ReadonlyProps) {
   return (
     <Provider
       schema={schema}
       schemaVersion={schemaVersion}
       onMigration={(oldRealm, newRealm) => {
-        runRealmMigrations({ oldRealm, newRealm })
-      }}>
-      {children}
+        runRealmMigrations({ oldRealm, newRealm });
+      }}
+    >
+      {props.children}
     </Provider>
-  )
+  );
 }

@@ -10,7 +10,6 @@ const openWebView = async (link: string) => {
     await WebBrowser.openBrowserAsync(link)
   } catch (error) {
     console.error(error)
-    // Alert.alert(error.message);
   }
 }
 

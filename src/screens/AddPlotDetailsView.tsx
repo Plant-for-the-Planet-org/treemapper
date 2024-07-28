@@ -19,7 +19,7 @@ const AddPlotDetailsView = () => {
               placeholder={'Plant Tree Count'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
+              trailingText={'trees'} errMsg={''} />
             <Text style={styles.note}>How many trees did you plant?</Text>
           </View>
           <View style={styles.inputWrapper}>
@@ -27,7 +27,7 @@ const AddPlotDetailsView = () => {
               placeholder={'Existing Tree Count'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
+              trailingText={'trees'} errMsg={''} />
             <Text style={styles.note}>How many trees did you plant?</Text>
           </View>
           <View style={styles.inputWrapper}>
@@ -35,35 +35,35 @@ const AddPlotDetailsView = () => {
               placeholder={'Name of  Tree Species'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
+              trailingText={'trees'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
               placeholder={'Shrub count'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'shrubs'} errMsg={''} />
+              trailingText={'shrubs'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
               placeholder={'Canopy Cover'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'%'} errMsg={''} />
+              trailingText={'%'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
               placeholder={'Stump Count'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'stumps'} errMsg={''} />
+              trailingText={'stumps'} errMsg={''} />
           </View>
           <InterventionDatePicker
             placeHolder={'Measurement Date'}
             value={Date.now()}
             callBack={() => { }}
           />
-          <View style={styles.dropDownWrappper}>
+          <View style={styles.dropDownWrapper}>
             <CustomDropDown
               label={'Site'}
               data={[{
@@ -84,14 +84,14 @@ const AddPlotDetailsView = () => {
               placeholder={'Height'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'m'} errMsg={''} />
+              trailingText={'m'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
               placeholder={'Further Information'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'m'} errMsg={''} />
+              trailingText={'m'} errMsg={''} />
           </View>
         </View>
       </ScrollView>
@@ -99,7 +99,7 @@ const AddPlotDetailsView = () => {
         label="Save"
         containerStyle={styles.btnContainer}
         pressHandler={() => { }}
-        hideFadein
+        hideFadeIn
       />
     </SafeAreaView>
   )
@@ -128,7 +128,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
   },
-  dropDownWrappper: {
+  dropDownWrapper: {
     width: '98%'
   },
   note: {

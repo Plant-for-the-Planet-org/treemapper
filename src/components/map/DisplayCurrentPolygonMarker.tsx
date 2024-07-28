@@ -5,20 +5,18 @@ import { Colors, Typography } from 'src/utils/constants'
 import Icon from '@expo/vector-icons/FontAwesome5';
 
 interface Props {
-  lat: number
-  long: number
   id: string
   undo: () => void
 }
 
-const DispalyCurrentPolygonMarker = (props: Props) => {
+const DisplayCurrentPolygonMarker = (props: Props) => {
   const { id, undo } = props
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Corner {id}</Text>
       <Text style={styles.note}>Please select the {id === 'A' ? 'first' : 'next'} corner</Text>
       {id !== 'A' && <TouchableOpacity style={styles.undoButton} onPress={undo}>
-      <Text style={styles.undoLable}>Undo</Text>
+      <Text style={styles.undoLabel}>Undo</Text>
         <Icon
           name="undo-alt"
           size={16}
@@ -29,7 +27,7 @@ const DispalyCurrentPolygonMarker = (props: Props) => {
   )
 }
 
-export default DispalyCurrentPolygonMarker
+export default DisplayCurrentPolygonMarker
 
 const styles = StyleSheet.create({
   container: {
@@ -61,7 +59,7 @@ const styles = StyleSheet.create({
     right: 10,
     bottom: 10,
   },
-  undoLable: {
+  undoLabel: {
     fontSize: scaleFont(12),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginRight: 5,

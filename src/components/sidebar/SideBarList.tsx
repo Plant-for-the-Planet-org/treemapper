@@ -7,17 +7,17 @@ import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
 import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
 import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
-import DataExpolrerIcon from 'assets/images/svg/DataExplorerIcon.svg'
+import DataExplorerIcon from 'assets/images/svg/DataExplorerIcon.svg'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales'
 
 interface Props {
-  isLogedIn: boolean
+  isLoggedIn: boolean
 }
 
 const SideBarList = (props: Props) => {
-  const {isLogedIn} = props
+  const {isLoggedIn} = props
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
@@ -54,7 +54,7 @@ const SideBarList = (props: Props) => {
     {
       label: i18next.t('label.data_explorer'),
       screen: 'DataExplorer',
-      icon: <DataExpolrerIcon />,
+      icon: <DataExplorerIcon />,
       visible: true,
       key: 'data_explorer'
     },
@@ -69,7 +69,7 @@ const SideBarList = (props: Props) => {
       label: i18next.t('label.logout'),
       screen: 'ManageSpecies',
       icon: <LogoutIcon />,
-      visible: isLogedIn,
+      visible: isLoggedIn,
       key: 'logout'
     },
   ]

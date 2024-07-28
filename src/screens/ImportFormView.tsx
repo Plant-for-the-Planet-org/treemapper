@@ -28,7 +28,7 @@ const ImportFormView = () => {
   const [alertMessage, setAlertMessage] = useState<string>('');
   const [showSecondaryButton, setShowSecondaryButton] = useState<boolean>(false);
   const toast = useToast()
-  const { bulkMetaDataAdditoin, deleteAllMetaData } = useMetaData()
+  const { bulkMetaDataAddition, deleteAllMetaData } = useMetaData()
   const { bulkFormAddition, deleteAllAdditionalData } = useAdditionalForm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -92,9 +92,9 @@ const ImportFormView = () => {
       { encoding: 'utf8' },
     )
     const parsedData = JSON.parse(jsonData)
-    if (parsedData && parsedData.version) {
+    if (parsedData?.version) {
       const { formData, metaData } = parsedData
-      await bulkMetaDataAdditoin(metaData)
+      await bulkMetaDataAddition(metaData)
       await bulkFormAddition(formData)
       toast.show("Form Data added successfully")
       navigation.goBack()

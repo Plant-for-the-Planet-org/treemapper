@@ -63,7 +63,7 @@ const CameraMainView = (props: Props) => {
         pressHandler={captureImage}
         loading={loading}
         disable={loading}
-        hideFadein
+        hideFadeIn
       />
     </View>
   )
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginTop: '5%',
   },
-  tempLable: {
+  tempLabel: {
     justifyContent: 'center',
     alignItems: 'center',
   },

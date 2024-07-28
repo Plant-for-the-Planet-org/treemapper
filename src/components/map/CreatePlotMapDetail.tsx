@@ -8,7 +8,7 @@ import CustomButton from '../common/CustomButton';
 import * as turf from '@turf/turf'
 import { PLOT_SHAPE } from 'src/types/type/app.type';
 import PlotShapeSource from './PlotShapeSource';
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement';
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
 import { Typography, Colors } from 'src/utils/constants';
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins';
 import { useNavigation } from '@react-navigation/native';
@@ -36,14 +36,14 @@ interface Props {
   initialPolygon: Array<number[]>
   isMarking?: boolean
   plantId?: string
-  plnatedTrees?: PlantedPlotSpecies[]
+  plantedTrees?: PlantedPlotSpecies[]
   isEdit: boolean
-  showNewDimentionModal: () => void
+  showNewDimensionModal: () => void
 }
 
 
 const CreatePlotMapDetail = (props: Props) => {
-  const { showNewDimentionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plnatedTrees } = props
+  const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees: plantedTrees } = props
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const currentUserLocation = useSelector(
@@ -52,7 +52,7 @@ const CreatePlotMapDetail = (props: Props) => {
   const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
   const [updatedCoords, setUpdatedCoords] = useState<Array<number[]>>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const { updatePlotLocation, upatePlotPlantLocation } = useMonitoringPlotMangement()
+  const { updatePlotLocation, updatePlotPlantLocation: updatePlotPlantLocation } = useMonitoringPlotManagement()
   const [loading, setLoading] = useState(false)
   const toast = useToast()
 
@@ -162,13 +162,13 @@ const CreatePlotMapDetail = (props: Props) => {
 
     const isValidPoint = validateMarkerForSampleTree(
       centerCoordinates,
-      plnatedTrees,
+      plantedTrees,
     )
     if (!isValidPoint) {
       toast.show('Selected point is close to already existing point')
       return
     }
-    await upatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
+    await updatePlotPlantLocation(plotId, plantId, centerCoordinates[1], centerCoordinates[0])
     navigation.replace("PlotDetails", { id: plotId })
   }
 
@@ -182,7 +182,7 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
   const checkForWithinPolygon = async (geoJSON) => {
-    for (const el of plnatedTrees) {
+    for (const el of plantedTrees) {
       const validMarker = isPointInPolygon([el.longitude, el.latitude], geoJSON);
       if (!validMarker) {
         return false;
@@ -216,6 +216,11 @@ const CreatePlotMapDetail = (props: Props) => {
     } else {
       toast.show('Error showing result')
     }
+  }
+
+  const handlePress = () => {
+    setUpdatedCoords([])
+    showNewDimensionModal()
   }
 
 
@@ -269,7 +274,7 @@ const CreatePlotMapDetail = (props: Props) => {
               }
             ]
           }} />}
-        {plnatedTrees.length > 0 && <PlotMarker sampleTreeData={plnatedTrees} onMarkerPress={() => { }} />}
+        {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
       </MapLibreGL.MapView>
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
       {isEdit ? <ActiveMarkerIcon /> : null}
@@ -288,7 +293,7 @@ const CreatePlotMapDetail = (props: Props) => {
             containerStyle={styles.btnWrapper}
             pressHandler={continueForm}
             wrapperStyle={styles.opaqueWrapper}
-            labelStyle={styles.normalLable}
+            labelStyle={styles.normalLabel}
           />
         </View>
       ) : null}
@@ -318,7 +323,7 @@ const CreatePlotMapDetail = (props: Props) => {
           <CustomButton
             label="Reset"
             containerStyle={styles.btnWrapper}
-            pressHandler={() => { setUpdatedCoords([]), showNewDimentionModal() }}
+            pressHandler={handlePress}
             wrapperStyle={styles.borderWrapper}
             labelStyle={styles.highlightLabel}
           />
@@ -327,7 +332,7 @@ const CreatePlotMapDetail = (props: Props) => {
             containerStyle={styles.btnWrapper}
             pressHandler={continueUPdateForm}
             wrapperStyle={styles.opaqueWrapper}
-            labelStyle={styles.normalLable}
+            labelStyle={styles.normalLabel}
           />
         </View>
       ) : null}
@@ -397,7 +402,7 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY_DARK,
     fontFamily: Typography.FONT_FAMILY_BOLD
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(16),
     color: Colors.WHITE,
     textAlign: 'center',

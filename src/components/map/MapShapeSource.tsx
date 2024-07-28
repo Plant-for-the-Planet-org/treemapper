@@ -9,7 +9,6 @@ const polyline: StyleProp<LineLayerStyle> = {
   lineJoin: 'bevel',
 }
 const fillStyle = {fillOpacity: 0.1}
-// const circleStyle = {circleColor: Colors.PRIMARY_DARK, circleOpacity: 0.8}
 const bigCircleStyle = {
   circleColor: Colors.NEW_PRIMARY,
   circleOpacity: 0.5,
@@ -22,20 +21,20 @@ const FillColor:any = [
   'single-tree-registration', Colors.SINGLE_TREE,
   'multi-tree-registration', Colors.MULTI_TREE,
   'removal-invasive-species', Colors.INVASIVE_SPECIES,
-  'fire-suppression', Colors.FIRE_SUPRESSION,
+  'fire-suppression', Colors.FIRE_SUPPRESSION,
   'fire-patrol', Colors.FIRE_PATROL,
   'fencing', Colors.FENCING,
   'marking-regenerant', Colors.MARKING_REGENERANT,
   'liberating-regenerant', Colors.LIBERATING_REGENERANT,
-  'grass-suppression', Colors.GRASS_SUPRESSION,
+  'grass-suppression', Colors.GRASS_SUPPRESSION,
   'firebreaks', Colors.FIREBREAKS,
   'assisting-seed-rain', Colors.SEED_RAIN,
   'soil-improvement', Colors.SOIL_IMPROVEMENT,
   'stop-tree-harvesting', Colors.STOP_HARVESTING,
   'direct-seeding', Colors.DIRECT_SEEDING,
-  'enrichement-planting', Colors.ENRICHMENT_PLANTING,
+  'enrichment-planting', Colors.ENRICHMENT_PLANTING,
   'other-intervention', Colors.OTHER_INTERVENTION,
-  'maintenance', Colors.MAINTAINEANCE,
+  'maintenance', Colors.MAINTENANCE,
   Colors.SINGLE_TREE
 ]
 
@@ -80,14 +79,14 @@ const MapShapeSource = (props: Props) => {
                   pressHandle(feature)
                 }}>
                 <MapLibreGL.FillLayer
-                  id={'polwFill' + feature.properties.id}
+                  id={'poly_map_shape_fill' + feature.properties.id}
                   style={{
                     ...fillStyle,
                     fillColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
                 <MapLibreGL.LineLayer
-                  id={'polwyline' + feature.properties.id}
+                  id={'poly_map_shape_source' + feature.properties.id}
                   style={{
                     ...polyline,
                     lineColor: showError ? Colors.LIGHT_RED : FillColor,
