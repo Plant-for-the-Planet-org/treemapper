@@ -106,7 +106,7 @@ const AdditionDataElement = () => {
 
   const renderHeaderRight = () => {
     return <View style={styles.switchHeaderContainer}>
-      <Text style={styles.switchText}>Advance Mode</Text>
+      <Text style={styles.switchText}>{i18next.t("label.advance_mode")}</Text>
       <Switch value={advanceMode}
         trackColor={{ true: Colors.NEW_PRIMARY }}
         onValueChange={() => {
@@ -159,17 +159,17 @@ const AdditionDataElement = () => {
   const renderTitle = () => {
     switch (elementType) {
       case 'INPUT':
-        return "Input"
+        return i18next.t('label.input')
       case 'DROPDOWN':
-        return "Dropdown"
+        return i18next.t('label.dropdown')
       case 'GAP':
-        return "Gap"
+        return i18next.t('label.gap')
       case 'HEADING':
-        return "Heading"
+        return i18next.t('label.heading')
       case 'YES_NO':
-        return "Yes/No"
+        return i18next.t('label.yes_no')
       default:
-        return "Input"
+        return i18next.t('label.input')
     }
   }
 

@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins';
-
+import i18next from 'src/locales/index';
 interface FrequencyData {
   type: string
   description: string
@@ -23,18 +23,15 @@ export const FrequencySelector = ({
   const allFrequencies: FrequencyData[] = [
     {
       type: 'Default',
-      description:
-        'Re-measurement will happen after 1 year, 2 years, 5 years, 10 years, and then once in every 10 years.',
+      description: i18next.t("label.remeasurement_default")
     },
     {
       type: 'High',
-      description:
-        'Re-measurement will happen after 6 months, 1 year, 1.5 years, 2 years, 3 years, 5 years, 7 years, 10 years, and then once in every 5 years.',
+      description: i18next.t("label.remeasurement_high")
     },
     {
       type: 'Low',
-      description:
-        'Re-measurement will happen after  2 years,  10 years, 20 years and then once in every 20 years.',
+      description: i18next.t("label.remeasurement_low")
     },
   ];
   return (

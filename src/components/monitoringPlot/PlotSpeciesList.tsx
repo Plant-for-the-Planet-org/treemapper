@@ -10,7 +10,7 @@ import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { SpecieCard } from '../species/ManageSpeciesCard'
-
+import i18next from 'src/locales/index'
 
 interface Props {
     isVisible: boolean
@@ -83,10 +83,10 @@ const PlantPlotListModal = (props: Props) => {
         <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
     )
 
-    const renderEmptyList=() => {
+    const renderEmptyList = () => {
         return (<View style={styles.emptyWrapper}>
             <Text style={styles.emptyLabel}>
-                {search.length === 0 || search === 'Search for species' ? "Start searching for species on \nthe search input." : "Type at least 3 words for \n better result"}
+                {search.length === 0 || search === `${i18next.t("label.search_for_species")}` ? i18next.t('label.species_note') : i18next.t('label.type_three_word')}
             </Text>
         </View>)
     }
@@ -106,7 +106,7 @@ const PlantPlotListModal = (props: Props) => {
                 <View style={styles.sectionWrapper}>
                     <View style={styles.headerWrapper}>
                         <Text style={styles.headerLabel}>
-                            Select Species
+                            {i18next.t('label.select_species')}
                         </Text>
                         <CloseIcon width={18} height={18} onPress={toogleModal} />
                     </View>

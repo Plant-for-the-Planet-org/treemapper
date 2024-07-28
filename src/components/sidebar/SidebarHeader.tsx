@@ -39,13 +39,13 @@ const SidebarHeader = () => {
             {displayName ? `${displayName}` : 'Guest User'}
           </Text>
         </Skeleton>
-        {email && <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
+        {!!email && <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           <Text style={styles.emailLabel}>
             {email}
           </Text>
         </Skeleton>}
       </View>
-      {email && <TouchableOpacity style={styles.editMe} onPress={editHandler}>
+      {!!email && <TouchableOpacity style={styles.editMe} onPress={editHandler}>
         <ProfileEditIcon />
       </TouchableOpacity>}
     </View>

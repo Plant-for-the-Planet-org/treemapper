@@ -3,6 +3,7 @@ import React from 'react'
 
 import { Colors, Typography } from 'src/utils/constants'
 import { PlotObservation } from 'src/types/interface/slice.interface'
+import i18next from 'src/locales/index'
 
 interface Props {
     item: PlotObservation[],
@@ -37,23 +38,23 @@ const EcosystemListHeader = (props: Props) => {
 
     const headerData = [{
         key: 'all',
-        label: `All ${item.length}`,
+        label: `${i18next.t('label.all')} ${item.length}`,
         hide: false
     },
     {
         key: 'canopy',
-        label: `${canopyLength} Canopy Cover`,
+        label: `${canopyLength} ${i18next.t("label.canopy_cover")}`,
         hide: canopyLength === 0
     },
     {
         key: 'soil_moisture',
-        label: `${soilMoistureLength} Soil Moisture`,
+        label: `${soilMoistureLength} ${i18next.t('label.soil_moisture')}`,
         hide: soilMoistureLength === 0
 
     },
     {
         key: 'bioacoustics',
-        label: `${bioacousticsLength} Bioacoustics`,
+        label: `${bioacousticsLength} ${i18next.t('label.bioacoustics')}`,
         hide: bioacousticsLength === 0
 
     }

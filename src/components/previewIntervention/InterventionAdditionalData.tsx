@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
+import i18next from 'src/locales/index'
 
 interface Props {
   data: FormElement[]
@@ -78,7 +79,7 @@ const InterventionAdditionalData = (props: Props) => {
         <TouchableOpacity onPress={editData} style={styles.editWrapper}>
           <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>
-        <Text style={styles.title}>Additional Data</Text>
+        <Text style={styles.title}>{i18next.t("label.additional_data")}</Text>
         {renderData()}
       </View>
     </View>

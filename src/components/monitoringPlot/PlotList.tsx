@@ -39,7 +39,7 @@ const PlotList = (props: Props) => {
             contentContainerStyle={styles.container}
             ListEmptyComponent={<EmptyStaticScreen
                 marginTop={{ marginTop: '30%' }}
-                label={i18next.t('label.no_plots')} note={i18next.t('label.no_plots_note')} image={<EmptyPlotIcon />} />}
+                label={i18next.t('label.no_plots')} note={i18next.t('label.inputElement')} image={<EmptyPlotIcon />} />}
         />
     )
 }

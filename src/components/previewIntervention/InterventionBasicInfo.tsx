@@ -7,6 +7,7 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import turfArea from '@turf/area';
 import { convertArea } from '@turf/helpers'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import i18next from 'src/locales/index'
 interface Props {
   data: InterventionData
 }
@@ -40,12 +41,12 @@ const InterventionBasicInfo = (props: Props) => {
     }
     return <View style={styles.plantedSpeciesContainer}>
       <View style={styles.cardWrapper}>
-        <Text style={styles.cardTitle}>Planted species</Text>
+        <Text style={styles.cardTitle}>{i18next.t("label.planted_species")}</Text>
         <View style={styles.plantedSpeciesWrapper}>
           {planted_species.map((el, i) => (
             <View key={el.id} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
-              {el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? "Unknown" : el.scientificName}</Text>}
+              {!!el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? i18next.t('label.unknown') : el.scientificName}</Text>}
               {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}
             </View>
           ))}
@@ -63,7 +64,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
         <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>Intervention Date</Text>
+          <Text style={styles.cardTitle}>{i18next.t('label.intervention_date')}</Text>
           <View style={styles.timeContainer}>
             <View style={styles.cardDateLabel}>
               <Text style={styles.cardLabel}>
@@ -73,23 +74,23 @@ const InterventionBasicInfo = (props: Props) => {
           </View>
         </View>
         {location_type === 'Polygon' && <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>Intervention Area</Text>
+          <Text style={styles.cardTitle}>{i18next.t('label.intervention_area')}</Text>
           <Text style={styles.haLabel}>{setPlantingArea()}ha</Text>
         </View>}
         <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>Type</Text>
+          <Text style={styles.cardTitle}>{i18next.t('label.type')}</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
         {!!project_name && (
           <View style={styles.cardWrapper}>
-            <Text style={styles.cardTitle}>Project</Text>
-            <Text style={styles.cardLabel}>{project_name}</Text>
+          <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
+          <Text style={styles.cardLabel}>{project_name}</Text>
           </View>
         )}
         {!!site_name && (
           <View style={styles.cardWrapper}>
-            <Text style={styles.cardTitle}>Site</Text>
-            <Text style={styles.cardLabel}>{site_name}</Text>
+          <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
+          <Text style={styles.cardLabel}>{site_name}</Text>
           </View>
         )}
         {plantedSpecies()}

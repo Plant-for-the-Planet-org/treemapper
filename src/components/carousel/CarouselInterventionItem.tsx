@@ -6,6 +6,7 @@ import { Colors, Typography } from 'src/utils/constants';
 import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch';
 import { INTERVENTION_TYPE } from 'src/types/type/app.type';
+import i18next from 'src/locales/index';
 
 interface Props {
   data: InterventionData;
@@ -25,11 +26,11 @@ const InterventionItemContent: React.FC<{
       <InterventionIconSwitch icon={icon} dimension={true} />
     </View>
     <View style={styles.sectionWrapper}>
-      <Text style={styles.sectionLabel}>Intervention</Text>
+      <Text style={styles.sectionLabel}>{i18next.t("label.intervention")}</Text>
       <Text style={styles.speciesName} ellipsizeMode="tail">
         {title}
       </Text>
-      <Text style={styles.sectionLabel}>Intervention Date</Text>
+      <Text style={styles.sectionLabel}>{i18next.t('label.intervention_date')}</Text>
       <Text style={styles.valueLabel}>
         {date}
       </Text>
@@ -39,7 +40,7 @@ const InterventionItemContent: React.FC<{
 );
 
 const CarouselInterventionItem: React.FC<Props> = ({ data, onPress }) => {
-  const showMoreText = data.sample_trees.length > 0 ? 'Show Tree Details' : 'Show More Details';
+  const showMoreText = data.sample_trees.length > 0 ? i18next.t("label.show_tree_details") : i18next.t("label.show_more_details");
   return (
     <InterventionItemContent
       icon={data.intervention_key}

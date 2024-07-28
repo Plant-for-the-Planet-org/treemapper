@@ -3,7 +3,7 @@ import {Text, TextStyle} from 'react-native'
 import {LinearGradient} from 'expo-linear-gradient'
 import MaskedView from '@react-native-masked-view/masked-view'
 import { Colors } from 'src/utils/constants'
-
+//Delete this component
 interface GradientTextProps extends TextStyle {
   children: React.ReactNode
   style: TextStyle

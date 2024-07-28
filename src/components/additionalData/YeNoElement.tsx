@@ -1,6 +1,7 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
+import i18next from 'src/locales/index'
 
 const YeNoElement = () => {
     const [isTrue, setIsTrue] = useState(false)
@@ -10,10 +11,10 @@ const YeNoElement = () => {
     return (
         <View style={styles.container}>
             <Pressable style={[styles.singleWrapper, { backgroundColor: isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={() => { handleChange(true) }}>
-                <Text style={[styles.label, { color: isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>Yes</Text>
+                <Text style={[styles.label, { color: isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t('label.yes')}</Text>
             </Pressable>
             <Pressable style={[styles.singleWrapper, { backgroundColor: !isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={() => { handleChange(false) }}>
-                <Text style={[styles.label, { color: !isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>No</Text>
+                <Text style={[styles.label, { color: !isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t('label.no')}</Text>
             </Pressable>
         </View>
     )

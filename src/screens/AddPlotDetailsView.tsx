@@ -7,6 +7,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
 import CustomDropDown from 'src/components/common/CustomDropDown'
+import i18next from 'src/locales/index'
 
 const AddPlotDetailsView = () => {
   return (
@@ -16,44 +17,44 @@ const AddPlotDetailsView = () => {
         <View style={styles.wrapper}>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Plant Tree Count'}
+              placeholder={`${i18next.t("local.plant_tree_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'trees'} errMsg={''} />
-            <Text style={styles.note}>How many trees did you plant?</Text>
+            <Text style={styles.note}>{i18next.t('label.how_many_trees')}</Text>
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Existing Tree Count'}
+              placeholder={`${i18next.t("local.existing_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'trees'} errMsg={''} />
-            <Text style={styles.note}>How many trees did you plant?</Text>
-          </View>
+            <Text style={styles.note}>{i18next.t('label.how_many_trees')}</Text>
+            </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Name of  Tree Species'}
+              placeholder={'name_of_tree'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'trees'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Shrub count'}
+              placeholder={`${i18next.t("local.shrub_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'shrubs'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Canopy Cover'}
+              placeholder={`${i18next.t("local.canopy_cover")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'%'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Stump Count'}
+              placeholder={`${i18next.t("local.stump_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
               trailingText={'stumps'} errMsg={''} />

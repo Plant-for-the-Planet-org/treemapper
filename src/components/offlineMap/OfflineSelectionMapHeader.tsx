@@ -3,6 +3,7 @@ import React from 'react'
 import LayerBackDrop from 'assets/images/svg/LayerBackdrop.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont} from 'src/utils/constants/mixins'
+import i18next from 'src/locales/index'
 
 const OfflineSelectionMapHeader = () => {
   return (
@@ -11,8 +12,7 @@ const OfflineSelectionMapHeader = () => {
         <LayerBackDrop />
       </View>
       <Text style={styles.note}>
-        Pan and zoom to select area {'\n'}{'\n'}
-        for download {'\n'}
+        {i18next.t("label.pan_n_zoom_to_select")}
       </Text>
     </View>
   )

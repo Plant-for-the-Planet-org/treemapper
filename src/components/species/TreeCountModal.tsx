@@ -10,11 +10,12 @@ import {
 import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
 import Ionicons from '@expo/vector-icons/Ionicons'
-import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { InputOutline } from 'react-native-input-outline'
 import { scaleFont } from 'src/utils/constants/mixins'
 import SpeciesIcon from 'assets/images/svg/SpeciesIcon.svg'
 import { InputOutlineMethods } from 'react-native-input-outline/lib/typescript/components/InputOutline'
+import i18next from 'src/locales/index'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 interface TreeCountModalProps {
   showTreeCountModal: boolean
@@ -56,7 +57,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
         <View style={styles.wrapper}>
           <View style={styles.headerWrapper}>
             <SpeciesIcon />
-            <Text style={styles.headerLabel}>Total Tress</Text>
+            <Text style={styles.headerLabel}>{i18next.t("label.total_trees")}</Text>
             <View style={styles.divider} />
             <Ionicons
               name={'close'}
@@ -67,9 +68,9 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               }}
             />
           </View>
-          {activeSpecie && <Text style={styles.note}>How many  <Text style={styles.speciesLabel}>{activeSpecie.aliases.length
+          {activeSpecie && <Text style={styles.note}>{i18next.t('label.how_many')}  <Text style={styles.speciesLabel}>{activeSpecie.aliases.length
             ? activeSpecie.aliases
-            : activeSpecie.scientificName}</Text> did you plant ?</Text>}
+            : activeSpecie.scientificName}</Text>{i18next.t("label.did_you_plant")}</Text>}
           <View style={styles.inputWrapper}>
             <View style={styles.input}>
               <InputOutline
@@ -87,7 +88,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
               />
             </View>
             <TouchableOpacity style={styles.button} onPress={handlePressNext}>
-              <Text style={styles.btnLabel}>Continue</Text>
+              <Text style={styles.btnLabel}>{i18next.t("label.continue")}</Text>
             </TouchableOpacity>
           </View>
         </View>

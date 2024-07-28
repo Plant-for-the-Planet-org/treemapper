@@ -14,6 +14,7 @@ import DeleteModal from '../common/DeleteModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useDispatch } from 'react-redux'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import i18next from 'i18next'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
@@ -44,9 +45,9 @@ const InterventionList = (props: Props) => {
   }
 
   const showInfoModal = (item: InterventionData) => {
-    if(!item.is_complete){
+    if (!item.is_complete) {
       setDeleteData(item)
-    }else{
+    } else {
       handleNavigation(item)
     }
   }
@@ -56,8 +57,8 @@ const InterventionList = (props: Props) => {
     return (
       <View style={styles.emptyBox}>
         <EmptyIntervention />
-        <Text style={styles.emptyHeaderLabel}>No Interventions to Show Yet</Text>
-        <Text style={styles.emptyLabel}>Start mapping your tree interventions to {'\n'} keep track of your progress.</Text>
+        <Text style={styles.emptyHeaderLabel}>{i18next.t("label.no_intervention_to_show")}</Text>
+        <Text style={styles.emptyLabel}>{i18next.t("label.no_intervention_note1")} {'\n'} {i18next.t("label.keep_track_progress")}</Text>
       </View>
     )
   }

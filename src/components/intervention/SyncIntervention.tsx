@@ -19,7 +19,7 @@ import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
 import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateNewIntervention } from 'src/store/slice/appStateSlice';
-
+import i18next from 'src/locales/index';
 interface Props {
     isLoggedIn: boolean
 }
@@ -194,14 +194,14 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             <RotatingView isClockwise={true}>
                 <RefreshIcon />
             </RotatingView>
-            <Text style={styles.label}>Syncing</Text>
+            <Text style={styles.label}>{i18next.t("label.syncing")}</Text>
         </View>
     )
 
     const renderUnSyncView = () => (
         <Pressable style={styles.container} onPress={showLogin}>
             <UnSyncIcon width={20} height={20} />
-            <Text style={styles.label}>Sync Data</Text>
+            <Text style={styles.label}>{i18next.t("label.sync_data")}</Text>
             {/* <InfoIcon width={15} height={15} style={{marginLeft:5}}/> */}
         </Pressable>
     )
@@ -209,7 +209,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const renderFullySyncView = () => (
         <View style={styles.container}>
             <SyncIcon width={20} height={20} />
-            <Text style={styles.label}>Fully synced</Text>
+            <Text style={styles.label}>{i18next.t("label.fully_synced")}</Text>
         </View>
     )
 

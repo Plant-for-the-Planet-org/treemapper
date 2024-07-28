@@ -6,6 +6,7 @@ import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHel
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import { SCALE_36 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
+import i18next from 'src/locales/index'
 
 interface Props {
   data: any
@@ -14,7 +15,7 @@ interface Props {
 }
 
 const CarouselItem = (props: Props) => {
-  const { data, onPress , remeasure} = props
+  const { data, onPress, remeasure } = props
   if (data?.tree_type) {
     const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : data.image_url
     const hasImage = uri.length > 0
@@ -26,19 +27,19 @@ const CarouselItem = (props: Props) => {
         }
       </View>
       <View style={styles.sectionWrapper}>
-        <Text style={styles.sectionLabel}>Species Name</Text>
+        <Text style={styles.sectionLabel}>{i18next.t("label.species_name")}</Text>
         <Text style={styles.speciesName} ellipsizeMode="tail">
           {data.specie_name}
         </Text>
-        <Text style={styles.sectionLabel}>Intervention Date</Text>
+        <Text style={styles.sectionLabel}>{i18next.t("label.intervention_date")}</Text>
         <Text style={styles.valueLabel}>
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
-     { data.remeasurement_requires &&  <TouchableOpacity style={styles.nextButton} onPress={() => {
-      remeasure(data.intervention_id, data.tree_id)
-    }}>
-        <Text style={styles.nextButtonLabel}>Remeasure</Text>
+      {data.remeasurement_requires && <TouchableOpacity style={styles.nextButton} onPress={() => {
+        remeasure(data.intervention_id, data.tree_id)
+      }}>
+        <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
       </TouchableOpacity>}
     </TouchableOpacity>
   } else {
@@ -49,11 +50,11 @@ const CarouselItem = (props: Props) => {
         <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
       </View>
       <View style={styles.sectionWrapper}>
-    <Text style={styles.sectionLabel}>Intervention</Text>
+        <Text style={styles.sectionLabel}>{i18next.t("label.intervention")}</Text>
         <Text style={styles.itLabel} ellipsizeMode="tail">
           {data.intervention_title}
         </Text>
-        <Text style={styles.sampleLabel}>Show More Details</Text>
+        <Text style={styles.sampleLabel}>{i18next.t("label.show_more_details")}</Text>
 
       </View>
     </TouchableOpacity>
@@ -125,20 +126,20 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
   },
-  nextButton:{
-    width:100,
-    height:35,
-    justifyContent:'center',
-    alignItems:'center',
-    position:'absolute',
-    bottom:10,
-    right:10,
-    backgroundColor:Colors.NEW_PRIMARY,
-    borderRadius:12,
+  nextButton: {
+    width: 100,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: Colors.NEW_PRIMARY,
+    borderRadius: 12,
   },
-  nextButtonLabel:{
-    fontSize:12,
-    fontFamily:Typography.FONT_FAMILY_BOLD,
-    color:Colors.WHITE
+  nextButtonLabel: {
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.WHITE
   }
 })

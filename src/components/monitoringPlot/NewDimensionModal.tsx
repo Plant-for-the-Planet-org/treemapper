@@ -8,6 +8,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 import { useToast } from 'react-native-toast-notifications'
 import { PLOT_SHAPE } from 'src/types/type/app.type'
+import i18next from 'src/locales/index'
 
 interface Props {
     isVisible: boolean
@@ -68,26 +69,26 @@ const NewDimensionModal = (props: Props) => {
     return (
         <Modal style={styles.container} isVisible={isVisible} onBackButtonPress={toogleModal} onBackdropPress={toogleModal}>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.header}>Update Dimensions</Text>
+                <Text style={styles.header}>{i18next.t('local.update_dimensions')}</Text>
                 {shape === "RECTANGULAR" ? <>
                     <CustomTextInput
-                        label="Height"
+                        label={i18next.t('local.height')}
                         onChangeHandler={setDimensionHeight}
                         value={dimensionHeight}
                     />
                     <CustomTextInput
-                        label="Width"
+                        label={i18next.t('local.width')}
                         onChangeHandler={setDimensionWidth}
                         value={dimensionWidth}
                     />
                 </> :
                     <CustomTextInput
-                        label="Radius"
+                        label={i18next.t('local.radius')}
                         onChangeHandler={setDimensionRadius}
                         value={dimensionRadius}
                     />}
                 <CustomButton
-                    label={"Continue"}
+                    label={i18next.t('local.continue')}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
                     hideFadeIn

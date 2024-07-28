@@ -8,6 +8,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
 import { v4 as uuid } from 'uuid';
 import BinIcon from 'assets/images/svg/BinIcon.svg'
+import i18next from 'src/locales/index'
 
 interface Props {
     isVisible: boolean
@@ -28,7 +29,7 @@ const DropDownFieldElement = (props: Props) => {
         if (selectedElement?.key) {
             setInputKey(selectedElement.key)
             setInputValue(selectedElement.value)
-        }else{
+        } else {
             setInputKey('')
             setInputValue('')
         }
@@ -37,11 +38,11 @@ const DropDownFieldElement = (props: Props) => {
 
     const handlePress = () => {
         if (inputKey === '') {
-            toast.show("Please add valid key",{placement:'top'})
+            toast.show("Please add valid key", { placement: 'top' })
             return;
         }
         if (inputValue === '') {
-            toast.show("Please add valid value",{placement:'top'})
+            toast.show("Please add valid value", { placement: 'top' })
             return;
         }
 
@@ -75,19 +76,19 @@ const DropDownFieldElement = (props: Props) => {
                 {selectedElement.key.length > 0 && <TouchableOpacity
                     onPress={handleDelete}
                     style={styles.deleteBinWrapper}><BinIcon width={25} height={25} fill={'tomato'} /></TouchableOpacity>}
-                <Text style={styles.header}>Add Dropdown options</Text>
+                <Text style={styles.header}>{i18next.t('label.add_dropdown_options')}</Text>
                 <CustomTextInput
-                    label="Field key"
+                    label={i18next.t('label.field_key')}
                     onChangeHandler={setInputKey}
                     value={inputKey}
                 />
                 <CustomTextInput
-                    label="Field value"
+                    label={i18next.t('label.field_value')}
                     onChangeHandler={setInputValue}
                     value={inputValue}
                 />
                 <CustomButton
-                    label={selectedElement.key.length > 0 ? "Update Option" : "Add Option"}
+                    label={selectedElement.key.length > 0 ? i18next.t('label.update_option') : i18next.t('label.add_option')}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
                     hideFadeIn

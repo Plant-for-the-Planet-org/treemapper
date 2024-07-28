@@ -11,6 +11,7 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import InterventionCardHeader from './InterventionCardHeader'
 import InterventionMetaInfo from './InterventionMetaInfo'
 import DividerDot from '../common/DividerDot'
+import i18next from 'i18next'
 
 
 interface Props {
@@ -30,7 +31,7 @@ const InterventionCard = (props: Props) => {
         <InterventionIconSwitch icon={item.intervention_type} />
         {!item.is_complete ? (
           <View style={styles.incompleteTagWrapper}>
-            <Text style={styles.incompleteTagLabel}>INCOMPLETE</Text>
+            <Text style={styles.incompleteTagLabel}>{i18next.t("label.incomplete")}</Text>
           </View>
         ) : null}
         <View style={styles.sectionWrapper}>
@@ -44,7 +45,7 @@ const InterventionCard = (props: Props) => {
               )}
             </View>
             <Text style={styles.metaLabel}>{item.location_type}</Text>
-            <DividerDot width={20} height={20} size={20} color={Colors.TEXT_COLOR}/>
+            <DividerDot width={20} height={20} size={20} color={Colors.TEXT_COLOR} />
             <InterventionMetaInfo item={item} />
             <Text style={styles.metaLabel}>
               {timestampToBasicDate(item.intervention_date)}
@@ -102,7 +103,7 @@ const styles = StyleSheet.create({
     height: '100%',
     width: 30,
     marginRight: 15,
-    marginLeft:5,
+    marginLeft: 5,
     justifyContent: 'flex-end',
     alignItems: 'flex-end',
     paddingBottom: '4%',

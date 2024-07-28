@@ -16,6 +16,7 @@ import { v4 as uuid } from 'uuid'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import i18next from 'src/locales/index'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('../../../assets/mapStyle/mapStyleOutput.json')
@@ -79,7 +80,7 @@ const PreviewMap = (props: Props) => {
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
         {intervention && intervention.has_sample_trees && intervention.status !== 'SYNCED' ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
-          <Text style={styles.sampleTreeLabel}>Sample Tree</Text>
+          <Text style={styles.sampleTreeLabel}>{i18next.t("label.sample_tree")}</Text>
           <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
         </TouchableOpacity> : null}
       </View>

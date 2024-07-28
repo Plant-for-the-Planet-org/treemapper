@@ -15,6 +15,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import DeleteModal from '../common/DeleteModal'
+import i18next from 'src/locales/index'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -83,29 +84,29 @@ const SampleTreePreviewList = (props: Props) => {
             </TouchableOpacity>}
           </View>
           <View style={styles.metaWrapper}>
-            <Text style={styles.title}>Intervention Date</Text>
+            <Text style={styles.title}>{i18next.t("label.intervention_date")}</Text>
             <Text style={styles.valueLabel}>
               {timestampToBasicDate(details.plantation_date)}
             </Text>
           </View>
           {!!details.specie_name && <View style={styles.metaWrapper}>
-            <Text style={styles.title}>Species</Text>
+            <Text style={styles.title}>{i18next.t("label.species")}</Text>
             <Text style={styles.speciesName}>{details.specie_name}</Text>
           </View>}
           {!!details.specie_name && <View style={styles.metaWrapper}>
-            <Text style={styles.title}>Local common name</Text>
+            <Text style={styles.title}>{i18next.t("label.local_common_name")}</Text>
             <Text style={styles.valueLabel}>{details.local_name}</Text>
           </View>}
           <View style={styles.dimensionWrapper}>
             <View style={styles.iconWrapper}>
-              <Text style={styles.iconTitle}>Height</Text>
+              <Text style={styles.iconTitle}>{i18next.t("label.height")}</Text>
               <View style={styles.iconMetaWrapper}>
                 <HeightIcon width={20} height={20} />
                 <Text style={styles.iconLabel}>{details.specie_height}</Text>
               </View>
             </View>
             <View style={styles.iconWrapper}>
-              <Text style={styles.iconTitle}>Diameter(DBH)</Text>
+              <Text style={styles.iconTitle}>{i18next.t("label.dbh")}</Text>
               <View style={styles.iconMetaWrapper}>
                 <View style={styles.iconHolder}>
                   <WidthIcon width={20} height={20} />

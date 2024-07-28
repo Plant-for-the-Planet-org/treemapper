@@ -57,7 +57,7 @@ export const ExportGeoJSONButton = (props: Props) => {
                 <View style={styles.iconWrapper}>
                     <ExportIcon />
                 </View>
-                <Text style={styles.textStyle}>Export GeoJson</Text>
+                <Text style={styles.textStyle}>{i18next.t("label.export_geo_json")}</Text>
             </TouchableOpacity>
         </View>
 

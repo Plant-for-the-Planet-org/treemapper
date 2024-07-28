@@ -10,12 +10,13 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
 import useMetaData from 'src/hooks/realm/useMetaData'
 import { Metadata } from 'src/types/interface/app.interface'
-import {v4 as uuid} from 'uuid'
+import { v4 as uuid } from 'uuid'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import i18next from 'src/locales/index'
 
 const MetaDataElementView = () => {
     const [inputKey, setInputKey] = useState('')
@@ -28,13 +29,13 @@ const MetaDataElementView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'MetaDataElement'>>()
     const realm = useRealm()
 
-    const {addNewMetadata, updateMetaData, deleteMetaData} = useMetaData()
-    const isEdit = route.params && route.params.edit
+    const { addNewMetadata, updateMetaData, deleteMetaData } = useMetaData()
+    const isEdit = route.params?.edit
     const order = route.params?.order ?? 0;
-    const elementId =  route.params && route.params.id? route.params.id: ''
+    const elementId = route.params?.id ? route.params.id : ''
 
-    const renderRightElement=()=>{
-        if(!isEdit){
+    const renderRightElement = () => {
+        if (!isEdit) {
             return null
         }
         return (
@@ -45,39 +46,39 @@ const MetaDataElementView = () => {
     }
 
     useEffect(() => {
-        if(isEdit){
-            const data = realm.objectForPrimaryKey<Metadata>(RealmSchema.Metadata,elementId);
-            if(data){
-              setInputKey(data.key)
-              setInputValue(data.value)
-              setIsPublic(data.accessType==='public');
-              setId(data.id)
+        if (isEdit) {
+            const data = realm.objectForPrimaryKey<Metadata>(RealmSchema.Metadata, elementId);
+            if (data) {
+                setInputKey(data.key)
+                setInputValue(data.value)
+                setIsPublic(data.accessType === 'public');
+                setId(data.id)
             }
         }
     }, [])
-    
 
 
-    const handleMetaData=async ()=>{
-        if(isEdit){
+
+    const handleMetaData = async () => {
+        if (isEdit) {
             updateElement();
             return
         }
         try {
-            if(inputKey===''){
+            if (inputKey === '') {
                 toast.show('Input key cannot be empty')
                 return
             }
-            if(inputValue===''){
+            if (inputValue === '') {
                 toast.show('Input value cannot be empty')
                 return
             }
-            const data: Metadata =  {
+            const data: Metadata = {
                 id: uuid(),
                 key: inputKey,
                 value: inputValue,
                 order: order,
-                accessType: isPublic?'public':'private'
+                accessType: isPublic ? 'public' : 'private'
             }
             await addNewMetadata(data)
             navigation.goBack()
@@ -86,22 +87,22 @@ const MetaDataElementView = () => {
         }
     }
 
-    const updateElement=async ()=>{
+    const updateElement = async () => {
         try {
-            if(inputKey===''){
+            if (inputKey === '') {
                 toast.show('Input key cannot be empty')
                 return
             }
-            if(inputValue===''){
+            if (inputValue === '') {
                 toast.show('Input value cannot be empty')
                 return
             }
-            const data: Metadata =  {
+            const data: Metadata = {
                 id: id,
                 key: inputKey,
                 value: inputValue,
                 order: order,
-                accessType: isPublic?'public':'private'
+                accessType: isPublic ? 'public' : 'private'
             }
             await updateMetaData(data)
             navigation.goBack()
@@ -110,15 +111,15 @@ const MetaDataElementView = () => {
         }
     }
 
-    const handleDelete=async()=>{
-      await deleteMetaData(elementId)
-      navigation.goBack()
+    const handleDelete = async () => {
+        await deleteMetaData(elementId)
+        navigation.goBack()
     }
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={''} rightComponent={renderRightElement()}/>
-            <Text style={styles.headerLabel}>Add metadata</Text>
+            <Header label={''} rightComponent={renderRightElement()} />
+            <Text style={styles.headerLabel}>{i18next.t("label.add_metadata")}</Text>
             <CustomTextInput
                 label="Field key"
                 onChangeHandler={setInputKey}
@@ -130,13 +131,13 @@ const MetaDataElementView = () => {
                 value={inputValue}
             />
             <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>Make this data public</Text>
+                <Text style={styles.switchText}>{i18next.t("make_this_data_public")}</Text>
                 <Switch value={isPublic} onValueChange={() => {
                     setIsPublic(!isPublic)
                 }} disabled={false} />
             </View>
             <CustomButton
-                label={isEdit?"Update Element":"Add Element"}
+                label={isEdit ? i18next.t("label.update_element") : i18next.t("label.add_element")}
                 containerStyle={styles.btnContainer}
                 pressHandler={handleMetaData}
             />
@@ -177,22 +178,22 @@ const styles = StyleSheet.create({
         height: scaleSize(70),
         position: 'absolute',
         bottom: 20,
-      },
-      deleteWrapper:{
-        alignItems:'center',
-        justifyContent:'center',
-        borderWidth:1,
-        borderColor:'tomato',
+    },
+    deleteWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderWidth: 1,
+        borderColor: 'tomato',
         borderStyle: 'dashed',
-        paddingHorizontal:20,
-        paddingVertical:10,
-        borderRadius:10,
-        marginRight:10
-      },
-      deletable:{
-        fontSize:16,
-        fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
-        color:'tomato',
-        marginHorizontal:10,
-      }
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+        marginRight: 10
+    },
+    deletable: {
+        fontSize: 16,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: 'tomato',
+        marginHorizontal: 10,
+    }
 })

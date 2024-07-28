@@ -33,7 +33,6 @@ const Header = (props: Props) => {
         {!!note && <Text style={styles.note}>{note}</Text>}</View>
       <View style={styles.divider} />
       {rightComponent}
-      {/* <View style={styles.overlay}/> */}
     </View>
   )
 }
@@ -74,11 +73,4 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
-  overlay: {
-    width: '100%',
-    height: 50,
-    position: 'absolute',
-    top: -50,
-    backgroundColor: Colors.WHITE
-  }
 })

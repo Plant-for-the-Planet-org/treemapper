@@ -43,7 +43,7 @@ const CameraMainView = (props: Props) => {
         {permission && permission.status !== PermissionStatus.GRANTED ? (
           <>
             <Text style={styles.centerText}>
-              Please provide camera permission
+              {i18next.t("label.camera_permission")}
             </Text>
             <Text style={styles.centerTextNote} onPress={onClickOpenSettings}>
               {i18next.t('label.open_settings')}
@@ -51,14 +51,14 @@ const CameraMainView = (props: Props) => {
           </>
         ) : (
           <CameraView
-            facing='back'
+            facing={i18next.t('label.back')}
             style={styles.cameraWrapper}
             ref={cameraRef}
           />
         )}
       </View>
       <CustomButton
-        label="Take Picture"
+        label={i18next.t("label.take_picture")}
         containerStyle={styles.btnContainer}
         pressHandler={captureImage}
         loading={loading}

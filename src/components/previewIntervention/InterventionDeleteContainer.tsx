@@ -4,6 +4,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import DeleteIcon from 'assets/images/svg/BinIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import DeleteModal from '../common/DeleteModal'
+import i18next from 'src/locales/index'
 
 interface Props {
     interventionId: string
@@ -22,9 +23,9 @@ const InterventionDeleteContainer = (props: Props) => {
 
     return (
         <View style={styles.container}>
-            <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
+            <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={deleteData} />
             <TouchableOpacity style={styles.wrapper} onPress={() => { setDeleteData('') }}>
-                <Text style={styles.label}>Delete</Text>
+                <Text style={styles.label}>{i18next.t("label.delete")}</Text>
                 <DeleteIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity>
         </View>

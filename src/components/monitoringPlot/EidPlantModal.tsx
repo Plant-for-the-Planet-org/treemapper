@@ -17,6 +17,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import EditInputModal from '../intervention/EditInputModal'
 import AddIcon from 'assets/images/svg/AddIcon.svg'
+import i18next from 'src/locales/index'
 
 
 
@@ -145,7 +146,7 @@ const EidPlantModal = (props: Props) => {
                     selectedValue={type}
                   /> : <Pressable
                     onPress={addGroup}
-                    style={styles.emptyWrapper}><Text style={styles.emptyLabel}>Add Group</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
+                    style={styles.emptyWrapper}><Text style={styles.emptyLabel}>{i18next.t('label.add_group')}</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
               </View>
               <Pressable onPress={closeModal} style={{ padding: 5 }}>
                 <CloseIcon width={50} onPress={closeModal} />
@@ -153,15 +154,15 @@ const EidPlantModal = (props: Props) => {
             </View>
             <Pressable style={styles.optionCard} onPress={() => { setShowEdit(plotData.name) }}>
               <EditPend width={18} height={18} fill={Colors.NEW_PRIMARY} />
-              <Text style={styles.cardLabel}> Edit Name</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.edit_name')}</Text>
             </Pressable>
             <Pressable style={styles.optionCard} onPress={handleDimensions}>
               <EditDimension width={18} height={18} />
-              <Text style={styles.cardLabel}> Edit Plot Dimension</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.edit_plot')}</Text>
             </Pressable>
             <Pressable style={styles.optionCard} onPress={deleteHandler}>
               <BinIcon width={18} height={18} fill={'tomato'} />
-              <Text style={styles.cardLabel}> Delete </Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.delete')}</Text>
             </Pressable>
           </View>
         </View>

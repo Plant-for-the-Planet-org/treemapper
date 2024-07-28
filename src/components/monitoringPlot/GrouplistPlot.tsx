@@ -28,7 +28,7 @@ const GroupListPlot = ({ gid }: Props) => {
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotDetails.plots.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
                 <Text style={styles.cardholder}>{item.name}</Text>
-                <Text style={styles.cardLabel}>{item.observations.length} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
+                <Text style={styles.cardLabel}>{item.observations.length} {i18next.t("label.observations")} | {i18next.t("label.last_updated")} {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
             </View>
             <Pressable style={styles.checkBoxWrapper} onPress={() => { handleRemoval(item.plot_id) }}>
                 <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} onPress={() => { handleRemoval(item.plot_id) }} />
@@ -36,7 +36,7 @@ const GroupListPlot = ({ gid }: Props) => {
         </View>)
     }
 
-    const renderEmptyList=() => {
+    const renderEmptyList = () => {
         return (
             <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>

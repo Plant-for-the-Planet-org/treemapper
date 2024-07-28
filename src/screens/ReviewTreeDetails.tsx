@@ -27,6 +27,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useObject } from '@realm/react'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { v4 as uuid } from 'uuid'
+import i18next from 'src/locales/index'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -165,14 +166,14 @@ const ReviewTreeDetails = () => {
             return null
         }
         return <View style={styles.rightContainer}>
-            <Text style={styles.deceasedLabel}>Marked Deceased</Text>
+            <Text style={styles.deceasedLabel}>{i18next.t('label.marked_deceased')}</Text>
         </View>
     }
 
     if (!treeDetails) {
         return null
     }
-    const headerLabel = editTree ? "Tree Details" : `Review Tree Details`
+    const headerLabel = editTree ? i18next.t("label.tree_details") : i18next.t("label.review_tree_details")
     const showEdit = editTree || treeDetails.tree_id
     return (
         <SafeAreaView style={styles.container}>
@@ -182,7 +183,7 @@ const ReviewTreeDetails = () => {
                 <View style={styles.container}>
                     <InterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} />
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Species</Text>
+                        <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (!!editTree && synced && !Intervention.has_sample_trees) {
                                 return
@@ -196,7 +197,7 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Height</Text>
+                        <Text style={styles.title}>{i18next.t('label.height')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (showEdit && synced) {
                                 return
@@ -211,7 +212,7 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Width</Text>
+                        <Text style={styles.title}>{i18next.t('label.width')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (showEdit && synced) {
                                 return
@@ -226,7 +227,7 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Plantation Date</Text>
+                        <Text style={styles.title}>{i18next.t("label.plantation_date")}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (showEdit && synced) {
                                 return
@@ -240,7 +241,7 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Tree Tag</Text>
+                        <Text style={styles.title}>{i18next.t('label.tree_tag')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
                             if (showEdit && synced) {
                                 return
@@ -254,16 +255,16 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Location</Text>
+                        <Text style={styles.title}>{i18next.t('local.location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.longitude.toFixed(5)} , {treeDetails.latitude.toFixed(5)}
                             </Text>
                         </View>
                     </View>
-                    <Text style={styles.header}>Additional Data</Text>
+                    <Text style={styles.header}>{i18next.t('local.additional_data')}</Text>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>Device Location</Text>
+                        <Text style={styles.title}>{i18next.t('local.device_location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.device_longitude} , {treeDetails.device_latitude}
@@ -276,14 +277,14 @@ const ReviewTreeDetails = () => {
             </ScrollView >
             {!editTree && <View style={styles.btnContainer}>
                 <CustomButton
-                    label="Add Sample Tree"
+                    label={i18next.t("label.add_sample_tree")}
                     containerStyle={styles.btnWrapper}
                     pressHandler={addAnotherTree}
                     wrapperStyle={styles.borderWrapper}
                     labelStyle={styles.highlightLabel}
                 />
                 <CustomButton
-                    label="Continue"
+                    label={i18next.t("label.continue")}
                     containerStyle={styles.btnWrapper}
                     pressHandler={nextTreeButton}
                     wrapperStyle={styles.noBorderWrapper}

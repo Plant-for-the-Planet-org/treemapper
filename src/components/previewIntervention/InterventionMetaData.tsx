@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { FORM_TYPE } from 'src/types/type/app.type'
+import i18next from 'src/locales/index'
 
 interface Props {
   data: string
@@ -51,7 +52,7 @@ const InterventionMetaData = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <Text style={styles.title}>Meta Data</Text>
+        <Text style={styles.title}>{i18next.t("label.meta_data")}</Text>
         {renderData()}
       </View>
     </View>

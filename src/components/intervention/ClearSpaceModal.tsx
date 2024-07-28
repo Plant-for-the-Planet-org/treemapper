@@ -3,10 +3,11 @@ import React from 'react'
 import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
 import FolderIcon from 'assets/images/svg/FolderIcon.svg'
+import i18next from 'src/locales/index'
 
 interface Props {
     isVisible: boolean
-    toggleModal: ()=>void
+    toggleModal: () => void
     handleFreeSpace: () => void
 }
 
@@ -28,16 +29,16 @@ const ClearSpaceModal = (props: Props) => {
                             fontSize: Typography.FONT_SIZE_14,
                             paddingVertical: 10,
                         }}>
-                        Clear Up Some Space
+                        {i18next.t("label.clear_up_space")}
                     </Text>
                     <Text style={[styles.accuracyModalText, { marginBottom: 16 }]}>
-                        Reclaim storage by removing local copies of images. All files will continue to be available in the cloud.
+                        {i18next.t("label.clear_note")}
                     </Text>
                     <TouchableOpacity
                         onPress={handleFreeSpace}
                         style={{
-                            paddingHorizontal:10,
-                            paddingVertical:5,
+                            paddingHorizontal: 10,
+                            paddingVertical: 5,
                             alignSelf: 'center',
                         }}>
                         <Text
@@ -46,7 +47,7 @@ const ClearSpaceModal = (props: Props) => {
                                 fontFamily: Typography.FONT_FAMILY_BOLD,
                                 fontSize: Typography.FONT_SIZE_16,
                             }}>
-                            Free up space
+                            {i18next.t("label.free_up_space")}
                         </Text>
                     </TouchableOpacity>
                 </View>

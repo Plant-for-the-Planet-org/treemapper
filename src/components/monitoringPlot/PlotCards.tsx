@@ -1,6 +1,6 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-
+import i18next from 'src/locales/index'
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
@@ -30,7 +30,7 @@ const PlotCards = (props: Props) => {
                     <View style={styles.sectionHeader}>
                         <Text style={styles.idLabel}>{item.name}</Text>
                         {item.lastScreen !== 'location' && <View style={styles.sectionHeader}>
-                            <Text style={styles.chipLabel}>Incomplete</Text>
+                            <Text style={styles.chipLabel}>{i18next.t("label.incomplete")}</Text>
                         </View>}
                     </View>
                     <View style={styles.sectionHeader}>
@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
         fontSize: 11,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
-        letterSpacing:0.2
+        letterSpacing: 0.2
     },
     speciesLabel: {
         fontSize: 10,

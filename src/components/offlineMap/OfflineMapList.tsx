@@ -8,6 +8,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import useOfflineMapManager from 'src/hooks/realm/useOfflineMapManger'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import DeleteModal from '../common/DeleteModal'
+import i18next from 'src/locales/index'
 
 const OfflineMapList = () => {
 
@@ -24,11 +25,11 @@ const OfflineMapList = () => {
   }
 
   const renderHeader = () => (
-    <Text style={styles.header}>Saved Offline Areas</Text>
+    <Text style={styles.header}>{i18next.t("label.save_offline_area")}</Text>
   )
 
   const renderEmptyComp = () => (
-    <Text style={styles.emptylabel}>No Offline Map to show</Text>
+    <Text style={styles.emptylabel}>{i18next.t("label.no_offline_map")}</Text>
   )
 
   return (
