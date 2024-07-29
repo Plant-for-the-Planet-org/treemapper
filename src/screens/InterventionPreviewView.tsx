@@ -31,6 +31,7 @@ import InterventionMetaData from 'src/components/previewIntervention/Interventio
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { Metadata } from 'src/types/interface/app.interface'
 import * as Application from 'expo-application'
+import i18next from 'i18next'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -93,7 +94,7 @@ const InterventionPreviewView = () => {
       navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
-  
+
 
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
@@ -141,7 +142,7 @@ const InterventionPreviewView = () => {
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
   }
-  
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -160,7 +161,7 @@ const InterventionPreviewView = () => {
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
-        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{Application.nativeApplicationVersion}</Text>}
+        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{Application.nativeApplicationVersion}</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton
