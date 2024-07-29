@@ -7,6 +7,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
 import CustomDropDown from 'src/components/common/CustomDropDown'
+import i18next from 'src/locales/index'
 
 const AddPlotDetailsView = () => {
   return (
@@ -16,54 +17,54 @@ const AddPlotDetailsView = () => {
         <View style={styles.wrapper}>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Plant Tree Count'}
+              placeholder={`${i18next.t("local.plant_tree_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
-            <Text style={styles.note}>How many trees did you plant?</Text>
+              trailingText={'trees'} errMsg={''} />
+            <Text style={styles.note}>{i18next.t('label.how_many_trees')}</Text>
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Existing Tree Count'}
+              placeholder={`${i18next.t("local.existing_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
-            <Text style={styles.note}>How many trees did you plant?</Text>
+              trailingText={'trees'} errMsg={''} />
+            <Text style={styles.note}>{i18next.t('label.how_many_trees')}</Text>
+            </View>
+          <View style={styles.inputWrapper}>
+            <OutlinedTextInput
+              placeholder={'name_of_tree'}
+              changeHandler={() => { }}
+              keyboardType={'decimal-pad'}
+              trailingText={'trees'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Name of  Tree Species'}
+              placeholder={`${i18next.t("local.shrub_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'trees'} errMsg={''} />
+              trailingText={'shrubs'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Shrub count'}
+              placeholder={`${i18next.t("local.canopy_cover")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'shrubs'} errMsg={''} />
+              trailingText={'%'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
-              placeholder={'Canopy Cover'}
+              placeholder={`${i18next.t("local.stump_count")}`}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'%'} errMsg={''} />
-          </View>
-          <View style={styles.inputWrapper}>
-            <OutlinedTextInput
-              placeholder={'Stump Count'}
-              changeHandler={() => { }}
-              keyboardType={'decimal-pad'}
-              trailingtext={'stumps'} errMsg={''} />
+              trailingText={'stumps'} errMsg={''} />
           </View>
           <InterventionDatePicker
             placeHolder={'Measurement Date'}
             value={Date.now()}
             callBack={() => { }}
           />
-          <View style={styles.dropDownWrappper}>
+          <View style={styles.dropDownWrapper}>
             <CustomDropDown
               label={'Site'}
               data={[{
@@ -84,14 +85,14 @@ const AddPlotDetailsView = () => {
               placeholder={'Height'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'m'} errMsg={''} />
+              trailingText={'m'} errMsg={''} />
           </View>
           <View style={styles.inputWrapper}>
             <OutlinedTextInput
               placeholder={'Further Information'}
               changeHandler={() => { }}
               keyboardType={'decimal-pad'}
-              trailingtext={'m'} errMsg={''} />
+              trailingText={'m'} errMsg={''} />
           </View>
         </View>
       </ScrollView>
@@ -99,7 +100,7 @@ const AddPlotDetailsView = () => {
         label="Save"
         containerStyle={styles.btnContainer}
         pressHandler={() => { }}
-        hideFadein
+        hideFadeIn
       />
     </SafeAreaView>
   )
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
   },
-  dropDownWrappper: {
+  dropDownWrapper: {
     width: '98%'
   },
   note: {

@@ -8,6 +8,7 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 import YeNoElement from './YeNoElement'
 import { Dropdown } from 'react-native-element-dropdown'
 import { scaleSize } from 'src/utils/constants/mixins'
+import i18next from 'src/locales/index'
 
 
 interface Props {
@@ -34,7 +35,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
         return (
           <View style={styles.wrapper}>
             <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>Input Element</Text>
+              <Text style={styles.keyLabel}>{i18next.t('label.input_element')}</Text>
               <View style={styles.bodyWrapper}>
                 <Text style={styles.inputWrapper}>
                   {elementDetails.label}
@@ -47,7 +48,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
         return (
           <View style={styles.wrapper}>
             <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>Yes/No Element</Text>
+              <Text style={styles.keyLabel}>{i18next.t('label.yes_no_element')}</Text>
               <View style={styles.bodyWrapper}>
                 <View style={styles.yesNoWrapper}>
                   <Text style={styles.inputWrapper}>
@@ -63,7 +64,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
         return (
           <View style={styles.wrapper}>
             <TouchableOpacity style={styles.gapWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>Gap Element</Text>
+              <Text style={styles.keyLabel}>{i18next.t('label.gap_element')}</Text>
             </TouchableOpacity>
           </View>
         )
@@ -71,7 +72,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
         return (
           <View style={styles.wrapper}>
             <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>Heading Element</Text>
+              <Text style={styles.keyLabel}>{i18next.t('label.heading_element')}</Text>
               <View style={styles.bodyWrapper}>
                 <Text style={styles.inputWrapper}>
                   Title: {elementDetails.label}
@@ -84,7 +85,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
         return (
           <View style={styles.wrapper}>
             <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>DropDown Element</Text>
+              <Text style={styles.keyLabel}>{i18next.t('label.dropdown_element')}</Text>
                 <Dropdown
                   style={styles.dropdown}
                   placeholderStyle={styles.placeholderStyle}
@@ -116,7 +117,7 @@ const Element = (props: { elementDetails: FormElement, form_id: string, pressHan
   }
 
   return (
-    <View style={styles.cotnainer}>
+    <View style={styles.container}>
       {renderBody()}
     </View>
   )
@@ -132,7 +133,7 @@ const AddDataElement = (props: Props) => {
     return (
       <View style={styles.footerWrapper}>
         <TouchableOpacity style={styles.footerButton} onPress={handlePress}>
-          <Text style={styles.footerLabel}>Add Field</Text>
+          <Text style={styles.footerLabel}>{i18next.t('label.add_field')}</Text>
         </TouchableOpacity>
       </View>
     )
@@ -143,9 +144,9 @@ const AddDataElement = (props: Props) => {
   }
 
   return (
-    <View style={styles.cotnainer}>
+    <View style={styles.container}>
       <View style={styles.headerTitleWrapper}>
-        <Text style={styles.headerLabel}>Page {pageNo + 1}</Text>
+        <Text style={styles.headerLabel}>{i18next.t('label.page')} {pageNo + 1}</Text>
         <TouchableOpacity style={styles.deleteWrapper} onPress={deleteFormHandler}>
           <BinIcon width={15} height={15} fill={'tomato'} />
         </TouchableOpacity>
@@ -162,7 +163,7 @@ const AddDataElement = (props: Props) => {
 export default AddDataElement
 
 const styles = StyleSheet.create({
-  cotnainer: {
+  container: {
     width: '100%',
     marginLeft: '2%'
   },
@@ -269,7 +270,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 20
   },
-  deletelabel: {
+  deletable: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',

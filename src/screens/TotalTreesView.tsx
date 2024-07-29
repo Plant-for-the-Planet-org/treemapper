@@ -4,7 +4,6 @@ import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { useDispatch } from 'react-redux'
 import { SpecieCard } from 'src/components/species/ManageSpeciesCard'
-import { IScientificSpecies } from 'src/types/interface/app.interface'
 import CustomButton from 'src/components/common/CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
@@ -19,7 +18,7 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 
 
@@ -31,8 +30,8 @@ const TotalTreesView = () => {
   const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
   const realm = useRealm()
-  const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
-  const interventionId = route.params && route.params.interventionId ? route.params.interventionId : ''
+  const isSelectSpecies = route.params?.isSelectSpecies
+  const interventionId = route.params?.interventionId ?? "";
   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
   const toast = useToast()
   const goBack = () => {
@@ -45,7 +44,7 @@ const TotalTreesView = () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
     const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
     if (!result) {
-      errotHaptic()
+      errorHaptic()
       toast.show("Error occurred while updating data")
       return
     }
@@ -54,12 +53,11 @@ const TotalTreesView = () => {
 
 
 
-  const cardpress = (item: PlantedSpecies) => {
+  const cardPress = (item: PlantedSpecies) => {
     if (isSelectSpecies) {
       dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
       navigation.navigate('TakePicture', { id: newID, screen: 'SAMPLE_TREE' })
-      return
     }
   }
 
@@ -67,27 +65,27 @@ const TotalTreesView = () => {
     const result = await removeInterventionPlantedSpecies(interventionId, item)
     if (!result) {
       toast.show("Error occurred while removing species")
-      errotHaptic()
+      errorHaptic()
     } else {
       toast.show(`${item.scientificName} removed`)
     }
   }
 
   const renderSpecieCard = (
-    item: IScientificSpecies | any,
+    item: PlantedSpecies
   ) => {
     return (
       <SpecieCard
         item={item}
-        onPressSpecies={cardpress}
+        onPressSpecies={cardPress}
         actionName={'remove'}
-        handleRemoveFavourite={removeHandler}
+        handleRemoveFavorite={removeHandler}
         isSelectSpecies={isSelectSpecies}
       />
     )
   }
 
-
+  const renderFooter = () => <View style={styles.footerWrapper} />
 
 
   return (
@@ -98,7 +96,7 @@ const TotalTreesView = () => {
           data={intervention.planted_species}
           renderItem={({ item }) => renderSpecieCard(item)}
           keyExtractor={({ guid }) => guid}
-          ListFooterComponent={() => <View style={styles.footerWrapper} />}
+          ListFooterComponent={renderFooter}
         />
         {!isSelectSpecies && (
           <View style={styles.btnContainer}>
@@ -139,7 +137,7 @@ const styles = StyleSheet.create({
     height: scaleSize(80),
     backgroundColor: 'red',
   },
-  textLable: {
+  textLabel: {
     fontSize: 16,
     marginLeft: 20,
     marginTop: 20,
@@ -160,7 +158,7 @@ const styles = StyleSheet.create({
     width: '90%',
   },
   imageContainer: {
-    widht: '100%',
+    width: '100%',
     height: '100%',
   },
   borderWrapper: {
@@ -192,7 +190,7 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,

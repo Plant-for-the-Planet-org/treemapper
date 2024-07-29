@@ -6,12 +6,12 @@ const https = 'https://'
 export const postUrlApi = {
   uploadIntervention: `${https}${testingURL}/treemapper/interventions`,
   imageUpload: `${https}${testingURL}/treemapper/interventions`,
-  remeasurment: `${https}${testingURL}/treemapper/interventions`,
+  remeasurement: `${https}${testingURL}/treemapper/interventions`,
   updateSpecies:  `${https}${baseUrl}/treemapper/species`,
-  addUserSpecies: `/treemapper/species`, //POST
+  addUserSpecies: `${https}${baseUrl}/treemapper/species`,
   updatePlantLocationData: `${https}${testingURL}/treemapper/interventions`,
-  signupService:"/app/profile",
-  updateProjectInF: "/app/projects" //PUT `/app/projects/${projectId}`
+  signupService:`${https}${baseUrl}/app/profile`,
+  updateProjectInF: `${https}${baseUrl}/app/projects` //PUT `/app/projects/${projectId}`
 };
 
 export const getUrlApi = {
@@ -22,6 +22,6 @@ export const getUrlApi = {
   userSpecies: `${https}${baseUrl}/treemapper/species`,
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
   getSingleLocationDetail: `${https}${baseUrl}/treemapper/plantLocations`,
-  getAllSpeciesArchieve:`${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
+  getAllSpeciesAchieve:`${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
   getNecessaryInventoryFromServer:"/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };

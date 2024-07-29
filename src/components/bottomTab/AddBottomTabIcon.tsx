@@ -1,19 +1,18 @@
-import {StyleSheet, Text, View} from 'react-native'
+import {StyleSheet, Text, View, TouchableOpacity} from 'react-native'
 import React, {useState} from 'react'
 import AddOptionModal from './AddOptionModal'
-import {TouchableOpacity} from 'react-native'
 import Animated, {
   useAnimatedStyle,
   useDerivedValue,
   withTiming,
 } from 'react-native-reanimated'
 
-import AddTabIcon from 'assets/images/svg/AddtabIcon.svg'
+import AddTabIcon from 'assets/images/svg/AddTabIcon.svg'
 import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
-
+import i18next from 'src/locales/index'
 
 
 
@@ -52,7 +51,7 @@ const AddBottomTabIcon = () => {
             styles.labelStyle,
             {color: open ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT},
           ]}>
-          Add
+          {i18next.t('label.add')}
         </Text>
       </View>
       <View style={styles.bottomBar}/>

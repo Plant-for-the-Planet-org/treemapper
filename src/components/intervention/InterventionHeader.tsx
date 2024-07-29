@@ -1,26 +1,26 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, TouchableOpacity } from 'react-native'
 import React from 'react'
-import FreeUpSaceButton from './FreeUpSaceButton'
-import { TouchableOpacity } from 'react-native'
+import FreeUpSpaceButton from './FreeUpSpaceButton'
 import Icon from '@expo/vector-icons/MaterialIcons';
 
 import { Colors } from 'src/utils/constants'
 import { useQuery } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
 import { exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper';
+import { InterventionData } from 'src/types/interface/slice.interface';
 
 
 const InterventionHeader = () => {
-    const data = useQuery(RealmSchema.Intervention, data => {
-        return data.filtered('status != "SYNCED"')
+    const data = useQuery<InterventionData>(RealmSchema.Intervention, el => {
+        return el.filtered('status != "SYNCED"')
     })
     const handleNav = () => {
-        exportAllInterventionData(data)
+        exportAllInterventionData([...data])
     }
 
     return (
         <View style={styles.container}>
-            <FreeUpSaceButton />
+            <FreeUpSpaceButton />
             {data.length > 0 && <TouchableOpacity
                 onPress={handleNav}
                 style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>}

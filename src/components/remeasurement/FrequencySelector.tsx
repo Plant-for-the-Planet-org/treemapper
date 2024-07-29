@@ -7,10 +7,10 @@ import {
 } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins';
-
+import i18next from 'src/locales/index';
 interface FrequencyData {
-    type: string
-    description: string
+  type: string
+  description: string
 }
 
 export const FrequencySelector = ({
@@ -20,27 +20,18 @@ export const FrequencySelector = ({
   selectedFrequency: string;
   setSelectedFrequency: React.Dispatch<React.SetStateAction<string>>;
 }) => {
-  // const [isCustomSelected, setIsCustomSelected] = useState(false);
-  // const [showIntervalOptions, setShowIntervalOptions] = useState(false);
-  // const [selectedIntervalOption, setSelectedIntervalOption] = useState(false);
-  // const customInputRef = useRef(null);
-
-  
   const allFrequencies: FrequencyData[] = [
     {
       type: 'Default',
-      description:
-        'Re-measurement will happen after 1 year, 2 years, 5 years, 10 years, and then once in every 10 years.',
+      description: i18next.t("label.remeasurement_default")
     },
     {
       type: 'High',
-      description:
-        'Re-measurement will happen after 6 months, 1 year, 1.5 years, 2 years, 3 years, 5 years, 7 years, 10 years, and then once in every 5 years.',
+      description: i18next.t("label.remeasurement_high")
     },
     {
       type: 'Low',
-      description:
-        'Re-measurement will happen after  2 years,  10 years, 20 years and then once in every 20 years.',
+      description: i18next.t("label.remeasurement_low")
     },
   ];
   return (
@@ -48,21 +39,20 @@ export const FrequencySelector = ({
       {/* if sample tree count is present and has length greater than zero then maps the array */}
       {allFrequencies &&
         allFrequencies.length > 0 &&
-        allFrequencies.map((frequency: FrequencyData, index: number) => {
+        allFrequencies.map((frequency: FrequencyData, i) => {
           // used to show the selected tree count selected by user
           const isSelected = frequency.type === selectedFrequency;
           return (
             <TouchableOpacity
+              key={String(frequency) + String(i)}
               onPress={() => {
-                // setIsCustomSelected(false);
                 setSelectedFrequency(frequency.type);
               }}
-              key={`tree-number-selection-${index}`}>
+            >
               <View
                 style={[
                   styles.treeCountSelection,
                   isSelected ? styles.treeCountSelectionActive : {},
-                  // { marginRight: index % 2 == 0 ? '10%' : 0 },
                 ]}>
                 <Text
                   style={[

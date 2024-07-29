@@ -1,4 +1,4 @@
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Switch, Text, TouchableOpacity, View, ScrollView } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
@@ -18,7 +18,6 @@ import { v4 as uuid } from 'uuid'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { StackNavigationProp } from '@react-navigation/stack'
-import { ScrollView } from 'react-native-gesture-handler'
 import { useToast } from 'react-native-toast-notifications'
 import { FORM_TYPE } from 'src/types/type/app.type'
 import i18next from 'src/locales/index'
@@ -40,11 +39,11 @@ const fieldType: Array<{
 
 const AdditionDataElement = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'AdditionDataElement'>>()
-  const elementType = route.params && route.params.element ? route.params.element : 'INPUT'
-  const form_id = route.params && route.params.form_id ? route.params.form_id : ''
-  const element_order = route.params && route.params.element_order ? route.params.element_order : 0
-  const element_id = route.params && route.params.element_id ? route.params.element_id : ''
-  const edit = route.params && route.params.edit ? route.params.edit : false
+  const elementType = route.params?.element ?? 'INPUT';
+  const form_id = route.params?.form_id ?? '';
+  const element_order = route.params?.element_order ?? 0;
+  const element_id = route.params?.element_id ?? '';
+  const edit = route.params?.edit ?? false;
 
   const [inputKey, setInputKey] = useState('')
   const [dataType, setDataType] = useState<DropdownData>(fieldType[0])
@@ -52,11 +51,11 @@ const AdditionDataElement = () => {
   const [advanceMode, setAdvanceMode] = useState(false)
   const [fieldKey, setFieldKey] = useState(`Element-${Date.now()}`)
   const [isRequired, setIsRequired] = useState(false)
-  const [showOptionModal, setShowDropDownOption] = useState(false)
+  const [showOptionModal, setShowOptionModal] = useState(false)
   const realm = useRealm()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [dropDownElement, setDropDownElement] = useState<Array<{ key: string, value: string, id: string }>>([])
-  const [selectedDropDown, setSelectedDropdonw] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
+  const [selectedDropDown, setSelectedDropDown] = useState<{ key: string, value: string, id: string }>({ key: "", value: '', id: '' })
 
 
   const toast = useToast()
@@ -107,7 +106,7 @@ const AdditionDataElement = () => {
 
   const renderHeaderRight = () => {
     return <View style={styles.switchHeaderContainer}>
-      <Text style={styles.switchText}>Advance Mode</Text>
+      <Text style={styles.switchText}>{i18next.t("label.advance_mode")}</Text>
       <Switch value={advanceMode}
         trackColor={{ true: Colors.NEW_PRIMARY }}
         onValueChange={() => {
@@ -121,8 +120,8 @@ const AdditionDataElement = () => {
   }
 
 
-  const toogleOptionModal = () => {
-    setShowDropDownOption(!showOptionModal)
+  const toggleOptionModal = () => {
+    setShowOptionModal(!showOptionModal)
   }
 
 
@@ -135,7 +134,7 @@ const AdditionDataElement = () => {
     const index = allElements.findIndex(el => el.id === d.id);
     allElements[index] = { ...d }
     setDropDownElement(allElements)
-    setSelectedDropdonw({
+    setSelectedDropDown({
       key: '',
       value: "",
       id: ""
@@ -146,31 +145,31 @@ const AdditionDataElement = () => {
   const deleteElement = (d: { key: string, value: string, id: string }) => {
     const allElements = dropDownElement.filter(el => el.id !== d.id)
     setDropDownElement(allElements)
-    setSelectedDropdonw({
+    setSelectedDropDown({
       key: '',
       value: "",
       id: ""
     })
-    setShowDropDownOption(false)
+    setShowOptionModal(false)
   }
-  const seletDataType = (el: DropdownData) => {
+  const selectDataType = (el: DropdownData) => {
     setDataType(el)
   }
 
   const renderTitle = () => {
     switch (elementType) {
       case 'INPUT':
-        return "Input"
+        return i18next.t('label.input')
       case 'DROPDOWN':
-        return "Dropdown"
+        return i18next.t('label.dropdown')
       case 'GAP':
-        return "Gap"
+        return i18next.t('label.gap')
       case 'HEADING':
-        return "Heading"
+        return i18next.t('label.heading')
       case 'YES_NO':
-        return "Yes/No"
+        return i18next.t('label.yes_no')
       default:
-        return "Input"
+        return i18next.t('label.input')
     }
   }
 
@@ -178,7 +177,7 @@ const AdditionDataElement = () => {
     if (!validationInput()) {
       return;
     }
-    const noValidatoinRequired: FORM_TYPE[] = ['HEADING', 'GAP', 'PAGE']
+    const noValidationRequired: FORM_TYPE[] = ['HEADING', 'GAP', 'PAGE']
     const details: FormElement = {
       element_id: uuid(),
       index: element_order,
@@ -194,10 +193,9 @@ const AdditionDataElement = () => {
       keyboard_type: dataType.value === 'number' ? 'numeric' : 'default',
       editable: false,
       required: isRequired,
-      validation: noValidatoinRequired.includes(elementType) ? '' : ".+",
+      validation: noValidationRequired.includes(elementType) ? '' : ".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
-
     }
     await addNewElementInForm(details, form_id)
     navigation.goBack()
@@ -215,8 +213,8 @@ const AdditionDataElement = () => {
     myElement.key = fieldKey
     myElement.label = inputKey
     myElement.visibility = isPublic ? "public" : 'private'
-    myElement.data_type = dataType.value === 'string' ? 'string' : 'number',
-      myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
+    myElement.data_type = dataType.value === 'string' ? 'string' : 'number'
+    myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
       myElement.required = isRequired
     myElement.dropDownData = JSON.stringify(dropDownElement)
     await updateElementInForm(element_id, form_id, myElement)
@@ -248,18 +246,18 @@ const AdditionDataElement = () => {
   }
 
   const handleOptionEdit = (d: { key: string, value: string, id: string }) => {
-    setSelectedDropdonw(d)
-    setShowDropDownOption(true)
+    setSelectedDropDown(d)
+    setShowOptionModal(true)
   }
 
   const renderOptionDD = () => {
     return dropDownElement.map(el => {
-      return <TouchableOpacity key={el.id} style={styles.dwrapper} onPress={() => {
+      return <TouchableOpacity key={el.id} style={styles.wrapper} onPress={() => {
         handleOptionEdit(el)
       }}>
-        <View style={styles.dsectionWrapper}>
-          <Text style={styles.dkeyLabel}>{el.key}</Text>
-          <Text style={styles.dkeyValue}>{el.value}</Text>
+        <View style={styles.sectionWrapper}>
+          <Text style={styles.keyLabel}>{el.key}</Text>
+          <Text style={styles.keyValue}>{el.value}</Text>
         </View>
       </TouchableOpacity>
     })
@@ -268,12 +266,12 @@ const AdditionDataElement = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        <DropDownFieldElement isVisible={showOptionModal} toogleModal={toogleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
-        <Header label='' rightComponet={renderHeaderRight()} />
+        <DropDownFieldElement isVisible={showOptionModal} toggleModal={toggleOptionModal} addOption={handleDropdownSelection} selectedElement={selectedDropDown} updateElement={updateDropDownElement} deleteElement={deleteElement} />
+        <Header label='' rightComponent={renderHeaderRight()} />
         <View style={styles.headerTitleWrapper}>
           <Text style={styles.header}>Add {renderTitle()}</Text>
           {edit && <TouchableOpacity style={styles.deleteWrapper} onPress={deleteHandler}>
-            <Text style={styles.deletelabel}>{i18next.t('label.save_areas_delete')}</Text>
+            <Text style={styles.deletable}>{i18next.t('label.save_areas_delete')}</Text>
           </TouchableOpacity>}
         </View>
         {elementType !== 'GAP' && <CustomTextInput
@@ -284,7 +282,7 @@ const AdditionDataElement = () => {
         {elementType === 'INPUT' && <CustomDropDown
           label={'Field Type'}
           data={fieldType}
-          onSelect={(el) => { seletDataType(el) }}
+          onSelect={(el) => { selectDataType(el) }}
           selectedValue={dataType}
         />}
         {advanceMode && <CustomTextInput
@@ -312,7 +310,7 @@ const AdditionDataElement = () => {
         {elementType === 'DROPDOWN' && <>
           <Text style={styles.dropDownOption}>{i18next.t('label.dropdown_options')}</Text>
           {renderOptionDD()}
-          <Text style={styles.addDropDown} onPress={toogleOptionModal}>{i18next.t('label.add_dropdown_option')}</Text>
+          <Text style={styles.addDropDown} onPress={toggleOptionModal}>{i18next.t('label.add_dropdown_option')}</Text>
           <View style={styles.btnWrapper}></View>
           <View style={styles.footer} />
         </>}
@@ -413,30 +411,30 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginRight: 20
   },
-  deletelabel: {
+  deletable: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: 'tomato',
     marginHorizontal: 10,
   },
-  dwrapper: {
+  wrapper: {
     width: "90%",
     paddingVertical: 10,
     marginLeft: '5%'
   },
-  dsectionWrapper: {
+  sectionWrapper: {
     backgroundColor: Colors.NEW_PRIMARY + '1A',
     paddingBottom: 20,
     paddingLeft: 10,
     borderRadius: 8
   },
-  dkeyLabel: {
+  keyLabel: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginVertical: 10
   },
-  dkeyValue: {
+  keyValue: {
     fontSize: 16,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,

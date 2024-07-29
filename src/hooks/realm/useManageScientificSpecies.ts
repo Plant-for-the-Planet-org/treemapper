@@ -1,7 +1,7 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { SERVER_SCIENTIFIC_SPECIES } from 'src/types/interface/realm.interface'
+import { ServerScientificSpecies } from 'src/types/interface/realm.interface'
 import useLogManagement from './useLogManagement'
 
 interface ServerSpeciesSync {
@@ -17,33 +17,33 @@ const useManageScientificSpecies = () => {
   const { addNewLog } = useLogManagement()
   const realm = useRealm()
   const writeBulkSpecies = async (
-    speciesData: SERVER_SCIENTIFIC_SPECIES[],
+    speciesData: ServerScientificSpecies[],
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        for (let i = 0; i < speciesData.length; i++) {
+        for (const species of speciesData) {
           realm.create(
             RealmSchema.ScientificSpecies,
             {
-              guid: speciesData[i].guid,
-              scientificName: speciesData[i].scientific_name
+              guid: species.guid,
+              scientificName: species.scientific_name,
             },
             Realm.UpdateMode.All,
-          )
+          );
         }
-      })
-      return Promise.resolve(true)
+      });
+      return Promise.resolve(true);
     } catch (error) {
       addNewLog({
         logType: 'DATA_SYNC',
         message: "DB error occurred while syncing species data.",
         logLevel: 'error',
         statusCode: '000',
-        logStack: JSON.stringify(error)
-      })
-      return Promise.reject(false)
+        logStack: JSON.stringify(error),
+      });
+      return false;
     }
-  }
+  };
 
 
   const addUndefinedSpecies = async (): Promise<boolean> => {
@@ -69,20 +69,20 @@ const useManageScientificSpecies = () => {
         statusCode: '000',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+ return false
     }
   }
 
 
 
-  const updateUserFavSpecies = async (guid: string, isFavourite: boolean) => {
+  const updateUserFavSpecies = async (guid: string, isFavorite: boolean) => {
     try {
       realm.write(() => {
         const specieToUpdate = realm.objectForPrimaryKey<IScientificSpecies>(
           RealmSchema.ScientificSpecies,
           guid,
         )
-        specieToUpdate.isUserSpecies = isFavourite
+        specieToUpdate.isUserSpecies = isFavorite
       })
     } catch (error) {
       console.error('Error during species update:', error)
@@ -138,7 +138,7 @@ const useManageScientificSpecies = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+ return false
     }
   }
 
@@ -153,7 +153,7 @@ const useManageScientificSpecies = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during bulk write:', error)
-      return Promise.reject(false)
+ return false
     }
   }
 

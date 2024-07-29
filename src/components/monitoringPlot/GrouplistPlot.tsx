@@ -1,25 +1,24 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View, FlatList } from 'react-native'
 import React from 'react'
-import { FlatList } from 'react-native'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { Typography, Colors } from 'src/utils/constants'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import i18next from 'src/locales/index'
 
 interface Props {
-    gid
+    gid: string
 }
 
-const GrouplistPlot = ({ gid }: Props) => {
+const GroupListPlot = ({ gid }: Props) => {
     const plotDetails = useObject<PlotGroups>(
         RealmSchema.PlotGroups, gid
     )
 
-    const { removePlotFromGroup } = useMonitoringPlotMangement()
+    const { removePlotFromGroup } = useMonitoringPlotManagement()
 
     const handleRemoval = async (id: string) => {
         await removePlotFromGroup(gid, id)
@@ -28,8 +27,8 @@ const GrouplistPlot = ({ gid }: Props) => {
     const renderCardItems = (item: MonitoringPlot, index: number) => {
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotDetails.plots.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.cardheader}>{item.name}</Text>
-                <Text style={styles.cardLabel}>{item.observations.length} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
+                <Text style={styles.cardholder}>{item.name}</Text>
+                <Text style={styles.cardLabel}>{item.observations.length} {i18next.t("label.observations")} | {i18next.t("label.last_updated")} {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
             </View>
             <Pressable style={styles.checkBoxWrapper} onPress={() => { handleRemoval(item.plot_id) }}>
                 <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} onPress={() => { handleRemoval(item.plot_id) }} />
@@ -37,21 +36,23 @@ const GrouplistPlot = ({ gid }: Props) => {
         </View>)
     }
 
+    const renderEmptyList = () => {
+        return (
+            <View style={styles.emptyWrapper}>
+                <Text style={styles.emptyLabel}>
+                    {i18next.t('label.empty_plots_note')}
+                </Text>
+            </View>
+        )
+    }
+
 
     return (
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <FlatList
-                    style={[styles.flatlistWrapper, { backgroundColor: plotDetails.plots.length > 0 ? Colors.WHITE : 'transparent' }]}
-                    ListEmptyComponent={() => {
-                        return (
-                            <View style={styles.emptyWrapper}>
-                                <Text style={styles.emptyLabel}>
-                                    {i18next.t('label.empty_plots_note')}
-                                </Text>
-                            </View>
-                        )
-                    }}
+                    style={[styles.flatListWrapper, { backgroundColor: plotDetails.plots.length > 0 ? Colors.WHITE : 'transparent' }]}
+                    ListEmptyComponent={renderEmptyList}
                     data={plotDetails.plots}
                     renderItem={({ item, index }) => renderCardItems(item, index)} />
             </View>
@@ -59,7 +60,7 @@ const GrouplistPlot = ({ gid }: Props) => {
     )
 }
 
-export default GrouplistPlot
+export default GroupListPlot
 
 const styles = StyleSheet.create({
     container: {
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         maxHeight: '90%',
     },
-    flatlistWrapper: {
+    flatListWrapper: {
         marginTop: 50,
         width: '98%',
         paddingVertical: 15,
@@ -109,7 +110,7 @@ const styles = StyleSheet.create({
     sectionWrapper: {
         flex: 14,
     },
-    cardheader: {
+    cardholder: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,

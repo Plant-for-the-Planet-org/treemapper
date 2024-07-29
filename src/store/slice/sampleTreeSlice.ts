@@ -5,7 +5,7 @@ const initialState: SampleTreeSlice = {
   form_id: '',
   tree_id: '',
   sample_tree_count: 2,
-  boundry: [],
+  boundary: [],
   coordinates: [],
   image_url: '',
   current_species: {
@@ -21,11 +21,11 @@ const sampleTreeSlice = createSlice({
   name: 'sampleTreeSlice',
   initialState,
   reducers: {
-    updateBoundry(
+    updateBoundary(
       state,
       action: PayloadAction<{ coord: Array<number[]>; id: string, form_ID: string }>,
     ) {
-      state.boundry = action.payload.coord
+      state.boundary = action.payload.coord
       state.tree_id = action.payload.id
       state.form_id = action.payload.form_ID
     },
@@ -44,19 +44,18 @@ const sampleTreeSlice = createSlice({
     updateSingleTreeDetails(_state, action: PayloadAction<SampleTreeSlice>) {
       return { ...action.payload }
     },
-    resetSampleTreeform() {
+    resetSampleTreeForm() {
       return { ...initialState }
     }
   },
 })
 
-export const {
-  updateBoundry,
+export const { updateBoundary,
   updateSampleTreeCoordinates,
   updateSampleImageUrl,
   updateCurrentSpecies,
   updateSampleTreeForNextTree,
-  resetSampleTreeform,
+  resetSampleTreeForm,
   updateSingleTreeDetails
 } = sampleTreeSlice.actions
 

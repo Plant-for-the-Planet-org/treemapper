@@ -1,12 +1,12 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitalState, SampleTree } from 'src/types/interface/slice.interface'
+import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitialState, SampleTree } from 'src/types/interface/slice.interface'
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
 import { INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
-import { isAllRemeasurmentDone } from 'src/utils/helpers/remeasurementHelper'
+import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -14,56 +14,56 @@ const useInterventionManagement = () => {
 
 
   const initializeIntervention = async (
-    interventoin: RegisterFormSliceInitalState,
+    intervention: RegisterFormSliceInitialState,
   ): Promise<boolean> => {
-    const result = await createNewInterventionFolder(interventoin.form_id)
+    const result = await createNewInterventionFolder(intervention.form_id)
     if (result.hasError) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occurred while creating Intervention folder ' + interventoin.form_id,
+        message: 'Error occurred while creating Intervention folder ' + intervention.form_id,
         logLevel: 'error',
         statusCode: '',
         logStack: result.msg
       })
-      return Promise.reject(false)
+      return false
     }
     const data: InterventionData = {
-      form_id: interventoin.form_id,
-      intervention_id: interventoin.form_id,
+      form_id: intervention.form_id,
+      intervention_id: intervention.form_id,
       location_id: '',
-      intervention_key: interventoin.key,
-      intervention_title: interventoin.title,
-      intervention_date: interventoin.intervention_date,
-      project_id: interventoin.project_id,
-      project_name: interventoin.project_name,
-      site_id: interventoin.site_id,
-      site_name: interventoin.site_name,
-      location_type: interventoin.location_type,
+      intervention_key: intervention.key,
+      intervention_title: intervention.title,
+      intervention_date: intervention.intervention_date,
+      project_id: intervention.project_id,
+      project_name: intervention.project_name,
+      site_id: intervention.site_id,
+      site_name: intervention.site_name,
+      location_type: intervention.location_type,
       location: {
-        'type': `${interventoin.location_type}`,
+        'type': `${intervention.location_type}`,
         coordinates: ''
       },
       image: '',
       image_data: [],
-      has_species: interventoin.species_required,
-      has_sample_trees: interventoin.has_sample_trees,
+      has_species: intervention.species_required,
+      has_sample_trees: intervention.has_sample_trees,
       sample_trees: [],
       is_complete: false,
-      intervention_type: interventoin.key,
+      intervention_type: intervention.key,
       form_data: [],
       additional_data: [],
       meta_data: '{}',
-      status: 'INIIALIZED',
+      status: 'INITIALIZED',
       hid: '',
       coords: {
         type: 'Point',
         coordinates: []
       },
-      entire_site: interventoin.entire_site_selected,
+      entire_site: intervention.entire_site_selected,
       last_screen: 'FORM',
       planted_species: [],
       locate_tree: '',
-      remeasuremnt_required: false,
+      remeasurement_required: false,
       next_measurement_date: 0
     }
     try {
@@ -76,7 +76,7 @@ const useInterventionManagement = () => {
       })
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'New intervention added to db' + `(${interventoin.title}).`,
+        message: 'New intervention added to db' + `(${intervention.title}).`,
         logLevel: 'info',
         statusCode: '',
       })
@@ -84,23 +84,23 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occurred while creating intervention' + `(${interventoin.title}).`,
+        message: 'Error occurred while creating intervention' + `(${intervention.title}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+      return false
     }
   }
 
   const addNewIntervention = async (
-    interventoin: InterventionData,
+    intervention: InterventionData,
   ): Promise<boolean> => {
     try {
       realm.write(() => {
         realm.create(
           RealmSchema.Intervention,
-          interventoin,
+          intervention,
           Realm.UpdateMode.All,
         )
       })
@@ -108,12 +108,12 @@ const useInterventionManagement = () => {
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error occurred while adding server intervention ' + interventoin.intervention_id,
+        message: 'Error occurred while adding server intervention ' + intervention.intervention_id,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false)
+      return false
     }
   }
 
@@ -131,7 +131,7 @@ const useInterventionManagement = () => {
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -140,51 +140,39 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false
     }
   };
 
-  //todo remove this
-  const updateInterventionCoverImage = async (imageURL: string, intervnetionID: string): Promise<boolean> => {
-    try {
-      // realm.write(() => {
-      //   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
-      // });
-      console.log("Data", imageURL, intervnetionID)
-      return Promise.resolve(true);
-    } catch (error) {
-      console.error('Error during update:', error);
-      return Promise.reject(false);
-    }
-  };
 
-  const deleteSampleTreeIntervention = async (treeId: string, intervnetionID: string): Promise<boolean> => {
+
+  const deleteSampleTreeIntervention = async (treeId: string, interventionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const sampleTree = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         const filterTress = intervention.sample_trees.filter(el => el.tree_id !== treeId)
         intervention.sample_trees = filterTress
         realm.delete(sampleTree)
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateSampleTreeImage = async (intervnetionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
+  const updateSampleTreeImage = async (interventionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        console.log("intervnetionID", intervnetionID)
+        console.log("interventionID", interventionID)
         const intervention = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         intervention.image_url = imageUrl
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -200,50 +188,50 @@ const useInterventionManagement = () => {
         intervention.last_updated_at = Date.now()
       });
 
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const saveIntervention = async (intervnetionID: string): Promise<boolean> => {
+  const saveIntervention = async (interventionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.is_complete = true
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: `Intervention(${intervnetionID}) marked complete.`,
+        message: `Intervention(${interventionID}) marked complete.`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: `Error occurred while marking Intervention(${intervnetionID}) complete.`,
+        message: `Error occurred while marking Intervention(${interventionID}) complete.`,
         logLevel: 'info',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const deleteIntervention = async (intervnetionID: string): Promise<boolean> => {
+  const deleteIntervention = async (interventionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         if (intervention) {
           realm.delete(intervention);
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -255,10 +243,10 @@ const useInterventionManagement = () => {
         treeDetails.specie_name = speciesDetails.scientificName
         treeDetails.species_guid = speciesDetails.guid
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -268,7 +256,7 @@ const useInterventionManagement = () => {
         const unSyncedObjects = realm.objects(RealmSchema.Intervention).filtered('status == "SYNCED"');
         realm.delete(unSyncedObjects);
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -277,28 +265,28 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateInterventionLocation = async (intervnetionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpadteLocation?: boolean): Promise<boolean> => {
+  const updateInterventionLocation = async (interventionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean, onlyUpdateLocation?: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.location = location
         intervention.entire_site = isEntireSite
-        if (!onlyUpadteLocation) {
+        if (!onlyUpdateLocation) {
           intervention.last_screen = "LOCATION"
         }
         intervention.last_updated_at = Date.now()
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: `Location updated for Intervention-${intervnetionID}(${isEntireSite ? 'Entire Site' : location.type})`,
+        message: `Location updated for Intervention-${interventionID}(${isEntireSite ? 'Entire Site' : location.type})`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -307,25 +295,25 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateInterventionPlantedSpecies = async (intervnetionID: string, species: PlantedSpecies): Promise<boolean> => {
+  const updateInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies)), species]
         intervention.last_screen = "SPECIES"
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Species added to intervention' + `(${intervnetionID}).`,
+        message: 'Species added to intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -334,25 +322,25 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const removeInterventionPlantedSpecies = async (intervnetionID: string, species: PlantedSpecies): Promise<boolean> => {
+  const removeInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies))]
         intervention.last_screen = "SPECIES"
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Species removed from intervention' + `(${intervnetionID}).`,
+        message: 'Species removed from intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -361,24 +349,24 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateLocalFormDetailsIntervention = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
+  const updateLocalFormDetailsIntervention = async (interventionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.form_data = addData
         intervention.last_screen = "LOCAL_FORM"
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Additional form data added to intervention' + `(${intervnetionID}).`,
+        message: 'Additional form data added to intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -387,24 +375,24 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateDynamicFormDetails = async (intervnetionID: string, addData: FormElement[]): Promise<boolean> => {
+  const updateDynamicFormDetails = async (interventionID: string, addData: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.additional_data = addData
         intervention.last_screen = "DYNAMIC_FORM"
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Form data added to intervention' + `(${intervnetionID}).`,
+        message: 'Form data added to intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: ''
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
@@ -413,100 +401,100 @@ const useInterventionManagement = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateInterventionLastScreen = async (intervnetionID: string, screenName: LAST_SCREEN): Promise<boolean> => {
+  const updateInterventionLastScreen = async (interventionID: string, screenName: LAST_SCREEN): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.last_screen = screenName
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Updated last screen for intervention' + `(${intervnetionID}).`,
+        message: 'Updated last screen for intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error while updating last screen for intervention' + `(${intervnetionID}).`,
+        message: 'Error while updating last screen for intervention' + `(${interventionID}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateInterventionMetaData = async (intervnetionID: string, metaData: any,): Promise<boolean> => {
+  const updateInterventionMetaData = async (interventionID: string, metaData: any,): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.meta_data = metaData
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Updated metadata for intervention' + `(${intervnetionID}).`,
+        message: 'Updated metadata for intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error while updating metadata for intervention' + `(${intervnetionID}).`,
+        message: 'Error while updating metadata for intervention' + `(${interventionID}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateEditAdditionalData = async (intervnetionID: string, form_data: FormElement[], additional_data: FormElement[]): Promise<boolean> => {
+  const updateEditAdditionalData = async (interventionID: string, form_data: FormElement[], additional_data: FormElement[]): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.form_data = form_data
         intervention.additional_data = additional_data
         intervention.last_updated_at = Date.now()
       });
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Updated additional data for intervention' + `(${intervnetionID}).`,
+        message: 'Updated additional data for intervention' + `(${interventionID}).`,
         logLevel: 'info',
         statusCode: '',
       })
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.log("Error", error)
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error while updating additional for intervention' + `(${intervnetionID}).`,
+        message: 'Error while updating additional for intervention' + `(${interventionID}).`,
         logLevel: 'error',
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      return Promise.reject(false);
+      return false;
     }
   };
 
-  const updateInterventionStatus = async (intervnetionID: string, hid: string, location_id: string, status: INTERVENTION_STATUS): Promise<boolean> => {
+  const updateInterventionStatus = async (interventionID: string, hid: string, location_id: string, status: INTERVENTION_STATUS): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, intervnetionID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.status = status
         intervention.hid = hid
         intervention.location_id = location_id
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -524,10 +512,10 @@ const useInterventionManagement = () => {
           isImageUploaded: false,
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -543,10 +531,10 @@ const useInterventionManagement = () => {
           isImageUploaded: true,
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -560,20 +548,20 @@ const useInterventionManagement = () => {
           lastMeasurement: Date.now(),
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
-        if(e.imageUrl && !e.status){
+        if (e.imageUrl && !e.status) {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''
         }
-        if(e.status){
+        if (e.status) {
           treeDetails.is_alive = false
         }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
@@ -582,22 +570,22 @@ const useInterventionManagement = () => {
     try {
       realm.write(() => {
         const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
-        const newStatus = isAllRemeasurmentDone(interventionData.sample_trees);
-        interventionData.remeasuremnt_required = newStatus
-        if(!newStatus){
+        const newStatus = isAllRemeasurementDone(interventionData.sample_trees);
+        interventionData.remeasurement_required = newStatus
+        if (!newStatus) {
           const now = new Date();
           interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
       });
-      return Promise.resolve(true);
+      return true
     } catch (error) {
       console.error('Error during update:', error);
-      return Promise.reject(false);
+      return false;
     }
   };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateInterventionCoverImage, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory }
 }
 
 export default useInterventionManagement

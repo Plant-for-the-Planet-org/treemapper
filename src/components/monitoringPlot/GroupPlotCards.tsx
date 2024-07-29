@@ -1,12 +1,13 @@
 import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
+import i18next from 'src/locales/index'
 
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { PlotGroups } from 'src/types/interface/slice.interface'
 interface Props {
-    item: PlotGroups | any
+    item: PlotGroups
     handleSelection: (gid: string) => void
     deleteGroup: (gid: string) => void
 }
@@ -30,9 +31,9 @@ const GroupPlotCards = (props: Props) => {
                         <Text style={styles.idLabel}>{item.name}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{interventionCount} intervention plot</Text>
+                        <Text style={styles.plantedLabel}>{interventionCount} {i18next.t('label.intervention_plot')}</Text>
                         <DividerDot width={20} height={20} size={20} color={Colors.TEXT_LIGHT} />
-                        <Text style={styles.planetedLabel}>{controlCount} control plot</Text>
+                        <Text style={styles.plantedLabel}>{controlCount} {i18next.t("label.control_plot")}</Text>
                     </View>
                 </View>
                 <View style={styles.plotDetailsWrapper}>
@@ -96,7 +97,7 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
-    planetedLabel: {
+    plantedLabel: {
         fontSize: 13,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT

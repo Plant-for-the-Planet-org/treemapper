@@ -17,7 +17,8 @@ const CoordinatesList = (props: Props) => {
   const toast = useToast();
 
   const { coordinates, type } = props
-  const listCoord = type === 'Polygon' ? coordinates : coordinates
+  
+  const listCoord = coordinates;
   if (listCoord.length > 10) {
     return null
   }
@@ -39,7 +40,7 @@ const CoordinatesList = (props: Props) => {
         return null
       }
       return (
-        <View style={styles.wrapper} key={i}>
+        <View style={styles.wrapper} key={`${String.fromCharCode(i + 65)}`}>
           <View style={styles.card}>
             <View style={styles.metaWrapper}>
               <Text style={styles.coordinateTitle}>Coordinate {type === 'Polygon' ? `${String.fromCharCode(i + 65)}` : ""}</Text>

@@ -11,7 +11,6 @@ interface Props {
   showActive?: boolean
   activeIndex?: number
   onMarkerPress?: (index: number) => void
-  overLay?: boolean
 }
 
 const MapMarkers = (props: Props) => {
@@ -29,20 +28,44 @@ const MapMarkers = (props: Props) => {
     }
   }
 
+  const getPinColor = (i: number, el: SampleTree) => {
+    if (showActive) {
+      if (activeIndex === i) {
+        return Colors.NEW_PRIMARY;
+      } else {
+        return el.remeasurement_requires ? 'tomato' : Colors.TEXT_LIGHT;
+      }
+    } else {
+      return Colors.NEW_PRIMARY;
+    }
+  };
+
+  const textColor = (i: number) => {
+    let color: string;
+    if (showActive) {
+      color = (activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT);
+    } else {
+      color = Colors.DARK_TEXT_COLOR;
+    }
+
+    return color;
+  }
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
 
         id={String(i)}
-        key={i}>
+        key={String(el.longitude)}>
         <TouchableOpacity style={styles.container} onPress={() => {
           handleMarkerPress(i)
         }}>
           <View style={styles.mapPinContainer}>
-            <MapPin fill={showActive ? activeIndex === i ?Colors.NEW_PRIMARY : el.remeasurement_requires?'tomato':Colors.TEXT_LIGHT : Colors.NEW_PRIMARY} />
+            <MapPin fill={getPinColor(i, el)} />
           </View>
-          <Text style={[styles.labelText, { color: showActive ? activeIndex === i ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT : Colors.DARK_TEXT_COLOR }]}>{alphabet(i)}</Text>
+          <Text style={[styles.labelText, { color: textColor(i) }]}>
+            {alphabet(i)}
+          </Text>
         </TouchableOpacity>
       </MapLibreGL.MarkerView>
     ))

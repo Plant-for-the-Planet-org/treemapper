@@ -9,38 +9,38 @@ import { TouchableOpacity } from '@gorhom/bottom-sheet';
 
 interface Props {
     isVisible: boolean
-    toogleModal: (b: boolean) => void
+    toggleModal: (b: boolean) => void
     changeInterventionFilter: (e: string) => void
     selectedFilter: INTERVENTION_FILTER
 }
 
 const InterventionTimeModal = (props: Props) => {
-    const { isVisible, toogleModal, selectedFilter, changeInterventionFilter } = props
+    const { isVisible, toggleModal, selectedFilter, changeInterventionFilter } = props
     const handleClose = () => {
-        toogleModal(!isVisible)
+        toggleModal(!isVisible)
     }
     const data = [
         {
-            lable: '30 days',
+            label: '30 days',
             index: 0,
             selected: false,
             key: 'days'
         },
         {
-            lable: '6 months',
+            label: '6 months',
             index: 1,
             selected: false,
             key: 'months'
         },
         {
-            lable: '1 year',
+            label: '1 year',
             index: 2,
             selected: false,
             key: 'year'
 
         },
         {
-            lable: 'Always',
+            label: 'Always',
             index: 3,
             selected: false,
             key: 'always'
@@ -53,7 +53,7 @@ const InterventionTimeModal = (props: Props) => {
                 <TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: el.index === 3 ? 0 : 0.5 }]} key={el.index} onPress={() => {
                     changeInterventionFilter(el.key)
                 }}>
-                    <Text style={styles.tileLabel}>{el.lable}</Text>
+                    <Text style={styles.tileLabel}>{el.label}</Text>
                     <View style={styles.divider} />
                     <BouncyCheckbox
                         size={25}

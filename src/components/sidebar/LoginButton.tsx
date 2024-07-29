@@ -22,11 +22,11 @@ const LoginButton = () => {
 
   useEffect(() => {
     if (user) {
-      getDetials()
+      getDetails()
     }
   }, [user])
 
-  const getDetials = async () => {
+  const getDetails = async () => {
     const credentials = await getUserCredentials()
     dispatch(
       updateUserToken({
@@ -45,7 +45,7 @@ const LoginButton = () => {
   }
 
 
-  const hadleLogin = async () => {
+  const handleLogin = async () => {
     try {
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
@@ -96,11 +96,11 @@ const LoginButton = () => {
   return (
     <View style={styles.container}>
       <CustomButton
-        label={'Login/Signup'}
-        pressHandler={hadleLogin}
+        label={'Login/SignUp'}
+        pressHandler={handleLogin}
         containerStyle={styles.wrapper}
         disable={webAuthLoading}
-        hideFadein
+        hideFadeIn
       />
     </View>
   )

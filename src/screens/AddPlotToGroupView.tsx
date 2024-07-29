@@ -10,17 +10,17 @@ import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import BouncyCheckbox from 'react-native-bouncy-checkbox/build/dist/BouncyCheckbox'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import i18next from 'src/locales/index'
 
 const AddPlotToGroupView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotsToGroup'>>()
     const [groupPlots, setGroupPlots] = useState<string[]>([])
     const [groupName, setGroupName] = useState<string>('')
-    const [plotList, setPlotList] = useState<MonitoringPlot[] | any>([])
-    const groupId = route.params && route.params.groupId ? route.params.groupId : ''
+    const [plotList, setPlotList] = useState<MonitoringPlot[]>([])
+    const groupId = route.params?.groupId ?? '';
     const realm = useRealm()
-    const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotMangement()
+    const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotManagement()
 
     useEffect(() => {
         if (groupId) {
@@ -43,16 +43,16 @@ const AddPlotToGroupView = () => {
     const getPlotList = () => {
         const data = realm.objects<MonitoringPlot>(RealmSchema.MonitoringPlot).filtered("lastScreen != 'form'");
         if (data && data.length > 0) {
-            const filterdData = []
+            const filterData = []
             data.forEach(el => {
                 if (!el.plot_group || el.plot_group.length === 0) {
-                    filterdData.push(el)
+                    filterData.push(el)
                 }
                 if (el.plot_group && el.plot_group.length > 0 && el.plot_group[0].group_id == groupId) {
-                    filterdData.push(el)
+                    filterData.push(el)
                 }
             })
-            setPlotList(filterdData)
+            setPlotList(filterData)
         }
     }
 
@@ -77,7 +77,7 @@ const AddPlotToGroupView = () => {
         const shouldCheck = isPlotPresent(item.plot_id)
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotList.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.cardheader}>{item.name}</Text>
+                <Text style={styles.cardholder}>{item.name}</Text>
                 <Text style={styles.cardLabel}>{item.observations.length} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
             </View>
             <View style={styles.checkBoxWrapper}>
@@ -97,24 +97,25 @@ const AddPlotToGroupView = () => {
         </View>)
     }
 
-
+    const renderEmptyComp = () => {
+        return (
+            <View style={styles.emptyWrapper}>
+                <Text style={styles.emptyLabel}>
+                    {i18next.t('label.no_plots')}
+                </Text>
+            </View>
+        )
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <Header label={'Add Plots to Group'} note={groupName} />
-            <View style={styles.mainWrappe}>
+            <View style={styles.mainWrapper}>
                 <View style={styles.wrapper}>
                     <FlatList
                         style={[styles.flatListWrapper, { backgroundColor: plotList.length > 0 ? Colors.WHITE : 'transparent' }]}
-                        data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)} ListEmptyComponent={() => {
-                            return (
-                                <View style={styles.emptyWrapper}>
-                                    <Text style={styles.emptyLabel}>
-                                        {i18next.t('label.no_plots')}
-                                    </Text>
-                                </View>
-                            )
-                        }} />
+                        data={plotList} renderItem={({ item, index }) => renderCardItems(item, index)}
+                        ListEmptyComponent={renderEmptyComp} />
                 </View>
             </View>
         </SafeAreaView>
@@ -128,7 +129,7 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.WHITE,
     },
-    mainWrappe: {
+    mainWrapper: {
         flex: 1,
         alignItems: 'center',
         backgroundColor: Colors.BACKDROP_COLOR,
@@ -177,7 +178,7 @@ const styles = StyleSheet.create({
     sectionWrapper: {
         flex: 14,
     },
-    cardheader: {
+    cardholder: {
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,

@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuid } from 'uuid'
 import { RootState } from 'src/store'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -28,24 +28,24 @@ import { AllIntervention } from 'src/utils/constants/knownIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { makeInterventionGeoJson, metaDataTranformer } from 'src/utils/helpers/interventionFormHelper'
-import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAddtionalData'
+import { makeInterventionGeoJson, metaDataTransformer } from 'src/utils/helpers/interventionFormHelper'
+import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 import SelectionLocationType from 'src/components/intervention/SelectLocationType'
 import { useToast } from 'react-native-toast-notifications'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 
 const InterventionFormView = () => {
-  const [projectStateData, setProjectData] = useState<DropdownData[]>([])
-  const [projectSies, setProjectSites] = useState<DropdownData[]>([])
+  const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
+  const [projectSites, setProjectSites] = useState<DropdownData[]>([])
   const [locationName, setLocationName] = useState('')
   const [furtherInfo, setFurtherInfo] = useState('')
   const [allIntervention] = useState([...AllIntervention.filter(el => el.value !== 'single-tree-registration' && el.value !== 'multi-tree-registration')])
   const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
-  const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitalState | null>(null)
+  const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitialState | null>(null)
   const userType = useSelector((state: RootState) => state.userState.type)
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
@@ -64,7 +64,7 @@ const InterventionFormView = () => {
 
   useEffect(() => {
     setUpRegisterFlow()
-    AvoidSoftInput.setShouldMimicIOSBehavior(true); //todo check this behavior or android/ios and finalize
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
       AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
@@ -82,7 +82,7 @@ const InterventionFormView = () => {
         statusCode: '',
         logStack: result.msg
       })
-      errotHaptic()
+      errorHaptic()
       toast.show("Something went wrong")
       navigation.goBack()
       return
@@ -107,12 +107,12 @@ const InterventionFormView = () => {
     key: INTERVENTION_TYPE,
   ) => {
     const InterventionJSON = { ...setUpIntervention(key) }
-    InterventionJSON.form_id = uuidv4()
+    InterventionJSON.form_id = uuid()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
     const existingMetaData = JSON.parse(InterventionJSON.meta_data);
     const appMeta = getDeviceDetails()
-    const finalMetaData = metaDataTranformer(existingMetaData, {
+    const finalMetaData = metaDataTransformer(existingMetaData, {
       public: {},
       private: {},
       app: appMeta
@@ -121,7 +121,7 @@ const InterventionFormView = () => {
     InterventionJSON.project_name = currentProject.projectName
     InterventionJSON.project_id = currentProject.projectId
     InterventionJSON.site_name = projectSite.siteName
-    InterventionJSON.site_id = projectSite.siteId// todo inital site data should be selected for RO
+    InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
     if (result) {
       if (InterventionJSON.location_type === 'Point') {
@@ -132,29 +132,29 @@ const InterventionFormView = () => {
       dispatch(updateNewIntervention())
     } else {
       toast.show("Error occurred while adding intervention")
-      errotHaptic()
+      errorHaptic()
     }
   }
 
   const setupProjectAndSiteDropDown = () => {
     const projectData = realm.objects<ProjectInterface>(RealmSchema.Projects)
-    const mapedData = projectData.map((el, i) => {
+    const mappedData = projectData.map((el, i) => {
       return {
         label: el.name,
         value: el.id,
         index: i,
       }
     })
-    if (mapedData && mapedData.length) {
-      setProjectData(mapedData)
-      const siteMapedData = projectData[0].sites.map((el, i) => {
+    if (mappedData?.length) {
+      setProjectStateData(mappedData)
+      const siteMappedData = projectData[0].sites.map((el, i) => {
         return {
           label: el.name,
           value: el.id,
           index: i,
         }
       })
-      setProjectSites(siteMapedData)
+      setProjectSites(siteMappedData)
       handleProjectSelect({ label: currentProject.projectName, value: currentProject.projectId, index: 0 })
     }
   }
@@ -196,7 +196,7 @@ const InterventionFormView = () => {
 
   const handleInterventionType = (item: any) => {
     const InterventionJSON = setUpIntervention(item.value)
-    InterventionJSON.form_id = uuidv4()
+    InterventionJSON.form_id = uuid()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
     if (registerForm) {
@@ -209,11 +209,11 @@ const InterventionFormView = () => {
   }
 
   const handleDateSelection = (n: number) => {
-    setRegisterForm(prevstate => ({ ...prevstate, intervention_date: n }))
+    setRegisterForm(prevState => ({ ...prevState, intervention_date: n }))
   }
 
   const handleEntireSiteArea = (b: boolean) => {
-    setRegisterForm(prevstate => ({ ...prevstate, entire_site_selected: b }))
+    setRegisterForm(prevState => ({ ...prevState, entire_site_selected: b }))
   }
 
   const siteCoordinatesSelect = () => {
@@ -230,77 +230,126 @@ const InterventionFormView = () => {
 
   const pressContinue = async () => {
     try {
-      if (registerForm.entire_site_selected) {
-        registerForm.coordinates = siteCoordinatesSelect()
-      }
-
-      if (registerForm.optionalLocation) {
-        registerForm.location_type = locationType
-      }
-
-      const metaData = {}
-      if (locationName && locationName.length > 0) {
-        metaData["Location Name"] = locationName
-      }
-      if (furtherInfo && furtherInfo.length > 0) {
-        metaData["Info"] = furtherInfo
-      }
-      const existingMetaData = JSON.parse(registerForm.meta_data);
-      const appMeta = getDeviceDetails()
-      const finalMetaData = metaDataTranformer(existingMetaData, {
-        public: metaData,
-        private: {},
-        app: appMeta
-      })
-      registerForm.meta_data = finalMetaData
-      const result = await initializeIntervention(registerForm)
+      prepareFormForSubmission();
+  
+      const metaData = constructMetaData(locationName, furtherInfo);
+      registerForm.meta_data = transformMetaData(metaData);
+  
+      const result = await initializeIntervention(registerForm);
+  
       if (result) {
-        if (registerForm.entire_site_selected) {
-          const { coordinates, } = makeInterventionGeoJson(registerForm.location_type, siteCoordinatesSelect(), registerForm.form_id, '')
-          const locationUpdated = await updateInterventionLocation(registerForm.form_id, { type: 'Polygon', coordinates: coordinates }, true)
-          if (!locationUpdated) {
-            errotHaptic()
-            toast.show("Error occurred while updating location")
-            return
-          }
-          if (registerForm.species_required) {
-            navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id })
-          } else if (registerForm.form_details.length > 0) {
-            navigation.replace('LocalForm', { id: registerForm.form_id })
-          } else {
-            navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id })
-          }
-          dispatch(updateNewIntervention())
-          return
-        }
-        if (registerForm.location_type === 'Point') {
-          navigation.replace('PointMarker', { id: registerForm.form_id })
-        } else {
-          navigation.replace('PolygonMarker', { id: registerForm.form_id })
-        }
-        dispatch(updateNewIntervention())
+        await handleSuccessfulInterventionInitialization();
       } else {
-        addNewLog({
-          logType: 'INTERVENTION',
-          message: 'Error occurred while creating intervention',
-          logLevel: 'error',
-          statusCode: ''
-        })
-        toast.show("Error occurred while creating intervention")
-        errotHaptic()
+        handleInterventionInitializationError();
       }
     } catch (error) {
-      addNewLog({
-        logType: 'INTERVENTION',
-        message: 'Error occurred while creating intervention',
-        logLevel: 'error',
-        statusCode: '12',
-        logStack: JSON.stringify(error)
-      })
+      logInitializationError(error);
     }
-
-  }
-
+  };
+  
+  const prepareFormForSubmission = () => {
+    if (registerForm.entire_site_selected) {
+      registerForm.coordinates = siteCoordinatesSelect();
+    }
+    if (registerForm.optionalLocation) {
+      registerForm.location_type = locationType;
+    }
+  };
+  
+  const constructMetaData = (locationName: string, furtherInfo: string) => {
+    const metaData = {};
+    if (locationName && locationName.length > 0) {
+      metaData["Location Name"] = locationName;
+    }
+    if (furtherInfo && furtherInfo.length > 0) {
+      metaData["Info"] = furtherInfo;
+    }
+    return metaData;
+  };
+  
+  const transformMetaData = (metaData: any) => {
+    const existingMetaData = JSON.parse(registerForm.meta_data);
+    const appMeta = getDeviceDetails();
+    return metaDataTransformer(existingMetaData, {
+      public: metaData,
+      private: {},
+      app: appMeta
+    });
+  };
+  
+  const handleSuccessfulInterventionInitialization = async () => {
+    if (registerForm.entire_site_selected) {
+      await handleEntireSiteSelected();
+    } else {
+      navigateToMarkerScreen();
+    }
+    dispatch(updateNewIntervention());
+  };
+  
+  const handleEntireSiteSelected = async () => {
+    const { coordinates } = makeInterventionGeoJson(
+      registerForm.location_type,
+      siteCoordinatesSelect(),
+      registerForm.form_id,
+      ''
+    );
+    const locationUpdated = await updateInterventionLocation(
+      registerForm.form_id,
+      { type: 'Polygon', coordinates: coordinates },
+      true
+    );
+  
+    if (!locationUpdated) {
+      handleLocationUpdateError();
+      return;
+    }
+  
+    navigateBasedOnFormDetails();
+  };
+  
+  const handleLocationUpdateError = () => {
+    errorHaptic();
+    toast.show("Error occurred while updating location");
+  };
+  
+  const navigateBasedOnFormDetails = () => {
+    if (registerForm.species_required) {
+      navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id });
+    } else if (registerForm.form_details.length > 0) {
+      navigation.replace('LocalForm', { id: registerForm.form_id });
+    } else {
+      navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id });
+    }
+  };
+  
+  const navigateToMarkerScreen = () => {
+    if (registerForm.location_type === 'Point') {
+      navigation.replace('PointMarker', { id: registerForm.form_id });
+    } else {
+      navigation.replace('PolygonMarker', { id: registerForm.form_id });
+    }
+  };
+  
+  const handleInterventionInitializationError = () => {
+    addNewLog({
+      logType: 'INTERVENTION',
+      message: 'Error occurred while creating intervention',
+      logLevel: 'error',
+      statusCode: ''
+    });
+    toast.show("Error occurred while creating intervention");
+    errorHaptic();
+  };
+  
+  const logInitializationError = (error: any) => {
+    addNewLog({
+      logType: 'INTERVENTION',
+      message: 'Error occurred while creating intervention',
+      logLevel: 'error',
+      statusCode: '12',
+      logStack: JSON.stringify(error)
+    });
+  };
 
 
   if (!registerForm) {
@@ -335,7 +384,7 @@ const InterventionFormView = () => {
               {isTpoUser && (
                 <CustomDropDown
                   label={'Site'}
-                  data={projectSies}
+                  data={projectSites}
                   onSelect={handleSiteSelect}
                   selectedValue={{
                     label: registerForm.site_name,

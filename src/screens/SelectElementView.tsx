@@ -63,8 +63,8 @@ const elements = [
 const SelectElement = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SelectElement'>>()
-  const form_id = route.params && route.params.form_id ? route.params.form_id : ''
-  const element_order = route.params && route.params.element_order ? route.params.element_order : 0
+  const form_id = route.params?.form_id ? route.params.form_id : ''
+  const element_order = route.params?.element_order ?? 0;
   const { addNewForm } = useAdditionalForm()
 
   const handleElementPress = (elementType: FORM_TYPE) => {
@@ -89,10 +89,10 @@ const SelectElement = () => {
           label={i18next.t('label.select_element')}
         />
         <View style={styles.elementParent}>
-          {elements.map((element: any, index: number) => (
+          {elements.map((element: any) => (
             <TouchableOpacity
+              key={element.name}
               onPress={() => handleElementPress(element.type)}
-              key={`Element-${index}`}
               style={styles.elementShadowContainer}>
               <IconSwitcher
                 name={element.icon}

@@ -14,16 +14,16 @@ import { RootState } from 'src/store'
 import SpeciesSyncError from './SpeciesSyncError'
 
 interface Props {
-  isManageSecies: boolean
+  isManageSpecies: boolean
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { isManageSecies } = props
+  const { isManageSpecies } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
 
   const openSearchModal = () => {
-    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSecies })
+    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSpecies })
   }
   return (
     <View style={styles.container}>

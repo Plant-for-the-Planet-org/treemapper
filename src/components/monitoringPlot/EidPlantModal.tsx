@@ -2,12 +2,12 @@ import { Pressable, StyleSheet, Text, View, } from 'react-native'
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
 import EditDimension from 'assets/images/svg/EditDimension.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import EditPend from 'assets/images/svg/EditPenIcon.svg'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -16,7 +16,8 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import EditInputModal from '../intervention/EditInputModal'
-import AddIcon from 'assets/images/svg/Addicon.svg'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
+import i18next from 'src/locales/index'
 
 
 
@@ -30,14 +31,14 @@ interface Props {
 const EidPlantModal = (props: Props) => {
   // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
-  const { delteMonitoringPlot, updatePlotName, removePlotFromGroup, addPlotToGroup } = useMonitoringPlotMangement()
+  const { deleteMonitoringPlot, updatePlotName, removePlotFromGroup, addPlotToGroup } = useMonitoringPlotManagement()
   // variables
   const snapPoints = useMemo(() => ['40%'], []);
   const [showEdit, setShowEdit] = useState('')
 
-  const [plotName, setPlotname] = useState('')
+  const [plotName, setPlotName] = useState('')
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [dropDownList, setDropDrownList] = useState<DropdownData[]>([])
+  const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
   const [type, setType] = useState<DropdownData>({
     label: '',
     value: '',
@@ -49,7 +50,7 @@ const EidPlantModal = (props: Props) => {
     if (isVisible) {
       handlePresentModalPress()
       setGroupData()
-      setPlotname(plotData.name)
+      setPlotName(plotData.name)
     }
   }, [isVisible])
 
@@ -72,8 +73,8 @@ const EidPlantModal = (props: Props) => {
         value: el.group_id,
         index: i
       }))
-      setDropDrownList(updateList)
-      if (plotData.plot_group && plotData.plot_group[0]) {
+      setDropDownList(updateList)
+      if (plotData?.plot_group[0]) {
         setType({
           label: plotData.plot_group[0].name,
           value: plotData.plot_group[0].group_id,
@@ -96,7 +97,7 @@ const EidPlantModal = (props: Props) => {
 
   const deleteHandler = async () => {
     navigation.goBack()
-    await delteMonitoringPlot(plotId)
+    await deleteMonitoringPlot(plotId)
   }
 
   const handleSubmit = () => {
@@ -116,6 +117,10 @@ const EidPlantModal = (props: Props) => {
     navigation.navigate("PlotGroup")
   }
 
+  const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+    <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+  )
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -124,16 +129,14 @@ const EidPlantModal = (props: Props) => {
       detached
       handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
       snapPoints={snapPoints}
-      backdropComponent={({ style }) => (
-        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
-      )}
+      backdropComponent={backdropModal}
     >
-      <EditInputModal value={showEdit} setValue={setPlotname} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} setIsOpenModal={showEdit} inputType={'default'} />
+      <EditInputModal value={showEdit} setValue={setPlotName} onSubmitInputField={handleSubmit} isOpenModal={showEdit.length > 0} inputType={'default'} />
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
-          <View style={styles.contnetWrapper}>
+          <View style={styles.contentWrapper}>
             <View style={styles.DropdownOption}>
-              <View style={styles.dropwdownContainer}>
+              <View style={styles.dropdownContainer}>
                 {dropDownList.length > 0 ?
                   <CustomDropDownPicker
                     label={'Plot Group (Optional)'}
@@ -143,7 +146,7 @@ const EidPlantModal = (props: Props) => {
                     selectedValue={type}
                   /> : <Pressable
                     onPress={addGroup}
-                    style={styles.emptyWrapper}><Text style={styles.emptyLabel}>Add Group</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
+                    style={styles.emptyWrapper}><Text style={styles.emptyLabel}>{i18next.t('label.add_group')}</Text><AddIcon width={18} height={18} fill={Colors.NEW_PRIMARY} /></Pressable>}
               </View>
               <Pressable onPress={closeModal} style={{ padding: 5 }}>
                 <CloseIcon width={50} onPress={closeModal} />
@@ -151,15 +154,15 @@ const EidPlantModal = (props: Props) => {
             </View>
             <Pressable style={styles.optionCard} onPress={() => { setShowEdit(plotData.name) }}>
               <EditPend width={18} height={18} fill={Colors.NEW_PRIMARY} />
-              <Text style={styles.cardLabel}> Edit Name</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.edit_name')}</Text>
             </Pressable>
             <Pressable style={styles.optionCard} onPress={handleDimensions}>
               <EditDimension width={18} height={18} />
-              <Text style={styles.cardLabel}> Edit Plot Dimension</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.edit_plot')}</Text>
             </Pressable>
             <Pressable style={styles.optionCard} onPress={deleteHandler}>
               <BinIcon width={18} height={18} fill={'tomato'} />
-              <Text style={styles.cardLabel}> Delete </Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.delete')}</Text>
             </Pressable>
           </View>
         </View>
@@ -180,7 +183,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     alignItems: 'center',
   },
-  contnetWrapper: {
+  contentWrapper: {
     width: '95%',
     borderRadius: 30
   },
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingVertical: 10
   },
-  dropwdownContainer: {
+  dropdownContainer: {
     flex: 1
   },
   optionCard: {

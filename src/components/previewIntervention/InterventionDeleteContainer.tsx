@@ -1,9 +1,10 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import DeletIcon from 'assets/images/svg/BinIcon.svg'
+import DeleteIcon from 'assets/images/svg/BinIcon.svg'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import DeleteModal from '../common/DeleteModal'
+import i18next from 'src/locales/index'
 
 interface Props {
     interventionId: string
@@ -13,7 +14,7 @@ interface Props {
 const InterventionDeleteContainer = (props: Props) => {
     const { interventionId, resetData } = props;
     const { deleteIntervention } = useInterventionManagement()
-    const [delteData, setDeleteData] = useState(null)
+    const [deleteData, setDeleteData] = useState(null)
 
     const pressHandler = () => {
         resetData()
@@ -22,10 +23,10 @@ const InterventionDeleteContainer = (props: Props) => {
 
     return (
         <View style={styles.container}>
-            <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={'Delete Intervention'} noteLabel={'Are you sure you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
+            <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={pressHandler} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={deleteData} />
             <TouchableOpacity style={styles.wrapper} onPress={() => { setDeleteData('') }}>
-                <Text style={styles.label}>Delete</Text>
-                <DeletIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
+                <Text style={styles.label}>{i18next.t("label.delete")}</Text>
+                <DeleteIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity>
         </View>
     )

@@ -18,7 +18,7 @@ const PlotGroupView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      <Header label={i18next.t('label.plot_groups_header')}  rightComponet={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+      <Header label={i18next.t('label.plot_groups_header')}  rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
       <View style={styles.wrapper}>
         <GroupPlotList />
       </View>

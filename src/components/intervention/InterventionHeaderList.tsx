@@ -4,9 +4,9 @@ import {
   TextStyle,
   TouchableOpacity,
   View,
+  Text
 } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { Text } from 'react-native'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { groupIntervention } from 'src/utils/helpers/interventionHelper/groupInterventions'
@@ -17,11 +17,11 @@ import { RootState } from 'src/store'
 
 interface Props {
   selectedLabel: string
-  setSlectedLabel: (t: string) => void
+  setSelectedLabel: (t: string) => void
 }
 
 const InterventionHeaderList = (props: Props) => {
-  const { selectedLabel, setSlectedLabel } = props
+  const { selectedLabel, setSelectedLabel } = props
   const [headerData, setHeaderData] = useState([])
   const { lastServerInterventionpage, intervention_updated } = useSelector((state: RootState) => state.appState)
 
@@ -48,7 +48,7 @@ const InterventionHeaderList = (props: Props) => {
       fontFamily: isSelected ? Typography.FONT_FAMILY_BOLD : Typography.FONT_FAMILY_REGULAR
     }
     const handlePress = () => {
-      setSlectedLabel(item.key)
+      setSelectedLabel(item.key)
     }
     return (
       <TouchableOpacity key={item.key} onPress={handlePress} style={[styles.labelWrapper, selectedStyle]}>

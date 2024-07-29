@@ -9,14 +9,14 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   label: string
-  rightComponet?: React.ReactNode | null
+  rightComponent?: React.ReactNode | null
   showBackIcon?: boolean
   note?: string
   backFunc?: () => void
 }
 
 const Header = (props: Props) => {
-  const { rightComponet, label, showBackIcon = true, note, backFunc } = props
+  const { rightComponent, label, showBackIcon = true, note, backFunc } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
     if (backFunc) {
@@ -27,14 +27,12 @@ const Header = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack}/></TouchableOpacity>}
+      {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>}
       <View style={styles.HeaderWrapper}>
         <Text style={styles.title}>{label}</Text>
-        {note && <Text style={styles.note}>{note}</Text>}
-      </View>
+        {!!note && <Text style={styles.note}>{note}</Text>}</View>
       <View style={styles.divider} />
-      {rightComponet}
-      {/* <View style={styles.overlay}/> */}
+      {rightComponent}
     </View>
   )
 }
@@ -75,11 +73,4 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
-  overlay: {
-    width: '100%',
-    height: 50,
-    position: 'absolute',
-    top: -50,
-    backgroundColor: Colors.WHITE
-  }
 })

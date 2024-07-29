@@ -5,13 +5,13 @@ import {Spacing, Typography, Colors} from 'src/utils/constants'
 import {scaleSize} from 'src/utils/constants/mixins'
 import LoginButton from './LoginButton'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
-
+import * as Application from 'expo-application'
 interface Props {
-  isLogedIn: boolean
+  isLoggedIn: boolean
 }
 
 const SideBarFooter = (props: Props) => {
-  const {isLogedIn} = props
+  const {isLoggedIn} = props
   const onPressImprint = () => {
     openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
   };
@@ -23,9 +23,9 @@ const SideBarFooter = (props: Props) => {
   };
   return (
     <View style={[styles.versionContainer]}>
-      {!isLogedIn && <LoginButton />}
+      {!isLoggedIn && <LoginButton />}
       <View key="version" style={styles.version}>
-        <Text style={styles.itemText}>2.0.1</Text>
+        <Text style={styles.itemText}>{Application.nativeApplicationVersion}</Text>
       </View>
       <View style={styles.termsContainer}>
         <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>

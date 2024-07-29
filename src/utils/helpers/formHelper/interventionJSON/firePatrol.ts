@@ -1,5 +1,6 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
+import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 
 const NumberOfPeople: FormElement = {
@@ -55,37 +56,19 @@ const firePatrolForm: MainForm = {
   }
   
 
-export const FirePatrol: RegisterFormSliceInitalState = {
-  form_id: '',
+export const FirePatrol: RegisterFormSliceInitialState = {
+  ...initialInterventionState,
   key: 'fire-patrol',
   title: 'Fire Patrol',
-  intervention_date: 0,
-  skip_intervention_form: false,
-  user_type: '',
-  project_id: '',
-  project_name: '',
-  site_id: '',
-  site_name: '',
   can_be_entire_site: true,
   entire_site_selected: false,
   should_register_location: false,
   location_type: 'Polygon',
-  location_title: '',
-  coordinates: [],
   preview_blank_polygon: false,
-  cover_image_url: '',
   species_required: false,
   is_multi_species: false,
   species_count_required: false,
-  species_modal_message: '',
-  species_modal_unit: '',
-  species: [],
   has_sample_trees: false,
   tree_details_required: false,
-  tree_details: [],
-  form_details: [firePatrolForm],
-  meta_data: '{}',
-  additional_data: [],
-  form_data: [],
-  plantedSpecies: []
+  form_details: [firePatrolForm]
 }

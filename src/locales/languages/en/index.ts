@@ -20,6 +20,7 @@ import AdditionalData from './user/additionalData.json';
 import Projects from './user/projects.json';
 import Intervention from './user/intervention.json'
 import MonitoringPlot from './user/monitoringPlot.json'
+import CommonStrings from './user/commonData.json'
 
 export default {
   ...WelcomeScreen,
@@ -43,5 +44,6 @@ export default {
   ...AdditionalData,
   ...Projects,
   ...Intervention,
-  ...MonitoringPlot
+  ...MonitoringPlot,
+  ...CommonStrings
 };

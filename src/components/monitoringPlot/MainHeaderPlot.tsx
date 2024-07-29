@@ -5,7 +5,7 @@ import CardIdIcon from 'assets/images/svg/CardIdIcon.svg'
 import TallyIcon from 'assets/images/svg/TallyIcon.svg'
 import CircularPlotIcon from 'assets/images/svg/CircularPlotIcon.svg'
 import { PLOT_SHAPE } from 'src/types/type/app.type'
-import RectangularIcon from 'assets/images/svg/RectangualrIcon.svg'
+import RectangularIcon from 'assets/images/svg/RectangularIcon.svg'
 
 
 interface Props {
@@ -29,7 +29,7 @@ const MainHeaderPlot = (props: Props) => {
         <View style={styles.container}>
             <View style={styles.wrapper}>
                 <View style={styles.cardWrapper}>
-                    <View style={styles.cradMetaIcon}>
+                    <View style={styles.cardMetaIcon}>
                         <CardIdIcon />
                         <Text style={styles.cardLabel}>ID</Text>
                     </View>
@@ -38,7 +38,7 @@ const MainHeaderPlot = (props: Props) => {
                     </Text>
                 </View>
                 <View style={styles.cardWrapper}>
-                    <View style={styles.cradMetaIcon}>
+                    <View style={styles.cardMetaIcon}>
                         <TallyIcon />
                     </View>
                     <Text style={styles.cardNote}>
@@ -46,7 +46,7 @@ const MainHeaderPlot = (props: Props) => {
                     </Text>
                 </View>
                 <View style={styles.cardWrapper}>
-                    <View style={styles.cradMetaIcon}>
+                    <View style={styles.cardMetaIcon}>
                         {shape === 'CIRCULAR' ? <CircularPlotIcon /> : <RectangularIcon />}
                     </View>
                     <Text style={styles.cardNote}>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
         marginHorizontal: '2%',
         width: 100,
     },
-    cradMetaIcon: {
+    cardMetaIcon: {
         width: '100%',
         alignItems: 'center',
         justifyContent: 'center',

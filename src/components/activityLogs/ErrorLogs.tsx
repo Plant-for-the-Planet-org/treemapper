@@ -9,7 +9,7 @@ import { Colors, Typography } from 'src/utils/constants'
 
 
 const ErrorLogs = () => {
-    const [logs, setLogs] = useState<LogDetails[] | any>([])
+    const [logs, setLogs] = useState<LogDetails[]>([])
     const [loading, setLoading] = useState(false)
     const [currentPage, setCurrentPage] = useState(0);
     const realm = useRealm()
@@ -31,7 +31,7 @@ const ErrorLogs = () => {
         const start = currentPage * 20;
         const end = start + 20;
         const objects = realm
-            .objects(RealmSchema.ActivityLogs)
+            .objects<LogDetails>(RealmSchema.ActivityLogs)
             .filtered("logLevel == 'error'")
             .sorted('timestamp', true)
             .slice(start, end);

@@ -7,13 +7,13 @@ import GpsAccuracyInfoContent from '../map/GpsAccuracyInfoContent'
 
 interface Props {
     isVisible: boolean
-    toogleModal: (b:boolean) => void
+    toggleModal: (b:boolean) => void
 }
 
 const InfoModal = (props: Props) => {
-    const { isVisible, toogleModal } = props
+    const { isVisible, toggleModal } = props
     const handleClose=()=>{
-        toogleModal(!isVisible)
+        toggleModal(!isVisible)
     }
     return (
         <Modal

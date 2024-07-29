@@ -10,15 +10,15 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 
 const HomeSideDrawer = () => {
-  const isLogedIn = useSelector((state: RootState) => state.appState.isLogedIn)
+  const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
   return (
     <SafeAreaView style={styles.container}>
       <Header label={''} />
-      <SidebarHeader/>
+      <SidebarHeader />
       <View style={styles.wrapper}>
-        <SideBarList isLogedIn={isLogedIn} />
+        <SideBarList isLoggedIn={isLoggedIn} />
       </View>
-      <SideBarFooter isLogedIn={isLogedIn}/>
+      <SideBarFooter isLoggedIn={isLoggedIn} />
     </SafeAreaView>
   )
 }

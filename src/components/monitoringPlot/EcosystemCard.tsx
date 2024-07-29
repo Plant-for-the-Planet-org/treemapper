@@ -2,7 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import SoilMoistureIcon from 'assets/images/svg/SoilMoistureIcon.svg'
 import CanopyCoverIcon from 'assets/images/svg/CanopyCoverIcon.svg'
-import BioacusticsIcon from 'assets/images/svg/BioacusticsIcon.svg'
+import BioacousticsIcon from 'assets/images/svg/BioacousticsIcon.svg'
 
 
 import { Colors, Typography } from 'src/utils/constants'
@@ -13,7 +13,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 interface Props {
-    item: PlotObservation | any
+    item: PlotObservation
     plotId: string
 }
 
@@ -27,8 +27,8 @@ const EcosystemCard = (props: Props) => {
         switch (type) {
             case 'SOIL_MOISTURE':
                 return <SoilMoistureIcon />
-            case 'BIOACUSTICS':
-                return <BioacusticsIcon />
+            case 'BIOACOUSTICS':
+                return <BioacousticsIcon />
             case 'CANOPY':
                 return <CanopyCoverIcon />
             default:
@@ -40,7 +40,7 @@ const EcosystemCard = (props: Props) => {
         let l = ''
         if (type === 'SOIL_MOISTURE') l = "Soil Moisture"
         if (type === 'CANOPY') l = "Canopy"
-        if (type === 'BIOACUSTICS') l = "Bioacoustics"
+        if (type === 'BIOACOUSTICS') l = "Bioacoustics"
         return l
     }
 
@@ -55,9 +55,9 @@ const EcosystemCard = (props: Props) => {
                         <Text style={styles.idLabel}>{render()}</Text>
                     </View>
                     <View style={styles.sectionHeader}>
-                        <Text style={styles.planetedLabel}>{formatRelativeTimeCustom(obs_date)}</Text>
+                        <Text style={styles.plantedLabel}>{formatRelativeTimeCustom(obs_date)}</Text>
                         <DividerDot width={18} height={18} size={18} color={Colors.TEXT_LIGHT} />
-                        <Text style={styles.planetedLabel}>{value}{unit}</Text>
+                        <Text style={styles.plantedLabel}>{value}{unit}</Text>
                     </View>
                 </View>
             </View>
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.DARK_TEXT_COLOR
     },
-    planetedLabel: {
+    plantedLabel: {
         fontSize: 12,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT

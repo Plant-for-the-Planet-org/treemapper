@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SampleTree } from 'src/types/interface/slice.interface'
-import { v4 as uuidv4 } from 'uuid'
+import { v4 as uuid } from 'uuid'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { updateSampleTreeCoordinates } from 'src/store/slice/sampleTreeSlice'
 import MapShapeSource from './MapShapeSource'
@@ -23,12 +23,12 @@ import MapMarkers from './MapMarkers'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useToast } from 'react-native-toast-notifications'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
-import SatteliteLayer from 'assets/mapStyle/satteliteView'
+import SatelliteLayer from 'assets/mapStyle/satelliteView'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -44,10 +44,10 @@ const PointMarkerMap = (props: Props) => {
   const { tree_details, interventionKey, form_id } = props
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
-  const [outOfBoundry, setOutOfBoundry] = useState(false)
+  const [outOfBoundary, setOutOfBoundary] = useState(false)
   const [loading, setLoading] = useState(true)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { boundry } = useSelector((state: RootState) => state.sampleTree)
+  const { boundary } = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -66,11 +66,11 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-      handleCameraViewChange()
+    handleCameraViewChange()
   }, [MapBounds, currentUserLocation])
 
   const handleCameraViewChange = () => {
-    if (cameraRef && cameraRef.current) {
+    if (cameraRef?.current) {
       const { bounds, key } = MapBounds
       if (key === 'POINT_MAP') {
         cameraRef.current.fitBounds(
@@ -94,7 +94,7 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const getMarkerJSON = () => {
-    const data = makeInterventionGeoJson('Polygon', boundry, uuidv4(), { key: interventionKey })
+    const data = makeInterventionGeoJson('Polygon', boundary, uuid(), { key: interventionKey })
     setGeoJSON(data.geoJSON)
   }
 
@@ -103,7 +103,7 @@ const PointMarkerMap = (props: Props) => {
     if (has_sample_trees) {
       getMarkerJSON()
     }
-  }, [boundry])
+  }, [boundary])
 
 
 
@@ -117,7 +117,7 @@ const PointMarkerMap = (props: Props) => {
       const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
       if (!result) {
-        errotHaptic()
+        errorHaptic()
         toast.show("Error occurred while updating intervention location")
         return;
       }
@@ -129,7 +129,7 @@ const PointMarkerMap = (props: Props) => {
         navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
       }
     } else {
-      navigation.navigate('LocalForm',{ id:form_id })
+      navigation.navigate('LocalForm', { id: form_id })
     }
   }
 
@@ -171,7 +171,7 @@ const PointMarkerMap = (props: Props) => {
       const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
       const validSampleTree = handleMarkerValidation(centerCoordinates)
       if (!validSampleTree) {
-        errotHaptic()
+        errorHaptic()
         toast.show("Point is very close to already registered sample tree.", {
           type: "normal",
           placement: "bottom",
@@ -180,10 +180,10 @@ const PointMarkerMap = (props: Props) => {
         })
       }
       if (!validSampleTree || !validMarker) {
-        errotHaptic()
-        setOutOfBoundry(true)
+        errorHaptic()
+        setOutOfBoundary(true)
       } else {
-        setOutOfBoundry(false)
+        setOutOfBoundary(false)
       }
     }
   }
@@ -200,7 +200,7 @@ const PointMarkerMap = (props: Props) => {
         onRegionIsChanging={() => {
           setLoading(true)
         }}
-        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
+        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
@@ -211,20 +211,20 @@ const PointMarkerMap = (props: Props) => {
           <MapShapeSource
             geoJSON={[geoJSON]}
             onShapeSourcePress={() => { }}
-            showError={outOfBoundry}
+            showError={outOfBoundary}
           />
         )}
         {has_sample_trees && <MapMarkers
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper low/>
+      <SatelliteIconWrapper low />
       <CustomButton
         label="Select location & Continue"
         containerStyle={styles.btnContainer}
         pressHandler={checkForAccuracy}
         loading={loading}
-        disable={loading || outOfBoundry}
+        disable={loading || outOfBoundary}
       />
       <ActiveMarkerIcon />
       <AlertModal

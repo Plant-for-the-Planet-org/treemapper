@@ -8,33 +8,38 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import useOfflineMapManager from 'src/hooks/realm/useOfflineMapManger'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import DeleteModal from '../common/DeleteModal'
+import i18next from 'src/locales/index'
 
 const OfflineMapList = () => {
 
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
 
   const { deleteOfflineMap } = useOfflineMapManager()
   const allData = useQuery(RealmSchema.OfflineMap, data => {
     return data
   })
-  const handleDelte = async (item: any) => {
+  const handleDelete = async (item: any) => {
     await MapLibreGL.offlineManager.invalidatePack(item.name)
     await deleteOfflineMap(item)
     setDeleteData(null)
   }
 
+  const renderHeader = () => (
+    <Text style={styles.header}>{i18next.t("label.save_offline_area")}</Text>
+  )
+
+  const renderEmptyComp = () => (
+    <Text style={styles.emptylabel}>{i18next.t("label.no_offline_map")}</Text>
+  )
+
   return (
     <View style={styles.container}>
-      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleDelte} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={delteData} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Map'} noteLabel={'Are you sure you want to this map.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
       <FlatList
         data={allData}
-        renderItem={({ item, index }) => <OfflineMapCards data={item} index={index} delete={setDeleteData} />}
-        ListEmptyComponent={() => (
-          <Text style={styles.emptylabel}>No Offline Map to show</Text>
-        )}
-        ListHeaderComponent={() => (
-          <Text style={styles.header}>Saved Offline Areas</Text>
-        )}
+        renderItem={({ item }) => <OfflineMapCards data={item} delete={setDeleteData} />}
+        ListEmptyComponent={renderEmptyComp}
+        ListHeaderComponent={renderHeader}
       />
     </View>
   )

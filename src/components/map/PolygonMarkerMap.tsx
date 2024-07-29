@@ -11,15 +11,15 @@ import AlphabetMarkers from './AlphabetMarkers'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import DispalyCurrentPolygonMarker from './DispalyCurrentPolygonMarker'
+import DisplayCurrentPolygonMarker from './DisplayCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
 import distanceCalculator from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { errotHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
-import SatteliteLayer from 'assets/mapStyle/satteliteView'
+import SatelliteLayer from 'assets/mapStyle/satelliteView'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -38,7 +38,7 @@ const PolygonMarkerMap = (props: Props) => {
     index: 0,
   })
   const [loading, setLoading] = useState(true)
-  const [lineError, setLineErorr] = useState(false)
+  const [lineError, setLineError] = useState(false)
   const [coordinates, setCoordinates] = useState([])
   const [polygonComplete, setPolygonComplete] = useState(false)
   const currentUserLocation = useSelector(
@@ -71,14 +71,14 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const handlePreviousPoint = () => {
-    const updatedCordinates = [...coordinates];
-    updatedCordinates.pop()
-    setCoordinates(updatedCordinates)
+    const updatedCoordinates = [...coordinates];
+    updatedCoordinates.pop()
+    setCoordinates(updatedCoordinates)
     setCurrentCoordinate(prevState => ({
       id: String.fromCharCode(prevState.id.charCodeAt(0) - 1),
       index: prevState.index - 1,
     }))
-    if (updatedCordinates.length <= 2) {
+    if (updatedCoordinates.length <= 2) {
       setPolygonComplete(false)
     }
   }
@@ -87,9 +87,9 @@ const PolygonMarkerMap = (props: Props) => {
     const centerCoordinates = await mapRef.current.getCenter()
     if (centerCoordinates.length !== 0) {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-      setLineErorr(!checkValidDistance)
+      setLineError(!checkValidDistance)
       if (!checkValidDistance) {
-        errotHaptic()
+        errorHaptic()
         return
       }
       setCoordinates([...coordinates, centerCoordinates])
@@ -114,7 +114,7 @@ const PolygonMarkerMap = (props: Props) => {
         'meters',
       );
       if (distanceInMeters < 1) {
-        errotHaptic()
+        errorHaptic()
         toast.show("Marker is close to previous point.", {
           type: "normal",
           placement: "bottom",
@@ -124,7 +124,7 @@ const PolygonMarkerMap = (props: Props) => {
         isValidMarkers = false;
       }
       if (distanceInMeters > 100) {
-        errotHaptic()
+        errorHaptic()
         toast.show("Marker is too far from previous point.", {
           type: "normal",
           placement: "bottom",
@@ -146,7 +146,7 @@ const PolygonMarkerMap = (props: Props) => {
     const data = makeInterventionGeoJson('Point', finalCoordinates, form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
-      errotHaptic()
+      errorHaptic()
       toast.show('Error occurred while updating location')
       return
     }
@@ -159,15 +159,13 @@ const PolygonMarkerMap = (props: Props) => {
 
   const onRegionDidChange = async () => {
     setLoading(false)
-    setLineErorr(false)
+    setLineError(false)
   }
 
 
   return (
     <View style={styles.container}>
-      <DispalyCurrentPolygonMarker
-        lat={coordinates[currentCoordinate.index[0]]}
-        long={coordinates[currentCoordinate.index[1]]}
+      <DisplayCurrentPolygonMarker
         id={currentCoordinate.id}
         undo={handlePreviousPoint}
       />
@@ -181,7 +179,7 @@ const PolygonMarkerMap = (props: Props) => {
           setLoading(true)
         }}
         attributionEnabled={false}
-        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatteliteLayer : MapStyle)}>
+        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
@@ -206,7 +204,7 @@ const PolygonMarkerMap = (props: Props) => {
             containerStyle={styles.btnWrapper}
             pressHandler={onSelectLocation}
             wrapperStyle={styles.opaqueWrapper}
-            labelStyle={styles.normalLable}
+            labelStyle={styles.normalLabel}
           />
         </View>
       )}
@@ -287,7 +285,7 @@ const styles = StyleSheet.create({
     color: Colors.PRIMARY_DARK,
     fontFamily: Typography.FONT_FAMILY_BOLD
   },
-  normalLable: {
+  normalLabel: {
     fontSize: scaleFont(16),
     color: Colors.WHITE,
     textAlign: 'center',

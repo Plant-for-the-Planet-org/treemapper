@@ -6,14 +6,13 @@ import CustomButton from 'src/components/common/CustomButton'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { scaleSize } from 'src/utils/constants/mixins'
 import Header from 'src/components/common/Header'
-// import IterventionCoverImage from 'src/components/previewIntervention/IterventionCoverImage'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import {
   makeInterventionGeoJson,
-  metaDataTranformer,
+  metaDataTransformer,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { Colors, Typography } from 'src/utils/constants'
@@ -31,6 +30,8 @@ import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { Metadata } from 'src/types/interface/app.interface'
+import * as Application from 'expo-application'
+import i18next from 'i18next'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -38,7 +39,7 @@ const InterventionPreviewView = () => {
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
-  const interventionID = route.params && route.params.interventionId ? route.params.interventionId : ''
+  const interventionID = route.params?.interventionId ?? "";
   const { addNewLog } = useLogManagement()
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
@@ -56,14 +57,14 @@ const InterventionPreviewView = () => {
 
 
   const setupMetaData = async () => {
-    const localMetada = realm.objects<Metadata>(RealmSchema.Metadata)
+    const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
     const updatedMetadata = {
       private: {},
       public: {},
       app: {}
     };
-    if (localMetada && localMetada.length) {
-      localMetada.forEach(el => {
+    if (localMeta?.length) {
+      localMeta.forEach(el => {
         if (el.accessType === 'private') {
           updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
         }
@@ -80,7 +81,7 @@ const InterventionPreviewView = () => {
     }
     const parsedMeta = JSON.parse(InterventionData.meta_data)
     if (Object.keys(parsedMeta).length === 0) {
-      const finalMeta = metaDataTranformer(parsedMeta, updatedMetadata)
+      const finalMeta = metaDataTransformer(parsedMeta, updatedMetadata)
       await updateInterventionMetaData(InterventionData.form_id, finalMeta)
     }
 
@@ -89,11 +90,11 @@ const InterventionPreviewView = () => {
 
 
   const checkIsTree = async () => {
-    if (route.params && route.params.sampleTree) {
+    if (route?.params?.sampleTree) {
       navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
-  
+
 
   const navigateToNext = async () => {
     await saveIntervention(InterventionData.intervention_id)
@@ -112,7 +113,7 @@ const InterventionPreviewView = () => {
     const bounds = bbox(geoJSON)
     dispatch(
       updateMapBounds({
-        bodunds: bounds,
+        bounds: bounds,
         key: 'DISPLAY_MAP',
       }),
     )
@@ -141,12 +142,12 @@ const InterventionPreviewView = () => {
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
   }
-  
+
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView style={styles.scrollWrapper}>
-        <Header label="Review" rightComponet={renderRightContainer()} />
+        <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}
@@ -160,7 +161,7 @@ const InterventionPreviewView = () => {
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
-        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>Collected With TreeMapper 2.0.3</Text>}
+        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{Application.nativeApplicationVersion}</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton

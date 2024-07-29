@@ -1,16 +1,17 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import LayerBackDrop from 'assets/images/svg/LayerBackdrop.svg'
-import {Colors, Typography} from 'src/utils/constants'
-import {scaleFont} from 'src/utils/constants/mixins'
-import AddIcon from 'assets/images/svg/Addicon.svg'
+import { Colors, Typography } from 'src/utils/constants'
+import { scaleFont } from 'src/utils/constants/mixins'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import i18next from 'src/locales/index'
 
 const OfflineMapHeader = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const addNewMap=()=>{
+  const addNewMap = () => {
     navigation.navigate('OfflineMapSelection')
   }
   return (
@@ -18,14 +19,13 @@ const OfflineMapHeader = () => {
       <View style={styles.backdrop}>
         <LayerBackDrop />
       </View>
-      <Text style={styles.headerLabel}>Add Area to Offline Maps</Text>
+      <Text style={styles.headerLabel}>{i18next.t('label.add_offline_map_area')}</Text>
       <Text style={styles.note}>
-        Add & Save your Area to Offline Maps {'\n'}
-        Anytime, Anywhere {'\n'}
+        {i18next.t('label.add_area_note')}
       </Text>
       <TouchableOpacity style={styles.btnContainer} onPress={addNewMap}>
-        <AddIcon style={styles.btnIcon} fill={Colors.WHITE}/>
-        <Text style={styles.btnLable}>Add Area</Text>
+        <AddIcon style={styles.btnIcon} fill={Colors.WHITE} />
+        <Text style={styles.btnLabel}>{i18next.t("label.add_area")}</Text>
       </TouchableOpacity>
     </View>
   )
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'flex-end',
     height: '100%',
-    paddingBottom:12,
+    paddingBottom: 12,
   },
   headerLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
@@ -70,15 +70,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     backgroundColor: Colors.NEW_PRIMARY,
-    paddingHorizontal:20,
-    paddingVertical:13,
-    marginBottom:20,
-    flexDirection:'row'
+    paddingHorizontal: 20,
+    paddingVertical: 13,
+    marginBottom: 20,
+    flexDirection: 'row'
   },
   btnIcon: {
     marginRight: 10,
   },
-  btnLable: {
+  btnLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE,
     fontSize: scaleFont(14),

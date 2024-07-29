@@ -1,7 +1,8 @@
-import {RegisterFormSliceInitalState} from 'src/types/interface/slice.interface'
+import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
 
 // import {FormElement, MainForm} from 'src/types/interface/form.interface'
 import {FormElement, MainForm} from 'src/types/interface/form.interface'
+import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 const TeamName: FormElement = {
   index: 0,
@@ -41,78 +42,30 @@ const NumberOfMembers: FormElement = {
   validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }
 
-// const TagIdSwitch: FormElement = {
-//   index: 0,
-//   key: 'is-tree-tagged',
-//   label: 'This tree has been tagged for identification',
-//   default: 'false',
-//   type: 'SWITCH',
-//   placeholder: '',
-//   unit: '',
-//   visibility: 'public',
-//   condition: null,
-//   data_type: 'boolean',
-//   keyboard_type: 'default',
-//   sub_form: undefined,
-//   editable: true
-// }
 
-// const TagId: FormElement = {
-//   index: 0,
-//   key: 'tag-id',
-//   label: 'Tag Id',
-//   default: '',
-//   type: 'INPUT',
-//   placeholder: 'Tag id',
-//   unit: '',
-//   visibility: 'public',
-//   condition: {
-//     'is-tree-tagged': true,
-//   },
-//   data_type: 'number',
-//   keyboard_type: 'default',
-//   sub_form: undefined,
-//   editable: true
-// }
 
-const fireSupressionForm: MainForm = {
+const fireSuppressionForm: MainForm = {
   title: 'Team Details',
   key: '',
   elements: [TeamName, NumberOfMembers, ],
 }
 
 
-export const FireSupresionTeam: RegisterFormSliceInitalState = {
-  form_id: '',
+export const FireSuppressionTeam: RegisterFormSliceInitialState = {
+  ...initialInterventionState,
   key: 'fire-suppression',
   title: 'Fire Suppression Team',
-  intervention_date: 0,
   skip_intervention_form: false,
-  user_type: '',
-  project_id: '',
-  project_name: '',
-  site_id: '',
-  site_name: '',
   can_be_entire_site: false,
   entire_site_selected: false,
   should_register_location: false,
   location_type: 'Point',
   location_title: 'Select Location',
-  coordinates: [],
   preview_blank_polygon: false,
-  cover_image_url: '',
   species_required: false,
   is_multi_species: false,
   species_count_required: false,
-  species_modal_message: '',
-  species_modal_unit: '',
-  species: [],
   has_sample_trees: false,
   tree_details_required: false,
-  tree_details: [],
-  form_details: [fireSupressionForm],
-  meta_data: '{}',
-  additional_data: [],
-  form_data: [],
-  plantedSpecies: []
+  form_details: [fireSuppressionForm]
 }

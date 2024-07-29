@@ -1,12 +1,10 @@
 import React from 'react';
 import i18next from 'src/locales/index';
 import Share from 'react-native-share';
-
 import { toBase64 } from 'src/utils/constants/base64';
 import { convertInterventionDetailsToGeoJSON, convertTreeDetailsToGeoJSON } from 'src/utils/helpers/interventionHelper/convertDataToGeoJSON';
-import { StyleSheet, Text, TouchableOpacity } from 'react-native';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
-import { View } from 'react-native';
 import { Colors } from 'src/utils/constants';
 import { FONT_FAMILY_BOLD } from 'src/utils/constants/typography';
 import ExportIcon from 'assets/images/svg/ExportJsonIcon.svg'
@@ -59,7 +57,7 @@ export const ExportGeoJSONButton = (props: Props) => {
                 <View style={styles.iconWrapper}>
                     <ExportIcon />
                 </View>
-                <Text style={styles.textStyle}>Export GeoJson</Text>
+                <Text style={styles.textStyle}>{i18next.t("label.export_geo_json")}</Text>
             </TouchableOpacity>
         </View>
 

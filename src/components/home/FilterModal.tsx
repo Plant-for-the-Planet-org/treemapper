@@ -4,9 +4,9 @@ import FilterMapIcon from 'assets/images/svg/FilterMinimal.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
-import { BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateInterventionFilter, updateRemeasurementFilter, updateShowlots } from 'src/store/slice/displayMapSlice'
+import { updateInterventionFilter, updateRemeasurementFilter, updateShowPlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
@@ -15,12 +15,12 @@ import i18next from 'src/locales/index'
 
 interface Props {
   isVisible: boolean
-  toogleModal: () => void
+  toggleModal: () => void
 }
 
 const FilterModal = (props: Props) => {
-  const [showTimeModal, setTimeModal] = useState(false)
-  const [showTypeModal, setTypeModal] = useState(false)
+  const [showTimeModal, setShowTimeModal] = useState(false)
+  const [showTypeModal, setShowTypeModal] = useState(false)
 
 
   const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
@@ -30,7 +30,7 @@ const FilterModal = (props: Props) => {
   const { dismiss } = useBottomSheetModal()
   // variables
   const snapPoints = useMemo(() => ['50%', '85%'], []);
-  const { isVisible, toogleModal } = props
+  const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
     if (isVisible) {
@@ -46,40 +46,44 @@ const FilterModal = (props: Props) => {
     bottomSheetModalRef.current?.present();
   }, []);
   const closeModal = () => {
-    toogleModal()
-    setTypeModal(false)
+    toggleModal()
+    setShowTypeModal(false)
     dismiss();
   }
 
-  const toogleIntervention = () => {
+  const toggleIntervention = () => {
     if (interventionFilter === 'none') {
       dispatch(updateInterventionFilter('always'))
-      setTimeModal(true)
+      setShowTimeModal(true)
     } else {
-      setTimeModal(false)
+      setShowTimeModal(false)
       dispatch(updateInterventionFilter('none'))
     }
   }
 
-  const toogleTimeModal = () => {
-    setTimeModal(!showTimeModal)
+  const toggleTimeModal = () => {
+    setShowTimeModal(!showTimeModal)
   }
 
 
-  const toogleTypeModal = () => {
-    setTypeModal(!showTypeModal)
+  const toggleTypeModal = () => {
+    setShowTypeModal(!showTypeModal)
   }
 
   const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    setTimeModal(false)
+    setShowTimeModal(false)
     dispatch(updateInterventionFilter(e))
   }
 
 
   const handleOpenModal = () => {
     bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
-    toogleTypeModal()
+    toggleTypeModal()
   }
+
+  const backdropModal = ({ style }: BottomSheetBackdropProps) => (
+    <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
+  )
 
   return (
     <BottomSheetModal
@@ -90,42 +94,40 @@ const FilterModal = (props: Props) => {
       handleStyle={styles.handleIndicatorStyle}
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
-      backdropComponent={({ style }) => (
-        <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal}/>
-      )}
+      backdropComponent={backdropModal}
       style={{ paddingTop: 20 }}
     >
-      <InterventionTimeModal isVisible={showTimeModal} toogleModal={toogleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
+      <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
       <BottomSheetView style={styles.container}>
         <View style={styles.sectionWrapper}>
-          <View style={styles.contnetWrapper}>
+          <View style={styles.contentWrapper}>
             <View style={styles.header}>
               <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
-              <Text style={styles.headerLable}>{i18next.t('label.filters')}</Text>
+              <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
                 <CloseIcon />
               </TouchableOpacity>
             </View>
             <View style={styles.card}>
-              <Text style={styles.cardLable}>{i18next.t('label.monitoring_plots')}</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowlots(!showPlots)) }} disabled={false} />
+              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
-              <Text style={styles.cardLable}>{i18next.t('label.intervention')}</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.intervention')}</Text>
               <View style={styles.divider} />
-              <Switch value={interventionFilter !== 'none'} onValueChange={toogleIntervention} disabled={false} />
+              <Switch value={interventionFilter !== 'none'} onValueChange={toggleIntervention} disabled={false} />
             </View>
             <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
-              <Text style={styles.cardLable}>{i18next.t('label.filter_intervention')}</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
             <View style={styles.card}>
-              <Text style={styles.cardLable}>{i18next.t('label.only_remeasurment')}</Text>
+              <Text style={styles.cardLabel}>{i18next.t('label.only_remeasurement')}</Text>
               <View style={styles.divider} />
-              <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement))}} disabled={false} />
+              <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement)) }} disabled={false} />
             </View>
             <View />
           </View>
@@ -149,7 +151,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 20,
     alignItems: 'center',
   },
-  contnetWrapper: {
+  contentWrapper: {
     width: '95%',
     paddingBottom: 50
   },
@@ -176,13 +178,13 @@ const styles = StyleSheet.create({
     marginRight: 8,
     tintColor: Colors.TEXT_COLOR
   },
-  headerLable: {
+  headerLabel: {
     fontSize: 20,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
     paddingLeft: 10
   },
-  cardLable: {
+  cardLabel: {
     fontSize: 16,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,

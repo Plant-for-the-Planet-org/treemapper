@@ -7,7 +7,7 @@ import { InterventionData } from 'src/types/interface/slice.interface'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import BackIcon from 'assets/images/svg/SimpleBack.svg'
-
+import i18next from 'src/locales/index'
 
 
 const CarouselHeader = () => {
@@ -22,9 +22,9 @@ const CarouselHeader = () => {
   }, [selectedIntervention])
 
   const onPress = () => {
-    if(selectedIntervention && !showOverlay && !JSON.parse(selectedIntervention).entire_site && JSON.parse(selectedIntervention).sample_trees.length>1){
+    if (selectedIntervention && !showOverlay && !JSON.parse(selectedIntervention).entire_site && JSON.parse(selectedIntervention).sample_trees.length > 1) {
       dispatch(updateShowOverlay(true))
-    }else{
+    } else {
       dispatch(clearCarouselData())
     }
   }
@@ -42,7 +42,7 @@ const CarouselHeader = () => {
         : <View style={styles.sectionWrapper}>
           <Text style={styles.title}>{data.intervention_title}</Text>
           {data.has_sample_trees && <Text style={styles.sectionLabel}>
-            {data.sample_trees.length} Sample Trees
+            {data.sample_trees.length} {i18next.t("label.sample_trees")}
           </Text>}
         </View>}
     </View>
@@ -84,6 +84,6 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     flex: 1,
     marginLeft: 20,
-    paddingVertical:10
+    paddingVertical: 10
   },
 })

@@ -11,7 +11,7 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 import StaticOutlineInput from 'src/components/formBuilder/StaticOutlineInput'
 import PlantPlotListModal from 'src/components/monitoringPlot/PlotSpeciesList'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/interface/slice.interface'
-import useMonitoringPlotMangement from 'src/hooks/realm/useMonitoringPlotMangement'
+import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
@@ -26,28 +26,35 @@ import i18next from 'src/locales/index'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
-    const plotID = route.params && route.params.id ? route.params.id : ''
-    const plantId = route.params && route.params.plantId ? route.params.plantId : ''
-    const isEdit = route.params && route.params.isEdit ? route.params.isEdit : false
+    const plotID = route.params?.id ?? '';
+    const plantId = route.params?.plantId ?? '';
+    const isEdit = route.params?.isEdit ?? false;
     const [isPlanted, setIsPlanted] = useState(true)
-    const [mesaurmentDate, setIsMeasurmentDate] = useState(Date.now())
+    const [measurementDate, setMeasurementDate] = useState(Date.now())
     const [species, setSpecies] = useState<IScientificSpecies | null>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const [isTreeAlive, setIsTreeAlive] = useState(true)
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
-    const [speciesModal, setShowSpeciesModal] = useState(false)
-    const { addPlantDetailsPlot, updatePlotPlatDetails, deltePlantDetails } = useMonitoringPlotMangement()
-    const toogleSpeciesModal = () => {
-        setShowSpeciesModal(!speciesModal)
+    const [speciesModal, setSpeciesModal] = useState(false)
+    const { addPlantDetailsPlot, updatePlotPlatDetails, deletePlantDetails } = useMonitoringPlotManagement()
+    const toggleSpeciesModal = () => {
+        setSpeciesModal(!speciesModal)
     }
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const toast = useToast()
 
     const getSpeciesNames = () => {
-        return species ? `${species.aliases.length > 0 ? species.aliases : ''}  ${species.scientificName}` : 'Select Species'
-    }
+        if (!species) {
+            return 'Select Species';
+        }
+
+        const aliases = species.aliases.length > 0 ? species.aliases : ''; // Convert array to comma-separated string
+        const scientificName = species.scientificName;
+
+        return `${aliases} ${scientificName}`.trim(); // Use trim() to remove any leading/trailing spaces
+    };
     const realm = useRealm()
 
     useEffect(() => {
@@ -88,7 +95,7 @@ const AddPlantDetailsPlotView = () => {
         }
     }
     const deleteHandler = async () => {
-        const result = await deltePlantDetails(plotID, plantId)
+        const result = await deletePlantDetails(plotID, plantId)
         if (result) {
             toast.show("Plant deleted")
             navigation.pop(2);
@@ -129,15 +136,14 @@ const AddPlantDetailsPlotView = () => {
             toast.show("Please select a species")
             return
         }
-        // if (tag.trim().length === 0) {
-        //     toast.show("Please add valid Tag")
-        //     return
-        // }
+        const checkIsPlanted = () => {
+            return isPlanted ? 'PLANTED' : 'RECRUIT'
+        }
         const plantTimeline: PlantTimeLine = {
-            status: !isTreeAlive ? 'DESCEASED' : isPlanted ? 'PLANTED' : 'RECRUIT',
+            status: !isTreeAlive ? 'DECEASED' : checkIsPlanted(),
             length: Number(height),
             width: Number(width),
-            date: mesaurmentDate,
+            date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
             image: '',
@@ -171,7 +177,7 @@ const AddPlantDetailsPlotView = () => {
                 avoidOffset={20}
                 style={styles.container}>
                 <ScrollView>
-                    <PlantPlotListModal isVisible={speciesModal} toogleModal={toogleSpeciesModal} setSpecies={setSpecies} />
+                    <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>
                         <PlaceHolderSwitch
                             description={i18next.t('label.tree_planted')}
@@ -181,25 +187,25 @@ const AddPlantDetailsPlotView = () => {
                             showInfoIcon={true}
                         />
                         {!isEdit && <InterventionDatePicker
-                            placeHolder={i18next.t('label.measurment_date')}
-                            value={mesaurmentDate}
-                            callBack={setIsMeasurmentDate}
+                            placeHolder={i18next.t('label.measurement_date')}
+                            value={measurementDate}
+                            callBack={setMeasurementDate}
                         />}
-                        <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toogleSpeciesModal} />
+                        <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toggleSpeciesModal} />
                         {!isEdit && <>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
                                     placeholder={i18next.t('label.height')}
                                     changeHandler={setHeight}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'m'} errMsg={''} />
+                                    trailingText={'m'} errMsg={''} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
                                     placeholder={i18next.t('label.diameter')}
                                     changeHandler={setWidth}
                                     keyboardType={'decimal-pad'}
-                                    trailingtext={'cm'} errMsg={''} />
+                                    trailingText={'cm'} errMsg={''} />
                             </View>
                             <PlaceHolderSwitch
                                 description={i18next.t('label.tree_alive')}
@@ -219,34 +225,34 @@ const AddPlantDetailsPlotView = () => {
                                 changeHandler={setTag}
                                 keyboardType={'default'}
                                 defaultValue={tag}
-                                trailingtext={''} errMsg={''} />
+                                trailingText={''} errMsg={''} />
                         </View>
                     </View>
                 </ScrollView>
             </AvoidSoftInputView>
             {isEdit ?
-                <View style={styles.btnContainedr}>
+                <View style={styles.btnMinorContainer}>
                     <CustomButton
                         label={'Delete'}
                         containerStyle={styles.btnWrapper}
                         pressHandler={deleteHandler}
                         wrapperStyle={styles.borderWrapper}
                         labelStyle={styles.highlightLabel}
-                        hideFadein
+                        hideFadeIn
                     />
                     <CustomButton
                         label={'Save'}
                         containerStyle={styles.btnWrapper}
                         pressHandler={updateDetails}
                         wrapperStyle={styles.noBorderWrapper}
-                        hideFadein
+                        hideFadeIn
                     />
                 </View> :
                 <CustomButton
                     label="Save and Continue"
                     containerStyle={styles.btnContainer}
                     pressHandler={submitHandler}
-                    hideFadein
+                    hideFadeIn
                 />}
         </SafeAreaView>
     )
@@ -279,7 +285,7 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 20,
     },
-    dropDownWrappper: {
+    dropDownWrapper: {
         width: '98%',
         justifyContent: "center",
         alignItems: 'center'
@@ -295,7 +301,7 @@ const styles = StyleSheet.create({
         borderColor: Colors.GRAY_LIGHT,
         backgroundColor: Colors.WHITE
     },
-    btnContainedr: {
+    btnMinorContainer: {
         width: '100%',
         height: scaleSize(70),
         flexDirection: 'row',
@@ -308,7 +314,7 @@ const styles = StyleSheet.create({
         width: '48%',
     },
     imageContainer: {
-        widht: '100%',
+        width: '100%',
         height: '100%',
     },
     borderWrapper: {
@@ -351,7 +357,7 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: 'tomato'
     },
-    normalLable: {
+    normalLabel: {
         fontSize: scaleFont(14),
         fontWeight: '400',
         color: Colors.WHITE,

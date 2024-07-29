@@ -13,24 +13,19 @@ export const getExtendedPageParam = (str: string) => {
 
 
 
-const interventionTitlteSwitch = (t: string): {
+const interventionTittleSwitch = (t: string): {
     title: string
     key: INTERVENTION_TYPE
     hasSampleTrees: boolean
 } => {
     switch (t) {
-        case 'multi':
-            return {
-                title: "Multi Tree Plantation",
-                key: 'multi-tree-registration',
-                hasSampleTrees: true
-            }
         case 'single':
             return {
                 title: "Single Tree Plantation",
                 key: 'single-tree-registration',
                 hasSampleTrees: false
             }
+        case 'multi':
         default:
             return {
                 title: "Multi Tree Plantation",
@@ -40,29 +35,13 @@ const interventionTitlteSwitch = (t: string): {
     }
 }
 
-
 const getGeometry = (g: any) => {
     return {
         type: g.type,
         coordinates: g.type === 'Point' ? JSON.stringify([g.coordinates]) : JSON.stringify(g.coordinates[0]),
-        geoSpatail: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
+        geoSpatial: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
     }
 }
-
-
-// const speciesData = (s: any) => {
-//     if (s === null || !s) {
-//         return []
-//     }
-//     const finalData = [];
-//     for (let index = 0; index < s.length; index++) {
-//         if (s[index] && s[index].scientificSpecies) {
-//             finalData.push(s[index].scientificSpecies)
-//         }
-//     }
-//     return finalData
-// }
-
 
 const setPlantedSpecies = (s: any) => {
     if (s === null || !s) {
@@ -86,40 +65,36 @@ const setPlantedSpecies = (s: any) => {
 
 
 
-const remeasurementCalcultaor = (nextMeasurementDate: null | any) => {
+const remeasurementCalculator = (nextMeasurementDate: null | string | { date: string }) => {
     try {
-        // const projectRemasurentDateAfter = 2
         let timeStamp = 0;
-        if (nextMeasurementDate && typeof nextMeasurementDate === 'string') {
+
+        if (typeof nextMeasurementDate === 'string') {
             const utcDate = moment.utc(nextMeasurementDate);
-            timeStamp = utcDate.valueOf()
-        }
-        if (nextMeasurementDate && nextMeasurementDate.date) {
+            timeStamp = utcDate.valueOf();
+        } else if (nextMeasurementDate && typeof nextMeasurementDate.date === 'string') {
             const utcDate = moment.utc(nextMeasurementDate.date);
             timeStamp = utcDate.valueOf();
         }
+
         if (timeStamp) {
             const date = moment(timeStamp);
             const currentDate = moment();
             const locationNeedRemeasurement = currentDate.isAfter(date);
-            return { requireRemeasurement: locationNeedRemeasurement, d: timeStamp }
+            return { requireRemeasurement: locationNeedRemeasurement, d: timeStamp };
         }
-        // const date = moment(plantationDate);
-        // const twoYearsAgo = moment().subtract(projectRemasurentDateAfter, 'years');
-        // const locationNeedRemeasurement = date.isSameOrBefore(twoYearsAgo);
-        // const futureDate = date.add(projectRemasurentDateAfter, 'years');
-        return { requireRemeasurement: false, d: 0 }
+
+        return { requireRemeasurement: false, d: 0 };
     } catch (error) {
-        return { requireRemeasurement: false, d: 0 }
+        return { requireRemeasurement: false, d: 0 };
     }
 }
 
 
 
-
 const singleTreeDetails = (d: any): SampleTree => {
-    const rData = remeasurementCalcultaor(d.nextMeasurementDate)
-    const lData = remeasurementCalcultaor(d.lastMeasurementDate)
+    const rData = remeasurementCalculator(d.nextMeasurementDate)
+    const lData = remeasurementCalculator(d.lastMeasurementDate)
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
@@ -149,7 +124,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         device_latitude: d.deviceLocation.coordinates[1],
         history: [],
         remeasurement_requires: rData.requireRemeasurement,
-        is_alive: d.status? false : true,
+        is_alive: !d.status,
         remeasurement_dates: {
             sampleTreeId: "",
             created: moment(d.plantDate).valueOf() || moment(d.registrationDate).valueOf() || 0,
@@ -178,35 +153,11 @@ const checkAndConvertMetaData = (m: any) => {
     return '{}'
 }
 
-// const getAdditionalData = (d: any) => {
-//     const deviceLocation = {
-//         label: "Device Location",
-//         value: ""
-//     };
-//     const hid = {
-//         label: "HID",
-//         value: ""
-//     }
-//     if (d && d.deviceLocation && d.deviceLocation.coordinates) {
-//         if (d.deviceLocation.coordinates[0] && d.deviceLocation.coordinates[1]) {
-//             deviceLocation.value = `${d.deviceLocation.coordinates[0].toFixed(6)},${d.deviceLocation.coordinates[1].toFixed(6)}`
-//         }
-//     }
-//     if (d && d.hid) {
-//         hid.value = d.hid
-//     }
-//     return JSON.stringify({
-//         deviceLocation,
-//         hid
-//     })
-// }
-
-
-export const convertInevtoryToIntervention = (data: any): InterventionData => {
-    const extraData = interventionTitlteSwitch(data.type);
+export const convertInventoryToIntervention = (data: any): InterventionData => {
+    const extraData = interventionTittleSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
     const sample_trees: SampleTree[] = []
-    const rData = remeasurementCalcultaor(data.nextMeasurementDate)
+    const rData = remeasurementCalculator(data.nextMeasurementDate)
     if (extraData.key !== 'single-tree-registration') {
         data.samplePlantLocations.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
@@ -215,10 +166,10 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         sample_trees.push(singleTreeDetails(data))
     }
     const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
-    let remeasuremnt_required = rData.requireRemeasurement
-    const markeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
-    if (markeForRemeasurement) {
-        remeasuremnt_required = true
+    let remeasurement_required = rData.requireRemeasurement
+    const makeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
+    if (makeForRemeasurement) {
+        remeasurement_required = true
     }
     const finalData: InterventionData = {
         intervention_id: data.id,
@@ -239,21 +190,21 @@ export const convertInevtoryToIntervention = (data: any): InterventionData => {
         form_data: [],
         additional_data: [],
         meta_data: metaData,
-        status: 'SYNCED',//todo check for this condition everywhere before moifying it.
+        status: 'SYNCED',
         hid: data.hid || '',
         coords: {
             type: 'Point',
-            coordinates: geometryData.geoSpatail
+            coordinates: geometryData.geoSpatial
         },
         entire_site: false,
-        last_screen: "PREVIEW",//todo change this when writing migration code
+        last_screen: "PREVIEW",
         planted_species: setPlantedSpecies(data.plantedSpecies || []),
         form_id: data.id,
         image: "",
         image_data: [],
         location_id: data.id,
         locate_tree: "",
-        remeasuremnt_required: remeasuremnt_required,
+        remeasurement_required: remeasurement_required,
         next_measurement_date: rData.d
     }
     return finalData

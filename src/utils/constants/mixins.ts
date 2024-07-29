@@ -12,41 +12,6 @@ export const scaleSize = (size: number) => (WINDOW_WIDTH / guidelineBaseWidth) *
 // This will scale the font acc to user's device
 export const scaleFont = (size: number) => size * PixelRatio.getFontScale();
 
-function dimensions(
-  top: number | string,
-  right = top,
-  bottom = top,
-  left = right,
-  property: string,
-) {
-  const styles: unknown = {};
-
-  styles[`${property}Top`] = top;
-  styles[`${property}Right`] = right;
-  styles[`${property}Bottom`] = bottom;
-  styles[`${property}Left`] = left;
-
-  return styles;
-}
-
-export function margin(
-  top: number | string,
-  right: number | string,
-  bottom: number | string,
-  left: number | string,
-) {
-  return dimensions(top, right, bottom, left, 'margin');
-}
-
-export function padding(
-  top: number | string,
-  right: number | string,
-  bottom: number | string,
-  left: number | string,
-) {
-  return dimensions(top, right, bottom, left, 'padding');
-}
-
 export function boxShadow(
   color: string,
   offset = { height: 2, width: 2 },

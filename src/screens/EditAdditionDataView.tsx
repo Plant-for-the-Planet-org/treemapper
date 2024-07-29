@@ -16,7 +16,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 const EditAdditionData = () => {
     const [formElements, setFormElements] = useState<FormElement[]>([])
     const route = useRoute<RouteProp<RootStackParamList, 'EditAdditionData'>>()
-    const InterventoinID = route.params && route.params.interventionID ? route.params.interventionID : ""
+    const interventionId = route.params?.interventionID ?? "";
     const realm = useRealm()
     const { updateEditAdditionalData } = useInterventionManagement()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -34,12 +34,12 @@ const EditAdditionData = () => {
                 additionalData.push(el)
             }
         })
-        await updateEditAdditionalData(InterventoinID, formData, additionalData)
+        await updateEditAdditionalData(interventionId, formData, additionalData)
         navigation.goBack()
     }
 
     const setupForm = () => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, InterventoinID);
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
         if (intervention) {
             const formData = intervention.form_data.map(el => {
                 return { ...el, isFormData: true }
@@ -47,8 +47,7 @@ const EditAdditionData = () => {
             const additionalData = intervention.additional_data.map(el => {
                 return { ...el, isFormData: false }
             })
-            const allElements = [...formData, ...additionalData]
-            setFormElements(allElements)
+            setFormElements([...formData, ...additionalData])
         }
     }
 
@@ -56,7 +55,7 @@ const EditAdditionData = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Edit Data' />
-            {formElements.length > 0 && <MainFormSection formData={{ elements: formElements }} interventionID={InterventoinID} isEditForm={handleEdit} />}
+            {formElements.length > 0 && <MainFormSection formData={{ elements: formElements }} interventionID={interventionId} isEditForm={handleEdit} />}
         </SafeAreaView>
     )
 

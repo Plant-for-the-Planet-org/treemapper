@@ -7,6 +7,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
+import i18next from 'src/locales/index'
 
 interface Props {
   data: FormElement[]
@@ -15,37 +16,36 @@ interface Props {
 
 const InterventionAdditionalData = (props: Props) => {
 
-  const [additiionalData, setAdditiionalData] = useState<FormElement[]>([])
+  const [additionalData, setAdditionalData] = useState<FormElement[]>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const { data, id } = props
 
   useEffect(() => {
     if (data.length > 0) {
-      setAdditiionalData(data)
+      setAdditionalData(data)
     }
   }, [data])
 
-  if (Object.keys(additiionalData).length === 0) {
+  if (Object.keys(additionalData).length === 0) {
     return null
   }
 
   const renderValue = (d: FormElement) => {
-    switch (d.type) {
-      case "DROPDOWN":
-        return d.value.length ? JSON.parse(d.value).value : d.value + d.unit
-      default:
-        return d.value + " " + d.unit
+    if (d.type === "DROPDOWN") {
+      return d.value.length ? JSON.parse(d.value).value : d.value + d.unit;
+    } else {
+      return d.value + " " + d.unit;
     }
   }
 
   const renderData = () => {
     const finalData = []
-    additiionalData.forEach(el => {
+    additionalData.forEach(el => {
       if (el.type === 'GAP') {
         finalData.push(
           <View style={styles.cardWrapper} key={el.key}>
-            <View style={styles.cardBotttomWrapper} />
+            <View style={styles.cardBottomWrapper} />
           </View>
         )
       } else if (el.type === 'HEADING') {
@@ -70,16 +70,16 @@ const InterventionAdditionalData = (props: Props) => {
   }
 
   const editData = () => {
-    navigation.navigate('EditAdditionData',{'interventionID':id})
+    navigation.navigate('EditAdditionData', { 'interventionID': id })
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <TouchableOpacity onPress={editData} style={styles.editWrapper}>
-          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR}/>
+          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>
-        <Text style={styles.title}>Additional Data</Text>
+        <Text style={styles.title}>{i18next.t("label.additional_data")}</Text>
         {renderData()}
       </View>
     </View>
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginVertical: 10,
   },
-  cardBotttomWrapper: {
+  cardBottomWrapper: {
     width: '90%',
     height: 1,
     backgroundColor: Colors.TEXT_COLOR
@@ -149,9 +149,9 @@ const styles = StyleSheet.create({
     top: 10,
     width: 35,
     height: 35,
-    backgroundColor:Colors.GRAY_BACKDROP,
-    borderRadius:8,
-    justifyContent:'center',
-    alignItems:'center'
+    backgroundColor: Colors.GRAY_BACKDROP,
+    borderRadius: 8,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
 })

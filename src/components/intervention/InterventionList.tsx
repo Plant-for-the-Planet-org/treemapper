@@ -14,19 +14,20 @@ import DeleteModal from '../common/DeleteModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { useDispatch } from 'react-redux'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import i18next from 'i18next'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
-  setSlectedLabel: (s: string) => void
+  setSelectedLabel: (s: string) => void
   handlePageIncrement: () => void
   loading: boolean
   refreshHandler: () => void
 }
 
 const InterventionList = (props: Props) => {
-  const { interventionData, selectedLabel, setSlectedLabel, handlePageIncrement, refreshHandler, loading } = props
+  const { interventionData, selectedLabel, setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const [delteData, setDeleteData] = useState(null)
+  const [deleteData, setDeleteData] = useState(null)
   const { deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
@@ -37,34 +38,34 @@ const InterventionList = (props: Props) => {
     navigation.navigate(navDetails.screen, { ...navDetails.params })
   }
 
-  const handleDelte = async (item: InterventionData) => {
+  const handleDelete = async (item: InterventionData) => {
     setDeleteData(null)
     await deleteIntervention(item.intervention_id)
     dispatch(updateNewIntervention())
   }
 
   const showInfoModal = (item: InterventionData) => {
-    if(!item.is_complete){
+    if (!item.is_complete) {
       setDeleteData(item)
-    }else{
+    } else {
       handleNavigation(item)
     }
   }
 
 
-  const emptyInterventoin = () => {
+  const emptyIntervention = () => {
     return (
       <View style={styles.emptyBox}>
         <EmptyIntervention />
-        <Text style={styles.emptyHeaderLable}>No Interventions to Show Yet</Text>
-        <Text style={styles.emptyLable}>Start mapping your tree interventions to {'\n'} keep track of your progress.</Text>
+        <Text style={styles.emptyHeaderLabel}>{i18next.t("label.no_intervention_to_show")}</Text>
+        <Text style={styles.emptyLabel}>{i18next.t("label.no_intervention_note1")} {'\n'} {i18next.t("label.keep_track_progress")}</Text>
       </View>
     )
   }
 
   return (
     <>
-      <DeleteModal isVisible={delteData !== null} toogleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={delteData} secondaryHandler={handleDelte} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelete} />
 
       <FlashList
         data={interventionData}
@@ -82,11 +83,11 @@ const InterventionList = (props: Props) => {
             onRefresh={refreshHandler}
           />}
         ListFooterComponent={<View style={styles.footerWrapper} />}
-        ListEmptyComponent={() => (emptyInterventoin())}
+        ListEmptyComponent={emptyIntervention}
         ListHeaderComponent={
           <InterventionHeaderSelector
             selectedLabel={selectedLabel}
-            setSlectedLabel={setSlectedLabel}
+            setSelectedLabel={setSelectedLabel}
           />
         }
         onEndReachedThreshold={0.3}
@@ -111,7 +112,7 @@ const styles = StyleSheet.create({
     width: '100%',
     marginTop: 80
   },
-  emptyHeaderLable: {
+  emptyHeaderLabel: {
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     textAlign: 'center',
@@ -119,7 +120,7 @@ const styles = StyleSheet.create({
     marginVertical: 20,
     color: Colors.DARK_TEXT_COLOR
   },
-  emptyLable: {
+  emptyLabel: {
     fontSize: 14,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     textAlign: 'center',

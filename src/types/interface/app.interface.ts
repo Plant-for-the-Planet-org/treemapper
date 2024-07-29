@@ -10,7 +10,7 @@ export interface Coordinates {
 
 export interface SideDrawerItem {
   label: string
-  screen: keyof RootStackParamList | any
+  screen: keyof RootStackParamList
   icon: React.ReactNode
   visible: boolean
   key:  SIDE_DRAWER_ELEMENTS
@@ -47,8 +47,6 @@ export interface ProjectInterface{
 export interface CarouselInterventionData{
   image: string
   id: string
-  // id: string
-  // species_name: string
 }
 
 export interface DropdownData {

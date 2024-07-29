@@ -2,6 +2,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { FormElement } from 'src/types/interface/form.interface'
+import i18next from 'src/locales/index'
 
 interface Props {
     data: FormElement
@@ -12,7 +13,7 @@ interface Props {
 const YeNoFormElement = (props: Props) => {
     const { data, formValues, changeHandler } = props
 
-    const handleChnage = () => {
+    const handleChange = () => {
         changeHandler(
             data.key,
             String(`${formValues[data.key].value === 'false' ? 'true' : 'false'}`),
@@ -24,11 +25,11 @@ const YeNoFormElement = (props: Props) => {
             <View style={styles.mainWrapper}>
                 <Text style={styles.noteLabel}>{data.label}</Text>
                 <View style={styles.container}>
-                    <Pressable style={[styles.singleWrapper, { backgroundColor: isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChnage}>
-                        <Text style={[styles.label, { color: isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>Yes</Text>
+                    <Pressable style={[styles.singleWrapper, { backgroundColor: isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChange}>
+                        <Text style={[styles.label, { color: isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.yes")}</Text>
                     </Pressable>
-                    <Pressable style={[styles.singleWrapper, { backgroundColor: !isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChnage}>
-                        <Text style={[styles.label, { color: !isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>No</Text>
+                    <Pressable style={[styles.singleWrapper, { backgroundColor: !isTrue ? Colors.NEW_PRIMARY : Colors.NEW_PRIMARY + '1A' }]} onPress={handleChange}>
+                        <Text style={[styles.label, { color: !isTrue ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.no")}</Text>
                     </Pressable>
                 </View>
             </View>
@@ -51,14 +52,14 @@ const styles = StyleSheet.create({
         paddingVertical: 5,
         marginVertical: 5,
         justifyContent: 'space-between',
-        marginBottom:10
+        marginBottom: 10
     },
     noteLabel: {
         fontSize: 18,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
-        width:'70%',
-        marginLeft:15
+        width: '70%',
+        marginLeft: 15
     },
     container: {
         width: 100,

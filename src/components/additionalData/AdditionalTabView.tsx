@@ -24,8 +24,8 @@ const AdditionalTabView = () => {
 
   return (
     <TabView
-    navigationState={{ index: routeIndex, routes: tabRoutes }}
-    renderScene={renderScene}
+      navigationState={{ index: routeIndex, routes: tabRoutes }}
+      renderScene={renderScene}
       onIndexChange={setRouteIndex}
       initialLayout={{ width: layout.width }}
       renderTabBar={props => (

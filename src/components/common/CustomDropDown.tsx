@@ -18,10 +18,10 @@ interface Props {
 const CustomDropdownComponent = (props: Props) => {
   const { label, data, onSelect, selectedValue, whiteBG = false, position="auto" } = props
   const [isFocus, setIsFocus] = useState(false)
-  const [value, setSelectedValue] = useState(selectedValue)
+  const [value, setValue] = useState(selectedValue)
 
   useEffect(() => {
-    setSelectedValue(selectedValue)
+    setValue(selectedValue)
   }, [selectedValue])
 
   const renderLabel = () => {

@@ -1,37 +1,22 @@
-import { RegisterFormSliceInitalState } from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
+import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 
-export const StopTreeHarvesting: RegisterFormSliceInitalState = {
-    form_id: '',
+export const StopTreeHarvesting: RegisterFormSliceInitialState = {
+    ...initialInterventionState,
     title: 'Stop Tree Harvesting',
-    intervention_date: 0,
     skip_intervention_form: false,
     user_type: 'normal',
-    project_id: '',
-    site_id: '',
-    site_name: '',
-    project_name: '',
     location_type: 'Polygon',
     location_title: 'Select Location',
-    coordinates: [],
     preview_blank_polygon: true,
-    cover_image_url: '',
     species_required: false,
     is_multi_species: false,
     species_count_required: false,
-    species_modal_message: '',
-    species_modal_unit: '',
-    species: [],
     tree_details_required: false,
     has_sample_trees: false,
-    tree_details: [],
-    form_details: [],
-    meta_data: '{}',
-    form_data: [],
-    additional_data: [],
     can_be_entire_site: true,
     entire_site_selected: false,
     key: 'stop-tree-harvesting',
     should_register_location: false,
-    plantedSpecies: []
 }

@@ -6,12 +6,12 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { Colors, Typography } from 'src/utils/constants'
 import { PLOT_PLANT } from 'src/types/type/app.type'
+import i18next from 'src/locales/index'
 
 interface Props {
     label: string
     type: PLOT_PLANT
     species: string
-    allias: string
     showRemeasure: boolean
     rightComponent?: ReactElement,
     tree?: boolean
@@ -31,13 +31,13 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightCo
                         <Text style={styles.headerLabel}>{tree ? 'Remeasurement  ' : 'Remeasure '}</Text>
                         <Text style={styles.highlight}>{label}</Text>
                     </> : <><Text style={styles.headerLabel}>{label}</Text>
-                        <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}><Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? "Planted" : "Recruit"}</Text></View></>}
+                        <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}><Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? `${i18next.t("label.planted")}` : `${i18next.t("label.recruit")}`}</Text></View></>}
                 </View>
                 <Text style={styles.noteLabel}>
                     {species}
                 </Text>
             </View>
-            {rightComponent && rightComponent}
+            {!!rightComponent && rightComponent}
         </View>
     )
 }

@@ -1,81 +1,59 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
-import { Typography, Colors } from 'src/utils/constants'
-import { scaleFont } from 'src/utils/constants/mixins'
-
+import React from 'react';
+import { View, Text, StyleSheet } from 'react-native';
+import SelectableItem from './SelectableItem';
+import { Colors } from 'react-native/Libraries/NewAppScreen';
+import { Typography } from 'src/utils/constants';
+import { scaleFont } from 'src/utils/constants/mixins';
 
 interface Props {
-    header: string
-    labelOne: {
-        key: 'Polygon' | 'Point'
-        value: string
-    }
-    labelTwo: {
-        key: 'Polygon' | 'Point'
-        value: string
-    },
-    disabled: boolean,
-    selectedValue: string,
-    onSelect: (v: 'Polygon' | 'Point') => void
+    header: string;
+    labelOne: { key: string; value: string };
+    labelTwo: { key: string; value: string };
+    disabled: boolean;
+    selectedValue: string;
+    onSelect: (key: "Polygon" | "Point") => void;
 }
 
-const SelectionLocationType = (props: Props) => {
-    const { header, labelOne, labelTwo, disabled, selectedValue, onSelect } = props;
-    const isCheckedOne = selectedValue === labelOne.key
+const SelectionLocationType: React.FC<Props> = ({ header, labelOne, labelTwo, disabled, selectedValue, onSelect }) => {
+    const isCheckedOne = selectedValue === labelOne.key;
+
     return (
         <View style={styles.container}>
-            <View style={[styles.wrapper]}>
-                <Text style={styles.headerLabel}>
-                    {header}
-                </Text>
+            <View style={styles.wrapper}>
+                <Text style={styles.headerLabel}>{header}</Text>
                 <View style={styles.checkWrapper}>
-                    <Pressable style={styles.selectWrapper} onPress={
-                        () => {
-                            if (!disabled) {
-                                onSelect(labelOne.key)
-                            }
-                        }
-                    }>
-                        <View style={[styles.outerCircle, { borderColor: isCheckedOne && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
-                            {isCheckedOne && !disabled ? <View style={styles.innerCircle}></View> : null}
-                        </View>
-                        <Text style={[styles.checkBoxLable, { color: isCheckedOne && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
-                            {labelOne.value}
-                        </Text>
-                    </Pressable>
-                    <Pressable style={styles.selectWrapper} onPress={
-                        () => {
-                            if (!disabled) {
-                                onSelect(labelTwo.key)
-                            }
-                        }
-                    }>
-                        <View style={[styles.outerCircle, { borderColor: !isCheckedOne ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }]}>
-                            {!isCheckedOne && <View style={styles.innerCircle}></View>}
-                        </View>
-                        <Text style={[styles.checkBoxLable, { color: !isCheckedOne ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }]}>
-                            {labelTwo.value}
-                        </Text>
-                    </Pressable>
+                    <SelectableItem
+                        label={labelOne}
+                        isChecked={isCheckedOne}
+                        disabled={disabled}
+                        onSelect={onSelect}
+                    />
+                    <SelectableItem
+                        label={labelTwo}
+                        isChecked={!isCheckedOne}
+                        disabled={disabled}
+                        onSelect={onSelect}
+                    />
                 </View>
             </View>
         </View>
-    )
-}
+    );
+};
 
-export default SelectionLocationType
+export default SelectionLocationType;
+
 
 const styles = StyleSheet.create({
     container: {
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingBottom:25,
-        marginTop:8
+        paddingBottom: 25,
+        marginTop: 8
     },
     wrapper: {
         width: '92%',
-        height:50,
+        height: 50,
         borderRadius: 12,
         justifyContent: 'center',
         paddingHorizontal: 20,
@@ -128,7 +106,7 @@ const styles = StyleSheet.create({
         borderRadius: 20,
         backgroundColor: Colors.NEW_PRIMARY
     },
-    checkBoxLable: {
+    checkBoxLabel: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,

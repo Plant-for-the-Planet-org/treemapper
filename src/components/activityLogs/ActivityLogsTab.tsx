@@ -2,7 +2,7 @@ import * as React from 'react'
 import { useWindowDimensions } from 'react-native'
 import { TabView, SceneMap } from 'react-native-tab-view'
 import { useState } from 'react'
-import AdditionalFormTabBar from './ActivityLogsTabBar'
+import ActivityLogsTabBar from './ActivityLogsTabBar'
 import AllLogs from './AllLogs'
 import ErrorLogs from './ErrorLogs'
 
@@ -28,7 +28,7 @@ const AdditionalTabView = () => {
       onIndexChange={setRouteIndex}
       initialLayout={{ width: layout.width }}
       renderTabBar={props => (
-        <AdditionalFormTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
+        <ActivityLogsTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
       )}
     />
   )

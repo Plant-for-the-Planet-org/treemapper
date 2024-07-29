@@ -3,6 +3,7 @@ import React from 'react'
 
 import { Colors, Typography } from 'src/utils/constants'
 import { PlotObservation } from 'src/types/interface/slice.interface'
+import i18next from 'src/locales/index'
 
 interface Props {
     item: PlotObservation[],
@@ -22,39 +23,39 @@ const EcosystemListHeader = (props: Props) => {
         borderColor: Colors.NEW_PRIMARY,
         backgroundColor: Colors.NEW_PRIMARY,
     }
-    const unslectedTextWrapper = {
+    const unelectedTextWrapper = {
         borderColor: Colors.GRAY_LIGHT,
         backgroundColor: Colors.WHITE,
     }
-    const unslectedTextStyle = {
+    const unelectedTextStyle = {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_COLOR
     }
     const canopyLength = item.filter(el => el.type === 'CANOPY').length
     const soilMoistureLength = item.filter(el => el.type === 'SOIL_MOISTURE').length
-    const bioacusticsLength = item.filter(el => el.type === 'BIOACUSTICS').length
+    const bioacousticsLength = item.filter(el => el.type === 'BIOACOUSTICS').length
 
 
     const headerData = [{
         key: 'all',
-        label: `All ${item.length}`,
+        label: `${i18next.t('label.all')} ${item.length}`,
         hide: false
     },
     {
         key: 'canopy',
-        label: `${canopyLength} Canopy Cover`,
+        label: `${canopyLength} ${i18next.t("label.canopy_cover")}`,
         hide: canopyLength === 0
     },
     {
         key: 'soil_moisture',
-        label: `${soilMoistureLength} Soil Moisture`,
+        label: `${soilMoistureLength} ${i18next.t('label.soil_moisture')}`,
         hide: soilMoistureLength === 0
 
     },
     {
-        key: 'bioacustics',
-        label: `${bioacusticsLength} Bioacoustics`,
-        hide: bioacusticsLength === 0
+        key: 'bioacoustics',
+        label: `${bioacousticsLength} ${i18next.t('label.bioacoustics')}`,
+        hide: bioacousticsLength === 0
 
     }
     ]
@@ -73,10 +74,10 @@ const EcosystemListHeader = (props: Props) => {
                     return null
                 }
                 return (
-                    <Pressable style={[styles.sectionWrapper, selectedLabel === item.key ? selectedWrapper : unslectedTextWrapper]} onPress={() => {
+                    <Pressable style={[styles.sectionWrapper, selectedLabel === item.key ? selectedWrapper : unelectedTextWrapper]} onPress={() => {
                         onPress(item.key)
                     }}>
-                        <Text style={[styles.sectionHeader, selectedLabel === item.key ? selectedTextStyle : unslectedTextStyle]}>{item.label}</Text>
+                        <Text style={[styles.sectionHeader, selectedLabel === item.key ? selectedTextStyle : unelectedTextStyle]}>{item.label}</Text>
                     </Pressable>
                 )
 

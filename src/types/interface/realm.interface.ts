@@ -1,4 +1,4 @@
-export interface SERVER_SCIENTIFIC_SPECIES {
+export interface ServerScientificSpecies {
   guid: string
   scientific_name: string
 }

@@ -6,24 +6,29 @@ import AdditionalFormTabBar from '../additionalData/AdditionalFormTabBar'
 import Intensity from './IntensityMain'
 import Frequency from './FrequencyMain'
 
+const IntensityComp = () => {
+  return <Intensity intensity={75} />
+}
+
 
 const ProjectConfigTabView = () => {
   const layout = useWindowDimensions()
+
   const renderScene = SceneMap({
-    intensity: ()=><Intensity intensity={75}/>,
+    intensity: IntensityComp,
     frequency: Frequency,
   })
-  
+
   const [routeIndex, setRouteIndex] = useState(0)
   const [tabRoutes] = useState([
     { key: 'intensity', title: "Intensity" },
-    { key: 'frequency', title:"Frequency"},
+    { key: 'frequency', title: "Frequency" },
   ]);
 
   return (
     <TabView
-    navigationState={{ index: routeIndex, routes: tabRoutes }}
-    renderScene={renderScene}
+      navigationState={{ index: routeIndex, routes: tabRoutes }}
+      renderScene={renderScene}
       onIndexChange={setRouteIndex}
       initialLayout={{ width: layout.width }}
       renderTabBar={props => (

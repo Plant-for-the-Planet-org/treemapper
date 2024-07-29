@@ -13,6 +13,7 @@ const IntensitySelector = ({
   const [isCustomSelected, setIsCustomSelected] = useState(false);
   const customInputRef = useRef(null);
   const allIntensities = [100, 75, 50, 25];
+
   return (
     <View style={styles.intensitySelectionContainer}>
       {/* if sample tree count is present and has length greater than zero then maps the array */}
@@ -23,11 +24,11 @@ const IntensitySelector = ({
           const isSelected = intensity === selectedIntensity;
           return (
             <TouchableOpacity
+              key={String(intensity)+String(index)}
               onPress={() => {
                 setIsCustomSelected(false);
                 setSelectedIntensity(intensity);
-              }}
-              key={`tree-number-selection-${index}`}>
+              }}>
               <View
                 style={[
                   styles.treeCountSelection,

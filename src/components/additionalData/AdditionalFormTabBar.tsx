@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet , TouchableOpacity} from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 
 interface ICustomTabBarProps {
@@ -9,48 +9,34 @@ interface ICustomTabBarProps {
   navigationState: any;
 }
 
-export default function AdditionalFormTabBar({
-  tabRoutes,
-  layout,
-  setRouteIndex,
-  navigationState,
-}: ICustomTabBarProps) {
-  return (
-    <View style={[{ width: layout.width }]}>
-      <View style={styles.tabMainContainer}>
-        {tabRoutes &&
-          tabRoutes.map((route: any, index: number) => (
-            <TouchableOpacity
-              key={index}
-              style={[styles.tabItemContainer, { width: layout.width / 2 }]}
-              onPress={() => setRouteIndex(index)}>
-              <Text
-                style={[
-                  styles.tabTitle,
-                  navigationState.index === index ? { color: Colors.NEW_PRIMARY } : {},
-                ]}>
-                {route.title}
-              </Text>
-              {navigationState.index === index && <View style={styles.activeBar} />}
-            </TouchableOpacity>
-          ))}
-      </View>
-      <View style={[styles.bottomLine, { width: layout.width }]} />
+const AdditionalFormTabBar: React.FC<ICustomTabBarProps> = ({ tabRoutes, layout, setRouteIndex, navigationState }) => (
+  <View style={{ width: layout.width }}>
+    <View style={styles.tabMainContainer}>
+      {tabRoutes?.map((route: any, index: number) => (
+        <TouchableOpacity
+          key={route.title}
+          style={[styles.tabItemContainer, { width: layout.width / 2 }]}
+          onPress={() => setRouteIndex(index)}
+        >
+          <Text style={[styles.tabTitle, navigationState.index === index && { color: Colors.NEW_PRIMARY }]}>
+            {route.title}
+          </Text>
+          {navigationState.index === index && <View style={styles.activeBar} />}
+        </TouchableOpacity>
+      ))}
     </View>
-  );
-}
+    <View style={[styles.bottomLine, { width: layout.width }]} />
+  </View>
+);
 
 const styles = StyleSheet.create({
   tabMainContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'relative',
-    zIndex: 1,
-    backgroundColor:Colors.WHITE,
+    backgroundColor: Colors.WHITE,
   },
   tabItemContainer: {
-    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
@@ -67,12 +53,15 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.NEW_PRIMARY,
     position: 'absolute',
-    bottom: 0,
+    bottom: -3,
+
   },
   bottomLine: {
-    height: 1,
+    height: 0.5,
     backgroundColor: Colors.LIGHT_BORDER_COLOR,
     position: 'absolute',
     bottom: 2,
   },
 });
+
+export default AdditionalFormTabBar;

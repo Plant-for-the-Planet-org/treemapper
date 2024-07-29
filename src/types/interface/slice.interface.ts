@@ -4,7 +4,7 @@ import { FormElement, MainForm } from './form.interface'
 
 
 export interface AppInitialState {
-  isLogedIn: boolean
+  isLoggedIn: boolean
   accessToken: string
   idToken: string
   expiringAt: number
@@ -128,7 +128,7 @@ export interface DisplayMapSlice {
 
 export interface ProjectStateSlice {
   projectAdded: boolean
-  errorOccured: boolean
+  errorOccurred: boolean
   currentProject: {
     projectName: string
     projectId: string
@@ -139,7 +139,7 @@ export interface ProjectStateSlice {
   }
 }
 
-export interface GpsSliceInitalState {
+export interface GpsSliceInitialState {
   user_location: number[],
   showBlockerModal: boolean,
   accuracy: number
@@ -160,7 +160,7 @@ export interface FormValues {
   priority: 'low' | 'medium' | 'high'
 }
 
-export interface RegisterFormSliceInitalState {
+export interface RegisterFormSliceInitialState {
   form_id: string
   key: INTERVENTION_TYPE
   title: string
@@ -196,9 +196,9 @@ export interface RegisterFormSliceInitalState {
   optionalLocation?: boolean
 }
 
-export interface QueeBody {
+export interface QuaeBody {
   type: string
-  priotiry: number
+  priority: number
   nextStatus: INTERVENTION_STATUS
   p1Id?: string
   p2Id?: string
@@ -268,7 +268,7 @@ export interface AdditionalDetail {
 export interface SampleTreeSlice {
   tree_id: string
   sample_tree_count: number
-  boundry: Array<number[]>
+  boundary: Array<number[]>
   coordinates: Array<number[]>
   image_url: string
   current_species: PlantedSpecies,
@@ -282,11 +282,11 @@ export interface UserInterface {
   created: string
   displayName: string
   email: string
-  firstname: string
+  firstName: string
   id: string
   image: null | string
   isPrivate: boolean
-  lastname: string
+  lastName: string
   locale: null | string
   name: null | string
   slug: string
@@ -359,7 +359,7 @@ export interface InterventionData {
   last_screen: LAST_SCREEN
   location_id: string
   locate_tree: string
-  remeasuremnt_required: boolean
+  remeasurement_required: boolean
   next_measurement_date: number
   is_legacy?: boolean
 }
@@ -425,6 +425,10 @@ export interface MonitoringPlot {
   observations: PlotObservation[]
 }
 
+export interface ValidationResult {
+  hasError: boolean,
+  errorMessage: string, key: string
+}
 
 export interface PlantedPlotSpecies {
   plot_plant_id: string

@@ -8,12 +8,12 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import useProjectMangement from 'src/hooks/realm/useProjectMangement'
+import useProjectManagement from 'src/hooks/realm/useProjectManagement'
 import { getAllProjects, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
 import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
-import { convertInevtoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventorytoIntervention'
+import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastServerIntervetion, updateServerIntervetion, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
+import { updateLastServerIntervention, updateServerIntervention, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
@@ -21,18 +21,18 @@ import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 
 interface Props {
-  toogleFilterModal: () => void
-  toogleProjectModal: () => void
+  toggleFilterModal: () => void
+  toggleProjectModal: () => void
 }
 
 const HomeHeader = (props: Props) => {
-  const { addAllProjects } = useProjectMangement()
+  const { addAllProjects } = useProjectManagement()
   const { addUserSpecies } = useManageScientificSpecies()
-  const { toogleFilterModal, toogleProjectModal } = props
+  const { toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
-  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLogedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
+  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
   const { projectAdded } = useSelector(
@@ -53,19 +53,19 @@ const HomeHeader = (props: Props) => {
 
 
   useEffect(() => {
-    if (!userSpecies && isLogedIn) {
+    if (!userSpecies && isLoggedIn) {
       setTimeout(() => {
         syncUserSpecies()
       }, 3000);
     }
-  }, [isLogedIn, expiringAt])
+  }, [isLoggedIn, expiringAt])
 
   const syncUserSpecies = async () => {
     try {
       const result = await getUserSpecies()
       if (result && result.length > 0) {
-        const resposne = await addUserSpecies(result)
-        if (resposne) {
+        const response = await addUserSpecies(result)
+        if (response) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
@@ -121,27 +121,26 @@ const HomeHeader = (props: Props) => {
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
-  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN","loc_fVSURzjYpGU0ozFD60dPrbJF","loc_8HnYd9gTXBt108EUALRiEhnp"]
+  //Remove this Intervention from Staging DB.
+  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN", "loc_fVSURzjYpGU0ozFD60dPrbJF", "loc_8HnYd9gTXBt108EUALRiEhnp"]
 
   const addServerIntervention = async () => {
     try {
       const result = await getServerIntervention(lastServerInterventionpage)
-      const interventions = []
-      if (result && result.items) {
+      if (result?.items) {
         if (!result._links.next || result._links.next === result._links.self) {
-          dispatch(updateServerIntervetion(true))
+          dispatch(updateServerIntervention(true))
           return;
         }//loc_fVSURzjYpGU0ozFD60dPrbJF
         for (let index = 0; index < result.count; index++) {
           if (result.items[index] && deleteThis.includes(result.items[index].id)) {
             continue;
           }
-          const element = convertInevtoryToIntervention(result.items[index]);
-          interventions.push(element)
+          const element = convertInventoryToIntervention(result.items[index]);
           await addNewIntervention(element)
         }
         const nextPage = getExtendedPageParam(result._links.next)
-        dispatch(updateLastServerIntervetion(nextPage))
+        dispatch(updateLastServerIntervention(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
           message: "Intervention fetched successfully",
@@ -204,21 +203,19 @@ const HomeHeader = (props: Props) => {
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={22} height={22} />
       </Pressable>
-      <SyncIntervention isLogedIn={isLogedIn} />
+      <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
       {userType && userType === 'tpo' ? (
-        <>
-          <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleProjectModal}>
-            <HomeMapIcon
-              onPress={toogleProjectModal}
-              width={22} height={22}
-            />
-          </Pressable>
-        </>
+        <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
+          <HomeMapIcon
+            onPress={toggleProjectModal}
+            width={22} height={22}
+          />
+        </Pressable>
       ) : null}
-      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toogleFilterModal}>
+      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
-          onPress={toogleFilterModal}
+          onPress={toggleFilterModal}
           width={22} height={22}
         />
       </Pressable>

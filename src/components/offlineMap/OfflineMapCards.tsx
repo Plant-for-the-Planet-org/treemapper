@@ -7,7 +7,6 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 
 interface Props {
   data: any,
-  index: number
   delete: (item: any) => void
 }
 

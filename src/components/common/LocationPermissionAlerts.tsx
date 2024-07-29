@@ -45,7 +45,6 @@ export const PermissionDeniedAlert = ({
 interface IPermissionBlockAlertProps {
   isPermissionBlockedAlertShow: boolean;
   setIsPermissionBlockedAlertShow: React.Dispatch<React.SetStateAction<boolean>>;
-  onPressPrimaryBtn: any;
   onPressSecondaryBtn: any;
   message?: string;
 }

@@ -1,4 +1,4 @@
-import {StyleSheet, TouchableOpacity} from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import AdditionalTabView from 'src/components/additionalData/AdditionalTabView'
@@ -8,24 +8,25 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import i18next from 'src/locales/index'
 
 const AdditionalDataView = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const handleNav=()=>{
+  const handleNav = () => {
     navigation.navigate("ImportForm")
   }
 
-  const renderRightComponent=()=>{
-    return <TouchableOpacity 
-    onPress={handleNav}
-    style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>
+  const renderRightComponent = () => {
+    return <TouchableOpacity
+      onPress={handleNav}
+      style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>
   }
-  
+
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Additional Data" rightComponet={renderRightComponent()}/>
+      <Header label={i18next.t("label.additional_data")} rightComponent={renderRightComponent()} />
       <AdditionalTabView />
     </SafeAreaView>
   )
@@ -36,13 +37,13 @@ export default AdditionalDataView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor:Colors.WHITE
+    backgroundColor: Colors.WHITE
   },
-  wrapper:{
-    width:50,
-    height:'100%',
-    justifyContent:'center',
-    alignItems:'center',
-    marginRight:10
+  wrapper: {
+    width: 50,
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 10
   }
 })

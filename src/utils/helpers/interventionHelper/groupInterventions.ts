@@ -11,44 +11,44 @@ interface FinalObject {
 }
 
 export const groupIntervention = (data: any[] | InterventionData[]) => {
-  const finalObject: FinalObject = {}
+  const finalObject: FinalObject = {};
+  const incompleteKey  = i18next.t('label.incomplete')
   finalObject[i18next.t('label.all')] = {
     count: data.length,
     id: 'all',
-  }
-  finalObject[i18next.t('label.incomplete')] = {
+  };
+  finalObject[incompleteKey] = {
     count: 0,
     id: 'incomplete',
-  }
-
+  };
   finalObject['Unsynced'] = {
     count: 0,
     id: 'unsync',
-  }
+  };
 
-  for (let index = 0; index < data.length; index++) {
-    if (!data[index].is_complete) {
-      finalObject[i18next.t('label.incomplete')] = {
-        count: (finalObject[i18next.t('label.incomplete')].count += 1),
-        ...finalObject[i18next.t('label.incomplete')],
-      }
+  for (const item of data) {
+    if (!item.is_complete) {
+      finalObject[incompleteKey] = {
+        count: (finalObject[incompleteKey].count += 1),
+        ...finalObject[incompleteKey],
+      };
     }
-    if (data[index].status !== 'SYNCED' && data[index].is_complete) {
+    if (item.status !== 'SYNCED' && item.is_complete) {
       finalObject['Unsynced'] = {
-        count: (finalObject['Unsynced'].count += 1),
+        count: finalObject['Unsynced'].count += 1,
         ...finalObject['Unsynced'],
-      }
+      };
     }
-    if (finalObject[data[index].intervention_title]) {
-      finalObject[data[index].intervention_title] = {
-        count: (finalObject[data[index].intervention_title].count += 1),
-        ...finalObject[data[index].intervention_title],
-      }
+    if (finalObject[item.intervention_title]) {
+      finalObject[item.intervention_title] = {
+        count: (finalObject[item.intervention_title].count += 1),
+        ...finalObject[item.intervention_title],
+      };
     } else {
-      finalObject[data[index].intervention_title] = {
+      finalObject[item.intervention_title] = {
         count: 1,
-        id: data[index].intervention_key,
-      }
+        id: item.intervention_key,
+      };
     }
   }
 
@@ -56,9 +56,10 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
     label: key,
     count: value.count,
     key: value.id,
-  }))
-  return arrayData
-}
+  }));
+
+  return arrayData;
+};
 
 export const groupInterventionList = (
   data: InterventionData[],
