@@ -29,7 +29,7 @@ export const initialInterventionState:RegisterFormSliceInitialState= {
     tree_details_required: false,
     tree_details: [],
     form_details: [],
-    meta_data: '',
+    meta_data: '{}',
     additional_data: [],
     form_data: [],
     plantedSpecies: []
