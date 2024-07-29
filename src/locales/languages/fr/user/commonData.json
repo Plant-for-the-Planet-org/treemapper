@@ -36,7 +36,6 @@
     "clear_note": "Reclaim storage by removing local copies of images. All files will continue to be available in the cloud.",
     "free_up_space": "Free up space",
     "export_geo_json": "Export GeoJson",
-    "incomplete": "INCOMPLETE",
     "syncing": "Syncing",
     "sync_data": "Sync Data",
     "fully_synced": "Fully synced",
