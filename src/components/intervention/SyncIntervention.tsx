@@ -28,22 +28,24 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
+    const [retryCount, setRetryCount] = useState(10)
+    const [showFullSync, setShowFullSync] = useState(false)
+
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
-    const [retryCount, setRetryCount] = useState(10)
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
     const dispatch = useDispatch()
-    const [showFullSync, setShowFullSync] = useState(false)
+
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
 
     useEffect(() => {
-        if (uploadData && uploadData.length > 0 && moreUpload) {
+        if (uploadData.length > 0 && moreUpload) {
             syncUploaded()
         }
     }, [uploadData])
@@ -80,9 +82,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         const prioritizeData = [...quaeData].sort((a, b) => a.priority - b.priority);
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
-            setTimeout(() => {
-                setUploadData(prioritizeData)
-            }, 2000);
+            setUploadData(() => prioritizeData)
             dispatch(updateNewIntervention())
         } else {
             dispatch(updateSyncDetails(false))
@@ -114,7 +114,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             console.log("Error occurred during individual upload:", error);
         }
     };
-    
+
     const handleSingleTree = async (el) => {
         try {
             const body = await getPostBody(el);
@@ -134,7 +134,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             console.log("Error occurred during individual upload:", error);
         }
     };
-    
+
     const handleSampleTree = async (el) => {
         try {
             const body = await getPostBody(el);
@@ -151,7 +151,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             console.log("Error occurred during individual upload:", error);
         }
     };
-    
+
     const handleTreeImage = async (el) => {
         try {
             const body = await getPostBody(el);
@@ -166,7 +166,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             console.log("Error occurred during individual upload:", error);
         }
     };
-    
+
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
         for (const el of d) {
             switch (el.type) {
@@ -202,7 +202,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         <Pressable style={styles.container} onPress={showLogin}>
             <UnSyncIcon width={20} height={20} />
             <Text style={styles.label}>{i18next.t("label.sync_data")}</Text>
-            {/* <InfoIcon width={15} height={15} style={{marginLeft:5}}/> */}
         </Pressable>
     )
 

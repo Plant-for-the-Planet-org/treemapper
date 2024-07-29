@@ -63,7 +63,7 @@ const elements = [
 const SelectElement = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SelectElement'>>()
-  const form_id = route.params && route.params.form_id ? route.params.form_id : ''
+  const form_id = route.params?.form_id ? route.params.form_id : ''
   const element_order = route.params?.element_order ?? 0;
   const { addNewForm } = useAdditionalForm()
 

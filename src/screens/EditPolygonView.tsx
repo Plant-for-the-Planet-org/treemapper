@@ -147,7 +147,6 @@ const EditPolygonMap = () => {
             updatedCoordinates[updatedCoordinates.length - 1] = coords
         }
         setCoordinates(updatedCoordinates)
-        // setSteps(history.length + 1)
         setHistory((prev) => {
             return [...prev, {
                 coords: coords,

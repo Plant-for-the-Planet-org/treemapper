@@ -31,7 +31,7 @@ const CreatePlotMapView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'CreatePlotMap'>>()
     const plotID = route.params?.id ?? '';
     const isEdit = route.params?.isEdit ?? false;
-    const markLocation = route.params && route.params.markLocation ? route.params.markLocation : false
+    const markLocation = route.params?.markLocation ? route.params.markLocation : false
     const plantId = route.params?.plantId ?? '';
     const [initialPolygon, setInitialPolygon] = useState<any>([])
     const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])

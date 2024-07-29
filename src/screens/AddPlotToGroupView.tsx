@@ -17,7 +17,7 @@ const AddPlotToGroupView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlotsToGroup'>>()
     const [groupPlots, setGroupPlots] = useState<string[]>([])
     const [groupName, setGroupName] = useState<string>('')
-    const [plotList, setPlotList] = useState<MonitoringPlot[] | any>([])
+    const [plotList, setPlotList] = useState<MonitoringPlot[]>([])
     const groupId = route.params?.groupId ?? '';
     const realm = useRealm()
     const { addPlotToGroup, removePlotFromGroup } = useMonitoringPlotManagement()

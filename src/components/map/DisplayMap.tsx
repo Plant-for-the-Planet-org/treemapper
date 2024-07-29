@@ -119,7 +119,7 @@ const DisplayMap = () => {
   }
 
   useEffect(() => {
-    if (cameraRef && cameraRef.current !== null) {
+    if (cameraRef?.current !== null) {
       handleCameraViewChange()
     }
   }, [MapBounds])

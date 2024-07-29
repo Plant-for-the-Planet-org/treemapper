@@ -15,7 +15,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import GroupListPlot from 'src/components/monitoringPlot/GrouplistPlot' //Need to debug this import. If it's throw error please rename the GrouplistPlot to GroupListPlot
+import GroupListPlot from 'src/components/monitoringPlot/GroupListPlot'
 import i18next from 'src/locales/index'
 
 
@@ -92,7 +92,7 @@ const AddPlotGroup = () => {
                     defaultValue={groupName}
                     trailingText={''} errMsg={''} />
             </View>
-            {gID && <GroupListPlot gid={gID} />}
+            {!!gID && <GroupListPlot gid={gID} />}
             {!isEditable && <View style={styles.emptyWrapper}>
                 <Text style={styles.emptyLabel}>
                     {i18next.t('label.create_group_note')}

@@ -1,9 +1,5 @@
 import * as Device from 'expo-device';
-
-
-export const getMetaDetails = () => {
-
-}
+import * as Applications from 'expo-application';
 
 export const getDeviceDetails = () => {
   try {
@@ -13,11 +9,11 @@ export const getDeviceDetails = () => {
       "Device Manufacturer": Device.manufacturer,
       "Device System Name": Device.osName,
       "Device OS": Device.osVersion,
-      "App Version": "2.0.1",
+      "App Version": Applications.nativeApplicationVersion,
     };
   } catch (error) {
     return {
-      "App Version": "2.0.1",
+      "App Version": Applications.nativeApplicationVersion,
       "Device Brand": "",
       'Device Model': "",
       "Device Manufacturer": "",
@@ -25,5 +21,4 @@ export const getDeviceDetails = () => {
       "Device OS": "",
     };
   }
-
 };

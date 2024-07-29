@@ -47,8 +47,6 @@ export interface ProjectInterface{
 export interface CarouselInterventionData{
   image: string
   id: string
-  // id: string
-  // species_name: string
 }
 
 export interface DropdownData {

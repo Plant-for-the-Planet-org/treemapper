@@ -8,7 +8,6 @@ import { Platform } from 'react-native';
 
 const setAndGetSessionId = async () => {
   let sessionId: any = await AsyncStorage.getItem('session-id');
-  // if session ID is empty in AsyncStorage then creates a new unique session ID and and sores in AsyncStorage
   if (!sessionId) {
     sessionId = uuid();
     await AsyncStorage.setItem('session-id', sessionId);

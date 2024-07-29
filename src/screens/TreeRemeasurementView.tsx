@@ -156,7 +156,7 @@ const TreeRemeasurementView = () => {
                         />
                         {isAlive ? <>
 
-                            {imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
+                            {!!imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
                                 <Image
                                     source={{
                                         uri: imageUri,

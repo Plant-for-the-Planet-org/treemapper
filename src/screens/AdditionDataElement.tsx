@@ -196,7 +196,6 @@ const AdditionDataElement = () => {
       validation: noValidationRequired.includes(elementType) ? '' : ".+",
       intervention: [],
       dropDownData: JSON.stringify(dropDownElement)
-
     }
     await addNewElementInForm(details, form_id)
     navigation.goBack()

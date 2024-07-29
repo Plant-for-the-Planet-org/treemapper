@@ -64,5 +64,6 @@
     "add_metadata":"Add metadata",
     "make_this_data_public":"Make this data public",
     "update_element":"Update Element",
-    "add_element":"Add Element"
+    "add_element":"Add Element",
+    "activity_logs":"Activity Logs"
 }

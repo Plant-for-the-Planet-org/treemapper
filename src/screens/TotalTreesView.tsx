@@ -30,7 +30,7 @@ const TotalTreesView = () => {
   const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
   const realm = useRealm()
-  const isSelectSpecies = route.params && route.params.isSelectSpecies ? true : false
+  const isSelectSpecies = route.params?.isSelectSpecies
   const interventionId = route.params?.interventionId ?? "";
   const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
   const toast = useToast()

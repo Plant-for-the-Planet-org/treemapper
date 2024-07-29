@@ -8,10 +8,10 @@ export const postUrlApi = {
   imageUpload: `${https}${testingURL}/treemapper/interventions`,
   remeasurement: `${https}${testingURL}/treemapper/interventions`,
   updateSpecies:  `${https}${baseUrl}/treemapper/species`,
-  addUserSpecies: `/treemapper/species`, //POST
+  addUserSpecies: `${https}${baseUrl}/treemapper/species`,
   updatePlantLocationData: `${https}${testingURL}/treemapper/interventions`,
-  signupService:"/app/profile",
-  updateProjectInF: "/app/projects" //PUT `/app/projects/${projectId}`
+  signupService:`${https}${baseUrl}/app/profile`,
+  updateProjectInF: `${https}${baseUrl}/app/projects` //PUT `/app/projects/${projectId}`
 };
 
 export const getUrlApi = {

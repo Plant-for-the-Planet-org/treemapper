@@ -34,7 +34,7 @@ const PlotPlantRemeasureView = () => {
     const plotID = route.params?.id ?? '';
     const plantID = route.params?.plantID ?? '';
     const timelineId = route.params?.timelineId ?? '';
-    const [selectedTimeline, setSelectedTimeLIne] = useState<PlantedPlotSpecies>(null)
+    const [selectedTimeline, setSelectedTimeline] = useState<PlantedPlotSpecies>(null)
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const [measurementDate, setMeasurementDate] = useState(Date.now())
@@ -51,7 +51,7 @@ const PlotPlantRemeasureView = () => {
         if (plotDetails) {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
             if (getPlantDetails) {
-                setSelectedTimeLIne(getPlantDetails)
+                setSelectedTimeline(getPlantDetails)
                 if (timelineId) {
                     const timelineDetails = getPlantDetails.timeline.find(el => el.timeline_id === timelineId)
                     if (timelineDetails) {

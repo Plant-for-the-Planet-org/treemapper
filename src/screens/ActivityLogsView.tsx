@@ -11,13 +11,17 @@ import ShareIcon from 'assets/images/svg/ShareIcon.svg';
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
+import i18next from 'src/locales/index'
 
 const ActivityLogsView = () => {
     const [loading, setLoading] = useState(false)
-    const realm = useRealm();
-    const UseDetails = useSelector(
+
+    const UserDetails = useSelector(
         (state: RootState) => state.userState,
     )
+
+    const realm = useRealm();
+
     const getAllLogs = async () => {
         setLoading(true)
         const meteData = getDeviceDetails()
@@ -26,17 +30,17 @@ const ActivityLogsView = () => {
         shareLogs({
             logDetails: allLogs,
             metaData: meteData,
-            userDetails: UseDetails
+            userDetails: UserDetails
         })
     }
 
     const shareLogs = async (logs: any) => {
         const options = {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(logs)),
-            message: "All user logs for TreeMapper app",
+            message: "All activity logs for TreeMapper app",
             title: "Activity Logs",
-            filename: `TreeMapper_Activity_logs.json`,
-            saveToFiles: true,
+            filename: `TreeMapper_Activity_Logs.json`,
+            saveToFiles: false,
         };
         Share.open(options)
             .then(() => {
@@ -55,7 +59,7 @@ const ActivityLogsView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label="Activity Logs" rightComponent={renderShareIcon()} />
+            <Header label={i18next.t("label.activity_logs")} rightComponent={renderShareIcon()} />
             <ActivityLogsTab />
             {loading && <View style={styles.modal} ><ActivityIndicator size='small' color={Colors.NEW_PRIMARY}></ActivityIndicator></View>}
         </SafeAreaView>
