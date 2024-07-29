@@ -1,28 +1,25 @@
 import i18next from 'i18next';
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { Colors, Typography } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants';
 import CustomButton from '../common/CustomButton';
 import { scaleSize } from 'src/utils/constants/mixins';
 import IntensitySelector from './IntensitySelector';
-import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput';
 
 interface Props {
-  intensity: any
+  intensity: any;
 }
 
-
-const Intensity = (props: Props) => {
-  const { intensity } = props
-  const [selectedIntensity, setSelectedIntensity] = useState();
-
+const Intensity: React.FC<Props> = ({ intensity }) => {
+  const [selectedIntensity, setSelectedIntensity] = useState(intensity);
 
   useEffect(() => {
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
       AvoidSoftInput.setShouldMimicIOSBehavior(true);
     };
-  }, [])
+  }, []);
 
   useEffect(() => {
     if (intensity) {
@@ -31,16 +28,9 @@ const Intensity = (props: Props) => {
   }, [intensity]);
 
   return (
-    <AvoidSoftInputView
-      avoidOffset={20}
-      style={{ flex: 1 }}>
-      <View
-        style={[
-          styles.scene,
-          styles.defaultSpacing,
-          // { justifyContent: 'space-between', backgroundColor: Colors.WHITE },
-        ]}>
-        <ScrollView style={{ paddingHorizontal: 25 }}>
+    <AvoidSoftInputView avoidOffset={20} style={{ flex: 1 }}>
+      <View style={[styles.scene, styles.defaultSpacing]}>
+        <ScrollView style={styles.scrollView}>
           <Text style={[styles.description, styles.descriptionMarginTop]}>
             {i18next.t('label.select_intensity_for_remeasurement')}
           </Text>
@@ -49,12 +39,11 @@ const Intensity = (props: Props) => {
             setSelectedIntensity={setSelectedIntensity}
           />
         </ScrollView>
-        <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
-          {/* <Text>{i18next.t('label.cant_change_intensity')}</Text> */}
+        <View style={styles.buttonContainer}>
           <CustomButton
             label={i18next.t('label.save')}
             containerStyle={styles.btnContainer}
-            pressHandler={() => { }}
+            pressHandler={() => {}}
           />
         </View>
       </View>
@@ -68,10 +57,11 @@ const styles = StyleSheet.create({
   scene: {
     flex: 1,
   },
-
   defaultSpacing: {
-    // paddingHorizontal: 25,
     paddingTop: 10,
+  },
+  scrollView: {
+    paddingHorizontal: 25,
   },
   description: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -81,57 +71,10 @@ const styles = StyleSheet.create({
   descriptionMarginTop: {
     marginTop: 20,
   },
-  intensitySelectionContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    marginVertical: 40,
-    alignContent: 'center',
-  },
-  treeCountSelection: {
-    borderRadius: 8,
-    borderWidth: 1,
-    marginRight: '5%',
-    borderColor: Colors.LIGHT_BORDER_COLOR,
-    padding: 20,
-    marginBottom: 15,
-    minWidth: '45%',
-  },
-  treeCountInputSelection: {
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: Colors.LIGHT_BORDER_COLOR,
-    padding: 20,
-    marginBottom: 15,
-    alignSelf: 'center',
-    minWidth: '100%',
-    flexDirection: 'row',
+  buttonContainer: {
+    flexDirection: 'column',
     alignItems: 'center',
-    justifyContent: 'center',
-  },
-  treeCountSelectionActive: {
-    borderWidth: 0,
-    padding: 22,
-    backgroundColor: Colors.PRIMARY,
-  },
-  treeCountSelectionText: {
-    color: Colors.TEXT_COLOR,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: Typography.FONT_SIZE_20,
-    textAlign: 'center',
-  },
-  treeCountSelectionActiveText: {
-    color: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-  },
-  customTreeCount: {
-    borderBottomWidth: 1,
-    paddingVertical: 0,
-    alignSelf: 'center',
-    width: 70,
-    color: Colors.WHITE,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_20,
+    marginHorizontal: 25,
   },
   btnContainer: {
     width: '100%',

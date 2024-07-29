@@ -1,46 +1,50 @@
-import React, {useState} from 'react'
-import DateTimePicker from '@react-native-community/datetimepicker'
-import {StyleSheet, Text, View, TouchableOpacity} from 'react-native'
-import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
-import {Colors, Typography} from 'src/utils/constants'
-import {convertDateToTimestamp, timestampToBasicDate} from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import React, { useState } from 'react';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
+import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
+import { Colors, Typography } from 'src/utils/constants';
+import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 
 interface Props {
-  placeHolder: string
-  value: number
-  callBack:(d:number)=>void
+  placeHolder: string;
+  value: number;
+  callBack: (d: number) => void;
 }
 
-const InterventionDatePicker = (props: Props) => {
-  const [showPicker, setShowPicker] = useState(false)
-  const {placeHolder, value, callBack} = props
+const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, callBack }) => {
+  const [showPicker, setShowPicker] = useState(false);
 
-  const openPicker = () => {
-    setShowPicker(true)
-  }
+  const openPicker = () => setShowPicker(true);
 
-  const onDateSelect=(_event, date: Date)=>{
-    setShowPicker(false)
-    callBack(convertDateToTimestamp(date))
-  }
+  const onDateSelect = (_event: any, date: Date | undefined) => {
+    setShowPicker(false);
+    if (date) {
+      callBack(convertDateToTimestamp(date));
+    }
+  };
 
   return (
-    <View style={style.container}>
-      <TouchableOpacity style={style.wrapper} onPress={openPicker}>
-        <Text style={style.placeHolder}>{placeHolder}</Text>
-        <Text style={style.label}>{timestampToBasicDate(value)}</Text>
+    <View style={styles.container}>
+      <TouchableOpacity style={styles.wrapper} onPress={openPicker}>
+        <Text style={styles.placeHolder}>{placeHolder}</Text>
+        <Text style={styles.label}>{timestampToBasicDate(value)}</Text>
       </TouchableOpacity>
-      {showPicker && <View style={style.dateStyle}>
-      <DateTimePicker value={new Date(value)} onChange={onDateSelect} display='spinner'/>
-
-      </View>}
+      {showPicker && (
+        <View style={styles.dateStyle}>
+          <DateTimePicker
+            value={new Date(value)}
+            onChange={onDateSelect}
+            display="spinner"
+          />
+        </View>
+      )}
     </View>
-  )
-}
+  );
+};
 
-export default InterventionDatePicker
+export default InterventionDatePicker;
 
-const style = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     width: '100%',
     height: scaleSize(55),
@@ -73,14 +77,14 @@ const style = StyleSheet.create({
     paddingLeft: 15,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
-  dateStyle:{
-    position:'absolute',
-    zIndex:1,
-    backgroundColor:Colors.WHITE,
-    height:300,
-    borderRadius:12,
-    width:'95%',
-    borderWidth:0.5,
-    borderColor:Colors.GRAY_LIGHT
-  }
-})
+  dateStyle: {
+    position: 'absolute',
+    zIndex: 1,
+    backgroundColor: Colors.WHITE,
+    height: 300,
+    borderRadius: 12,
+    width: '95%',
+    borderWidth: 0.5,
+    borderColor: Colors.GRAY_LIGHT,
+  },
+});

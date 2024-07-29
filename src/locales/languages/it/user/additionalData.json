@@ -75,6 +75,7 @@
   "export_additional_data_message": "JSON per importare facilmente i tuoi dati aggiuntivi TreeMapper nell'app in semplici clic.",
   "share_additional_data_error": "Non sono in grado di condividere ulteriori dati al momento.",
   "create_form": "Creare un modulo",
+  "create__meta_form":"Create Metadata Form",
   "import_file_error": "Impossibile importare il file al momento.",
   "confirm_wipe_additional_data_import": "Cancellare i dati e importare i dati",
   "current_additional_data_lost": "Tutti i tuoi dati attuali nei moduli e nei metadati saranno persi per importare i nuovi dati. Questo riguarderà anche le registrazioni incomplete. Sei sicuro di voler continuare?",

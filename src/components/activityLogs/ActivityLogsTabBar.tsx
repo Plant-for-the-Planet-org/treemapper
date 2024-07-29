@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
@@ -10,51 +9,36 @@ interface ICustomTabBarProps {
   navigationState: any;
 }
 
-// Mark the props as read-only
-type ReadonlyCustomTabBarProps = Readonly<ICustomTabBarProps>;
-
-export default function ActivityLogsTabBar(props: ReadonlyCustomTabBarProps) {
-  const {
-    tabRoutes,
-    layout,
-    setRouteIndex,
-    navigationState,
-  } = props
-  return (
-    <View style={[{ width: layout.width }]}>
-      <View style={styles.tabMainContainer}>
-        {tabRoutes?.map((route: any, index: number) => (
-            <TouchableOpacity
-              key={String(route.title)}
-              style={[styles.tabItemContainer, { width: layout.width / 2 }]}
-              onPress={() => setRouteIndex(index)}>
-              <Text
-                style={[
-                  styles.tabTitle,
-                  navigationState.index === index ? { color: Colors.NEW_PRIMARY } : {},
-                ]}>
-                {route.title}
-              </Text>
-              {navigationState.index === index && <View style={styles.activeBar} />}
-            </TouchableOpacity>
-          ))}
-      </View>
-      <View style={[styles.bottomLine, { width: layout.width }]} />
+const ActivityLogsTabBar: React.FC<ICustomTabBarProps> = ({ tabRoutes, layout, setRouteIndex, navigationState }) => (
+  <View style={{ width: layout.width }}>
+    <View style={styles.tabMainContainer}>
+      {tabRoutes?.map((route: any, index: number) => (
+        <TouchableOpacity
+          key={route.title}
+          style={[styles.tabItemContainer, { width: layout.width / tabRoutes.length }]}
+          onPress={() => setRouteIndex(index)}
+        >
+          <Text style={[styles.tabTitle, navigationState.index === index && { color: Colors.NEW_PRIMARY }]}>
+            {route.title}
+          </Text>
+          {navigationState.index === index && <View style={styles.activeBar} />}
+        </TouchableOpacity>
+      ))}
     </View>
-  );
-}
+    <View style={[styles.bottomLine, { width: layout.width }]} />
+  </View>
+);
+
+export default ActivityLogsTabBar;
 
 const styles = StyleSheet.create({
   tabMainContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    position: 'relative',
-    zIndex: 1,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.WHITE,
   },
   tabItemContainer: {
-    position: 'relative',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 8,
