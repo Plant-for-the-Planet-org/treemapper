@@ -15,7 +15,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import GroupListPlot from 'src/components/monitoringPlot/GroupListPlot'
+import GroupListPlot from 'src/components/monitoringPlot/GroupPlist'
 import i18next from 'src/locales/index'
 
 

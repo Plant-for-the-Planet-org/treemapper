@@ -48,7 +48,8 @@
           ]
         }
       ],
-      "expo-localization"
+      "expo-localization",
+      "expo-secure-store"
     ],
     "ios": {
       "supportsTablet": true,
@@ -73,6 +74,14 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "@bugsnag/expo/hooks/post-publish.js",
+          "config": {}
+        }
+      ]
     }
   }
 }
