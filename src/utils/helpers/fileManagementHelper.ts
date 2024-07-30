@@ -2,6 +2,7 @@ import RNFS from 'react-native-fs';
 import { InterventionData } from 'src/types/interface/slice.interface';
 import { zip } from 'react-native-zip-archive';
 import Share from 'react-native-share';
+import Bugsnag from '@bugsnag/expo';
 
 const mainFolder = "TreeMapper";
 export const basePath = `${RNFS.DocumentDirectoryPath}/${mainFolder}`;
@@ -18,6 +19,7 @@ export const createNewInterventionFolder = async (id: string) => {
             return { msg: 'Intervention folder already existed ' + id, hasError: false }
         }
     } catch (error) {
+        Bugsnag.notify(error)
         return { msg: JSON.stringify(error), hasError: true }
     }
 }
@@ -36,6 +38,7 @@ export const interData = async (data: InterventionData) => {
         const jsonData = JSON.stringify(data);
         await RNFS.writeFile(filePath, jsonData, 'utf8');
     } catch (error) {
+        Bugsnag.notify(error)
         console.error("Error writing intervention data:", error);
     }
 }
@@ -49,6 +52,7 @@ export const createBasePath = async () => {
         }
         return { msg: 'Root folder exists', hasError: false, newFolder: false }
     } catch (error) {
+        Bugsnag.notify(error)
         return { msg: JSON.stringify(error), hasError: true, newFolder: false }
     }
 }

@@ -4,6 +4,7 @@ import { unzip } from 'react-native-zip-archive'
 import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import useLogManagement from './realm/useLogManagement'
 import { getUrlApi } from 'src/api/api.url'
+import Bugsnag from '@bugsnag/expo'
 
 const useDownloadFile = () => {
   const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
@@ -38,6 +39,7 @@ const useDownloadFile = () => {
       setCurrentState(SPECIES_SYNC_STATE.UNZIPPING_FILE)
       await unzipFile(zipFilePath, targetFilePath)
     } catch (error) {
+      Bugsnag.notify(error)
       setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
       addNewLog({
         logType: 'DATA_SYNC',

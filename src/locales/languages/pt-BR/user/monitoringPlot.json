@@ -51,6 +51,7 @@
     "planting_date": "Planting Date",
     "species": "Species",
     "height": "Height",
+    "width":"Width",
     "diameter": "Diameter",
     "tree_alive": "This tree is still alive",
     "tag": "Tag",
