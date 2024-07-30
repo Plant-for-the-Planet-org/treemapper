@@ -14,11 +14,11 @@ import 'react-native-get-random-values'
 import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import Bugsnag from '@bugsnag/expo';
+import Bugsnag from '@bugsnag/expo'
+import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
 
-Bugsnag.start(process.env.EXPO_PUBLIC_BUGSNAG_API);
 
-
+Bugsnag.start(BugSnagConfig)
 MapLibreGL.setAccessToken(null)
 
 export default function App() {
