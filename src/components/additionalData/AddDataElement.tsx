@@ -1,7 +1,7 @@
 import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
@@ -12,7 +12,7 @@ import i18next from 'src/locales/index'
 
 
 interface Props {
-  data: IAdditonalDetailsForm
+  data: IAdditionalDetailsForm
   pressHandler: (data: FormElement, form_id: string) => void
   pageNo: number
   openHandler: (id: string) => void

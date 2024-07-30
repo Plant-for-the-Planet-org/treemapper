@@ -11,7 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
-import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import {IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import GapElement from './GapElement'
 import HeadingElement from './HeadingElement'
 import YeNoFormElement from './YeNoFormElement'
@@ -20,7 +20,7 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { v4 as uuid } from 'uuid'
 
 interface Props {
-  formData: MainForm | IAdditonalDetailsForm | any
+  formData: MainForm | IAdditionalDetailsForm
   completeLocalForm?: (d: FormElement[], page: string) => void
   page?: string
   interventionID: string

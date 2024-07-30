@@ -18,7 +18,7 @@ const AdditionalDataForm = () => {
   const [allFormData, setAllFormData] = useState<any>([])
   const { addNewForm } = useAdditionalForm()
   const formData = useQuery<any>(
-    RealmSchema.AdditonalDetailsForm,
+    RealmSchema.AdditionalDetailsForm,
     data => {
       return data
     },

@@ -46,7 +46,7 @@ const ReviewTreeDetails = () => {
     const [showDatePicker, setShowDatePicker] = useState(false)
     const { updateSampleTreeDetails } = useInterventionManagement()
     const detailsCompleted = route.params?.detailsCompleted;
-    const editTree = route.params && route.params.interventionID
+    const editTree = route.params?.interventionID
     const synced = route.params?.synced;
     const [openEditModal, setOpenEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();

@@ -33,7 +33,7 @@ const useAuthentication = () => {
             logLevel: 'info',
             statusCode: '',
           })
-          resolve(true)
+          resolve("true")
         })
         .catch(error => {
           Bugsnag.notify(error);
@@ -44,7 +44,7 @@ const useAuthentication = () => {
             statusCode: '',
             logStack: JSON.stringify(error)
           })
-          reject(false)
+          reject(error)
         })
     })
   }
@@ -59,7 +59,7 @@ const useAuthentication = () => {
         audience: 'urn:plant-for-the-planet',
       })
       if (!authCred) {
-        throw 'No token found'
+        throw new Error('No token found');
       }
       addNewLog({
         logType: 'USER',

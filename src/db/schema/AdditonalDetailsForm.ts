@@ -2,7 +2,7 @@ import { ObjectSchema } from 'realm'
 import { RealmSchema } from 'src/types/enum/db.enum'
 
 export const AdditonalDetailsForm: ObjectSchema = {
-  name: RealmSchema.AdditonalDetailsForm,
+  name: RealmSchema.AdditionalDetailsForm,
   primaryKey: 'form_id',
   properties: {
     form_id: 'string',

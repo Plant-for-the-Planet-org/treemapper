@@ -79,12 +79,16 @@ const LoginButton = () => {
 
 
   const handleLogout = async () => {
-    await logoutUser()
-    dispatch(resetProjectState())
-    dispatch(updateUserLogin(false))
-    dispatch(resetUserDetails())
-    dispatch(logoutAppUser())
-    dispatch(updateNewIntervention())
+    try {
+      await logoutUser()
+      dispatch(resetProjectState())
+      dispatch(updateUserLogin(false))
+      dispatch(resetUserDetails())
+      dispatch(logoutAppUser())
+      dispatch(updateNewIntervention())
+    } catch (error) {
+      console.log("Error occurred while logout")
+    }
   }
 
 
