@@ -30,7 +30,14 @@ const ActivityLogsView = () => {
         shareLogs({
             logDetails: allLogs,
             metaData: meteData,
-            userDetails: UserDetails
+            userDetails: {
+                "firstname": UserDetails.firstName,
+                "lastname": UserDetails.lastName,
+                "country": UserDetails.country,
+                "email": UserDetails.email,
+                "id": UserDetails.id,
+                "type":UserDetails.type
+            }
         })
     }
 

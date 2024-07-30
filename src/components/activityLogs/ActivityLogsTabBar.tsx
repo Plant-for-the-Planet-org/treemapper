@@ -55,10 +55,10 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: Colors.NEW_PRIMARY,
     position: 'absolute',
-    bottom: 0,
+    bottom: -3,
   },
   bottomLine: {
-    height: 1,
+    height: 0.5,
     backgroundColor: Colors.LIGHT_BORDER_COLOR,
     position: 'absolute',
     bottom: 2,
