@@ -70,47 +70,61 @@ const MainFormSection = (props: Props) => {
     return type === 'INPUT' || type === 'DROPDOWN' || type === 'YES_NO' || type === 'SWITCH'
   };
 
-  const submitHandler = async () => {
-    const finalData: FormElement[] = [];
-    for (const [key] of Object.entries(formValues)) {
-      if (formValues[key].value.length > 0 && formValues[key].validation.length > 0) {
-        const regex = new RegExp(formValues[key].validation);
-        if (!regex.test(formValues[key].value)) {
-          toast.show(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`, {
-            type: "normal",
-            placement: "bottom",
-            duration: 2000,
-            animationType: "slide-in",
-          })
-          return
-        }
+  const showToast = (message) => {
+    toast.show(message, {
+      type: "normal",
+      placement: "bottom",
+      duration: 2000,
+      animationType: "slide-in",
+    });
+  };
+  
+  const validateField = (key, formValues) => {
+    if (formValues[key].value.length > 0 && formValues[key].validation.length > 0) {
+      const regex = new RegExp(formValues[key].validation);
+      if (!regex.test(formValues[key].value)) {
+        showToast(`Please ${formValues[key].type === 'DROPDOWN' ? 'select' : 'provide'} valid ${formValues[key].label}`);
+        return false;
       }
-
-      if (checkForNonEmptyForm(formValues[key].type) && formValues[key].required && formValues[key].value.length === 0) {
-        toast.show(`${formValues[key].label} cannot be empty`, {
-          type: "normal",
-          placement: "bottom",
-          duration: 2000,
-          animationType: "slide-in",
-        })
-        return
-      }
-
-      if (formValues[key].value.length !== 0) {
-        finalData.push({ ...formValues[key], element_id: uuid(), intervention: [] })
-      }
-
     }
+    return true;
+  };
+  
+  const checkRequiredField = (key, formValues) => {
+    if (checkForNonEmptyForm(formValues[key].type) && formValues[key].required && formValues[key].value.length === 0) {
+      showToast(`${formValues[key].label} cannot be empty`);
+      return false;
+    }
+    return true;
+  };
+  
+  const prepareFinalData = (formValues) => {
+    const finalData = [];
+    for (const [key] of Object.entries(formValues)) {
+      if (!validateField(key, formValues) || !checkRequiredField(key, formValues)) {
+        return null;
+      }
+      if (formValues[key].value.length !== 0) {
+        finalData.push({ ...formValues[key], element_id: uuid(), intervention: [] });
+      }
+    }
+    return finalData;
+  };
+  
+  const submitHandler = async () => {
+    const finalData = prepareFinalData(formValues);
+    if (!finalData) return;
+  
     if (completeLocalForm) {
-      completeLocalForm(finalData, page)
-      return
+      completeLocalForm(finalData, page);
+      return;
     }
     if (isEditForm) {
-      isEditForm(finalData)
-      return
+      isEditForm(finalData);
+      return;
     }
-    await updateInterventionLastScreen(interventionID, 'DYNAMIC_FORM')
-    await updateDynamicFormDetails(interventionID, finalData)
+    await updateInterventionLastScreen(interventionID, 'DYNAMIC_FORM');
+    await updateDynamicFormDetails(interventionID, finalData);
     navigation.dispatch(
       CommonActions.reset({
         index: 1, // index of the active route
@@ -119,8 +133,8 @@ const MainFormSection = (props: Props) => {
           { name: 'InterventionPreview', params: { id: 'review', intervention: '', interventionId: interventionID } },
         ],
       })
-    )
-  }
+    );
+  };
   const renderElement = (formElements: FormElement[]) => {
     return formElements.map(element => {
       switch (element.type) {
