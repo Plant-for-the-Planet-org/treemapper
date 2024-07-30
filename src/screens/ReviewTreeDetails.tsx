@@ -204,7 +204,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('height', String(treeDetails.specie_height), 'number-pad')
                         }}>
-                            <HeightIcon width={14} height={20} style={styles.iconwrapper} />
+                            <HeightIcon width={14} height={20} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>
                                 {treeDetails.specie_height}
                             </Text>
@@ -219,7 +219,7 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
                         }}>
-                            <WidthIcon width={18} height={8} style={styles.iconwrapper} />
+                            <WidthIcon width={18} height={8} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>
                                 {treeDetails.specie_diameter}
                             </Text>
@@ -255,16 +255,16 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('local.location')}</Text>
+                        <Text style={styles.title}>{i18next.t('label.location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.longitude.toFixed(5)} , {treeDetails.latitude.toFixed(5)}
                             </Text>
                         </View>
                     </View>
-                    <Text style={styles.header}>{i18next.t('local.additional_data')}</Text>
+                    <Text style={styles.header}>{i18next.t('label.additional_data')}</Text>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('local.device_location')}</Text>
+                        <Text style={styles.title}>{i18next.t('label.device_location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.device_longitude} , {treeDetails.device_latitude}
@@ -343,7 +343,7 @@ const styles = StyleSheet.create({
         fontSize: scaleSize(16),
         color: Colors.TEXT_COLOR,
     },
-    iconwrapper: {
+    iconWrapper: {
         marginRight: 10
     },
     footer: {

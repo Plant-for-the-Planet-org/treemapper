@@ -1,5 +1,6 @@
 
 import Realm from "realm";
+import Bugsnag from "@bugsnag/expo";
 
 export const runRealmMigrations = ({
   oldRealm,
@@ -8,6 +9,10 @@ export const runRealmMigrations = ({
   oldRealm: Realm;
   newRealm: Realm;
 }) => {
-  console.log("old Realm",oldRealm);
-  console.log("new Realm",newRealm);
+  try {
+    console.log("old Realm",oldRealm);
+    console.log("new Realm",newRealm);
+  } catch (error) {
+    Bugsnag.notify(error)
+  }
 };

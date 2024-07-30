@@ -53,7 +53,7 @@ const useManageScientificSpecies = () => {
           RealmSchema.ScientificSpecies,
           {
             guid: 'undefined',
-            scientificName: 'undefined',
+            scientificName: 'Unknown',
             isUserSpecies: true,
             aliases: 'Not Known'
           },
