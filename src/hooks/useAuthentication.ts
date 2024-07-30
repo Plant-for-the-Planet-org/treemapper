@@ -44,7 +44,7 @@ const useAuthentication = () => {
             statusCode: '',
             logStack: JSON.stringify(error)
           })
-          reject(error)
+          reject(new Error(JSON.stringify(error)))
         })
     })
   }
