@@ -54,6 +54,9 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
+      "entitlements": {
+        "aps-environment": "development"
+      },
       "infoPlist": {
         "NSLocationAlwaysAndWhenInUseUsageDescription": "Allows App to use location services in the foreground and background.",
         "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
