@@ -93,7 +93,7 @@ const SampleTreePreviewList = (props: Props) => {
             <Text style={styles.title}>{i18next.t("label.species")}</Text>
             <Text style={styles.speciesName}>{details.specie_name}</Text>
           </View>}
-          {!!details.specie_name && <View style={styles.metaWrapper}>
+          {!!details.local_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>{i18next.t("label.local_common_name")}</Text>
             <Text style={styles.valueLabel}>{details.local_name}</Text>
           </View>}
@@ -103,6 +103,7 @@ const SampleTreePreviewList = (props: Props) => {
               <View style={styles.iconMetaWrapper}>
                 <HeightIcon width={20} height={20} />
                 <Text style={styles.iconLabel}>{details.specie_height}</Text>
+                <Text style={styles.iconLabel}>m</Text>
               </View>
             </View>
             <View style={styles.iconWrapper}>
@@ -112,6 +113,7 @@ const SampleTreePreviewList = (props: Props) => {
                   <WidthIcon width={20} height={20} />
                 </View>
                 <Text style={styles.iconLabel}>{details.specie_diameter}</Text>
+                <Text style={styles.iconLabel}>cm</Text>
               </View>
             </View>
           </View>
