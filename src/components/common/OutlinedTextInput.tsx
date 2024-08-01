@@ -1,8 +1,9 @@
-import { KeyboardTypeOptions, StyleSheet, View, Text } from 'react-native'
-import React from 'react'
+import { KeyboardTypeOptions, StyleSheet, View, Text, TouchableOpacity } from 'react-native'
+import React, { useState } from 'react'
 import { InputOutline } from 'react-native-input-outline'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
+import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 
 interface Props {
   placeholder: string
@@ -12,12 +13,31 @@ interface Props {
   errMsg: string
   autoFocus?: boolean
   defaultValue?: string
+  info?: string
 }
 
 const OutlinedTextInput = (props: Props) => {
-  const { placeholder, changeHandler, keyboardType, trailingText, errMsg, autoFocus, defaultValue } = props
+  const { placeholder, changeHandler, keyboardType, trailingText, errMsg, autoFocus, defaultValue, info } = props
+
+  const [showInfoData, setShowInfoData] = useState(false)
+
+
+  const toggleInfoData = () => {
+    setShowInfoData(prev => !prev)
+  }
+
   const renderTrailingComma = () => {
-    return <Text style={styles.unitLabel}>{trailingText}</Text>
+    return info ? <View style={styles.infoWrapper}>
+      <Text style={styles.unitLabel}>{trailingText}</Text>
+      <TouchableOpacity
+        onPress={toggleInfoData}
+        style={styles.infoIconContainer}>
+        <InfoIcon width={18} height={18} />
+        {showInfoData && <TouchableOpacity style={[styles.infoTextContainer]} onPress={toggleInfoData}>
+          <Text style={styles.infoText}>{info}</Text>
+        </TouchableOpacity>}
+      </TouchableOpacity>
+    </View> : <Text style={styles.unitLabel}>{trailingText}</Text>
   }
   return (
     <View style={styles.container}>
@@ -26,13 +46,13 @@ const OutlinedTextInput = (props: Props) => {
         keyboardType={keyboardType}
         placeholder={placeholder}
         fontColor={Colors.DARK_TEXT_COLOR}
-        paddingVertical={15}
+        paddingVertical={20}
         activeColor={Colors.PRIMARY}
         returnKeyType="done"
         inactiveColor={Colors.GRAY_BORDER}
         placeholderTextColor={Colors.GRAY_BORDER}
         onChangeText={changeHandler}
-        fontSize={scaleFont(18)}
+        fontSize={scaleFont(14)}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}
@@ -53,7 +73,8 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     marginTop: 10,
     flexDirection: 'row',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    zIndex:2
   },
   inputWrapper: {
     borderRadius: 8,
@@ -64,5 +85,30 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_LIGHT,
     fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD
+  },
+  infoWrapper: {
+    flexDirection: 'row',
+    alignItems: "center",
+    zIndex: 10,
+  },
+  infoIconContainer: {
+    marginLeft:10
+  },
+  infoTextContainer: {
+    position: 'absolute',
+    borderRadius: 8,
+    backgroundColor: Colors.TEXT_COLOR,
+    width:200,
+    left:-180,
+    top:20
+  },
+  infoText: {
+    fontSize: Typography.FONT_SIZE_12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.WHITE,
+    textAlign: 'justify',
+    letterSpacing: 0.2,
+    paddingHorizontal:10,
+    paddingVertical:10
   },
 })
