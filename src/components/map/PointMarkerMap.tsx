@@ -220,7 +220,7 @@ const PointMarkerMap = (props: Props) => {
       </MapLibreGL.MapView>
       <SatelliteIconWrapper/>
       <CustomButton
-        label="Select location & Continue"
+        label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}
         pressHandler={checkForAccuracy}
         loading={loading}

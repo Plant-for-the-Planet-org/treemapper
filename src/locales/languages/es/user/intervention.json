@@ -75,5 +75,6 @@
     "tree_tag":"Etiqueta de árbol",
     "location":"Ubicación",
     "device_location":"Device Location",
-    "add_sample_tree":"Agregar árbol de muestra"
+    "add_sample_tree":"Agregar árbol de muestra",
+    "apply_intervention":"Apply Intervention to entire site", "intervention_date":"Intervention Date", "location_optional":"Location Name [Optional]", "further_info":"Further Information [Opcional]","intervention _type":"Tipo de Intervención"
 }

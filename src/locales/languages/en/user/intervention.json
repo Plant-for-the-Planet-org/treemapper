@@ -17,7 +17,7 @@
     "retake": "Retake",
     "continue": "Continue",
     "tree_tag_note": "This tree has been tagged for identification",
-    "monitoring_plot": "Monitoring Plot",
+    "monitoring_plot": "Monitoreo Trama",
     "project_sites": "Project Site",
     "single_tree": "Single Tree",
     "multiple_trees": "Multiple Trees",
@@ -75,5 +75,11 @@
     "tree_tag":"Tree Tag",
     "location":"Location",
     "device_location":"Device Location",
-    "add_sample_tree":"Add Sample Tree"
+    "add_sample_tree":"Add Sample Tree",
+    "apply_intervention":"Apply Intervention to entire site",
+    "intervention_date":"Intervention Date",
+    "location_optional":"Location Name [Optional]",
+    "further_info":"Further Information [Optional]",
+    "intervention_type":"Intervention Type"
+
 }

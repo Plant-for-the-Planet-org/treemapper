@@ -17,7 +17,7 @@
     "retake": "nochmals aufnehmen",
     "continue": "Weiter",
     "tree_tag_note": "Dieser Baum wurde für die Identifikation getagged",
-    "monitoring_plot": "Monitoring Plot",
+    "monitoring_plot": "Überwachung Bereich",
     "project_sites": "Projekt Fläche",
     "single_tree": "Einzelbaum",
     "multiple_trees": "Mehrere Bäume",
@@ -75,5 +75,10 @@
     "tree_tag":"Baum Tag",
     "location":"Position",
     "device_location":"Position des Geräts",
-    "add_sample_tree":"Beispielbaum hinzufügen"
+    "add_sample_tree":"Beispielbaum hinzufügen",
+    "apply_intervention":"Apply Intervention to entire site",
+    "intervention_date":"Intervention Datum",
+    "location_optional":"Location Name [Optional]",
+    "further_info":"Further Information [optional] ",
+    "interventions_type":" Intervention Typ"
 }
