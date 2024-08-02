@@ -141,12 +141,12 @@ const ReviewTreeDetails = () => {
         setOpenEditModal({ label, value: currentValue, type, open: true });
     }
 
-
     const handleValidation = async (validate?: boolean) => {
         const finalDetails = { ...treeDetails }
         const isNonISUCountry = nonISUCountries.includes(Country);
         let hasError = false;
-        if (openEditModal.label === 'height') {
+
+        const handleHeightValidation = () => {
             if (validate) {
                 const validationObject = measurementValidation(
                     openEditModal.value,
@@ -158,14 +158,16 @@ const ReviewTreeDetails = () => {
                 hasError = validationObject.heightErrorMessage.length > 0
                 if (!validationObject.isRatioCorrect) {
                     setShowIncorrectRatioAlert(true);
-                    return;
+                    return true;
                 }
                 finalDetails.specie_height = Number(openEditModal.value)
             } else {
                 finalDetails.specie_height = Number(openEditModal.value)
             }
-        }
-        if (openEditModal.label === 'diameter') {
+            return false;
+        };
+
+        const handleDiameterValidation = () => {
             if (validate) {
                 const validationObject = measurementValidation(
                     treeDetails.specie_height,
@@ -177,22 +179,40 @@ const ReviewTreeDetails = () => {
                 hasError = validationObject.diameterErrorMessage.length > 0
                 if (!validationObject.isRatioCorrect) {
                     setShowIncorrectRatioAlert(true);
-                    return;
+                    return true;
                 }
                 finalDetails.specie_diameter = Number(openEditModal.value)
             } else {
                 finalDetails.specie_diameter = Number(openEditModal.value)
             }
+            return false;
+        };
+
+        const handleTagValidation = () => {
+            finalDetails.tag_id = openEditModal.value;
+        };
+
+        switch (openEditModal.label) {
+            case 'height':
+                if (handleHeightValidation()) return;
+                break;
+            case 'diameter':
+                if (handleDiameterValidation()) return;
+                break;
+            case 'treetag':
+                handleTagValidation();
+                break;
+            default:
+                break;
         }
-        if (openEditModal.label === 'treetag') {
-            finalDetails.tag_id = openEditModal.value
-        }
+
         if (!hasError) {
             await updateSampleTreeDetails(finalDetails)
             setTreeDetails({ ...finalDetails })
         }
         setOpenEditModal({ label: '', value: '', type: 'default', open: false });
     };
+
 
 
     const setCurrentValue = (d: any) => {
