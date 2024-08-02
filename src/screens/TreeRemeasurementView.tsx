@@ -84,7 +84,7 @@ const TreeRemeasurementView = () => {
     );
     const Country = useSelector((state: RootState) => state.userState.country)
     const isNonISUCountry = nonISUCountries.includes(Country)
-    
+
     useEffect(() => {
         if (treeId) {
             const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
@@ -158,29 +158,30 @@ const TreeRemeasurementView = () => {
     }
 
 
-    const getConvertedMeasurementText = (measurement: any): string => {
+    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
         let text = i18next.t('label.tree_review_unable');
         const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
         if (measurement && isNonISUCountry) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000}`;
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
+                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
+            )} `;
         } else if (measurement) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000}`;
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
         }
         return text;
     };
-
 
     const validateData = () => {
         if (isAlive && imageUri.length == 0) {
             takePicture()
             return
         }
-        if(height===''){
+        if (height === '') {
             toast.show("Please update plant height")
             return
         }
-        if(width===''){
+        if (width === '') {
             toast.show("Please update plant diameter")
             return
         }
@@ -284,7 +285,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={handleHeightChange}
                                     autoFocus
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height)}
+                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height, 'm')}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                     errMsg={heightErrorMessage} />
                             </View>
