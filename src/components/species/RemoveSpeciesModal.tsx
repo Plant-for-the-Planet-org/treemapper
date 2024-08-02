@@ -13,7 +13,7 @@ interface Props {
 }
 
 const RemoveSpeciesModal = (props: Props) => {
-  const { isVisible, toggleModal: toggleModal, removeFavSpecie } = props
+  const { isVisible, toggleModal, removeFavSpecie } = props
   return (
     <Modal
       style={styles.container}
