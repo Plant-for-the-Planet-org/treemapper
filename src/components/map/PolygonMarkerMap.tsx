@@ -61,7 +61,7 @@ const PolygonMarkerMap = (props: Props) => {
   }, [currentUserLocation])
 
   const handleCamera = () => {
-    if(cameraRef && cameraRef.current){
+    if(cameraRef?.current){
       cameraRef.current.setCamera({
         centerCoordinate: [...currentUserLocation],
         zoomLevel: 20,
@@ -189,7 +189,7 @@ const PolygonMarkerMap = (props: Props) => {
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper low/>
+      <SatelliteIconWrapper />
       {polygonComplete && (
         <View style={styles.btnFooter}>
           <CustomButton

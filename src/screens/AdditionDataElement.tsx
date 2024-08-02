@@ -13,7 +13,7 @@ import { useRoute, RouteProp, useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import { FormElement } from 'src/types/interface/form.interface'
-import { DropdownData, IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import { DropdownData, IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { v4 as uuid } from 'uuid'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
@@ -68,7 +68,7 @@ const AdditionDataElement = () => {
 
 
   const preFillData = () => {
-    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    const data = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id);
     if (data) {
       const elementDetails = data.elements.filter(el => el.element_id === element_id);
       const myElement = elementDetails[0]
@@ -205,7 +205,7 @@ const AdditionDataElement = () => {
     if (!validationInput()) {
       return;
     }
-    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    const data = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id);
     const allElements = [...JSON.parse(JSON.stringify(data.elements))]
     const index = allElements.findIndex(el => el.element_id === element_id);
     const myElement = allElements[index]
@@ -214,8 +214,8 @@ const AdditionDataElement = () => {
     myElement.label = inputKey
     myElement.visibility = isPublic ? "public" : 'private'
     myElement.data_type = dataType.value === 'string' ? 'string' : 'number'
-    myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default',
-      myElement.required = isRequired
+    myElement.keyboard_type = dataType.value === 'number' ? 'numeric' : 'default'
+    myElement.required = isRequired
     myElement.dropDownData = JSON.stringify(dropDownElement)
     await updateElementInForm(element_id, form_id, myElement)
     navigation.goBack()
@@ -238,7 +238,7 @@ const AdditionDataElement = () => {
   }
 
   const deleteHandler = async () => {
-    const data = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id);
+    const data = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id);
     if (data) {
       await deleteElementInForm(element_id, form_id)
       navigation.goBack()

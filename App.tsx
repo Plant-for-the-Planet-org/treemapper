@@ -14,14 +14,17 @@ import 'react-native-get-random-values'
 import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
+import Bugsnag from '@bugsnag/expo'
+import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
 
 
+Bugsnag.start(BugSnagConfig)
 MapLibreGL.setAccessToken(null)
 
 export default function App() {
   return (
     <SafeAreaProvider>
-      <StatusBar translucent style='light'/>
+      <StatusBar translucent style='light' />
       <Auth0Provider
         domain={process.env.EXPO_PUBLIC_AUTH0_DOMAIN}
         clientId={process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0}>

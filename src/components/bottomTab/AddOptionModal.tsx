@@ -78,7 +78,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
-      title: i18next.t('label.intervention'),
+      title: i18next.t('label.interventions'),
       coming_soon: false,
       onPress: () => {
         navigation.navigate('InterventionForm')
@@ -193,7 +193,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: scaleFont(14),
+    fontSize: scaleFont(12),
     color: Colors.TEXT_COLOR,
   },
   coming_soon: {

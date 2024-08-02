@@ -12,6 +12,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
+import i18next from 'i18next'
 
 const SpeciesInfoView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'SpeciesInfo'>>()
@@ -32,7 +33,7 @@ const SpeciesInfoView = () => {
     <SafeAreaView style={styles.container}>
       <AvoidSoftInputView>
         <ScrollView>
-          <Header label="" />
+          <Header label={i18next.t("label.back")} />
           <SpeciesInfoHeader item={specieData} />
           <SpecieInfoImageSection item={specieData} />
           <SpecieInfoDetailSection item={specieData} />

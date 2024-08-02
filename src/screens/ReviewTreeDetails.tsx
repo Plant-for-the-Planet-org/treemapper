@@ -1,6 +1,6 @@
 import { KeyboardType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import DateTimePicker from '@react-native-community/datetimepicker'
@@ -28,6 +28,10 @@ import { useObject } from '@realm/react'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { v4 as uuid } from 'uuid'
 import i18next from 'src/locales/index'
+import { nonISUCountries } from 'src/utils/constants/appConstant'
+import { RootState } from 'src/store'
+import { measurementValidation } from 'src/utils/constants/measurementValidation'
+import AlertModal from 'src/components/common/AlertModal'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -39,6 +43,7 @@ const ReviewTreeDetails = () => {
     const Intervention = useObject<InterventionData>(
         RealmSchema.Intervention, interventionId
     )
+    const [showIncorrectRatioAlert, setShowIncorrectRatioAlert] = useState<boolean>(false);
     const FormData = setUpIntervention(Intervention.intervention_key)
     const [treeDetails, setTreeDetails] = useState<SampleTree>(null)
     const currentTreeIndex = Intervention.sample_trees.length
@@ -46,11 +51,16 @@ const ReviewTreeDetails = () => {
     const [showDatePicker, setShowDatePicker] = useState(false)
     const { updateSampleTreeDetails } = useInterventionManagement()
     const detailsCompleted = route.params?.detailsCompleted;
-    const editTree = route.params && route.params.interventionID
+    const editTree = route.params?.interventionID
     const synced = route.params?.synced;
+    const Country = useSelector((state: RootState) => state.userState.country)
+    const [isError, setIsError] = useState<boolean>(false);
+    const [showInputError, setShowInputError] = useState<boolean>(false);
     const [openEditModal, setOpenEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
     const dispatch = useDispatch();
-
+    const [inputErrorMessage, setInputErrorMessage] = useState<string>(
+        i18next.t('label.tree_inventory_input_error_message'),
+    );
 
 
 
@@ -131,22 +141,78 @@ const ReviewTreeDetails = () => {
         setOpenEditModal({ label, value: currentValue, type, open: true });
     }
 
-
-    const closeModal = async () => {
+    const handleValidation = async (validate?: boolean) => {
         const finalDetails = { ...treeDetails }
-        if (openEditModal.label === 'height') {
-            finalDetails.specie_height = Number(openEditModal.value)
+        const isNonISUCountry = nonISUCountries.includes(Country);
+        let hasError = false;
+
+        const handleHeightValidation = () => {
+            if (validate) {
+                const validationObject = measurementValidation(
+                    openEditModal.value,
+                    treeDetails.specie_diameter,
+                    isNonISUCountry,
+                );
+                setInputErrorMessage(validationObject.heightErrorMessage);
+                setShowInputError(!!validationObject.heightErrorMessage);
+                hasError = validationObject.heightErrorMessage.length > 0
+                if (!validationObject.isRatioCorrect) {
+                    setShowIncorrectRatioAlert(true);
+                    return true;
+                }
+                finalDetails.specie_height = Number(openEditModal.value)
+            } else {
+                finalDetails.specie_height = Number(openEditModal.value)
+            }
+            return false;
+        };
+
+        const handleDiameterValidation = () => {
+            if (validate) {
+                const validationObject = measurementValidation(
+                    treeDetails.specie_height,
+                    openEditModal.value,
+                    isNonISUCountry,
+                );
+                setInputErrorMessage(validationObject.diameterErrorMessage);
+                setShowInputError(!!validationObject.diameterErrorMessage);
+                hasError = validationObject.diameterErrorMessage.length > 0
+                if (!validationObject.isRatioCorrect) {
+                    setShowIncorrectRatioAlert(true);
+                    return true;
+                }
+                finalDetails.specie_diameter = Number(openEditModal.value)
+            } else {
+                finalDetails.specie_diameter = Number(openEditModal.value)
+            }
+            return false;
+        };
+
+        const handleTagValidation = () => {
+            finalDetails.tag_id = openEditModal.value;
+        };
+
+        switch (openEditModal.label) {
+            case 'height':
+                if (handleHeightValidation()) return;
+                break;
+            case 'diameter':
+                if (handleDiameterValidation()) return;
+                break;
+            case 'treetag':
+                handleTagValidation();
+                break;
+            default:
+                break;
         }
-        if (openEditModal.label === 'diameter') {
-            finalDetails.specie_diameter = Number(openEditModal.value)
+
+        if (!hasError) {
+            await updateSampleTreeDetails(finalDetails)
+            setTreeDetails({ ...finalDetails })
         }
-        if (openEditModal.label === 'treetag') {
-            finalDetails.tag_id = openEditModal.value
-        }
-        await updateSampleTreeDetails(finalDetails)
-        setTreeDetails({ ...finalDetails })
         setOpenEditModal({ label: '', value: '', type: 'default', open: false });
-    }
+    };
+
 
 
     const setCurrentValue = (d: any) => {
@@ -175,9 +241,44 @@ const ReviewTreeDetails = () => {
     }
     const headerLabel = editTree ? i18next.t("label.tree_details") : i18next.t("label.review_tree_details")
     const showEdit = editTree || treeDetails.tree_id
+
+    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
+        let text = i18next.t('label.tree_review_unable');
+        const isNonISUCountry: boolean = nonISUCountries.includes(Country);
+
+        if (measurement && isNonISUCountry) {
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
+                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
+            )} `;
+        } else if (measurement) {
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+        }
+        return text;
+    };
+
+    const handleRatioPrimary = () => {
+        setShowIncorrectRatioAlert(false);
+        setOpenEditModal({ label: '', value: '', type: 'default', open: false });
+    }
+
+    const handleRatioSecondary = () => {
+        setShowIncorrectRatioAlert(false);
+        handleValidation(false)
+    }
+
+    const handleErrorPrimary = () => {
+        setIsError(false);
+        setShowInputError(false);
+    }
+
     return (
         <SafeAreaView style={styles.container}>
-            {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
+            {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
+                maximumDate={new Date()}
+                minimumDate={new Date(2006, 0, 1)}
+                is24Hour={true}
+                timeZoneOffsetInMinutes={0}
+                value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
             <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
                 <View style={styles.container}>
@@ -204,9 +305,9 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('height', String(treeDetails.specie_height), 'number-pad')
                         }}>
-                            <HeightIcon width={14} height={20} style={styles.iconwrapper} />
+                            <HeightIcon width={14} height={20} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>
-                                {treeDetails.specie_height}
+                                {getConvertedMeasurementText(treeDetails.specie_height, 'm')}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
@@ -219,9 +320,9 @@ const ReviewTreeDetails = () => {
                             }
                             openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
                         }}>
-                            <WidthIcon width={18} height={8} style={styles.iconwrapper} />
+                            <WidthIcon width={18} height={8} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>
-                                {treeDetails.specie_diameter}
+                                {getConvertedMeasurementText(treeDetails.specie_diameter)}
                             </Text>
                             {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
@@ -255,16 +356,16 @@ const ReviewTreeDetails = () => {
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('local.location')}</Text>
+                        <Text style={styles.title}>{i18next.t('label.location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.longitude.toFixed(5)} , {treeDetails.latitude.toFixed(5)}
                             </Text>
                         </View>
                     </View>
-                    <Text style={styles.header}>{i18next.t('local.additional_data')}</Text>
+                    <Text style={styles.header}>{i18next.t('label.additional_data')}</Text>
                     <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('local.device_location')}</Text>
+                        <Text style={styles.title}>{i18next.t('label.device_location')}</Text>
                         <View style={styles.metaSectionWrapper}>
                             <Text style={styles.valueLabel}>
                                 {treeDetails.device_longitude} , {treeDetails.device_latitude}
@@ -290,7 +391,28 @@ const ReviewTreeDetails = () => {
                     wrapperStyle={styles.noBorderWrapper}
                 />
             </View>}
-            <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={closeModal} isOpenModal={openEditModal.open} inputType={openEditModal.type} />
+            <EditInputModal value={openEditModal.value} setValue={setCurrentValue} onSubmitInputField={handleValidation} isOpenModal={openEditModal.open} inputType={openEditModal.type} />
+            <AlertModal
+                visible={showInputError || isError}
+                heading={
+                    isError
+                        ? i18next.t('label.something_went_wrong')
+                        : i18next.t('label.tree_inventory_input_error')
+                }
+                message={isError ? i18next.t('label.error_saving_inventory') : inputErrorMessage}
+                primaryBtnText={i18next.t('label.ok')}
+                onPressPrimaryBtn={handleErrorPrimary}
+            />
+            <AlertModal
+                visible={showIncorrectRatioAlert}
+                heading={i18next.t('label.not_optimal_ratio')}
+                message={i18next.t('label.not_optimal_ratio_message')}
+                primaryBtnText={i18next.t('label.check_again')}
+                onPressPrimaryBtn={handleRatioPrimary}
+                showSecondaryButton
+                secondaryBtnText={i18next.t('label.continue')}
+                onPressSecondaryBtn={handleRatioSecondary}
+            />
         </SafeAreaView >
     )
 }
@@ -343,7 +465,7 @@ const styles = StyleSheet.create({
         fontSize: scaleSize(16),
         color: Colors.TEXT_COLOR,
     },
-    iconwrapper: {
+    iconWrapper: {
         marginRight: 10
     },
     footer: {

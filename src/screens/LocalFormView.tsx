@@ -14,7 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -30,7 +30,7 @@ const width = Dimensions.get('screen').width
 
 const LocalForm = () => {
   const [loading, setLoading] = useState(true)
-  const [formPages, setFormPages] = useState<IAdditonalDetailsForm[]>([])
+  const [formPages, setFormPages] = useState<IAdditionalDetailsForm[]>([])
   const [currentPage, setCurrentPage] = useState(0)
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const paramId = route.params ? route.params.id : ''
@@ -45,7 +45,7 @@ const LocalForm = () => {
   }, [])
 
   const getDetails = async () => {
-    const data = realm.objects(RealmSchema.AdditonalDetailsForm);
+    const data = realm.objects(RealmSchema.AdditionalDetailsForm);
     if (!checkForNonEmptyForm(data)) {
       await updateLocalFormDetailsIntervention(paramId, [])
       navigation.replace("DynamicForm", {id: paramId})
@@ -104,7 +104,7 @@ const LocalForm = () => {
   }
 
 
-  const renderPages = (data: IAdditonalDetailsForm, i: number) => {
+  const renderPages = (data: IAdditionalDetailsForm, i: number) => {
     return (
       <View style={styles.pageWrapper}>
         <Text style={styles.pageLabel}>{data.title || `Page ${i + 1}`}</Text>

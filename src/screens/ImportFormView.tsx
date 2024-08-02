@@ -44,7 +44,7 @@ const ImportFormView = () => {
 
 
   const handleExport = async () => {
-    const formData = realm.objects(RealmSchema.AdditonalDetailsForm);
+    const formData = realm.objects(RealmSchema.AdditionalDetailsForm);
     const metaData = realm.objects(RealmSchema.Metadata);
     const options = {
       url: 'data:application/json;base64,' + toBase64(JSON.stringify({

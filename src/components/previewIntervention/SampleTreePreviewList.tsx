@@ -16,6 +16,9 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import DeleteModal from '../common/DeleteModal'
 import i18next from 'src/locales/index'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { nonISUCountries } from 'src/utils/constants/appConstant'
 
 interface Props {
   sampleTress: SampleTree[]
@@ -27,6 +30,7 @@ interface Props {
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced } = props
   const [deleteData, setDeleteData] = useState(null)
+  const Country = useSelector((state: RootState) => state.userState.country)
 
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -53,6 +57,19 @@ const SampleTreePreviewList = (props: Props) => {
     navigation.navigate("TreeRemeasurement", { interventionId: interventionId, treeId: id })
   }
 
+  const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
+    let text = i18next.t('label.tree_review_unable');
+    const isNonISUCountry: boolean = nonISUCountries.includes(Country);
+
+    if (measurement && isNonISUCountry) {
+      text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
+        unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
+      )} `;
+    } else if (measurement) {
+      text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+    }
+    return text;
+  };
 
 
   const hasDetails = sampleTress && sampleTress.length > 0
@@ -93,7 +110,7 @@ const SampleTreePreviewList = (props: Props) => {
             <Text style={styles.title}>{i18next.t("label.species")}</Text>
             <Text style={styles.speciesName}>{details.specie_name}</Text>
           </View>}
-          {!!details.specie_name && <View style={styles.metaWrapper}>
+          {!!details.local_name && <View style={styles.metaWrapper}>
             <Text style={styles.title}>{i18next.t("label.local_common_name")}</Text>
             <Text style={styles.valueLabel}>{details.local_name}</Text>
           </View>}
@@ -102,7 +119,8 @@ const SampleTreePreviewList = (props: Props) => {
               <Text style={styles.iconTitle}>{i18next.t("label.height")}</Text>
               <View style={styles.iconMetaWrapper}>
                 <HeightIcon width={20} height={20} />
-                <Text style={styles.iconLabel}>{details.specie_height}</Text>
+                <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_height, 'm')}</Text>
+                <Text style={styles.iconLabel}>m</Text>
               </View>
             </View>
             <View style={styles.iconWrapper}>
@@ -111,7 +129,7 @@ const SampleTreePreviewList = (props: Props) => {
                 <View style={styles.iconHolder}>
                   <WidthIcon width={20} height={20} />
                 </View>
-                <Text style={styles.iconLabel}>{details.specie_diameter}</Text>
+                <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_diameter)}</Text>
               </View>
             </View>
           </View>

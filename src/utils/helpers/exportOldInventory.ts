@@ -5,7 +5,6 @@ import Share from 'react-native-share';
 
 const sharedData = async (filePath: string, id: string) => {
   const filePaths = `${RNFS.DocumentDirectoryPath}/${id}.zip`;
-  try {
     zip(filePath, filePaths)
       .then(path => {
         console.log(`zip completed at ${path}`);
@@ -24,9 +23,6 @@ const sharedData = async (filePath: string, id: string) => {
       .catch(error => {
         console.error(error);
       });
-  } catch (error) {
-    Alert.alert('Error occurred while writing ' + filePath);
-  }
 };
 
 const writeJSON = async (data: any, filePath: string) => {

@@ -9,7 +9,6 @@ import CustomButton from '../common/CustomButton';
 const IS_ANDROID = Platform.OS === 'android';
 
 interface IEditPolygonButtonsProps {
-  navigation: any;
   isUndoDisabled: boolean;
   isRedoDisabled: boolean;
   saveGeoJSON: any;

@@ -122,7 +122,7 @@ const ManageSpeciesView = () => {
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
-        toogleModal={toggleRemoveFavModal}
+        toggleModal={toggleRemoveFavModal}
         removeFavSpecie={removeSpecies}
       />
       <TreeCountModal

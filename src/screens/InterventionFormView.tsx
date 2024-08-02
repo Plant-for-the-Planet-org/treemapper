@@ -37,6 +37,7 @@ import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import i18next from 'i18next'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
@@ -365,13 +366,13 @@ const InterventionFormView = () => {
       <AvoidSoftInputView
         avoidOffset={20}
         style={styles.container}>
-        <Header label="Intervention" />
+        <Header  label={i18next.t('label.interventions')} />
         <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
           <View style={styles.container}>
             <View style={styles.wrapper}>
               {isTpoUser && (
                 <CustomDropDown
-                  label={'Project'}
+                  label={i18next.t('label.project')}
                   data={projectStateData}
                   onSelect={handleProjectSelect}
                   selectedValue={{
@@ -383,7 +384,7 @@ const InterventionFormView = () => {
               )}
               {isTpoUser && (
                 <CustomDropDown
-                  label={'Site'}
+                  label={i18next.t('label.site')}
                   data={projectSites}
                   onSelect={handleSiteSelect}
                   selectedValue={{
@@ -395,7 +396,7 @@ const InterventionFormView = () => {
               )}
               {isTpoUser && <View style={styles.divider} />}
               <CustomDropDown
-                label={'Intervention Type'}
+                label={i18next.t("label.intervention_type")}
                 data={allIntervention}
                 onSelect={handleInterventionType}
                 selectedValue={{
@@ -416,23 +417,23 @@ const InterventionFormView = () => {
               />}
               {registerForm.can_be_entire_site && isTpoUser ? (
                 <PlaceHolderSwitch
-                  description={'Apply Intervention to entire site'}
+                  description={i18next.t("label.apply_intervention")}
                   selectHandler={handleEntireSiteArea}
                   value={registerForm.entire_site_selected}
                 />
               ) : null}
               <InterventionDatePicker
-                placeHolder={'Intervention Date'}
+                placeHolder={i18next.t("label.intervention_date")}
                 value={registerForm.intervention_date || Date.now()}
                 callBack={handleDateSelection}
               />
               <CustomTextInput
-                label={'Location Name [Optional]'}
+                label={i18next.t('label.location_optional')}
                 onChangeHandler={setLocationName}
                 value={locationName}
               />
               <CustomTextInput
-                label={'Further Information [Optional]'}
+                label={i18next.t('label.further_info')}
                 onChangeHandler={setFurtherInfo}
                 value={furtherInfo}
               />
@@ -440,7 +441,7 @@ const InterventionFormView = () => {
           </View>
         </ScrollView>
         <CustomButton
-          label={'Continue'}
+           label={i18next.t('label.continue')}
           pressHandler={pressContinue}
           containerStyle={styles.btnContainer}
           wrapperStyle={styles.btnWrapper}

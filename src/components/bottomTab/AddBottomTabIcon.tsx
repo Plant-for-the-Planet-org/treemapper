@@ -12,7 +12,6 @@ import {Colors, Typography} from 'src/utils/constants'
 import {scaleFont, scaleSize} from 'src/utils/constants/mixins'
 import TabsShape from '../CurveIcon'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
-import i18next from 'src/locales/index'
 
 
 
@@ -51,7 +50,7 @@ const AddBottomTabIcon = () => {
             styles.labelStyle,
             {color: open ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT},
           ]}>
-          {i18next.t('label.add')}
+          Add
         </Text>
       </View>
       <View style={styles.bottomBar}/>

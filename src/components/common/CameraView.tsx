@@ -22,7 +22,7 @@ const CameraMainView = (props: Props) => {
 
   const captureImage = async () => {
     setLoading(true)
-    const data = await cameraRef.current.takePictureAsync({ skipProcessing: true })
+    const data = await cameraRef.current.takePictureAsync({ skipProcessing: true, quality: 0, base64: false })
     if (data) {
       props.takePicture(data)
     } else {
@@ -37,6 +37,19 @@ const CameraMainView = (props: Props) => {
     }
   };
 
+
+  const showCameraOrLoading = () => {
+
+    return <>
+      <CameraView
+        facing={i18next.t('label.back')}
+        style={styles.cameraWrapper}
+        ref={cameraRef}
+      />
+      {loading && <View style={styles.cameraBackDrop}></View>}
+    </>
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -49,13 +62,7 @@ const CameraMainView = (props: Props) => {
               {i18next.t('label.open_settings')}
             </Text>
           </>
-        ) : (
-          <CameraView
-            facing={i18next.t('label.back')}
-            style={styles.cameraWrapper}
-            ref={cameraRef}
-          />
-        )}
+        ) : showCameraOrLoading()}
       </View>
       <CustomButton
         label={i18next.t("label.take_picture")}
@@ -109,6 +116,14 @@ const styles = StyleSheet.create({
   cameraWrapper: {
     width: '100%',
     height: '100%',
+    backgroundColor: Colors.BLACK
+  },
+  cameraBackDrop: {
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    backgroundColor: Colors.BLACK,
+    zIndex: 10
   },
   btnContainer: {
     width: '100%',

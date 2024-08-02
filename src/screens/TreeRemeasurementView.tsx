@@ -24,6 +24,11 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { SCALE_26, SCALE_36 } from 'src/utils/constants/spacing'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
+import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
+import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
+import i18next from 'i18next'
+import { measurementValidation } from 'src/utils/constants/measurementValidation'
+import AlertModal from 'src/components/common/AlertModal'
 
 const PredefineReasons: Array<{
     label: string
@@ -71,6 +76,14 @@ const TreeRemeasurementView = () => {
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
     const [imageUri, setImageUri] = useState('')
+    const [heightErrorMessage, setHeightErrorMessage] = useState('')
+    const [showOptimalAlert, setShowOptimalAlert] = useState(false)
+    const [widthErrorMessage, setWidthErrorMessage] = useState('')
+    const [diameterLabel, setDiameterLabel] = useState<string>(
+        i18next.t('label.measurement_basal_diameter'),
+    );
+    const Country = useSelector((state: RootState) => state.userState.country)
+    const isNonISUCountry = nonISUCountries.includes(Country)
 
     useEffect(() => {
         if (treeId) {
@@ -94,6 +107,47 @@ const TreeRemeasurementView = () => {
         };
     })
 
+
+
+
+    const handleHeightChange = (text: string) => {
+        setHeightErrorMessage('');
+        // Replace commas with dots for consistency
+        const sanitizedText = text.replace(/,/g, '.');
+
+        // Allow only digits and a single decimal point
+        const validHeight = sanitizedText.replace(/[^0-9.]/g, '');
+
+        // Ensure there is at most one decimal point
+        const decimalCount = validHeight.split('.').length - 1;
+        if (decimalCount <= 1) {
+            setHeight(validHeight);
+            const convertedHeight = height ? getConvertedHeight(validHeight, isNonISUCountry) : 0;
+            if (convertedHeight < DBHInMeter) {
+                setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+            } else {
+                setDiameterLabel(i18next.t('label.measurement_DBH'));
+            }
+        }
+    };
+
+    const handleDiameterChange = (text: string) => {
+        setWidthErrorMessage('');
+        // Replace commas with dots for consistency
+        const sanitizedText = text.replace(/,/g, '.');
+
+        // Allow only digits and a single decimal point
+        const validDiameter = sanitizedText.replace(/[^0-9.]/g, '');
+
+        // Ensure there is at most one decimal point
+        const decimalCount = validDiameter.split('.').length - 1;
+        if (decimalCount <= 1) {
+            setWidth(validDiameter);
+        }
+    };
+
+
+
     const takePicture = () => {
         const newID = String(new Date().getTime())
         setImageId(newID)
@@ -103,19 +157,63 @@ const TreeRemeasurementView = () => {
         })
     }
 
-    const submitHandler = async () => {
+
+    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
+        let text = i18next.t('label.tree_review_unable');
+        const isNonISUCountry: boolean = nonISUCountries.includes(Country);
+
+        if (measurement && isNonISUCountry) {
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
+                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
+            )} `;
+        } else if (measurement) {
+            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+        }
+        return text;
+    };
+
+    const validateData = () => {
         if (isAlive && imageUri.length == 0) {
             takePicture()
             return
         }
+        if (height === '') {
+            toast.show("Please update plant height")
+            return
+        }
+        if (width === '') {
+            toast.show("Please update plant diameter")
+            return
+        }
+        const validationObject = measurementValidation(height, width, isNonISUCountry);
+        const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+        setHeightErrorMessage(heightErrorMessage)
+        setWidthErrorMessage(diameterErrorMessage)
+        if (!diameterErrorMessage && !heightErrorMessage) {
+            if (isRatioCorrect) {
+                submitHandler();
+            } else {
+                setShowOptimalAlert(true);
+            }
+        }
+    }
+
+
+    const submitHandler = async () => {
         const param: History = {
             history_id: uuid(),
             eventName: isAlive ? 'measurement' : 'status',
             eventDate: Date.now(),
             imageUrl: imageUri,
             cdnImageUrl: '',
-            diameter: Number(width),
-            height: Number(height),
+            diameter: getConvertedDiameter(
+                width,
+                isNonISUCountry,
+            ),
+            height: getConvertedHeight(
+                height,
+                isNonISUCountry,
+            ),
             additionalDetails: undefined,
             appMetadata: '',
             status: isAlive ? '' : type.value,
@@ -131,6 +229,15 @@ const TreeRemeasurementView = () => {
             navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
         } else {
             toast.show("Error occurred")
+        }
+    }
+
+    const handleOptimalAlert = (p: boolean) => {
+        if (p) {
+            setShowOptimalAlert(false)
+        } else {
+            setShowOptimalAlert(false)
+            submitHandler();
         }
     }
 
@@ -174,19 +281,29 @@ const TreeRemeasurementView = () => {
                             </View></View>}
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={'Height'}
-                                    changeHandler={setHeight}
-                                    defaultValue={height}
+                                    placeholder={i18next.t('label.select_species_height')}
+                                    changeHandler={handleHeightChange}
+                                    autoFocus
                                     keyboardType={'decimal-pad'}
-                                    trailingText={'m'} errMsg={''} />
+                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height, 'm')}
+                                    trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
+                                    errMsg={heightErrorMessage} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={'Diameter'}
-                                    changeHandler={setWidth}
+                                    placeholder={diameterLabel}
+                                    changeHandler={handleDiameterChange}
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={width}
-                                    trailingText={'cm'} errMsg={''} />
+                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_diameter)}
+                                    trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
+                                    errMsg={widthErrorMessage}
+                                    info={i18next.t('label.measurement_diameter_info', {
+                                        height: isNonISUCountry
+                                            ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
+                                            : DBHInMeter,
+                                        unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
+                                    })}
+                                />
                             </View></> :
                             <>
                                 <CustomDropDownPicker
@@ -204,14 +321,22 @@ const TreeRemeasurementView = () => {
                                         trailingText={''} errMsg={''} />
                                 </View></>
                         }
-
                     </View>
                 </ScrollView>
-
+                <AlertModal
+                    showSecondaryButton
+                    visible={showOptimalAlert}
+                    onPressPrimaryBtn={handleOptimalAlert}
+                    onPressSecondaryBtn={handleOptimalAlert}
+                    heading={i18next.t('label.not_optimal_ratio')}
+                    secondaryBtnText={i18next.t('label.continue')}
+                    primaryBtnText={i18next.t('label.check_again')}
+                    message={i18next.t('label.not_optimal_ratio_message')}
+                />
                 <CustomButton
                     label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
-                    pressHandler={submitHandler}
+                    pressHandler={validateData}
                     hideFadeIn
                 />
             </AvoidSoftInputView>

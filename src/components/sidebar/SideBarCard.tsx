@@ -39,31 +39,35 @@ const SideBarCard = (props: Props) => {
   }
 
   const handleLogout = async () => {
-    await logoutUser()
-    dispatch(resetProjectState())
-    dispatch(updateUserLogin(false))
-    dispatch(resetUserDetails())
-    dispatch(logoutAppUser())
-    dispatch(updateNewIntervention())
+    try {
+      await logoutUser()
+      dispatch(resetProjectState())
+      dispatch(updateUserLogin(false))
+      dispatch(resetUserDetails())
+      dispatch(logoutAppUser())
+      dispatch(updateNewIntervention())
+    } catch (error) {
+      console.log("Error occurred while logout")
   }
+}
 
-  if (!visible) {
-    return null
-  }
+if (!visible) {
+  return null
+}
 
-  return (
-    <Pressable style={styles.container} onPress={handleNavigation}>
-      <View style={[styles.wrapper, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
-        <View style={styles.iconWrapper}>{icon}</View>
-        <View style={styles.labelWrapper}>
-          <Text style={styles.label}>{label}</Text>
-        </View>
-        <View style={styles.arrowWrapper}>
-          <CtaArrow />
-        </View>
+return (
+  <Pressable style={styles.container} onPress={handleNavigation}>
+    <View style={[styles.wrapper, { opacity: disable ? 0.5 : 1, backgroundColor: disable ? Colors.BACKDROP_COLOR : 'white' }]}>
+      <View style={styles.iconWrapper}>{icon}</View>
+      <View style={styles.labelWrapper}>
+        <Text style={styles.label}>{label}</Text>
       </View>
-    </Pressable>
-  )
+      <View style={styles.arrowWrapper}>
+        <CtaArrow />
+      </View>
+    </View>
+  </Pressable>
+)
 }
 
 export default SideBarCard

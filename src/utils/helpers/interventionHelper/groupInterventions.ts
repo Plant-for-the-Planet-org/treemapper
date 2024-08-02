@@ -12,7 +12,7 @@ interface FinalObject {
 
 export const groupIntervention = (data: any[] | InterventionData[]) => {
   const finalObject: FinalObject = {};
-  const incompleteKey  = i18next.t('label.incomplete')
+  const incompleteKey = i18next.t('label.incomplete')
   finalObject[i18next.t('label.all')] = {
     count: data.length,
     id: 'all',
@@ -27,21 +27,22 @@ export const groupIntervention = (data: any[] | InterventionData[]) => {
   };
 
   for (const item of data) {
+    const incrementedCount = finalObject[incompleteKey].count + 1
     if (!item.is_complete) {
       finalObject[incompleteKey] = {
-        count: (finalObject[incompleteKey].count += 1),
+        count: incrementedCount,
         ...finalObject[incompleteKey],
       };
     }
     if (item.status !== 'SYNCED' && item.is_complete) {
       finalObject['Unsynced'] = {
-        count: finalObject['Unsynced'].count += 1,
+        count: incrementedCount,
         ...finalObject['Unsynced'],
       };
     }
     if (finalObject[item.intervention_title]) {
       finalObject[item.intervention_title] = {
-        count: (finalObject[item.intervention_title].count += 1),
+        count: incrementedCount,
         ...finalObject[item.intervention_title],
       };
     } else {

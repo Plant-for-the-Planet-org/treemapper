@@ -11,6 +11,7 @@ import Snackbar from 'react-native-snackbar'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { updateWebAuthLoading } from 'src/store/slice/tempStateSlice'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
+import Bugsnag from '@bugsnag/expo'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -40,6 +41,7 @@ const LoginButton = () => {
     if (userDetails) {
       loginAndUpdateDetails(userDetails)
     } else {
+      Bugsnag.notify("/app/profile failed to fetch user details")
       dispatch(updateWebAuthLoading(false))
     }
   }
@@ -77,12 +79,16 @@ const LoginButton = () => {
 
 
   const handleLogout = async () => {
-    await logoutUser()
-    dispatch(resetProjectState())
-    dispatch(updateUserLogin(false))
-    dispatch(resetUserDetails())
-    dispatch(logoutAppUser())
-    dispatch(updateNewIntervention())
+    try {
+      await logoutUser()
+      dispatch(resetProjectState())
+      dispatch(updateUserLogin(false))
+      dispatch(resetUserDetails())
+      dispatch(logoutAppUser())
+      dispatch(updateNewIntervention())
+    } catch (error) {
+      console.log("Error occurred while logout")
+    }
   }
 
 

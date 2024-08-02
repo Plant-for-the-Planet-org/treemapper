@@ -32,6 +32,8 @@ const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, callBack 
       {showPicker && (
         <View style={styles.dateStyle}>
           <DateTimePicker
+            maximumDate={new Date()}
+            minimumDate={new Date(2006, 0, 1)}
             value={new Date(value)}
             onChange={onDateSelect}
             display="spinner"

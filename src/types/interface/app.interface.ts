@@ -66,7 +66,7 @@ export interface Metadata{
 }
 
 
-export interface IAdditonalDetailsForm{
+export interface IAdditionalDetailsForm{
   form_id: string,
   order:  number,
   elements: FormElement[],

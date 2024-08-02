@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { IAdditonalDetailsForm } from 'src/types/interface/app.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 
 const useAdditionalForm = () => {
@@ -13,7 +13,7 @@ const useAdditionalForm = () => {
     try {
       realm.write(() => {
         realm.create(
-          RealmSchema.AdditonalDetailsForm,
+          RealmSchema.AdditionalDetailsForm,
           { form_id, order },
           Realm.UpdateMode.All,
         )
@@ -31,7 +31,7 @@ const useAdditionalForm = () => {
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
+        const formDetails = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id)
         formDetails.elements = [...formDetails.elements, elementDetails]
       })
       return Promise.resolve(true)
@@ -47,7 +47,7 @@ const useAdditionalForm = () => {
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
+        const formDetails = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id)
         const filterData = formDetails.elements.filter(el => el.element_id !== element_id)
         formDetails.elements = filterData
         const myData = filterData.filter(el => el.element_id === element_id)
@@ -62,12 +62,12 @@ const useAdditionalForm = () => {
 
 
   const updateFormDetails = async (
-    updatedDetails: IAdditonalDetailsForm,
+    updatedDetails: IAdditionalDetailsForm,
     form_id: string
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
+        const formDetails = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id)
         formDetails.elements = updatedDetails.elements
         formDetails.description = updatedDetails.description
         formDetails.title = updatedDetails.title
@@ -81,13 +81,13 @@ const useAdditionalForm = () => {
   }
 
   const bulkFormAddition = async (
-    data: IAdditonalDetailsForm[]
+    data: IAdditionalDetailsForm[]
   ): Promise<boolean> => {
     try {
       realm.write(() => {
         data.forEach(el => {
           realm.create(
-            RealmSchema.AdditonalDetailsForm,
+            RealmSchema.AdditionalDetailsForm,
             el,
             Realm.UpdateMode.All,
           )
@@ -107,7 +107,7 @@ const useAdditionalForm = () => {
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        const formDetails = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, form_id)
+        const formDetails = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, form_id)
         const myData = formDetails.elements.filter(el => el.element_id === element_id);
         myData[0].index = data.index
         myData[0].key = data.key
@@ -131,7 +131,7 @@ const useAdditionalForm = () => {
   const deleteForm = async (id: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const form = realm.objectForPrimaryKey<IAdditonalDetailsForm>(RealmSchema.AdditonalDetailsForm, id);
+        const form = realm.objectForPrimaryKey<IAdditionalDetailsForm>(RealmSchema.AdditionalDetailsForm, id);
         realm.delete(form);
       });
       return true    } catch (error) {
@@ -144,7 +144,7 @@ const useAdditionalForm = () => {
   ): Promise<boolean> => {
     try {
       realm.write(() => {
-        const data = realm.objects(RealmSchema.AdditonalDetailsForm);
+        const data = realm.objects(RealmSchema.AdditionalDetailsForm);
         realm.delete(data)
       })
       return Promise.resolve(true)

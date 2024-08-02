@@ -47,7 +47,7 @@ const CarouselItem = (props: Props) => {
       onPress(data.intervention_id)
     }}>
       <View style={styles.imageWrapper}>
-        <InterventionIconSwitch icon={data.intervention_key} dimension={true} />
+        <InterventionIconSwitch icon={data.intervention_key} dimension={false} />
       </View>
       <View style={styles.sectionWrapper}>
         <Text style={styles.sectionLabel}>{i18next.t("label.intervention")}</Text>
