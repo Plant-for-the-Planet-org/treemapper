@@ -19,7 +19,7 @@ const WrappedSvg = () => (
       <Defs>
         <Mask id="mask" x="0" y="0" height="100%" width="100%">
           <Rect height="100%" width="100%" fill="#fff" />
-          <Circle r={windowWidth /10} cx={windowWidth / 9} cy="-2 " />
+          <Circle r={windowWidth /9} cx={windowWidth / 9} cy="-2 " />
         </Mask>
       </Defs>
       <Rect height="100%" width="100%" fill="white" mask="url(#mask)" fill-opacity="0" />
