@@ -29,7 +29,6 @@ import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 import { useToast } from 'react-native-toast-notifications'
 
 
-const { width, height } = Dimensions.get('screen')
 
 interface Props {
   visible: boolean
@@ -115,7 +114,7 @@ const AddOptionModal = (props: Props) => {
   const calcComponents = useMemo(() => {
     return addOptions.map((option) => (
       <TouchableOpacity
-      key={String(option.title)}
+        key={String(option.title)}
         style={styles.addButtonOptionWrap}
         disabled={option.disabled}
         onPress={option.onPress}>
@@ -138,12 +137,9 @@ const AddOptionModal = (props: Props) => {
         <TouchableOpacity
           onPress={() => props.setVisible(false)}
           style={{
-            height,
-            width,
+            width: Dimensions.get('window').width,
             position: 'absolute',
             zIndex: 10,
-            left: -width + 100,
-            top: -height + 100
           }}
         />
       )}
@@ -152,15 +148,15 @@ const AddOptionModal = (props: Props) => {
           {
             overflow: 'hidden',
             position: 'absolute',
-            right: scaleSize(20),
-            bottom: scaleSize(120),
+            right: 10,
+            bottom:70,
             backgroundColor: 'white',
             borderRadius: 12,
             elevation: 4,
-            paddingLeft: scaleSize(15),
-            paddingRight: scaleSize(15),
-            paddingVertical: scaleSize(10),
-            width: scaleSize(220),
+            paddingLeft: 15,
+            paddingRight: 15,
+            paddingVertical: 10,
+            width: 240,
             zIndex: 10,
           },
           animatedStyles,

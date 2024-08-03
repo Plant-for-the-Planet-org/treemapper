@@ -68,7 +68,7 @@ const BottomStack = () => {
         name="Add"
         component={Blank}
         options={{
-          tabBarIcon: addIcon
+          tabBarButton: addIcon,
         }}
       />
     </BottomTabStack.Navigator>
@@ -83,9 +83,11 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     borderTopWidth: 0,
-    width: '100%',
-    height: 100,
+    // width: '100%',
+    // height: 100,
     position: 'absolute',
     elevation: 0,
+    width: '100%',
+    height: 100,
   },
 })
