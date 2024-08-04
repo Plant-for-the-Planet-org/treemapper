@@ -148,19 +148,26 @@ const ReviewTreeDetails = () => {
 
         const handleHeightValidation = () => {
             if (validate) {
-                const validationObject = measurementValidation(
-                    openEditModal.value,
-                    treeDetails.specie_diameter,
-                    isNonISUCountry,
-                );
-                setInputErrorMessage(validationObject.heightErrorMessage);
-                setShowInputError(!!validationObject.heightErrorMessage);
-                hasError = validationObject.heightErrorMessage.length > 0
-                if (!validationObject.isRatioCorrect) {
-                    setShowIncorrectRatioAlert(true);
-                    return true;
+                const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+                const isValid = regex.test(openEditModal.value)
+                if(isValid){
+                    const validationObject = measurementValidation(
+                        openEditModal.value,
+                        treeDetails.specie_diameter,
+                        isNonISUCountry,
+                    );
+                    setInputErrorMessage(validationObject.heightErrorMessage);
+                    setShowInputError(!!validationObject.heightErrorMessage);
+                    hasError = validationObject.heightErrorMessage.length > 0
+                    if (!validationObject.isRatioCorrect) {
+                        setShowIncorrectRatioAlert(true);
+                        return true;
+                    }
+                    finalDetails.specie_height = Number(openEditModal.value)
+                }else{
+                    setInputErrorMessage("Please input correct height");
+                    setShowInputError(true);
                 }
-                finalDetails.specie_height = Number(openEditModal.value)
             } else {
                 finalDetails.specie_height = Number(openEditModal.value)
             }
@@ -169,19 +176,26 @@ const ReviewTreeDetails = () => {
 
         const handleDiameterValidation = () => {
             if (validate) {
-                const validationObject = measurementValidation(
-                    treeDetails.specie_height,
-                    openEditModal.value,
-                    isNonISUCountry,
-                );
-                setInputErrorMessage(validationObject.diameterErrorMessage);
-                setShowInputError(!!validationObject.diameterErrorMessage);
-                hasError = validationObject.diameterErrorMessage.length > 0
-                if (!validationObject.isRatioCorrect) {
-                    setShowIncorrectRatioAlert(true);
-                    return true;
+                const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+                const isValid = regex.test(openEditModal.value)
+                if(isValid){
+                    const validationObject = measurementValidation(
+                        treeDetails.specie_height,
+                        openEditModal.value,
+                        isNonISUCountry,
+                    );
+                    setInputErrorMessage(validationObject.diameterErrorMessage);
+                    setShowInputError(!!validationObject.diameterErrorMessage);
+                    hasError = validationObject.diameterErrorMessage.length > 0
+                    if (!validationObject.isRatioCorrect) {
+                        setShowIncorrectRatioAlert(true);
+                        return true;
+                    }
+                    finalDetails.specie_diameter = Number(openEditModal.value)
+                }else{
+                    setInputErrorMessage("Please input correct diameter");
+                    setShowInputError(true);
                 }
-                finalDetails.specie_diameter = Number(openEditModal.value)
             } else {
                 finalDetails.specie_diameter = Number(openEditModal.value)
             }
@@ -189,7 +203,15 @@ const ReviewTreeDetails = () => {
         };
 
         const handleTagValidation = () => {
+            const regex = /[^a-zA-Z0-9]/g;
+            const isValidId = regex.test(openEditModal.value) 
+            if(isValidId){
+                setInputErrorMessage("Please input a valid TagId");
+                setShowInputError(true);
+                return false
+            }
             finalDetails.tag_id = openEditModal.value;
+            return true
         };
 
         switch (openEditModal.label) {

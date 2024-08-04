@@ -112,42 +112,35 @@ const TreeRemeasurementView = () => {
 
     const handleHeightChange = (text: string) => {
         setHeightErrorMessage('');
-        // Replace commas with dots for consistency
-        const sanitizedText = text.replace(/,/g, '.');
-
-        // Allow only digits and a single decimal point
-        const validHeight = sanitizedText.replace(/[^0-9.]/g, '');
-
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const isValid = regex.test(text)
         // Ensure there is at most one decimal point
-        const decimalCount = validHeight.split('.').length - 1;
-        if (decimalCount <= 1) {
-            setHeight(validHeight);
-            const convertedHeight = height ? getConvertedHeight(validHeight, isNonISUCountry) : 0;
-            if (convertedHeight < DBHInMeter) {
-                setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
-            } else {
-                setDiameterLabel(i18next.t('label.measurement_DBH'));
-            }
+        if (isValid) {
+          setHeight(text);
+          const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+          if (convertedHeight < DBHInMeter) {
+            setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+          } else {
+            setDiameterLabel(i18next.t('label.measurement_DBH'));
+          }
+        } else {
+          setHeightErrorMessage('Please provide the correct height.')
         }
-    };
-
-    const handleDiameterChange = (text: string) => {
+      };
+    
+      const handleDiameterChange = (text: string) => {
         setWidthErrorMessage('');
-        // Replace commas with dots for consistency
-        const sanitizedText = text.replace(/,/g, '.');
-
-        // Allow only digits and a single decimal point
-        const validDiameter = sanitizedText.replace(/[^0-9.]/g, '');
-
-        // Ensure there is at most one decimal point
-        const decimalCount = validDiameter.split('.').length - 1;
-        if (decimalCount <= 1) {
-            setWidth(validDiameter);
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const isValid = regex.test(text)
+        if (isValid) {
+          setWidth(text);
+        } else {
+          setWidthErrorMessage('Please provide the correct diameter.')
         }
-    };
-
-
-
+        // Ensure there is at most one decimal point
+    
+      };
+    
     const takePicture = () => {
         const newID = String(new Date().getTime())
         setImageId(newID)
