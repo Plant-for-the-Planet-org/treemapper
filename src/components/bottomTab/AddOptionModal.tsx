@@ -4,6 +4,7 @@ import {
   View,
   Text,
   Dimensions,
+  Pressable,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -27,7 +28,11 @@ import Intervention from 'assets/images/svg/InterventionIcon.svg'
 import ChartIcon from 'assets/images/svg/ChartIcon.svg'
 import CrossArrow from 'assets/images/svg/CrossArrowIcon.svg'
 import { useToast } from 'react-native-toast-notifications'
-
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import EyeIcon from 'assets/images/svg/EyeIcon.svg'
+import DropDownIcon from 'assets/images/svg/DownIcon.svg'
+import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 
 
 interface Props {
@@ -39,7 +44,8 @@ const AddOptionModal = (props: Props) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(props.visible ? 0 : 600, { duration: 500 })
   }, [props.visible])
-
+  const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
+  const dispatch =  useDispatch()
   const opacity = useDerivedValue(() => {
     return withTiming(props.visible ? 1 : 0, {
       duration: props.visible ? 700 : 100,
@@ -58,9 +64,9 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: false,
+      coming_soon: true,
       onPress: () => {
-        navigation.navigate('CreatePlot')
+        toast.show(i18next.t('label.coming_soon'))
         props.setVisible(false)
       },
       disabled: false,
@@ -111,6 +117,10 @@ const AddOptionModal = (props: Props) => {
     },
   ]
 
+  const toggleModal=()=>{
+    dispatch(updateProjectModal(true))
+  }
+
   const calcComponents = useMemo(() => {
     return addOptions.map((option) => (
       <TouchableOpacity
@@ -130,49 +140,54 @@ const AddOptionModal = (props: Props) => {
       </TouchableOpacity>
     ))
   }, [addOptions])
-
+  const ProjectName = currentProject.projectName || ''
   return (
-    <>
-      {props.visible && (
-        <TouchableOpacity
-          onPress={() => props.setVisible(false)}
-          style={{
-            width: Dimensions.get('window').width,
-            position: 'absolute',
-            zIndex: 10,
-          }}
-        />
-      )}
-      <Animated.View
-        style={[
-          {
-            overflow: 'hidden',
-            position: 'absolute',
-            right: 10,
-            bottom:70,
-            backgroundColor: 'white',
-            borderRadius: 12,
-            elevation: 4,
-            paddingLeft: 15,
-            paddingRight: 15,
-            paddingVertical: 10,
-            width: 240,
-            zIndex: 10,
-          },
-          animatedStyles,
-        ]}>
-        <Animated.View style={{ zIndex: 10 }}>{calcComponents}</Animated.View>
-      </Animated.View>
-    </>
+    <Animated.View
+      style={[
+        styles.container,
+        animatedStyles,
+      ]}>
+      <Animated.View style={{ zIndex: 10 }}><>
+        <View style={[styles.projectContainer, { paddingVertical: ProjectName ? 3 : 8 }]}>
+          {!!ProjectName && <Pressable style={styles.projectWrapper} onPress={toggleModal}>
+            <View style={styles.eyeIconWrapper}>
+              <EyeIcon />
+            </View>
+            <View style={styles.projectSection}>
+              <Text style={styles.projectLabel}>Project</Text>
+              <Text style={styles.projectName}>{ProjectName}</Text>
+            </View>
+            <View style={styles.projectDown}>
+              <View style={styles.divider}/>
+              <DropDownIcon/>
+            </View>
+          </Pressable>
+          }</View>
+        {calcComponents}</></Animated.View>
+    </Animated.View>
   )
 }
 
 export default AddOptionModal
 
 const styles = StyleSheet.create({
+  container: {
+    overflow: 'hidden',
+    position: 'absolute',
+    right: 10,
+    bottom: 90,
+    paddingBottom: 10,
+    backgroundColor: 'white',
+    borderRadius: 12,
+    elevation: 4,
+    width: Dimensions.get('window').width / 1.5,
+    zIndex: 10,
+  },
   addButtonOptionWrap: {
     borderRadius: 8,
     marginVertical: scaleFont(5),
+    paddingLeft: 15,
+    paddingRight: 15,
   },
   addButtonOption: {
     backgroundColor: Colors.PRIMARY + '1A',
@@ -197,4 +212,36 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.NEW_PRIMARY,
   },
+  projectContainer: {
+    width: "100%", justifyContent: 'center', alignItems: 'center'
+  },
+  projectWrapper: {
+    width: '98%', height: 50, backgroundColor: Colors.PRIMARY + '1A', borderTopLeftRadius: 10, borderTopRightRadius: 10, flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 20
+  },
+  eyeIconWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+  projectSection: {
+    flex: 1,
+    paddingHorizontal: 10
+  },
+  projectLabel: {
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.NEW_PRIMARY,
+  },
+  projectName: {
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+  },
+  divider: {
+    flex: 1
+  },
+  projectDown: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom:15
+  }
 })

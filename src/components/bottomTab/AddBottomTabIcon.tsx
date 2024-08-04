@@ -19,7 +19,7 @@ const WrappedSvg = () => (
       <Defs>
         <Mask id="mask" x="0" y="0" height="100%" width="100%">
           <Rect height="100%" width="100%" fill="#fff" />
-          <Circle r={windowWidth /9} cx={windowWidth / 9} cy="-2 " />
+          <Circle r={windowWidth / 9} cx={windowWidth / 9} cy="-2 " />
         </Mask>
       </Defs>
       <Rect height="100%" width="100%" fill="white" mask="url(#mask)" fill-opacity="0" />
@@ -44,8 +44,12 @@ const AddBottomTabIcon = () => {
     setOpen(prev => !prev)
   }
   return (
-    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-      <View style={{ width:windowWidth / 4, height: '100%', position: 'absolute' }}>
+    <View style={{ flex: 1, justifyContent:"center" }}>
+      {open && <Pressable
+        onPress={() => { setOpen(false) }}
+        style={styles.bakDrop}
+      />}
+      <View style={{ width: windowWidth / 4, height: '100%', position: 'absolute' }}>
         <WrappedSvg />
       </View>
       <Pressable
@@ -81,30 +85,29 @@ const styles = StyleSheet.create({
     backgroundColor: "white"
   },
   addIconContainer: {
-    width: windowWidth / 6,
-    height: windowWidth / 6,
+    width: windowWidth / 5.5,
+    height: windowWidth / 5.5,
     backgroundColor: Colors.WHITE,
     borderRadius: windowWidth / 6,
     justifyContent: 'center',
     alignItems: "center",
     position: 'absolute',
     top: -windowWidth / 10,
-    left: '11%'
+    left: '8%'
   },
   iconWrapper: {
     // marginBottom:5
   },
   labelContainer: {
-    width:'100%',
-    paddingTop:'40%'
+    width: '100%',
+    paddingTop: '40%'
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: 13,
-    textAlign:'center',
-    paddingRight:'15%',
+    textAlign: 'center',
+    paddingRight: '15%',
   },
-
   bottomBar: {
     position: 'absolute',
     bottom: -20,
@@ -112,5 +115,13 @@ const styles = StyleSheet.create({
     width: '100%',
     backgroundColor: 'white',
     zIndex: -1
+  },
+  bakDrop: {
+    position: 'absolute',
+    zIndex: -1,
+    width: Dimensions.get('screen').width,
+    height: Dimensions.get('screen').height,
+    top: -Dimensions.get('screen').height,
+    left: -Dimensions.get('screen').width + 100,
   }
 })

@@ -18,6 +18,7 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
+import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 
 interface Props {
   isVisible: boolean
@@ -46,6 +47,9 @@ const ProjectModal = (props: Props) => {
   const realm = useRealm()
   const { currentProject, projectSite, projectAdded } = useSelector(
     (state: RootState) => state.projectState,
+  )
+  const { toggleProjectModal } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
 
   const dispatch = useDispatch()
@@ -86,6 +90,13 @@ const ProjectModal = (props: Props) => {
     }
   }, [projectAdded])
 
+  useEffect(() => {
+    if (toggleProjectModal) {
+      handlePresentModalPress()
+    }
+  }, [toggleProjectModal])
+
+
   const handelSiteSelection = (id: string, item: any) => {
     dispatch(
       updateProjectSite({
@@ -93,17 +104,19 @@ const ProjectModal = (props: Props) => {
         id,
       }),
     )
-
-    const geometry = JSON.parse(item?.geometry)
-    const bounds = bbox(geometry)
-    dispatch(
-      updateMapBounds({
-        bounds: bounds,
-        key: 'DISPLAY_MAP',
-      }),
-    )
     dismiss()
     toggleModal()
+    dispatch(updateProjectModal(false))
+    if (!toggleProjectModal) {
+      const geometry = JSON.parse(item?.geometry)
+      const bounds = bbox(geometry)
+      dispatch(
+        updateMapBounds({
+          bounds: bounds,
+          key: 'DISPLAY_MAP',
+        }),
+      )
+    }
   }
 
   const handleProjectSelection = (data: {
@@ -141,6 +154,7 @@ const ProjectModal = (props: Props) => {
   const closeModal = () => {
     toggleModal()
     dismiss();
+    dispatch(updateProjectModal(false))
   }
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
@@ -172,7 +186,7 @@ const ProjectModal = (props: Props) => {
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
               <ZoomSiteIcon style={styles.iconWrapper} />
-              <Text style={styles.headerLabel}>{i18next.t('label.zoom_to_site')}</Text>
+              <Text style={styles.headerLabel}>{toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
                 <CloseIcon />

@@ -123,7 +123,8 @@ export interface DisplayMapSlice {
   selectedFilters: INTERVENTION_TYPE[]
   mainMapView: MAP_VIEW
   showPlots: boolean
-  onlyRemeasurement: boolean
+  onlyRemeasurement: boolean,
+  toggleProjectModal: boolean
 }
 
 export interface ProjectStateSlice {
