@@ -102,20 +102,21 @@ const AddMeasurement = () => {
     setHeightErrorMessage(heightErrorMessage)
     setWidthErrorMessage(diameterErrorMessage)
     let isTagIdValid = false;
-    // checks if tag id is present and sets error accordingly
-    if (tagEnable && !tagId) {
-      setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
-    } else {
-      const regex = /[^a-zA-Z0-9]/g;
-      const isValidId = regex.test(tagId) 
-      if(!isValidId){
-        setTagIdErrorMessage(i18next.t('Please input a valid id.'));
-        isTagIdValid = false;
+    if(tagEnable){
+      if(tagId.length===0){
+        setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
       }else{
-        setTagIdErrorMessage('');
-        isTagIdValid = true;
+        const regex = /[^a-zA-Z0-9]/g;
+        const isValidId = regex.test(tagId) 
+        if(!isValidId){
+          setTagIdErrorMessage(i18next.t('Please input a valid id.'));
+        }
       }
+    }else{
+      setTagIdErrorMessage('');
+      isTagIdValid = true;
     }
+
     // if all fields are valid then updates the specie data in DB
     if (!diameterErrorMessage && !heightErrorMessage && isTagIdValid) {
       if (isRatioCorrect) {
