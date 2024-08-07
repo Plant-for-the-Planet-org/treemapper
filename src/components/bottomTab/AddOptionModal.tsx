@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { StackNavigationProp } from '@react-navigation/stack'
-import React, { useMemo } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import i18next from 'src/locales'
 import * as Colors from 'src/utils/constants/colors'
 import * as Typography from 'src/utils/constants/typography'
@@ -45,7 +45,9 @@ const AddOptionModal = (props: Props) => {
     return withTiming(props.visible ? 0 : 600, { duration: 500 })
   }, [props.visible])
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
-  const dispatch =  useDispatch()
+  const userType = useSelector((state: RootState) => state.userState.type)
+
+  const dispatch = useDispatch()
   const opacity = useDerivedValue(() => {
     return withTiming(props.visible ? 1 : 0, {
       duration: props.visible ? 700 : 100,
@@ -59,6 +61,19 @@ const AddOptionModal = (props: Props) => {
   const toast = useToast()
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  useEffect(() => {
+    checkWhetherProjectIsSelected()
+  }, [props.visible])
+
+  const checkWhetherProjectIsSelected = () => {
+    if (userType === 'tpo' && currentProject.projectId === '' && props.visible) {
+      toggleModal()
+      return false
+    }
+    return true;
+  }
+
 
   const addOptions = [
     {
@@ -86,8 +101,10 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.interventions'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm')
-        props.setVisible(false)
+        if (checkWhetherProjectIsSelected()) {
+          navigation.navigate('InterventionForm')
+          props.setVisible(false)
+        }
       },
       disabled: false,
     },
@@ -96,10 +113,12 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.single_tree'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {
-          id: 'single-tree-registration',
-        })
-        props.setVisible(false)
+        if (checkWhetherProjectIsSelected()) {
+          navigation.navigate('InterventionForm', {
+            id: 'single-tree-registration',
+          })
+          props.setVisible(false)
+        }
       },
       disabled: false,
     },
@@ -108,16 +127,18 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.multiple_trees'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('InterventionForm', {
-          id: 'multi-tree-registration',
-        })
-        props.setVisible(false)
+        if (checkWhetherProjectIsSelected()) {
+          navigation.navigate('InterventionForm', {
+            id: 'multi-tree-registration',
+          })
+          props.setVisible(false)
+        }
       },
       disabled: false,
     },
   ]
 
-  const toggleModal=()=>{
+  const toggleModal = () => {
     dispatch(updateProjectModal(true))
   }
 
@@ -158,8 +179,8 @@ const AddOptionModal = (props: Props) => {
               <Text style={styles.projectName}>{ProjectName}</Text>
             </View>
             <View style={styles.projectDown}>
-              <View style={styles.divider}/>
-              <DropDownIcon/>
+              <View style={styles.divider} />
+              <DropDownIcon />
             </View>
           </Pressable>
           }</View>
@@ -242,6 +263,6 @@ const styles = StyleSheet.create({
   projectDown: {
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom:15
+    marginBottom: 15
   }
 })

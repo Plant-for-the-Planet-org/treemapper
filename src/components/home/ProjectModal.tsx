@@ -64,18 +64,12 @@ const ProjectModal = (props: Props) => {
     })
     if (ProjectData.length > 0) {
       setProjectData(ProjectData)
-      setSelectedProject(ProjectData[0])
-
-      if (data.length && data[0].sites) {
-        setProjectSites(data[0].sites)
-      }
-      if (currentProject.projectId === '') {
-        dispatch(
-          updateCurrentProject({
-            name: ProjectData[0].label,
-            id: ProjectData[0].value,
-          }),
-        )
+      if (currentProject.projectId !== '') {
+        const indexOf = ProjectData.findIndex(obj => obj.id === '');
+        if (indexOf >= 0) {
+          setSelectedProject(ProjectData[indexOf])
+          setProjectSites(data[indexOf].sites)
+        }
       }
     }
   }
