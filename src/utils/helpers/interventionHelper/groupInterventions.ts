@@ -12,9 +12,16 @@ export const groupIntervention = (data: InterventionData[]) => {
   const finalObject: FinalObject = {
     All: { count: data.length, id: 'all' },
     Incomplete: { count: 0, id: 'incomplete' },
+    Unsynced: {
+      count: 0,
+      id: 'unsync',
+    }
   };
 
-  data.forEach(({ is_complete, intervention_title, intervention_key }) => {
+  
+
+
+  data.forEach(({ is_complete, intervention_title, intervention_key, status }) => {
     if (!is_complete) {
       finalObject['Incomplete'].count += 1;
     }
@@ -22,6 +29,12 @@ export const groupIntervention = (data: InterventionData[]) => {
       finalObject[intervention_title].count += 1;
     } else {
       finalObject[intervention_title] = { count: 1, id: intervention_key };
+    }
+    if (status !== 'SYNCED' && is_complete) {
+      finalObject['Unsynced'] = {
+        count: (finalObject['Unsynced'].count += 1),
+        ...finalObject['Unsynced'],
+      }
     }
   });
 
