@@ -36,12 +36,9 @@ const EditInputModal = ({
   placeholder = '',
   returnKeyType = 'default',
 }: IInputModalProps) => {
-
   const textInput = useRef<TextInput>(null);
   const setFocus = () => {
-    setTimeout(() => {
-      textInput?.current.focus();
-    }, 300)
+    textInput?.current.focus();
   }
   return (
     <Modal

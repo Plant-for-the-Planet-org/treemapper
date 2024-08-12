@@ -26,7 +26,7 @@ const InterventionView = () => {
 
   const getQuery = (label) => {
     if (label === 'unsync') {
-      return 'status != "SYNCED" AND is_complete == true';
+      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
     } else if (label === 'incomplete') {
       return 'is_complete==false';
     } else if (label === 'all') {

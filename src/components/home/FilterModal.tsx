@@ -112,7 +112,7 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLabel}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
+              <Switch value={false} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={true} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.intervention')}</Text>

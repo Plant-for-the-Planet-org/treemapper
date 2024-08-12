@@ -147,65 +147,64 @@ const ReviewTreeDetails = () => {
         let hasError = false;
 
         const handleHeightValidation = () => {
-            if (validate) {
-                const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-                const isValid = regex.test(openEditModal.value)
-                if(isValid){
-                    const validationObject = measurementValidation(
-                        openEditModal.value,
-                        treeDetails.specie_diameter,
-                        isNonISUCountry,
-                    );
-                    setInputErrorMessage(validationObject.heightErrorMessage);
-                    setShowInputError(!!validationObject.heightErrorMessage);
-                    hasError = validationObject.heightErrorMessage.length > 0
-                    if (!validationObject.isRatioCorrect) {
+            const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+            const isValid = regex.test(openEditModal.value)
+            if (isValid) {
+                const validationObject = measurementValidation(
+                    openEditModal.value,
+                    treeDetails.specie_diameter,
+                    isNonISUCountry,
+                );
+                setInputErrorMessage(validationObject.heightErrorMessage);
+                setShowInputError(!!validationObject.heightErrorMessage);
+                hasError = validationObject.heightErrorMessage.length > 0
+                if (!hasError) {
+                    if (validate && !validationObject.isRatioCorrect) {
                         setShowIncorrectRatioAlert(true);
-                        return true;
+                        hasError = true
+                    } else {
+                        finalDetails.specie_height = Number(openEditModal.value)
                     }
-                    finalDetails.specie_height = Number(openEditModal.value)
-                }else{
-                    setInputErrorMessage("Please input correct height");
-                    setShowInputError(true);
                 }
             } else {
-                finalDetails.specie_height = Number(openEditModal.value)
+                setInputErrorMessage("Please input correct height");
+                setShowInputError(true);
+                hasError = true
             }
-            return false;
         };
 
         const handleDiameterValidation = () => {
-            if (validate) {
-                const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-                const isValid = regex.test(openEditModal.value)
-                if(isValid){
-                    const validationObject = measurementValidation(
-                        treeDetails.specie_height,
-                        openEditModal.value,
-                        isNonISUCountry,
-                    );
-                    setInputErrorMessage(validationObject.diameterErrorMessage);
-                    setShowInputError(!!validationObject.diameterErrorMessage);
-                    hasError = validationObject.diameterErrorMessage.length > 0
-                    if (!validationObject.isRatioCorrect) {
+            const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+            const isValid = regex.test(openEditModal.value)
+            if (isValid) {
+                const validationObject = measurementValidation(
+                    treeDetails.specie_height,
+                    openEditModal.value,
+                    isNonISUCountry,
+                );
+                setInputErrorMessage(validationObject.diameterErrorMessage);
+                setShowInputError(!!validationObject.diameterErrorMessage);
+                hasError = validationObject.diameterErrorMessage.length > 0
+                if (!hasError) {
+                    if (!validationObject.isRatioCorrect && validate) {
                         setShowIncorrectRatioAlert(true);
-                        return true;
+                        hasError = true
+                    } else {
+                        finalDetails.specie_diameter = Number(openEditModal.value)
                     }
-                    finalDetails.specie_diameter = Number(openEditModal.value)
-                }else{
-                    setInputErrorMessage("Please input correct diameter");
-                    setShowInputError(true);
                 }
             } else {
-                finalDetails.specie_diameter = Number(openEditModal.value)
+                setInputErrorMessage("Please input correct diameter");
+                setShowInputError(true);
+                hasError = true
             }
             return false;
         };
 
         const handleTagValidation = () => {
             const regex = /[^a-zA-Z0-9]/g;
-            const isValidId = regex.test(openEditModal.value) 
-            if(isValidId){
+            const isValidId = regex.test(openEditModal.value)
+            if (isValidId) {
                 setInputErrorMessage("Please input a valid TagId");
                 setShowInputError(true);
                 return false
@@ -216,10 +215,18 @@ const ReviewTreeDetails = () => {
 
         switch (openEditModal.label) {
             case 'height':
-                if (handleHeightValidation()) return;
+                if (!validate) {
+                    finalDetails.specie_height = Number(openEditModal.value)
+                } else {
+                    handleHeightValidation()
+                }
                 break;
             case 'diameter':
-                if (handleDiameterValidation()) return;
+                if (!validate) {
+                    finalDetails.specie_diameter = Number(openEditModal.value)
+                } else {
+                    handleDiameterValidation()
+                }
                 break;
             case 'treetag':
                 handleTagValidation();
@@ -227,12 +234,11 @@ const ReviewTreeDetails = () => {
             default:
                 break;
         }
-
         if (!hasError) {
             await updateSampleTreeDetails(finalDetails)
             setTreeDetails({ ...finalDetails })
         }
-        setOpenEditModal({ label: '', value: '', type: 'default', open: false });
+        setOpenEditModal((prev) => ({ ...prev, open: false }));
     };
 
 
@@ -299,7 +305,6 @@ const ReviewTreeDetails = () => {
                 maximumDate={new Date()}
                 minimumDate={new Date(2006, 0, 1)}
                 is24Hour={true}
-                timeZoneOffsetInMinutes={0}
                 value={new Date(treeDetails.plantation_date)} onChange={onDateSelect} display='spinner' /></View>}
             <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
@@ -325,7 +330,7 @@ const ReviewTreeDetails = () => {
                             if (showEdit && synced) {
                                 return
                             }
-                            openEdit('height', String(treeDetails.specie_height), 'number-pad')
+                            openEdit('height', String(treeDetails.specie_height), 'decimal-pad')
                         }}>
                             <HeightIcon width={14} height={20} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>
@@ -340,7 +345,7 @@ const ReviewTreeDetails = () => {
                             if (showEdit && synced) {
                                 return
                             }
-                            openEdit('diameter', String(treeDetails.specie_diameter), 'number-pad')
+                            openEdit('diameter', String(treeDetails.specie_diameter), 'decimal-pad')
                         }}>
                             <WidthIcon width={18} height={8} style={styles.iconWrapper} />
                             <Text style={styles.valueLabel}>

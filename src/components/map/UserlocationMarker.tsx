@@ -1,13 +1,13 @@
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useEffect } from 'react'
 import UserLocationIcon from 'assets/images/svg/InactiveUserLocationIcon.svg'
-import { scaleSize } from 'src/utils/constants/mixins'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 
 
 interface Props {
   stopAutoFocus?: boolean
 }
+const windowWidth = Dimensions.get('window').width;
 
 const UserlocationMarker = (props: Props) => {
   const { stopAutoFocus } = props
@@ -28,14 +28,14 @@ const UserlocationMarker = (props: Props) => {
   )
 }
 
-export default UserlocationMarker
+export default React.memo(UserlocationMarker)
 
 const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1,
-    right:'6%',
-    bottom: scaleSize(140),
+    right: '6.5%',
+    bottom: windowWidth / 2.5,
     width: 55,
     height: 55,
     justifyContent: 'center',

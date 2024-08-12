@@ -79,7 +79,6 @@ const useAuthentication = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      Bugsnag.notify(error)
       return {
         credentials: null,
         success: false,

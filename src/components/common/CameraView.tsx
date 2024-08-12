@@ -5,6 +5,8 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
+import useLogManagement from 'src/hooks/realm/useLogManagement';
+import { useToast } from 'react-native-toast-notifications';
 
 
 interface Props {
@@ -13,19 +15,32 @@ interface Props {
 
 const CameraMainView = (props: Props) => {
   const [permission, requestPermission] = useCameraPermissions()
+  const { addNewLog } = useLogManagement()
   const [loading, setLoading] = useState(false)
   const cameraRef = useRef<CameraView>(null)
-
+  const toast = useToast()
   useEffect(() => {
     requestPermission()
   }, [])
 
   const captureImage = async () => {
-    setLoading(true)
-    const data = await cameraRef.current.takePictureAsync({ skipProcessing: true, quality: 0, base64: false })
-    if (data) {
-      props.takePicture(data)
-    } else {
+    try {
+      setLoading(true)
+      const data = await cameraRef.current.takePictureAsync({ skipProcessing: true, quality: 0, base64: false })
+      if (data) {
+        props.takePicture(data)
+      } else {
+        setLoading(false)
+      }
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error ocurred while capturing image',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      toast.show("Error Ocurred, Please try again");
       setLoading(false)
     }
   }

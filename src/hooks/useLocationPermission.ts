@@ -24,7 +24,6 @@ const useLocationPermission = () => {
       dispatch(updateBlockerModal(false))
       userCurrentLocation()
     }
-
   }, [status])
 
 
