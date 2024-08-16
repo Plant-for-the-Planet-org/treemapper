@@ -55,6 +55,6 @@ i18next.init({
   },
 });
 
-i18next.changeLanguage('de');
+i18next.changeLanguage(userLang);
 
 export default i18next;
