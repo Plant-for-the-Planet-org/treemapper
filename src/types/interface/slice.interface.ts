@@ -30,8 +30,16 @@ export interface MonitoringPlotSlice {
   updateScreen: string
 }
 
+export interface SyncInfoData{
+  type: 'INTERVENTION' | "SAMPLE_TREE" | "IMAGES" | "SPECIES" | "REMEASUREMENT"
+  message:string,
+  status: "SYNCING" | "FAILED" | "UPLOADED" | 'ADDED',
+  id: string,
+  error:string
+}
 export interface TempStateSlice {
   webAuthLoading: boolean
+  synData: SyncInfoData[]
 }
 
 export interface OldSampleTree {

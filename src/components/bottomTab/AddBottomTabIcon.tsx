@@ -11,6 +11,7 @@ import AddTabIcon from 'assets/images/svg/AddTabIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { Svg, Defs, Rect, Mask, Circle } from 'react-native-svg';
+import i18next from 'i18next'
 const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
@@ -68,7 +69,7 @@ const AddBottomTabIcon = () => {
             styles.labelStyle,
             { color: open ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT },
           ]}>
-          Add
+          {i18next.t("label.add")}
         </Text>
       </View>
       <View style={styles.bottomBar}></View>

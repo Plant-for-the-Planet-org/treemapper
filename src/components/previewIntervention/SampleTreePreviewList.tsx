@@ -118,7 +118,7 @@ const SampleTreePreviewList = (props: Props) => {
             <View style={styles.iconWrapper}>
               <Text style={styles.iconTitle}>{i18next.t("label.height")}</Text>
               <View style={styles.iconMetaWrapper}>
-                <HeightIcon width={20} height={20} />
+                <HeightIcon width={10} height={20} />
                 <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_height, 'm')}</Text>
                 <Text style={styles.iconLabel}>m</Text>
               </View>
@@ -240,7 +240,6 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(16),
     color: Colors.TEXT_COLOR,
-    marginLeft: 5,
   },
   deleteWrapper: {
     position: 'absolute',

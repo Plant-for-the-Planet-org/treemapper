@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     alignItems:'center'
   },
   labelStyle:{
-    
+    paddingHorizontal:20,
+    textAlign:'center'
   }
 })

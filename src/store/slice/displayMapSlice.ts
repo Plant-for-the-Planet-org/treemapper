@@ -15,7 +15,7 @@ const initialState: DisplayMapSlice = {
   mainMapView: 'VECTOR',
   showPlots: true,
   onlyRemeasurement: false,
-  toggleProjectModal:false
+  toggleProjectModal:false,
 }
 
 const displayMapSlice = createSlice({

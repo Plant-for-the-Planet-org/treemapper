@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
@@ -26,15 +26,13 @@ interface Props {
 }
 
 const ProjectModal = (props: Props) => {
-  // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  // variables
   const snapPoints = useMemo(() => ['65%'], []);
-
   const { isVisible, toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])
+
   const [selectedProject, setSelectedProject] = useState<{
     label: string
     value: string
@@ -44,10 +42,13 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
+
   const realm = useRealm()
-  const { currentProject, projectSite, projectAdded } = useSelector(
+
+  const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
   )
+
   const { toggleProjectModal } = useSelector(
     (state: RootState) => state.displayMapState,
   )
@@ -63,9 +64,9 @@ const ProjectModal = (props: Props) => {
       }
     })
     if (ProjectData.length > 0) {
-      setProjectData(ProjectData)
+      setProjectData(()=>([...ProjectData]))
       if (currentProject.projectId !== '') {
-        const indexOf = ProjectData.findIndex(obj => obj.id === '');
+        const indexOf = ProjectData.findIndex(obj => obj.value === currentProject.projectId);
         if (indexOf >= 0) {
           setSelectedProject(ProjectData[indexOf])
           setProjectSites(data[indexOf].sites)
@@ -74,21 +75,6 @@ const ProjectModal = (props: Props) => {
     }
   }
 
-  useEffect(() => {
-    const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
-    if (allProjects && projectData.length === 0) {
-      projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
-    } else {
-      projectDataDropDown([])
-
-    }
-  }, [projectAdded])
-
-  useEffect(() => {
-    if (toggleProjectModal) {
-      handlePresentModalPress()
-    }
-  }, [toggleProjectModal])
 
 
   const handelSiteSelection = (id: string, item: any) => {
@@ -135,16 +121,28 @@ const ProjectModal = (props: Props) => {
     setProjectSites(allProjects[data.index].sites)
   }
 
+  const handlePresentModalPress = () => {
+    bottomSheetModalRef.current?.present();
+  }
+
+
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible || toggleProjectModal) {
+      const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
+      if (allProjects && projectData.length === 0) {
+        projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
+      } else {
+        projectDataDropDown([])
+      }
       handlePresentModalPress()
     }
-  }, [isVisible])
+  }, [isVisible, toggleProjectModal])
 
-  // callbacks
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
+
+
+
+
+
   const closeModal = () => {
     toggleModal()
     dismiss();
@@ -193,7 +191,6 @@ const ProjectModal = (props: Props) => {
               onSelect={handleProjectSelection}
               selectedValue={selectedProject}
             />
-
             <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
             <View style={styles.siteContainer}>
               <FlatList

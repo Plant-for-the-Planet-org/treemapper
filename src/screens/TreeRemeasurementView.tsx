@@ -116,31 +116,31 @@ const TreeRemeasurementView = () => {
         const isValid = regex.test(text)
         // Ensure there is at most one decimal point
         if (isValid) {
-          setHeight(text);
-          const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
-          if (convertedHeight < DBHInMeter) {
-            setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
-          } else {
-            setDiameterLabel(i18next.t('label.measurement_DBH'));
-          }
+            setHeight(text);
+            const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+            if (convertedHeight < DBHInMeter) {
+                setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+            } else {
+                setDiameterLabel(i18next.t('label.measurement_DBH'));
+            }
         } else {
-          setHeightErrorMessage('Please provide the correct height.')
+            setHeightErrorMessage('Please provide the correct height.')
         }
-      };
-    
-      const handleDiameterChange = (text: string) => {
+    };
+
+    const handleDiameterChange = (text: string) => {
         setWidthErrorMessage('');
         const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
         const isValid = regex.test(text)
         if (isValid) {
-          setWidth(text);
+            setWidth(text);
         } else {
-          setWidthErrorMessage('Please provide the correct diameter.')
+            setWidthErrorMessage('Please provide the correct diameter.')
         }
         // Ensure there is at most one decimal point
-    
-      };
-    
+
+    };
+
     const takePicture = () => {
         const newID = String(new Date().getTime())
         setImageId(newID)
@@ -151,21 +151,19 @@ const TreeRemeasurementView = () => {
     }
 
 
-    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
-        let text = i18next.t('label.tree_review_unable');
+    const getConvertedMeasurementText = (measurement: any): string => {
         const isNonISUCountry: boolean = nonISUCountries.includes(Country);
-
         if (measurement && isNonISUCountry) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
-                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
-            )} `;
-        } else if (measurement) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+            return `${Math.round(Number(measurement) * 1000) / 1000}`;
         }
-        return text;
+        return String(measurement);
     };
 
     const validateData = () => {
+        if (!isAlive) {
+            submitHandler()
+            return;
+        }
         if (isAlive && imageUri.length == 0) {
             takePicture()
             return
@@ -199,14 +197,14 @@ const TreeRemeasurementView = () => {
             eventDate: Date.now(),
             imageUrl: imageUri,
             cdnImageUrl: '',
-            diameter: getConvertedDiameter(
+            diameter: isAlive ? getConvertedDiameter(
                 width,
                 isNonISUCountry,
-            ),
-            height: getConvertedHeight(
+            ) : treeDetails.specie_diameter,
+            height: isAlive ? getConvertedHeight(
                 height,
                 isNonISUCountry,
-            ),
+            ) : treeDetails.specie_height,
             additionalDetails: undefined,
             appMetadata: '',
             status: isAlive ? '' : type.value,
@@ -278,7 +276,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={handleHeightChange}
                                     autoFocus
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height, 'm')}
+                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                     errMsg={heightErrorMessage} />
                             </View>
@@ -342,7 +340,7 @@ export default TreeRemeasurementView
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.WHITE
+        backgroundColor: BACKDROP_COLOR,
     },
     inputWrapper: {
         width: '95%'

@@ -561,6 +561,8 @@ const useInterventionManagement = () => {
           lastMeasurement: Date.now(),
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
+        treeDetails.specie_diameter = e.diameter
+        treeDetails.specie_height= e.height
         if (e.imageUrl && !e.status) {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''

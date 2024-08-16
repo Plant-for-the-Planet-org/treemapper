@@ -106,10 +106,12 @@ const AddMeasurement = () => {
       if(tagId.length===0){
         setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
       }else{
-        const regex = /[^a-zA-Z0-9]/g;
+        const regex = /^[a-zA-Z0-9]+$/;
         const isValidId = regex.test(tagId) 
         if(!isValidId){
           setTagIdErrorMessage(i18next.t('Please input a valid id.'));
+        }else{
+          isTagIdValid = true
         }
       }
     }else{
