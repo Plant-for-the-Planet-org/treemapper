@@ -131,7 +131,7 @@ const MetaDataElementView = () => {
                 value={inputValue}
             />
             <View style={styles.switchContainer}>
-                <Text style={styles.switchText}>{i18next.t("make_this_data_public")}</Text>
+                <Text style={styles.switchText}>{i18next.t("label.make_this_data_public")}</Text>
                 <Switch value={isPublic} onValueChange={() => {
                     setIsPublic(!isPublic)
                 }} disabled={false} />

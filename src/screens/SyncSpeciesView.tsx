@@ -96,6 +96,8 @@ const SyncSpecies = () => {
     } else {
       const oldSpeciesDB = await checkForMigrateSpecies()
       if(oldSpeciesDB){
+        await updateLocalSpeciesSync();
+        dispatch(updateSpeciesSyncStatus(true))
         setTimeout(() => {
           navigation.replace('Home')
         }, 1000);

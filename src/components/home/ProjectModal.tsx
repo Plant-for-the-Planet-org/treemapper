@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
@@ -18,6 +18,7 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
+import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 
 interface Props {
   isVisible: boolean
@@ -25,15 +26,13 @@ interface Props {
 }
 
 const ProjectModal = (props: Props) => {
-  // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  // variables
   const snapPoints = useMemo(() => ['65%'], []);
-
   const { isVisible, toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])
+
   const [selectedProject, setSelectedProject] = useState<{
     label: string
     value: string
@@ -43,9 +42,15 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
+
   const realm = useRealm()
-  const { currentProject, projectSite, projectAdded } = useSelector(
+
+  const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
+  )
+
+  const { toggleProjectModal } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
 
   const dispatch = useDispatch()
@@ -59,32 +64,18 @@ const ProjectModal = (props: Props) => {
       }
     })
     if (ProjectData.length > 0) {
-      setProjectData(ProjectData)
-      setSelectedProject(ProjectData[0])
-
-      if (data.length && data[0].sites) {
-        setProjectSites(data[0].sites)
-      }
-      if (currentProject.projectId === '') {
-        dispatch(
-          updateCurrentProject({
-            name: ProjectData[0].label,
-            id: ProjectData[0].value,
-          }),
-        )
+      setProjectData(()=>([...ProjectData]))
+      if (currentProject.projectId !== '') {
+        const indexOf = ProjectData.findIndex(obj => obj.value === currentProject.projectId);
+        if (indexOf >= 0) {
+          setSelectedProject(ProjectData[indexOf])
+          setProjectSites(data[indexOf].sites)
+        }
       }
     }
   }
 
-  useEffect(() => {
-    const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
-    if (allProjects && projectData.length === 0) {
-      projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
-    } else {
-      projectDataDropDown([])
 
-    }
-  }, [projectAdded])
 
   const handelSiteSelection = (id: string, item: any) => {
     dispatch(
@@ -93,17 +84,19 @@ const ProjectModal = (props: Props) => {
         id,
       }),
     )
-
-    const geometry = JSON.parse(item?.geometry)
-    const bounds = bbox(geometry)
-    dispatch(
-      updateMapBounds({
-        bounds: bounds,
-        key: 'DISPLAY_MAP',
-      }),
-    )
     dismiss()
     toggleModal()
+    dispatch(updateProjectModal(false))
+    if (!toggleProjectModal) {
+      const geometry = JSON.parse(item?.geometry)
+      const bounds = bbox(geometry)
+      dispatch(
+        updateMapBounds({
+          bounds: bounds,
+          key: 'DISPLAY_MAP',
+        }),
+      )
+    }
   }
 
   const handleProjectSelection = (data: {
@@ -128,19 +121,32 @@ const ProjectModal = (props: Props) => {
     setProjectSites(allProjects[data.index].sites)
   }
 
+  const handlePresentModalPress = () => {
+    bottomSheetModalRef.current?.present();
+  }
+
+
   useEffect(() => {
-    if (isVisible) {
+    if (isVisible || toggleProjectModal) {
+      const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
+      if (allProjects && projectData.length === 0) {
+        projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
+      } else {
+        projectDataDropDown([])
+      }
       handlePresentModalPress()
     }
-  }, [isVisible])
+  }, [isVisible, toggleProjectModal])
 
-  // callbacks
-  const handlePresentModalPress = useCallback(() => {
-    bottomSheetModalRef.current?.present();
-  }, []);
+
+
+
+
+
   const closeModal = () => {
     toggleModal()
     dismiss();
+    dispatch(updateProjectModal(false))
   }
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
@@ -172,7 +178,7 @@ const ProjectModal = (props: Props) => {
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
               <ZoomSiteIcon style={styles.iconWrapper} />
-              <Text style={styles.headerLabel}>{i18next.t('label.zoom_to_site')}</Text>
+              <Text style={styles.headerLabel}>{toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
                 <CloseIcon />
@@ -185,7 +191,6 @@ const ProjectModal = (props: Props) => {
               onSelect={handleProjectSelection}
               selectedValue={selectedProject}
             />
-
             <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
             <View style={styles.siteContainer}>
               <FlatList

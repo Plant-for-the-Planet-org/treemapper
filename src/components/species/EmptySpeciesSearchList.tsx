@@ -7,7 +7,7 @@ const EmptySpeciesSearchList = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.labelStyle}>
-        {i18next.t('label.select_species_search_attest_3_characters')}
+        {i18next.t('label.select_species_search_atleast_3_characters')}
       </Text>
     </View>
   )
@@ -22,6 +22,7 @@ const styles = StyleSheet.create({
     alignItems:'center'
   },
   labelStyle:{
-    
+    paddingHorizontal:20,
+    textAlign:'center'
   }
 })

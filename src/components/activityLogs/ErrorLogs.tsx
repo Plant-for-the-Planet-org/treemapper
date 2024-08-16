@@ -6,6 +6,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { FONT_SIZE_18 } from 'src/utils/constants/typography'
 import { Colors, Typography } from 'src/utils/constants'
+import i18next from 'i18next'
 
 
 const ErrorLogs = () => {
@@ -41,7 +42,7 @@ const ErrorLogs = () => {
 
     const emptyComponent = () => {
         return <View style={styles.emptyContainer}>
-            <Text style={styles.emptyLabel}>No log's to show</Text>
+            <Text style={styles.emptyLabel}>{i18next.t('label.no_logs')}</Text>
         </View>
     }
 

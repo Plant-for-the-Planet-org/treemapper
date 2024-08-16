@@ -1,81 +1,56 @@
-import { InterventionData } from 'src/types/interface/slice.interface'
-import i18next from 'src/locales/index'
-
+import { InterventionData } from 'src/types/interface/slice.interface';
 
 interface FinalObject {
   [key: string]: {
-    count: number
-    id?: string
-    key?: string
-  }
+    count: number;
+    id?: string;
+    key?: string;
+  };
 }
 
-export const groupIntervention = (data: any[] | InterventionData[]) => {
-  const finalObject: FinalObject = {};
-  const incompleteKey = i18next.t('label.incomplete')
-  finalObject[i18next.t('label.all')] = {
-    count: data.length,
-    id: 'all',
-  };
-  finalObject[incompleteKey] = {
-    count: 0,
-    id: 'incomplete',
-  };
-  finalObject['Unsynced'] = {
-    count: 0,
-    id: 'unsync',
+export const groupIntervention = (data: InterventionData[]) => {
+  const finalObject: FinalObject = {
+    All: { count: data.length, id: 'all' },
+    Incomplete: { count: 0, id: 'incomplete' },
+    Unsynced: {
+      count: 0,
+      id: 'unsync',
+    }
   };
 
-  for (const item of data) {
-    const incrementedCount = finalObject[incompleteKey].count + 1
-    if (!item.is_complete) {
-      finalObject[incompleteKey] = {
-        count: incrementedCount,
-        ...finalObject[incompleteKey],
-      };
+  
+
+
+  data.forEach(({ is_complete, intervention_title, intervention_key, status }) => {
+    if (!is_complete) {
+      finalObject['Incomplete'].count += 1;
     }
-    if (item.status !== 'SYNCED' && item.is_complete) {
-      finalObject['Unsynced'] = {
-        count: incrementedCount,
-        ...finalObject['Unsynced'],
-      };
-    }
-    if (finalObject[item.intervention_title]) {
-      finalObject[item.intervention_title] = {
-        count: incrementedCount,
-        ...finalObject[item.intervention_title],
-      };
+    if (finalObject[intervention_title]) {
+      finalObject[intervention_title].count += 1;
     } else {
-      finalObject[item.intervention_title] = {
-        count: 1,
-        id: item.intervention_key,
-      };
+      finalObject[intervention_title] = { count: 1, id: intervention_key };
     }
-  }
+    if (status === 'PENDING_DATA_UPLOAD' && is_complete) {
+      finalObject['Unsynced'] = {
+        count: (finalObject['Unsynced'].count += 1),
+        ...finalObject['Unsynced'],
+      }
+    }
+  });
 
-  const arrayData = Object.entries(finalObject).map(([key, value]) => ({
+  return Object.entries(finalObject).map(([key, value]) => ({
     label: key,
     count: value.count,
     key: value.id,
   }));
-
-  return arrayData;
 };
 
-export const groupInterventionList = (
-  data: InterventionData[],
-  type: string,
-) => {
+export const groupInterventionList = (data: InterventionData[], type: string) => {
   if (type === 'incomplete') {
-    return data.filter(el => el.is_complete === false)
+    return data.filter(({ is_complete }) => !is_complete);
   }
-
-  if (type === 'unsync') {
-    return data.filter(el => el.status !== 'SYNCED')
-  }
-
   if (type === 'all') {
-    return data
+    return data;
   }
-  return data.filter(el => el.intervention_key === type)
-}
+  return data.filter(({ intervention_key }) => intervention_key === type);
+};

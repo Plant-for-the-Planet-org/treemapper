@@ -37,6 +37,9 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
+  )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { onlyRemeasurement, showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
@@ -64,7 +67,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if (onlyRemeasurement) {
+      if (onlyRemeasurement && userType === 'tpo') {
         return el.remeasurement_required === true
       }
       return el
@@ -76,7 +79,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+          key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -202,7 +205,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+              key: el.remeasurement_required  && userType === 'tpo'  ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -245,7 +248,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+            key: el.remeasurement_required &&  userType === 'tpo' ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -284,7 +287,7 @@ const DisplayMap = () => {
     }
     return null;
   };
-  
+
   const renderMapMarkers = () => {
     if (selectedIntervention) {
       const interventionData = JSON.parse(selectedIntervention);
@@ -309,7 +312,7 @@ const DisplayMap = () => {
     }
     return null;
   };
-  
+
   const renderSingleInterventionSource = () => {
     if (selectedIntervention && !showOverlay) {
       return (

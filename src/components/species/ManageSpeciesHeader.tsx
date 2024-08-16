@@ -27,7 +27,7 @@ const ManageSpeciesHeader = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      <Header label="Manage Species" />
+      <Header label={i18next.t("label.manage_species")} />
       {!isSpeciesDownloaded ? <SpeciesSyncError /> : <View style={styles.wrapper}>
         <Text style={styles.labelNote}>
           {i18next.t('label.explore_and_manage_species')}
@@ -79,14 +79,14 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   speciesNote: {
     textAlign: 'center',
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   searchNote: {
     marginTop: 4,
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   searchBar: {
     flexDirection: 'row',

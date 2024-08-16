@@ -17,7 +17,7 @@
     "retake": "Retake",
     "continue": "Continue",
     "tree_tag_note": "This tree has been tagged for identification",
-    "monitoring_plot": "Monitoring Plot",
+    "monitoring_plot": "Monitoring Plots",
     "project_sites": "Project Site",
     "single_tree": "Single Tree",
     "multiple_trees": "Multiple Trees",
@@ -64,7 +64,7 @@
     "learn_note_explore":"Learn from your data with DataExplorer or",
     "explore_download_note":"download it to analyze it in Excel or Python",
     "explore_available":"Available for free at pp.eco/explore",
-    "did_you_plant":"did you plant?",
+    "did_you_plant":" did you plant?",
     "remeasurement_default": "Re-measurement will happen after 1 year, 2 years, 5 years, 10 years, and then once in every 10 years.",
     "remeasurement_high":"Re-measurement will happen after 6 months, 1 year, 1.5 years, 2 years, 3 years, 5 years, 7 years, 10 years, and then once in every 5 years.",
     "remeasurement_low":"Re-measurement will happen after  2 years,  10 years, 20 years and then once in every 20 years.",
@@ -75,5 +75,11 @@
     "tree_tag":"Tree Tag",
     "location":"Location",
     "device_location":"Device Location",
-    "add_sample_tree":"Add Sample Tree"
+    "add_sample_tree":"Add Sample Tree",
+    "apply_intervention":"Apply Intervention to entire site",
+    "intervention_date":"Intervention Date",
+    "location_optional":"Location Name [Optional]",
+    "further_info":"Further Information [Optional]",
+    "intervention_type":"Intervention Type"
+
 }

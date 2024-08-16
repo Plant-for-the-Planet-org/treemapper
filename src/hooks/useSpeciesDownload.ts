@@ -5,16 +5,20 @@ import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import useLogManagement from './realm/useLogManagement'
 import { getUrlApi } from 'src/api/api.url'
 import Bugsnag from '@bugsnag/expo'
+import { useToast } from 'react-native-toast-notifications'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 const useDownloadFile = () => {
   const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
   const [finalURL, setFinalURL] = useState<string | null>(null)
   const { addNewLog } = useLogManagement()
-
+  const toast = useToast()
   const fileUrl = getUrlApi.getAllSpeciesAchieve
   const zipFilePath = `${FileSystem.cacheDirectory}archive.zip`
   const targetFilePath = `${FileSystem.cacheDirectory}unzipped`
-
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const downloadFile = async () => {
     try {
       setCurrentState(SPECIES_SYNC_STATE.DOWNLOADING)
@@ -41,6 +45,7 @@ const useDownloadFile = () => {
     } catch (error) {
       Bugsnag.notify(error)
       setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
+      toast.show("Error occurred while downloading species data")
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Error occurred while downloading species",
@@ -48,6 +53,7 @@ const useDownloadFile = () => {
         statusCode: '000',
         logStack: JSON.stringify(error)
       })
+      navigation.replace('Home')
     }
   }
 

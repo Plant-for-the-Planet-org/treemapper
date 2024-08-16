@@ -174,7 +174,7 @@ const AddPlantDetailsPlotView = () => {
         <SafeAreaView style={styles.container}>
             <Header label='Add Plant' />
             <AvoidSoftInputView
-                avoidOffset={20}
+                avoidOffset={0}
                 style={styles.container}>
                 <ScrollView>
                     <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />

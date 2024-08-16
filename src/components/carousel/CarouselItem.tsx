@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     color: Colors.NEW_PRIMARY,
   },
   nextButton: {
-    width: 100,
     height: 35,
     justifyContent: 'center',
     alignItems: 'center',
@@ -136,6 +135,7 @@ const styles = StyleSheet.create({
     right: 10,
     backgroundColor: Colors.NEW_PRIMARY,
     borderRadius: 12,
+    paddingHorizontal:10
   },
   nextButtonLabel: {
     fontSize: 12,

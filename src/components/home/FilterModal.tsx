@@ -6,12 +6,13 @@ import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateInterventionFilter, updateRemeasurementFilter, updateShowPlots } from 'src/store/slice/displayMapSlice'
+import { updateInterventionFilter, updateRemeasurementFilter } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 import i18next from 'src/locales/index'
+import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
   isVisible: boolean
@@ -23,12 +24,15 @@ const FilterModal = (props: Props) => {
   const [showTypeModal, setShowTypeModal] = useState(false)
 
 
-  const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
+  const { interventionFilter, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
+  )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
   )
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  // variables
+  const toast = useToast()
   const snapPoints = useMemo(() => ['50%', '85%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
@@ -112,7 +116,9 @@ const FilterModal = (props: Props) => {
             <View style={styles.card}>
               <Text style={styles.cardLabel}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
+              <Switch value={false} onValueChange={() => {
+                toast.show("Coming soon")
+              }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.intervention')}</Text>
@@ -124,11 +130,11 @@ const FilterModal = (props: Props) => {
               <View style={styles.divider} />
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
-            <View style={styles.card}>
+            {userType==='tpo' && <View style={styles.card}>
               <Text style={styles.cardLabel}>{i18next.t('label.only_remeasurement')}</Text>
               <View style={styles.divider} />
               <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement)) }} disabled={false} />
-            </View>
+            </View>}
             <View />
           </View>
         </View>
@@ -191,7 +197,8 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     letterSpacing: 1,
     paddingLeft: 10,
-    textAlign: 'left'
+    textAlign: 'left',
+    maxWidth:'80%'
 
   },
   divider: {

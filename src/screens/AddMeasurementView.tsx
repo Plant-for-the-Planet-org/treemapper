@@ -10,23 +10,23 @@ import { useSelector } from 'react-redux'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import { InterventionData, SampleTree, ValidationResult } from 'src/types/interface/slice.interface'
+import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import { v4 as uuid } from 'uuid'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
-import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { DBHInMeter, diameterMaxCm, diameterMaxInch, diameterMinCm, diameterMinInch, footToMeter, heightMaxFoot, heightMaxM, heightMinFoot, heightMinM, inchToCm, nonISUCountries } from 'src/utils/constants/appConstant'
-import { getIsMeasurementRatioCorrect } from 'src/utils/constants/measurements'
+import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
+import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
+import { measurementValidation } from 'src/utils/constants/measurementValidation'
 
 const AddMeasurement = () => {
   const realm = useRealm()
@@ -45,97 +45,90 @@ const AddMeasurement = () => {
   const [widthErrorMessage, setWidthErrorMessage] = useState('')
   const [tagIdErrorMessage, setTagIdErrorMessage] = useState('')
   const Country = useSelector((state: RootState) => state.userState.country)
+  const [isNonISUCountry, setIsNonISUCountry] = useState(false);
 
   const id = uuid()
   const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   useEffect(() => {
+    setCountry();
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
-      AvoidSoftInput.setShouldMimicIOSBehavior(true);
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
   }, [])
 
+  const setCountry = () => {
+    setIsNonISUCountry(nonISUCountries.includes(Country));
+  };
+
+  const handleHeightChange = (text: string) => {
+    setHeightErrorMessage('');
+    const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+    const isValid = regex.test(text)
+    // Ensure there is at most one decimal point
+    if (isValid) {
+      setHeight(text);
+      const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+      if (convertedHeight < DBHInMeter) {
+        setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+      } else {
+        setDiameterLabel(i18next.t('label.measurement_DBH'));
+      }
+    } else {
+      setHeightErrorMessage('Please provide the correct height.')
+    }
+  };
+
+  const handleDiameterChange = (text: string) => {
+    setWidthErrorMessage('');
+    const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+    const isValid = regex.test(text)
+    if (isValid) {
+      setWidth(text);
+    } else {
+      setWidthErrorMessage('Please provide the correct diameter.')
+    }
+    // Ensure there is at most one decimal point
+  };
+  
+
+
 
   const onSubmit = () => {
-    const {
-      diameterMinValue,
-      diameterMaxValue,
-      heightMinValue,
-      heightMaxValue
-    } = getDimensionValues(Country);
-
-    const dimensionRegex = /^\d{0,5}(\.\d{1,3})?$/;
-
-    const heightValidation = validateNumber(height, 'Height', 'height');
-    const widthValidation = validateNumber(width, 'Diameter', 'width');
-
-    if (handleValidationErrors(heightValidation, widthValidation)) return;
-
-    const isDiameterValid = validateDimension(width, diameterMinValue, diameterMaxValue, dimensionRegex, 'diameter');
-    const isHeightValid = validateDimension(height, heightMinValue, heightMaxValue, dimensionRegex, 'height');
-    const isTagIdValid = validateTagId(tagEnable, tagId);
-
-    if (isDiameterValid && isHeightValid && isTagIdValid) {
-      handleValidSubmission();
+    const validationObject = measurementValidation(height, width, isNonISUCountry);
+    const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+    setHeightErrorMessage(heightErrorMessage)
+    setWidthErrorMessage(diameterErrorMessage)
+    let isTagIdValid = false;
+    if(tagEnable){
+      if(tagId.length===0){
+        setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
+      }else{
+        const regex = /^[a-zA-Z0-9]+$/;
+        const isValidId = regex.test(tagId) 
+        if(!isValidId){
+          setTagIdErrorMessage(i18next.t('Please input a valid id.'));
+        }else{
+          isTagIdValid = true
+        }
+      }
+    }else{
+      setTagIdErrorMessage('');
+      isTagIdValid = true;
     }
-  };
 
-  // Helper Functions
-
-  const getDimensionValues = (country: string) => {
-    const diameterMinValue = nonISUCountries.includes(country) ? diameterMinInch : diameterMinCm;
-    const diameterMaxValue = nonISUCountries.includes(country) ? diameterMaxInch : diameterMaxCm;
-    const heightMinValue = nonISUCountries.includes(country) ? heightMinFoot : heightMinM;
-    const heightMaxValue = nonISUCountries.includes(country) ? heightMaxFoot : heightMaxM;
-    return { diameterMinValue, diameterMaxValue, heightMinValue, heightMaxValue };
-  };
-
-  const handleValidationErrors = (heightValidation: ValidationResult, widthValidation: ValidationResult) => {
-    if (heightValidation.hasError || widthValidation.hasError) {
-      setHeightErrorMessage(heightValidation.errorMessage);
-      setWidthErrorMessage(widthValidation.errorMessage);
-      return true;
+    // if all fields are valid then updates the specie data in DB
+    if (!diameterErrorMessage && !heightErrorMessage && isTagIdValid) {
+      if (isRatioCorrect) {
+        submitDetails();
+      } else {
+        setShowOptimalAlert(true);
+      }
     }
-    return false;
-  };
+  }
 
-  const validateDimension = (value: string, minValue: number, maxValue: number, regex: RegExp, dimensionType: string) => {
-    if (!value || Number(value) < minValue || Number(value) > maxValue) {
-      setWidthErrorMessage(i18next.t(`label.select_species_${dimensionType}_more_than_error`, { minValue, maxValue }));
-      return false;
-    }
-    if (!regex.test(value)) {
-      setWidthErrorMessage(i18next.t(`label.select_species_${dimensionType}_invalid`));
-      return false;
-    }
-    setWidthErrorMessage('');
-    return true;
-  };
-
-  const validateTagId = (isTagEnabled: boolean, tagId: string) => {
-    if (isTagEnabled && !tagId) {
-      setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
-      return false;
-    }
-    setTagIdErrorMessage('');
-    return true;
-  };
-
-  const handleValidSubmission = () => {
-    const isRatioCorrect = getIsMeasurementRatioCorrect({
-      height: getConvertedHeight(),
-      diameter: getConvertedDiameter(),
-      isNonISUCountry: nonISUCountries.includes(Country)
-    });
-
-    if (isRatioCorrect) {
-      submitDetails();
-    } else {
-      setShowOptimalAlert(true);
-    }
-  };
 
   const handleOptimalAlert = (p: boolean) => {
     if (p) {
@@ -145,16 +138,6 @@ const AddMeasurement = () => {
       submitDetails();
     }
   }
-
-  // returns the converted diameter by checking the user's country metric
-  const getConvertedDiameter = (treeDiameter: string = width) => {
-    return nonISUCountries.includes(Country)
-      ? Number(treeDiameter) * inchToCm
-      : Number(treeDiameter);
-  };
-
-
-
 
   const submitDetails = async () => {
     const { lat, long, accuracy } = getUserLocation()
@@ -171,8 +154,14 @@ const AddMeasurement = () => {
       image_url: SampleTreeData.image_url,
       cdn_image_url: '',
       specie_name: SampleTreeData.current_species.scientificName,
-      specie_diameter: Number(width),
-      specie_height: Number(height),
+      specie_diameter: getConvertedDiameter(
+        width,
+        isNonISUCountry,
+      ),
+      specie_height: getConvertedHeight(
+        height,
+        isNonISUCountry,
+      ),
       tag_id: tagId,
       plantation_date: new Date().getTime(),
       status_complete: true,
@@ -214,24 +203,10 @@ const AddMeasurement = () => {
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: true, id: Intervention.intervention_id })
   }
 
-  // returns the converted height by checking the user's country metric
-  const getConvertedHeight = (treeHeight: string = height) => {
-    return nonISUCountries.includes(Country)
-      ? Number(treeHeight) * footToMeter
-      : Number(treeHeight);
-  };
 
 
-  const onHeightChange = (t: string) => {
-    const convertedHeight = t ? getConvertedHeight(t) : 0;
-    setHeightErrorMessage('');
-    setHeight(t.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-    if (convertedHeight < DBHInMeter) {
-      setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
-    } else {
-      setDiameterLabel(i18next.t('label.measurement_DBH'));
-    }
-  }
+
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -242,22 +217,23 @@ const AddMeasurement = () => {
         <View style={styles.wrapper}>
           <OutlinedTextInput
             placeholder={i18next.t('label.select_species_height')}
-            changeHandler={onHeightChange}
+            changeHandler={handleHeightChange}
             autoFocus
             keyboardType={'decimal-pad'}
-            trailingText={nonISUCountries.includes(Country)
-              ? i18next.t('label.select_species_feet')
-              : 'm'} errMsg={heightErrorMessage} />
+            trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
+            errMsg={heightErrorMessage} />
           <OutlinedTextInput
             placeholder={diameterLabel}
-            changeHandler={(text: string) => {
-              setWidthErrorMessage('');
-              setWidth(text.replace(/,/g, '.').replace(/[^0-9.]/g, ''));
-            }}
+            changeHandler={handleDiameterChange}
             keyboardType={'decimal-pad'}
-            trailingText={nonISUCountries.includes(Country)
-              ? i18next.t('label.select_species_inches')
-              : 'cm'} errMsg={widthErrorMessage}
+            trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
+            errMsg={widthErrorMessage}
+            info={i18next.t('label.measurement_diameter_info', {
+              height: isNonISUCountry
+                ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
+                : DBHInMeter,
+              unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
+            })}
           />
           <TagSwitch
             placeholder={'Tag Tree'}

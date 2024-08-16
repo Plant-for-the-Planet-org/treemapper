@@ -189,7 +189,7 @@ const PolygonMarkerMap = (props: Props) => {
         <LineMarker coordinates={coordinates} />
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper low/>
+      <SatelliteIconWrapper />
       {polygonComplete && (
         <View style={styles.btnFooter}>
           <CustomButton

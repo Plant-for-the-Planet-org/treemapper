@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   itemText: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    fontSize: Typography.FONT_SIZE_12,
+    fontSize: Typography.FONT_SIZE_10,
     lineHeight: Typography.LINE_HEIGHT_16,
     color: Colors.TEXT_COLOR,
     textAlign: 'center',

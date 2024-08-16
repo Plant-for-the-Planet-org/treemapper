@@ -200,6 +200,7 @@ const useInterventionManagement = () => {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.is_complete = true
+        intervention.status = 'PENDING_DATA_UPLOAD'
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -242,6 +243,18 @@ const useInterventionManagement = () => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         treeDetails.specie_name = speciesDetails.scientificName
         treeDetails.species_guid = speciesDetails.guid
+        treeDetails.local_name = speciesDetails.aliases
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        if (!!intervention && !intervention.has_sample_trees) {
+          intervention.planted_species = [{
+            guid: speciesDetails.guid,
+            scientificName: speciesDetails.scientificName,
+            aliases: speciesDetails.aliases,
+            count: 1,
+            image: speciesDetails.image
+          }]
+        }
+        intervention.last_updated_at = Date.now()
       });
       return true
     } catch (error) {
@@ -548,6 +561,8 @@ const useInterventionManagement = () => {
           lastMeasurement: Date.now(),
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
+        treeDetails.specie_diameter = e.diameter
+        treeDetails.specie_height= e.height
         if (e.imageUrl && !e.status) {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''

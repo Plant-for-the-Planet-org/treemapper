@@ -8,17 +8,17 @@ import FlatButton from '../common/FlatButton'
 
 interface Props {
   isVisible: boolean
-  toogleModal: () => void
+  toggleModal: () => void
   removeFavSpecie: () => void
 }
 
 const RemoveSpeciesModal = (props: Props) => {
-  const { isVisible, toogleModal, removeFavSpecie } = props
+  const { isVisible, toggleModal, removeFavSpecie } = props
   return (
     <Modal
       style={styles.container}
       isVisible={isVisible}
-      onBackdropPress={toogleModal}>
+      onBackdropPress={toggleModal}>
       <View style={styles.subContainer}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <PinkHeart />
@@ -31,7 +31,7 @@ const RemoveSpeciesModal = (props: Props) => {
         </Text>
         <View style={styles.bottomBtnContainer}>
           <FlatButton
-            onPress={toogleModal}
+            onPress={toggleModal}
             text={i18next.t('label.cancel')}
             style={styles.secondaryButtonStyle}
           />

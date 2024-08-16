@@ -1,6 +1,5 @@
 const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
 const testingURL = process.env.EXPO_PUBLIC_TESTING_URL
-// const http = 'http://'
 const https = 'https://'
 
 export const postUrlApi = {

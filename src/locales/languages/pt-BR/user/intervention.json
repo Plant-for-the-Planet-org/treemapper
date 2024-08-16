@@ -31,5 +31,10 @@
     "logout": "Logout",
     "privacy_policy":"Privacy Policy",
     "imprint":"Imprint",
-    "terms_of_service":"Terms of Service"
+    "terms_of_service":"Terms of Service",
+    "apply_intervention":"Apply Intervention to entire site",
+    "intervention_date":"Intervention Date",
+    "location_optional":"Location Name [Optional]",
+    "further_info":"Further Information [Optional]",
+    "intervention_type":"Intervention Type"
 }

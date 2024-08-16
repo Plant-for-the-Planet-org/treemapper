@@ -32,7 +32,7 @@
   "select_species_search_species": "Search all species",
   "select_species_done": "Done",
   "select_species_add_name": "Add Name",
-  "select_species_my_species": "Favourite species",
+  "select_species_my_species": "Favorite species",
   "search_result": "Search Result",
   "select_species_diameter_more_than_error": "Diameter should be between {{minValue}} to {{maxValue}}.",
   "select_species_height_more_than_error": "Height should be between {{minValue}} to {{maxValue}}.",
@@ -44,7 +44,7 @@
   "select_species_search_specie_not_present": "The '{{searchText}}' species is not present",
   "select_species_search_atleast_3_characters": "Enter at least 3 characters to get a better result",
   "select_species_looks_empty_here": "Looks Empty Here!",
-  "select_species_add_species_desscription": "Add species to your list by searching the species",
+  "select_species_add_species_description": "Add species to your list by searching the species",
   "select_species_tree_species": "Tree Species",
   "sample_one_tree_for_each_species": "Please sample at least one tree for each species planted.",
   "species_name": "Local common name",
@@ -68,11 +68,11 @@
   "cant_change_frequency": "You can't change frequency for now.",
   "cant_change_intensity": "You can't change intensity for now.",
   "remove_species": "Remove Species",
-  "sure_remove_species": "Are you sure you want to remove this species from your favourites?",
+  "sure_remove_species": "Are you sure you want to remove this species from your favorite?",
   "remove": "Remove",
   "cancel": "Cancel",
   "explore_and_manage_species": "Explore and manage species",
   "search": "Search ",
-  "number_species": "60,000 species ",
-  "add_species_in_fav": "and add species to \n your favourites"
+  "number_species": " 60,000 species ",
+  "add_species_in_fav": "and add species to \n your favorites."
 }

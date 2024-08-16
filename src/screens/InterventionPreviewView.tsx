@@ -146,7 +146,7 @@ const InterventionPreviewView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollWrapper}>
+      <ScrollView style={styles.scrollWrapper} bounces={false}>
         <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
@@ -165,7 +165,7 @@ const InterventionPreviewView = () => {
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton
-        label={"Save"}
+        label={i18next.t("label.save")}
         pressHandler={navigateToNext}
         containerStyle={styles.btnContainer}
       />}

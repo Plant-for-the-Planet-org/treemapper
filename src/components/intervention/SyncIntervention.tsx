@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
@@ -19,7 +19,11 @@ import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
 import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateNewIntervention } from 'src/store/slice/appStateSlice';
+// import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
+import { useNetInfo } from "@react-native-community/netinfo";
+
 import i18next from 'src/locales/index';
+import SyncInfo from './SyncInfo';
 interface Props {
     isLoggedIn: boolean
 }
@@ -30,7 +34,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [moreUpload, setMoreUpload] = useState(false)
     const [retryCount, setRetryCount] = useState(10)
     const [showFullSync, setShowFullSync] = useState(false)
-
+    const [showInfo, setShowInfo] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
@@ -38,6 +42,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
     const dispatch = useDispatch()
+    const { isConnected } = useNetInfo();
 
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
@@ -78,8 +83,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             toast.show("Syncing Failed, Please try again")
             return
         }
-        const quaeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
-        const prioritizeData = [...quaeData].sort((a, b) => a.priority - b.priority);
+        const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const prioritizeData = [...qData].sort((a, b) => a.priority - b.priority);
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
             setUploadData(() => prioritizeData)
@@ -168,7 +173,14 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     };
 
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
+
         for (const el of d) {
+            if (!isConnected) {
+                dispatch(updateSyncDetails(false))
+                setMoreUpload(false)
+                toast.show("Network call failed \nPlease check your internet connection", {textStyle:{textAlign:'center'}})
+                return;
+            }
             switch (el.type) {
                 case 'intervention':
                     await handleIntervention(el);
@@ -189,13 +201,18 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         startSyncingData();
     };
 
+    const toggleInfo = () => {
+        setShowInfo(prev => !prev)
+    }
+
     const renderSyncView = () => (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container} onPress={toggleInfo}>
             <RotatingView isClockwise={true}>
                 <RefreshIcon />
             </RotatingView>
             <Text style={styles.label}>{i18next.t("label.syncing")}</Text>
-        </View>
+            {/* <InfoIcon width={18} height={18} style={styles.infoIconWrapper} onPress={toggleInfo} /> */}
+        </TouchableOpacity>
     )
 
     const renderUnSyncView = () => (
@@ -219,7 +236,10 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         return null
     }
 
-    return renderTile()
+    return <View>
+        {renderTile()}
+        {showInfo && <SyncInfo />}
+    </View>
 }
 
 
@@ -236,9 +256,13 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     label: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: 5
-    }
+    },
+    infoIconWrapper: {
+        marginRight: 5,
+        marginLeft: 10
+    },
 })
