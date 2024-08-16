@@ -15,7 +15,10 @@ import i18next from 'i18next'
 const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
-  <View style={{ aspectRatio: 1 }}>
+  <View style={{
+    aspectRatio: 1, borderTopRightRadius: 10,
+    overflow: "hidden"
+  }}>
     <Svg>
       <Defs>
         <Mask id="mask" x="0" y="0" height="100%" width="100%">
@@ -45,7 +48,7 @@ const AddBottomTabIcon = () => {
     setOpen(prev => !prev)
   }
   return (
-    <View style={{ flex: 1, justifyContent:"center" }}>
+    <View style={{ flex: 1, justifyContent: "center" }}>
       {open && <Pressable
         onPress={() => { setOpen(false) }}
         style={styles.bakDrop}
@@ -102,7 +105,7 @@ const styles = StyleSheet.create({
   labelContainer: {
     width: '100%',
     paddingTop: '40%',
-    paddingLeft:'6.5%'
+    paddingLeft: '6.5%'
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,

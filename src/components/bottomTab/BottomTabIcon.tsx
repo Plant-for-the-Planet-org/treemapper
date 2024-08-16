@@ -20,7 +20,7 @@ const BottomTabIcon = (props: Props) => {
   const { width } = useWindowDimensions()
   return (
     <View
-      style={[styles.container, { width: width / 4, }]}>
+      style={[styles.container, { width: width / 4, borderTopLeftRadius: index === 0 ? 10 : 0, }]}>
       <View style={styles.iconWrapper}>
         {index === 0 && (
           <MapTabIcon
@@ -62,22 +62,22 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    height:'100%',
-    backgroundColor:"white"
+    height: '100%',
+    backgroundColor: "white"
   },
   iconWrapper: {
-    marginBottom:5,
-    marginTop:5
+    marginBottom: 5,
+    marginTop: 5
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: 13,
   },
   bottomBar: {
-    position:'absolute',
-    bottom:-30,
-    height:30,
-    width:'100%',
-    backgroundColor:'white'
+    position: 'absolute',
+    bottom: -30,
+    height: 30,
+    width: '100%',
+    backgroundColor: 'white'
   }
 })
