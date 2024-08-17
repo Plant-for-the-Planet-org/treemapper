@@ -1,9 +1,9 @@
-import {Dimensions, StyleSheet, Text, TextInput, View} from 'react-native'
-import React, {useEffect, useState} from 'react'
+import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import i18next from 'src/locales/index'
-import {scaleSize} from 'src/utils/constants/mixins'
-import {Typography, Colors} from 'src/utils/constants'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { scaleSize } from 'src/utils/constants/mixins'
+import { Typography, Colors } from 'src/utils/constants'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 
 interface Props {
@@ -14,8 +14,8 @@ const SpecieInfoDetailSection = (props: Props) => {
   const [localName, setLocalName] = useState('')
   const [details, setDetails] = useState('')
 
-  const {description, aliases} = props.item
-  const {updateSpeciesDetails} = useManageScientificSpecies()
+  const { description, aliases } = props.item
+  const { updateSpeciesDetails } = useManageScientificSpecies()
 
   useEffect(() => {
     setLocalName(aliases)
@@ -24,12 +24,12 @@ const SpecieInfoDetailSection = (props: Props) => {
 
   const updateAlias = (text: string) => {
     setLocalName(text)
-    updateSpeciesDetails({...props.item, aliases: text})
+    updateSpeciesDetails({ ...props.item, aliases: text })
   }
 
   const updateDescription = (text: string) => {
     setDetails(text)
-    updateSpeciesDetails({...props.item, description: text})
+    updateSpeciesDetails({ ...props.item, description: text })
   }
 
   return (
@@ -149,5 +149,6 @@ const styles = StyleSheet.create({
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginTop: 8,
+    textAlignVertical: 'top'
   },
 })

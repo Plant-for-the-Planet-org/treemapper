@@ -1,4 +1,4 @@
-import { StyleSheet, } from 'react-native'
+import { StyleSheet, Text, } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
@@ -14,6 +14,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
+import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -40,61 +41,61 @@ const SpeciesSearchView = () => {
     updateUserFavSpecies(item.guid, status)
     toast.hideAll();
     if (status) {
-      toast.show(`"${item.scientificName}" added to favorites`)
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> added to favorites</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     } else {
-      toast.show(`"${item.scientificName}" removed from favorites`)
-    }
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> removed from favorites</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
   }
+}
 
-  const handleCardPress = async (
-    item: IScientificSpecies,
-    status: boolean,
-  ) => {
-    handleFavSpecies(item, status)
-  }
+const handleCardPress = async (
+  item: IScientificSpecies,
+  status: boolean,
+) => {
+  handleFavSpecies(item, status)
+}
 
-  const handleSpeciesSyncPress = async () => {
-    setShowSpeciesSyncAlert(false)
-    setTimeout(() => {
-      navigation.navigate('SyncSpecies', { inApp: true })
-    }, 300);
-  }
+const handleSpeciesSyncPress = async () => {
+  setShowSpeciesSyncAlert(false)
+  setTimeout(() => {
+    navigation.navigate('SyncSpecies', { inApp: true })
+  }, 300);
+}
 
 
 
-  return (
-    <SafeAreaView style={styles.contentWrapper}>
-      <FlashList
-        data={specieList}
-        renderItem={({ item }) => (
-          <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
-        )}
-        keyExtractor={item => item.guid}
-        keyboardShouldPersistTaps="always"
-        estimatedItemSize={50}
-        showsVerticalScrollIndicator={false}
-        ListHeaderComponent={
-          <SpeciesSearchHeader
-            backPress={handleBackPress}
-            toggleSyncModal={setShowSpeciesSyncAlert}
-            setSpicesList={setSpecieList}
-          />
-        }
-        keyboardDismissMode='interactive'
-        ListEmptyComponent={<EmptySpeciesSearchList />}
-      />
-      <AlertModal
-        visible={showSpeciesSyncAlert}
-        heading={i18next.t('label.species_sync_update_alert_title')}
-        message={i18next.t('label.species_sync_update_alert_message')}
-        showSecondaryButton={true}
-        primaryBtnText={i18next.t('label.yes')}
-        secondaryBtnText={i18next.t('label.cancel')}
-        onPressPrimaryBtn={handleSpeciesSyncPress}
-        onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
-      />
-    </SafeAreaView>
-  )
+return (
+  <SafeAreaView style={styles.contentWrapper}>
+    <FlashList
+      data={specieList}
+      renderItem={({ item }) => (
+        <SpeciesSearchCard item={item} toggleFavSpecies={handleFavSpecies} handleCard={handleCardPress} />
+      )}
+      keyExtractor={item => item.guid}
+      keyboardShouldPersistTaps="always"
+      estimatedItemSize={50}
+      showsVerticalScrollIndicator={false}
+      ListHeaderComponent={
+        <SpeciesSearchHeader
+          backPress={handleBackPress}
+          toggleSyncModal={setShowSpeciesSyncAlert}
+          setSpicesList={setSpecieList}
+        />
+      }
+      keyboardDismissMode='interactive'
+      ListEmptyComponent={<EmptySpeciesSearchList />}
+    />
+    <AlertModal
+      visible={showSpeciesSyncAlert}
+      heading={i18next.t('label.species_sync_update_alert_title')}
+      message={i18next.t('label.species_sync_update_alert_message')}
+      showSecondaryButton={true}
+      primaryBtnText={i18next.t('label.yes')}
+      secondaryBtnText={i18next.t('label.cancel')}
+      onPressPrimaryBtn={handleSpeciesSyncPress}
+      onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
+    />
+  </SafeAreaView>
+)
 }
 
 export default SpeciesSearchView
@@ -104,4 +105,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
+  toastLabel: {
+    fontSize: 16,
+    fontFamily: FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT
+  },
+  speciesLabel: {
+    fontFamily: FONT_FAMILY_ITALIC,
+  }
 })

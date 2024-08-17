@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import Header from '../common/Header'
 import i18next from 'src/locales/index'
 import { Typography, Colors } from 'src/utils/constants'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
@@ -27,7 +26,6 @@ const ManageSpeciesHeader = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      <Header label={i18next.t("label.manage_species")} />
       {!isSpeciesDownloaded ? <SpeciesSyncError /> : <View style={styles.wrapper}>
         <Text style={styles.labelNote}>
           {i18next.t('label.explore_and_manage_species')}

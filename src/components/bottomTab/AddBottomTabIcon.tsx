@@ -97,7 +97,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     position: 'absolute',
     top: -windowWidth / 10,
-    left: '8%'
+    left: '8%',
+    shadowColor: Colors.GRAY_DARK,
+    shadowOffset: { width: 2, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 0.5,
   },
   iconWrapper: {
     // marginBottom:5

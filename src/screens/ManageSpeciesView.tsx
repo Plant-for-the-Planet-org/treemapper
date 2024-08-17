@@ -16,6 +16,11 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { useToast } from 'react-native-toast-notifications'
+import Header from 'src/components/common/Header'
+import i18next from 'i18next'
+import { TouchableOpacity } from 'react-native'
+import AlertModal from 'src/components/common/AlertModal'
+import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 
 
 const ManageSpeciesView = () => {
@@ -35,7 +40,7 @@ const ManageSpeciesView = () => {
   const isManageSpecies = route.params?.manageSpecies;
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
   const interventionID = route.params?.id ?? '';
-
+  const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {
@@ -109,8 +114,23 @@ const ManageSpeciesView = () => {
     }
   }
 
+  const handleSpeciesSyncPress = async () => {
+    setShowSpeciesSyncAlert(false)
+    setTimeout(() => {
+      navigation.navigate('SyncSpecies', { inApp: true })
+    }, 300);
+  }
+
+  const renderRightComponent = () => {
+    return (<TouchableOpacity onPress={() => { setShowSpeciesSyncAlert(true) }} style={{marginRight:20}}>
+      <SyncIcon width={20} height={20} />
+    </TouchableOpacity>)
+  }
+
+
   return (
     <SafeAreaView style={styles.container}>
+      <Header label={i18next.t("label.manage_species")} rightComponent={renderRightComponent()} />
       <ManageSpeciesHome
         toggleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={[...userFavSpecies]}
@@ -130,6 +150,16 @@ const ManageSpeciesView = () => {
         setShowTreeCountModal={setTreeModalDetails}
         activeSpecie={treeModalDetails}
         onPressTreeCountNextBtn={closeSpeciesModal}
+      />
+      <AlertModal
+        visible={showSpeciesSyncAlert}
+        heading={i18next.t('label.species_sync_update_alert_title')}
+        message={i18next.t('label.species_sync_update_alert_message')}
+        showSecondaryButton={true}
+        primaryBtnText={i18next.t('label.yes')}
+        secondaryBtnText={i18next.t('label.cancel')}
+        onPressPrimaryBtn={handleSpeciesSyncPress}
+        onPressSecondaryBtn={() => setShowSpeciesSyncAlert(false)}
       />
     </SafeAreaView>
   )
