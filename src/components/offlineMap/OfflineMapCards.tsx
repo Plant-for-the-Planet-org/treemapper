@@ -44,8 +44,14 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal:10,
     justifyContent: 'space-around',
     backgroundColor: Colors.WHITE,
+    elevation: 3, // This adds a shadow on Android
+    shadowColor: 'gray', // This adds a shadow on iOS
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
   },
   sectionWrapper: {
     flex: 1,

@@ -125,6 +125,7 @@ const OfflineMapDisplay = () => {
           label="Save Area"
           containerStyle={styles.btnContainer}
           pressHandler={onPressDownloadArea}
+          showDown
         />
       </View>
       <LoaderModal isLoaderShow={isLoaderShow} areaName={areaName} />
