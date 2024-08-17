@@ -56,7 +56,7 @@ const CustomDropdownComponent = (props: Props) => {
         onBlur={() => setIsFocus(false)}
         onChange={handleSelect}
         renderRightIcon={() => <SelectIcon />}
-        fontFamily={Typography.FONT_FAMILY_REGULAR}
+        fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         containerStyle={styles.listContainer}
         dropdownPosition={position}
         itemTextStyle={styles.itemTextStyle}

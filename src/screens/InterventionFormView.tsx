@@ -232,12 +232,12 @@ const InterventionFormView = () => {
   const pressContinue = async () => {
     try {
       prepareFormForSubmission();
-  
+
       const metaData = constructMetaData(locationName, furtherInfo);
       registerForm.meta_data = transformMetaData(metaData);
-  
+
       const result = await initializeIntervention(registerForm);
-  
+
       if (result) {
         await handleSuccessfulInterventionInitialization();
       } else {
@@ -247,7 +247,7 @@ const InterventionFormView = () => {
       logInitializationError(error);
     }
   };
-  
+
   const prepareFormForSubmission = () => {
     if (registerForm.entire_site_selected) {
       registerForm.coordinates = siteCoordinatesSelect();
@@ -256,7 +256,7 @@ const InterventionFormView = () => {
       registerForm.location_type = locationType;
     }
   };
-  
+
   const constructMetaData = (locationName: string, furtherInfo: string) => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
@@ -267,7 +267,7 @@ const InterventionFormView = () => {
     }
     return metaData;
   };
-  
+
   const transformMetaData = (metaData: any) => {
     const existingMetaData = JSON.parse(registerForm.meta_data);
     const appMeta = getDeviceDetails();
@@ -277,7 +277,7 @@ const InterventionFormView = () => {
       app: appMeta
     });
   };
-  
+
   const handleSuccessfulInterventionInitialization = async () => {
     if (registerForm.entire_site_selected) {
       await handleEntireSiteSelected();
@@ -286,7 +286,7 @@ const InterventionFormView = () => {
     }
     dispatch(updateNewIntervention());
   };
-  
+
   const handleEntireSiteSelected = async () => {
     const { coordinates } = makeInterventionGeoJson(
       registerForm.location_type,
@@ -299,20 +299,20 @@ const InterventionFormView = () => {
       { type: 'Polygon', coordinates: coordinates },
       true
     );
-  
+
     if (!locationUpdated) {
       handleLocationUpdateError();
       return;
     }
-  
+
     navigateBasedOnFormDetails();
   };
-  
+
   const handleLocationUpdateError = () => {
     errorHaptic();
     toast.show("Error occurred while updating location");
   };
-  
+
   const navigateBasedOnFormDetails = () => {
     if (registerForm.species_required) {
       navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id });
@@ -322,7 +322,7 @@ const InterventionFormView = () => {
       navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id });
     }
   };
-  
+
   const navigateToMarkerScreen = () => {
     if (registerForm.location_type === 'Point') {
       navigation.replace('PointMarker', { id: registerForm.form_id });
@@ -330,7 +330,7 @@ const InterventionFormView = () => {
       navigation.replace('PolygonMarker', { id: registerForm.form_id });
     }
   };
-  
+
   const handleInterventionInitializationError = () => {
     addNewLog({
       logType: 'INTERVENTION',
@@ -341,7 +341,7 @@ const InterventionFormView = () => {
     toast.show("Error occurred while creating intervention");
     errorHaptic();
   };
-  
+
   const logInitializationError = (error: any) => {
     addNewLog({
       logType: 'INTERVENTION',
@@ -363,11 +363,11 @@ const InterventionFormView = () => {
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <AvoidSoftInputView
-        avoidOffset={20}
-        style={styles.container}>
-        <Header  label={i18next.t('label.interventions')} />
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+      <Header label={i18next.t('label.intervention')} />
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <AvoidSoftInputView
+          avoidOffset={20}
+          style={styles.mainContainer}>
           <View style={styles.container}>
             <View style={styles.wrapper}>
               {isTpoUser && (
@@ -439,15 +439,16 @@ const InterventionFormView = () => {
               />
             </View>
           </View>
-        </ScrollView>
-        <CustomButton
-           label={i18next.t('label.continue')}
-          pressHandler={pressContinue}
-          containerStyle={styles.btnContainer}
-          wrapperStyle={styles.btnWrapper}
-          disable={!registerForm}
-        />
-      </AvoidSoftInputView>
+        </AvoidSoftInputView>
+      </ScrollView>
+      <CustomButton
+        label={i18next.t('label.continue')}
+        pressHandler={pressContinue}
+        containerStyle={styles.btnContainer}
+        wrapperStyle={styles.btnWrapper}
+        disable={!registerForm}
+        hideFadeIn
+      />
     </SafeAreaView>
   )
 }
@@ -468,13 +469,14 @@ const styles = StyleSheet.create({
     width: '98%',
     marginTop: 10,
     flex: 1,
-    paddingBottom: 50
+    paddingBottom: 100
   },
   btnContainer: {
     width: '100%',
     height: scaleSize(70),
-    bottom: 0,
+    bottom: 20,
     marginBottom: 20,
+    position:'absolute',
   },
   btnWrapper: {
     width: '90%',
