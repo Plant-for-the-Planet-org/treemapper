@@ -27,13 +27,11 @@ const FilterModal = (props: Props) => {
   const { interventionFilter, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
   )
-  const userType = useSelector(
-    (state: RootState) => state.userState.type,
-  )
+
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
   const toast = useToast()
-  const snapPoints = useMemo(() => ['50%', '85%'], []);
+  const snapPoints = useMemo(() => ['49%', '85%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -100,6 +98,7 @@ const FilterModal = (props: Props) => {
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
       style={{ paddingTop: 20 }}
+      backgroundStyle={{backgroundColor:'transparent'}}
     >
       <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
       <BottomSheetView style={styles.container}>
@@ -120,21 +119,21 @@ const FilterModal = (props: Props) => {
                 toast.show("Coming soon")
               }} disabled={false} />
             </View>
-            <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
-              <Text style={styles.cardLabel}>{i18next.t('label.intervention')}</Text>
+            <View style={[styles.card, { backgroundColor: interventionFilter !== 'none' ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
+              <Text style={styles.cardLabel}>{i18next.t('label.label_intervention')}</Text>
               <View style={styles.divider} />
               <Switch value={interventionFilter !== 'none'} onValueChange={toggleIntervention} disabled={false} />
             </View>
-            <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
+            <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
             </TouchableOpacity>
             {showTypeModal && <InterventionFilterModal />}
-            {userType==='tpo' && <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: onlyRemeasurement ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.only_remeasurement')}</Text>
               <View style={styles.divider} />
               <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement)) }} disabled={false} />
-            </View>}
+            </View>
             <View />
           </View>
         </View>
@@ -152,17 +151,18 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     width: '100%',
     bottom: 0,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.WHITE,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
+    paddingTop:10
   },
   contentWrapper: {
     width: '95%',
     paddingBottom: 50
   },
   card: {
-    height: 55,
+    height: 60,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
@@ -191,21 +191,20 @@ const styles = StyleSheet.create({
     paddingLeft: 10
   },
   cardLabel: {
-    fontSize: 16,
+    fontSize: 15,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.TEXT_COLOR,
+    color: Colors.DARK_TEXT,
     letterSpacing: 1,
     paddingLeft: 10,
     textAlign: 'left',
-    maxWidth:'80%'
+    maxWidth: '80%'
 
   },
   divider: {
     flex: 1,
   },
   handleIndicatorStyle: {
-    backgroundColor: Colors.WHITE,
     width: 0,
     height: 0
   }

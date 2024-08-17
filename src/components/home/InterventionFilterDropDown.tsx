@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   tileLabel: {
     fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
     paddingLeft:20
   },

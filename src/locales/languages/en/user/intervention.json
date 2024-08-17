@@ -5,7 +5,7 @@
     "no_site_found": "No site found for this project",
     "filters": "Filters",
     "monitoring_plots": "Monitoring Plots",
-    "intervention": "Intervention",
+    "label_intervention": "Interventions",
     "filter_intervention": "Filter Interventions",
     "only_remeasurement": "Only Intervention that \nneed remeasurement",
     "all": "All",
