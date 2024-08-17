@@ -59,8 +59,8 @@ const InterventionTimeModal = (props: Props) => {
                         size={25}
                         fillColor={Colors.NEW_PRIMARY}
                         unFillColor={Colors.WHITE}
-                        innerIconStyle={{ borderWidth: 2, borderColor: Colors.NEW_PRIMARY, borderRadius: 5, margin: 0 }}
-                        iconStyle={{ borderWidth: 2, borderColor: Colors.NEW_PRIMARY, borderRadius: 5, margin: 0 }}
+                        innerIconStyle={{ borderWidth: 2, borderColor: selectedFilter === el.key ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT, borderRadius: 5, margin: 0 }}
+                        iconStyle={{ borderWidth: 2, borderRadius: 5, margin: 0 }}
                         onPress={() => {
                             changeInterventionFilter(el.key)
                         }}
@@ -98,7 +98,6 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE,
         borderRadius: 20,
         alignItems: 'center',
-        minHeight: '40%',
         paddingVertical: 20
     },
     tileWrapper: {
