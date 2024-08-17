@@ -1,7 +1,9 @@
 import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useEffect } from 'react'
-import UserLocationIcon from 'assets/images/svg/InactiveUserLocationIcon.svg'
+import UserLocationIcon from 'assets/images/svg/UserLocationIcon.svg'
 import useLocationPermission from 'src/hooks/useLocationPermission'
+import { SCALE_20 } from 'src/utils/constants/spacing'
+import { Colors } from 'src/utils/constants'
 
 
 interface Props {
@@ -23,7 +25,7 @@ const UserlocationMarker = (props: Props) => {
 
   return (
     <TouchableOpacity style={styles.container} onPress={userCurrentLocation}>
-      <UserLocationIcon width={40} height={40} />
+      <UserLocationIcon width={SCALE_20} height={SCALE_20} onPress={userCurrentLocation}/>
     </TouchableOpacity>
   )
 }
@@ -34,11 +36,14 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1,
-    right: '6.5%',
-    bottom: windowWidth / 2.5,
-    width: 55,
-    height: 55,
+    right: '9%',
+    bottom: windowWidth / 2.4,
+    width: 40,
+    height: 40,
+    borderRadius: 50,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
+    backgroundColor: Colors.WHITE,
+
   },
 })

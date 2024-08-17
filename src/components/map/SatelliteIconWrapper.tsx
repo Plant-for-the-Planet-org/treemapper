@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import React from 'react'
 import SatelliteIcon from 'assets/images/svg/SatelliteIcon.svg'
 import SatelliteIconOn from 'assets/images/svg/SatelliteIconOn.svg'
@@ -9,7 +9,6 @@ import { RootState } from 'src/store'
 import { updateMainMapView } from 'src/store/slice/displayMapSlice'
 import { Colors } from 'src/utils/constants'
 
-const windowWidth = Dimensions.get('window').width;
 
 interface Props {
     low?: boolean
@@ -28,7 +27,7 @@ const SatelliteIconWrapper = (props: Props) => {
     }
 
     return (
-        <TouchableOpacity style={[styles.container, { bottom: low ? scaleSize(180) : scaleSize(220) }]} onPress={handlePress}>
+        <TouchableOpacity style={[styles.container, { bottom: low ? scaleSize(170) : scaleSize(210) }]} onPress={handlePress}>
             {viewState === 'SATELLITE' ? <SatelliteIconOn width={25} height={25} /> : <SatelliteIcon width={25} height={25} />}
         </TouchableOpacity>
     )
@@ -41,7 +40,6 @@ const styles = StyleSheet.create({
         position: 'absolute',
         zIndex: 1,
         right: '9%',
-        bottom: windowWidth / 2.5,
         width: 40,
         height: 40,
         justifyContent: 'center',

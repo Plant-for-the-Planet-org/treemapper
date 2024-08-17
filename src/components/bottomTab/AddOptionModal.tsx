@@ -98,7 +98,7 @@ const AddOptionModal = (props: Props) => {
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
-      title: i18next.t('label.interventions'),
+      title: i18next.t('label.intervention'),
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     paddingRight: 15,
   },
   addButtonOption: {
-    backgroundColor: Colors.PRIMARY + '1A',
+    backgroundColor: '#E5F2ED',
     flexDirection: 'row',
     height: scaleSize(45),
     alignItems: 'center',
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
   },
   text: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
-    fontSize: scaleFont(12),
+    fontSize: scaleFont(14),
     color: Colors.TEXT_COLOR,
   },
   coming_soon: {
@@ -237,7 +237,7 @@ const styles = StyleSheet.create({
     width: "100%", justifyContent: 'center', alignItems: 'center'
   },
   projectWrapper: {
-    width: '98%', height: 50, backgroundColor: Colors.PRIMARY + '1A', borderTopLeftRadius: 10, borderTopRightRadius: 10, flexDirection: 'row', alignItems: 'center',
+    width: '98%', height: 50, backgroundColor: '#E5F2ED', borderTopLeftRadius: 10, borderTopRightRadius: 10, flexDirection: 'row', alignItems: 'center',
     paddingHorizontal: 20
   },
   eyeIconWrapper: {
