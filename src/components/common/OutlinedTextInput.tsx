@@ -46,13 +46,13 @@ const OutlinedTextInput = (props: Props) => {
         keyboardType={keyboardType}
         placeholder={placeholder}
         fontColor={Colors.DARK_TEXT_COLOR}
-        paddingVertical={20}
+        paddingVertical={18}
         activeColor={Colors.PRIMARY}
         returnKeyType="done"
         inactiveColor={Colors.GRAY_BORDER}
         placeholderTextColor={Colors.GRAY_BORDER}
         onChangeText={changeHandler}
-        fontSize={scaleFont(14)}
+        fontSize={scaleFont(16)}
         fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
         error={errMsg.length ? errMsg : undefined}
         autoFocus={autoFocus || false}

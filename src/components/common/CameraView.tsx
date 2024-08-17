@@ -144,6 +144,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: scaleSize(70),
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
   },
 })

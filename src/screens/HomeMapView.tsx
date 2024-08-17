@@ -41,7 +41,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker />
+      <UserlocationMarker low/>
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}
