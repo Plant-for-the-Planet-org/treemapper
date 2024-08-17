@@ -56,7 +56,7 @@ const CustomDropdownComponent = (props: Props) => {
         onBlur={() => setIsFocus(false)}
         onChange={handleSelect}
         renderRightIcon={() => <SelectIcon />}
-        fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
+        fontFamily={Typography.FONT_FAMILY_REGULAR}
         containerStyle={styles.listContainer}
         dropdownPosition={position}
         itemTextStyle={styles.itemTextStyle}
@@ -85,23 +85,25 @@ const styles = StyleSheet.create({
   },
   label: {
     position: 'absolute',
-    left: 22,
+    left: 30,
     top: 8,
     zIndex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     fontSize: 14,
-    color: Colors.TEXT_COLOR,
+    color: Colors.BLACK,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   placeholderStyle: {
     fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     paddingHorizontal: 3,
-    color: Colors.TEXT_COLOR
+    color:Colors.DARK_TEXT,
   },
   selectedTextStyle: {
-    fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: 18,
+    color:Colors.DARK_TEXT,
+    paddingHorizontal:5,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   itemTextStyle: {
     fontSize: 16,

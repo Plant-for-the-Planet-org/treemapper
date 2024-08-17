@@ -109,7 +109,7 @@ const FilterModal = (props: Props) => {
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
-                <CloseIcon />
+                <CloseIcon width={18} height={18}/>
               </TouchableOpacity>
             </View>
             <View style={styles.card}>
