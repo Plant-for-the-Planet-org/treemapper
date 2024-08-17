@@ -248,7 +248,7 @@ export default SyncIntervention
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 10,
-        height: 45,
+        height: 50,
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
@@ -256,10 +256,10 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     label: {
-        fontSize: 14,
+        fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
-        marginLeft: 5
+        marginLeft: 8
     },
     infoIconWrapper: {
         marginRight: 5,

@@ -19,6 +19,7 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
+import { SCALE_24 } from 'src/utils/constants/spacing'
 
 interface Props {
   toggleFilterModal: () => void
@@ -201,7 +202,7 @@ const HomeHeader = (props: Props) => {
   return (
     <View style={styles.container}>
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
-        <HamburgerIcon onPress={openHomeDrawer} width={22} height={22} />
+        <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
@@ -209,14 +210,14 @@ const HomeHeader = (props: Props) => {
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}
-            width={22} height={22}
+            width={SCALE_24} height={SCALE_24}
           />
         </Pressable>
       ) : null}
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}
-          width={22} height={22}
+          width={SCALE_24} height={SCALE_24}
         />
       </Pressable>
     </View>
@@ -236,8 +237,8 @@ const styles = StyleSheet.create({
     top: 80,
   },
   iconWrapper: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.NEW_PRIMARY,
