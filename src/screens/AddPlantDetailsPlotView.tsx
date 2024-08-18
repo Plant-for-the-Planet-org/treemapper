@@ -122,19 +122,21 @@ const AddPlantDetailsPlotView = () => {
 
 
     const submitHandler = async () => {
-        const validWidth = validateNumber(width, 'width', 'width')
-        const validHeight = validateNumber(height, 'height', 'height')
-        if (validHeight.hasError) {
-            toast.show(validHeight.errorMessage)
-            return
-        }
-        if (validWidth.hasError) {
-            toast.show(validWidth.errorMessage)
-            return
-        }
-        if (!species) {
-            toast.show("Please select a species")
-            return
+        if (isTreeAlive) {
+            const validWidth = validateNumber(width, 'width', 'width')
+            const validHeight = validateNumber(height, 'height', 'height')
+            if (validHeight.hasError) {
+                toast.show(validHeight.errorMessage)
+                return
+            }
+            if (validWidth.hasError) {
+                toast.show(validWidth.errorMessage)
+                return
+            }
+            if (!species) {
+                toast.show("Please select a species")
+                return
+            }
         }
         const checkIsPlanted = () => {
             return isPlanted ? 'PLANTED' : 'RECRUIT'
@@ -173,10 +175,10 @@ const AddPlantDetailsPlotView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Add Plant' />
-            <AvoidSoftInputView
-                avoidOffset={0}
-                style={styles.container}>
-                <ScrollView>
+            <ScrollView>
+                <AvoidSoftInputView
+                    avoidOffset={20}
+                    style={styles.container}>
                     <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>
                         <PlaceHolderSwitch
@@ -228,8 +230,8 @@ const AddPlantDetailsPlotView = () => {
                                 trailingText={''} errMsg={''} />
                         </View>
                     </View>
-                </ScrollView>
-            </AvoidSoftInputView>
+                </AvoidSoftInputView>
+            </ScrollView>
             {isEdit ?
                 <View style={styles.btnMinorContainer}>
                     <CustomButton
@@ -283,7 +285,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 20,
+        bottom: 30,
     },
     dropDownWrapper: {
         width: '98%',

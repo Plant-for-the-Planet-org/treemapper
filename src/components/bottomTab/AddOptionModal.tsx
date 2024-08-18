@@ -79,9 +79,9 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: true,
+      coming_soon: false,
       onPress: () => {
-        toast.show(i18next.t('label.coming_soon'))
+        navigation.navigate('CreatePlot')
         props.setVisible(false)
       },
       disabled: false,
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     elevation: 4,
     width: Dimensions.get('window').width / 1.5,
-    zIndex: 10,
+    zIndex: 2,
   },
   addButtonOptionWrap: {
     borderRadius: 8,

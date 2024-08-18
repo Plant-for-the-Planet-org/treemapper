@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 0.5,
+    zIndex:10
   },
   iconWrapper: {
     // marginBottom:5
@@ -128,9 +129,9 @@ const styles = StyleSheet.create({
   },
   bakDrop: {
     position: 'absolute',
-    zIndex: -1,
+    zIndex: 1,
     width: Dimensions.get('screen').width,
-    height: Dimensions.get('screen').height,
+    height: Dimensions.get('screen').height+100,
     top: -Dimensions.get('screen').height,
     left: -Dimensions.get('screen').width + 100,
   }

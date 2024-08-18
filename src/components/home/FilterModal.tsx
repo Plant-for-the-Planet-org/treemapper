@@ -6,13 +6,12 @@ import Switch from '../common/Switch'
 import { Colors, Typography } from 'src/utils/constants'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateInterventionFilter, updateRemeasurementFilter } from 'src/store/slice/displayMapSlice'
+import { updateInterventionFilter, updateRemeasurementFilter, updateShowPlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
 import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 import i18next from 'src/locales/index'
-import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
   isVisible: boolean
@@ -24,13 +23,12 @@ const FilterModal = (props: Props) => {
   const [showTypeModal, setShowTypeModal] = useState(false)
 
 
-  const { interventionFilter, onlyRemeasurement } = useSelector(
+  const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const toast = useToast()
   const snapPoints = useMemo(() => ['49%', '85%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
@@ -112,12 +110,10 @@ const FilterModal = (props: Props) => {
                 <CloseIcon width={18} height={18}/>
               </TouchableOpacity>
             </View>
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: showPlots ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
-              <Switch value={false} onValueChange={() => {
-                toast.show("Coming soon")
-              }} disabled={false} />
+              <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
             <View style={[styles.card, { backgroundColor: interventionFilter !== 'none' ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.label_intervention')}</Text>

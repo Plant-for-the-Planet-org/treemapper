@@ -118,7 +118,7 @@ const AddRemeasurementView = () => {
                 </View>
             </View>
             {selectedTimeline.is_alive && <CustomButton
-                label="Add Remeasurement"
+                label="Add New Measurement"
                 containerStyle={styles.btnContainer}
                 pressHandler={handleSelection}
                 hideFadeIn
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 50,
+        bottom: 30,
     },
     imageWrapper: {
         backgroundColor: Colors.SAPPHIRE_BLUE,
