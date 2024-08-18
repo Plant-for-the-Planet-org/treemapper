@@ -509,7 +509,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         position: 'absolute',
-        bottom: 25,
+        bottom: 30,
         marginHorizontal: '2%',
         justifyContent: 'center'
     },

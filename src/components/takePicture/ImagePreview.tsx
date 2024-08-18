@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
   },
   btnWrapper: {
     flex: 1,

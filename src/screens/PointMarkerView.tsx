@@ -39,7 +39,7 @@ const PointMarkerView = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header
-        label={"Mark Location"}
+        label={"Select Location"}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}
       />
       <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} />

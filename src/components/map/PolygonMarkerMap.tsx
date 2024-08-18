@@ -208,7 +208,6 @@ const PolygonMarkerMap = (props: Props) => {
           />
         </View>
       )}
-
       {!polygonComplete && (
         <CustomButton
           label="Select location & continue"
@@ -238,7 +237,7 @@ const styles = StyleSheet.create({
 
   btnFooter: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     width: '100%',
     height: scaleSize(70),
     flexDirection: 'row',
@@ -248,7 +247,7 @@ const styles = StyleSheet.create({
 
   btnContainer: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
     width: '100%',
     height: scaleSize(70),
   },

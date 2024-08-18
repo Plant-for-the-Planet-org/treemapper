@@ -1,4 +1,4 @@
-import { FlatList, StyleSheet, View } from 'react-native'
+import { FlatList, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
@@ -15,11 +15,12 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { useRealm } from '@realm/react'
+import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
+import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
 
 
 
@@ -29,10 +30,8 @@ const TotalTreesView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
   const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
-  const realm = useRealm()
   const isSelectSpecies = route.params?.isSelectSpecies
   const interventionId = route.params?.interventionId ?? "";
-  const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
   const toast = useToast()
   const goBack = () => {
     navigation.goBack()
@@ -40,6 +39,9 @@ const TotalTreesView = () => {
 
 
 
+  const intervention = useObject<InterventionData>(
+    RealmSchema.Intervention, interventionId
+  )
   const navigationToNext = async () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
     const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
@@ -63,12 +65,14 @@ const TotalTreesView = () => {
 
   const removeHandler = async (item: PlantedSpecies) => {
     const result = await removeInterventionPlantedSpecies(interventionId, item)
+
     if (!result) {
       toast.show("Error occurred while removing species")
       errorHaptic()
     } else {
-      toast.show(`${item.scientificName} removed`)
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> removed from list</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     }
+
   }
 
   const renderSpecieCard = (
@@ -90,7 +94,7 @@ const TotalTreesView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Total Trees" note='List all species planted at the location' />
+      <Header label="Total Trees" note='List all species planted at the site' />
       <View style={styles.wrapper}>
         <FlatList
           data={intervention.planted_species}
@@ -151,7 +155,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
   },
   btnWrapper: {
     flex: 1,
@@ -200,4 +204,12 @@ const styles = StyleSheet.create({
     height: scaleFont(70),
     width: '100%',
   },
+  toastLabel: {
+    fontSize: 16,
+    fontFamily: FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT
+  },
+  speciesLabel: {
+    fontFamily: FONT_FAMILY_ITALIC,
+  }
 })
