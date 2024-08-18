@@ -59,6 +59,11 @@ const PreviewMap = (props: Props) => {
   const handlePress = () => {
     return
   }
+
+  const viewTreeDetails = async (_i: number, d: SampleTree) => {
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: d.tree_id, synced: true, id: d.intervention_id })
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -74,7 +79,7 @@ const PreviewMap = (props: Props) => {
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} />}
+          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} onMarkerPress={viewTreeDetails} />}
         </MapLibreGL.MapView>
         {showEdit && !isEntireSite ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />

@@ -50,7 +50,6 @@ const SampleTreePreviewList = (props: Props) => {
 
   const viewTreeDetails = async (id: string) => {
     navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: true, id: interventionId })
-
   }
 
   const remeasurement = async (id: string) => {

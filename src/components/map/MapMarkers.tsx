@@ -10,7 +10,7 @@ interface Props {
   hasSampleTree: boolean
   showActive?: boolean
   activeIndex?: number
-  onMarkerPress?: (index: number) => void
+  onMarkerPress?: (index: number, extra?: SampleTree) => void
 }
 
 const MapMarkers = (props: Props) => {
@@ -22,9 +22,9 @@ const MapMarkers = (props: Props) => {
     return String.fromCharCode(i + 65)
   }
 
-  const handleMarkerPress = (index: number) => {
+  const handleMarkerPress = (index: number, d: SampleTree) => {
     if (onMarkerPress) {
-      onMarkerPress(index)
+      onMarkerPress(index, d)
     }
   }
 
@@ -62,11 +62,10 @@ const MapMarkers = (props: Props) => {
     return sampleTreeData.map((el, i) => (
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
-
         id={String(i)}
         key={String(el.longitude)}>
         <TouchableOpacity style={styles.container} onPress={() => {
-          handleMarkerPress(i)
+          handleMarkerPress(i, el)
         }}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={getPinColor(i, el)} />
