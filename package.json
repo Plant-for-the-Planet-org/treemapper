@@ -69,6 +69,7 @@
     "react-native-auth0": "3.1.0",
     "react-native-avoid-softinput": "^5.0.0",
     "react-native-bouncy-checkbox": "^4.0.0",
+    "react-native-draggable-flatlist": "^4.0.1",
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.10.4",
     "react-native-fs": "^2.20.0",
