@@ -364,9 +364,10 @@ const InterventionFormView = () => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <Header label={i18next.t('label.intervention')} />
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainContainer}>
         <AvoidSoftInputView
           avoidOffset={20}
+          showAnimationDuration={200}
           style={styles.mainContainer}>
           <View style={styles.container}>
             <View style={styles.wrapper}>
@@ -459,17 +460,22 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
+    height:'100%',
+    width:'100%'
   },
   container: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: Colors.BACKDROP_COLOR,
+    height:'100%',
+    width:'100%'
   },
   wrapper: {
     width: '98%',
     marginTop: 10,
     flex: 1,
-    paddingBottom: 100
+    paddingBottom: 100,
+    backgroundColor: Colors.BACKDROP_COLOR,
   },
   btnContainer: {
     width: '100%',

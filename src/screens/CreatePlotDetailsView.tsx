@@ -178,6 +178,7 @@ const CreatePlotDetailsView = () => {
             <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
                 <AvoidSoftInputView
                     avoidOffset={20}
+                    showAnimationDuration={200}
                     style={styles.container}>
                     <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                     <View style={styles.wrapper}>

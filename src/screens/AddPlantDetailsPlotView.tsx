@@ -178,6 +178,7 @@ const AddPlantDetailsPlotView = () => {
             <ScrollView>
                 <AvoidSoftInputView
                     avoidOffset={20}
+                    showAnimationDuration={200}
                     style={styles.container}>
                     <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>

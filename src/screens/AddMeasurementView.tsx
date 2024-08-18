@@ -212,6 +212,7 @@ const AddMeasurement = () => {
     <SafeAreaView style={styles.container}>
       <AvoidSoftInputView
         avoidOffset={0}
+        showAnimationDuration={200}
         style={styles.container}>
         <Header label="Add Measurements" />
         <View style={styles.wrapper}>

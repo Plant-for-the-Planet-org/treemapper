@@ -242,6 +242,7 @@ const TreeRemeasurementView = () => {
         <SafeAreaView style={styles.container}>
             <AvoidSoftInputView
                 avoidOffset={20}
+                showAnimationDuration={200}
                 style={styles.container}>
                 <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
                 <ScrollView>

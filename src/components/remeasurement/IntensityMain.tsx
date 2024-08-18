@@ -28,7 +28,7 @@ const Intensity: React.FC<Props> = ({ intensity }) => {
   }, [intensity]);
 
   return (
-    <AvoidSoftInputView avoidOffset={0} style={{ flex: 1 }}>
+    <AvoidSoftInputView avoidOffset={20} style={{ flex: 1 }} showAnimationDuration={200}>
       <View style={[styles.scene, styles.defaultSpacing]}>
         <ScrollView style={styles.scrollView}>
           <Text style={[styles.description, styles.descriptionMarginTop]}>
