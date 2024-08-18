@@ -33,7 +33,15 @@ const MapMarkers = (props: Props) => {
       if (activeIndex === i) {
         return Colors.NEW_PRIMARY;
       } else {
-        return el.remeasurement_requires ? 'tomato' : Colors.TEXT_LIGHT;
+        let color: string;
+        if (el.remeasurement_requires) {
+          color = '#FF6200';
+        } else if (el.is_alive) {
+          color = '#89B53A';
+        } else {
+          color = Colors.TEXT_LIGHT;
+        }
+        return color;
       }
     } else {
       return Colors.NEW_PRIMARY;
