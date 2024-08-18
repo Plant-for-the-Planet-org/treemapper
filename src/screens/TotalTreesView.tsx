@@ -54,9 +54,9 @@ const TotalTreesView = () => {
     }
     if (has_sample_trees) {
       setShowSampleTreeModal(true)
-    } else {
-      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
+      return;
     }
+    navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
   }
 
 
