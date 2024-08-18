@@ -4,26 +4,20 @@ import i18next from 'src/locales/index'
 import { Typography, Colors } from 'src/utils/constants'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { RootStackParamList } from 'src/types/type/navigation.type'
+
 import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import SpeciesSyncError from './SpeciesSyncError'
 
 interface Props {
-  isManageSpecies: boolean
+  openSearchModal: () => void
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { isManageSpecies } = props
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { openSearchModal } = props
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
 
-  const openSearchModal = () => {
-    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSpecies })
-  }
   return (
     <View style={styles.container}>
       {!isSpeciesDownloaded ? <SpeciesSyncError /> : <View style={styles.wrapper}>

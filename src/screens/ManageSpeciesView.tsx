@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native'
+import { StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import ManageSpeciesHome from 'src/components/species/ManageSpeciesHome'
 import RemoveSpeciesModal from 'src/components/species/RemoveSpeciesModal'
@@ -18,9 +18,9 @@ import { setUpIntervention } from 'src/utils/helpers/formHelper/selectInterventi
 import { useToast } from 'react-native-toast-notifications'
 import Header from 'src/components/common/Header'
 import i18next from 'i18next'
-import { TouchableOpacity } from 'react-native'
 import AlertModal from 'src/components/common/AlertModal'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
+import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 
 const ManageSpeciesView = () => {
@@ -40,6 +40,8 @@ const ManageSpeciesView = () => {
   const isManageSpecies = route.params?.manageSpecies;
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
   const interventionID = route.params?.id ?? '';
+  const selectedId = route.params?.selectedId ?? '';
+
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
 
   useEffect(() => {
@@ -48,6 +50,16 @@ const ManageSpeciesView = () => {
       setInterventionData(InterventionData)
     }
   }, [interventionID])
+
+  useEffect(() => {
+    if (selectedId) {
+      const specieData = realm.objectForPrimaryKey<IScientificSpecies>(RealmSchema.ScientificSpecies, selectedId)
+      if (specieData) {
+        handleSpeciesPress(JSON.parse(JSON.stringify(specieData)))
+      }
+    }
+  }, [selectedId])
+
 
 
   const userFavSpecies = useQuery<IScientificSpecies>(RealmSchema.ScientificSpecies, data => {
@@ -72,7 +84,11 @@ const ManageSpeciesView = () => {
     toggleRemoveFavModal()
     updateUserFavSpecies(deleteSpecieId, false)
   }
-  
+
+
+
+
+
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {
       guid: treeModalDetails.guid,
@@ -123,8 +139,44 @@ const ManageSpeciesView = () => {
     }, 300);
   }
 
+  const handleSpeciesPress = async (item: IScientificSpecies) => {
+    const speciesData = JSON.parse(JSON.stringify(item))
+    if (EditInterventionSpecies) {
+      handleSelectedMultiSpecies(speciesData);
+      return;
+    }
+    const { is_multi_species, tree_details_required } = setUpIntervention(interventionData ? interventionData.intervention_key : 'single-tree-registration')
+    if (!isManageSpecies) {
+      if (is_multi_species) {
+        handleSelectedMultiSpecies(speciesData)
+      } else {
+        const updatedSPecies: PlantedSpecies = {
+          guid: speciesData.guid,
+          scientificName: speciesData.scientificName,
+          aliases: speciesData.aliases,
+          count: 1,
+          image: speciesData.image
+        }
+        const result = await updateInterventionPlantedSpecies(interventionData ? interventionData.form_id : "", updatedSPecies)
+        if (!result) {
+          errorHaptic()
+          toast.show('Error occurred while adding species')
+          return
+        }
+        if (tree_details_required) {
+          navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: interventionData ? interventionData.form_id : "" })
+        } else {
+          navigation.navigate('LocalForm', { id: interventionData ? interventionData.form_id : "" })
+        }
+      }
+    } else {
+      navigation.navigate('SpeciesInfo', { guid: speciesData.guid })
+    }
+  }
+
+
   const renderRightComponent = () => {
-    return (<TouchableOpacity onPress={() => { setShowSpeciesSyncAlert(true) }} style={{marginRight:20}}>
+    return (<TouchableOpacity onPress={() => { setShowSpeciesSyncAlert(true) }} style={{ marginRight: 20 }}>
       <SyncIcon width={20} height={20} />
     </TouchableOpacity>)
   }
@@ -134,13 +186,10 @@ const ManageSpeciesView = () => {
     <SafeAreaView style={styles.container}>
       <Header label={i18next.t("label.manage_species")} rightComponent={renderRightComponent()} />
       <ManageSpeciesHome
+        handleSpeciesPress={handleSpeciesPress}
         toggleFavSpecies={addRemoveUserFavSpecies}
         userFavSpecies={[...userFavSpecies]}
-        interventionKey={interventionData ? interventionData.intervention_key : 'single-tree-registration'}
-        form_id={interventionData ? interventionData.form_id : ""}
         isManageSpecies={isManageSpecies}
-        showTreeModal={handleSelectedMultiSpecies}
-        interventionEdit={EditInterventionSpecies}
       />
       <RemoveSpeciesModal
         isVisible={showRemoveFavModal}
