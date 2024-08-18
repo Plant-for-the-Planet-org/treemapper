@@ -35,7 +35,7 @@ export const ExportGeoJSONButton = (props: Props) => {
             url: 'data:application/json;base64,' + toBase64(JSON.stringify(geoJSON)),
             message: i18next.t('label.inventory_overview_export_json_message'),
             title: i18next.t('label.inventory_overview_export_json_title'),
-            filename: type === 'intervention' ? `Intervention(${details.intervention_id})-GeoJSON.json` : `Tree(${details.tree_id})-GeoJSON.json`,
+            filename: type === 'intervention' ? `Intervention_${details.intervention_id}_GeoJSON.json` : `Tree_${details.tree_id}_GeoJSON.json`,
             saveToFiles: true,
         };
         Share.open(options)
