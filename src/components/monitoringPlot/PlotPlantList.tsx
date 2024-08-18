@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 10,
+        bottom: 20,
     },
     emptyWrapper: {
         width: '100%',

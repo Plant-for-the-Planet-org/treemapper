@@ -102,7 +102,7 @@ const ReviewTreeDetails = () => {
         const bounds = bbox(geoJSON)
         dispatch(updateBoundary({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
         dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
-        navigation.navigate('PointMarker', { id: interventionId })
+        navigation.replace('PointMarker', { id: interventionId })
     }
 
     const setupTreeDetailsFlow = () => {
@@ -125,13 +125,13 @@ const ReviewTreeDetails = () => {
             const bounds = bbox(geoJSON)
             dispatch(updateBoundary({ coord: JSON.parse(Intervention.location.coordinates), id: uuid(), form_ID: Intervention.form_id, }))
             dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
-            navigation.navigate('PointMarker', { id: interventionId })
+            navigation.replace('PointMarker', { id: interventionId })
         }
     }
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
         if (label === 'species') {
-            navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
+            navigation.replace('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
             return;
         }
         if (label === 'date') {

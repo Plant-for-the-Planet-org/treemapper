@@ -41,6 +41,7 @@ const ManageSpeciesView = () => {
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
   const interventionID = route.params?.id ?? '';
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
+
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {
@@ -71,6 +72,7 @@ const ManageSpeciesView = () => {
     toggleRemoveFavModal()
     updateUserFavSpecies(deleteSpecieId, false)
   }
+  
   const closeSpeciesModal = async (count: string) => {
     const speciesDetails: PlantedSpecies = {
       guid: treeModalDetails.guid,

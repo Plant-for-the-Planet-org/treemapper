@@ -1,5 +1,5 @@
 import { FlatList, StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { useDispatch } from 'react-redux'
@@ -21,6 +21,7 @@ import { setUpIntervention } from 'src/utils/helpers/formHelper/selectInterventi
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
 import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
+import AskSampleTreeModal from 'src/components/common/AskSampleTreeModal'
 
 
 
@@ -33,6 +34,7 @@ const TotalTreesView = () => {
   const isSelectSpecies = route.params?.isSelectSpecies
   const interventionId = route.params?.interventionId ?? "";
   const toast = useToast()
+  const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
   const goBack = () => {
     navigation.goBack()
   }
@@ -50,8 +52,14 @@ const TotalTreesView = () => {
       toast.show("Error occurred while updating data")
       return
     }
-    navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees, id: intervention.form_id })
+    if (has_sample_trees) {
+      setShowSampleTreeModal(true)
+    } else {
+      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
+    }
   }
+
+
 
 
 
@@ -89,12 +97,32 @@ const TotalTreesView = () => {
     )
   }
 
+  const closeModal = () => {
+    setShowSampleTreeModal(false)
+  }
+
+  const secondaryBtnHandler = () => {
+    setShowSampleTreeModal(false)
+    setTimeout(() => {
+      navigation.replace('LocalForm', { id: interventionId })
+    }, 200);
+  }
+
+
+  const onPrimaryPress = () => {
+    setShowSampleTreeModal(false)
+    setTimeout(() => {
+      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
+    }, 200);
+  }
+
   const renderFooter = () => <View style={styles.footerWrapper} />
 
 
   return (
     <SafeAreaView style={styles.container}>
       <Header label="Total Trees" note='List all species planted at the site' />
+      <AskSampleTreeModal isVisible={showSampleTreeModal} toggleModal={closeModal} removeFavSpecie={onPrimaryPress} headerLabel={'Sample Tree Registration'} noteLabel={' Do you want to add sample trees ?'} primeLabel={'Add Sample Tree'} secondaryLabel={'Finish'} extra={undefined} secondaryHandler={secondaryBtnHandler} />
       <View style={styles.wrapper}>
         <FlatList
           data={intervention.planted_species}

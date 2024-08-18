@@ -1,6 +1,5 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotDetailsHeader from 'src/components/monitoringPlot/PlotDetailsHeader'
 import { Colors } from 'src/utils/constants'
 import MainHeaderPlot from 'src/components/monitoringPlot/MainHeaderPlot'
@@ -26,7 +25,7 @@ const PlotDetailsView = () => {
     )
     const { shape, name, length, width, radius, complexity, plot_plants, observations, plot_group } = monitoringPlot;
     return (
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
             <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={plot_group && plot_group.length > 0 ? plot_group[0].name : ''} />
             <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={observations.length} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
@@ -42,7 +41,7 @@ const PlotDetailsView = () => {
                 plotId={plotID}
                 plotData={monitoringPlot}
             />
-        </SafeAreaView>
+        </View>
     )
 }
 
@@ -51,10 +50,11 @@ export default PlotDetailsView
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: Colors.WHITE
+        backgroundColor: Colors.WHITE,
+        paddingTop:40
     },
     mainSection: {
         flex: 1,
-        backgroundColor: Colors.BACKDROP_COLOR
-    }
+        backgroundColor: Colors.BACKDROP_COLOR,
+    },
 })
