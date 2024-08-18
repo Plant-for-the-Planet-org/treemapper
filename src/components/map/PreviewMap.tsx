@@ -17,6 +17,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'src/locales/index'
+import MapMarkersCircle from './MapMarkersCircle'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('../../../assets/mapStyle/mapStyleOutput.json')
@@ -63,7 +64,6 @@ const PreviewMap = (props: Props) => {
   const viewTreeDetails = async (_i: number, d: SampleTree) => {
     navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: d.tree_id, synced: true, id: d.intervention_id })
   }
-
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
@@ -71,7 +71,6 @@ const PreviewMap = (props: Props) => {
           style={styles.map}
           attributionEnabled={false}
           logoEnabled={false}
-          scrollEnabled={false}
           onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
           <MapLibreGL.Camera ref={cameraRef} />
@@ -79,7 +78,8 @@ const PreviewMap = (props: Props) => {
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} onMarkerPress={viewTreeDetails} />}
+          {intervention.location_type === 'Polygon' && <MapMarkersCircle coordinates={JSON.parse(intervention.location.coordinates)} />}
+          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} onMarkerPress={viewTreeDetails} showNumber/>}
         </MapLibreGL.MapView>
         {showEdit && !isEntireSite ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
@@ -99,7 +99,7 @@ export default PreviewMap
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 200,
+    height: 250,
     justifyContent: 'center',
     alignItems: 'center',
   },

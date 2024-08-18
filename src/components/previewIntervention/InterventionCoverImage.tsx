@@ -54,7 +54,7 @@ const InterventionCoverImage = (props: Props) => {
   }
 
 
-  const uri  = isCDN?`${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/project/large/${image}`:image
+  const uri  = isCDN?`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}`:image
   return (
     <View style={styles.container}>
       {uri.length>0 && <View style={styles.wrapper}>

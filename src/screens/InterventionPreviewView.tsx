@@ -9,6 +9,7 @@ import Header from 'src/components/common/Header'
 import InterventionBasicInfo from 'src/components/previewIntervention/InterventionBasicInfo'
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
 import { useDispatch, useSelector } from 'react-redux'
+import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { RootState } from 'src/store'
 import {
   makeInterventionGeoJson,
@@ -136,9 +137,14 @@ const InterventionPreviewView = () => {
     </View>
   }
 
+
+
   const renderRightContainer = () => {
     if (InterventionData.status === 'SYNCED') {
-      return null
+      return     <View style={styles.syncContainer}>
+      <SyncIcon width={20} height={20} />
+      <Text style={styles.label}>{i18next.t("label.fully_synced")}</Text>
+  </View>
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
   }
@@ -207,5 +213,21 @@ const styles = StyleSheet.create({
     width: '100%',
     textAlign: 'center',
     marginVertical: 20
-  }
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    marginLeft: 8
+},
+syncContainer: {
+  paddingHorizontal: 10,
+  height: 50,
+  justifyContent: 'center',
+  alignItems: 'center',
+  flexDirection: 'row',
+  backgroundColor: Colors.NEW_PRIMARY+'1A',
+  marginRight:10,
+  borderRadius:10
+},
 })
