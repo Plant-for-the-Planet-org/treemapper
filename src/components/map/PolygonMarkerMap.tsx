@@ -139,9 +139,6 @@ const PolygonMarkerMap = (props: Props) => {
 
   const makeComplete = async () => {
     const finalCoordinates = [...coordinates, coordinates[0]];
-    if (coordinates.length === 3) {
-      finalCoordinates.push(coordinates[0])
-    }
     // setCoordinates([...finalCoordinates])
     const data = makeInterventionGeoJson('Point', finalCoordinates, form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
