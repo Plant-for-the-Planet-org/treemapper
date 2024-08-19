@@ -84,7 +84,7 @@ type ManageSpeciesView = {
   manageSpecies: boolean
   reviewTreeSpecies?: string
   id?: string
-  selectedId: string
+  selectedId?: string
 }
 type TotalTreesView = {
   isSelectSpecies: boolean

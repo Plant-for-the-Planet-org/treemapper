@@ -173,12 +173,21 @@ const InterventionFormView = () => {
       }
     })
     if (siteValidate && siteValidate.length > 0) {
-      setProjectSites(siteValidate)
+      setProjectSites([...siteValidate, {
+        label: 'Other',
+        value: '',
+        index: 0,
+      },])
       setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
     } else {
       setProjectSites([
         {
           label: 'Project has no site',
+          value: '',
+          index: 0,
+        },
+        {
+          label: 'Other',
           value: '',
           index: 0,
         },
@@ -460,15 +469,15 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
-    height:'100%',
-    width:'100%'
+    height: '100%',
+    width: '100%'
   },
   container: {
     flex: 1,
     alignItems: 'center',
     backgroundColor: Colors.BACKDROP_COLOR,
-    height:'100%',
-    width:'100%'
+    height: '100%',
+    width: '100%'
   },
   wrapper: {
     width: '98%',
@@ -482,7 +491,7 @@ const styles = StyleSheet.create({
     height: scaleSize(70),
     bottom: 20,
     marginBottom: 20,
-    position:'absolute',
+    position: 'absolute',
   },
   btnWrapper: {
     width: '90%',
