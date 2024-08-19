@@ -72,7 +72,6 @@ const InterventionAdditionalData = (props: Props) => {
         )
       }
     })
-
     return finalData
   }
 

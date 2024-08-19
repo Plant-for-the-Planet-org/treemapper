@@ -1,19 +1,21 @@
-import { StyleSheet, Text, View } from 'react-native'
-import React from 'react'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
-import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import turfArea from '@turf/area';
 import { convertArea } from '@turf/helpers'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import i18next from 'src/locales/index'
+import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
+import DateTimePicker from '@react-native-community/datetimepicker'
 interface Props {
   data: InterventionData
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const { intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species, location_type } = props.data
+  const { status, intervention_end_date, intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
   const dateFormatted = () => {
     if (intervention_date) {
       return timestampToBasicDate(intervention_date)
@@ -21,6 +23,20 @@ const InterventionBasicInfo = (props: Props) => {
       return 0
     }
   }
+  const endDateFormatted = () => {
+    if (intervention_end_date) {
+      return timestampToBasicDate(intervention_end_date)
+    } else {
+      return 0
+    }
+  }
+
+  const [dateType, setDateType] = useState('')
+
+  const { updateInterventionDate } = useInterventionManagement()
+
+
+
   const setPlantingArea = () => {
     const { geoJSON } = makeInterventionGeoJson(
       location.type,
@@ -53,27 +69,56 @@ const InterventionBasicInfo = (props: Props) => {
         </View>
       </View>
     </View>
-
   }
+
+  const handleDate = (isStart: boolean) => {
+    if (status === 'SYNCED') {
+      return
+    }
+    setDateType(isStart ? "start" : 'end')
+  }
+
+  const onDateSelect = async (_event, date: Date) => {
+    if (date === new Date('1970-01-01T00:00:00.000Z')) {
+      return
+    }
+    const type = dateType;
+    setDateType('')
+    await updateInterventionDate(intervention_id, convertDateToTimestamp(date), type === 'start')
+  }
+
 
   return (
     <View style={styles.container}>
+      {dateType !== '' && <View style={styles.datePickerContainer}><DateTimePicker
+        maximumDate={new Date()}
+        minimumDate={new Date(dateType !== 'start' ? intervention_date : new Date(2006, 0, 1))}
+        is24Hour={true}
+        value={new Date(dateType !== 'start' ? intervention_date : intervention_end_date)} onChange={onDateSelect} display='spinner' /></View>}
       <View style={styles.wrapper}>
         {!!hid && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>HID</Text>
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
         <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>{i18next.t('label.intervention_date')}</Text>
+          <View style={{ flexDirection: 'row' }}>
+            <Text style={styles.cardTitle}>{i18next.t('label.intervention_date')}</Text>
+            {/* <EditIcon style={{ marginTop: 3 }} /> */}
+          </View>
           <View style={styles.timeContainer}>
-            <View style={styles.cardDateLabel}>
+            <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(true) }}>
               <Text style={styles.cardLabel}>
                 {dateFormatted()}
               </Text>
-            </View>
+            </Pressable>
+            {intervention_end_date !== 0 && <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
+              <Text style={styles.cardLabel}>
+                {endDateFormatted()}
+              </Text>
+            </Pressable>}
           </View>
         </View>
-        {location_type === 'Polygon' && <View style={styles.cardWrapper}>
+        {location.type === 'Polygon' && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>{i18next.t('label.intervention_area')}</Text>
           <Text style={styles.haLabel}>{setPlantingArea()}ha</Text>
         </View>}
@@ -83,14 +128,14 @@ const InterventionBasicInfo = (props: Props) => {
         </View>
         {!!project_name && (
           <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
-          <Text style={styles.cardLabel}>{project_name}</Text>
+            <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
+            <Text style={styles.cardLabel}>{project_name}</Text>
           </View>
         )}
         {!!site_name && (
           <View style={styles.cardWrapper}>
-          <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
-          <Text style={styles.cardLabel}>{site_name}</Text>
+            <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
+            <Text style={styles.cardLabel}>{site_name}</Text>
           </View>
         )}
         {plantedSpecies()}
@@ -131,6 +176,7 @@ const styles = StyleSheet.create({
     fontSize: scaleSize(14),
     marginBottom: 5,
     color: Colors.TEXT_LIGHT,
+    marginRight: 10
   },
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -185,5 +231,12 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: Colors.GRAY_LIGHT,
     marginBottom: 10
-  }
+  },
+  datePickerContainer: {
+    position: "absolute",
+    zIndex: 1,
+    backgroundColor: '#fff',
+    width: "100%",
+    bottom: 0
+  },
 })

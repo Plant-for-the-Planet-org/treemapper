@@ -10,6 +10,7 @@ export const Intervention: ObjectSchema = {
     intervention_key: { type: 'string', default: '', indexed: true },
     intervention_title: 'string',
     intervention_date: 'double',
+    intervention_end_date: 'double',
     project_id: { type: 'string', optional: true, default: '' },
     project_name: { type: 'string', optional: true, default: '' },
     site_id: { type: 'string', optional: true, default: '' },

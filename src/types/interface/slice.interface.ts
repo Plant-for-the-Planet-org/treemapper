@@ -339,6 +339,7 @@ export interface InterventionData {
   intervention_key: INTERVENTION_TYPE
   intervention_title: string
   intervention_date: number
+  intervention_end_date: number
   project_id: string
   project_name: string
   site_name: string

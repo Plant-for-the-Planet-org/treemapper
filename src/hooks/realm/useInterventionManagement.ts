@@ -64,7 +64,8 @@ const useInterventionManagement = () => {
       planted_species: [],
       locate_tree: '',
       remeasurement_required: false,
-      next_measurement_date: 0
+      next_measurement_date: 0,
+      intervention_end_date: intervention.intervention_date,
     }
     try {
       realm.write(() => {
@@ -220,6 +221,31 @@ const useInterventionManagement = () => {
       return false;
     }
   };
+
+  const updateInterventionDate = async (interventionID: string, date: number, isStart: boolean): Promise<boolean> => {
+    try {
+      console.log("LKJ",date)
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        if (isStart) {
+          intervention.intervention_date = date
+        } else {
+          intervention.intervention_end_date = date
+        }
+      });
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Error occurred while updating Intervention(${interventionID}) date.`,
+        logLevel: 'info',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
 
   const deleteIntervention = async (interventionID: string): Promise<boolean> => {
     try {
@@ -562,7 +588,7 @@ const useInterventionManagement = () => {
           nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
         }
         treeDetails.specie_diameter = e.diameter
-        treeDetails.specie_height= e.height
+        treeDetails.specie_height = e.height
         if (e.imageUrl && !e.status) {
           treeDetails.image_url = e.imageUrl
           treeDetails.cdn_image_url = ''
@@ -600,7 +626,7 @@ const useInterventionManagement = () => {
   };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate }
 }
 
 export default useInterventionManagement

@@ -60,6 +60,7 @@ export const FirePatrol: RegisterFormSliceInitialState = {
   ...initialInterventionState,
   key: 'fire-patrol',
   title: 'Fire Patrol',
+  location_title: 'Select Location',
   can_be_entire_site: true,
   entire_site_selected: false,
   should_register_location: false,

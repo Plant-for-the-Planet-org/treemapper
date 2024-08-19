@@ -16,7 +16,7 @@ const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
   <View style={{
-    aspectRatio: 1, borderTopRightRadius: 10,
+    aspectRatio: 1, borderTopRightRadius: 5,
     overflow: "hidden"
   }}>
     <Svg>

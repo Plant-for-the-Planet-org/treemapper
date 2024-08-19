@@ -205,7 +205,8 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
         location_id: data.id,
         locate_tree: "",
         remeasurement_required: remeasurement_required,
-        next_measurement_date: rData.d
+        next_measurement_date: rData.d,
+        intervention_end_date: moment(data.registrationDate).valueOf() || moment(data.plantDate).valueOf(),
     }
     return finalData
 }

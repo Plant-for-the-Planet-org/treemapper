@@ -57,6 +57,9 @@ const LocalForm = () => {
 
 
   const checkForNonEmptyForm = (data, page = currentPage) => {
+    if (!data[page]) {
+      return false
+    }
     return data[page].elements.some(el =>
       el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH'
     )
@@ -68,7 +71,7 @@ const LocalForm = () => {
     const filterData = finalData.filter(el => el.page !== id);
     setFinalData([...filterData, { elements: data, page: id }])
 
-    const validPage=  formPages.length > currentPage + 1?  checkForNonEmptyForm(formPages, currentPage + 1 ) : false
+    const validPage = formPages.length > currentPage + 1 ? checkForNonEmptyForm(formPages, currentPage + 1) : false
 
     if (validPage) {
       flatListRef.current.scrollToIndex({ index: currentPage + 1 });

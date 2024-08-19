@@ -1,5 +1,5 @@
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
-import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 
@@ -10,6 +10,7 @@ const Description: FormElement = {
     default: '',
     type: 'TEXTAREA',
     placeholder: 'Describe more about fencing',
+    title: 'Description',
     unit: '',
     visibility: 'public',
     condition: null,
@@ -21,14 +22,14 @@ const Description: FormElement = {
     required: true,
     validation: ".+"
 }
-    
-  
-  const fencingForm: MainForm = {
-      title: 'Team Details',
-      key: '',
-      elements: [Description],
-    }
-    
+
+
+const fencingForm: MainForm = {
+    title: 'Team Details',
+    key: '',
+    elements: [Description],
+}
+
 
 export const Fencing: RegisterFormSliceInitialState = {
     ...initialInterventionState,

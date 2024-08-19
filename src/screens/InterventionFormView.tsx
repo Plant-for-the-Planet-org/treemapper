@@ -97,7 +97,7 @@ const InterventionFormView = () => {
     if (paramId) {
       skipForm(paramId)
     } else {
-      handleInterventionType({ label: "Fencing", value: 'fencing', index: 0 })
+      handleInterventionType({ label: "Fire Patrol", value: 'fire-patrol', index: 0 })
       if (isTpoUser) {
         setupProjectAndSiteDropDown()
       }

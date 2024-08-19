@@ -234,7 +234,7 @@ const PolygonMarkerMap = (props: Props) => {
           loading={loading}
         />
       )}
-      {!polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
+      {!loading && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
         <CustomButton
           label="Use Point Location"
           containerStyle={styles.pointWrapper}

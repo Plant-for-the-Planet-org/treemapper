@@ -56,11 +56,11 @@ const TotalTreesView = () => {
       setShowSampleTreeModal(true)
       return;
     }
-    if (has_sample_trees && intervention.location.type == 'Point') {
+    if (!has_sample_trees) {
       navigation.replace('LocalForm', { id: interventionId })
-      return;
+    } else {
+      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
     }
-    navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
   }
 
 
