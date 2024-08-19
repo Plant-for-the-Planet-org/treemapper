@@ -14,6 +14,7 @@ export interface AppInitialState {
   intervention_updated: number
   userSpecies: boolean,
   refreshToken: string,
+  lastSyncDate: number
 }
 
 export interface SyncSlice {

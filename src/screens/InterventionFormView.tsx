@@ -373,7 +373,7 @@ const InterventionFormView = () => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <Header label={i18next.t('label.intervention')} />
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={styles.mainContainer}>
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false} style={styles.mainContainer}>
         <AvoidSoftInputView
           avoidOffset={20}
           showAnimationDuration={200}

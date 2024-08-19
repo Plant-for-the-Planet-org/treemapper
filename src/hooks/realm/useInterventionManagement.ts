@@ -551,9 +551,21 @@ const useInterventionManagement = () => {
         intervention.hid = hid
         intervention.location_id = location_id
       });
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'Intervention status updated ' + interventionID,
+        logLevel: 'info',
+        statusCode: '',
+      })
       return true
     } catch (error) {
-      console.error('Error during update:', error);
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error Intervention ' + interventionID,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return false;
     }
   };
@@ -572,9 +584,21 @@ const useInterventionManagement = () => {
           isImageUploaded: false,
         }
       });
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'Tree status updated ' + tree_id,
+        logLevel: 'info',
+        statusCode: '',
+      })
       return true
     } catch (error) {
-      console.error('Error during update:', error);
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error TreeStatus ' + tree_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return false;
     }
   };
@@ -582,18 +606,34 @@ const useInterventionManagement = () => {
   const updateTreeImageStatus = async (tree_id: string, interventionId: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
-        intervention.status = 'SYNCED'
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
         treeDetails.status = 'SYNCED'
         treeDetails.image_data = {
           ...treeDetails.image_data,
           isImageUploaded: true,
         }
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+        const filterTrees = intervention.sample_trees.filter(el => el.tree_id !== tree_id)
+        const hasPendingSampleTree = filterTrees.some(el => el.status !== 'SYNCED')
+        if (!hasPendingSampleTree) {
+          intervention.status = 'SYNCED'
+        }
       });
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'Tree Image status updated ' + tree_id,
+        logLevel: 'info',
+        statusCode: '',
+      })
       return true
     } catch (error) {
-      console.error('Error during update:', error);
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error Image Status ' + tree_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
       return false;
     }
   };

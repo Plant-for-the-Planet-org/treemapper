@@ -1,14 +1,13 @@
 const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
-const testingURL = process.env.EXPO_PUBLIC_TESTING_URL
 const https = 'https://'
 
 export const postUrlApi = {
-  uploadIntervention: `${https}${testingURL}/treemapper/interventions`,
-  imageUpload: `${https}${testingURL}/treemapper/interventions`,
-  remeasurement: `${https}${testingURL}/treemapper/interventions`,
+  uploadIntervention: `${https}${baseUrl}/treemapper/interventions`,
+  imageUpload: `${https}${baseUrl}/treemapper/interventions`,
+  remeasurement: `${https}${baseUrl}/treemapper/interventions`,
   updateSpecies:  `${https}${baseUrl}/treemapper/species`,
   addUserSpecies: `${https}${baseUrl}/treemapper/species`,
-  updatePlantLocationData: `${https}${testingURL}/treemapper/interventions`,
+  updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,
   signupService:`${https}${baseUrl}/app/profile`,
   updateProjectInF: `${https}${baseUrl}/app/projects` //PUT `/app/projects/${projectId}`
 };

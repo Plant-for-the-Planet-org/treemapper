@@ -175,11 +175,11 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree) => {
             width: d.specie_diameter
         },
     }
-    if (d.project_id) {
-        postData.plantProject = d.project_id
+    if (i.project_id) {
+        postData.plantProject = i.project_id
     }
-    if (d.site_id) {
-        postData.plantProjectSite = d.site_id
+    if (i.site_id) {
+        postData.plantProjectSite = i.site_id
     }
     if (d.species_guid === 'undefined') {
         postData.otherSpecies = d.species_guid
