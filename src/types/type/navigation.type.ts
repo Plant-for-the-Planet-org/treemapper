@@ -91,6 +91,7 @@ type TotalTreesView = {
   isSelectSpecies: boolean
   interventionId: string
   isEditTrees?: boolean
+  treeId?: string
 }
 
 type ReviewTreeDetailsView = {

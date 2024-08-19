@@ -23,6 +23,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
 import AskSampleTreeModal from 'src/components/common/AskSampleTreeModal'
 import AlertModal from 'src/components/common/AlertModal'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 
 
@@ -30,11 +31,13 @@ const TotalTreesView = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
-  const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
+  const { updateInterventionLastScreen, removeInterventionPlantedSpecies, updateSampleTreeSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
   const isSelectSpecies = route.params?.isSelectSpecies
   const interventionId = route.params?.interventionId ?? "";
   const isEditTrees = route.params?.isEditTrees;
+  const singleTreeEdit = route.params?.treeId;
+
   const [showExistingTree, setShowExistingTree] = useState('')
   const toast = useToast()
   const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
@@ -82,7 +85,19 @@ const TotalTreesView = () => {
 
 
 
-  const cardPress = (item: PlantedSpecies) => {
+  const cardPress = async (item: PlantedSpecies) => {
+    if (singleTreeEdit) {
+      const specieData: IScientificSpecies = {
+        guid: item.guid,
+        scientificName: item.scientificName,
+        isUserSpecies: false,
+        aliases: item.aliases
+      }
+      await updateSampleTreeSpecies(interventionId, singleTreeEdit, specieData)
+      navigation.goBack()
+      return
+    }
+
     if (isSelectSpecies) {
       dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
@@ -128,7 +143,7 @@ const TotalTreesView = () => {
         onPressSpecies={cardPress}
         actionName={'remove'}
         handleRemoveFavorite={removeHandler}
-        isSelectSpecies={isSelectSpecies}
+        isSelectSpecies={isSelectSpecies || !singleTreeEdit}
       />
     )
   }

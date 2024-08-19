@@ -265,7 +265,6 @@ const useInterventionManagement = () => {
   const updateSampleTreeSpecies = async (interventionID: string, treeId: string, speciesDetails: IScientificSpecies): Promise<boolean> => {
     try {
       realm.write(() => {
-        console.log("intervention", interventionID)
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         treeDetails.specie_name = speciesDetails.scientificName
         treeDetails.species_guid = speciesDetails.guid

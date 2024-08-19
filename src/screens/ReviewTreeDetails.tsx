@@ -133,7 +133,11 @@ const ReviewTreeDetails = () => {
 
     const openEdit = (label: EditLabels, currentValue: string, type: KeyboardType) => {
         if (label === 'species') {
-            navigation.replace('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
+            if (Intervention.has_sample_trees) {
+                navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: Intervention.intervention_id, isEditTrees: false, treeId: treeDetails.tree_id })
+            } else {
+                navigation.replace('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': treeDetails.tree_id, id: Intervention.intervention_id })
+            }
             return;
         }
         if (label === 'date') {
@@ -329,7 +333,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (!!editTree && synced && !Intervention.has_sample_trees) {
+                            if (!!editTree && synced) {
                                 return
                             }
                             openEdit('species', String(treeDetails.specie_height), 'number-pad')
@@ -337,7 +341,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
-                            {!!editTree && !synced && !Intervention.has_sample_trees ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            {!!editTree && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>
