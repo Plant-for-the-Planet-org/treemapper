@@ -9,6 +9,7 @@ import { scaleSize } from 'src/utils/constants/mixins'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import CoordinatesList from './CoordinatesList'
 interface Props {
   data: InterventionData
 }
@@ -46,6 +47,7 @@ const InterventionArea = (props: Props) => {
         isEntireSite={data.entire_site}
         intervention={data}
       />
+      <CoordinatesList coordinates={JSON.parse(data.location.coordinates)} type={data.location_type}/>
     </View>
   )
 }

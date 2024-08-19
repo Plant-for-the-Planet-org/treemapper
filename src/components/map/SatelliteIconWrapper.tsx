@@ -27,7 +27,7 @@ const SatelliteIconWrapper = (props: Props) => {
     }
 
     return (
-        <TouchableOpacity style={[styles.container, { bottom: low ? scaleSize(170) : scaleSize(210) }]} onPress={handlePress}>
+        <TouchableOpacity style={[styles.container, { bottom: low ? scaleSize(170) : scaleSize(220) }]} onPress={handlePress}>
             {viewState === 'SATELLITE' ? <SatelliteIconOn width={25} height={25} /> : <SatelliteIcon width={25} height={25} />}
         </TouchableOpacity>
     )

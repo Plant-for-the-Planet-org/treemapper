@@ -44,7 +44,7 @@ const InterventionCard = (props: Props) => {
                 <SyncIcon width={15} height={15} />
               )}
             </View>
-            <Text style={styles.metaLabel}>{item.location_type}</Text>
+            <Text style={styles.metaLabel}>{item.location.type}</Text>
             <DividerDot width={20} height={20} size={20} color={Colors.TEXT_COLOR} />
             <InterventionMetaInfo item={item} />
             <Text style={styles.metaLabel}>

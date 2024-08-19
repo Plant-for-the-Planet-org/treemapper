@@ -20,6 +20,7 @@ import useInterventionManagement from 'src/hooks/realm/useInterventionManagement
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
+import UserlocationMarker from './UserlocationMarker'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -28,10 +29,11 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 interface Props {
   species_required: boolean
   form_id: string
+  intervention_key: string
 }
 
 const PolygonMarkerMap = (props: Props) => {
-  const { species_required, form_id } = props
+  const { species_required, form_id, intervention_key } = props
 
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
@@ -61,7 +63,7 @@ const PolygonMarkerMap = (props: Props) => {
   }, [currentUserLocation])
 
   const handleCamera = () => {
-    if(cameraRef?.current){
+    if (cameraRef?.current) {
       cameraRef.current.setCamera({
         centerCoordinate: [...currentUserLocation],
         zoomLevel: 20,
@@ -150,7 +152,25 @@ const PolygonMarkerMap = (props: Props) => {
     if (species_required) {
       navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
     } else {
-      navigation.navigate('LocalForm',{ id:form_id })
+      navigation.navigate('LocalForm', { id: form_id })
+    }
+  }
+
+  const makePointLocation = async () => {
+    const centerCoordinates = await mapRef.current.getCenter()
+    if (centerCoordinates.length !== 0) {
+      const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
+      const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
+      if (!result) {
+        errorHaptic()
+        toast.show('Error occurred while updating location')
+        return
+      }
+      if (species_required) {
+        navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
+      } else {
+        navigation.navigate('LocalForm', { id: form_id })
+      }
     }
   }
 
@@ -162,10 +182,10 @@ const PolygonMarkerMap = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <DisplayCurrentPolygonMarker
+      {coordinates.length !== 0 && <DisplayCurrentPolygonMarker
         id={currentCoordinate.id}
         undo={handlePreviousPoint}
-      />
+      />}
       <MapLibreGL.MapView
         style={styles.map}
         ref={mapRef}
@@ -214,7 +234,18 @@ const PolygonMarkerMap = (props: Props) => {
           loading={loading}
         />
       )}
+      {!polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
+        <CustomButton
+          label="Use Point Location"
+          containerStyle={styles.pointWrapper}
+          pressHandler={makePointLocation}
+          wrapperStyle={styles.pointButton}
+          labelStyle={styles.highlightLabel}
+          hideFadeIn
+        /> : null
+      }
       <ActiveMarkerIcon />
+      <UserlocationMarker high={coordinates.length === 0  && intervention_key === 'multi-tree-registration'} />
     </View>
   )
 }
@@ -251,6 +282,25 @@ const styles = StyleSheet.create({
   btnWrapper: {
     flex: 1,
     height: '100%',
+  },
+  pointWrapper: {
+    position: 'absolute',
+    bottom: 90,
+    width: '100%',
+    height: scaleSize(70),
+  },
+  pointButton: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 15,
+    paddingVertical: 5,
+    width: '85%',
+    height: '80%',
+    backgroundColor: Colors.WHITE,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: Colors.PRIMARY_DARK,
   },
   borderWrapper: {
     flexDirection: 'row',

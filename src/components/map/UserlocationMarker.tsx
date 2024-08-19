@@ -9,11 +9,12 @@ import { Colors } from 'src/utils/constants'
 interface Props {
   stopAutoFocus?: boolean
   low?: boolean
+  high?: boolean
 }
 const windowWidth = Dimensions.get('window').width;
 
 const UserlocationMarker = (props: Props) => {
-  const { stopAutoFocus, low } = props
+  const { stopAutoFocus, low, high } = props
   const { userCurrentLocation } = useLocationPermission()
 
 
@@ -23,9 +24,9 @@ const UserlocationMarker = (props: Props) => {
     }
   }, [stopAutoFocus])
 
-
+  const isHigh = high ? windowWidth / 2.2 : windowWidth / 2.8
   return (
-    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 :  windowWidth / 2.8 }]} onPress={userCurrentLocation}>
+    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 : isHigh }]} onPress={userCurrentLocation}>
       <UserLocationIcon width={SCALE_20} height={SCALE_20} onPress={userCurrentLocation} />
     </TouchableOpacity>
   )

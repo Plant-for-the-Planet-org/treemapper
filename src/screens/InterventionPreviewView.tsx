@@ -152,7 +152,7 @@ const InterventionPreviewView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <ScrollView style={styles.scrollWrapper} bounces={false}>
+      <ScrollView style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false}>
         <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo

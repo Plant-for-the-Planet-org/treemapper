@@ -79,12 +79,13 @@ const PreviewMap = (props: Props) => {
             onShapeSourcePress={handlePress}
           />
           {intervention.location_type === 'Polygon' && <MapMarkersCircle coordinates={JSON.parse(intervention.location.coordinates)} />}
-          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} onMarkerPress={viewTreeDetails} showNumber/>}
+          {has_sample_trees && <MapMarkers sampleTreeData={sampleTrees} hasSampleTree={has_sample_trees} onMarkerPress={viewTreeDetails} showNumber />}
         </MapLibreGL.MapView>
         {showEdit && !isEntireSite ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
-        {intervention && intervention.has_sample_trees && intervention.status !== 'SYNCED' ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
+    
+        {intervention && intervention.has_sample_trees && intervention.status !== 'SYNCED' && intervention.location.type !== 'Point' ? <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
           <Text style={styles.sampleTreeLabel}>{i18next.t("label.sample_tree")}</Text>
           <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
         </TouchableOpacity> : null}

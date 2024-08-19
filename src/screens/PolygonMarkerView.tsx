@@ -2,7 +2,6 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import PolygonMarkerMap from 'src/components/map/PolygonMarkerMap'
-import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import { Colors } from 'src/utils/constants'
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -43,8 +42,9 @@ const PolygonMarker = () => {
     <SafeAreaView style={styles.container}>
       <Header label={location_title}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
-      <PolygonMarkerMap species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
-      <UserlocationMarker />
+      <PolygonMarkerMap 
+      intervention_key={interventionData.intervention_key}
+      species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
       <LocationPermissionModal required />
     </SafeAreaView>

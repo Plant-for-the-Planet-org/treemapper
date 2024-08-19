@@ -52,8 +52,12 @@ const TotalTreesView = () => {
       toast.show("Error occurred while updating data")
       return
     }
-    if (has_sample_trees) {
+    if (has_sample_trees && intervention.location.type !== 'Point') {
       setShowSampleTreeModal(true)
+      return;
+    }
+    if (has_sample_trees && intervention.location.type == 'Point') {
+      navigation.replace('LocalForm', { id: interventionId })
       return;
     }
     navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })

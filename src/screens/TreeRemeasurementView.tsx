@@ -11,7 +11,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
-import { BACKDROP_COLOR } from 'src/utils/constants/colors'
+import { BACKDROP_COLOR, WHITE } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
 import { TREE_RE_STATUS } from 'src/types/type/app.type'
 import CustomDropDownPicker from 'src/components/common/CustomDropDown'
@@ -240,13 +240,12 @@ const TreeRemeasurementView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <AvoidSoftInputView
-                avoidOffset={20}
-                showAnimationDuration={200}
-                style={styles.container}>
-                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
-                <ScrollView>
-
+            <ScrollView contentContainerStyle={styles.container}>
+            <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
+                <AvoidSoftInputView
+                    avoidOffset={20}
+                    showAnimationDuration={200}
+                    style={styles.container}>
                     <View style={styles.wrapper}>
                         <PlaceHolderSwitch
                             description={'This tree is still alive'}
@@ -254,7 +253,6 @@ const TreeRemeasurementView = () => {
                             value={isAlive}
                         />
                         {isAlive ? <>
-
                             {!!imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
                                 <Image
                                     source={{
@@ -314,24 +312,24 @@ const TreeRemeasurementView = () => {
                                 </View></>
                         }
                     </View>
-                </ScrollView>
-                <AlertModal
-                    showSecondaryButton
-                    visible={showOptimalAlert}
-                    onPressPrimaryBtn={handleOptimalAlert}
-                    onPressSecondaryBtn={handleOptimalAlert}
-                    heading={i18next.t('label.not_optimal_ratio')}
-                    secondaryBtnText={i18next.t('label.continue')}
-                    primaryBtnText={i18next.t('label.check_again')}
-                    message={i18next.t('label.not_optimal_ratio_message')}
-                />
+                    <AlertModal
+                        showSecondaryButton
+                        visible={showOptimalAlert}
+                        onPressPrimaryBtn={handleOptimalAlert}
+                        onPressSecondaryBtn={handleOptimalAlert}
+                        heading={i18next.t('label.not_optimal_ratio')}
+                        secondaryBtnText={i18next.t('label.continue')}
+                        primaryBtnText={i18next.t('label.check_again')}
+                        message={i18next.t('label.not_optimal_ratio_message')}
+                    />
+                </AvoidSoftInputView>
                 <CustomButton
                     label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
                     pressHandler={validateData}
                     hideFadeIn
                 />
-            </AvoidSoftInputView>
+            </ScrollView>
         </SafeAreaView>
     )
 }
@@ -341,7 +339,7 @@ export default TreeRemeasurementView
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: BACKDROP_COLOR,
+        backgroundColor: WHITE,
     },
     inputWrapper: {
         width: '95%'
@@ -356,7 +354,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 0,
+        bottom: 10,
     },
     btnMinorContainer: {
         width: '100%',
