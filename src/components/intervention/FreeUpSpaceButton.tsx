@@ -6,26 +6,32 @@ import CleanerPhone from 'assets/images/svg/ClearPhone.svg';
 import ClearSpaceModal from './ClearSpaceModal';
 import i18next from 'src/locales/index'
 
-const FreeUpSpaceButton = () => {
+
+interface Props {
+  handleCleanup: () => void
+}
+const FreeUpSpaceButton = (props: Props) => {
+  const { handleCleanup } = props;
   const [showModal, setShowModal] = useState(false)
-  const tooglemodal = () => {
+  const toggleModal = () => {
     setShowModal(!showModal)
   }
 
   const handleFreeSpace = () => {
     setShowModal(false)
+    handleCleanup()
   }
 
 
   return (
     <>
-      <TouchableOpacity style={styles.container} onPress={tooglemodal}>
+      <TouchableOpacity style={styles.container} onPress={toggleModal}>
         <View style={styles.wrapper}>
           <CleanerPhone width={25} height={25} />
           <Text style={styles.label}>{i18next.t('label.free_up_space')}</Text>
         </View>
       </TouchableOpacity>
-      <ClearSpaceModal isVisible={showModal} toggleModal={tooglemodal} handleFreeSpace={handleFreeSpace} />
+      <ClearSpaceModal isVisible={showModal} toggleModal={toggleModal} handleFreeSpace={handleFreeSpace} />
     </>
 
   )

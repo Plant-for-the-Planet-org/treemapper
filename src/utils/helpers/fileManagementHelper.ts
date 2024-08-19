@@ -32,6 +32,16 @@ const exportRealmData = async (data: InterventionData) => {
     }
 }
 
+export const deleteImageFile = async (fileURI: string) => {
+    try {
+        await RNFS.unlink(fileURI);
+        return true
+    } catch (error) {
+        Bugsnag.notify(error)
+        return false
+    }
+}
+
 export const interData = async (data: InterventionData) => {
     try {
         const filePath = `${basePath}/${data.intervention_id}/intervention.json`;

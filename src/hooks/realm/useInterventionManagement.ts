@@ -603,7 +603,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateTreeImageStatus = async (tree_id: string, interventionId: string): Promise<boolean> => {
+  const updateTreeImageStatus = async (tree_id: string, interventionId: string, cdnImage: string): Promise<boolean> => {
     try {
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
@@ -612,6 +612,7 @@ const useInterventionManagement = () => {
           ...treeDetails.image_data,
           isImageUploaded: true,
         }
+        treeDetails.cdn_image_url = cdnImage
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
         const filterTrees = intervention.sample_trees.filter(el => el.tree_id !== tree_id)
         const hasPendingSampleTree = filterTrees.some(el => el.status !== 'SYNCED')

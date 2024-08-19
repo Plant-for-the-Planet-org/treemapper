@@ -139,6 +139,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         };
     };
 
+
     const handleIntervention = async (el) => {
         try {
             const body = await getPostBody(el);
@@ -236,7 +237,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 imageFile: body.imageFile
             });
             if (result && result.status === "complete") {
-                await updateTreeImageStatus(el.p2Id, el.p1Id);
+                const cdnImage = result.image || ''
+                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',

@@ -6,21 +6,56 @@ import Icon from '@expo/vector-icons/MaterialIcons';
 import { Colors } from 'src/utils/constants'
 import { useQuery } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
-import { exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper';
-import { InterventionData } from 'src/types/interface/slice.interface';
+import { deleteImageFile, exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper';
+import { InterventionData, SampleTree } from 'src/types/interface/slice.interface';
+import { useToast } from 'react-native-toast-notifications';
+import useLogManagement from 'src/hooks/realm/useLogManagement';
 
 
 const InterventionHeader = () => {
     const data = useQuery<InterventionData>(RealmSchema.Intervention, el => {
         return el.filtered('status != "SYNCED"')
     })
+    const toast = useToast()
     const handleNav = () => {
         exportAllInterventionData([...data])
+    }
+    const { addNewLog } = useLogManagement()
+
+    const handleCleanup = async () => {
+        const syncedImagesData: SampleTree[] = []
+        data.forEach(el => {
+            el.sample_trees.forEach(tree => {
+                if (tree.status === 'SYNCED' && tree.cdn_image_url.length > 0) {
+                    syncedImagesData.push(JSON.parse(JSON.stringify(tree)))
+                }
+            })
+        });
+
+        syncedImagesData.forEach(async d => {
+            const result = await deleteImageFile(d.image_url)
+            if (result) {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Image cleaned up for tree id ' + d.tree_id,
+                    logLevel: 'info',
+                    statusCode: ''
+                })
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Error ocurred while cleaning Image data for tree id ' + d.tree_id,
+                    logLevel: 'error',
+                    statusCode: ''
+                })
+            }
+        });
+        toast.show("Space Cleared")
     }
 
     return (
         <View style={styles.container}>
-            <FreeUpSpaceButton />
+            <FreeUpSpaceButton handleCleanup={handleCleanup}/>
             {data.length > 0 && <TouchableOpacity
                 onPress={handleNav}
                 style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>}
