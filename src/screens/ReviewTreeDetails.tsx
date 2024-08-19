@@ -1,4 +1,4 @@
-import { KeyboardType, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { KeyboardType, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
@@ -32,6 +32,8 @@ import { nonISUCountries } from 'src/utils/constants/appConstant'
 import { RootState } from 'src/store'
 import { measurementValidation } from 'src/utils/constants/measurementValidation'
 import AlertModal from 'src/components/common/AlertModal'
+import DeleteIcon from 'assets/images/svg/BinIcon.svg'
+import DeleteModal from 'src/components/common/DeleteModal'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -49,9 +51,10 @@ const ReviewTreeDetails = () => {
     const currentTreeIndex = Intervention.sample_trees.length
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const [showDatePicker, setShowDatePicker] = useState(false)
-    const { updateSampleTreeDetails } = useInterventionManagement()
+    const { updateSampleTreeDetails, deleteSampleTreeIntervention } = useInterventionManagement()
     const detailsCompleted = route.params?.detailsCompleted;
     const editTree = route.params?.interventionID
+    const deleteTree = route.params?.deleteTree
     const synced = route.params?.synced;
     const Country = useSelector((state: RootState) => state.userState.country)
     const [isError, setIsError] = useState<boolean>(false);
@@ -61,8 +64,7 @@ const ReviewTreeDetails = () => {
     const [inputErrorMessage, setInputErrorMessage] = useState<string>(
         i18next.t('label.tree_inventory_input_error_message'),
     );
-
-
+    const [showDeleteTree, setShowDeleteTree] = useState(false)
 
 
     useEffect(() => {
@@ -256,6 +258,14 @@ const ReviewTreeDetails = () => {
     }
 
     const renderDeceasedText = () => {
+        if (deleteTree) {
+            return <View style={styles.deleteContainer}>
+                <TouchableOpacity style={styles.deleteWrapper} onPress={() => { setShowDeleteTree(true) }}>
+                    <Text style={styles.deleteLabel}>{i18next.t("label.delete")}</Text>
+                    <DeleteIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
+                </TouchableOpacity>
+            </View>
+        }
         if (treeDetails.is_alive) {
             return null
         }
@@ -299,8 +309,14 @@ const ReviewTreeDetails = () => {
         setShowInputError(false);
     }
 
+    const deleteTreeData = async () => {
+        await deleteSampleTreeIntervention(treeDetails.tree_id, interventionId)
+        navigation.goBack()
+    }
+
     return (
         <SafeAreaView style={styles.container}>
+            <DeleteModal isVisible={showDeleteTree} toggleModal={() => { setShowDeleteTree(false) }} removeFavSpecie={deleteTreeData} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={null} />
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
                 maximumDate={new Date()}
                 minimumDate={new Date(2006, 0, 1)}
@@ -577,4 +593,24 @@ const styles = StyleSheet.create({
         color: Colors.WHITE,
         textAlign: 'center',
     },
+    deleteContainer: {
+        height: '100%',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 10
+    },
+    deleteWrapper: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 10,
+        backgroundColor: Colors.GRAY_LIGHT,
+        flexDirection: 'row'
+    },
+    deleteLabel: {
+        fontFamily: Typography.FONT_FAMILY_BOLD,
+        color: Colors.TEXT_COLOR,
+        paddingRight: 10
+    }
 })

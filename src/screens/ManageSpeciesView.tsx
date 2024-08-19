@@ -39,6 +39,7 @@ const ManageSpeciesView = () => {
 
   const isManageSpecies = route.params?.manageSpecies;
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
+  const isMultiTreeEdit = route.params?.multiTreeEdit;
   const interventionID = route.params?.id ?? '';
   const selectedId = route.params?.selectedId ?? '';
 
@@ -98,12 +99,12 @@ const ManageSpeciesView = () => {
       image: treeModalDetails.image
     }
     setTreeModalDetails(null)
-    const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
+    const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails, isMultiTreeEdit)
     if (!result) {
       toast.show("Error occurred while adding species")
       return
     }
-    navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
+    navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id, isEditTrees: isMultiTreeEdit })
   }
 
   const handleSelectedMultiSpecies = async (item: IScientificSpecies) => {
@@ -123,12 +124,12 @@ const ManageSpeciesView = () => {
         count: 1,
         image: finalData.image
       }
-      const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails)
+      const result = await updateInterventionPlantedSpecies(interventionData.form_id, speciesDetails, isMultiTreeEdit)
       if (!result) {
         toast.show("Error occurred while adding species")
         return
       }
-      navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id })
+      navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id, isEditTrees: isMultiTreeEdit })
     }
   }
 
@@ -157,7 +158,7 @@ const ManageSpeciesView = () => {
           count: 1,
           image: speciesData.image
         }
-        const result = await updateInterventionPlantedSpecies(interventionData ? interventionData.form_id : "", updatedSPecies)
+        const result = await updateInterventionPlantedSpecies(interventionData ? interventionData.form_id : "", updatedSPecies, isMultiTreeEdit)
         if (!result) {
           errorHaptic()
           toast.show('Error occurred while adding species')

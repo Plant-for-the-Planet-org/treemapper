@@ -85,10 +85,12 @@ type ManageSpeciesView = {
   reviewTreeSpecies?: string
   id?: string
   selectedId?: string
+  multiTreeEdit?: boolean
 }
 type TotalTreesView = {
   isSelectSpecies: boolean
   interventionId: string
+  isEditTrees?: boolean
 }
 
 type ReviewTreeDetailsView = {
@@ -96,6 +98,7 @@ type ReviewTreeDetailsView = {
   interventionID?: string
   synced?: boolean
   id: string
+  deleteTree?: boolean
 }
 
 type SearchSpeciesView = {

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
@@ -10,12 +10,21 @@ import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelpe
 import i18next from 'src/locales/index'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import DateTimePicker from '@react-native-community/datetimepicker'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+
 interface Props {
   data: InterventionData
 }
 
 const InterventionBasicInfo = (props: Props) => {
   const { status, intervention_end_date, intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  const [isEditable, setIsEditTable] = useState(false)
+
   const dateFormatted = () => {
     if (intervention_date) {
       return timestampToBasicDate(intervention_date)
@@ -57,7 +66,10 @@ const InterventionBasicInfo = (props: Props) => {
     }
     return <View style={styles.plantedSpeciesContainer}>
       <View style={styles.cardWrapper}>
-        <Text style={styles.cardTitle}>{i18next.t("label.planted_species")}</Text>
+        <Pressable style={{ flexDirection: 'row' }} onPress={handleSpeciesUpdate}>
+          <Text style={styles.cardTitle}>{i18next.t("label.planted_species")}</Text>
+          {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
+        </Pressable>
         <View style={styles.plantedSpeciesWrapper}>
           {planted_species.map((el, i) => (
             <View key={el.id} style={{ marginVertical: 5 }}>
@@ -69,6 +81,10 @@ const InterventionBasicInfo = (props: Props) => {
         </View>
       </View>
     </View>
+  }
+
+  const toggleIsEditable = () => {
+    setIsEditTable(prev => !prev)
   }
 
   const handleDate = (isStart: boolean) => {
@@ -87,6 +103,13 @@ const InterventionBasicInfo = (props: Props) => {
     await updateInterventionDate(intervention_id, convertDateToTimestamp(date), type === 'start')
   }
 
+  const handleSpeciesUpdate = () => {
+    if (!isEditable) {
+      return
+    }
+    navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: intervention_id, isEditTrees: true })
+  }
+
 
   return (
     <View style={styles.container}>
@@ -100,6 +123,9 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>HID</Text>
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
+        {status === 'PENDING_DATA_UPLOAD' || status === 'INITIALIZED'? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={toggleIsEditable}>
+          <PenIcon width={30} height={30} />
+        </TouchableOpacity> : null}
         <View style={styles.cardWrapper}>
           <View style={{ flexDirection: 'row' }}>
             <Text style={styles.cardTitle}>{i18next.t('label.intervention_date')}</Text>
@@ -110,11 +136,13 @@ const InterventionBasicInfo = (props: Props) => {
               <Text style={styles.cardLabel}>
                 {dateFormatted()}
               </Text>
+              {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
             </Pressable>
             {intervention_end_date !== 0 && <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
               <Text style={styles.cardLabel}>
                 {endDateFormatted()}
               </Text>
+              {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
             </Pressable>}
           </View>
         </View>
@@ -128,7 +156,10 @@ const InterventionBasicInfo = (props: Props) => {
         </View>
         {!!project_name && (
           <View style={styles.cardWrapper}>
-            <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
+            <View style={styles.projectWrapper}>
+              <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
+              {isEditable && <PenIcon width={25} height={28} style={{ top: -3 }} />}
+            </View>
             <Text style={styles.cardLabel}>{project_name}</Text>
           </View>
         )}
@@ -171,6 +202,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginVertical: 10,
   },
+  projectWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center'
+  },
   cardTitle: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
@@ -191,9 +226,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     justifyContent: "center",
     alignItems: "center",
-    width: 120,
     marginTop: 5,
-    marginRight: 10
+    marginRight: 10,
+    flexDirection: 'row'
   },
   timeContainer: {
     width: "100%",
@@ -238,5 +273,17 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     width: "100%",
     bottom: 0
+  },
+  deleteWrapperIcon: {
+    width: 35,
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.GRAY_BACKDROP,
+    marginLeft: 10,
+    borderRadius: 8,
+    position: 'absolute',
+    right: 10,
+    top: 10
   },
 })

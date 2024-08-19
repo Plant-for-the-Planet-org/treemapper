@@ -7,11 +7,12 @@ import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
 import { INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
 import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
+import { useToast } from 'react-native-toast-notifications'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
   const { addNewLog } = useLogManagement()
-
+  const toast = useToast()
 
   const initializeIntervention = async (
     intervention: RegisterFormSliceInitialState,
@@ -224,7 +225,6 @@ const useInterventionManagement = () => {
 
   const updateInterventionDate = async (interventionID: string, date: number, isStart: boolean): Promise<boolean> => {
     try {
-      console.log("LKJ",date)
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         if (isStart) {
@@ -289,6 +289,20 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updatePlantedSpeciesIntervention = async (interventionID: string, plantedSpecies: PlantedSpecies[]): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        intervention.planted_species = plantedSpecies;
+        intervention.last_updated_at = Date.now()
+      });
+      return true
+    } catch (error) {
+      console.error('Error during update:', error);
+      return false;
+    }
+  };
+
   const deleteAllSyncedIntervention = async (): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -338,13 +352,15 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies): Promise<boolean> => {
+  const updateInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies, isEdit: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies)), species]
-        intervention.last_screen = "SPECIES"
+        if (!isEdit) {
+          intervention.last_screen = "SPECIES"
+        }
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -365,13 +381,19 @@ const useInterventionManagement = () => {
     }
   };
 
-  const removeInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies): Promise<boolean> => {
+  const removeInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies, isEdit?: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
+        if (filteredSpecies.length === 0 && isEdit) {
+          toast.show("At least 1 species is require")
+          throw (new Error(''))
+        }
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies))]
-        intervention.last_screen = "SPECIES"
+        if (isEdit) {
+          intervention.last_screen = "SPECIES"
+        }
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -626,7 +648,7 @@ const useInterventionManagement = () => {
   };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention }
 }
 
 export default useInterventionManagement
