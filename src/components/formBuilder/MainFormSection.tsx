@@ -11,7 +11,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
-import {IAdditionalDetailsForm } from 'src/types/interface/app.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import GapElement from './GapElement'
 import HeadingElement from './HeadingElement'
 import YeNoFormElement from './YeNoFormElement'
@@ -78,7 +78,7 @@ const MainFormSection = (props: Props) => {
       animationType: "slide-in",
     });
   };
-  
+
   const validateField = (key, formValues) => {
     if (formValues[key].value.length > 0 && formValues[key].validation.length > 0) {
       const regex = new RegExp(formValues[key].validation);
@@ -89,7 +89,7 @@ const MainFormSection = (props: Props) => {
     }
     return true;
   };
-  
+
   const checkRequiredField = (key, formValues) => {
     if (checkForNonEmptyForm(formValues[key].type) && formValues[key].required && formValues[key].value.length === 0) {
       showToast(`${formValues[key].label} cannot be empty`);
@@ -97,7 +97,7 @@ const MainFormSection = (props: Props) => {
     }
     return true;
   };
-  
+
   const prepareFinalData = (formValues) => {
     const finalData = [];
     for (const [key] of Object.entries(formValues)) {
@@ -110,11 +110,11 @@ const MainFormSection = (props: Props) => {
     }
     return finalData;
   };
-  
+
   const submitHandler = async () => {
     const finalData = prepareFinalData(formValues);
     if (!finalData) return;
-  
+
     if (completeLocalForm) {
       completeLocalForm(finalData, page);
       return;
@@ -226,6 +226,6 @@ const styles = StyleSheet.create({
     width: '100%',
     height: scaleSize(70),
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
   },
 })
