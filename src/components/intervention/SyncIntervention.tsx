@@ -147,7 +147,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
-            if (response && response.hid && response.id) {
+            if (response?.hid && response?.id) {
                 await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
             } else {
                 addNewLog({
@@ -175,7 +175,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
-            if (response && response.id && response.hid) {
+            if (response?.id && response?.hid) {
                 const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
                     await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
@@ -206,7 +206,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const response = await uploadIntervention(body);
-            if (response && response.hid && response.id && response.coordinates) {
+            if (response?.hid && response?.id && response.coordinates) {
                 await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates);
             } else {
                 addNewLog({
