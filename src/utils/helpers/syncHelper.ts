@@ -115,13 +115,14 @@ export const getPostBody = async (r: QuaeBody) => {
 export const convertInterventionBody = (d: InterventionData) => {
     const metaData = JSON.parse(d.meta_data);
     const interventionForm = setUpIntervention(d.intervention_key)
+    const handlePointLocation = d.location_type === 'Polygon' ? JSON.parse(d.location.coordinates)[0] : JSON.parse(d.location.coordinates)
     const postData: any = {
         type: d.intervention_type,
         captureMode: "on-site",
         deviceLocation: metaData.app.deviceLocation,
         geometry: {
-            type: d.location_type,
-            coordinates: d.location_type === 'Point' ? JSON.parse(d.location.coordinates) : [JSON.parse(d.location.coordinates)]
+            type: d.location.type,
+            coordinates: d.location.type === 'Point' ? handlePointLocation : [JSON.parse(d.location.coordinates)]
         },
         registrationDate: postTimeConvertor(d.intervention_date),
         metadata: {

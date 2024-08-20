@@ -356,7 +356,11 @@ const useInterventionManagement = () => {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const filteredSpecies = intervention.planted_species.filter(el => el.guid !== species.guid)
-        intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies)), species]
+        if (intervention.intervention_key === 'single-tree-registration') {
+          intervention.planted_species = [species]
+        } else {
+          intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies)), species]
+        }
         if (!isEdit) {
           intervention.last_screen = "SPECIES"
         }
@@ -390,7 +394,7 @@ const useInterventionManagement = () => {
           throw (new Error(''))
         }
         intervention.planted_species = [...JSON.parse(JSON.stringify(filteredSpecies))]
-        if (isEdit) {
+        if (!isEdit) {
           intervention.last_screen = "SPECIES"
         }
       });

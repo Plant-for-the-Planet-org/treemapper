@@ -333,7 +333,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (!!editTree && synced) {
+                            if (!!editTree && synced && !Intervention.has_sample_trees) {
                                 return
                             }
                             openEdit('species', String(treeDetails.specie_height), 'number-pad')
@@ -341,7 +341,7 @@ const ReviewTreeDetails = () => {
                             <Text style={styles.speciesName}>
                                 {treeDetails.specie_name}
                             </Text>
-                            {!!editTree && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            {!!editTree && !synced && !Intervention.has_sample_trees ? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
                     <View style={styles.metaWrapper}>

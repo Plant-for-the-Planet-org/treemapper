@@ -57,11 +57,13 @@ const TotalTreesView = () => {
   )
   const navigationToNext = async () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
-    const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
-    if (!result) {
-      errorHaptic()
-      toast.show("Error occurred while updating data")
-      return
+    if(!isEditTrees){
+      const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
+      if (!result) {
+        errorHaptic()
+        toast.show("Error occurred while updating data")
+        return
+      }
     }
 
     if (isEditTrees) {
@@ -73,7 +75,10 @@ const TotalTreesView = () => {
       setShowSampleTreeModal(true)
       return;
     }
+
     if (!has_sample_trees) {
+      navigation.replace('LocalForm', { id: interventionId })
+    } else if (has_sample_trees && intervention.location.type === 'Point') {
       navigation.replace('LocalForm', { id: interventionId })
     } else {
       navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
@@ -143,7 +148,7 @@ const TotalTreesView = () => {
         onPressSpecies={cardPress}
         actionName={'remove'}
         handleRemoveFavorite={removeHandler}
-        isSelectSpecies={isSelectSpecies || !singleTreeEdit}
+        isSelectSpecies={isSelectSpecies}
       />
     )
   }

@@ -22,7 +22,7 @@ interface Props {
 
 const InterventionBasicInfo = (props: Props) => {
   const { userType } = props
-  const { entire_site, status, intervention_end_date, intervention_date, project_id, site_id, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
+  const { intervention_key, entire_site, status, intervention_end_date, intervention_date, project_id, site_id, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species, sample_trees } = props.data
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const [isEditable, setIsEditable] = useState(false)
@@ -109,6 +109,12 @@ const InterventionBasicInfo = (props: Props) => {
     if (!isEditable) {
       return
     }
+
+    if (intervention_key === 'single-tree-registration') {
+      navigation.navigate('ManageSpecies', { 'manageSpecies': false, 'reviewTreeSpecies': sample_trees[0].tree_id, id: intervention_id })
+      return;
+    }
+
     navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: intervention_id, isEditTrees: true })
   }
 
