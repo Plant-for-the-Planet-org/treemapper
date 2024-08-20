@@ -75,7 +75,7 @@ export const postDataConvertor = (d: InterventionData[]) => {
                 }
             });
         }
-        
+
     });
     return quae
 }
@@ -133,7 +133,7 @@ export const convertInterventionBody = (d: InterventionData) => {
     if (d.project_id) {
         postData.plantProject = d.project_id
     }
-    if (d.site_id) {
+    if (d.site_id && d.site_id !== 'other') {
         postData.plantProjectSite = d.site_id
     }
     if (interventionForm.species_required) {
@@ -179,7 +179,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree) => {
     if (i.project_id) {
         postData.plantProject = i.project_id
     }
-    if (i.site_id) {
+    if (i.site_id && i.site_id !== 'other') {
         postData.plantProjectSite = i.site_id
     }
     if (d.species_guid === 'undefined') {

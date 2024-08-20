@@ -17,13 +17,15 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   data: InterventionData
+  userType: string
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const { status, intervention_end_date, intervention_date, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
+  const { userType } = props
+  const { entire_site, status, intervention_end_date, intervention_date, project_id, site_id, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species } = props.data
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const [isEditable, setIsEditTable] = useState(false)
+  const [isEditable, setIsEditable] = useState(false)
 
   const dateFormatted = () => {
     if (intervention_date) {
@@ -84,7 +86,7 @@ const InterventionBasicInfo = (props: Props) => {
   }
 
   const toggleIsEditable = () => {
-    setIsEditTable(prev => !prev)
+    setIsEditable(prev => !prev)
   }
 
   const handleDate = (isStart: boolean) => {
@@ -95,7 +97,7 @@ const InterventionBasicInfo = (props: Props) => {
   }
 
   const onDateSelect = async (_event, date: Date) => {
-    if (date === new Date('1970-01-01T00:00:00.000Z')) {
+    if (convertDateToTimestamp(date) === convertDateToTimestamp(new Date("1970-01-01T00:00:00.000Z"))) {
       return
     }
     const type = dateType;
@@ -108,6 +110,13 @@ const InterventionBasicInfo = (props: Props) => {
       return
     }
     navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: intervention_id, isEditTrees: true })
+  }
+
+  const openEditProject = () => {
+    if (!isEditable || entire_site) {
+      return
+    }
+    navigation.navigate('EditProject', { interventionId: intervention_id, projectId: project_id, siteId: site_id })
   }
 
 
@@ -123,7 +132,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>HID</Text>
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
-        {status === 'PENDING_DATA_UPLOAD' || status === 'INITIALIZED'? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={toggleIsEditable}>
+        {status === 'PENDING_DATA_UPLOAD' || status === 'INITIALIZED' ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={toggleIsEditable}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
         <View style={styles.cardWrapper}>
@@ -154,20 +163,23 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>{i18next.t('label.type')}</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
-        {!!project_name && (
-          <View style={styles.cardWrapper}>
+        {userType === 'tpo' && (
+          <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
-              {isEditable && <PenIcon width={25} height={28} style={{ top: -3 }} />}
+              {isEditable && !entire_site ? <PenIcon width={25} height={28} style={{ top: -3 }} /> : null}
             </View>
-            <Text style={styles.cardLabel}>{project_name}</Text>
-          </View>
+            <Text style={styles.cardLabel}>{project_name || "No Project assigned"}</Text>
+          </Pressable>
         )}
-        {!!site_name && (
-          <View style={styles.cardWrapper}>
-            <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
-            <Text style={styles.cardLabel}>{site_name}</Text>
-          </View>
+        {userType === 'tpo' && (
+          <Pressable style={styles.cardWrapper} onPress={openEditProject}>
+            <View style={styles.projectWrapper}>
+              <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
+              {isEditable && !entire_site ? <PenIcon width={25} height={28} style={{ top: -3 }} /> : null}
+            </View>
+            <Text style={styles.cardLabel}>{site_name || "No Site Selected"}</Text>
+          </Pressable>
         )}
         {plantedSpecies()}
       </View>

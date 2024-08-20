@@ -52,6 +52,7 @@ export type RootStackParamList = {
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
   OldInventoryDataView: undefined
+  EditProject: EditProjectView
 }
 
 type SpeciesInfoView = {
@@ -110,6 +111,12 @@ type MetaDataElementView = {
   order: number
   edit?: boolean
   id?: string
+}
+
+type EditProjectView = {
+  interventionId: string
+  siteId: string
+  projectId: string
 }
 
 type AdditionDataElementView = {

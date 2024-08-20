@@ -175,7 +175,7 @@ const InterventionFormView = () => {
     if (siteValidate && siteValidate.length > 0) {
       setProjectSites([...siteValidate, {
         label: 'Other',
-        value: '',
+        value: 'other',
         index: 0,
       },])
       setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
@@ -188,7 +188,7 @@ const InterventionFormView = () => {
         },
         {
           label: 'Other',
-          value: '',
+          value: 'other',
           index: 0,
         },
       ])
@@ -258,8 +258,12 @@ const InterventionFormView = () => {
   };
 
   const prepareFormForSubmission = () => {
-    if (registerForm.entire_site_selected) {
+
+    if (registerForm.entire_site_selected && registerForm.site_id !== 'other') {
       registerForm.coordinates = siteCoordinatesSelect();
+    }
+    if (registerForm.site_id === 'other') {
+      registerForm.entire_site_selected = false
     }
     if (registerForm.optionalLocation) {
       registerForm.location_type = locationType;
@@ -425,7 +429,7 @@ const InterventionFormView = () => {
                 selectedValue={locationType}
                 onSelect={setLocationType}
               />}
-              {registerForm.can_be_entire_site && isTpoUser ? (
+              {registerForm.can_be_entire_site && isTpoUser && registerForm.site_id !== 'other' ? (
                 <PlaceHolderSwitch
                   description={i18next.t("label.apply_intervention")}
                   selectHandler={handleEntireSiteArea}

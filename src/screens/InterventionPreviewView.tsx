@@ -38,6 +38,8 @@ const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [loading, setLoading] = useState(true)
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
+  const UserType = useSelector((state: RootState) => state.userState.type)
+
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params?.interventionId ?? "";
@@ -157,6 +159,7 @@ const InterventionPreviewView = () => {
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}
+          userType={UserType}
         />
         {InterventionData.sample_trees.length > 0 && (
           <SampleTreePreviewList

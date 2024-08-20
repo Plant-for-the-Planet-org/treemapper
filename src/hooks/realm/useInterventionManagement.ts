@@ -1,6 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
-import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { DropdownData, IScientificSpecies } from 'src/types/interface/app.interface'
 import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitialState, SampleTree } from 'src/types/interface/slice.interface'
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
@@ -490,6 +490,35 @@ const useInterventionManagement = () => {
     }
   };
 
+
+  const updateInterventionProjectAndSite = async (interventionID: string, projectData: DropdownData, siteData: DropdownData): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        intervention.project_id = projectData.value
+        intervention.project_name = projectData.label
+        intervention.site_id = siteData.value
+        intervention.site_name = siteData.label
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Updated last screen for intervention' + `(${interventionID}).`,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error while updating last screen for intervention' + `(${interventionID}).`,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
   const updateInterventionMetaData = async (interventionID: string, metaData: any,): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -688,7 +717,7 @@ const useInterventionManagement = () => {
   };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite }
 }
 
 export default useInterventionManagement
