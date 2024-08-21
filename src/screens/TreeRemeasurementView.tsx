@@ -306,7 +306,7 @@ const TreeRemeasurementView = () => {
                                     <OutlinedTextInput
                                         placeholder={'Comments(Optional)'}
                                         changeHandler={setComment}
-                                        keyboardType={'decimal-pad'}
+                                        keyboardType={'default'}
                                         defaultValue={width}
                                         trailingText={''} errMsg={''} />
                                 </View></>

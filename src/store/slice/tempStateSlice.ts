@@ -3,7 +3,8 @@ import { SyncInfoData, TempStateSlice } from 'src/types/interface/slice.interfac
 
 const initialState: TempStateSlice = {
   webAuthLoading: false,
-  synData: []
+  synData: [],
+  selectedId: ''
 }
 
 const tempStateSlice = createSlice({
@@ -16,9 +17,12 @@ const tempStateSlice = createSlice({
     initSyncData(state, action: PayloadAction<SyncInfoData[]>) {
       state.synData = action.payload
     },
+    updateSelectedSpeciesId(state, action: PayloadAction<string>) {
+      state.selectedId = action.payload
+    },
   },
 })
 
-export const { updateWebAuthLoading, initSyncData } = tempStateSlice.actions
+export const { updateWebAuthLoading, initSyncData, updateSelectedSpeciesId} = tempStateSlice.actions
 
 export default tempStateSlice.reducer

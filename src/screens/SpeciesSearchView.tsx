@@ -15,6 +15,8 @@ import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
 import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
+import { useDispatch } from 'react-redux'
+import { updateSelectedSpeciesId } from 'src/store/slice/tempStateSlice'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -23,7 +25,7 @@ const SpeciesSearchView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'SpeciesSearch'>>()
   const isManageSpecies = route.params?.manageSpecies;
-
+  const dispatch = useDispatch()
   const toast = useToast()
   const handleBackPress = () => {
     navigation.goBack()
@@ -55,10 +57,10 @@ const SpeciesSearchView = () => {
     status: boolean
   ) => {
     if (!isManageSpecies) {
-      navigation.navigate('ManageSpecies', { manageSpecies: isManageSpecies, selectedId: item.guid })
+      navigation.goBack()
+      dispatch(updateSelectedSpeciesId(item.guid))
     } else {
       handleFavSpecies(item, status)
-
     }
   }
 

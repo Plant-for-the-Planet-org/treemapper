@@ -41,6 +41,7 @@ export interface SyncInfoData{
 export interface TempStateSlice {
   webAuthLoading: boolean
   synData: SyncInfoData[]
+  selectedId: string
 }
 
 export interface OldSampleTree {

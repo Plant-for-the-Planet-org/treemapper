@@ -21,6 +21,9 @@ import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { updateSelectedSpeciesId } from 'src/store/slice/tempStateSlice'
 
 
 const ManageSpeciesView = () => {
@@ -36,15 +39,15 @@ const ManageSpeciesView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const toast = useToast()
+  const SelectedID = useSelector((state: RootState) => state.tempState.selectedId)
 
   const isManageSpecies = route.params?.manageSpecies;
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
   const isMultiTreeEdit = route.params?.multiTreeEdit;
   const interventionID = route.params?.id ?? '';
-  const selectedId = route.params?.selectedId ?? '';
 
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false)
-
+  const dispatch = useDispatch()
   useEffect(() => {
     const InterventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
     if (InterventionData) {
@@ -53,13 +56,14 @@ const ManageSpeciesView = () => {
   }, [interventionID])
 
   useEffect(() => {
-    if (selectedId) {
-      const specieData = realm.objectForPrimaryKey<IScientificSpecies>(RealmSchema.ScientificSpecies, selectedId)
+    if (SelectedID !== '') {
+      const specieData = realm.objectForPrimaryKey<IScientificSpecies>(RealmSchema.ScientificSpecies, SelectedID)
+      dispatch(updateSelectedSpeciesId(''))
       if (specieData) {
         handleSpeciesPress(JSON.parse(JSON.stringify(specieData)))
       }
     }
-  }, [selectedId])
+  }, [SelectedID])
 
 
 
