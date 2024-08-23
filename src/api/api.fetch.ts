@@ -59,3 +59,8 @@ export const getServerIntervention = async (uri?: string) => {
 };
 
 
+export const createUserProfile = async (params: any) => {
+  const uri = `${postUrlApi.signupService}`;
+  const result = await fetchPostCall(uri, params, false);
+  return result;
+};

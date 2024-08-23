@@ -51,8 +51,9 @@ export type RootStackParamList = {
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
-  OldInventoryDataView: undefined
-  EditProject: EditProjectView
+  OldInventoryDataView: undefined,
+  EditProject: EditProjectView,
+  SignUpPage: SignUpPage
 }
 
 type SpeciesInfoView = {
@@ -75,6 +76,10 @@ type InterventionPreviewView = {
   interventionId: string
 }
 
+type SignUpPage = {
+  email: string,
+  accessToken: string
+}
 
 type SyncSpeciesView = {
   inApp?: boolean

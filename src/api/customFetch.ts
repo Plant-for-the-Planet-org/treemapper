@@ -27,8 +27,9 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
       throw new Error('No access token available');
     }
     const sessionId = await setAndGetSessionId();
+    const tokenData = authRequire ? { Authorization: `Bearer ${token}` } : {}
     const headers = {
-      Authorization: `Bearer ${token}`,
+      ...tokenData,
       ...defaultHeaders,
       "x-session-id": sessionId
     };
@@ -44,7 +45,9 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     const response = await fetch(uri, options);
     const responseJson = await response.json();
-
+    if (response.status === 303) {
+      return { signupRequire: true }
+    }
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);
     }
@@ -56,7 +59,7 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
   }
 }
 
-export const fetchPostCall = (uri: string, params: any) => fetchCall('POST', uri, params);
+export const fetchPostCall = (uri: string, params: any, authRequire?: boolean) => fetchCall('POST', uri, params, authRequire);
 export const fetchGetCall = (uri: string, authRequire: boolean) => fetchCall('GET', uri, null, authRequire);
 export const fetchPutCall = (uri: string, params: any) => fetchCall('PUT', uri, params);
 export const fetchDeleteCall = (uri: string) => fetchCall('DELETE', uri);

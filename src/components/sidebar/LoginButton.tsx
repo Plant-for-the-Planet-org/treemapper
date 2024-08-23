@@ -12,13 +12,34 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { updateWebAuthLoading } from 'src/store/slice/tempStateSlice'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import Bugsnag from '@bugsnag/expo'
+import { useToast } from 'react-native-toast-notifications'
+import { Colors, Typography } from 'src/utils/constants'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
     (state: RootState) => state.tempState.webAuthLoading)
-  const { authorizeUser, user, getUserCredentials, logoutUser } = useAuthentication()
+  const { authorizeUser, user, getUserCredentials, logoutUser, error } = useAuthentication()
   const { addNewLog } = useLogManagement()
   const dispatch = useDispatch()
+  const toast = useToast()
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+
+
+  useEffect(() => {
+    if (error) {
+      if (error.code === "unauthorized") {
+        toast.show("Please confirm your email \nusing the link sent to your inbox.", {
+          duration: 5000,
+          textStyle: { textAlign: 'center' },
+          placement: 'center'
+        })
+      }
+    }
+  }, [error])
 
 
   useEffect(() => {
@@ -37,11 +58,29 @@ const LoginButton = () => {
         refreshToken: credentials.refreshToken
       }),
     )
+    if (!credentials?.accessToken) {
+      handleLogout()
+      return
+    }
     const userDetails = await getUserDetails()
+    if (userDetails.signupRequire) {
+      navigation.navigate('SignUpPage', {
+        email: user?.email,
+        accessToken: credentials.accessToken
+      })
+      return
+    }
     if (userDetails) {
       loginAndUpdateDetails(userDetails)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
+      addNewLog({
+        logType: 'USER',
+        message: "User details api failed to fetch data",
+        logLevel: 'error',
+        statusCode: '',
+      })
+      handleLogout()
       dispatch(updateWebAuthLoading(false))
     }
   }
@@ -54,9 +93,10 @@ const LoginButton = () => {
       if (!result.success) {
         dispatch(updateWebAuthLoading(false))
         Snackbar.show({
-          text: "Failed to login !",
+          text: "Failed to login",
           duration: Snackbar.LENGTH_SHORT,
-          backgroundColor: '#e74c3c',
+          fontFamily: Typography.FONT_FAMILY_REGULAR,
+          textColor: Colors.WHITE
         });
         addNewLog({
           logType: 'USER',

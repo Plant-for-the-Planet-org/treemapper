@@ -45,6 +45,7 @@ import TreeRemeasurement from './TreeRemeasurementView'
 import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
+import SignUpView from './SignUpView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -93,5 +94,6 @@ export default {
   TreeRemeasurement: TreeRemeasurement,
   ProjectRemeasurementConfig: ProjectRemeasurementConfig,
   OldInventoryData: OldInventoryDataView,
-  EditProjectView: EditProjectView
+  EditProjectView: EditProjectView,
+  SignUpView: SignUpView
 }

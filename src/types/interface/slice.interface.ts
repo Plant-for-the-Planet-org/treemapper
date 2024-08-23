@@ -69,6 +69,14 @@ export interface OldSampleTree {
   appMetadata: string
   hid: string
 }
+
+export interface CountryCode {
+  countryCode: string;
+  countryName: string;
+  currencyCode: string;
+  currencyCountryFlag: string;
+  currencyName: string;
+}
 export interface Inventory {
   inventory_id: string
   plantation_date: string
