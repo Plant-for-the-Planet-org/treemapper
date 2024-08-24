@@ -56,9 +56,9 @@ const ManageSpeciesHome = (props: Props) => {
   const syncUserSpecies = async () => {
     setLoading(true)
     try {
-      const result = await getUserSpecies()
-      if (result && result.length > 0) {
-        const response = await addUserSpecies(result)
+      const {response, success} = await getUserSpecies()
+      if (success && response.length > 0) {
+        const response = await addUserSpecies(response)
         if (response) {
           dispatch(updateUserSpeciesadded(true))
         }

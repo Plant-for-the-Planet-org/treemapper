@@ -274,11 +274,11 @@ const SignUpView = () => {
 
         if (completeCheck) {
             setLoading(true)
-            const signUpComplete = await createUserProfile(userData)
-            if (signUpComplete) {
-                const userDetails = await getUserDetails()
-                if (userDetails) {
-                    loginAndUpdateDetails(userDetails)
+            const { success } = await createUserProfile(userData)
+            if (success) {
+                const { response, success } = await getUserDetails()
+                if (success && response) {
+                    loginAndUpdateDetails(response)
                     navigation.goBack()
                 } else {
                     Bugsnag.notify("/app/profile failed to fetch user details")

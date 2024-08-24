@@ -45,17 +45,17 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     const response = await fetch(uri, options);
     const responseJson = await response.json();
+
     if (response.status === 303) {
-      return { signupRequire: true }
+      return { response: { signUpRequire: true }, success: true, status: response.status, extra: {} }
     }
     if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
+      return { response: null, success: false, status: response.status, extra: {} }
     }
 
-    return responseJson;
+    return { response: responseJson, success: true, status: response.status, extra: {} }
   } catch (err) {
-    console.error(`Error in ${method}Call:`, err);
-    return null;
+    return { response: null, success: false, status: 500, extra: {} }
   }
 }
 

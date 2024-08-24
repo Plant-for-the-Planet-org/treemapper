@@ -62,16 +62,16 @@ const LoginButton = () => {
       handleLogout()
       return
     }
-    const userDetails = await getUserDetails()
-    if (userDetails.signupRequire) {
+    const {response, success} = await getUserDetails()
+    if (success && response.signUpRequire) {
       navigation.navigate('SignUpPage', {
         email: user?.email,
         accessToken: credentials.accessToken
       })
       return
     }
-    if (userDetails) {
-      loginAndUpdateDetails(userDetails)
+    if (success && response) {
+      loginAndUpdateDetails(response)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
       addNewLog({

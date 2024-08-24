@@ -63,10 +63,10 @@ const HomeHeader = (props: Props) => {
 
   const syncUserSpecies = async () => {
     try {
-      const result = await getUserSpecies()
-      if (result && result.length > 0) {
-        const response = await addUserSpecies(result)
-        if (response) {
+      const { response, success } = await getUserSpecies()
+      if (success && response.length > 0) {
+        const result = await addUserSpecies(response)
+        if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
@@ -127,20 +127,20 @@ const HomeHeader = (props: Props) => {
 
   const addServerIntervention = async () => {
     try {
-      const result = await getServerIntervention(lastServerInterventionpage)
-      if (result?.items) {
-        if (!result._links.next || result._links.next === result._links.self) {
+      const { response, success } = await getServerIntervention(lastServerInterventionpage)
+      if (success && response?.items) {
+        if (!response._links.next || response._links.next === response._links.self) {
           dispatch(updateServerIntervention(true))
           return;
         }//loc_fVSURzjYpGU0ozFD60dPrbJF
-        for (let index = 0; index < result.count; index++) {
-          if (result.items[index] && deleteThis.includes(result.items[index].id)) {
+        for (let index = 0; index < response.count; index++) {
+          if (response.items[index] && deleteThis.includes(response.items[index].id)) {
             continue;
           }
-          const element = convertInventoryToIntervention(result.items[index]);
+          const element = convertInventoryToIntervention(response.items[index]);
           await addNewIntervention(element)
         }
-        const nextPage = getExtendedPageParam(result._links.next)
+        const nextPage = getExtendedPageParam(response._links.next)
         dispatch(updateLastServerIntervention(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
@@ -169,8 +169,8 @@ const HomeHeader = (props: Props) => {
 
 
   const handleProjects = async () => {
-    const response = await getAllProjects()
-    if (response) {
+    const { response, success } = await getAllProjects()
+    if (success && response) {
       const result = await addAllProjects(response)
       if (result) {
         dispatch(updateProjectState(true))

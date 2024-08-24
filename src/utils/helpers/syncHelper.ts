@@ -150,6 +150,10 @@ export const convertInterventionBody = (d: InterventionData) => {
         })
         postData.plantedSpecies = planted_species
     }
+    if (d.intervention_end_date) {
+        postData.interventionStartDate = postTimeConvertor(d.intervention_date)
+        postData.interventionEndDate = postTimeConvertor(d.intervention_end_date)
+    }
     if (d.sample_trees.length > 0) {
         postData.sampleTreeCount = d.sample_trees.length
     }

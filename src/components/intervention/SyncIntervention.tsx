@@ -146,8 +146,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!body) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response?.hid && response?.id) {
+            const {response, success} = await uploadIntervention(body);
+            if (success && response?.hid && response?.id) {
                 await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
             } else {
                 addNewLog({
@@ -174,8 +174,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!body) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response?.id && response?.hid) {
+            const {response, success} = await uploadIntervention(body);
+            if (success && response?.id && response?.hid) {
                 const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
                     await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
@@ -205,8 +205,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!body) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response?.hid && response?.id && response.coordinates) {
+            const {response, success} = await uploadIntervention(body);
+            if (success && response?.hid && response?.id && response.coordinates) {
                 await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates);
             } else {
                 addNewLog({
@@ -233,11 +233,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!body) {
                 throw new Error("Not able to convert body");
             }
-            const result = await uploadInterventionImage(body.locationId, body.imageId, {
+            const {response,success} = await uploadInterventionImage(body.locationId, body.imageId, {
                 imageFile: body.imageFile
             });
-            if (result && result.status === "complete") {
-                const cdnImage = result.image || ''
+            if (success && response.status === "complete") {
+                const cdnImage = response.image || ''
                 await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
             } else {
                 addNewLog({

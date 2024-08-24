@@ -78,8 +78,8 @@ const OfflineMapDisplay = () => {
       const offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
       const coords = await mapRef.current.getCenter();
       const bounds = await mapRef.current.getVisibleBounds();
-      const LocationDetails = await getAreaName(coords)
-      const placeName = LocationDetails?.features?.[0]?.place_name || 'Not specified'
+      const {response} = await getAreaName(coords)
+      const placeName = response?.features?.[0]?.place_name || 'Not specified'
       if (placeName) {
         setAreaName(placeName);
       }      
