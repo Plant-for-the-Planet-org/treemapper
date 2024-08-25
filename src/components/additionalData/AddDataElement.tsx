@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
@@ -16,6 +16,7 @@ interface Props {
   pageNo: number
   openHandler: (id: string) => void
 }
+const { width } = Dimensions.get('window');
 
 
 const AddDataElement = (props: Props) => {
@@ -60,7 +61,9 @@ const AddDataElement = (props: Props) => {
       </View>
       <DraggableFlatList
         data={elementData}
+        scrollEnabled={false}
         onDragEnd={({ data }) => handleIndexUpdate(data)}
+        dragHitSlop={{ right: -width + 50 + 36 }}
         keyExtractor={({ element_id }) => element_id}
         renderItem={({ item, drag, isActive }) => (<AdditionalElement
           drag={drag}
