@@ -58,8 +58,8 @@ const ManageSpeciesHome = (props: Props) => {
     try {
       const {response, success} = await getUserSpecies()
       if (success && response.length > 0) {
-        const response = await addUserSpecies(response)
-        if (response) {
+        const result = await addUserSpecies(response)
+        if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
       }

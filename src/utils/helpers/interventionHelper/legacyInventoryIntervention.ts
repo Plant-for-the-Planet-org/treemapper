@@ -141,7 +141,8 @@ const singleTreeDetails = (d: any): SampleTree => {
             currentloclong: 0,
             isImageUploaded: true,
             coordinateID: ""
-        }
+        },
+        fix_required: "NO"
     }
     return details
 }
@@ -207,6 +208,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
         remeasurement_required: remeasurement_required,
         next_measurement_date: rData.d,
         intervention_end_date: moment(data.registrationDate).valueOf() || moment(data.plantDate).valueOf(),
+        fix_required: "NO"
     }
     return finalData
 }

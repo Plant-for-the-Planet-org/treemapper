@@ -25,6 +25,14 @@ const InterventionCard = (props: Props) => {
     const finalItem = { ...JSON.parse(JSON.stringify(item)) }
     openIntervention({ ...finalItem })
   }
+  const renderFixLabel=()=>{
+    switch (item.fix_required) {
+      case "PROJECT_ID_MISSING":
+        return "Project not assigned"
+      default:
+      return "Fix Require"      
+    }
+  }
   return (
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
@@ -32,6 +40,11 @@ const InterventionCard = (props: Props) => {
         {!item.is_complete ? (
           <View style={styles.incompleteTagWrapper}>
             <Text style={styles.incompleteTagLabel}>{i18next.t("label.incomplete")}</Text>
+          </View>
+        ) : null}
+        {item.is_complete && item.fix_required !== "NO" ? (
+          <View style={styles.projectAssignWrapper}>
+            <Text style={styles.projectLabel}>{renderFixLabel()}</Text>
           </View>
         ) : null}
         <View style={styles.sectionWrapper}>
@@ -86,18 +99,37 @@ const styles = StyleSheet.create({
   incompleteTagWrapper: {
     justifyContent: 'center',
     alignItems: 'center',
-    height: scaleFont(20),
+    height:18,
     backgroundColor: Colors.GRAY_BACKDROP,
-    width: '22%',
+    position: 'absolute',
+    top: 0,
+    width:'22%',
+    right: 10,
+    borderBottomRightRadius: 10,
+    borderBottomLeftRadius: 10,
+    paddingHorizontal:5
+  },
+  incompleteTagLabel: {
+    fontSize:8,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+  },
+  projectAssignWrapper: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    height:18,
+    width:'25%',
+    backgroundColor: '#ff8383',
     position: 'absolute',
     top: 0,
     right: 10,
     borderBottomRightRadius: 10,
     borderBottomLeftRadius: 10,
+    paddingHorizontal:5
   },
-  incompleteTagLabel: {
-    fontSize: scaleFont(8),
+  projectLabel: {
+    fontSize:8,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color:Colors.WHITE
   },
   editIconWrapper: {
     height: '100%',

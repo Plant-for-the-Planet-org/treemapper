@@ -1,4 +1,4 @@
-import { INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { FIX_REQUIRED, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -31,17 +31,20 @@ export interface MonitoringPlotSlice {
   updateScreen: string
 }
 
-export interface SyncInfoData{
+export interface SyncInfoData {
   type: 'INTERVENTION' | "SAMPLE_TREE" | "IMAGES" | "SPECIES" | "REMEASUREMENT"
-  message:string,
+  message: string,
   status: "SYNCING" | "FAILED" | "UPLOADED" | 'ADDED',
   id: string,
-  error:string
+  error: string
 }
 export interface TempStateSlice {
   webAuthLoading: boolean
   synData: SyncInfoData[]
-  selectedId: string
+  selectedId: string,
+  speciesDownloading: boolean
+  speciesWriting: boolean,
+  speciesUpdatedAt: number
 }
 
 export interface OldSampleTree {
@@ -68,6 +71,13 @@ export interface OldSampleTree {
   }>
   appMetadata: string
   hid: string
+}
+
+export interface BodyPayload {
+  error: string,
+  message: string,
+  fixRequired: FIX_REQUIRED,
+  pData: null | any
 }
 
 export interface CountryCode {
@@ -257,6 +267,7 @@ export interface SampleTree {
   remeasurement_dates: RemeasurementDate
   remeasurement_requires: boolean,
   is_alive: boolean,
+  fix_required: FIX_REQUIRED
   image_data: {
     latitude: number
     longitude: number
@@ -381,6 +392,7 @@ export interface InterventionData {
   locate_tree: string
   remeasurement_required: boolean
   next_measurement_date: number
+  fix_required: FIX_REQUIRED
   is_legacy?: boolean
 }
 

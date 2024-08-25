@@ -8,8 +8,7 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 
 const RootNavigator = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SyncSpecies" component={Screens.SyncSpecies} />
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Home'>
       <Stack.Screen name="Home" component={BottomTabStack} />
       <Stack.Screen name="SignUpPage" component={Screens.SignUpView} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />

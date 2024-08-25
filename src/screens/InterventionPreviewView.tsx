@@ -33,13 +33,14 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { Metadata } from 'src/types/interface/app.interface'
 import * as Application from 'expo-application'
 import i18next from 'i18next'
+import { useToast } from 'react-native-toast-notifications'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [loading, setLoading] = useState(true)
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const UserType = useSelector((state: RootState) => state.userState.type)
-
+  const toast = useToast()
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params?.interventionId ?? "";
@@ -56,8 +57,15 @@ const InterventionPreviewView = () => {
     }
     setLoading(false)
     checkIsTree()
+    showInitialToast()
   }, [])
 
+
+  const showInitialToast = () => {
+    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id) {
+      toast.show("Project not assign")
+    }
+  }
 
   const setupMetaData = async () => {
     const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
@@ -143,10 +151,10 @@ const InterventionPreviewView = () => {
 
   const renderRightContainer = () => {
     if (InterventionData.status === 'SYNCED') {
-      return     <View style={styles.syncContainer}>
-      <SyncIcon width={20} height={20} />
-      <Text style={styles.label}>{i18next.t("label.fully_synced")}</Text>
-  </View>
+      return <View style={styles.syncContainer}>
+        <SyncIcon width={20} height={20} />
+        <Text style={styles.label}>{i18next.t("label.fully_synced")}</Text>
+      </View>
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />
   }
@@ -222,15 +230,15 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 8
-},
-syncContainer: {
-  paddingHorizontal: 10,
-  height: 50,
-  justifyContent: 'center',
-  alignItems: 'center',
-  flexDirection: 'row',
-  backgroundColor: Colors.NEW_PRIMARY+'1A',
-  marginRight:10,
-  borderRadius:10
-},
+  },
+  syncContainer: {
+    paddingHorizontal: 10,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: Colors.NEW_PRIMARY + '1A',
+    marginRight: 10,
+    borderRadius: 10
+  },
 })

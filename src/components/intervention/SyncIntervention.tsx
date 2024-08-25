@@ -16,8 +16,8 @@ import RotatingView from '../common/RotatingView';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
-import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
+import { remeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -40,18 +40,20 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
+    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateFixRequireIntervention, updateTreeStatusFixRequire } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
     const lastSyncDate = useSelector(
         (state: RootState) => state.appState.lastSyncDate,
     )
+    const uType = useSelector(
+        (state: RootState) => state.userState.type,
+    )
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
-
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
             syncUploaded()
@@ -142,11 +144,22 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleIntervention = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                await updateFixRequireIntervention(el.p1Id, fixRequired)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            console.log("This is intervention Body", JSON.stringify(pData, null, 2))
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const {response, success} = await uploadIntervention(body);
+            const { response, success } = await uploadIntervention(pData);
             if (success && response?.hid && response?.id) {
                 await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
             } else {
@@ -170,11 +183,64 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleSingleTree = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                await updateFixRequireIntervention(el.p1Id, fixRequired)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            console.log("This is single tree Body", JSON.stringify(pData, null, 2))
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const {response, success} = await uploadIntervention(body);
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.id && response?.hid) {
+                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+                if (result) {
+                    await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
+                }
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Single Tree API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Single Tree API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+    const handleRemeasurement = async (el) => {
+        try {
+            const { pData, fixRequired, error, message } = await getRemeasurementBody(el, uType);
+            if (fixRequired !== 'NO') {
+                await updateFixRequireIntervention(el.p1Id, fixRequired)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            console.log("This is remeasurement tree Body", JSON.stringify(pData, null, 2))
+            if (!pData) {
+                throw new Error("Not able to convert body");
+            }
+            const { response, success } = await remeasurement(el.p2Id, pData);
             if (success && response?.id && response?.hid) {
                 const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
@@ -201,13 +267,24 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleSampleTree = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                await updateTreeStatusFixRequire(el.p1Id, el.p2Id, fixRequired)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Sample Tree fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            console.log("This is sample Body", JSON.stringify(pData, null, 2))
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const {response, success} = await uploadIntervention(body);
+            const { response, success } = await uploadIntervention(pData);
             if (success && response?.hid && response?.id && response.coordinates) {
-                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates);
+                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, pData.parent, response.coordinates);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -229,12 +306,22 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleTreeImage = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            console.log("This is image Body",)
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const {response,success} = await uploadInterventionImage(body.locationId, body.imageId, {
-                imageFile: body.imageFile
+            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+                imageFile: pData.imageFile
             });
             if (success && response.status === "complete") {
                 const cdnImage = response.image || ''
@@ -278,6 +365,12 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     break;
                 case 'treeImage':
                     await handleTreeImage(el);
+                    break;
+                case 'remeasurementData':
+                    await handleRemeasurement(el);
+                    break
+                case 'remeasurementStatus':
+                    await handleRemeasurement(el);
                     break;
                 default:
                     console.log("Unknown type:", el.type);

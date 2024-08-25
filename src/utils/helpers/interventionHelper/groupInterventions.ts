@@ -30,7 +30,7 @@ export const groupIntervention = (data: InterventionData[]) => {
     } else {
       finalObject[intervention_title] = { count: 1, id: intervention_key };
     }
-    if (status === 'PENDING_DATA_UPLOAD' && is_complete) {
+    if (status !== 'PENDING_DATA_UPLOAD' && is_complete) {
       finalObject['Unsynced'] = {
         count: (finalObject['Unsynced'].count += 1),
         ...finalObject['Unsynced'],

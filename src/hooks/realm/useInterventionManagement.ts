@@ -5,7 +5,7 @@ import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitialStat
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
-import { INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
+import { FIX_REQUIRED, INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
 import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
 import { useToast } from 'react-native-toast-notifications'
 
@@ -67,6 +67,7 @@ const useInterventionManagement = () => {
       remeasurement_required: false,
       next_measurement_date: 0,
       intervention_end_date: intervention.intervention_date,
+      fix_required: 'NO'
     }
     try {
       realm.write(() => {
@@ -503,6 +504,8 @@ const useInterventionManagement = () => {
         intervention.project_name = projectData.label
         intervention.site_id = siteData.value
         intervention.site_name = siteData.label
+        intervention.last_updated_at = Date.now()
+        intervention.fix_required = 'NO'
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -636,6 +639,55 @@ const useInterventionManagement = () => {
     }
   };
 
+
+  const updateFixRequireIntervention = async (interventionID: string, fix: FIX_REQUIRED): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        Intervention.fix_required = fix
+        Intervention.last_updated_at = Date.now()
+      });
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error Intervention error ' + interventionID,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
+  const updateTreeStatusFixRequire = async (interventionID: string, tree_id: string, fix: FIX_REQUIRED): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
+        treeDetails.fix_required = fix
+        const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        Intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'Tree status updated ' + tree_id,
+        logLevel: 'info',
+        statusCode: '',
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error TreeStatus ' + tree_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
+
   const updateTreeImageStatus = async (tree_id: string, interventionId: string, cdnImage: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -693,6 +745,8 @@ const useInterventionManagement = () => {
         }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
+        treeDetails.status = 'REMEASUREMENT_DATA_UPLOAD'
+        
       });
       return true
     } catch (error) {
@@ -708,6 +762,8 @@ const useInterventionManagement = () => {
         const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         const newStatus = isAllRemeasurementDone(interventionData.sample_trees);
         interventionData.remeasurement_required = newStatus
+        interventionData.status = 'PENDING_REMEASUREMENT_SYNC'
+        interventionData.last_updated_at = Date.now()
         if (!newStatus) {
           const now = new Date();
           interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
@@ -721,7 +777,7 @@ const useInterventionManagement = () => {
   };
 
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite }
+  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire }
 }
 
 export default useInterventionManagement

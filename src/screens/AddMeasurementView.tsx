@@ -156,11 +156,11 @@ const AddMeasurement = () => {
       specie_name: SampleTreeData.current_species.scientificName,
       specie_diameter: getConvertedDiameter(
         width,
-        isNonISUCountry,
+        isNonISUCountry
       ),
       specie_height: getConvertedHeight(
         height,
-        isNonISUCountry,
+        isNonISUCountry
       ),
       tag_id: tagId,
       plantation_date: new Date().getTime(),
@@ -193,7 +193,8 @@ const AddMeasurement = () => {
         currentloclong: 0,
         isImageUploaded: false,
         coordinateID: ''
-      }
+      },
+      fix_required: 'NO'
     }
     const result = await addSampleTrees(Intervention.form_id, treeDetails)
     if (!result) {
