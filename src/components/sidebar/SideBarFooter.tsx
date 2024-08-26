@@ -1,7 +1,7 @@
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import i18next from 'src/locales/index'
-import {Typography, Colors} from 'src/utils/constants'
+import { Typography, Colors } from 'src/utils/constants'
 import LoginButton from './LoginButton'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import * as Application from 'expo-application'
@@ -10,7 +10,7 @@ interface Props {
 }
 
 const SideBarFooter = (props: Props) => {
-  const {isLoggedIn} = props
+  const { isLoggedIn } = props
   const onPressImprint = () => {
     openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
   };
@@ -23,10 +23,13 @@ const SideBarFooter = (props: Props) => {
   return (
     <View style={[styles.versionContainer]}>
       {!isLoggedIn && <LoginButton />}
-      <View key="version" style={styles.version}>
-        <Text style={[styles.itemText,{marginRight:12}]}>TreeMapper {Application.nativeApplicationVersion}</Text>
-      </View>
       <View style={styles.termsContainer}>
+        <View key="privacy_policy">
+          <Text style={styles.itemText}>
+            v{Application.nativeApplicationVersion}
+          </Text>
+        </View>
+        <View style={styles.dot} />
         <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>
           <Text style={styles.itemText}>
             {i18next.t('label.privacy_policy')}
@@ -73,7 +76,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingBottom: 15,
     alignSelf: 'center',
-    width:'100%'
+    width: '100%'
   },
-  version: {paddingBottom: 10},
+  version: { paddingBottom: 10 },
 })
