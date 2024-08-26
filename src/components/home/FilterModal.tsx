@@ -8,10 +8,10 @@ import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomS
 import { useDispatch, useSelector } from 'react-redux'
 import { updateInterventionFilter, updateRemeasurementFilter, updateShowPlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
-import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 import i18next from 'src/locales/index'
+import InterventionDropDown from 'src/components/common/InterventionDropDown'
 
 interface Props {
   isVisible: boolean
@@ -19,7 +19,6 @@ interface Props {
 }
 
 const FilterModal = (props: Props) => {
-  const [showTimeModal, setShowTimeModal] = useState(false)
   const [showTypeModal, setShowTypeModal] = useState(false)
 
 
@@ -29,7 +28,7 @@ const FilterModal = (props: Props) => {
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const snapPoints = useMemo(() => ['49%', '85%'], []);
+  const snapPoints = useMemo(() => ['49%', '85%', '55%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -51,19 +50,8 @@ const FilterModal = (props: Props) => {
     dismiss();
   }
 
-  const toggleIntervention = () => {
-    if (interventionFilter === 'none') {
-      dispatch(updateInterventionFilter('always'))
-      setShowTimeModal(true)
-    } else {
-      setShowTimeModal(false)
-      dispatch(updateInterventionFilter('none'))
-    }
-  }
 
-  const toggleTimeModal = () => {
-    setShowTimeModal(!showTimeModal)
-  }
+
 
 
   const toggleTypeModal = () => {
@@ -71,7 +59,7 @@ const FilterModal = (props: Props) => {
   }
 
   const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    setShowTimeModal(false)
+    console.log("LKJ", e)
     dispatch(updateInterventionFilter(e))
   }
 
@@ -85,6 +73,8 @@ const FilterModal = (props: Props) => {
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
   )
 
+
+
   return (
     <BottomSheetModal
       ref={bottomSheetModalRef}
@@ -96,9 +86,9 @@ const FilterModal = (props: Props) => {
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
       style={{ paddingTop: 20 }}
-      backgroundStyle={{backgroundColor:'transparent'}}
+      backgroundStyle={{ backgroundColor: 'transparent' }}
     >
-      <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
+      {/* <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} /> */}
       <BottomSheetView style={styles.container}>
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
@@ -107,7 +97,7 @@ const FilterModal = (props: Props) => {
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
-                <CloseIcon width={18} height={18}/>
+                <CloseIcon width={18} height={18} />
               </TouchableOpacity>
             </View>
             <View style={[styles.card, { backgroundColor: showPlots ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
@@ -115,11 +105,13 @@ const FilterModal = (props: Props) => {
               <View style={styles.divider} />
               <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
-            <View style={[styles.card, { backgroundColor: interventionFilter !== 'none' ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
-              <Text style={styles.cardLabel}>{i18next.t('label.label_intervention')}</Text>
-              <View style={styles.divider} />
-              <Switch value={interventionFilter !== 'none'} onValueChange={toggleIntervention} disabled={false} />
-            </View>
+            <InterventionDropDown
+              onSelect={changeInterventionFilter}
+              selectedValue={{
+                label: '',
+                value: interventionFilter,
+                index: 0,
+              }} />
             <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
@@ -151,7 +143,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
-    paddingTop:10
+    paddingTop: 10
   },
   contentWrapper: {
     width: '95%',
@@ -195,7 +187,6 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     textAlign: 'left',
     maxWidth: '80%'
-
   },
   divider: {
     flex: 1,

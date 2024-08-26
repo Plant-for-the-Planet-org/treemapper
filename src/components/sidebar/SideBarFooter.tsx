@@ -24,7 +24,7 @@ const SideBarFooter = (props: Props) => {
     <View style={[styles.versionContainer]}>
       {!isLoggedIn && <LoginButton />}
       <View style={styles.termsContainer}>
-        <View key="privacy_policy">
+        <View key="version">
           <Text style={styles.itemText}>
             v{Application.nativeApplicationVersion}
           </Text>
