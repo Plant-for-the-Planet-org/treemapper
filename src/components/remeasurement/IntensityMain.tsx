@@ -1,5 +1,5 @@
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 import CustomButton from '../common/CustomButton';
@@ -9,11 +9,13 @@ import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput
 
 interface Props {
   intensity: any;
+  setSelectedIntensity: (i: number) => void
+  save: () => void
 }
 
-const Intensity: React.FC<Props> = ({ intensity }) => {
-  const [selectedIntensity, setSelectedIntensity] = useState(intensity);
-
+const Intensity: React.FC<Props> = (props: Props) => {
+  const { setSelectedIntensity, intensity, save } = props;
+  
   useEffect(() => {
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
@@ -21,11 +23,6 @@ const Intensity: React.FC<Props> = ({ intensity }) => {
     };
   }, []);
 
-  useEffect(() => {
-    if (intensity) {
-      setSelectedIntensity(intensity);
-    }
-  }, [intensity]);
 
   return (
     <AvoidSoftInputView avoidOffset={20} style={{ flex: 1 }} showAnimationDuration={200}>
@@ -35,7 +32,7 @@ const Intensity: React.FC<Props> = ({ intensity }) => {
             {i18next.t('label.select_intensity_for_remeasurement')}
           </Text>
           <IntensitySelector
-            selectedIntensity={selectedIntensity}
+            selectedIntensity={intensity}
             setSelectedIntensity={setSelectedIntensity}
           />
         </ScrollView>
@@ -43,7 +40,7 @@ const Intensity: React.FC<Props> = ({ intensity }) => {
           <CustomButton
             label={i18next.t('label.save')}
             containerStyle={styles.btnContainer}
-            pressHandler={() => {}}
+            pressHandler={save}
           />
         </View>
       </View>

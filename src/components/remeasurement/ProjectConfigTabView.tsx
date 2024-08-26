@@ -1,23 +1,71 @@
 import * as React from 'react'
 import { useWindowDimensions } from 'react-native'
 import { TabView, SceneMap } from 'react-native-tab-view'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import AdditionalFormTabBar from '../additionalData/AdditionalFormTabBar'
 import Intensity from './IntensityMain'
 import Frequency from './FrequencyMain'
+import { updateProjectDetails } from 'src/api/api.fetch'
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { useToast } from 'react-native-toast-notifications'
 
-const IntensityComp = () => {
-  return <Intensity intensity={75} />
+
+interface Props {
+  pid: string
 }
 
+const ProjectConfigTabView = (props: Props) => {
+  const { pid } = props
+  const [intensityProject, setIntensityProject] = useState(0)
+  const [frequencyProject, setFrequencyProject] = useState('')
+  const realm = useRealm()
+  useEffect(() => {
+    setProjectData()
+  }, [pid])
 
-const ProjectConfigTabView = () => {
+  const toast = useToast()
+
+  const setProjectData = () => {
+    const projectDetails = realm.objectForPrimaryKey<any>(RealmSchema.Projects, pid)
+    if (projectDetails) {
+      setIntensityProject(projectDetails.intensity || 0)
+      setFrequencyProject(projectDetails.frequency || '')
+    }
+  }
+
   const layout = useWindowDimensions()
+
+
+
+
+  const syncAndUpdate = async () => {
+    const { success } = await updateProjectDetails({
+      i: intensityProject,
+      f: frequencyProject,
+      id: pid
+    })
+    if (success) {
+      toast.show("Updated successfully")
+    } else {
+      toast.show("Error ocurred while submitting")
+    }
+  }
+
+  const IntensityComp = () => {
+    return <Intensity intensity={intensityProject} setSelectedIntensity={setIntensityProject} save={syncAndUpdate}/>
+  }
+
+  const FrequencyComp = () => {
+    return <Frequency frequency={frequencyProject} setSelectedFrequency={setFrequencyProject} save={syncAndUpdate}/>
+  }
 
   const renderScene = SceneMap({
     intensity: IntensityComp,
-    frequency: Frequency,
+    frequency: FrequencyComp,
   })
+
+
 
   const [routeIndex, setRouteIndex] = useState(0)
   const [tabRoutes] = useState([

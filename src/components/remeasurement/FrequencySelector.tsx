@@ -11,6 +11,7 @@ import i18next from 'src/locales/index';
 interface FrequencyData {
   type: string
   description: string
+  key: string
 }
 
 export const FrequencySelector = ({
@@ -23,15 +24,18 @@ export const FrequencySelector = ({
   const allFrequencies: FrequencyData[] = [
     {
       type: 'Default',
-      description: i18next.t("label.remeasurement_default")
+      description: i18next.t("label.remeasurement_default"),
+      key:"default"
     },
     {
       type: 'High',
-      description: i18next.t("label.remeasurement_high")
+      description: i18next.t("label.remeasurement_high"),
+      key:"high"
     },
     {
       type: 'Low',
-      description: i18next.t("label.remeasurement_low")
+      description: i18next.t("label.remeasurement_low"),
+      key:"low"
     },
   ];
   return (
@@ -41,12 +45,12 @@ export const FrequencySelector = ({
         allFrequencies.length > 0 &&
         allFrequencies.map((frequency: FrequencyData, i) => {
           // used to show the selected tree count selected by user
-          const isSelected = frequency.type === selectedFrequency;
+          const isSelected = frequency.key === selectedFrequency;
           return (
             <TouchableOpacity
               key={String(frequency) + String(i)}
               onPress={() => {
-                setSelectedFrequency(frequency.type);
+                setSelectedFrequency(frequency.key);
               }}
             >
               <View

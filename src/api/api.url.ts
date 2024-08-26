@@ -26,3 +26,5 @@ export const getUrlApi = {
   getAllSpeciesAchieve: `${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
   getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
+
+

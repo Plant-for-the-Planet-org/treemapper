@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'
+import React from 'react'
 import { View, TouchableOpacity, Text, TextInput, StyleSheet } from "react-native";
 import { Typography, Colors } from "src/utils/constants";
 import { scaleSize } from "src/utils/constants/mixins";
@@ -10,8 +10,6 @@ const IntensitySelector = ({
   selectedIntensity: number;
   setSelectedIntensity: React.Dispatch<React.SetStateAction<number>>;
 }) => {
-  const [isCustomSelected, setIsCustomSelected] = useState(false);
-  const customInputRef = useRef(null);
   const allIntensities = [100, 75, 50, 25];
 
   return (
@@ -21,14 +19,11 @@ const IntensitySelector = ({
         allIntensities.length > 0 &&
         allIntensities.map((intensity: number, index: number) => {
           // used to show the selected tree count selected by user
-          const isSelected = intensity === selectedIntensity;
+          const isSelected = intensity === selectedIntensity
           return (
             <TouchableOpacity
-              key={String(intensity)+String(index)}
-              onPress={() => {
-                setIsCustomSelected(false);
-                setSelectedIntensity(intensity);
-              }}>
+              key={String(intensity) + String(index)}
+              onPress={() => { setSelectedIntensity(intensity) }}>
               <View
                 style={[
                   styles.treeCountSelection,
@@ -47,42 +42,30 @@ const IntensitySelector = ({
             </TouchableOpacity>
           );
         })}
-      <TouchableOpacity
-        onPress={() => {
-          setIsCustomSelected(true);
-          if (customInputRef?.current) {
-            customInputRef.current.focus();
-          }
-        }}>
-        <View
+      <View
+        style={[
+          styles.treeCountInputSelection,
+        ]}>
+        <TextInput
           style={[
-            styles.treeCountInputSelection,
-            isCustomSelected ? styles.treeCountSelectionActive : {},
+            styles.customTreeCount,
+            { borderBottomColor: Colors.TEXT_COLOR },
+          ]}
+          keyboardType={'numeric'}
+          value={String(selectedIntensity)}
+          onChangeText={(text: string) => {
+            setSelectedIntensity(() => {
+              return Number(text) <= 100 ? Number(text) : 0
+            })
+          }}
+        />
+        <Text
+          style={[
+            styles.treeCountSelectionText,
           ]}>
-          <TextInput
-            value={String(selectedIntensity)}
-            style={[
-              styles.customTreeCount,
-              { borderBottomColor: isCustomSelected ? 'white' : Colors.TEXT_COLOR },
-            ]}
-            selectionColor={'white'}
-            keyboardType={'numeric'}
-            onFocus={() => {
-              setIsCustomSelected(true);
-            }}
-            textAlign={'center'}
-            ref={customInputRef}
-            onChangeText={(text: string) => { setSelectedIntensity(Number(text)) }}
-          />
-          <Text
-            style={[
-              styles.treeCountSelectionText,
-              isCustomSelected ? styles.treeCountSelectionActiveText : {},
-            ]}>
-            {'%'}
-          </Text>
-        </View>
-      </TouchableOpacity>
+          {'%'}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -154,9 +137,9 @@ const styles = StyleSheet.create({
     paddingVertical: 0,
     alignSelf: 'center',
     width: 70,
-    color: Colors.WHITE,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_20,
+    textAlign: "center"
   },
   btnContainer: {
     width: '100%',

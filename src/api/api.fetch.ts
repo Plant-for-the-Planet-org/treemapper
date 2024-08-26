@@ -64,3 +64,11 @@ export const createUserProfile = async (params: any) => {
   const result = await fetchPostCall(uri, params, false);
   return result;
 };
+export const updateProjectDetails = async (d: { i: number, f: string, id: string }) => {
+  const uri = `${postUrlApi.updateProjectInF}/${d.id}`;
+  const result = await fetchPutCall(uri, {
+    "revisionPeriodicityLevel": d.f,
+    "intensity": d.i
+  });
+  return result;
+};

@@ -24,6 +24,8 @@ const useProjectManagement = () => {
             sites: [],
             geometry: JSON.stringify(project.geometry),
             purpose: properties.purpose,
+            intensity: properties.intensity || 0,
+            frequency: properties.revisionPeriodicityLevel || 'low',
           }
 
           for (const site of properties.sites) {
@@ -41,12 +43,11 @@ const useProjectManagement = () => {
             Realm.UpdateMode.Modified,
           )
         })
-        return Promise.resolve(true)
       })
-      return Promise.resolve(true)
+      return true
     } catch (error) {
       console.error('Error while adding projects', error)
- return false
+      return false
     }
   }
 
@@ -57,9 +58,10 @@ const useProjectManagement = () => {
         const unSyncedObjects = realm.objects(RealmSchema.Projects);
         realm.delete(unSyncedObjects);
       });
-      return true    } catch (error) {
+      return true
+    } catch (error) {
       console.error('Error during update:', error);
- return false;
+      return false;
     }
   };
 

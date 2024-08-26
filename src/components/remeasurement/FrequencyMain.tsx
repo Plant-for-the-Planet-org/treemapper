@@ -1,5 +1,5 @@
 import i18next from "i18next";
-import React, { useState } from 'react'
+import React from 'react'
 import { View, ScrollView, Text, StyleSheet } from "react-native";
 import CustomButton from "../common/CustomButton";
 import FrequencySelector from "./FrequencySelector";
@@ -7,8 +7,14 @@ import { Typography, Colors } from "src/utils/constants";
 import { scaleSize } from "src/utils/constants/mixins";
 
 
-const Frequency = () => {
-  const [selectedFrequency, setSelectedFrequency] = useState('');
+interface Props {
+  frequency: string,
+  setSelectedFrequency: (e: string) => void
+  save: () => void
+}
+
+const Frequency = (props: Props) => {
+  const { frequency, setSelectedFrequency, save } = props
 
   return (
     <View style={{ flex: 1 }}>
@@ -18,18 +24,17 @@ const Frequency = () => {
             {i18next.t('label.select_frequency_for_remeasurement')}
           </Text>
           <FrequencySelector
-            selectedFrequency={selectedFrequency}
+            selectedFrequency={frequency}
             setSelectedFrequency={setSelectedFrequency}
           />
         </View>
-        {/* </KeyboardAvoidingView> */}
       </ScrollView>
       <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
         <Text>{i18next.t('label.cant_change_frequency')}</Text>
         <CustomButton
           label={i18next.t('label.save')}
           containerStyle={styles.btnContainer}
-          pressHandler={() => { }}
+          pressHandler={save}
         />
       </View>
     </View>
