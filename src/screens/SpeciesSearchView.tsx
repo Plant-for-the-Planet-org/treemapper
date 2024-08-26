@@ -16,7 +16,8 @@ import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
 import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
 import { useDispatch } from 'react-redux'
-import { updateSelectedSpeciesId } from 'src/store/slice/tempStateSlice'
+import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice/tempStateSlice'
+import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
@@ -66,9 +67,8 @@ const SpeciesSearchView = () => {
 
   const handleSpeciesSyncPress = async () => {
     setShowSpeciesSyncAlert(false)
-    setTimeout(() => {
-      navigation.navigate('SyncSpecies', { inApp: true })
-    }, 300);
+    dispatch(updateSpeciesDownloaded(''))
+    dispatch(updateSpeciesUpdatedAt())
   }
 
 
