@@ -1,4 +1,4 @@
-import { StyleSheet, TouchableOpacity } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import ManageSpeciesHome from 'src/components/species/ManageSpeciesHome'
 import RemoveSpeciesModal from 'src/components/species/RemoveSpeciesModal'
@@ -11,7 +11,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import TreeCountModal from 'src/components/species/TreeCountModal'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
@@ -23,7 +23,10 @@ import SyncIcon from 'assets/images/svg/SyncIcon.svg'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { updateSelectedSpeciesId } from 'src/store/slice/tempStateSlice'
+import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice/tempStateSlice'
+import RotatingView from 'src/components/common/RotatingView'
+import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
+import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 
 
 const ManageSpeciesView = () => {
@@ -39,7 +42,9 @@ const ManageSpeciesView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const toast = useToast()
-  const SelectedID = useSelector((state: RootState) => state.tempState.selectedId)
+  const { selectedId, speciesDownloading, speciesWriting } = useSelector((state: RootState) => state.tempState)
+  const SelectedID = selectedId;
+  const SpeciesSynced = useSelector((state: RootState) => state.appState.speciesSync)
 
   const isManageSpecies = route.params?.manageSpecies;
   const EditInterventionSpecies = route.params?.reviewTreeSpecies;
@@ -139,9 +144,8 @@ const ManageSpeciesView = () => {
 
   const handleSpeciesSyncPress = async () => {
     setShowSpeciesSyncAlert(false)
-    setTimeout(() => {
-      navigation.navigate('SyncSpecies', { inApp: true })
-    }, 300);
+    dispatch(updateSpeciesDownloaded(''))
+    dispatch(updateSpeciesUpdatedAt())
   }
 
   const handleSpeciesPress = async (item: IScientificSpecies) => {
@@ -181,9 +185,34 @@ const ManageSpeciesView = () => {
 
 
   const renderRightComponent = () => {
-    return (<TouchableOpacity onPress={() => { setShowSpeciesSyncAlert(true) }} style={{ marginRight: 20 }}>
-      <SyncIcon width={20} height={20} />
-    </TouchableOpacity>)
+    if (speciesWriting) {
+      return (
+        <View style={styles.blockContainer}>
+          <RotatingView isClockwise={true}>
+            <RefreshIcon />
+          </RotatingView>
+          <Text style={styles.label}>Syncing</Text>
+        </View>
+      )
+    }
+    if (speciesDownloading) {
+      return (
+        <View style={styles.blockContainer}>
+          <RotatingView isClockwise={true}>
+            <RefreshIcon />
+          </RotatingView>
+          <Text style={styles.label}>Downloading</Text>
+        </View>
+      )
+    }
+
+    if (SpeciesSynced) {
+      return (<TouchableOpacity onPress={() => { setShowSpeciesSyncAlert(true) }} style={{ marginRight: 20 }}>
+        <SyncIcon width={20} height={20} />
+      </TouchableOpacity>)
+    }
+
+    return <></>
   }
 
 
@@ -227,5 +256,25 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE
+  },
+  blockContainer: {
+    paddingHorizontal: 10,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    backgroundColor: Colors.NEW_PRIMARY + '1A',
+    borderRadius: 10,
+    marginRight: 5
+  },
+  label: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR,
+    marginLeft: 8
+  },
+  infoIconWrapper: {
+    marginRight: 5,
+    marginLeft: 10
   },
 })

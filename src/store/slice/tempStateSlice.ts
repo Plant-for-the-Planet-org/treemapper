@@ -26,12 +26,15 @@ const tempStateSlice = createSlice({
     updateSpeciesDownloading(state, action: PayloadAction<boolean>) {
       state.speciesDownloading = action.payload
     },
+    updateSpeciesWriting(state, action: PayloadAction<boolean>) {
+      state.speciesWriting = action.payload
+    },
     updateSpeciesUpdatedAt(state) {
       state.speciesUpdatedAt = Date.now()
     },
   },
 })
 
-export const { updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt } = tempStateSlice.actions
+export const { updateSpeciesWriting, updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt } = tempStateSlice.actions
 
 export default tempStateSlice.reducer

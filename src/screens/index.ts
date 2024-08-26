@@ -1,4 +1,3 @@
-import SyncSpecies from './SyncSpeciesView'
 import HomeMapView from './HomeMapView'
 import Interventions from './InterventionView'
 import PlotView from './PlotView'
@@ -53,7 +52,6 @@ export default {
   PlotView: PlotView,
   TakePicture: TakePicture,
   PolygonMarker: PolygonMarker,
-  SyncSpecies: SyncSpecies,
   HomeSideDrawer: HomeSideDrawer,
   ManageSpecies: ManageSpeciesView,
   SpeciesInfo: SpeciesInfoView,

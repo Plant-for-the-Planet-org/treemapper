@@ -20,6 +20,7 @@ import useAuthentication from 'src/hooks/useAuthentication'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 import { SCALE_24 } from 'src/utils/constants/spacing'
+import SpeciesSync from '../common/SpeciesSync'
 
 interface Props {
   toggleFilterModal: () => void
@@ -204,6 +205,7 @@ const HomeHeader = (props: Props) => {
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
+      <SpeciesSync />
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
       {userType && userType === 'tpo' ? (
