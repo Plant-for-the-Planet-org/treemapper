@@ -59,7 +59,6 @@ const FilterModal = (props: Props) => {
   }
 
   const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    console.log("LKJ", e)
     dispatch(updateInterventionFilter(e))
   }
 
