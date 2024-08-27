@@ -204,6 +204,7 @@ const useInterventionManagement = () => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         intervention.is_complete = true
         intervention.status = 'PENDING_DATA_UPLOAD'
+        intervention.last_updated_at = Date.now()
       });
       addNewLog({
         logType: 'INTERVENTION',
@@ -746,7 +747,7 @@ const useInterventionManagement = () => {
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
         treeDetails.status = 'REMEASUREMENT_DATA_UPLOAD'
-        
+
       });
       return true
     } catch (error) {
@@ -776,8 +777,40 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateProjectIdMissing = async (interventionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        interventionData.is_complete = false
+        interventionData.status = 'INITIALIZED'
+        interventionData.last_screen = 'DYNAMIC_FORM'
+        interventionData.fix_required = 'PROJECT_ID_MISSING'
+        interventionData.last_updated_at = Date.now()
+      });
+      return true
+    } catch (error) {
+      console.error('Error during update:', error);
+      return false;
+    }
+  };
 
-  return { initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire }
+  const resetIntervention = async (interventionID: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        interventionData.is_complete = false
+        interventionData.status = 'INITIALIZED'
+        interventionData.last_screen = 'DYNAMIC_FORM'
+        interventionData.last_updated_at = Date.now()
+      });
+      return true
+    } catch (error) {
+      console.error('Error during update:', error);
+      return false;
+    }
+  };
+
+  return { resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing }
 }
 
 export default useInterventionManagement

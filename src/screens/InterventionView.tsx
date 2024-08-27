@@ -51,6 +51,7 @@ const InterventionView = () => {
   useEffect(() => {
     if (!loading) {
       refreshHandler()
+      setSelectedLabel('all')
     }
   }, [intervention_updated])
 

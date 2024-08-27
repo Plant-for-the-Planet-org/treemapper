@@ -150,6 +150,9 @@ const InterventionPreviewView = () => {
 
 
   const renderRightContainer = () => {
+    if (InterventionData.is_complete && InterventionData.status !== 'SYNCED') {
+      return null
+    }
     if (InterventionData.status === 'SYNCED') {
       return <View style={styles.syncContainer}>
         <SyncIcon width={20} height={20} />
@@ -171,6 +174,7 @@ const InterventionPreviewView = () => {
         />
         {InterventionData.sample_trees.length > 0 && (
           <SampleTreePreviewList
+            status={InterventionData.status}
             sampleTress={InterventionData.sample_trees}
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />

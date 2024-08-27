@@ -28,11 +28,14 @@ const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [deleteData, setDeleteData] = useState(null)
-  const { deleteIntervention } = useInterventionManagement()
+  const [editModal, setEditModal] = useState(null)
+
+  const { resetIntervention, deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
   const handleNavigation = (item: InterventionData) => {
     setDeleteData(null)
+    setEditModal(null)
     const navDetails = lastScreenNavigationHelper(item)
     //@ts-expect-error ignore
     navigation.navigate(navDetails.screen, { ...navDetails.params })
@@ -44,11 +47,22 @@ const InterventionList = (props: Props) => {
     dispatch(updateNewIntervention())
   }
 
+  const handleEdit = async (item: InterventionData) => {
+    const d = JSON.parse(JSON.stringify(item))
+    setEditModal(null)
+    await resetIntervention(item.intervention_id)
+    dispatch(updateNewIntervention())
+    navigation.navigate("InterventionPreview", { id: 'preview', intervention: d.intervention_id, interventionId: d.intervention_id })
+  }
+
   const showInfoModal = (item: InterventionData) => {
-    if (!item.is_complete) {
-      setDeleteData(item)
+    const obj = JSON.parse(JSON.stringify(item))
+    if (!obj.is_complete) {
+      setDeleteData(obj)
+    } else if (obj.is_complete && item.status !== 'SYNCED') {
+      setEditModal(obj)
     } else {
-      handleNavigation(item)
+      handleNavigation(obj)
     }
   }
 
@@ -66,7 +80,7 @@ const InterventionList = (props: Props) => {
   return (
     <>
       <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelete} />
-
+      <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleNavigation} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Preview'} secondaryLabel={'Edit'} extra={editModal} secondaryHandler={handleEdit} />
       <FlashList
         data={interventionData}
         renderItem={({ item }) => (

@@ -43,7 +43,7 @@ const InterventionArea = (props: Props) => {
         sampleTrees={data.sample_trees}
         has_sample_trees={data.has_sample_trees}
         openPolygon={openEdit}
-        showEdit={data.status !== 'SYNCED'}
+        showEdit={!data.is_complete}
         isEntireSite={data.entire_site}
         intervention={data}
       />

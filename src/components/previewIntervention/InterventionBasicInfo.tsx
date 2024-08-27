@@ -138,7 +138,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>HID</Text>
           <Text style={styles.cardLabel}>{hid}</Text>
         </View>}
-        {status === 'PENDING_DATA_UPLOAD' || status === 'INITIALIZED' ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={toggleIsEditable}>
+        {status === 'INITIALIZED' ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={toggleIsEditable}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity> : null}
         <View style={styles.cardWrapper}>

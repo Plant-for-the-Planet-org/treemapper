@@ -19,16 +19,18 @@ import i18next from 'src/locales/index'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { nonISUCountries } from 'src/utils/constants/appConstant'
+import { INTERVENTION_STATUS } from 'src/types/type/app.type'
 
 interface Props {
   sampleTress: SampleTree[]
   interventionId: string
   hasSampleTress: boolean
   isSynced: boolean
+  status: INTERVENTION_STATUS
 }
 
 const SampleTreePreviewList = (props: Props) => {
-  const { sampleTress, interventionId, hasSampleTress, isSynced } = props
+  const { sampleTress, interventionId, hasSampleTress, isSynced, status } = props
   const [deleteData, setDeleteData] = useState(null)
   const Country = useSelector((state: RootState) => state.userState.country)
 
@@ -78,7 +80,7 @@ const SampleTreePreviewList = (props: Props) => {
         <View style={styles.wrapper} key={details.tree_id}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
-            {!isSynced && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {status === 'INITIALIZED' && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               editTreeDetails(details.tree_id)
             }}>
               <PenIcon width={30} height={30} />
@@ -93,11 +95,11 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {isSynced && <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {status !== 'INITIALIZED' ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               viewTreeDetails(details.tree_id)
             }}>
               <DetailIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
-            </TouchableOpacity>}
+            </TouchableOpacity> : null}
           </View>
           <View style={styles.metaWrapper}>
             <Text style={styles.title}>{i18next.t("label.intervention_date")}</Text>
