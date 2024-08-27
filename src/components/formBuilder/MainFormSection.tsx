@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import FormTextInputElement from './FormTextInputElement'
@@ -18,6 +18,8 @@ import YeNoFormElement from './YeNoFormElement'
 import DropDownFormElement from './DropDownElement'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
+import { Colors } from 'src/utils/constants'
 
 interface Props {
   formData: MainForm | IAdditionalDetailsForm
@@ -28,6 +30,15 @@ interface Props {
 }
 
 const MainFormSection = (props: Props) => {
+
+  useEffect(() => {
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, [])
+
+
   const { formData, completeLocalForm, page, interventionID, isEditForm } = props
 
   const [showForm, setShowForm] = useState(false)
@@ -206,7 +217,14 @@ const MainFormSection = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      {renderElement(formData.elements)}
+      <ScrollView>
+        <AvoidSoftInputView
+          avoidOffset={20}
+          showAnimationDuration={200}
+          style={styles.mainContainer}>
+          {renderElement(formData.elements)}
+        </AvoidSoftInputView>
+      </ScrollView>
       <CustomButton
         label="Continue"
         containerStyle={styles.btnContainer}
@@ -227,5 +245,11 @@ const styles = StyleSheet.create({
     height: scaleSize(70),
     position: 'absolute',
     bottom: 10,
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+    height: '100%',
+    width: '100%'
   },
 })
