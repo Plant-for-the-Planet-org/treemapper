@@ -119,7 +119,6 @@ const SampleTreePreviewList = (props: Props) => {
               <View style={styles.iconMetaWrapper}>
                 <HeightIcon width={10} height={20} />
                 <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_height, 'm')}</Text>
-                <Text style={styles.iconLabel}>m</Text>
               </View>
             </View>
             <View style={styles.iconWrapper}>

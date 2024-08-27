@@ -124,7 +124,7 @@ const HomeHeader = (props: Props) => {
   }, [userType, lastServerInterventionpage, expiringAt])
 
   //Remove this Intervention from Staging DB.
-  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN", "loc_fVSURzjYpGU0ozFD60dPrbJF", "loc_8HnYd9gTXBt108EUALRiEhnp"]
+  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
 
   const addServerIntervention = async () => {
     try {
