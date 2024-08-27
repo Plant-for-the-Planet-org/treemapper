@@ -142,7 +142,7 @@ const TreeRemeasurementView = () => {
     };
 
     const takePicture = () => {
-        const newID = String(new Date().getTime())
+        const newID = uuid()
         setImageId(newID)
         navigation.navigate('TakePicture', {
             id: newID,
@@ -241,7 +241,7 @@ const TreeRemeasurementView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView contentContainerStyle={styles.container}>
-            <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
+                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
                 <AvoidSoftInputView
                     avoidOffset={20}
                     showAnimationDuration={200}

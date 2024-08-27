@@ -40,7 +40,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateFixRequireIntervention, updateTreeStatusFixRequire } = useInterventionManagement()
+    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
@@ -145,8 +145,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const handleIntervention = async (el) => {
         try {
             const { pData, fixRequired, error, message } = await getPostBody(el, uType);
-            if (fixRequired !== 'NO') {
-                await updateFixRequireIntervention(el.p1Id, fixRequired)
+            if (fixRequired === 'PROJECT_ID_MISSING') {
+                await updateProjectIdMissing(el.p1Id)
                 addNewLog({
                     logType: 'DATA_SYNC',
                     message: 'Intervention fix require ' + message,
@@ -225,17 +225,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleRemeasurement = async (el) => {
         try {
-            const { pData, fixRequired, error, message } = await getRemeasurementBody(el);
-            if (fixRequired === 'PROJECT_ID_MISSING') {
-                await updateProjectIdMissing(el.p1Id)
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                })
-            }
+            const { pData } = await getRemeasurementBody(el);
             console.log("This is remeasurement tree Body", JSON.stringify(pData, null, 2))
             if (!pData) {
                 throw new Error("Not able to convert body");

@@ -30,8 +30,18 @@ const ImagePreview = (props: Props) => {
   const dispatch = useDispatch()
 
   const navigateToNext = async () => {
-    const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE'
-    const finalURL = await copyImageAndGetData(imageData.uri, interventionID, hasSpecies)
+    const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE' ||  screen === 'REMEASUREMENT_IMAGE' 
+    const getBasics = () => {
+      if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE' || screen === 'PLOT_IMAGE' || screen === 'REMEASUREMENT_IMAGE') {
+        return { uid: id, hasSpecies: hasSpecies }
+      }
+      return {
+        uid: interventionID || id,
+        hasSpecies: hasSpecies || false
+      }
+    }
+    const d = getBasics()
+    const finalURL = await copyImageAndGetData(imageData.uri, d.uid, d.hasSpecies)
     dispatch(
       updateImageDetails({
         id: id,

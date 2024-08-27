@@ -36,7 +36,7 @@ const CarouselItem = (props: Props) => {
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
-      {data.remeasurement_requires && <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {!data.remeasurement_requires && <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
