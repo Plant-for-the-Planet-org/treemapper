@@ -54,7 +54,7 @@ const ImportFormView = () => {
       })),
       message: "Exporting Additional/MetaData",
       title: "Export",
-      filename: `TreeMapper_FormData_v2.json`,
+      filename: `TreeMapper_FormData_v2`,
       saveToFiles: true,
     };
     Share.open(options)
