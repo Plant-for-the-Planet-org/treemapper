@@ -16,28 +16,28 @@ const CustomDropdownComponent = (props: Props) => {
 
   const data: DropdownData[] = [
     {
-      label: 'Show intervention within 30 days',
+      label: 'Show interventions within 30 days',
       index: 0,
       value: 'days'
     },
     {
-      label: 'Show intervention within 6 months',
+      label: 'Show interventions within 6 months',
       index: 1,
       value: 'months'
     },
     {
-      label: 'Show intervention within 1 year',
+      label: 'Show interventions within 1 year',
       index: 2,
       value: 'year'
 
     },
     {
-      label: 'Show all intervention',
+      label: 'Show all interventions',
       index: 3,
       value: 'always'
     },
     {
-      label: `Don't show intervention`,
+      label: `Don't show interventions`,
       index: 4,
       value: 'none'
     },

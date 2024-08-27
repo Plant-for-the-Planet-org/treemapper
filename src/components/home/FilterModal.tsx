@@ -87,12 +87,11 @@ const FilterModal = (props: Props) => {
       style={{ paddingTop: 20 }}
       backgroundStyle={{ backgroundColor: 'transparent' }}
     >
-      {/* <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} /> */}
       <BottomSheetView style={styles.container}>
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
-              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
+              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} height={18} width={18}/>
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
@@ -172,10 +171,9 @@ const styles = StyleSheet.create({
     tintColor: Colors.TEXT_COLOR
   },
   headerLabel: {
-    fontSize: 20,
+    fontSize: 21,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
-    paddingLeft: 10
   },
   cardLabel: {
     fontSize: 15,
