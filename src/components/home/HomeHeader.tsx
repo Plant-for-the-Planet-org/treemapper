@@ -40,7 +40,9 @@ const HomeHeader = (props: Props) => {
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
-
+  const {  isSyncing } = useSelector(
+    (state: RootState) => state.syncState,
+)
   const dispatch = useDispatch()
 
   const openHomeDrawer = () => {
@@ -118,7 +120,7 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType && !serverInterventionAdded) {
+    if (userType && !serverInterventionAdded && !isSyncing) {
       addServerIntervention()
     }
   }, [userType, lastServerInterventionpage, expiringAt])
