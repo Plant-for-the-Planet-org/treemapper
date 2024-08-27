@@ -79,9 +79,10 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: false,
+      coming_soon: true,
       onPress: () => {
-        navigation.navigate('CreatePlot')
+        toast.hideAll()
+        toast.show(i18next.t('label.coming_soon'))
         props.setVisible(false)
       },
       disabled: false,
@@ -91,6 +92,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.project_sites'),
       coming_soon: true,
       onPress: () => {
+        toast.hideAll()
         toast.show(i18next.t('label.coming_soon'))
         props.setVisible(false)
       },
