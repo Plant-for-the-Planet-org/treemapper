@@ -160,7 +160,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
     const sample_trees: SampleTree[] = []
     const rData = remeasurementCalculator(data.nextMeasurementDate)
     if (extraData.key !== 'single-tree-registration') {
-        data.samplePlantLocations.forEach(element => {
+        data.sampleInterventions.forEach(element => {
             sample_trees.push(singleTreeDetails(element))
         });
     } else {

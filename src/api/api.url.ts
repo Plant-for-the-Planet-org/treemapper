@@ -1,5 +1,4 @@
 const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
-const testURL = process.env.EXPO_PUBLIC_TESTING_URL
 
 const https = 'https://'
 
@@ -16,9 +15,9 @@ export const postUrlApi = {
 
 export const getUrlApi = {
   getBaseUrl: `${https}${baseUrl}`,
-  getBaseTestUrl: `${https}${testURL}`,
+  getBaseTestUrl: `${https}${baseUrl}`,
   getUserDetails: `${https}${baseUrl}/app/profile`,
-  getAllPlantLocations: `${https}${testURL}/treemapper/plantLocations?limit=10&_scope=extended`,
+  getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=10&_scope=extended`,
   getAllProjects: `${https}${baseUrl}/app/profile/projects?_scope=extended`,
   userSpecies: `${https}${baseUrl}/treemapper/species`,
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
