@@ -108,6 +108,10 @@ const InterventionPreviewView = () => {
 
 
   const navigateToNext = async () => {
+    if (UserType === 'tpo' && !InterventionData.project_id) {
+      toast.show("Please assign project")
+      return
+    }
     await saveIntervention(InterventionData.intervention_id)
     addNewLog({
       logType: 'INTERVENTION',
