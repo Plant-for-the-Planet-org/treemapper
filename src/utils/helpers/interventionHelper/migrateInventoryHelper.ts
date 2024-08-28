@@ -29,16 +29,28 @@ const interventionTittleSwitch = (t: string): {
             }
     }
 }
-const getCoordinatesAndType = (inventory: any) => {
-    const coords = inventory.polygons[0].coordinates;
-
-    // stores the coordinates of the registered tree(s)
-    let coordinates = coords.map(x => [x.longitude, x.latitude]);
-    const coordinatesType = coordinates.length > 1 ? 'Polygon' : 'Point';
-    coordinates = coordinates.length > 1 ? [coordinates] : coordinates[0];
+const getCoordinatesAndType = (inventory: Inventory) => {
+    if (inventory?.polygons[0]) {
+        const coords = inventory.polygons[0].coordinates;
+        // stores the coordinates of the registered tree(s)
+        const coordinates = coords.map(x => [x.longitude, x.latitude]);
+        const coordinatesType = coordinates.length > 1 ? 'Polygon' : 'Point';
+        return {
+            poly: coordinatesType === 'Polygon' ? [coordinates] : [],
+            point: coordinatesType === 'Point' ? coordinates[0] : [],
+            coordinatesType,
+            complete: true,
+            imageUrl: coordinatesType === 'Point' ? inventory.polygons[0].coordinates[0].imageUrl : '',
+            cdnURL: coordinatesType === 'Point' ? inventory.polygons[0].coordinates[0].cdnImageUrl : '',
+        };
+    }
     return {
-        coordinates,
-        coordinatesType,
+        poly: [],
+        point: [],
+        coordinatesType: 'Point',
+        complete: false,
+        imageUrl: "",
+        cdnURL: '',
     };
 };
 
@@ -63,112 +75,232 @@ const setPlantedSpecies = (s: any) => {
     return finalData
 }
 
-const singleTreeDetails = (d: any): SampleTree => {
-    const details: SampleTree = {
-        tree_id: d.locationId || generateUniquePlotId(),
-        species_guid: d.specieId,
-        intervention_id: d.hid || '',
-        count: 1,
-        latitude: d.latitude,
-        longitude: d.longitude,
-        device_longitude: d.longitude,
-        location_accuracy: String(d.locationAccuracy),
-        image_url: d.imageUrl,
-        cdn_image_url: d.cdnImageUrl,
-        specie_name: d.specieName,
-        local_name: d.specieName,
-        specie_diameter: d.specieDiameter,
-        specie_height: d.specieHeight,
-        tag_id: d.tagId,
-        plantation_date: dateStringToTimestamp(d.plantationDate),
-        status_complete: d.status === 'PENDING_DATA_UPLOAD',
-        location_id: d.locationId,
-        tree_type: d.treeType === 'sample' ? 'sample' : 'single',
-        additional_details: JSON.stringify(d.additionalDetails),
-        app_meta_data: JSON.stringify(d.appMetadata),
-        hid: d.hid,
-        device_latitude: d.deviceLatitude,
-        sloc_id: "",
-        parent_id: "",
-        history: [],
-        status: "PENDING_DATA_UPLOAD",
-        remeasurement_dates: undefined,
-        is_alive: true,
-        remeasurement_requires: false,
-        image_data: {
-            latitude: 0,
-            longitude: 0,
-            imageUrl: "",
-            cdnImageUrl: "",
-            currentloclat: 0,
-            currentloclong: 0,
-            isImageUploaded: false,
-            coordinateID: ""
+const getSpeciesData = (s: any) => {
+    if (!s && s.length === 0) {
+        return {
+            complete: false,
+            "aliases": "",
+            "treeCount": 1,
+            "id": ""
         }
     }
-    return details
+    if (!s[0].aliases || !s[0].id) {
+        return {
+            complete: false,
+            "aliases": "",
+            "treeCount": 1,
+            "id": ""
+        }
+    }
+    return {
+        complete: false,
+        "aliases": s[0].aliases,
+        "treeCount": 1,
+        "id": s[0].id
+    }
+}
+
+const getDeviceLocation = (appMetadata: string) => {
+    try {
+        if (typeof appMetadata === 'string') {
+            const parsedData = JSON.parse(appMetadata);
+            if (parsedData?.deviceLocation?.coordinates) {
+                return {
+                    lat: parsedData?.deviceLocation.coordinates[1],
+                    long: parsedData?.deviceLocation.coordinates[0]
+                }
+            }
+        }
+        throw new Error("");
+    } catch (error) {
+        return {
+            lat: 0,
+            long: 0,
+        }
+    }
+}
+
+const singleTreeDetails = (d: any): SampleTree => {
+    try {
+        const speciesData = getSpeciesData(d.species)
+        const tid = generateUniquePlotId()
+        const locDetails = getCoordinatesAndType(d)
+        const dlocation = getDeviceLocation(d.appMetadata)
+        const details: SampleTree = {
+            tree_id: tid,
+            species_guid: speciesData.id,
+            intervention_id: tid,
+            count: 1,
+            latitude: locDetails.point[1],
+            longitude: locDetails.point[0],
+            device_longitude: dlocation.long,
+            location_accuracy: '',
+            image_url: locDetails.imageUrl,
+            cdn_image_url: locDetails.cdnURL,
+            specie_name: speciesData.aliases,
+            local_name: speciesData.aliases,
+            specie_diameter: d.specieDiameter,
+            specie_height: d.specieHeight,
+            tag_id: d.tagId,
+            plantation_date: dateStringToTimestamp(d.plantation_date),
+            status_complete: true,
+            location_id: d.locationId,
+            tree_type: d.treeType === 'sample' ? 'sample' : 'single',
+            additional_details: '', //todo
+            app_meta_data: JSON.stringify(d.appMetadata),
+            hid: d.hid,
+            device_latitude: dlocation.lat,
+            sloc_id: '',
+            parent_id: d.parent || '',
+            history: [],
+            status: "INITIALIZED",
+            remeasurement_dates: {
+                sampleTreeId: tid,
+                created: dateStringToTimestamp(d.plantation_date),
+                lastMeasurement: 0,
+                remeasureBy: 0,
+                nextMeasurement: 0
+            },
+            is_alive: true,
+            remeasurement_requires: false,
+            image_data: {
+                latitude: locDetails.point[1],
+                longitude: locDetails.point[0],
+                imageUrl: locDetails.imageUrl,
+                cdnImageUrl: locDetails.cdnURL,
+                currentloclat: 0,
+                currentloclong: 0,
+                isImageUploaded: false,
+                coordinateID: ""
+            },
+            fix_required: "NO"
+        }
+        return details
+
+    } catch (error) {
+        return null
+    }
+
 }
 
 
-export const convertInventoryToIntervention = (data: Inventory[]): InterventionData[] => {
-    const finalData: InterventionData[] = [];
-  
-    for (const inventory of data) {
-      const extraData = interventionTittleSwitch(inventory.treeType);
-      const locDetails = getCoordinatesAndType(inventory);
-      const sample_trees: SampleTree[] = [];
-  
-      if (extraData.key !== 'single-tree-registration') {
-        inventory.sampleTrees.forEach(element => {
-          sample_trees.push(singleTreeDetails(element));
-        });
-      } else {
-        sample_trees.push(singleTreeDetails(inventory));
-      }
-  
-      const interventionData: InterventionData = {
-        intervention_id: inventory.inventory_id,
-        intervention_key: extraData.key,
-        intervention_title: extraData.title,
-        intervention_date: dateStringToTimestamp(inventory.plantation_date),
-        project_id: inventory.projectId,
-        project_name: "",
-        site_name: "",
-        location_type: locDetails.coordinatesType,
-        location: {
-          type: locDetails.coordinatesType,
-          coordinates: JSON.stringify(locDetails.coordinates),
-        },
-        has_species: true,
-        has_sample_trees: extraData.hasSampleTrees,
-        sample_trees: sample_trees,
-        is_complete: false,
-        site_id: "",
-        intervention_type: extraData.key,
-        form_data: [],
-        additional_data: [],
-        meta_data: "",
-        status: "SYNCED",
-        hid: "",
-        coords: {
-          type: "Point",
-          coordinates: locDetails.coordinatesType === 'Point' ? [locDetails.coordinates][0] : locDetails.coordinates[0][0],
-        },
-        entire_site: false,
-        last_screen: 'FORM',
-        planted_species: setPlantedSpecies(inventory.species || []),
-        form_id: "",
-        image: "",
-        image_data: [],
-        location_id: "",
-        locate_tree: "",
-        remeasurement_required: false,
-        next_measurement_date: 0,
-      };
-  
-      finalData.push(interventionData);
+const migrateSampleTree = (d: any): SampleTree => {
+    try {
+        const tid = generateUniquePlotId()
+        const details: SampleTree = {
+            tree_id: tid,
+            species_guid: d.specieId,
+            intervention_id: tid,
+            count: 1,
+            latitude: d.latitude,
+            longitude: d.longitude,
+            device_longitude: d.deviceLongitude,
+            location_accuracy: '',
+            image_url: d.imageUrl,//todo
+            cdn_image_url: d.cdnImageUrl,
+            specie_name: d.specieName,
+            local_name: d.specieName,
+            specie_diameter: d.specieDiameter,
+            specie_height: d.specieHeight,
+            tag_id: d.tagId,
+            plantation_date: dateStringToTimestamp(d.plantationDate),
+            status_complete: true,
+            location_id: d.locationId,
+            tree_type: 'sample',
+            additional_details: '', //todo
+            app_meta_data: JSON.stringify(d.appMetadata),
+            hid: d.hid,
+            device_latitude: d.deviceLatitude,
+            sloc_id: '',
+            parent_id: d.parent || '',
+            history: [],
+            status: "INITIALIZED",
+            remeasurement_dates: {
+                sampleTreeId: tid,
+                created: dateStringToTimestamp(d.plantationDate),
+                lastMeasurement: 0,
+                remeasureBy: 0,
+                nextMeasurement: 0
+            },
+            is_alive: true,
+            remeasurement_requires: false,
+            image_data: {
+                latitude: d.latitude,
+                longitude: d.longitude,
+                imageUrl: d.imageUrl,
+                cdnImageUrl: d.cdnURL,
+                currentloclat: 0,
+                currentloclong: 0,
+                isImageUploaded: false,
+                coordinateID: ""
+            },
+            fix_required: "NO"
+        }
+        return details
+
+    } catch (error) {
+        return null
     }
-  
-    return finalData;
-  };
-  
+
+}
+
+
+export const migrateInventoryToIntervention = async (inventory: Inventory): Promise<InterventionData | null> => {
+    try {
+        const extraData = interventionTittleSwitch(inventory.treeType);
+        const locDetails = getCoordinatesAndType(inventory);
+        const sample_trees: SampleTree[] = [];
+        if (extraData.key !== 'single-tree-registration') {
+            inventory.sampleTrees.forEach(element => {
+                sample_trees.push(migrateSampleTree(element));
+            });
+        } else {
+            sample_trees.push(singleTreeDetails(inventory));
+        }
+
+        const interventionData: InterventionData = {
+            intervention_id: inventory.inventory_id,
+            intervention_key: extraData.key,
+            intervention_title: extraData.title,
+            intervention_date: dateStringToTimestamp(inventory.plantation_date),
+            project_id: inventory.projectId || '',
+            project_name: "",
+            site_name: "",
+            location_type: locDetails.coordinatesType,
+            location: {
+                type: locDetails.coordinatesType,
+                coordinates: locDetails.coordinatesType === 'Polygon' ? JSON.stringify(locDetails.poly) : JSON.stringify(locDetails.point),
+            },
+            has_species: true,
+            has_sample_trees: extraData.hasSampleTrees,
+            sample_trees: sample_trees,
+            is_complete: false,
+            site_id: "",
+            intervention_type: extraData.key,
+            form_data: [],
+            additional_data: [],
+            meta_data: "",
+            status: "INITIALIZED",
+            hid: "",
+            coords: {
+                type: "Point",
+                coordinates: locDetails.coordinatesType==='Point'?locDetails.point:locDetails.poly[0][0],
+            },
+            entire_site: false,
+            last_screen: 'DYNAMIC_FORM',
+            planted_species: setPlantedSpecies(inventory.species || []),
+            form_id: inventory.inventory_id,
+            image: "",
+            image_data: [],
+            location_id: inventory.locationId,
+            locate_tree: "",
+            remeasurement_required: false,
+            next_measurement_date: 0,
+            intervention_end_date: 0,
+            fix_required: "NO"
+        };
+        return interventionData;
+    } catch (error) {
+        return null
+    }
+};
