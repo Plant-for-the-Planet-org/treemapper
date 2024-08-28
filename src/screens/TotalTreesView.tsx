@@ -159,7 +159,7 @@ const TotalTreesView = () => {
   const secondaryBtnHandler = () => {
     setShowSampleTreeModal(false)
     setTimeout(() => {
-      navigation.replace('LocalForm', { id: interventionId })
+      navigation.navigate('LocalForm', { id: interventionId })
     }, 200);
   }
 
