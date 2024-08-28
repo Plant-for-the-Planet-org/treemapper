@@ -10,9 +10,7 @@ interface Props {
 }
 
 const InterventionMetaData = (props: Props) => {
-
   const [additionalData, setAdditionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
-
   const { data } = props
   useEffect(() => {
     if (data.length) {
@@ -66,6 +64,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop:20
   },
   wrapper: {
     width: '90%',
@@ -107,6 +106,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
+    marginLeft: 5,
     color: Colors.TEXT_COLOR,
   },
   headerLabel: {

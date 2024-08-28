@@ -6,20 +6,19 @@ import SidebarHeader from 'src/components/sidebar/SidebarHeader'
 import SideBarFooter from 'src/components/sidebar/SideBarFooter'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 
 const HomeSideDrawer = () => {
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header label={''} />
       <SidebarHeader />
       <View style={styles.wrapper}>
         <SideBarList isLoggedIn={isLoggedIn} />
       </View>
       <SideBarFooter isLoggedIn={isLoggedIn} />
-    </SafeAreaView>
+    </View>
   )
 }
 
@@ -29,9 +28,11 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.WHITE,
+    paddingTop:25
   },
   wrapper: {
     flex: 1,
     backgroundColor: Colors.BACKDROP_COLOR,
+    paddingBottom:30
   }
 })

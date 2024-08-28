@@ -28,8 +28,8 @@ import { AllIntervention } from 'src/utils/constants/knownIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { makeInterventionGeoJson, metaDataTransformer } from 'src/utils/helpers/interventionFormHelper'
-import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import * as Application from 'expo-application'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 import SelectionLocationType from 'src/components/intervention/SelectLocationType'
 import { useToast } from 'react-native-toast-notifications'
@@ -111,14 +111,7 @@ const InterventionFormView = () => {
     InterventionJSON.form_id = uuid()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
-    const existingMetaData = JSON.parse(InterventionJSON.meta_data);
-    const appMeta = getDeviceDetails()
-    const finalMetaData = metaDataTransformer(existingMetaData, {
-      public: {},
-      private: {},
-      app: appMeta
-    })
-    InterventionJSON.meta_data = finalMetaData
+    InterventionJSON.meta_data = '{}'
     InterventionJSON.project_name = currentProject.projectName
     InterventionJSON.project_id = currentProject.projectId
     InterventionJSON.site_name = projectSite.siteName
@@ -243,8 +236,12 @@ const InterventionFormView = () => {
       prepareFormForSubmission();
 
       const metaData = constructMetaData(locationName, furtherInfo);
-      registerForm.meta_data = transformMetaData(metaData);
-
+      registerForm.meta_data = JSON.stringify({
+        app: {},
+        public: { ...metaData },
+        private: {}
+      }
+      )
       const result = await initializeIntervention(registerForm);
 
       if (result) {
@@ -273,23 +270,25 @@ const InterventionFormView = () => {
   const constructMetaData = (locationName: string, furtherInfo: string) => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
-      metaData["Location Name"] = locationName;
+      metaData["Location Name"] = {
+        "key": "Location Name",
+        "value": locationName,
+        v: Application.nativeApplicationVersion,
+        t: 'meta'
+      };
     }
     if (furtherInfo && furtherInfo.length > 0) {
-      metaData["Info"] = furtherInfo;
+      metaData["Info"] = {
+        "key": "Info",
+        "value": furtherInfo,
+        v: Application.nativeApplicationVersion,
+        t: 'meta'
+      };
     }
     return metaData;
   };
 
-  const transformMetaData = (metaData: any) => {
-    const existingMetaData = JSON.parse(registerForm.meta_data);
-    const appMeta = getDeviceDetails();
-    return metaDataTransformer(existingMetaData, {
-      public: metaData,
-      private: {},
-      app: appMeta
-    });
-  };
+
 
   const handleSuccessfulInterventionInitialization = async () => {
     if (registerForm.entire_site_selected) {

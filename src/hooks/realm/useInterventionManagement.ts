@@ -53,7 +53,7 @@ const useInterventionManagement = () => {
       intervention_type: intervention.key,
       form_data: [],
       additional_data: [],
-      meta_data: '{}',
+      meta_data: intervention.meta_data,
       status: 'INITIALIZED',
       hid: '',
       coords: {

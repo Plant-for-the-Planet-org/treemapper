@@ -52,7 +52,7 @@ const InterventionList = (props: Props) => {
     setEditModal(null)
     await resetIntervention(item.intervention_id)
     dispatch(updateNewIntervention())
-    navigation.navigate("InterventionPreview", { id: 'preview', intervention: d.intervention_id, interventionId: d.intervention_id })
+    navigation.navigate("InterventionPreview", { id: 'review', intervention: d.intervention_id, interventionId: d.intervention_id })
   }
 
   const showInfoModal = (item: InterventionData) => {

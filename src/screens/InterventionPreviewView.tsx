@@ -13,7 +13,6 @@ import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { RootState } from 'src/store'
 import {
   makeInterventionGeoJson,
-  metaDataTransformer,
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { Colors, Typography } from 'src/utils/constants'
@@ -28,12 +27,12 @@ import InterventionDeleteContainer from 'src/components/previewIntervention/Inte
 import ExportGeoJSONButton from 'src/components/intervention/ExportGeoJSON'
 import InterventionAdditionalData from 'src/components/previewIntervention/InterventionAdditionalData'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
-import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { Metadata } from 'src/types/interface/app.interface'
 import * as Application from 'expo-application'
 import i18next from 'i18next'
 import { useToast } from 'react-native-toast-notifications'
+import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -52,12 +51,12 @@ const InterventionPreviewView = () => {
   const dispatch = useDispatch()
 
   useEffect(() => {
-    if (route.params.id === 'review') {
-      setupMetaData()
-    }
     setLoading(false)
     checkIsTree()
     showInitialToast()
+    if (route.params.id === 'review') {
+      setupMetaData()
+    }
   }, [])
 
 
@@ -69,33 +68,27 @@ const InterventionPreviewView = () => {
 
   const setupMetaData = async () => {
     const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
-    const updatedMetadata = {
-      private: {},
-      public: {},
-      app: {}
-    };
+    const parsedMeta = JSON.parse(InterventionData.meta_data)
+    const updatedMetadata = { ...parsedMeta };
     if (localMeta?.length) {
       localMeta.forEach(el => {
         if (el.accessType === 'private') {
-          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
+          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: { value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: 'meta' } }
         }
         if (el.accessType === 'public') {
-          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: el.value }
+          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: { value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: 'meta' } }
         }
       })
     }
+    const appMeta = getDeviceDetails()
     updatedMetadata.app = {
       deviceLocation: {
         "coordinates": DeviceLocation,
         "type": "Point"
       },
+      ...appMeta
     }
-    const parsedMeta = JSON.parse(InterventionData.meta_data)
-    if (Object.keys(parsedMeta).length === 0) {
-      const finalMeta = metaDataTransformer(parsedMeta, updatedMetadata)
-      await updateInterventionMetaData(InterventionData.form_id, finalMeta)
-    }
-
+    await updateInterventionMetaData(InterventionData.intervention_id, JSON.stringify(updatedMetadata))
   }
 
 
@@ -183,7 +176,7 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
-        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
+        {/* {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />} */}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{Application.nativeApplicationVersion}</Text>}

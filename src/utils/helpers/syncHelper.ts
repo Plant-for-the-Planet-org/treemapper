@@ -4,6 +4,8 @@ import { setUpIntervention } from "./formHelper/selectIntervention";
 import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
 import * as FileSystem from 'expo-file-system';
+import { FormElement } from "src/types/interface/form.interface";
+import * as Application from 'expo-application'
 
 const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
@@ -155,6 +157,20 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
 export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
     try {
         const metaData = JSON.parse(d.meta_data);
+        const additionalDataConvert = handleAdditionalData([...d.additional_data, ...d.form_data])
+        const finalMeta = {
+            app: {
+                ...metaData.app
+            },
+            public: {
+                ...additionalDataConvert.publicAdd,
+                ...metaData.public
+            },
+            private: {
+                ...additionalDataConvert.privateAdd,
+                ...metaData.privateAdd
+            }
+        }
         const interventionForm = setUpIntervention(d.intervention_key)
         const handlePointLocation = d.location_type === 'Polygon' ? JSON.parse(d.location.coordinates)[0] : JSON.parse(d.location.coordinates)
         const postData: any = {
@@ -166,11 +182,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
                 coordinates: d.location.type === 'Point' ? handlePointLocation : [JSON.parse(d.location.coordinates)]
             },
             registrationDate: postTimeConvertor(d.intervention_date),
-            metadata: {
-                public: [metaData.public],
-                private: [metaData.private],
-                app: metaData.app
-            },
+            metadata: finalMeta,
         }
         if (uType === 'tpo' && !d.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
@@ -211,6 +223,20 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
 export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: string): BodyPayload => {
     try {
         const metaData = JSON.parse(i.meta_data);
+        const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
+        const finalMeta = {
+            app: {
+                ...metaData.app
+            },
+            public: {
+                ...additionalDataConvert.publicAdd,
+                ...metaData.public
+            },
+            private: {
+                ...additionalDataConvert.privateAdd,
+                ...metaData.privateAdd
+            }
+        }
         const postData: any = {
             type: i.intervention_type === 'single-tree-registration' ? 'single-tree-registration' : 'sample-tree-registration',
             captureMode: "on-site",
@@ -220,11 +246,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
                 coordinates: [d.longitude, d.latitude]
             },
             registrationDate: postTimeConvertor(d.plantation_date),
-            metadata: {
-                public: [metaData.public],
-                private: [metaData.private],
-                app: metaData.app
-            },
+            metadata: finalMeta,
             measurements: {
                 height: d.specie_height,
                 width: d.specie_diameter
@@ -254,6 +276,25 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
+}
+
+
+const handleAdditionalData = (aData: FormElement[]) => {
+    const privateAdd = {}
+    const publicAdd = {}
+    aData.forEach(el => {
+        if (el.visibility === 'private') {
+            privateAdd[el.key] = {
+                value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: el.type, label: el.label
+            }
+        }
+        if (el.visibility === 'public') {
+            publicAdd[el.key] = {
+                value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: el.type, label: el.label
+            }
+        }
+    })
+    return { privateAdd, publicAdd }
 }
 
 export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
