@@ -37,7 +37,7 @@ const InterventionCard = (props: Props) => {
     <TouchableOpacity style={styles.container} onPress={handleIntervention}>
       <View style={styles.wrapper}>
         <InterventionIconSwitch icon={item.intervention_type} />
-        {!item.is_complete ? (
+        {!item.is_complete && item.fix_required === "NO"? (
           <View style={styles.incompleteTagWrapper}>
             <Text style={styles.incompleteTagLabel}>{i18next.t("label.incomplete")}</Text>
           </View>
