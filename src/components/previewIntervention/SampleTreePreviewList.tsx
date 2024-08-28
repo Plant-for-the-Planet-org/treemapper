@@ -85,7 +85,7 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <PenIcon width={30} height={30} />
             </TouchableOpacity>}
-            {hasSampleTress && !isSynced ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {hasSampleTress && !isSynced && status === 'INITIALIZED'? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               setDeleteData(details.tree_id)
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />

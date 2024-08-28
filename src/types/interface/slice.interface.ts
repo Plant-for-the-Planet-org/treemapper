@@ -16,6 +16,7 @@ export interface AppInitialState {
   refreshToken: string,
   lastSyncDate: number,
   speciesLocalURL: string
+  dataMigrated: boolean
 }
 
 export interface SyncSlice {

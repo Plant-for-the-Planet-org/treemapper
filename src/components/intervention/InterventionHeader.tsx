@@ -10,6 +10,9 @@ import { deleteImageFile, exportAllInterventionData } from 'src/utils/helpers/fi
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface';
 import { useToast } from 'react-native-toast-notifications';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
+import InventoryMigration from '../common/InventoryMigration';
+import { RootState } from 'src/store';
+import { useSelector } from 'react-redux';
 
 
 const InterventionHeader = () => {
@@ -21,6 +24,8 @@ const InterventionHeader = () => {
         exportAllInterventionData([...data])
     }
     const { addNewLog } = useLogManagement()
+    const dataMigrated = useSelector((state: RootState) => state.appState.dataMigrated)
+
 
     const handleCleanup = async () => {
         const syncedImagesData: SampleTree[] = []
@@ -55,10 +60,11 @@ const InterventionHeader = () => {
 
     return (
         <View style={styles.container}>
-            <FreeUpSpaceButton handleCleanup={handleCleanup}/>
-            {data.length > 0 && <TouchableOpacity
+            <FreeUpSpaceButton handleCleanup={handleCleanup} />
+            {data.length > 0 && dataMigrated ? <TouchableOpacity
                 onPress={handleNav}
-                style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity>}
+                style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity> : null}
+            {!dataMigrated && <InventoryMigration />}
         </View>
     )
 }
@@ -72,13 +78,13 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingHorizontal: 20
     },
     wrapper: {
         width: 50,
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
+        marginRight: 20
     }
 
 })

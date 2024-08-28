@@ -13,7 +13,8 @@ const initialState: AppInitialState = {
   lastServerInterventionpage: '',
   intervention_updated: 0,
   userSpecies: false,
-  lastSyncDate: 0
+  lastSyncDate: 0,
+  dataMigrated: false
 }
 
 const appStateSlice = createSlice({
@@ -58,12 +59,15 @@ const appStateSlice = createSlice({
     updateSpeciesDownloaded(state, action: PayloadAction<string>) {
       state.speciesLocalURL = action.payload
     },
+    updateDataMigrated(state, action: PayloadAction<boolean>) {
+      state.dataMigrated = action.payload
+    },
     logoutAppUser() {
       return { ...initialState, speciesSync: true }
     },
   },
 })
 
-export const { updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
+export const { updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
 
 export default appStateSlice.reducer

@@ -2,6 +2,8 @@ import moment from "moment";
 import { InterventionData, Inventory, PlantedSpecies, SampleTree } from "src/types/interface/slice.interface";
 import { INTERVENTION_TYPE } from "src/types/type/app.type";
 import { generateUniquePlotId } from "../monitoringPlotHelper/monitoringRealmHelper";
+import { createNewInterventionFolder } from "../fileManagementHelper";
+import * as FileSystem from 'expo-file-system';
 
 function dateStringToTimestamp(dateString) {
     return moment(dateString).valueOf();
@@ -40,7 +42,7 @@ const getCoordinatesAndType = (inventory: Inventory) => {
             point: coordinatesType === 'Point' ? coordinates[0] : [],
             coordinatesType,
             complete: true,
-            imageUrl: coordinatesType === 'Point' ? inventory.polygons[0].coordinates[0].imageUrl : '',
+            imageUrl: coordinatesType === 'Point' ? `${FileSystem.documentDirectory}${inventory.polygons[0].coordinates[0].imageUrl}` : '',
             cdnURL: coordinatesType === 'Point' ? inventory.polygons[0].coordinates[0].cdnImageUrl : '',
         };
     }
@@ -136,19 +138,19 @@ const singleTreeDetails = (d: any): SampleTree => {
             device_longitude: dlocation.long,
             location_accuracy: '',
             image_url: locDetails.imageUrl,
-            cdn_image_url: locDetails.cdnURL,
+            cdn_image_url: locDetails.cdnURL || '',
             specie_name: speciesData.aliases,
             local_name: speciesData.aliases,
             specie_diameter: d.specieDiameter,
             specie_height: d.specieHeight,
-            tag_id: d.tagId,
+            tag_id: d.tagId || '',
             plantation_date: dateStringToTimestamp(d.plantation_date),
             status_complete: true,
-            location_id: d.locationId,
+            location_id: d.locationId || '',
             tree_type: d.treeType === 'sample' ? 'sample' : 'single',
             additional_details: '', //todo
             app_meta_data: JSON.stringify(d.appMetadata),
-            hid: d.hid,
+            hid: d.hid || '',
             device_latitude: dlocation.lat,
             sloc_id: '',
             parent_id: d.parent || '',
@@ -196,20 +198,20 @@ const migrateSampleTree = (d: any): SampleTree => {
             longitude: d.longitude,
             device_longitude: d.deviceLongitude,
             location_accuracy: '',
-            image_url: d.imageUrl,//todo
-            cdn_image_url: d.cdnImageUrl,
+            image_url: `${FileSystem.documentDirectory}${d.imageUrl}`,
+            cdn_image_url: d.cdnImageUrl || '',
             specie_name: d.specieName,
             local_name: d.specieName,
             specie_diameter: d.specieDiameter,
             specie_height: d.specieHeight,
-            tag_id: d.tagId,
+            tag_id: d.tagId || '',
             plantation_date: dateStringToTimestamp(d.plantationDate),
             status_complete: true,
-            location_id: d.locationId,
+            location_id: d.locationId || '',
             tree_type: 'sample',
             additional_details: '', //todo
             app_meta_data: JSON.stringify(d.appMetadata),
-            hid: d.hid,
+            hid: d.hid || '',
             device_latitude: d.deviceLatitude,
             sloc_id: '',
             parent_id: d.parent || '',
@@ -227,7 +229,7 @@ const migrateSampleTree = (d: any): SampleTree => {
             image_data: {
                 latitude: d.latitude,
                 longitude: d.longitude,
-                imageUrl: d.imageUrl,
+                imageUrl: `${FileSystem.documentDirectory}${d.imageUrl}`,
                 cdnImageUrl: d.cdnURL,
                 currentloclat: 0,
                 currentloclong: 0,
@@ -247,6 +249,10 @@ const migrateSampleTree = (d: any): SampleTree => {
 
 export const migrateInventoryToIntervention = async (inventory: Inventory): Promise<InterventionData | null> => {
     try {
+        const result = await createNewInterventionFolder(inventory.inventory_id)
+        if (!result) {
+            throw new Error("Error creating folder");
+        }
         const extraData = interventionTittleSwitch(inventory.treeType);
         const locDetails = getCoordinatesAndType(inventory);
         const sample_trees: SampleTree[] = [];
@@ -257,19 +263,18 @@ export const migrateInventoryToIntervention = async (inventory: Inventory): Prom
         } else {
             sample_trees.push(singleTreeDetails(inventory));
         }
-
         const interventionData: InterventionData = {
             intervention_id: inventory.inventory_id,
             intervention_key: extraData.key,
             intervention_title: extraData.title,
             intervention_date: dateStringToTimestamp(inventory.plantation_date),
-            project_id: inventory.projectId || '',
+            project_id: inventory.projectId ? inventory.projectId : '',
             project_name: "",
             site_name: "",
             location_type: locDetails.coordinatesType,
             location: {
                 type: locDetails.coordinatesType,
-                coordinates: locDetails.coordinatesType === 'Polygon' ? JSON.stringify(locDetails.poly) : JSON.stringify(locDetails.point),
+                coordinates: locDetails.coordinatesType === 'Polygon' ? JSON.stringify(locDetails.poly[0]) : JSON.stringify([locDetails.point]),
             },
             has_species: true,
             has_sample_trees: extraData.hasSampleTrees,
@@ -279,12 +284,12 @@ export const migrateInventoryToIntervention = async (inventory: Inventory): Prom
             intervention_type: extraData.key,
             form_data: [],
             additional_data: [],
-            meta_data: "",
+            meta_data: "{}",
             status: "INITIALIZED",
             hid: "",
             coords: {
                 type: "Point",
-                coordinates: locDetails.coordinatesType==='Point'?locDetails.point:locDetails.poly[0][0],
+                coordinates: locDetails.coordinatesType === 'Point' ? locDetails.point : locDetails.poly[0][0],
             },
             entire_site: false,
             last_screen: 'DYNAMIC_FORM',
@@ -292,13 +297,15 @@ export const migrateInventoryToIntervention = async (inventory: Inventory): Prom
             form_id: inventory.inventory_id,
             image: "",
             image_data: [],
-            location_id: inventory.locationId,
+            location_id: inventory.locationId || '',
             locate_tree: "",
             remeasurement_required: false,
             next_measurement_date: 0,
             intervention_end_date: 0,
-            fix_required: "NO"
+            fix_required: "NO",
+            is_legacy: true
         };
+
         return interventionData;
     } catch (error) {
         return null

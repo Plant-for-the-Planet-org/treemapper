@@ -1,7 +1,7 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { DropdownData, IScientificSpecies } from 'src/types/interface/app.interface'
-import { History, InterventionData, PlantedSpecies, RegisterFormSliceInitialState, SampleTree } from 'src/types/interface/slice.interface'
+import { History, InterventionData, Inventory, PlantedSpecies, RegisterFormSliceInitialState, SampleTree } from 'src/types/interface/slice.interface'
 import { createNewInterventionFolder } from 'src/utils/helpers/fileManagementHelper'
 import useLogManagement from './useLogManagement'
 import { FormElement } from 'src/types/interface/form.interface'
@@ -119,6 +119,35 @@ const useInterventionManagement = () => {
       return false
     }
   }
+
+  const addMigrationInventory = async (
+    intervention: InterventionData,
+    inventory_id: string
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        realm.create(
+          RealmSchema.Intervention,
+          intervention,
+          Realm.UpdateMode.All,
+        )
+        const inventoryData = realm.objectForPrimaryKey<Inventory>(RealmSchema.Inventory, inventory_id);
+        inventoryData.status = "MIGRATED"
+      })
+
+      return Promise.resolve(true)
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occurred while adding server intervention ' + intervention.intervention_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false
+    }
+  }
+
 
   const addSampleTrees = async (id: string, treeDetails: SampleTree): Promise<boolean> => {
     try {
@@ -810,7 +839,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing }
 }
 
 export default useInterventionManagement
