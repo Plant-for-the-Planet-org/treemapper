@@ -131,7 +131,6 @@ const TotalTreesView = () => {
       return true
     }
     const sampleTree = intervention.sample_trees.find(obj => obj.species_guid === id);
-    console.log("Sample Tree", sampleTree)
     if (sampleTree) {
       setShowExistingTree(sampleTree.tree_id)
       return true;

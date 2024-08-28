@@ -155,7 +155,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     logStack: JSON.stringify(error),
                 })
             }
-            console.log("This is intervention Body", JSON.stringify(pData, null, 2))
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -194,7 +193,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     logStack: JSON.stringify(error),
                 })
             }
-            console.log("This is single tree Body", JSON.stringify(pData, null, 2))
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -226,7 +224,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const handleRemeasurement = async (el) => {
         try {
             const { pData } = await getRemeasurementBody(el);
-            console.log("This is remeasurement tree Body", JSON.stringify(pData, null, 2))
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -268,7 +265,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     logStack: JSON.stringify(error),
                 })
             }
-            console.log("This is sample Body", JSON.stringify(pData, null, 2))
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -306,7 +302,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     logStack: JSON.stringify(error),
                 })
             }
-            console.log("This is image Body",)
             if (!pData) {
                 throw new Error("Not able to convert body");
             }

@@ -356,6 +356,7 @@ const useInterventionManagement = () => {
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        intervention.location_type = location.type
         intervention.location = location
         intervention.entire_site = isEntireSite
         if (!onlyUpdateLocation) {
