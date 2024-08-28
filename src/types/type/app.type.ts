@@ -30,7 +30,7 @@ export type PLOT_PLANT = "PLANTED" | "RECRUIT"
 export type PLOT_PLANT_STATUS = "PLANTED" | "RECRUIT" | "REMEASUREMENT" | "DECEASED"
 export type OBSERVATION_TYPE = "CANOPY" | "SOIL_MOISTURE" | "BIOACOUSTICS"
 export type MAP_VIEW = "SATELLITE" | "VECTOR"
-export type TREE_RE_STATUS = "FLOOD" | "FIRE" | "DROUGHT" | "OTHER"
+export type TREE_RE_STATUS = "flood" | "fire" | "drought" | "other"
 export type PlotAttributes = PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE;
 
 

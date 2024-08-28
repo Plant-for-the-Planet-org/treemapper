@@ -37,22 +37,22 @@ const PredefineReasons: Array<{
 }> = [
         {
             label: 'Drought',
-            value: 'DROUGHT',
+            value: 'drought',
             index: 0,
         },
         {
             label: 'Fire',
-            value: 'FIRE',
+            value: 'fire',
             index: 1,
         },
         {
             label: "Flood",
-            value: 'FLOOD',
+            value: 'flood',
             index: 2,
         },
         {
             label: 'Other',
-            value: 'OTHER',
+            value: 'other',
             index: 3,
         }
     ]
@@ -205,14 +205,20 @@ const TreeRemeasurementView = () => {
                 height,
                 isNonISUCountry,
             ) : treeDetails.specie_height,
-            additionalDetails: undefined,
             appMetadata: '',
-            status: isAlive ? '' : type.value,
-            statusReason: comment,
-            dataStatus: '',
+            status: isAlive ? '' : 'dead',
+            statusReason: type.value,
+            dataStatus: 'PENDING_UPLOAD',
             parentId: '',
             samplePlantLocationIndex: 0,
-            lastScreen: ''
+            lastScreen: '',
+            additionalDetails: [
+                {
+                    key: 'comment',
+                    value: comment,
+                    accessType: 'public',
+                }
+            ]
         }
         const result = await addPlantHistory(treeId, param)
         if (result) {
@@ -274,6 +280,7 @@ const TreeRemeasurementView = () => {
                                     placeholder={i18next.t('label.select_species_height')}
                                     changeHandler={handleHeightChange}
                                     autoFocus
+
                                     keyboardType={'decimal-pad'}
                                     defaultValue={getConvertedMeasurementText(treeDetails.specie_height)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
@@ -294,6 +301,14 @@ const TreeRemeasurementView = () => {
                                         unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
                                     })}
                                 />
+                                <View style={styles.inputWrapper}>
+                                    <OutlinedTextInput
+                                        placeholder={'Comments(Optional)'}
+                                        changeHandler={setComment}
+                                        keyboardType={'default'}
+                                        defaultValue={comment}
+                                        trailingText={''} errMsg={''} />
+                                </View>
                             </View></> :
                             <>
                                 <CustomDropDownPicker

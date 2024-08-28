@@ -776,7 +776,7 @@ const useInterventionManagement = () => {
         }
         treeDetails.remeasurement_requires = false
         treeDetails.history = [...treeDetails.history, e]
-        treeDetails.status = 'REMEASUREMENT_DATA_UPLOAD'
+        treeDetails.status = treeDetails.is_alive ? 'REMEASUREMENT_DATA_UPLOAD' : 'REMEASUREMENT_EVENT_UPDATE'
 
       });
       return true

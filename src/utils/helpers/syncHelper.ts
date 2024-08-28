@@ -258,23 +258,21 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
 
 export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
     try {
+        const getHistory = d.history.find(el => el.dataStatus === 'PENDING_UPLOAD')
         const base64Image = await getImageAsBase64(d.image_url)
         const postData: any = {
             "type": "measurement",
-            "eventDate": postTimeConvertor(Date.now()),
+            "eventDate": postTimeConvertor(getHistory.eventDate),
             "measurements": {
                 "height": d.specie_height,
                 "width": d.specie_diameter,
             },
             imageFile: `data:image/png;base64,${base64Image}`,
-            "metadata": {
+            "metadata": getHistory.additionalDetails.length > 0 ? {
                 "public": {
-                    "comment": "Size has increased unexpectedly"
-                },
-                "private": {
-                    "deviceOS": ""
+                    comment: getHistory.additionalDetails[0].value
                 }
-            }
+            } : {}
         }
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {
@@ -284,21 +282,18 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
 
 
 export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPayload> => {
-    console.log("SampleTree", d)
+    const getHistory = d.history.find(el => el.dataStatus === 'PENDING_UPLOAD')
     try {
         const postData: any = {
             "type": "status",
-            "eventDate": "2022-02-15",
-            "statusReason": "flood",
+            "eventDate": postTimeConvertor(getHistory.eventDate || Date.now()),
+            "statusReason": getHistory.statusReason || '',
             "status": "dead",
-            "metadata": {
+            "metadata": getHistory.additionalDetails.length > 0 ? {
                 "public": {
-                    "comment": "Heavy rain lastet for 3 months."
-                },
-                "private": {
-                    "deviceOS": ""
+                    comment: getHistory.additionalDetails[0].value
                 }
-            }
+            } : {}
         }
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {
