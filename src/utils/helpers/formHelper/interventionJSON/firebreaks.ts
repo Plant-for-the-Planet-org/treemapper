@@ -27,7 +27,7 @@ const WidthOfStrip: FormElement = {
     label: 'Minimum width Of strip',
     default: '',
     type: 'INPUT',
-    placeholder: 'Minimum width Of strip',
+    placeholder: 'Minimum width Of strip (Optional)',
     unit: 'm',
     visibility: 'public',
     condition: null,
@@ -36,7 +36,7 @@ const WidthOfStrip: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true,
+    required: false,
     validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   
@@ -46,7 +46,7 @@ const WidthOfStrip: FormElement = {
     label: 'Maximum width Of strip',
     default: '',
     type: 'INPUT',
-    placeholder: 'Maximum width Of strip',
+    placeholder: 'Maximum width Of strip (Optional)',
     unit: 'm',
     visibility: 'public',
     condition: null,
@@ -55,12 +55,12 @@ const WidthOfStrip: FormElement = {
     sub_form: undefined,
     editable: true,
     value: '',
-    required: true,
+    required: false,
     validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
   }
   
   const firebreaksForm: MainForm = {
-    title: 'Firebreak Strip Details',
+    title: 'Firebreak Details',
     key: '',
     elements: [WidthOfStrip, MinWidth, MaxWidth ],
   }

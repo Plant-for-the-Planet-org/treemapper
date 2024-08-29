@@ -74,9 +74,9 @@ const InterventionBasicInfo = (props: Props) => {
         </Pressable>
         <View style={styles.plantedSpeciesWrapper}>
           {planted_species.map((el, i) => (
-            <View key={el.id} style={{ marginVertical: 5 }}>
+            <View key={el.id + i} style={{ marginVertical: 5 }}>
               {el.aliases && el.aliases !== 'Unknown' && el.aliases !== 'Undefined' ? <Text style={styles.plantedAlias}>{el.aliases}</Text> : null}
-              {!!el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count} {el.scientificName === 'Undefined' ? i18next.t('label.unknown') : el.scientificName}</Text>}
+              {!!el.scientificName && <Text style={styles.plantedSPeciesLabel}>{el.count > 1 ? el.count : ''} {el.scientificName === 'Undefined' ? i18next.t('label.unknown') : el.scientificName}</Text>}
               {i < planted_species.length - 1 ? <View style={styles.plantedBorder}></View> : null}
             </View>
           ))}
@@ -90,6 +90,10 @@ const InterventionBasicInfo = (props: Props) => {
   }
 
   const handleDate = (isStart: boolean) => {
+    if (!isEditable) {
+      return
+    }
+
     if (status === 'SYNCED') {
       return
     }
@@ -153,12 +157,12 @@ const InterventionBasicInfo = (props: Props) => {
               </Text>
               {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
             </Pressable>
-            {intervention_end_date !== 0 && <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
+            {intervention_end_date !== 0 && intervention_key !== "single-tree-registration" ? <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
               <Text style={styles.cardLabel}>
                 {endDateFormatted()}
               </Text>
               {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
-            </Pressable>}
+            </Pressable> : null}
           </View>
         </View>
         {location.type === 'Polygon' && <View style={styles.cardWrapper}>

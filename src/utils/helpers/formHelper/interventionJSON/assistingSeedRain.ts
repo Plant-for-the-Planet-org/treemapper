@@ -13,7 +13,7 @@ const NumberOfBirdPerch: FormElement = {
   default: '',
   type: 'INPUT',
   placeholder: 'Number of bird perch',
-  unit: '',
+  unit: 'Bird Perches',
   visibility: 'public',
   condition: null,
   data_type: 'number',
@@ -29,11 +29,11 @@ const NumberOfBirdPerch: FormElement = {
 const heightOfBirdPerch: FormElement = {
   index: 0,
   key: 'height-of-bird-perch',
-  label: 'Average Height of bird perch',
+  label: 'Average Height of perch',
   default: '',
   type: 'INPUT',
-  placeholder: 'Average Height of bird perch',
-  unit: '',
+  placeholder: 'Average Height of perch (optional)',
+  unit: 'm',
   visibility: 'public',
   condition: null,
   data_type: 'number',
@@ -41,7 +41,7 @@ const heightOfBirdPerch: FormElement = {
   sub_form: undefined,
   editable: true,
   value: '',
-  required: true,
+  required: false,
   dropDownData: '',
   validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }

@@ -218,7 +218,7 @@ const PointMarkerMap = (props: Props) => {
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper/>
+      <SatelliteIconWrapper low/>
       <CustomButton
         label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}

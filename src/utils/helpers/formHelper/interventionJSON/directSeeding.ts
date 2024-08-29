@@ -12,7 +12,7 @@ export const DirectSeeding: RegisterFormSliceInitialState = {
     preview_blank_polygon: true,
     species_required: true,
     is_multi_species: true,
-    species_count_required: true,
+    species_count_required: false,
     tree_details_required: false,
     has_sample_trees: false,
     can_be_entire_site: true,

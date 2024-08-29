@@ -5,12 +5,49 @@ import { initialInterventionState } from 'src/utils/constants/initialInterventio
 
 const Description: FormElement = {
     index: 0,
-    key: 'description',
-    label: 'Describe more about fencing',
+    key: 'extra-info',
+    label: 'More info',
     default: '',
     type: 'TEXTAREA',
-    placeholder: 'Describe more about fencing',
-    title: 'Description',
+    placeholder: 'More info (optional)',
+    title: 'More Info',
+    unit: '',
+    visibility: 'public',
+    condition: null,
+    data_type: 'string',
+    keyboard_type: 'default',
+    sub_form: undefined,
+    editable: true,
+    value: '',
+    required: false,
+    validation: ".+"
+}
+
+const FenceLength: FormElement = {
+    index: 0,
+    key: 'length-of-fence',
+    label: 'Length of fence',
+    default: '',
+    type: 'INPUT',
+    placeholder: 'Length of fence',
+    unit: 'm',
+    visibility: 'public',
+    condition: null,
+    data_type: 'number',
+    keyboard_type: 'number-pad',
+    sub_form: undefined,
+    editable: true,
+    value: '',
+    required: true,
+    validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|100000)$"
+}
+const FenceType: FormElement = {
+    index: 0,
+    key: 'type-of-fence',
+    label: 'Type Of fence',
+    default: '',
+    type: 'INPUT',
+    placeholder: 'Type Of fence',
     unit: '',
     visibility: 'public',
     condition: null,
@@ -24,10 +61,12 @@ const Description: FormElement = {
 }
 
 
+
+
 const fencingForm: MainForm = {
-    title: 'Team Details',
+    title: 'Fencing Details',
     key: '',
-    elements: [Description],
+    elements: [FenceLength, FenceType, Description],
 }
 
 

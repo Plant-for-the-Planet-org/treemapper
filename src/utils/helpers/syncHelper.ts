@@ -172,14 +172,13 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             }
         }
         const interventionForm = setUpIntervention(d.intervention_key)
-        const handlePointLocation = d.location_type === 'Polygon' ? JSON.parse(d.location.coordinates)[0] : JSON.parse(d.location.coordinates)
         const postData: any = {
             type: d.intervention_type,
             captureMode: "on-site",
             deviceLocation: metaData.app.deviceLocation,
             geometry: {
                 type: d.location.type,
-                coordinates: d.location.type === 'Point' ? handlePointLocation : [JSON.parse(d.location.coordinates)]
+                coordinates: d.location.type === 'Point' ? JSON.parse(d.location.coordinates)[0] : [JSON.parse(d.location.coordinates)]
             },
             registrationDate: postTimeConvertor(d.intervention_date),
             metadata: finalMeta,
@@ -213,6 +212,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
         if (d.sample_trees.length > 0) {
             postData.sampleTreeCount = d.sample_trees.length
         }
+        console.log("THIS is body,", JSON.stringify(postData, null, 2))
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }

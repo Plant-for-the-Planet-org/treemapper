@@ -238,7 +238,7 @@ const InterventionFormView = () => {
       const metaData = constructMetaData(locationName, furtherInfo);
       registerForm.meta_data = JSON.stringify({
         app: {},
-        public: { ...metaData },
+        public: { ...metaData, isEntireSite: registerForm.entire_site_selected },
         private: {}
       }
       )

@@ -19,16 +19,16 @@ interface Props {
   tag: 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
   treeId?: string
   isCDN?: boolean
+  showEdit: boolean
 }
 
 const InterventionCoverImage = (props: Props) => {
-  const { image, tag, interventionID, treeId, isCDN } = props
+  const { image, tag, interventionID, treeId, isCDN, showEdit } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
   const { updateSampleTreeImage } = useInterventionManagement()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch();
-
 
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
@@ -58,7 +58,7 @@ const InterventionCoverImage = (props: Props) => {
   return (
     <View style={styles.container}>
       {uri.length > 0 && <View style={styles.wrapper}>
-        {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+        {showEdit && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>}
         {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>

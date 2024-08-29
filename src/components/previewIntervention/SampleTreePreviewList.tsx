@@ -75,9 +75,9 @@ const SampleTreePreviewList = (props: Props) => {
 
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
-    return sampleTress.map((details) => {
+    return sampleTress.map((details, i) => {
       return (
-        <View style={styles.wrapper} key={details.tree_id}>
+        <View style={styles.wrapper} key={details.tree_id + i}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {status === 'INITIALIZED' && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
@@ -85,7 +85,7 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <PenIcon width={30} height={30} />
             </TouchableOpacity>}
-            {hasSampleTress && !isSynced && status === 'INITIALIZED'? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
+            {hasSampleTress && !isSynced && status === 'INITIALIZED' ? <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
               setDeleteData(details.tree_id)
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />

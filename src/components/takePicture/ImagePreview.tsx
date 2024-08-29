@@ -32,7 +32,7 @@ const ImagePreview = (props: Props) => {
   const navigateToNext = async () => {
     const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE' ||  screen === 'REMEASUREMENT_IMAGE' 
     const getBasics = () => {
-      if (screen === 'SPECIES_INFO' || screen === 'EDIT_INTERVENTION' || screen === 'EDIT_SAMPLE_TREE' || screen === 'PLOT_IMAGE' || screen === 'REMEASUREMENT_IMAGE') {
+      if (screen === 'SPECIES_INFO'  || screen === 'PLOT_IMAGE' || screen === 'REMEASUREMENT_IMAGE') {
         return { uid: id, hasSpecies: hasSpecies }
       }
       return {
