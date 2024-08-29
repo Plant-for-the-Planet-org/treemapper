@@ -115,7 +115,7 @@ const styles = StyleSheet.create({
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: 13,
+    fontSize: 12,
     textAlign: 'center',
     paddingRight: '15%',
   },
