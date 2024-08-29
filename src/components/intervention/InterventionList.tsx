@@ -60,7 +60,11 @@ const InterventionList = (props: Props) => {
     if (!obj.is_complete) {
       setDeleteData(obj)
     } else if (obj.is_complete && item.status !== 'SYNCED') {
-      setEditModal(obj)
+      if (item.status === 'PENDING_SAMPLE_TREE' || item.status === 'PENDING_REMEASUREMENT_SYNC' || item.status === 'PENDING_DATA_UPLOAD') {
+        handleNavigation(obj)
+      } else {
+        setEditModal(obj)
+      }
     } else {
       handleNavigation(obj)
     }

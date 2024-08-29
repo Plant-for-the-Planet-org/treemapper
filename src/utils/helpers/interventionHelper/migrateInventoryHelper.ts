@@ -186,13 +186,13 @@ const singleTreeDetails = (d: any): SampleTree => {
 }
 
 
-const migrateSampleTree = (d: any): SampleTree => {
+const migrateSampleTree = (d: any, pId: string): SampleTree => {
     try {
         const tid = generateUniquePlotId()
         const details: SampleTree = {
             tree_id: tid,
             species_guid: d.specieId,
-            intervention_id: tid,
+            intervention_id: pId,
             count: 1,
             latitude: d.latitude,
             longitude: d.longitude,
@@ -258,7 +258,7 @@ export const migrateInventoryToIntervention = async (inventory: Inventory): Prom
         const sample_trees: SampleTree[] = [];
         if (extraData.key !== 'single-tree-registration') {
             inventory.sampleTrees.forEach(element => {
-                sample_trees.push(migrateSampleTree(element));
+                sample_trees.push(migrateSampleTree(element,inventory.inventory_id));
             });
         } else {
             sample_trees.push(singleTreeDetails(inventory));
