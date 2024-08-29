@@ -4,21 +4,21 @@ import { View, ScrollView, Text, StyleSheet } from "react-native";
 import CustomButton from "../common/CustomButton";
 import FrequencySelector from "./FrequencySelector";
 import { Typography, Colors } from "src/utils/constants";
-import { scaleSize } from "src/utils/constants/mixins";
 
 
 interface Props {
   frequency: string,
   setSelectedFrequency: (e: string) => void
   save: () => void
+  loading:boolean
 }
 
 const Frequency = (props: Props) => {
-  const { frequency, setSelectedFrequency, save } = props
+  const { frequency, setSelectedFrequency, save, loading } = props
 
   return (
     <View style={{ flex: 1 }}>
-      <ScrollView style={[styles.scene, styles.defaultSpacing, { flex: 1, zIndex: 1000 }]}>
+      <ScrollView style={[styles.scene, styles.defaultSpacing, { flex: 1 }]}>
         <View>
           <Text style={[styles.description, styles.descriptionMarginTop]}>
             {i18next.t('label.select_frequency_for_remeasurement')}
@@ -29,14 +29,13 @@ const Frequency = (props: Props) => {
           />
         </View>
       </ScrollView>
-      <View style={{ flexDirection: 'column', alignItems: 'center', marginHorizontal: 25 }}>
-        <Text>{i18next.t('label.cant_change_frequency')}</Text>
-        <CustomButton
-          label={i18next.t('label.save')}
-          containerStyle={styles.btnContainer}
-          pressHandler={save}
-        />
-      </View>
+      <CustomButton
+        label={'Save'}
+        containerStyle={styles.btnContainer}
+        pressHandler={save}
+        disable={loading}
+        loading={loading}
+      />
     </View>
   );
 };
@@ -129,7 +128,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
     bottom: 40,
   },

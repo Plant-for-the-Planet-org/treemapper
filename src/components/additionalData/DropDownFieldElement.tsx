@@ -4,7 +4,6 @@ import { Colors, Typography } from 'src/utils/constants'
 import Modal from 'react-native-modal'
 import CustomTextInput from '../common/CustomTextInput'
 import CustomButton from '../common/CustomButton'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
 import { v4 as uuid } from 'uuid';
 import BinIcon from 'assets/images/svg/BinIcon.svg'
@@ -125,7 +124,7 @@ const styles = StyleSheet.create({
     },
     btnContainer: {
         width: '100%',
-        height: scaleSize(70),
+        height: 80,
         marginTop: 20
     },
     deleteBinWrapper: {

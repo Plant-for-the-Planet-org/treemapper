@@ -49,7 +49,7 @@ const CustomDropdownComponent = (props: Props) => {
   }
   return (
     <View style={[styles.container, {
-      backgroundColor: selectedValue.value !== '' ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT
+      backgroundColor: selectedValue.value !== 'none' ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT
     }]}>
       <Dropdown
         style={[styles.dropdown]}

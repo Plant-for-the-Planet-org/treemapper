@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { View, TouchableOpacity, Text, TextInput, StyleSheet } from "react-native";
 import { Typography, Colors } from "src/utils/constants";
 import { scaleSize } from "src/utils/constants/mixins";
@@ -11,7 +11,7 @@ const IntensitySelector = ({
   setSelectedIntensity: React.Dispatch<React.SetStateAction<number>>;
 }) => {
   const allIntensities = [100, 75, 50, 25];
-
+  const [inputIntensity, setInputIntensity] = useState('')
   return (
     <View style={styles.intensitySelectionContainer}>
       {/* if sample tree count is present and has length greater than zero then maps the array */}
@@ -52,12 +52,13 @@ const IntensitySelector = ({
             { borderBottomColor: Colors.TEXT_COLOR },
           ]}
           keyboardType={'numeric'}
-          value={String(selectedIntensity)}
-          onChangeText={(text: string) => {
-            setSelectedIntensity(() => {
-              return Number(text) <= 100 ? Number(text) : 0
-            })
+          value={inputIntensity}
+          placeholder={String(selectedIntensity)}
+          returnKeyType='done'
+          onBlur={()=>{
+            setSelectedIntensity(Number(inputIntensity))
           }}
+          onChangeText={setInputIntensity}
         />
         <Text
           style={[

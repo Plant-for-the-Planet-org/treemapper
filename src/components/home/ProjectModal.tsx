@@ -28,7 +28,7 @@ interface Props {
 const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const snapPoints = useMemo(() => ['64%'], []);
+  const snapPoints = useMemo(() => ['65%'], []);
   const { isVisible, toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])

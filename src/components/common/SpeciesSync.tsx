@@ -18,6 +18,7 @@ import { updateSpeciesWriting } from 'src/store/slice/tempStateSlice'
 import RotatingView from './RotatingView'
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { Typography, Colors } from 'src/utils/constants'
+import i18next from 'i18next'
 
 const SpeciesSync = () => {
   const { downloadFile, checkDownloadFolder } = useDownloadFile()
@@ -121,7 +122,7 @@ const SpeciesSync = () => {
           <RotatingView isClockwise={true}>
             <RefreshIcon />
           </RotatingView>
-          <Text style={styles.label}>Downloading</Text>
+          <Text style={styles.label}>Species {i18next.t("label.syncing")}</Text>
         </View>
       )
     }

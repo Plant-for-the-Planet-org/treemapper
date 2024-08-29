@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import { CameraCapturedPicture } from 'expo-camera'
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
 import { Image } from 'expo-image'
 import { Colors } from 'src/utils/constants'
@@ -98,19 +97,19 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '95%',
-    height: '85%',
+    height: '80%',
     borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 15,
     overflow: 'hidden',
     marginTop: "5%"
   },
   btnContainer: {
-    width: '100%',
-    height: scaleSize(70),
+    width: '95%',
+    height:80,
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 10,
+    bottom: '5%',
   },
   btnWrapper: {
     flex: 1,
@@ -156,12 +155,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   highlightLabel: {
-    fontSize: scaleFont(16),
+    fontSize: 18,
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
   normalLabel: {
-    fontSize: scaleFont(14),
+    fontSize: 14,
     fontWeight: '400',
     color: Colors.WHITE,
     textAlign: 'center',

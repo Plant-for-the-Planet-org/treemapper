@@ -1,10 +1,11 @@
-import { SafeAreaView, StyleSheet } from 'react-native'
+import { StyleSheet } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import ProjectConfigTabView from 'src/components/remeasurement/ProjectConfigTabView'
 import { Colors } from 'src/utils/constants'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const ProjectRemeasurementConfigView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'ProjectRemeasurementConfig'>>()
@@ -12,9 +13,9 @@ const ProjectRemeasurementConfigView = () => {
 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Header label="Project Config" />
-      <ProjectConfigTabView pid={pID}  />
+      <ProjectConfigTabView pid={pID} />
     </SafeAreaView>
   )
 }

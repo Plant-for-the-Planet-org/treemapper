@@ -28,7 +28,7 @@ const FilterModal = (props: Props) => {
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const snapPoints = useMemo(() => ['49%', '85%', '55%'], []);
+  const snapPoints = useMemo(() => ['54%', '85%', '55%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -91,7 +91,7 @@ const FilterModal = (props: Props) => {
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
-              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} height={18} width={18}/>
+              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} height={18} width={18} />
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
@@ -110,10 +110,10 @@ const FilterModal = (props: Props) => {
                 value: interventionFilter,
                 index: 0,
               }} />
-            <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
+            {interventionFilter !== 'none' && <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
-            </TouchableOpacity>
+            </TouchableOpacity>}
             {showTypeModal && <InterventionFilterModal />}
             <View style={[styles.card, { backgroundColor: onlyRemeasurement ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.only_remeasurement')}</Text>
@@ -136,6 +136,7 @@ const styles = StyleSheet.create({
   },
   sectionWrapper: {
     width: '100%',
+    height:'100%',
     bottom: 0,
     backgroundColor: Colors.WHITE,
     borderTopLeftRadius: 20,

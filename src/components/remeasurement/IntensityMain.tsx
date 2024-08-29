@@ -3,7 +3,6 @@ import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 import CustomButton from '../common/CustomButton';
-import { scaleSize } from 'src/utils/constants/mixins';
 import IntensitySelector from './IntensitySelector';
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput';
 
@@ -11,11 +10,12 @@ interface Props {
   intensity: any;
   setSelectedIntensity: (i: number) => void
   save: () => void
+  loading: boolean
 }
 
 const Intensity: React.FC<Props> = (props: Props) => {
-  const { setSelectedIntensity, intensity, save } = props;
-  
+  const { setSelectedIntensity, intensity, save, loading } = props;
+
   useEffect(() => {
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
@@ -36,13 +36,13 @@ const Intensity: React.FC<Props> = (props: Props) => {
             setSelectedIntensity={setSelectedIntensity}
           />
         </ScrollView>
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            label={i18next.t('label.save')}
-            containerStyle={styles.btnContainer}
-            pressHandler={save}
-          />
-        </View>
+        <CustomButton
+          label={i18next.t('label.save')}
+          containerStyle={styles.btnContainer}
+          pressHandler={save}
+          disable={loading}
+          loading={loading}
+        />
       </View>
     </AvoidSoftInputView>
   );
@@ -75,8 +75,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
-    bottom: 50,
+    bottom: 30,
   },
 });

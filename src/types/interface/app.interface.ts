@@ -41,7 +41,10 @@ export interface ProjectInterface{
   slug: string
   treeCost: number
   sites: any[],
-  geometry: string
+  geometry: string,
+  purpose: string,
+  intensity: number,
+  frequency: string
 }
 
 export interface CarouselInterventionData{

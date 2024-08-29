@@ -1,7 +1,6 @@
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { CameraCapturedPicture, CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera';
-import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
@@ -100,7 +99,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '95%',
-    height: '85%',
+    height: '80%',
     borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 15,
     overflow: 'hidden',
@@ -142,8 +141,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
-    bottom: 10,
+    bottom: '5%',
   },
 })

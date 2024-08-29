@@ -13,11 +13,12 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import { StatusBar } from 'expo-status-bar'
 
 const PointMarkerView = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
   const [interventionData, setInterventionData] = useState<InterventionData | null>(null)
-  
+
   const route = useRoute<RouteProp<RootStackParamList, 'PointMarker'>>()
   const realm = useRealm()
 
@@ -37,7 +38,8 @@ const PointMarkerView = () => {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar style='dark' />
       <Header
         label={"Select Location"}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />}

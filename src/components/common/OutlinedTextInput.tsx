@@ -92,7 +92,8 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   infoIconContainer: {
-    marginLeft:10
+    marginLeft:10,
+    marginTop:3
   },
   infoTextContainer: {
     position: 'absolute',
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.TEXT_COLOR,
     width:200,
     left:-180,
-    top:20
+    top:15
   },
   infoText: {
     fontSize: Typography.FONT_SIZE_12,

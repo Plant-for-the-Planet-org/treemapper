@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import { scaleSize } from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -218,7 +217,7 @@ const PointMarkerMap = (props: Props) => {
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper low/>
+      <SatelliteIconWrapper low />
       <CustomButton
         label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}
@@ -255,8 +254,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 30,
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
   },
 })

@@ -13,6 +13,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { StatusBar } from 'expo-status-bar'
 
 const PolygonMarker = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -40,6 +41,7 @@ const PolygonMarker = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style='dark' />
       <Header label={location_title}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
       <PolygonMarkerMap 

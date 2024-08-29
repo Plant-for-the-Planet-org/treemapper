@@ -5,7 +5,7 @@ import {LinearGradient} from 'expo-linear-gradient'
 const FadeBackground = () => {
   return (
     <LinearGradient
-      colors={['rgba(255,255,255,0)', 'rgba(255,255,255,1)']}
+      colors={['rgba(254, 254, 250,255,0)', 'rgba(254, 254, 250,1)']}
       style={styles.container}
       start={{x: 0, y: 0}}
       end={{x: 0, y: 1}}

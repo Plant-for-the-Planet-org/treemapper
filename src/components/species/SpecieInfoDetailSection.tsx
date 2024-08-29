@@ -1,7 +1,6 @@
 import { Dimensions, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import i18next from 'src/locales/index'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { Typography, Colors } from 'src/utils/constants'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
@@ -132,8 +131,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     borderColor: Colors.GRAY_DARK,
-    height: scaleSize(50),
-    padding: scaleSize(10),
+    height: 50,
+    paddingHorizontal: 10,
     color: Colors.DARK_TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
@@ -143,8 +142,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: 8,
     borderColor: Colors.GRAY_DARK,
-    height: scaleSize(100),
-    padding: scaleSize(10),
+    height: 100,
+    padding: 10,
     color: Colors.DARK_TEXT_COLOR,
     fontSize: Typography.FONT_SIZE_16,
     fontFamily: Typography.FONT_FAMILY_REGULAR,

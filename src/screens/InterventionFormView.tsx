@@ -376,11 +376,11 @@ const InterventionFormView = () => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <Header label={i18next.t('label.intervention')} />
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false} style={styles.mainContainer}>
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         <AvoidSoftInputView
           avoidOffset={20}
           showAnimationDuration={200}
-          style={styles.mainContainer}>
+          style={styles.container}>
           <View style={styles.container}>
             <View style={styles.wrapper}>
               {isTpoUser && (
@@ -462,6 +462,7 @@ const InterventionFormView = () => {
         disable={!registerForm}
         hideFadeIn
       />
+      <View style={styles.footer} />
     </SafeAreaView>
   )
 }
@@ -475,8 +476,13 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
+  wrapperScrollView: {
+    flexGrow: 1,
+    height: '100%',
+    width: '100%'
+  },
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     backgroundColor: Colors.BACKDROP_COLOR,
     height: '100%',
@@ -507,4 +513,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: '5%',
   },
+  footer: {
+    position: 'absolute',
+    height: 40,
+    width: '100%',
+    backgroundColor: Colors.BACKDROP_COLOR,
+    bottom: 0
+  }
 })

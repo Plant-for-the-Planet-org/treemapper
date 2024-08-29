@@ -265,7 +265,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.NEW_PRIMARY + '1A',
     borderRadius: 10,
-    marginRight: 5
+    marginRight: 10
   },
   label: {
     fontSize: 16,

@@ -161,7 +161,7 @@ const InterventionPreviewView = () => {
 
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <ScrollView style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false}>
         <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
@@ -204,7 +204,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 20
+    bottom: 30
   },
   footer: {
     width: '100%',

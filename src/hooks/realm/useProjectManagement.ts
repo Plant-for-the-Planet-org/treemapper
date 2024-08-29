@@ -1,5 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import { ProjectInterface } from 'src/types/interface/app.interface'
 
 const useProjectManagement = () => {
   const realm = useRealm()
@@ -65,7 +66,21 @@ const useProjectManagement = () => {
     }
   };
 
-  return { addAllProjects, deleteAllProjects }
+
+  const updateProjectInF = async (pID: string, f: string, i: number): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const projectDetails = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pID);
+        projectDetails.frequency = f
+        projectDetails.intensity = i
+      });
+      return true
+    } catch (error) {
+      return false;
+    }
+  };
+
+  return { addAllProjects, deleteAllProjects, updateProjectInF }
 }
 
 export default useProjectManagement

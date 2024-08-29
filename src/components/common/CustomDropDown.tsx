@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Dropdown } from 'react-native-element-dropdown'
 import { Colors, Typography } from 'src/utils/constants'
 import SelectIcon from 'assets/images/svg/SelectIcon.svg'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { DropdownData } from 'src/types/interface/app.interface'
 
 interface Props {
@@ -73,12 +72,12 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   dropdown: {
-    height: scaleSize(55),
+    height:58,
     borderColor: Colors.GRAY_BORDER,
     borderWidth: 0.5,
     borderRadius: 5,
     width: '100%',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   icon: {
     marginRight: 5,

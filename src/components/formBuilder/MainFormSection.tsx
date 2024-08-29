@@ -4,7 +4,6 @@ import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import FormTextInputElement from './FormTextInputElement'
 import FormInfoElement from './FormInfoElement'
 import FormSwitchElement from './FormSwitchElement'
-import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from '../common/CustomButton'
 import { CommonActions, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -242,7 +241,7 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
     bottom: 10,
   },

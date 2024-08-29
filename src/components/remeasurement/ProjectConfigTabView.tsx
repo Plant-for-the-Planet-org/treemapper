@@ -9,6 +9,7 @@ import { updateProjectDetails } from 'src/api/api.fetch'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { useToast } from 'react-native-toast-notifications'
+import useProjectManagement from 'src/hooks/realm/useProjectManagement'
 
 
 interface Props {
@@ -19,13 +20,14 @@ const ProjectConfigTabView = (props: Props) => {
   const { pid } = props
   const [intensityProject, setIntensityProject] = useState(0)
   const [frequencyProject, setFrequencyProject] = useState('')
+  const [loading, setLoading] = useState(false)
   const realm = useRealm()
   useEffect(() => {
     setProjectData()
   }, [pid])
 
   const toast = useToast()
-
+  const { updateProjectInF } = useProjectManagement()
   const setProjectData = () => {
     const projectDetails = realm.objectForPrimaryKey<any>(RealmSchema.Projects, pid)
     if (projectDetails) {
@@ -40,6 +42,7 @@ const ProjectConfigTabView = (props: Props) => {
 
 
   const syncAndUpdate = async () => {
+    setLoading(true)
     const { success } = await updateProjectDetails({
       i: intensityProject,
       f: frequencyProject,
@@ -47,17 +50,20 @@ const ProjectConfigTabView = (props: Props) => {
     })
     if (success) {
       toast.show("Updated successfully")
+      await updateProjectInF(pid, frequencyProject, intensityProject)
+      setLoading(false)
     } else {
       toast.show("Error ocurred while submitting")
+      setLoading(false)
     }
   }
 
   const IntensityComp = () => {
-    return <Intensity intensity={intensityProject} setSelectedIntensity={setIntensityProject} save={syncAndUpdate}/>
+    return <Intensity intensity={intensityProject} setSelectedIntensity={setIntensityProject} save={syncAndUpdate} loading={loading}/>
   }
 
   const FrequencyComp = () => {
-    return <Frequency frequency={frequencyProject} setSelectedFrequency={setFrequencyProject} save={syncAndUpdate}/>
+    return <Frequency frequency={frequencyProject} setSelectedFrequency={setFrequencyProject} save={syncAndUpdate} loading={loading}/>
   }
 
   const renderScene = SceneMap({
