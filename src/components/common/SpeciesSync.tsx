@@ -46,10 +46,11 @@ const SpeciesSync = () => {
 
   useEffect(() => {
     setTimeout(() => {
-      if (updateAppCount > 0) {
+      if (updateAppCount % 2 === 0) {
         checkForAppUpdate()
       }
-    }, 3000);
+      dispatch(setUpdateAppCount())
+    }, 300);
   }, [])
 
   const checkForAppUpdate = async () => {
@@ -60,7 +61,6 @@ const SpeciesSync = () => {
         const latest = data.latestVersion.split('.').map(Number);
         for (let i = 0; i < current.length; i++) {
           if (latest[i] > current[i]) {
-            dispatch(setUpdateAppCount())
             return showUpdateAlert(data.storeUrl || '')
           } else if (latest[i] < current[i]) {
             return false
