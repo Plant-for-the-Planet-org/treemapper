@@ -14,7 +14,8 @@ const initialState: AppInitialState = {
   intervention_updated: 0,
   userSpecies: false,
   lastSyncDate: 0,
-  dataMigrated: false
+  dataMigrated: false,
+  updateAppCount: 3
 }
 
 const appStateSlice = createSlice({
@@ -62,12 +63,19 @@ const appStateSlice = createSlice({
     updateDataMigrated(state, action: PayloadAction<boolean>) {
       state.dataMigrated = action.payload
     },
+    setUpdateAppCount(state) {
+      if (state.updateAppCount > 0) {
+        state.updateAppCount -= 1
+      } else {
+        state.updateAppCount = 3
+      }
+    },
     logoutAppUser() {
       return { ...initialState, speciesSync: true }
     },
   },
 })
 
-export const { updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
+export const { setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
 
 export default appStateSlice.reducer

@@ -17,6 +17,7 @@ export interface AppInitialState {
   lastSyncDate: number,
   speciesLocalURL: string
   dataMigrated: boolean
+  updateAppCount: number
 }
 
 export interface SyncSlice {

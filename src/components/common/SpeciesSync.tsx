@@ -1,7 +1,9 @@
 import {
+  Alert,
   StyleSheet,
   Text,
   View,
+  Linking
 } from 'react-native'
 import React, { useEffect } from 'react'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
@@ -10,7 +12,7 @@ import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpeci
 import { checkForMigrateSpecies, getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
 import { isWithin90Days } from 'src/utils/helpers/timeHelper'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
+import { setUpdateAppCount, updateSpeciesSyncStatus } from 'src/store/slice/appStateSlice'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useInitialSetup from 'src/hooks/useInitialSetup'
 import { RootState } from 'src/store'
@@ -19,6 +21,7 @@ import RotatingView from './RotatingView'
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { Typography, Colors } from 'src/utils/constants'
 import i18next from 'i18next'
+import VersionCheck from 'react-native-version-check-expo';
 
 const SpeciesSync = () => {
   const { downloadFile, checkDownloadFolder } = useDownloadFile()
@@ -26,10 +29,9 @@ const SpeciesSync = () => {
   const { addNewLog } = useLogManagement()
   const { setupApp } = useInitialSetup()
   const { speciesDownloading, speciesUpdatedAt } = useSelector((state: RootState) => state.tempState)
-  const { speciesSync, speciesLocalURL } = useSelector((state: RootState) => state.appState)
+  const { speciesSync, speciesLocalURL, updateAppCount } = useSelector((state: RootState) => state.appState)
 
   const dispatch = useDispatch()
-
   useEffect(() => {
     isSpeciesDownloaded()
   }, [speciesUpdatedAt])
@@ -40,6 +42,53 @@ const SpeciesSync = () => {
       readAndWriteSpecies()
     }
   }, [speciesLocalURL])
+
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (updateAppCount > 0) {
+        checkForAppUpdate()
+      }
+    }, 3000);
+  }, [])
+
+  const checkForAppUpdate = async () => {
+    try {
+      const data = await VersionCheck.needUpdate()
+      if (data?.currentVersion && data?.latestVersion) {
+        const current = data.currentVersion.split('.').map(Number);
+        const latest = data.latestVersion.split('.').map(Number);
+        for (let i = 0; i < current.length; i++) {
+          if (latest[i] > current[i]) {
+            dispatch(setUpdateAppCount())
+            return showUpdateAlert(data.storeUrl || '')
+          } else if (latest[i] < current[i]) {
+            return false
+          }
+        }
+        return false
+      } else {
+        return false
+      }
+    } catch (error) {
+      return false
+    }
+  }
+
+
+
+
+  const showUpdateAlert = (url: string) => {
+    Alert.alert("Update Available", "To ensure the app runs smoothly, please update the TreeMapper app to the latest version.",
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        { text: 'Update', onPress: () => { Linking.openURL(url) } }]
+    )
+  }
 
 
   const isSpeciesDownloaded = async () => {

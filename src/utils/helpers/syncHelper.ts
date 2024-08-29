@@ -198,6 +198,8 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
                 species.treeCount = el.count
                 if (el.guid === 'undefined') {
                     species.otherSpecies = "Unknown"
+                } else if (el.guid == "unknown") {
+                    species.otherSpecies = "Unknown"
                 } else {
                     species.scientificSpecies = el.guid
                 }
@@ -262,9 +264,12 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         if (d.species_guid === 'undefined') {
             postData.otherSpecies = d.species_guid
-        } else {
+        } else if (d.species_guid == "unknown") {
+            postData.otherSpecies = "Unknown"
+        }  else {
             postData.scientificSpecies = d.species_guid
         }
+        
         if (d.tree_type === 'sample') {
             postData.parent = i.location_id
         }
