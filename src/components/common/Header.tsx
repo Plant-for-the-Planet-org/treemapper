@@ -1,6 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
@@ -41,7 +40,7 @@ export default Header
 
 const styles = StyleSheet.create({
   container: {
-    height: scaleSize(70),
+    height: 80,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
@@ -58,13 +57,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   title: {
-    fontSize: scaleFont(22),
+    fontSize: 22,
     color: Colors.BLACK,
     letterSpacing: 0.4,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   note: {
-    fontSize: scaleFont(12),
+    fontSize: 12,
     color: Colors.TEXT_LIGHT,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     marginLeft: 2,
