@@ -12,15 +12,45 @@ import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 import i18next from 'src/locales/index'
 import InterventionDropDown from 'src/components/common/InterventionDropDown'
+import { DropdownData } from 'src/types/interface/app.interface'
+import ArrowDownIcon from 'assets/images/svg/CtaDownIcon.svg'
 
 interface Props {
   isVisible: boolean
   toggleModal: () => void
 }
 
+const data: DropdownData[] = [
+  {
+    label: 'Show interventions within 30 days',
+    index: 0,
+    value: 'days'
+  },
+  {
+    label: 'Show interventions within 6 months',
+    index: 1,
+    value: 'months'
+  },
+  {
+    label: 'Show interventions within 1 year',
+    index: 2,
+    value: 'year'
+
+  },
+  {
+    label: 'Show all interventions',
+    index: 3,
+    value: 'always'
+  },
+  {
+    label: `Don't show interventions`,
+    index: 4,
+    value: 'none'
+  },
+]
 const FilterModal = (props: Props) => {
   const [showTypeModal, setShowTypeModal] = useState(false)
-
+  const [showInterventionDropdown, setShowInterventionDropdown] = useState(false)
 
   const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
@@ -28,7 +58,7 @@ const FilterModal = (props: Props) => {
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const snapPoints = useMemo(() => ['54%', '85%', '55%'], []);
+  const snapPoints = useMemo(() => ['55%', '85%', '80%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -58,15 +88,24 @@ const FilterModal = (props: Props) => {
     setShowTypeModal(!showTypeModal)
   }
 
-  const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    dispatch(updateInterventionFilter(e))
-  }
 
 
   const handleOpenModal = () => {
     bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
     toggleTypeModal()
   }
+  
+
+
+
+  const openDropDown = (e: INTERVENTION_FILTER | '') => {
+    bottomSheetModalRef.current.snapToIndex(showInterventionDropdown ? 0 : 2)
+    setShowInterventionDropdown(!showInterventionDropdown)
+    if(e){
+      dispatch(updateInterventionFilter(e))
+    }
+  }
+
 
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
@@ -103,13 +142,19 @@ const FilterModal = (props: Props) => {
               <View style={styles.divider} />
               <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
-            <InterventionDropDown
-              onSelect={changeInterventionFilter}
+            <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={()=>{openDropDown('')}}>
+              <Text style={styles.cardLabel}>{data.find(el => el.value === interventionFilter).label}</Text>
+              <View style={styles.divider} />
+              <ArrowDownIcon fill={Colors.GRAY_BORDER} style={{margin:'5%', marginTop:15}}/>
+            </TouchableOpacity>
+            {showInterventionDropdown && <InterventionDropDown
+              onSelect={openDropDown}
+              data={data}
               selectedValue={{
                 label: '',
                 value: interventionFilter,
                 index: 0,
-              }} />
+              }} />}
             {interventionFilter !== 'none' && <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
@@ -136,17 +181,19 @@ const styles = StyleSheet.create({
   },
   sectionWrapper: {
     width: '100%',
-    height:'100%',
-    bottom: 0,
-    backgroundColor: Colors.WHITE,
+    height: '100%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
-    paddingTop: 10
+    paddingTop: 20,
+    backgroundColor: Colors.WHITE,
+
   },
   contentWrapper: {
-    width: '95%',
-    paddingBottom: 50
+    width: '100%',
+    paddingBottom: 50,
+    paddingHorizontal: '3%',
+    backgroundColor: Colors.WHITE,
   },
   card: {
     height: 60,

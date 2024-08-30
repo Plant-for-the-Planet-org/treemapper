@@ -146,6 +146,7 @@ const LoginButton = () => {
         pressHandler={handleLogin}
         containerStyle={styles.wrapper}
         disable={webAuthLoading}
+        loading={webAuthLoading}
         hideFadeIn
       />
     </View>

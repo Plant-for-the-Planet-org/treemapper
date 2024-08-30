@@ -61,7 +61,7 @@ const CustomButton = (props: Props) => {
       <View
         style={[
           styles.wrapper,
-          { backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY },
+          { backgroundColor: disable ? '#209653' : Colors.NEW_PRIMARY },
           { ...wrapperStyle },
         ]}>
         {loading ? (
