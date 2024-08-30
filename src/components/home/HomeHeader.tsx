@@ -139,12 +139,12 @@ const HomeHeader = (props: Props) => {
           const element = convertInventoryToIntervention(response.items[index]);
           await addNewIntervention(element)
         }
-        const nextPage = getExtendedPageParam(response._links.next)
-        dispatch(updateLastServerIntervention(nextPage))
         if (!response._links.next || response._links.next === response._links.self) {
           dispatch(updateServerIntervention(true))
           return;
         }
+        const nextPage = getExtendedPageParam(response._links.next)
+        dispatch(updateLastServerIntervention(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
           message: "Intervention fetched successfully",
