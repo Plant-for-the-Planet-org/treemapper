@@ -17,7 +17,7 @@ export const getUrlApi = {
   getBaseUrl: `${https}${baseUrl}`,
   getBaseTestUrl: `${https}${baseUrl}`,
   getUserDetails: `${https}${baseUrl}/app/profile`,
-  getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=10&_scope=extended`,
+  getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
   getAllProjects: `${https}${baseUrl}/app/profile/projects?_scope=extended`,
   userSpecies: `${https}${baseUrl}/treemapper/species`,
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
