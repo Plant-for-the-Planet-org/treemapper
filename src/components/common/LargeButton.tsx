@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: 35,
     height: 35,
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.NEW_PRIMARY,
     right: 0,
     top: 0,
     borderRadius: 150,
@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
   },
   activeContainer: {
-    borderColor: Colors.PRIMARY,
+    borderColor: Colors.NEW_PRIMARY,
   },
   subContainer: {
     flexDirection: 'row',
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   activeText: {
-    color: Colors.PRIMARY,
+    color: Colors.NEW_PRIMARY,
   },
   blackTextColor: {
     color: Colors.BLACK,

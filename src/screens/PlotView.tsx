@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   mainLabel: {
     fontSize: 18,
-    color: Colors.DARK_TEXT,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     width:'100%',
     textAlign:'center',

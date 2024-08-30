@@ -12,6 +12,7 @@ import i18next from 'src/locales/index'
 interface Props {
   data: FormElement[]
   id: string
+  canEdit: boolean
 }
 
 const InterventionAdditionalData = (props: Props) => {
@@ -19,7 +20,7 @@ const InterventionAdditionalData = (props: Props) => {
   const [additionalData, setAdditionalData] = useState<FormElement[]>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const { data, id } = props
+  const { data, id, canEdit } = props
 
   useEffect(() => {
     if (data.length > 0) {
@@ -82,9 +83,9 @@ const InterventionAdditionalData = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <TouchableOpacity onPress={editData} style={styles.editWrapper}>
+        {canEdit && <TouchableOpacity onPress={editData} style={styles.editWrapper}>
           <PenIcon width={30} height={30} />
-        </TouchableOpacity>
+        </TouchableOpacity>}
         <Text style={styles.title}>{i18next.t("label.additional_data")}</Text>
         {renderData()}
       </View>

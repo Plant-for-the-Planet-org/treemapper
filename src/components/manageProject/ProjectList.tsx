@@ -92,7 +92,7 @@ const ProjectItem = ({
     <View
       style={[
         styles.listItemContainer,
-        isProjectSelected ? { borderColor: Colors.PRIMARY } : {},
+        isProjectSelected ? { borderColor: Colors.NEW_PRIMARY } : {},
       ]}>
       {item.image && process.env.EXPO_PUBLIC_CDN_URL ? (
         <Image
@@ -109,7 +109,7 @@ const ProjectItem = ({
       <Text
         style={[
           styles.projectText,
-          isProjectSelected ? { color: Colors.PRIMARY } : {},
+          isProjectSelected ? { color: Colors.NEW_PRIMARY } : {},
         ]}>
         {item.name}
       </Text>

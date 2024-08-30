@@ -72,7 +72,7 @@ const EditInputModal = ({
               <MCIcon
                 name={'arrow-right'}
                 size={30}
-                color={(isRequired && value) || !isRequired ? Colors.PRIMARY : Colors.GRAY_DARK}
+                color={(isRequired && value) || !isRequired ? Colors.NEW_PRIMARY : Colors.GRAY_DARK}
               />
             </TouchableOpacity>
           </View>

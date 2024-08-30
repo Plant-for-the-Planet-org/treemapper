@@ -47,7 +47,7 @@ const OutlinedTextInput = (props: Props) => {
         placeholder={placeholder}
         fontColor={Colors.DARK_TEXT_COLOR}
         paddingVertical={18}
-        activeColor={Colors.PRIMARY}
+        activeColor={Colors.NEW_PRIMARY}
         returnKeyType="done"
         inactiveColor={Colors.GRAY_BORDER}
         placeholderTextColor={Colors.GRAY_BORDER}

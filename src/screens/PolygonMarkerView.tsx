@@ -32,7 +32,7 @@ const PolygonMarker = () => {
   if (!interventionData) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="small" color={Colors.PRIMARY} />
+        <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
       </View>
     )
   }

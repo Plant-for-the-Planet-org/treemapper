@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   treeCountSelectionActive: {
     borderWidth: 0,
     padding: 20,
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.NEW_PRIMARY,
   },
   treeCountSelectionText: {
     color: Colors.TEXT_COLOR,

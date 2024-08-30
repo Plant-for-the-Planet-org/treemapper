@@ -117,7 +117,7 @@ const ImportFormView = () => {
             <Text style={styles.importingText}>{i18next.t('label.importing_additional_data')}</Text>
             <ActivityIndicator
               size="large"
-              color={Colors.PRIMARY}
+              color={Colors.NEW_PRIMARY}
               style={styles.activityIndicator}
             />
           </View>

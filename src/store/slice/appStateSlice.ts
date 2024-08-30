@@ -70,8 +70,8 @@ const appStateSlice = createSlice({
         state.updateAppCount = 6
       }
     },
-    logoutAppUser() {
-      return { ...initialState, speciesSync: true }
+    logoutAppUser(state) {
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL }
     },
   },
 })

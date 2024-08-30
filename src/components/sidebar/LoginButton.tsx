@@ -158,12 +158,12 @@ export default LoginButton
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 60,
+    height: 70,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 30,
   },
   wrapper: {
-    width: '90%',
+    width: '105%',
   },
 })

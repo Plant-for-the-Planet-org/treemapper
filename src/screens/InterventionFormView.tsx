@@ -29,7 +29,6 @@ import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
-import * as Application from 'expo-application'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 import SelectionLocationType from 'src/components/intervention/SelectLocationType'
 import { useToast } from 'react-native-toast-notifications'
@@ -270,20 +269,10 @@ const InterventionFormView = () => {
   const constructMetaData = (locationName: string, furtherInfo: string) => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
-      metaData["Location Name"] = {
-        "key": "Location Name",
-        "value": locationName,
-        v: Application.nativeApplicationVersion,
-        t: 'meta'
-      };
+      metaData["Location Name"] = locationName;
     }
     if (furtherInfo && furtherInfo.length > 0) {
-      metaData["Info"] = {
-        "key": "Info",
-        "value": furtherInfo,
-        v: Application.nativeApplicationVersion,
-        t: 'meta'
-      };
+      metaData["Info"] = furtherInfo
     }
     return metaData;
   };
@@ -368,7 +357,7 @@ const InterventionFormView = () => {
   if (!registerForm) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="small" color={Colors.PRIMARY} />
+        <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
       </View>
     )
   }

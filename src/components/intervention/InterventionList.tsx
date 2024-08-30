@@ -60,7 +60,7 @@ const InterventionList = (props: Props) => {
     if (!obj.is_complete) {
       setDeleteData(obj)
     } else if (obj.is_complete && item.status !== 'SYNCED') {
-      if (item.status === 'PENDING_SAMPLE_TREE' || item.status === 'PENDING_REMEASUREMENT_SYNC' || item.status === 'PENDING_DATA_UPLOAD') {
+      if (item.status === 'PENDING_SAMPLE_TREE' || item.status === 'PENDING_REMEASUREMENT_SYNC') {
         handleNavigation(obj)
       } else {
         setEditModal(obj)
@@ -132,16 +132,18 @@ const styles = StyleSheet.create({
   },
   emptyHeaderLabel: {
     fontSize: 18,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    textAlign: 'center',
-    marginHorizontal: 50,
-    marginVertical: 20,
-    color: Colors.DARK_TEXT_COLOR
+    width:'100%',
+    textAlign:'center',
+    marginTop:10
   },
   emptyLabel: {
-    fontSize: 14,
+    fontSize: 16,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    textAlign: 'center',
-    color: Colors.TEXT_COLOR
+    marginTop: 10,
+    width:'100%',
+    textAlign:'center',
   }
 })

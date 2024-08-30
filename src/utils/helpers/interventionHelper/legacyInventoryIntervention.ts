@@ -249,6 +249,20 @@ const checkAndConvertMetaData = (m: any) => {
     return '{}'
 }
 
+const getEntireSiteCheck = (data: any) => {
+        if (!!data && data?.public) {
+            const publicData = data.public;
+            if (typeof publicData === 'object' && publicData !== null && !Array.isArray(publicData)) {
+                for (const key in publicData) {
+                    if (key == 'isEntireSite') {  // optional: ensure the property is not inherited
+                        return true
+                    }
+                }
+            }
+    }
+    return false
+}
+
 export const convertInventoryToIntervention = (data: any): InterventionData => {
     const extraData = interventionTittleSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
@@ -292,7 +306,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
             type: 'Point',
             coordinates: geometryData.geoSpatial
         },
-        entire_site: false,
+        entire_site: getEntireSiteCheck(data.metadata || '{}'),
         last_screen: "PREVIEW",
         planted_species: setPlantedSpecies(data.plantedSpecies || []),
         form_id: data.id,

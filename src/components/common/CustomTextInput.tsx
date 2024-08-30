@@ -18,7 +18,7 @@ const CustomTextInput = (props: Props) => {
         placeholder={label}
         fontColor={Colors.DARK_TEXT_COLOR}
         paddingVertical={16}
-        activeColor={Colors.PRIMARY}
+        activeColor={Colors.NEW_PRIMARY}
         returnKeyType="done"
         value={value}
         placeholderTextColor={Colors.GRAY_BORDER}

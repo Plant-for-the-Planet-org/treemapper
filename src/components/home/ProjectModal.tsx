@@ -215,7 +215,7 @@ const ProjectModal = (props: Props) => {
                       <Text style={styles.siteCardLabel}>{item.name}</Text>
                       <View style={styles.divider} />
                       {projectSite.siteId === item.id && toggleProjectModal ? (
-                        <Entypo size={16} name="check" color={Colors.PRIMARY} />
+                        <Entypo size={16} name="check" color={Colors.NEW_PRIMARY} />
                       ) : null}
                     </TouchableOpacity>
                   )

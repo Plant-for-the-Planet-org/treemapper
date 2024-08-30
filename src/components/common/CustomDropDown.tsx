@@ -25,7 +25,7 @@ const CustomDropdownComponent = (props: Props) => {
 
   const renderLabel = () => {
     return (
-      <Text style={[styles.label, { backgroundColor: whiteBG ? Colors.WHITE : Colors.BACKDROP_COLOR }, isFocus && { color: Colors.PRIMARY }]}>
+      <Text style={[styles.label, { backgroundColor: whiteBG ? Colors.WHITE : Colors.BACKDROP_COLOR }, isFocus && { color: Colors.NEW_PRIMARY }]}>
         {label}
       </Text>
     )

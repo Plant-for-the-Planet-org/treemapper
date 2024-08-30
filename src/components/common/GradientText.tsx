@@ -12,7 +12,7 @@ interface GradientTextProps extends TextStyle {
 const GradientText: React.FC<GradientTextProps> = ({children, style}) => {
   return (
     <MaskedView maskElement={<Text style={style}>{children}</Text>}>
-      <LinearGradient colors={[Colors.PRIMARY_DARK, Colors.LINEAR_INTERMEDIATE, Colors.PRIMARY]}>
+      <LinearGradient colors={[Colors.PRIMARY_DARK, Colors.LINEAR_INTERMEDIATE, Colors.NEW_PRIMARY]}>
         <Text style={[{opacity: 0, ...style}]}>{children}</Text>
       </LinearGradient>
     </MaskedView>
