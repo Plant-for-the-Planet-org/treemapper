@@ -33,6 +33,7 @@ import * as Application from 'expo-application'
 import i18next from 'i18next'
 import { useToast } from 'react-native-toast-notifications'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
+import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -73,10 +74,10 @@ const InterventionPreviewView = () => {
     if (localMeta?.length) {
       localMeta.forEach(el => {
         if (el.accessType === 'private') {
-          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: { value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: 'meta' } }
+          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
         }
         if (el.accessType === 'public') {
-          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: { value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: 'meta' } }
+          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: el.value }
         }
       })
     }
@@ -176,7 +177,7 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
         )}
-        {/* {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />} */}
+        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} synced={InterventionData.status === 'SYNCED'} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{Application.nativeApplicationVersion}</Text>}

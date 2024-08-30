@@ -80,7 +80,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE,
-        paddingTop: 20
     },
     modal: {
         flex: 1,

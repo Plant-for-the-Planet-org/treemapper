@@ -5,7 +5,6 @@ import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
 import * as FileSystem from 'expo-file-system';
 import { FormElement } from "src/types/interface/form.interface";
-import * as Application from 'expo-application'
 
 const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
@@ -266,10 +265,10 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
             postData.otherSpecies = d.species_guid
         } else if (d.species_guid == "unknown") {
             postData.otherSpecies = "Unknown"
-        }  else {
+        } else {
             postData.scientificSpecies = d.species_guid
         }
-        
+
         if (d.tree_type === 'sample') {
             postData.parent = i.location_id
         }
@@ -288,14 +287,10 @@ const handleAdditionalData = (aData: FormElement[]) => {
     const publicAdd = {}
     aData.forEach(el => {
         if (el.visibility === 'private') {
-            privateAdd[el.key] = {
-                value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: el.type, label: el.label
-            }
+            privateAdd[el.label] = el.value
         }
         if (el.visibility === 'public') {
-            publicAdd[el.key] = {
-                value: el.value, key: el.key, v: Application.nativeApplicationVersion, t: el.type, label: el.label
-            }
+            publicAdd[el.label] = el.value
         }
     })
     return { privateAdd, publicAdd }

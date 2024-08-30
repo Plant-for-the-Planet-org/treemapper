@@ -40,9 +40,9 @@ const HomeHeader = (props: Props) => {
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
-  const {  isSyncing } = useSelector(
+  const { isSyncing } = useSelector(
     (state: RootState) => state.syncState,
-)
+  )
   const dispatch = useDispatch()
 
   const openHomeDrawer = () => {
@@ -132,10 +132,6 @@ const HomeHeader = (props: Props) => {
     try {
       const { response, success } = await getServerIntervention(lastServerInterventionpage)
       if (success && response?.items) {
-        if (!response._links.next || response._links.next === response._links.self) {
-          dispatch(updateServerIntervention(true))
-          return;
-        }//loc_fVSURzjYpGU0ozFD60dPrbJF
         for (let index = 0; index < response.count; index++) {
           if (response.items[index] && deleteThis.includes(response.items[index].id)) {
             continue;
@@ -145,6 +141,10 @@ const HomeHeader = (props: Props) => {
         }
         const nextPage = getExtendedPageParam(response._links.next)
         dispatch(updateLastServerIntervention(nextPage))
+        if (!response._links.next || response._links.next === response._links.self) {
+          dispatch(updateServerIntervention(true))
+          return;
+        }
         addNewLog({
           logType: 'DATA_SYNC',
           message: "Intervention fetched successfully",
