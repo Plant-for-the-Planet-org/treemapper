@@ -17,6 +17,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import i18next from 'i18next'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -62,7 +63,7 @@ const LoginButton = () => {
       handleLogout()
       return
     }
-    const {response, success} = await getUserDetails()
+    const { response, success } = await getUserDetails()
     if (success && response.signUpRequire) {
       navigation.navigate('SignUpPage', {
         email: user?.email,
@@ -142,7 +143,7 @@ const LoginButton = () => {
   return (
     <View style={styles.container}>
       <CustomButton
-        label={'Login/SignUp'}
+        label={i18next.t("label.login_signup")}
         pressHandler={handleLogin}
         containerStyle={styles.wrapper}
         disable={webAuthLoading}

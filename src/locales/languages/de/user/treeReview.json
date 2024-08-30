@@ -29,7 +29,7 @@
   "skip": "Überspringen & Speichern",
   "add_more_sample_trees": "Weitere Musterbäume hinzufügen",
   "recommend_at_least_one_sample": "Für einige der gepflanzten Arten gibt es kein Muster. Wir empfehlen Dir, für jede gepflanzte Art mindestens einen Musterbaum anzugeben.",
-  "no_species_found": "Keine Arten gefunden",
+  "no_species_found": "Art nicht gefunden",
   "at_least_one_species": "Du solltest mindestens eine Art auswählen, bevor du fortfährst.",
   "need_more_sample_trees": "Benötigt mehr Musterbäume",
   "at_least_five_sample_trees": "Du solltest mindestens 5 Musterbäume hinzufügen.",
