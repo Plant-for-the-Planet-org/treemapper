@@ -195,9 +195,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             const planted_species = d.planted_species.map(el => {
                 const species: any = {}
                 species.treeCount = el.count
-                if (el.guid === 'undefined') {
-                    species.otherSpecies = "Unknown"
-                } else if (el.guid == "unknown") {
+                if (el.guid == "unknown") {
                     species.otherSpecies = "Unknown"
                 } else {
                     species.scientificSpecies = el.guid
@@ -261,9 +259,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         if (i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
-        if (d.species_guid === 'undefined') {
-            postData.otherSpecies = d.species_guid
-        } else if (d.species_guid == "unknown") {
+        if (d.species_guid == "unknown") {
             postData.otherSpecies = "Unknown"
         } else {
             postData.scientificSpecies = d.species_guid

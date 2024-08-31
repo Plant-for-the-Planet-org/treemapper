@@ -22,15 +22,18 @@ import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { Typography, Colors } from 'src/utils/constants'
 import i18next from 'i18next'
 import VersionCheck from 'react-native-version-check-expo';
+import { useRealm } from '@realm/react'
+import { RealmSchema } from 'src/types/enum/db.enum'
+import { addUserSpeciesToServer, removeUserSpeciesToServer, updateServerSpeciesDetail } from 'src/api/api.fetch'
 
 const SpeciesSync = () => {
   const { downloadFile, checkDownloadFolder } = useDownloadFile()
-  const { writeBulkSpecies } = useManageScientificSpecies()
+  const { writeBulkSpecies, updateDBSpeciesSyncStatus } = useManageScientificSpecies()
   const { addNewLog } = useLogManagement()
   const { setupApp } = useInitialSetup()
   const { speciesDownloading, speciesUpdatedAt } = useSelector((state: RootState) => state.tempState)
   const { speciesSync, speciesLocalURL, updateAppCount } = useSelector((state: RootState) => state.appState)
-
+  const realm = useRealm()
   const dispatch = useDispatch()
   useEffect(() => {
     isSpeciesDownloaded()
@@ -49,8 +52,11 @@ const SpeciesSync = () => {
       if (updateAppCount % 2 === 0) {
         checkForAppUpdate()
       }
+      if (updateAppCount % 3 === 0) {
+        handleSpeciesSync()
+      }
       dispatch(setUpdateAppCount())
-    }, 300);
+    }, 5000);
   }, [])
 
   const checkForAppUpdate = async () => {
@@ -76,6 +82,130 @@ const SpeciesSync = () => {
   }
 
 
+  const handleSpeciesSync = async () => {
+    const speciesRequireSync = realm.objects<any>(RealmSchema.ScientificSpecies).filtered('isUploaded == true AND isUpdated==false')
+    const queeData = speciesRequireSync.map(el => {
+      if (el.guid === 'unknown') {
+        return {
+          type: "skip",
+          guid: el.guid,
+          id: el.specieId || '',
+          data: {
+            "scientificSpecies": el.guid,
+            "aliases": el.aliases || '',
+            "description": el.description || '',
+          },
+          nextStatus: {
+            isUploaded: true,
+            isUpdated: true
+          }
+        }
+      }
+
+
+      if (el.isUserSpecies && el.isUploaded && !el.isUpdated && !el.specieId) {
+        return {
+          type: "addToFav",
+          guid: el.guid,
+          id: el.specieId || '',
+          data: {
+            "scientificSpecies": el.guid,
+            "aliases": el.aliases || '',
+            "description": el.description || '',
+          },
+          nextStatus: {
+            isUploaded: true,
+            isUpdated: true
+          }
+        }
+      }
+
+      if (!el.isUserSpecies && el.isUploaded && !el.isUpdated) {
+        return {
+          type: "removeFromFav",
+          guid: el.guid,
+          id: el.specieId || '',
+          data: {
+            "scientificSpecies": el.guid,
+            "aliases": el.aliases || '',
+            "description": el.description || '',
+          },
+          nextStatus: {
+            isUploaded: false,
+            isUpdated: true
+          }
+        }
+      }
+
+      if (el.isUserSpecies && el.specieId) {
+        return {
+          type: "edit",
+          guid: el.guid,
+          id: el.specieId || '',
+          data: {
+            "scientificSpecies": el.guid,
+            "aliases": el.aliases || '',
+            "description": el.description || ''
+          },
+          nextStatus: {
+            isUploaded: true,
+            isUpdated: true
+          }
+        }
+      }
+      return {
+        type: "skip",
+        guid: el.guid,
+        id: el.specieId || '',
+        data: {
+          "scientificSpecies": el.guid,
+          "aliases": el.aliases || '',
+          "description": el.description || '',
+        },
+        nextStatus: {
+          isUploaded: true,
+          isUpdated: true
+        }
+      }
+    })
+    if (queeData.length > 0) {
+      syncUploadHelper(queeData)
+    }
+  }
+
+
+  const syncUploadHelper = async (queeData) => {
+    for (const element of queeData) {
+
+      if (element.type === 'skip') {
+        await updateDBSpeciesSyncStatus(element.guid, true, true, '')
+      }
+      if (element.type === 'addToFav') {
+        const { success, response } = await addUserSpeciesToServer({
+          "scientificSpecies": element.data.scientificSpecies,
+          "aliases": element.data.aliases || element.data.scientificSpecies,
+          "description": element.data.description,
+        })
+        if (success && response && response.id) {
+          await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, response.id || element.id)
+        }
+      }
+      if (element.type == 'removeFromFav') {
+        await removeUserSpeciesToServer(element.id)
+        await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '')
+      }
+
+      if (element.type === 'edit') {
+        await updateServerSpeciesDetail({
+          "scientificSpecies": element.data.scientificSpecies,
+          "aliases": element.data.aliases || element.data.scientificSpecies,
+          "description": element.data.description,
+        }, element.id)
+        await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id)
+
+      }
+    }
+  }
 
 
   const showUpdateAlert = (url: string) => {
@@ -105,6 +235,7 @@ const SpeciesSync = () => {
 
     if (!speciesLocalURL) {
       isSpeciesUpdateRequired()
+      return
     }
   }
 

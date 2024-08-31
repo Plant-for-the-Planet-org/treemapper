@@ -26,6 +26,7 @@ export interface IScientificSpecies {
   image?: string
   description?: string
   isUpdated?: boolean
+  specieId: string
 }
 
 

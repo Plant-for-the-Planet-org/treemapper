@@ -1,5 +1,5 @@
 import { getUrlApi, postUrlApi } from './api.url';
-import { fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
+import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
 
 export const uploadIntervention = async (params: any) => {
   const uri = `${postUrlApi.uploadIntervention}`;
@@ -64,11 +64,32 @@ export const createUserProfile = async (params: any) => {
   const result = await fetchPostCall(uri, params, false);
   return result;
 };
+
 export const updateProjectDetails = async (d: { i: number, f: string, id: string }) => {
   const uri = `${postUrlApi.updateProjectInF}/${d.id}`;
   const result = await fetchPutCall(uri, {
     "revisionPeriodicityLevel": d.f,
     "intensity": d.i
   });
+  return result;
+};
+
+export const addUserSpeciesToServer = async (params: any) => {
+  const uri = `${postUrlApi.addUserSpecies}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+
+export const removeUserSpeciesToServer = async (id: any) => {
+  const uri = `${postUrlApi.addUserSpecies}/${id}`;
+  const result = await fetchDeleteCall(uri);
+  return result;
+};
+
+
+export const updateServerSpeciesDetail = async (params: any, id: string) => {
+  const uri = `${postUrlApi.addUserSpecies}/${id}`;
+  const result = await fetchPutCall(uri, params);
   return result;
 };

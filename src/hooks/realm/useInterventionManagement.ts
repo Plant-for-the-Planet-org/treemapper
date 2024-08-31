@@ -104,7 +104,7 @@ const useInterventionManagement = () => {
         realm.create(
           RealmSchema.Intervention,
           intervention,
-          Realm.UpdateMode.All,
+        Realm.UpdateMode.All,
         )
       })
       return Promise.resolve(true)

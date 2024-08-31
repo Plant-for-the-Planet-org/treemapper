@@ -52,7 +52,7 @@ const useManageScientificSpecies = () => {
         realm.create(
           RealmSchema.ScientificSpecies,
           {
-            guid: 'undefined',
+            guid: 'unknown',
             scientificName: 'Unknown',
             isUserSpecies: true,
             aliases: 'Not Known'
@@ -69,7 +69,7 @@ const useManageScientificSpecies = () => {
         statusCode: '000',
         logStack: JSON.stringify(error)
       })
- return false
+      return false
     }
   }
 
@@ -83,6 +83,8 @@ const useManageScientificSpecies = () => {
           guid,
         )
         specieToUpdate.isUserSpecies = isFavorite
+        specieToUpdate.isUploaded = true
+        specieToUpdate.isUpdated = false
       })
     } catch (error) {
       console.error('Error during species update:', error)
@@ -100,7 +102,8 @@ const useManageScientificSpecies = () => {
         specieToUpdate.description = item.description
         specieToUpdate.image = item.image
         specieToUpdate.aliases = item.aliases
-
+        specieToUpdate.isUploaded = true
+        specieToUpdate.isUpdated = false
       })
     } catch (error) {
       console.error('Error during species update:', error)
@@ -121,6 +124,7 @@ const useManageScientificSpecies = () => {
             image: specie.image || '',
             description: specie.description || '',
             isUpdated: true,
+            specieId: specie.id || ''
           }
           realm.create(
             RealmSchema.ScientificSpecies,
@@ -138,7 +142,7 @@ const useManageScientificSpecies = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
- return false
+      return false
     }
   }
 
@@ -153,11 +157,39 @@ const useManageScientificSpecies = () => {
       return Promise.resolve(true)
     } catch (error) {
       console.error('Error during bulk write:', error)
- return false
+      return false
     }
   }
 
-  return { addUndefinedSpecies, writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
+  const updateDBSpeciesSyncStatus = async (guid: string, isUpdated: boolean, isUploaded: boolean, id: string) => {
+    try {
+      realm.write(() => {
+        console.log("LSKDCJ","here I am")
+        const specieToUpdate = realm.objectForPrimaryKey<IScientificSpecies>(
+          RealmSchema.ScientificSpecies,
+          guid,
+        )
+        specieToUpdate.isUploaded = isUploaded
+        specieToUpdate.isUpdated = isUpdated
+        specieToUpdate.specieId = id || ''
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.log("AJKLDC",error)
+      addNewLog({
+        logType: 'MANAGE_SPECIES',
+        message: "Error occurred while adding user species.",
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false
+    }
+  }
+
+
+  
+  return { updateDBSpeciesSyncStatus, addUndefinedSpecies, writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
 }
 
 export default useManageScientificSpecies

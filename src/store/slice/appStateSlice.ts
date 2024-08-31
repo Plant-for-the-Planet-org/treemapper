@@ -15,7 +15,7 @@ const initialState: AppInitialState = {
   userSpecies: false,
   lastSyncDate: 0,
   dataMigrated: false,
-  updateAppCount: 6
+  updateAppCount: 10
 }
 
 const appStateSlice = createSlice({
@@ -67,7 +67,7 @@ const appStateSlice = createSlice({
       if (state.updateAppCount > 0) {
         state.updateAppCount -= 1
       } else {
-        state.updateAppCount = 6
+        state.updateAppCount = 10
       }
     },
     logoutAppUser(state) {
