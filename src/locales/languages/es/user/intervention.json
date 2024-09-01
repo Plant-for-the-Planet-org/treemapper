@@ -68,7 +68,7 @@
     "remeasurement_default": "La nueva medición se realizará después de 1 año, 2 años, 5 años, 10 años y luego una vez cada 10 años.",
     "remeasurement_high":"La nueva medición se realizará después de 6 meses, 1 año, 1,5 años, 2 años, 3 años, 5 años, 7 años, 10 años y luego una vez cada 5 años.",
     "remeasurement_low":"La nueva medición se realizará después de 2 años, 10 años, 20 años y luego una vez cada 20 años.",
-    "marked_deceased":"Marcada fallecida",
+    "marked_deceased":"Fallecida",
     "tree_details":"Detalles del árbol",
     "review_tree_details":"Revisar detalles del árbol",
     "plantation_date":"Fecha de plantación",

@@ -52,7 +52,8 @@ export type RootStackParamList = {
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
   OldInventoryDataView: undefined,
   EditProject: EditProjectView,
-  SignUpPage: SignUpPage
+  SignUpPage: SignUpPage,
+  PlantHistory: PlantHistory
 }
 
 type SpeciesInfoView = {
@@ -80,6 +81,9 @@ type SignUpPage = {
   accessToken: string
 }
 
+type PlantHistory = {
+  id: string,
+}
 
 
 type ManageSpeciesView = {
@@ -202,6 +206,8 @@ type AddPlotsToGroup = {
 type TreeRemeasurementView = {
   interventionId: string
   treeId: string
+  isEdit?: boolean
+  historyId?: string
 }
 type ProjectRemeasurementConfig = {
   id: string

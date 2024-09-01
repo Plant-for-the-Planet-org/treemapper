@@ -70,9 +70,9 @@ const InterventionCoverImage = (props: Props) => {
         {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>}
-        <View style={styles.emptyWrapper}>
-          <Text style={styles.emptyLabel}>Add Cover Image</Text>
-        </View>
+        <TouchableOpacity style={styles.emptyWrapper}  onPress={editImage}>
+          <Text style={styles.emptyLabel}>Add Tree Image</Text>
+        </TouchableOpacity>
       </View>}
     </View>
   )

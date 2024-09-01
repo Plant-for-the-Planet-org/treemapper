@@ -797,7 +797,7 @@ const useInterventionManagement = () => {
         interventionData.last_updated_at = Date.now()
         if (!newStatus) {
           const now = new Date();
-          interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
+          interventionData.next_measurement_date = new Date(now.setFullYear(now.getFullYear() + 1)).getTime()
         }
       });
       return true

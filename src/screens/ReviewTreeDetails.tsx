@@ -34,6 +34,9 @@ import { measurementValidation } from 'src/utils/constants/measurementValidation
 import AlertModal from 'src/components/common/AlertModal'
 import DeleteIcon from 'assets/images/svg/BinIcon.svg'
 import DeleteModal from 'src/components/common/DeleteModal'
+import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
+import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
+import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -96,6 +99,16 @@ const ReviewTreeDetails = () => {
 
     const nextTreeButton = () => {
         navigation.replace('LocalForm', { id: interventionId })
+    }
+
+    const renderIcon = () => {
+        if (!treeDetails.is_alive) {
+            return <DeceasedTreeIcon />
+        }
+        if (treeDetails.history.length > 0) {
+            return <RemeasurementIcon />
+        }
+        return <PlantedIcon />
     }
 
 
@@ -253,6 +266,10 @@ const ReviewTreeDetails = () => {
         setOpenEditModal({ ...openEditModal, value: d })
     }
 
+    const showPlantHistory = () => {
+        navigation.navigate("PlantHistory", { id: treeDetails.tree_id })
+    }
+
     const onDateSelect = async (_event, date: Date) => {
         const finalDetails = { ...treeDetails }
         setShowDatePicker(false)
@@ -270,12 +287,13 @@ const ReviewTreeDetails = () => {
                 </TouchableOpacity>
             </View>
         }
-        if (treeDetails.is_alive) {
+        if (treeDetails.status === 'INITIALIZED') {
             return null
         }
-        return <View style={styles.rightContainer}>
-            <Text style={styles.deceasedLabel}>{i18next.t('label.marked_deceased')}</Text>
-        </View>
+        return <TouchableOpacity style={styles.rightContainer} onPress={showPlantHistory}>
+            {renderIcon()}
+            <Text style={[styles.deceasedLabel, { color: !treeDetails.is_alive ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY }]}>{treeDetails.is_alive ? "History" : i18next.t('label.marked_deceased')}</Text>
+        </TouchableOpacity>
     }
 
     if (!treeDetails) {
@@ -317,6 +335,8 @@ const ReviewTreeDetails = () => {
         await deleteSampleTreeIntervention(treeDetails.tree_id, interventionId)
         navigation.goBack()
     }
+
+
 
     return (
         <SafeAreaView style={styles.container}>
@@ -543,13 +563,15 @@ const styles = StyleSheet.create({
         marginRight: 10,
         paddingHorizontal: 10,
         paddingVertical: 10,
-        backgroundColor: Colors.GRAY_BACKDROP,
-        borderRadius: 12
+        backgroundColor: Colors.BACKDROP_COLOR,
+        borderRadius: 12,
+        flexDirection: 'row',
     },
     deceasedLabel: {
-        color: Colors.WHITE,
+        color: Colors.NEW_PRIMARY,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         fontSize: 12,
+        paddingLeft: 10
     },
     borderWrapper: {
         flexDirection: 'row',
@@ -599,6 +621,8 @@ const styles = StyleSheet.create({
     },
     deleteContainer: {
         height: '100%',
+        width: 200,
+        backgroundColor: "purple",
         justifyContent: 'center',
         alignItems: 'center',
         marginHorizontal: 10

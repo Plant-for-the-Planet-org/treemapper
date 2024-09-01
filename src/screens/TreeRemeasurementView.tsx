@@ -208,8 +208,8 @@ const TreeRemeasurementView = () => {
             appMetadata: '',
             status: isAlive ? '' : 'dead',
             statusReason: type.value,
-            dataStatus: 'PENDING_UPLOAD',
-            parentId: '',
+            dataStatus: 'REMEASUREMENT_HISTORY_SYNC',
+            parentId: treeId,
             samplePlantLocationIndex: 0,
             lastScreen: '',
             additionalDetails: [
@@ -246,8 +246,8 @@ const TreeRemeasurementView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={styles.container}>
-                <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
+            <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
+            <ScrollView>
                 <AvoidSoftInputView
                     avoidOffset={20}
                     showAnimationDuration={200}
@@ -280,7 +280,6 @@ const TreeRemeasurementView = () => {
                                     placeholder={i18next.t('label.select_species_height')}
                                     changeHandler={handleHeightChange}
                                     autoFocus
-
                                     keyboardType={'decimal-pad'}
                                     defaultValue={getConvertedMeasurementText(treeDetails.specie_height)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
@@ -301,14 +300,12 @@ const TreeRemeasurementView = () => {
                                         unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
                                     })}
                                 />
-                                <View style={styles.inputWrapper}>
-                                    <OutlinedTextInput
-                                        placeholder={'Comments(Optional)'}
-                                        changeHandler={setComment}
-                                        keyboardType={'default'}
-                                        defaultValue={comment}
-                                        trailingText={''} errMsg={''} />
-                                </View>
+                                <OutlinedTextInput
+                                    placeholder={'Comments(Optional)'}
+                                    changeHandler={setComment}
+                                    keyboardType={'default'}
+                                    defaultValue={comment}
+                                    trailingText={''} errMsg={''} />
                             </View></> :
                             <>
                                 <CustomDropDownPicker
@@ -326,6 +323,7 @@ const TreeRemeasurementView = () => {
                                         trailingText={''} errMsg={''} />
                                 </View></>
                         }
+                        <View style={styles.footer} />
                     </View>
                     <AlertModal
                         showSecondaryButton
@@ -338,13 +336,12 @@ const TreeRemeasurementView = () => {
                         message={i18next.t('label.not_optimal_ratio_message')}
                     />
                 </AvoidSoftInputView>
-                <CustomButton
-                    label={!isAlive ? "Save" : imageURL()}
-                    containerStyle={styles.btnContainer}
-                    pressHandler={validateData}
-                    hideFadeIn
-                />
             </ScrollView>
+            <CustomButton
+                label={!isAlive ? "Save" : imageURL()}
+                containerStyle={styles.btnContainer}
+                pressHandler={validateData}
+            />
         </SafeAreaView>
     )
 }
@@ -357,19 +354,23 @@ const styles = StyleSheet.create({
         backgroundColor: WHITE,
     },
     inputWrapper: {
-        width: '95%'
+        width: '95%',
+    },
+    footer: {
+        width: "100%",
+        height: 50,
     },
     wrapper: {
         backgroundColor: BACKDROP_COLOR,
         flex: 1,
         alignItems: 'center',
-        paddingTop: 20
+        paddingTop: 20,
     },
     btnContainer: {
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 10,
+        bottom: 30,
     },
     btnMinorContainer: {
         width: '100%',

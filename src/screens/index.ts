@@ -45,6 +45,7 @@ import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
 import SignUpView from './SignUpView'
+import PlantHistory from './PlantHistoryView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -93,5 +94,6 @@ export default {
   ProjectRemeasurementConfig: ProjectRemeasurementConfig,
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
-  SignUpView: SignUpView
+  SignUpView: SignUpView,
+  PlantHistory:PlantHistory
 }

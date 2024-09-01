@@ -351,7 +351,7 @@ export interface History {
   appMetadata: string
   status: string
   statusReason: string
-  dataStatus: string
+  dataStatus: 'SYNCED' | "REMEASUREMENT_HISTORY_SYNC"
   parentId: string
   samplePlantLocationIndex: number
   lastScreen: string

@@ -13,12 +13,11 @@ interface Props {
 const InterventionMetaData = (props: Props) => {
   const [additionalData, setAdditionalData] = useState<Array<{ key: string, value: string }>>([]);
   const { data } = props
+
+
   useEffect(() => {
     convertData()
   }, [data])
-
-
-
 
 
   const convertData = () => {
@@ -31,13 +30,12 @@ const InterventionMetaData = (props: Props) => {
         const publicData = parsedData.public;
         if (typeof publicData === 'object' && publicData !== null && !Array.isArray(publicData)) {
           for (const key in publicData) {
-            if (key!=='isEntireSite') {  // optional: ensure the property is not inherited
+            if (key !== 'isEntireSite' && typeof publicData[key] === 'string') { 
               checkForPublic.push({ value: publicData[key], key: key });
             }
           }
         }
       }
-
     }
     setAdditionalData(checkForPublic)
   }

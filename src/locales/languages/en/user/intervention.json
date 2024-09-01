@@ -68,7 +68,7 @@
     "remeasurement_default": "Re-measurement will happen after 1 year, 2 years, 5 years, 10 years, and then once in every 10 years.",
     "remeasurement_high":"Re-measurement will happen after 6 months, 1 year, 1.5 years, 2 years, 3 years, 5 years, 7 years, 10 years, and then once in every 5 years.",
     "remeasurement_low":"Re-measurement will happen after  2 years,  10 years, 20 years and then once in every 20 years.",
-    "marked_deceased":"Marked Deceased",
+    "marked_deceased":"Deceased",
     "tree_details":"Tree Details",
     "review_tree_details":"Review Tree Details",
     "plantation_date":"Plantation Date",
