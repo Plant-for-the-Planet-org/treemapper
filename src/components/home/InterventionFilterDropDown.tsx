@@ -69,8 +69,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.5,
     borderBottomColor: Colors.WHITE,
     flexDirection: 'row',
-    marginLeft:'1%',
-    justifyContent:'space-evenly',
+    justifyContent: 'space-between',
   },
   tileLabel: {
     fontSize: 16,

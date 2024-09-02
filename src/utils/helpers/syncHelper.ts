@@ -75,6 +75,15 @@ export const postDataConvertor = (d: InterventionData[]) => {
                         p2Id: trees.tree_id,
                     })
                 }
+                if (trees.status === 'SKIP_REMEASUREMENT') {
+                    quae.push({
+                        type: 'skipRemeasurement',
+                        priority: 1,
+                        nextStatus: 'SYNCED',
+                        p1Id: el.intervention_id,
+                        p2Id: trees.tree_id,
+                    })
+                }
                 if (el.status === 'PENDING_SAMPLE_TREE' && el.hid !== '' && trees.sloc_id === '') {
                     quae.push({
                         type: 'sampleTree',
@@ -147,7 +156,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
         return convertRemeasurementStatus(TreeDetails)
     }
-
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
@@ -204,10 +212,8 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             })
             postData.plantedSpecies = planted_species
         }
-        if (d.intervention_end_date) {
-            postData.interventionStartDate = postTimeConvertor(d.intervention_date)
-            postData.interventionEndDate = postTimeConvertor(d.intervention_end_date)
-        }
+        postData.interventionStartDate = postTimeConvertor(d.intervention_date)
+        postData.interventionEndDate = postTimeConvertor(d.intervention_end_date)
         if (d.sample_trees.length > 0) {
             postData.sampleTreeCount = d.sample_trees.length
         }
@@ -294,7 +300,7 @@ const handleAdditionalData = (aData: FormElement[]) => {
 
 export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
     try {
-        const getHistory = d.history.find(el => el.dataStatus === 'PENDING_UPLOAD')
+        const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_DATA_UPLOAD')
         const base64Image = await getImageAsBase64(d.image_url)
         const postData: any = {
             "type": "measurement",
@@ -310,7 +316,7 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 }
             } : {}
         }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
@@ -318,7 +324,7 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
 
 
 export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPayload> => {
-    const getHistory = d.history.find(el => el.dataStatus === 'PENDING_UPLOAD')
+    const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
     try {
         const postData: any = {
             "type": "status",
@@ -331,8 +337,9 @@ export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPay
                 }
             } : {}
         }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
 }
+

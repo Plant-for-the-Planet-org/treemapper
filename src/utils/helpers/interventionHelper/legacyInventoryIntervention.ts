@@ -324,7 +324,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
         has_sample_trees: extraData.hasSampleTrees,
         sample_trees: sample_trees,
         is_complete: true,
-        site_id: "",
+        site_id:  data.plantProjectSite || '',
         intervention_type: extraData.key,
         form_data: [],
         additional_data: [],

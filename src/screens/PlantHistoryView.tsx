@@ -8,7 +8,7 @@ import CustomButton from 'src/components/common/CustomButton'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-
+import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
 import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
@@ -17,7 +17,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { History, SampleTree } from 'src/types/interface/slice.interface'
 import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { v4 as uuid } from 'uuid'
-
+import Editicon from 'assets/images/svg/EditPenIcon.svg'
 
 
 const PlantHistory = () => {
@@ -28,7 +28,6 @@ const PlantHistory = () => {
     const plantDetails = useObject<SampleTree>(
         RealmSchema.TreeDetail, plantID
     )
-
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
     useEffect(() => {
@@ -50,32 +49,16 @@ const PlantHistory = () => {
             lastScreen: ''
         }
         const finalData = [initialData, ...plantDetails?.history ? plantDetails.history : []]
-        if (!plantDetails.is_alive) {
-            finalData.push({
-                history_id: uuid(),
-                eventName: 'deceased',
-                eventDate: plantDetails.remeasurement_dates.lastMeasurement || Date.now(),
-                imageUrl: plantDetails.image_url,
-                cdnImageUrl: plantDetails.cdn_image_url,
-                diameter: plantDetails.specie_diameter,
-                height: plantDetails.specie_height,
-                additionalDetails: [],
-                appMetadata: '',
-                status: '',
-                statusReason: '',
-                dataStatus: 'SYNCED',
-                parentId: plantDetails.tree_id,
-                samplePlantLocationIndex: 0,
-                lastScreen: ''
-            })
-        }
         setSelectedTimeline([...finalData])
     }, [plantDetails])
 
 
 
 
-    const handleSelection = (historyId: string) => {
+    const handleSelection = (historyId: string, status: string) => {
+        if (status === "SYNCED") {
+            return
+        }
         navigation.navigate('TreeRemeasurement', {
             interventionId: plantDetails.intervention_id,
             treeId: plantID,
@@ -84,7 +67,6 @@ const PlantHistory = () => {
         }
         )
     }
-
     const addNewRemeasurement = () => {
         navigation.navigate('TreeRemeasurement', {
             interventionId: plantDetails.intervention_id,
@@ -101,7 +83,7 @@ const PlantHistory = () => {
             switch (item.eventName) {
                 case 'measurement':
                     return <RemeasurementIcon />
-                case 'deceased':
+                case 'status':
                     return <DeceasedTreeIcon />
                 default:
                     return <PlantedIcon />
@@ -112,25 +94,28 @@ const PlantHistory = () => {
             switch (item.eventName) {
                 case 'measurement':
                     return `Measurement ${index}: ${item.height} m high,${item.diameter} cm wide`
-                case 'deceased':
-                    return 'Marked deceased'
+                case 'status':
+                    return 'Marked status'
                 default:
                     return `Tree Planted : ${index}: ${item.height} m high,${item.diameter} cm wide`
             }
         }
 
         return (
-            <Pressable style={styles.cardContainer} onPress={() => { handleSelection(item.history_id) }}>
+            <Pressable style={styles.cardContainer} onPress={() => { handleSelection(item.history_id, item.dataStatus) }}>
                 <View style={styles.iconWrapper}>
-                    <View style={[styles.icon, { backgroundColor: item.eventName === 'deceased' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
+                    <View style={[styles.icon, { backgroundColor: item.eventName === 'status' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
                         {renderIcon()}
                     </View>
-                    {item.eventName !== 'deceased' && <View style={styles.divider} />}
+                    {item.eventName !== 'status' && <View style={styles.divider} />}
                 </View>
                 <View style={styles.cardSection}>
-                    <Text style={styles.cardHeader}>
-                        {displayYearDate(item.eventDate)}
-                    </Text>
+                    <View style={styles.sectionHeaderWrapper}>
+                        <Text style={styles.cardHeader}>
+                            {displayYearDate(item.eventDate)}
+                        </Text>
+                        {item.dataStatus !== 'SYNCED' && <Editicon />}
+                    </View>
                     <Text style={styles.cardLabel}>
                         {label()}
                     </Text>
@@ -142,11 +127,26 @@ const PlantHistory = () => {
         return null
     }
 
+    const moveToHome = () => {
+        navigation.popToTop()
+        //@ts-expect-error Extra params
+        navigation.navigate('Home', {
+            screen: 'Map'
+        });
+    }
+
+    const rightContainer = () => {
+        if (plantDetails.status === 'SYNCED') {
+            return null
+        }
+        return <UnSyncIcon style={{ marginRight: '5%', marginTop: -10 }} height={30} width={30} onPress={moveToHome} />
+    }
+
     const renderFooter = () => (<View style={styles.footerWrapper} />)
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <PlotPlantRemeasureHeader tree label={plantDetails.hid} type={'RECRUIT'} species={plantDetails.specie_name} showRemeasure={true} rightComponent={<></>} />
+            <PlotPlantRemeasureHeader tree label={plantDetails.hid} type={'RECRUIT'} species={plantDetails.specie_name} showRemeasure={true} rightComponent={rightContainer()} />
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
                     <FlatList
@@ -157,11 +157,11 @@ const PlantHistory = () => {
                         data={selectedTimeline} />
                 </View>
             </View>
-            {plantDetails.is_alive && <CustomButton
+            {plantDetails.is_alive && plantDetails.status === 'SYNCED' ? <CustomButton
                 label="Add New Measurement"
                 containerStyle={styles.btnContainer}
                 pressHandler={addNewRemeasurement}
-            />}
+            /> : null}
         </SafeAreaView>
     )
 }
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
         width: '90%',
     },
     cardContainer: {
-        width: '90%',
+        width: '95%',
         height: 90,
         flexDirection: 'row',
         justifyContent: 'flex-start'
@@ -230,6 +230,11 @@ const styles = StyleSheet.create({
         marginLeft: 10,
         height: '100%',
         justifyContent: 'flex-start'
+    },
+    sectionHeaderWrapper: {
+        flexDirection: 'row',
+        width: '100%',
+        justifyContent: 'space-between'
     },
     rightComp: {
         justifyContent: 'center',

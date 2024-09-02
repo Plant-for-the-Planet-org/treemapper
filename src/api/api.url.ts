@@ -6,6 +6,7 @@ export const postUrlApi = {
   uploadIntervention: `${https}${baseUrl}/treemapper/interventions`,
   imageUpload: `${https}${baseUrl}/treemapper/interventions`,
   remeasurement: `${https}${baseUrl}/treemapper/interventions`,
+  skipRemeasurement: `${https}${baseUrl}/treemapper/interventions`,
   updateSpecies: `${https}${baseUrl}/treemapper/species`,
   addUserSpecies: `${https}${baseUrl}/treemapper/species`,
   updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,

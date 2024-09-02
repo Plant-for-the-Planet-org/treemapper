@@ -23,7 +23,7 @@ interface Props {
 const InterventionHeaderList = (props: Props) => {
   const { selectedLabel, setSelectedLabel } = props
   const [headerData, setHeaderData] = useState([])
-  const { lastServerInterventionpage, intervention_updated } = useSelector((state: RootState) => state.appState)
+  const { lastServerInterventionpage, intervention_updated, dataMigrated } = useSelector((state: RootState) => state.appState)
 
 
   const realm = useRealm()
@@ -34,7 +34,7 @@ const InterventionHeaderList = (props: Props) => {
     //@ts-expect-error
     const FinalData = groupIntervention(objects)
     setHeaderData(FinalData)
-  }, [lastServerInterventionpage, intervention_updated])
+  }, [lastServerInterventionpage, intervention_updated,dataMigrated])
 
 
   const headerChip = (item: any) => {

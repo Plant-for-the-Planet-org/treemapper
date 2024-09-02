@@ -80,6 +80,16 @@
     "intervention_date":"Intervention Date",
     "location_optional":"Location Name [Optional]",
     "further_info":"Further Information [Optional]",
-    "intervention_type":"Intervention Type"
+    "intervention_type":"Intervention Type",
+    "within_30": "Within 30 days",
+    "within_6": "Within 6 months",
+    "within_1": "Within 1 year",
+    "within_no": "Don't show intervention",
+    "within_All": "All interventions",
+    "show_30": "Show interventions within 30 days",
+    "show_6": "Show interventions within 6 months",
+    "show_1": "Show interventions within 1 year",
+    "show_all": "Show all interventions",
+    "dont_show": "Don't show interventions"
 
 }

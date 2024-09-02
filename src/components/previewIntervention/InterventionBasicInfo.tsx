@@ -173,7 +173,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>{i18next.t('label.type')}</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
-        {userType === 'tpo' && (
+        {userType === 'tpo' && status !== 'SYNCED' ? (
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
@@ -181,8 +181,8 @@ const InterventionBasicInfo = (props: Props) => {
             </View>
             <Text style={styles.cardLabel}>{project_name || "No Project assigned"}</Text>
           </Pressable>
-        )}
-        {userType === 'tpo' && (
+        ) : null}
+        {userType === 'tpo' && status !== 'SYNCED'?(
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
@@ -190,7 +190,7 @@ const InterventionBasicInfo = (props: Props) => {
             </View>
             <Text style={styles.cardLabel}>{site_name || "No Site Selected"}</Text>
           </Pressable>
-        )}
+        ):null}
         {plantedSpecies()}
       </View>
     </View>

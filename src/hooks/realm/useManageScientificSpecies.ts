@@ -164,7 +164,6 @@ const useManageScientificSpecies = () => {
   const updateDBSpeciesSyncStatus = async (guid: string, isUpdated: boolean, isUploaded: boolean, id: string) => {
     try {
       realm.write(() => {
-        console.log("LSKDCJ","here I am")
         const specieToUpdate = realm.objectForPrimaryKey<IScientificSpecies>(
           RealmSchema.ScientificSpecies,
           guid,
@@ -175,7 +174,6 @@ const useManageScientificSpecies = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.log("AJKLDC",error)
       addNewLog({
         logType: 'MANAGE_SPECIES',
         message: "Error occurred while adding user species.",

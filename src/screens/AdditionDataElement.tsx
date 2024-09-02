@@ -342,6 +342,7 @@ const AdditionDataElement = () => {
             onSelect={el => {
               selectDataType(el)
             }}
+            whiteBG
             selectedValue={dataType}
           />
         )}

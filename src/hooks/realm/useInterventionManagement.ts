@@ -104,7 +104,7 @@ const useInterventionManagement = () => {
         realm.create(
           RealmSchema.Intervention,
           intervention,
-        Realm.UpdateMode.All,
+          Realm.UpdateMode.All,
         )
       })
       return Promise.resolve(true)
@@ -755,7 +755,42 @@ const useInterventionManagement = () => {
     }
   };
 
-  const addPlantHistory = async (treeId: string, e: History): Promise<boolean> => {
+  const addPlantHistory = async (treeId: string, e: History, skip?: boolean): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        const now = new Date();
+        if (skip) {
+          treeDetails.status = 'SKIP_REMEASUREMENT'
+        } else {
+          treeDetails.remeasurement_dates = {
+            ...treeDetails.remeasurement_dates,
+            lastMeasurement: Date.now(),
+            nextMeasurement: new Date(now.setFullYear(now.getFullYear() + 1)).getTime()// check when do i need to set this
+          }
+          treeDetails.specie_diameter = e.diameter
+          treeDetails.specie_height = e.height
+          if (e.imageUrl && !e.status) {
+            treeDetails.image_url = e.imageUrl
+            treeDetails.cdn_image_url = ''
+          }
+          if (e.status) {
+            treeDetails.is_alive = false
+          }
+          treeDetails.remeasurement_requires = false
+          treeDetails.history = [...treeDetails.history, e]
+          treeDetails.status = treeDetails.is_alive ? 'REMEASUREMENT_DATA_UPLOAD' : 'REMEASUREMENT_EVENT_UPDATE'
+        }
+      });
+      return true
+    } catch (error) {
+      console.error('Error during update:', error);
+      return false;
+    }
+  };
+
+
+  const EditHistory = async (hid: string, treeId: string, e: History): Promise<boolean> => {
     try {
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
@@ -773,11 +808,13 @@ const useInterventionManagement = () => {
         }
         if (e.status) {
           treeDetails.is_alive = false
+        } else {
+          treeDetails.is_alive = true
         }
         treeDetails.remeasurement_requires = false
-        treeDetails.history = [...treeDetails.history, e]
+        const filteredHistory = treeDetails.history.filter(el => el.history_id !== hid)
+        treeDetails.history = [...filteredHistory, e]
         treeDetails.status = treeDetails.is_alive ? 'REMEASUREMENT_DATA_UPLOAD' : 'REMEASUREMENT_EVENT_UPDATE'
-
       });
       return true
     } catch (error) {
@@ -785,7 +822,6 @@ const useInterventionManagement = () => {
       return false;
     }
   };
-
 
   const checkAndUpdatePlantHistory = async (interventionID: string): Promise<boolean> => {
     try {
@@ -824,6 +860,31 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateRemeasurementStatus = async (interventionID: string, treeID: string, historyID: string, skip?: boolean): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const interventionData = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeID);
+        if (!skip) {
+          const history = realm.objectForPrimaryKey<History>(RealmSchema.PlantLocationHistory, historyID);
+          history.dataStatus = 'SYNCED'
+        }
+        treeData.status = 'SYNCED'
+        treeData.remeasurement_requires = false
+        const filterTrees = interventionData.sample_trees.filter(el => el.tree_id !== treeID)
+        const hasPendingSampleTree = filterTrees.some(el => el.status !== 'SYNCED')
+        if (!hasPendingSampleTree) {
+          interventionData.status = 'SYNCED'
+        }
+        interventionData.last_updated_at = Date.now()
+      });
+      return true
+    } catch (error) {
+      console.error('Error during update:', error);
+      return false;
+    }
+  };
+
   const resetIntervention = async (interventionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -840,7 +901,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
 }
 
 export default useInterventionManagement

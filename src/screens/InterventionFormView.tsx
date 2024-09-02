@@ -37,6 +37,7 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
+import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
@@ -227,7 +228,8 @@ const InterventionFormView = () => {
       el => el.id === registerForm.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    return parsedGeometry.coordinates[0]
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    return [newCoords]
   }
 
   const pressContinue = async () => {
@@ -239,10 +241,8 @@ const InterventionFormView = () => {
         app: {},
         public: { ...metaData, isEntireSite: registerForm.entire_site_selected },
         private: {}
-      }
-      )
+      })
       const result = await initializeIntervention(registerForm);
-
       if (result) {
         await handleSuccessfulInterventionInitialization();
       } else {
@@ -256,7 +256,7 @@ const InterventionFormView = () => {
   const prepareFormForSubmission = () => {
 
     if (registerForm.entire_site_selected && registerForm.site_id !== 'other') {
-      registerForm.coordinates = siteCoordinatesSelect();
+      registerForm.location_type = 'Point'
     }
     if (registerForm.site_id === 'other') {
       registerForm.entire_site_selected = false
@@ -280,24 +280,24 @@ const InterventionFormView = () => {
 
 
   const handleSuccessfulInterventionInitialization = async () => {
+    dispatch(updateNewIntervention());
     if (registerForm.entire_site_selected) {
       await handleEntireSiteSelected();
     } else {
       navigateToMarkerScreen();
     }
-    dispatch(updateNewIntervention());
   };
 
   const handleEntireSiteSelected = async () => {
     const { coordinates } = makeInterventionGeoJson(
-      registerForm.location_type,
+      'Point',
       siteCoordinatesSelect(),
       registerForm.form_id,
       ''
     );
     const locationUpdated = await updateInterventionLocation(
       registerForm.form_id,
-      { type: 'Polygon', coordinates: coordinates },
+      { type: 'Point', coordinates: coordinates },
       true
     );
 
@@ -407,7 +407,7 @@ const InterventionFormView = () => {
                   index: 0
                 }}
               />
-              {registerForm.optionalLocation && <SelectionLocationType header={'Location Type'} labelOne={{
+              {registerForm.optionalLocation && registerForm.entire_site_selected === false ? <SelectionLocationType header={'Location Type'} labelOne={{
                 key: 'Polygon',
                 value: 'Polygon'
               }} labelTwo={{
@@ -416,7 +416,7 @@ const InterventionFormView = () => {
               }} disabled={false}
                 selectedValue={locationType}
                 onSelect={setLocationType}
-              />}
+              /> : null}
               {registerForm.can_be_entire_site && isTpoUser && registerForm.site_id !== 'other' ? (
                 <PlaceHolderSwitch
                   description={i18next.t("label.apply_intervention")}

@@ -186,7 +186,7 @@ const SpeciesSync = () => {
           "aliases": element.data.aliases || element.data.scientificSpecies,
           "description": element.data.description,
         })
-        if (success && response && response.id) {
+        if (success && response?.id) {
           await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, response.id || element.id)
         }
       }
@@ -237,6 +237,10 @@ const SpeciesSync = () => {
       isSpeciesUpdateRequired()
       return
     }
+
+
+    handleSpeciesSync()
+
   }
 
 

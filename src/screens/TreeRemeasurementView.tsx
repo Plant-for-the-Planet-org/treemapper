@@ -1,7 +1,7 @@
 import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
 import { History, SampleTree } from 'src/types/interface/slice.interface'
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native'
@@ -29,7 +29,7 @@ import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/me
 import i18next from 'i18next'
 import { measurementValidation } from 'src/utils/constants/measurementValidation'
 import AlertModal from 'src/components/common/AlertModal'
-
+import DeleteModal from 'src/components/common/DeleteModal'
 const PredefineReasons: Array<{
     label: string
     value: TREE_RE_STATUS
@@ -64,7 +64,7 @@ const TreeRemeasurementView = () => {
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { addPlantHistory, checkAndUpdatePlantHistory } = useInterventionManagement()
+    const { addPlantHistory, checkAndUpdatePlantHistory, EditHistory } = useInterventionManagement()
     const route = useRoute<RouteProp<RootStackParamList, 'TreeRemeasurement'>>()
     const [isAlive, setIsAlive] = useState(true)
     const [comment, setComment] = useState('')
@@ -73,6 +73,9 @@ const TreeRemeasurementView = () => {
     const toast = useToast()
     const interventionId = route.params?.interventionId ?? "";
     const treeId = route.params?.treeId ?? '';
+    const isEdit = route.params?.isEdit ?? false;
+    const historyID = route.params?.historyId ?? '';
+
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
     const [imageUri, setImageUri] = useState('')
@@ -84,12 +87,17 @@ const TreeRemeasurementView = () => {
     );
     const Country = useSelector((state: RootState) => state.userState.country)
     const isNonISUCountry = nonISUCountries.includes(Country)
+    const [showSkipModal, setShowSkipModal] = useState(false)
 
     useEffect(() => {
         if (treeId) {
             const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
             if (treeData) {
                 setTreeDetails(treeData)
+                setIsAlive(treeData.is_alive)
+                if (isEdit) {
+                    setImageUri(treeData.image_url)
+                }
             }
         }
     }, [treeId])
@@ -107,7 +115,47 @@ const TreeRemeasurementView = () => {
         };
     })
 
-
+    const handleSkip = async () => {
+        setShowSkipModal(false)
+        const param: History = {
+            history_id: uuid(),
+            eventName: 'skip',
+            eventDate: Date.now(),
+            imageUrl: imageUri,
+            cdnImageUrl: '',
+            diameter: isAlive ? getConvertedDiameter(
+                width,
+                isNonISUCountry,
+            ) : treeDetails.specie_diameter,
+            height: isAlive ? getConvertedHeight(
+                height,
+                isNonISUCountry,
+            ) : treeDetails.specie_height,
+            appMetadata: '',
+            status: isAlive ? '' : 'dead',
+            statusReason: type.value,
+            dataStatus: 'SKIP_REMEASUREMENT',
+            parentId: treeId,
+            samplePlantLocationIndex: 0,
+            lastScreen: '',
+            additionalDetails: [
+                {
+                    key: 'comment',
+                    value: comment,
+                    accessType: 'public',
+                }
+            ]
+        }
+        const result = await addPlantHistory(treeId, param, true)
+        if (result) {
+            await checkAndUpdatePlantHistory(interventionId)
+            setTimeout(() => {
+                navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
+            }, 300);
+        } else {
+            toast.show("Error occurred")
+        }
+    }
 
 
     const handleHeightChange = (text: string) => {
@@ -168,15 +216,11 @@ const TreeRemeasurementView = () => {
             takePicture()
             return
         }
-        if (height === '') {
-            toast.show("Please update plant height")
-            return
-        }
-        if (width === '') {
-            toast.show("Please update plant diameter")
-            return
-        }
-        const validationObject = measurementValidation(height, width, isNonISUCountry);
+
+        const finalHeight = height || treeDetails.specie_height
+        const finalWidth = height || treeDetails.specie_diameter
+
+        const validationObject = measurementValidation(finalHeight, finalWidth, isNonISUCountry);
         const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
         setHeightErrorMessage(heightErrorMessage)
         setWidthErrorMessage(diameterErrorMessage)
@@ -189,8 +233,22 @@ const TreeRemeasurementView = () => {
         }
     }
 
+    const finalResult = async (param: History) => {
+        if (isEdit) {
+            return await EditHistory(historyID, treeId, param)
+        } else {
+            return await addPlantHistory(treeId, param)
+        }
+    }
+
+    const statusCapture = () => {
+        return isAlive ? "REMEASUREMENT_DATA_UPLOAD" : "REMEASUREMENT_EVENT_UPDATE"
+    }
 
     const submitHandler = async () => {
+        const finalHeight = height || treeDetails.specie_height
+        const finalWidth = height || treeDetails.specie_diameter
+
         const param: History = {
             history_id: uuid(),
             eventName: isAlive ? 'measurement' : 'status',
@@ -198,17 +256,17 @@ const TreeRemeasurementView = () => {
             imageUrl: imageUri,
             cdnImageUrl: '',
             diameter: isAlive ? getConvertedDiameter(
-                width,
+                finalWidth,
                 isNonISUCountry,
             ) : treeDetails.specie_diameter,
             height: isAlive ? getConvertedHeight(
-                height,
+                finalHeight,
                 isNonISUCountry,
             ) : treeDetails.specie_height,
             appMetadata: '',
             status: isAlive ? '' : 'dead',
             statusReason: type.value,
-            dataStatus: 'REMEASUREMENT_HISTORY_SYNC',
+            dataStatus: statusCapture(),
             parentId: treeId,
             samplePlantLocationIndex: 0,
             lastScreen: '',
@@ -220,9 +278,11 @@ const TreeRemeasurementView = () => {
                 }
             ]
         }
-        const result = await addPlantHistory(treeId, param)
+        const result = await finalResult(param)
         if (result) {
-            await checkAndUpdatePlantHistory(interventionId)
+            setTimeout(async () => {
+                await checkAndUpdatePlantHistory(interventionId)
+            }, 300);
             navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
         } else {
             toast.show("Error occurred")
@@ -234,7 +294,9 @@ const TreeRemeasurementView = () => {
             setShowOptimalAlert(false)
         } else {
             setShowOptimalAlert(false)
-            submitHandler();
+            setTimeout(() => {
+                submitHandler();
+            }, 300)
         }
     }
 
@@ -244,9 +306,13 @@ const TreeRemeasurementView = () => {
 
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
+
+
+
     return (
         <SafeAreaView style={styles.container}>
             <PlotPlantRemeasureHeader tree label={treeDetails.hid} type={'RECRUIT'} species={treeDetails.specie_name} showRemeasure={true} />
+            <DeleteModal isVisible={showSkipModal} toggleModal={() => { setShowSkipModal(false) }} removeFavSpecie={handleSkip} headerLabel={"Skip Remeasurement"} noteLabel={"Do you wish to skip remeasurement of the sample tree."} primeLabel={'Skip'} secondaryLabel={'Cancel'} extra={null} />
             <ScrollView>
                 <AvoidSoftInputView
                     avoidOffset={20}
@@ -337,11 +403,21 @@ const TreeRemeasurementView = () => {
                     />
                 </AvoidSoftInputView>
             </ScrollView>
-            <CustomButton
-                label={!isAlive ? "Save" : imageURL()}
-                containerStyle={styles.btnContainer}
-                pressHandler={validateData}
-            />
+            <View style={styles.mainWrapper}>
+                {treeDetails.remeasurement_requires && <CustomButton
+                    label={'Skip'}
+                    containerStyle={styles.btnContainer}
+                    wrapperStyle={styles.skipButtonContainer}
+                    labelStyle={styles.skipText}
+                    pressHandler={() => { setShowSkipModal(true) }}
+                />}
+                <CustomButton
+                    label={!isAlive ? "Save" : imageURL()}
+                    containerStyle={styles.btnContainer}
+                    pressHandler={validateData}
+                />
+            </View>
+
         </SafeAreaView>
     )
 }
@@ -353,12 +429,16 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: WHITE,
     },
+    mainCOntainer: {
+        flex: 1,
+        backgroundColor: 'red'
+    },
     inputWrapper: {
         width: '95%',
     },
     footer: {
         width: "100%",
-        height: 50,
+        height: 100,
     },
     wrapper: {
         backgroundColor: BACKDROP_COLOR,
@@ -366,11 +446,26 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingTop: 20,
     },
-    btnContainer: {
+    mainWrapper: {
         width: '100%',
-        height: 70,
+        flexDirection: 'row',
         position: 'absolute',
         bottom: 30,
+        height: 80,
+    },
+    skipButtonContainer: {
+        backgroundColor: Colors.WHITE,
+        borderWidth: 1,
+        borderColor: Colors.NEW_PRIMARY
+    },
+    skipText: {
+        color: Colors.NEW_PRIMARY,
+        fontSize: 18,
+        fontFamily: Typography.FONT_FAMILY_REGULAR
+    },
+    btnContainer: {
+        flex: 1,
+        height: 70,
     },
     btnMinorContainer: {
         width: '100%',

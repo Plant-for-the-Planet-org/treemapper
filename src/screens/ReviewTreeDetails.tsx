@@ -16,6 +16,7 @@ import { Typography, Colors } from 'src/utils/constants'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import CustomButton from 'src/components/common/CustomButton'
+import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import WidthIcon from 'assets/images/svg/WidthIcon.svg'
 import HeightIcon from 'assets/images/svg/HeightIcon.svg'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -59,7 +60,8 @@ const ReviewTreeDetails = () => {
     const editTree = route.params?.interventionID
     const deleteTree = route.params?.deleteTree
     const synced = route.params?.synced;
-    const Country = useSelector((state: RootState) => state.userState.country)
+    const { country, type } = useSelector((state: RootState) => state.userState)
+    const Country = country
     const [isError, setIsError] = useState<boolean>(false);
     const [showInputError, setShowInputError] = useState<boolean>(false);
     const [openEditModal, setOpenEditModal] = useState<{ label: EditLabels, value: string, type: KeyboardType, open: boolean }>({ label: '', value: '', type: 'default', open: false })
@@ -102,6 +104,9 @@ const ReviewTreeDetails = () => {
     }
 
     const renderIcon = () => {
+        if (treeDetails.status !== 'SYNCED') {
+            return <UnSyncIcon />
+        }
         if (!treeDetails.is_alive) {
             return <DeceasedTreeIcon />
         }
@@ -290,6 +295,13 @@ const ReviewTreeDetails = () => {
         if (treeDetails.status === 'INITIALIZED') {
             return null
         }
+        if (treeDetails.tree_type === 'single') {
+            return null
+        }
+        if (type !== 'tpo') {
+            return null
+
+        }
         return <TouchableOpacity style={styles.rightContainer} onPress={showPlantHistory}>
             {renderIcon()}
             <Text style={[styles.deceasedLabel, { color: !treeDetails.is_alive ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY }]}>{treeDetails.is_alive ? "History" : i18next.t('label.marked_deceased')}</Text>
@@ -349,7 +361,7 @@ const ReviewTreeDetails = () => {
             <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
                 <View style={styles.container}>
-                    <InterventionCoverImage image={treeDetails.status === 'SYNCED' ? treeDetails.cdn_image_url : treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
+                    <InterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
@@ -560,7 +572,7 @@ const styles = StyleSheet.create({
     rightContainer: {
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: 10,
+        marginRight: '5%',
         paddingHorizontal: 10,
         paddingVertical: 10,
         backgroundColor: Colors.BACKDROP_COLOR,

@@ -36,16 +36,11 @@ const CarouselItem = (props: Props) => {
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
-      {data.remeasurement_requires && <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {data.remeasurement_requires && data.status === 'SYNCED' ?<TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
-      </TouchableOpacity>}
-      {!data.is_alive && <TouchableOpacity style={[styles.nextButton,{backgroundColor:Colors.BACKDROP_COLOR}]} onPress={() => {
-        remeasure(data.intervention_id, data.tree_id)
-      }}>
-        <Text style={[styles.nextButtonLabel, {color:Colors.TEXT_LIGHT}]}>{i18next.t("label.marked_deceased")}</Text>
-      </TouchableOpacity>}
+      </TouchableOpacity>: null}
     </TouchableOpacity>
   } else {
     return <TouchableOpacity style={styles.container} onPress={() => {

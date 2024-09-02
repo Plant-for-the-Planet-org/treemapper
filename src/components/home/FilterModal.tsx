@@ -22,30 +22,35 @@ interface Props {
 
 const data: DropdownData[] = [
   {
-    label: 'Show interventions within 30 days',
+    label: i18next.t('label.show_30'),
     index: 0,
-    value: 'days'
+    value: 'days',
+    extra:i18next.t('label.within_30'),
   },
   {
-    label: 'Show interventions within 6 months',
+    label: i18next.t('label.show_6'),
     index: 1,
-    value: 'months'
-  },
-  {
-    label: 'Show interventions within 1 year',
-    index: 2,
-    value: 'year'
+    value: 'months',
+    extra:i18next.t('label.within_6'),
 
   },
   {
-    label: 'Show all interventions',
-    index: 3,
-    value: 'always'
+    label: i18next.t('label.show_1'),
+    index: 2,
+    value: 'year',
+    extra:i18next.t('label.within_1'),
   },
   {
-    label: `Don't show interventions`,
+    label: i18next.t('label.show_all'),
+    index: 3,
+    value: 'always',
+    extra:i18next.t('label.within_All'),
+  },
+  {
+    label:i18next.t('label.dont_show'),
     index: 4,
-    value: 'none'
+    value: 'none',
+    extra:i18next.t('label.within_no'),
   },
 ]
 const FilterModal = (props: Props) => {
@@ -91,6 +96,7 @@ const FilterModal = (props: Props) => {
 
 
   const handleOpenModal = () => {
+    setShowInterventionDropdown(false)
     bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
     toggleTypeModal()
   }
@@ -99,6 +105,7 @@ const FilterModal = (props: Props) => {
 
 
   const openDropDown = (e: INTERVENTION_FILTER | '') => {
+    setShowTypeModal(false)
     bottomSheetModalRef.current.snapToIndex(showInterventionDropdown ? 0 : 2)
     setShowInterventionDropdown(!showInterventionDropdown)
     if(e){
@@ -142,7 +149,7 @@ const FilterModal = (props: Props) => {
               <View style={styles.divider} />
               <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
-            <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={()=>{openDropDown('')}}>
+            <TouchableOpacity style={[styles.card, { backgroundColor: showInterventionDropdown ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={()=>{openDropDown('')}}>
               <Text style={styles.cardLabel}>{data.find(el => el.value === interventionFilter).label}</Text>
               <View style={styles.divider} />
               <ArrowDownIcon fill={Colors.GRAY_BORDER} style={{margin:'5%', marginTop:15}}/>
@@ -158,6 +165,7 @@ const FilterModal = (props: Props) => {
             {interventionFilter !== 'none' && <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
+              <ArrowDownIcon fill={Colors.GRAY_BORDER} style={{margin:'5%', marginTop:15}}/>
             </TouchableOpacity>}
             {showTypeModal && <InterventionFilterModal />}
             <View style={[styles.card, { backgroundColor: onlyRemeasurement ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>

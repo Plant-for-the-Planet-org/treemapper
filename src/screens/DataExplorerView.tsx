@@ -18,7 +18,7 @@ const DataExplorerView = () => {
   }
 
   return (
-    <SafeAreaView style={styles.wrapper}>
+    <SafeAreaView style={styles.wrapper} edges={['top']}>
       <Header label="Data Explorer" />
       <View style={styles.container}>
         <ExploreBackDrop />
@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     width: '100%',
     height: scaleSize(70),
     position: 'absolute',
-    bottom: 25,
+    bottom: 30,
   },
 
 })

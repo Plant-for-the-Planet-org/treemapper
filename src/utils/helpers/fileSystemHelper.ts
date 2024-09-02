@@ -27,7 +27,7 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     fileName = fileName.split('.')[0];
 
     // stores the destination path in which image should be stored
-    const outputPath = isSpecies ? `${FileSystem.documentDirectory}/${fileName}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
+    const outputPath = isSpecies ? `${FileSystem.documentDirectory}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
     // stores the path from which the image should be copied
     const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`;
     const compFile = await compressImage(inputPath, 0.7)

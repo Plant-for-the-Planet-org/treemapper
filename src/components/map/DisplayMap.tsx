@@ -18,7 +18,6 @@ import { GeoBox } from 'realm'
 import ClusteredShapeSource from './ClusteredShapeSource'
 import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import MapMarkersOverlay from './MapMarkersOverlay'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import { useNavigation } from '@react-navigation/native'
@@ -73,7 +72,7 @@ const DisplayMap = () => {
       return el
     })
 
-    const feature = filterData.map((el: InterventionData, index: number) => {
+    const feature = filterData.map((el: InterventionData) => {
       const result = makeInterventionGeoJson(
         el.location.type,
         JSON.parse(el.location.coordinates),
@@ -83,11 +82,6 @@ const DisplayMap = () => {
           site: el.entire_site,
         }
       )
-      if (el.entire_site) {
-        const newCoords = getRandomPointInPolygon(JSON.parse(el.location.coordinates), index)
-        result.geoJSON.geometry.type = "Point"
-        result.geoJSON.geometry.coordinates = newCoords
-      }
       return result.geoJSON
     })
     let f = feature

@@ -23,7 +23,7 @@ const InterventionDropDown = (props: Props) => {
     return (<TouchableOpacity style={[styles.tileWrapper, { borderBottomWidth: index < data.length - 1 ? 1 : 0 }]} key={el.value} onPress={() => {
       onSelect(el.value)
     }}>
-      <Text style={styles.tileLabel}>{el.label}</Text>
+      <Text style={styles.tileLabel}>{el.extra}</Text>
       <View style={styles.divider} />
       {selectedValue.value === el.value && <BouncyCheckbox
         size={20}
@@ -59,14 +59,13 @@ const styles = StyleSheet.create({
     top: -1
   },
   tileWrapper: {
-    width: "98%",
+    width: "100%",
     height: 60,
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: Colors.WHITE,
     flexDirection: 'row',
-    marginLeft: '1%',
-    justifyContent: 'space-evenly',
+    justifyContent: 'space-between',
   },
   tileLabel: {
     fontSize: 16,

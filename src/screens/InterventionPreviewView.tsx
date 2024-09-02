@@ -62,7 +62,7 @@ const InterventionPreviewView = () => {
 
 
   const showInitialToast = () => {
-    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id) {
+    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id && InterventionData.status!=='SYNCED') {
       toast.show("Project not assign")
     }
   }
@@ -240,7 +240,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     backgroundColor: Colors.NEW_PRIMARY + '1A',
-    marginRight: 10,
+    marginRight: '5%',
     borderRadius: 10
   },
 })

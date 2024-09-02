@@ -113,7 +113,9 @@ const ManageSpeciesView = () => {
       toast.show("Error occurred while adding species")
       return
     }
-    navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id, isEditTrees: isMultiTreeEdit })
+    setTimeout(() => {
+      navigation.navigate('TotalTrees', { isSelectSpecies: false, interventionId: interventionData.form_id, isEditTrees: isMultiTreeEdit })
+    }, 300);
   }
 
   const handleSelectedMultiSpecies = async (item: IScientificSpecies) => {

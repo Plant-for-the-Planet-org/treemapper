@@ -44,7 +44,7 @@ export const OtherIntervention: RegisterFormSliceInitialState = {
   tree_details_required: false,
   has_sample_trees: false,
   form_details: [otherInterventionForm],
-  can_be_entire_site: false,
+  can_be_entire_site: true,
   entire_site_selected: false,
   key: 'other-intervention',
   should_register_location: false,

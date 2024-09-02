@@ -81,6 +81,7 @@ export interface BodyPayload {
   message: string,
   fixRequired: FIX_REQUIRED,
   pData: null | any
+  historyID?: string
 }
 
 export interface CountryCode {
@@ -351,7 +352,7 @@ export interface History {
   appMetadata: string
   status: string
   statusReason: string
-  dataStatus: 'SYNCED' | "REMEASUREMENT_HISTORY_SYNC"
+  dataStatus: 'SYNCED' |  "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
   parentId: string
   samplePlantLocationIndex: number
   lastScreen: string

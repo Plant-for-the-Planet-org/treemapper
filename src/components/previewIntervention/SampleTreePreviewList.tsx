@@ -32,8 +32,8 @@ interface Props {
 const SampleTreePreviewList = (props: Props) => {
   const { sampleTress, interventionId, hasSampleTress, isSynced, status } = props
   const [deleteData, setDeleteData] = useState(null)
-  const Country = useSelector((state: RootState) => state.userState.country)
-
+  const { country, type } = useSelector((state: RootState) => state.userState)
+  const Country = country
   const { deleteSampleTreeIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -90,7 +90,7 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {isSynced && details.remeasurement_requires ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
               <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />

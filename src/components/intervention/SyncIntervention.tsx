@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { remeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { remeasurement, skipRemeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -40,7 +40,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire } = useInterventionManagement()
+    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
@@ -223,20 +223,17 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleRemeasurement = async (el) => {
         try {
-            const { pData } = await getRemeasurementBody(el);
+            const { pData, historyID } = await getRemeasurementBody(el);
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await remeasurement(el.p2Id, pData);
-            if (success && response?.id && response?.hid) {
-                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
-                if (result) {
-                    await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
-                }
+            const { success } = await remeasurement(el.p2Id, pData);
+            if (success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
-                    message: 'Single Tree API response error',
+                    message: 'Remeasurement Tree API response error',
                     logLevel: 'error',
                     statusCode: '',
                 })
@@ -244,13 +241,40 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         } catch (error) {
             addNewLog({
                 logType: 'DATA_SYNC',
-                message: 'Single Tree API response error(Inside Catch)',
+                message: 'Remeasurement error(Inside Catch)',
                 logLevel: 'error',
                 statusCode: '',
                 logStack: JSON.stringify(error),
             })
         }
     };
+
+    const handleSkipRemeasurement = async (el) => {
+        try {
+            const { success } = await skipRemeasurement(el.p2Id, {
+                "type": "skip-measurement"
+            });
+            if (success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, '', true);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Remeasurement SKIP API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Remeasurement SKIP error',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
 
     const handleSampleTree = async (el) => {
         try {
@@ -356,6 +380,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     break
                 case 'remeasurementStatus':
                     await handleRemeasurement(el);
+                    break;
+                case 'skipRemeasurement':
+                    await handleSkipRemeasurement(el);
                     break;
                 default:
                     console.log("Unknown type:", el.type);
