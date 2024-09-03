@@ -37,7 +37,7 @@ const ActivityLogsView = () => {
                 "country": UserDetails.country,
                 "email": UserDetails.email,
                 "id": UserDetails.id,
-                "type":UserDetails.type
+                "type": UserDetails.type
             }
         })
     }

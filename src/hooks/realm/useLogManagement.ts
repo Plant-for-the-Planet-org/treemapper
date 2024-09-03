@@ -13,7 +13,7 @@ const useLogManagement = () => {
       realm.write(() => {
         realm.create(
           RealmSchema.ActivityLogs,
-          { ...logDetails, timestamp: Date.now(), appVersion: "", id: uuid() },
+          { ...logDetails, timestamp: new Date(), appVersion: "", id: uuid() },
           Realm.UpdateMode.All,
         )
       })
