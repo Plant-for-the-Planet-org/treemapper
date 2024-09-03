@@ -97,11 +97,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
             setUploadData(() => prioritizeData)
-            dispatch(updateNewIntervention())
         } else {
             dispatch(updateSyncDetails(false))
             setMoreUpload(false)
             setShowFullSync(true)
+            dispatch(updateNewIntervention())
             toast.show("All data is synced")
         }
     }
