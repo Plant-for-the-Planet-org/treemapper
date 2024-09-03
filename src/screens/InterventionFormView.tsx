@@ -38,6 +38,7 @@ import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interfa
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
@@ -48,6 +49,7 @@ const InterventionFormView = () => {
   const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
   const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitialState | null>(null)
   const userType = useSelector((state: RootState) => state.userState.type)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
   const { currentProject, projectSite } = useSelector(
@@ -102,6 +104,10 @@ const InterventionFormView = () => {
         setupProjectAndSiteDropDown()
       }
     }
+  }
+
+  const toggleDatePicker = () => {
+    setShowDatePicker(prev => !prev)
   }
 
   const skipForm = async (
@@ -212,7 +218,12 @@ const InterventionFormView = () => {
   }
 
   const handleDateSelection = (n: number) => {
+    if (!n) {
+      setShowDatePicker(false)
+      return
+    }
     setRegisterForm(prevState => ({ ...prevState, intervention_date: n }))
+    setShowDatePicker(false)
   }
 
   const handleEntireSiteArea = (b: boolean) => {
@@ -365,6 +376,9 @@ const InterventionFormView = () => {
   return (
     <SafeAreaView style={styles.mainContainer}>
       <Header label={i18next.t('label.intervention')} />
+      {showDatePicker && <CustomDatePicker cb={handleDateSelection}
+        selectedData={registerForm.intervention_date || Date.now()}
+      />}
       <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
         <AvoidSoftInputView
           avoidOffset={20}
@@ -427,7 +441,7 @@ const InterventionFormView = () => {
               <InterventionDatePicker
                 placeHolder={i18next.t("label.intervention_date")}
                 value={registerForm.intervention_date || Date.now()}
-                callBack={handleDateSelection}
+                showPicker={toggleDatePicker}
               />
               <CustomTextInput
                 label={i18next.t('label.location_optional')}
