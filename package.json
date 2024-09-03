@@ -88,6 +88,7 @@
     "react-native-share": "^10.2.1",
     "react-native-snackbar": "^2.6.2",
     "react-native-svg": "15.2.0",
+    "react-native-swipeable-item": "^2.0.9",
     "react-native-switch": "^1.5.1",
     "react-native-tab-view": "^3.5.2",
     "react-native-toast-notifications": "^3.4.0",
