@@ -13,7 +13,7 @@ import i18next from 'src/locales/index'
 const DataExplorerView = () => {
 
   const openLink = () => {
-    openWebView(`https://pp.eco/explore`);
+    openWebView('https://web.plant-for-the-planet.org/en/profile/treemapper/data-explorer');
 
   }
 
