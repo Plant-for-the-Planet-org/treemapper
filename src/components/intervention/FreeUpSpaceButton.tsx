@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: 'center',
     marginRight: 15,
-    paddingLeft: 10
+    marginLeft: '5%'
   },
   wrapper: {
     backgroundColor: Colors.NEW_PRIMARY + '1A',

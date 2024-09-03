@@ -79,7 +79,8 @@ const styles = StyleSheet.create({
   container: {
     height: 70,
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: '5%',
+    paddingRight:'10%'
   },
   label: {
     fontSize: scaleFont(15),
@@ -89,8 +90,8 @@ const styles = StyleSheet.create({
   },
   labelWrapper: {
     borderColor: Colors.GRAY_LIGHT,
-    marginHorizontal: 5,
     borderRadius: 20,
     borderWidth: 0.5,
+    marginRight:'1%'
   }
 })
