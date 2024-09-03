@@ -92,7 +92,7 @@ const SpeciesSync = () => {
           id: el.specieId || '',
           data: {
             "scientificSpecies": el.guid,
-            "aliases": el.aliases || '',
+            "aliases": el.aliases || el.scientificName,
             "description": el.description || '',
           },
           nextStatus: {

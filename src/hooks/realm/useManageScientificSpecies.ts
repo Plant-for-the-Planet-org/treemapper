@@ -55,7 +55,8 @@ const useManageScientificSpecies = () => {
             guid: 'unknown',
             scientificName: 'Unknown',
             isUserSpecies: true,
-            aliases: 'Not Known'
+            aliases: 'Not Known',
+            isUploaded: true
           },
           Realm.UpdateMode.All,
         )
@@ -151,7 +152,9 @@ const useManageScientificSpecies = () => {
       const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('isUserSpecies == true');
       realm.write(() => {
         favoriteData.forEach(specie => {
-          specie.isUserSpecies = false
+          specie.isUserSpecies = false,
+          specie.isUploaded = false,
+          specie.isUpdated = true
         })
       })
       return Promise.resolve(true)

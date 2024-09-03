@@ -181,6 +181,10 @@ const ManageSpeciesView = () => {
         }
       }
     } else {
+      if (speciesData.guid === 'unknown') {
+        toast.show("Unknown species cannot be edited")
+        return
+      }
       navigation.navigate('SpeciesInfo', { guid: speciesData.guid })
     }
   }
