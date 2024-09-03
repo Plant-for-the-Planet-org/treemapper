@@ -79,8 +79,8 @@ const styles = StyleSheet.create({
   container: {
     height: 70,
     alignItems: 'center',
-    paddingHorizontal: '5%',
-    paddingRight:'10%'
+    paddingLeft: '5%',
+    paddingRight:100
   },
   label: {
     fontSize: scaleFont(15),
