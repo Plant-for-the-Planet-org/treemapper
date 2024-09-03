@@ -63,7 +63,7 @@ const FilterModal = (props: Props) => {
 
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  const snapPoints = useMemo(() => ['55%', '85%', '80%'], []);
+  const snapPoints = useMemo(() => ['55%', '95%', '80%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -130,7 +130,6 @@ const FilterModal = (props: Props) => {
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
-      style={{ paddingTop: 20 }}
       backgroundStyle={{ backgroundColor: 'transparent' }}
     >
       <BottomSheetView style={styles.container}>
