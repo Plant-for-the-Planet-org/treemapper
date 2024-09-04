@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
@@ -21,6 +21,7 @@ import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -34,7 +35,7 @@ interface Props {
 
 const PolygonMarkerMap = (props: Props) => {
   const { species_required, form_id, intervention_key } = props
-
+  const dispatch = useDispatch()
   const [currentCoordinate, setCurrentCoordinate] = useState({
     id: 'A',
     index: 0,
@@ -73,6 +74,7 @@ const PolygonMarkerMap = (props: Props) => {
           40,
           1000,
         )
+        dispatch(updateMapBounds({ bounds: [], key: 'UNKNOWN' }))
       } else {
         handleCamera()
       }
