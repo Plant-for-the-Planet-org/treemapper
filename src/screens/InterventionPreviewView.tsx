@@ -44,6 +44,9 @@ const InterventionPreviewView = () => {
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params?.interventionId ?? "";
+
+  const [highlightedTree, setHighlightedTree] = useState('')
+
   const { addNewLog } = useLogManagement()
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
@@ -96,6 +99,8 @@ const InterventionPreviewView = () => {
 
   const checkIsTree = async () => {
     if (route?.params?.sampleTree) {
+      setHighlightedTree(route.params.sampleTree);
+      return
       navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
@@ -175,7 +180,9 @@ const InterventionPreviewView = () => {
             status={InterventionData.status}
             sampleTress={InterventionData.sample_trees}
             interventionId={InterventionData.intervention_id}
-            hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'} />
+            hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'}
+            selectedTree={highlightedTree}
+            />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} synced={InterventionData.status === 'SYNCED'} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'}/>

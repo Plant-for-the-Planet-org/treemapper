@@ -27,10 +27,11 @@ interface Props {
   hasSampleTress: boolean
   isSynced: boolean
   status: INTERVENTION_STATUS
+  selectedTree: string
 }
 
 const SampleTreePreviewList = (props: Props) => {
-  const { sampleTress, interventionId, hasSampleTress, isSynced, status } = props
+  const { sampleTress, interventionId, hasSampleTress, isSynced, status, selectedTree } = props
   const [deleteData, setDeleteData] = useState(null)
   const { country, type } = useSelector((state: RootState) => state.userState)
   const Country = country
@@ -40,6 +41,8 @@ const SampleTreePreviewList = (props: Props) => {
   const deleteTreeDetails = async (id: string) => {
     await deleteSampleTreeIntervention(id, interventionId)
   }
+
+
 
   const handleDelete = async (item: any) => {
     deleteTreeDetails(item)
@@ -77,7 +80,7 @@ const SampleTreePreviewList = (props: Props) => {
   const renderCard = () => {
     return sampleTress.map((details, i) => {
       return (
-        <View style={styles.wrapper} key={details.tree_id + i}>
+        <View style={[styles.wrapper, { backgroundColor: details.tree_id === selectedTree ? Colors.NEW_PRIMARY + '1A' : Colors.WHITE }]} key={details.tree_id + i}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {status === 'INITIALIZED' && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
