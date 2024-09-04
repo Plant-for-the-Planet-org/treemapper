@@ -41,6 +41,12 @@ const InterventionList = (props: Props) => {
     navigation.navigate(navDetails.screen, { ...navDetails.params })
   }
 
+  const closeAllModals = () => {
+    setDeleteData(null)
+    setEditModal(null)
+  }
+
+
   const handleDelete = async (item: InterventionData) => {
     setDeleteData(null)
     await deleteIntervention(item.intervention_id)
@@ -55,19 +61,19 @@ const InterventionList = (props: Props) => {
     navigation.navigate("InterventionPreview", { id: 'review', intervention: d.intervention_id, interventionId: d.intervention_id })
   }
 
+  const openEditModal = (item: InterventionData) => {
+    const obj = JSON.parse(JSON.stringify(item))
+    setEditModal(obj)
+  }
+
   const showInfoModal = (item: InterventionData) => {
     const obj = JSON.parse(JSON.stringify(item))
-    if (!obj.is_complete) {
-      setDeleteData(obj)
-    } else if (obj.is_complete && item.status !== 'SYNCED') {
-      if (item.status === 'PENDING_SAMPLE_TREE' || item.status === 'PENDING_REMEASUREMENT_SYNC') {
-        handleNavigation(obj)
-      } else {
-        setEditModal(obj)
-      }
-    } else {
-      handleNavigation(obj)
-    }
+    handleNavigation(obj)
+  }
+
+  const showDeleteModal = (item: InterventionData) => {
+    const obj = JSON.parse(JSON.stringify(item))
+    setDeleteData(obj)
   }
 
 
@@ -83,8 +89,8 @@ const InterventionList = (props: Props) => {
 
   return (
     <>
-      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelete} />
-      <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleNavigation} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Preview'} secondaryLabel={'Edit'} extra={editModal} secondaryHandler={handleEdit} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Intervention'} noteLabel={'Do you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'close'} extra={deleteData} />
+      <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleEdit} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Edit'} secondaryLabel={'Cancel'} extra={editModal} secondaryHandler={closeAllModals} />
       <FlashList
         data={interventionData}
         renderItem={({ item }) => (
@@ -92,6 +98,8 @@ const InterventionList = (props: Props) => {
             item={item}
             key={item.intervention_id}
             openIntervention={showInfoModal}
+            deleteHandler={showDeleteModal}
+            openEditModal={openEditModal}
           />
         )}
         estimatedItemSize={100}
@@ -134,16 +142,16 @@ const styles = StyleSheet.create({
     fontSize: 18,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    width:'100%',
-    textAlign:'center',
-    marginTop:10
+    width: '100%',
+    textAlign: 'center',
+    marginTop: 10
   },
   emptyLabel: {
     fontSize: 16,
     color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     marginTop: 10,
-    width:'100%',
-    textAlign:'center',
+    width: '100%',
+    textAlign: 'center',
   }
 })

@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import InterventionIconSwitch from './InterventionIconSwitch'
@@ -13,21 +13,18 @@ import InterventionMetaInfo from './InterventionMetaInfo'
 import DividerDot from '../common/DividerDot'
 import i18next from 'i18next'
 import SwipeableItem from "react-native-swipeable-item";
-
-
-
+import BinIcon from 'assets/images/svg/BinIcon.svg'
+import ExportArrows from 'assets/images/svg/ExportArrow.svg'
+import { exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
 
 interface Props {
   item: InterventionData
   openIntervention: (item: InterventionData) => void
+  deleteHandler: (item: InterventionData) => void
+  openEditModal: (item: InterventionData) => void
 }
 const OVERSWIPE_DIST = 20;
-
-const swipeableLeftComp = () => {
-  return <View style={styles.leftContainer}><View style={styles.leftWrapper}>
-    <Text>Left</Text>
-  </View></View>
-}
 
 const InterventionCard = (props: Props) => {
   const { item, openIntervention } = props
@@ -43,6 +40,26 @@ const InterventionCard = (props: Props) => {
         return "Fix Require"
     }
   }
+
+  const exportInterventionData = async () => {
+    await exportAllInterventionData(item)
+  }
+
+
+  const swipeableLeftComp = () => {
+    return <View style={styles.leftContainer}><View style={styles.leftWrapper}>
+      <TouchableOpacity style={styles.trayIconWrapper} onPress={exportInterventionData}>
+        <ExportArrows />
+      </TouchableOpacity>
+      {!item.is_complete && <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.deleteHandler(item) }}>
+        <BinIcon width={19} height={19} fill={"tomato"} />
+      </TouchableOpacity>}
+      {item.is_complete && item.status == 'PENDING_DATA_UPLOAD' ? <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.openEditModal(item) }}>
+        <PenIcon width={25} height={30} />
+      </TouchableOpacity> : null}
+    </View></View>
+  }
+
   return (
     <SwipeableItem
       key={item.intervention_id}
@@ -84,7 +101,7 @@ const InterventionCard = (props: Props) => {
               </Text>
             </View>
           </View>
-          {item.status !== 'SYNCED' && <View style={styles.editIconWrapper}>
+          {!item.is_complete && <View style={styles.editIconWrapper}>
             <EditInterventionIcon height={30} width={30} />
           </View>}
         </View>
@@ -193,13 +210,22 @@ const styles = StyleSheet.create({
     height: '80%',
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'flex-end',
     borderRadius: 12,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.NEW_PRIMARY + '1A',
     elevation: 5, // This adds a shadow on Android
     shadowColor: Colors.GRAY_TEXT,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
-    paddingLeft: 10,
   },
+  trayIconWrapper: {
+    width: 35,
+    height: 35,
+    marginRight: 20,
+    borderRadius: 5,
+    backgroundColor: Colors.WHITE,
+    justifyContent: 'center',
+    alignItems: 'center'
+  }
 })

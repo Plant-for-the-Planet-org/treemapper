@@ -1,12 +1,9 @@
-import { StyleSheet, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import FreeUpSpaceButton from './FreeUpSpaceButton'
-import Icon from '@expo/vector-icons/MaterialIcons';
-
-import { Colors } from 'src/utils/constants'
 import { useQuery } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
-import { deleteImageFile, exportAllInterventionData } from 'src/utils/helpers/fileManagementHelper';
+import { deleteImageFile } from 'src/utils/helpers/fileManagementHelper';
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface';
 import { useToast } from 'react-native-toast-notifications';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
@@ -20,9 +17,6 @@ const InterventionHeader = () => {
         return el.filtered('status != "SYNCED"')
     })
     const toast = useToast()
-    const handleNav = () => {
-        exportAllInterventionData([...data])
-    }
     const { addNewLog } = useLogManagement()
     const dataMigrated = useSelector((state: RootState) => state.appState.dataMigrated)
 
@@ -61,9 +55,6 @@ const InterventionHeader = () => {
     return (
         <View style={styles.container}>
             <FreeUpSpaceButton handleCleanup={handleCleanup} />
-            {data.length > 0 && dataMigrated ? <TouchableOpacity
-                onPress={handleNav}
-                style={styles.wrapper}><Icon name={'import-export'} size={30} color={Colors.TEXT_COLOR} /></TouchableOpacity> : null}
             {!dataMigrated && <InventoryMigration />}
         </View>
     )
