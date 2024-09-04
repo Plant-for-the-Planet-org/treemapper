@@ -345,7 +345,6 @@ const DisplayMap = () => {
       compassViewPosition={3}
       attributionEnabled={false}
       ref={mapRef}
-      onDidFinishLoadingMap={handleCameraViewChange}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={mapStyleURL}
     >
