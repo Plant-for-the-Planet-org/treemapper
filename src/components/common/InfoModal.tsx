@@ -41,9 +41,8 @@ const styles = StyleSheet.create({
         position: 'absolute',
         backgroundColor: Colors.WHITE,
         borderRadius: 20,
-        alignItems: 'center',
-        minHeight:'40%',
-        paddingVertical:20
+        paddingTop:20,
+        paddingBottom:5
     },
 
 })

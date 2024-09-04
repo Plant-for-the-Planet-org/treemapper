@@ -20,10 +20,11 @@ interface Props {
   treeId?: string
   isCDN?: boolean
   showEdit: boolean
+  isLegacy: boolean
 }
 
 const InterventionCoverImage = (props: Props) => {
-  const { image, tag, interventionID, treeId, isCDN, showEdit } = props
+  const { image, tag, interventionID, treeId, isCDN, showEdit, isLegacy } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
   const { updateSampleTreeImage } = useInterventionManagement()
@@ -58,9 +59,9 @@ const InterventionCoverImage = (props: Props) => {
   return (
     <View style={styles.container}>
       {uri.length > 0 && <View style={styles.wrapper}>
-        {showEdit && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+        {showEdit && !isLegacy ? <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
           <PenIcon width={30} height={30} />
-        </TouchableOpacity>}
+        </TouchableOpacity> : null}
         {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
           <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>}
@@ -70,7 +71,7 @@ const InterventionCoverImage = (props: Props) => {
         {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
           <PenIcon width={30} height={30} />
         </TouchableOpacity>}
-        <TouchableOpacity style={styles.emptyWrapper}  onPress={editImage}>
+        <TouchableOpacity style={styles.emptyWrapper} onPress={editImage}>
           <Text style={styles.emptyLabel}>Add Tree Image</Text>
         </TouchableOpacity>
       </View>}

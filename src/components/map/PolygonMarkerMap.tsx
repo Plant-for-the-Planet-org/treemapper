@@ -49,6 +49,7 @@ const PolygonMarkerMap = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
+  const MapBounds = useSelector((state: RootState) => state.mapBoundState)
 
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
@@ -59,8 +60,24 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    handleCamera()
-  }, [currentUserLocation])
+    handleCameraViewChange()
+  }, [currentUserLocation, MapBounds])
+
+  const handleCameraViewChange = () => {
+    if (cameraRef?.current) {
+      const { bounds, key } = MapBounds
+      if (key === 'POLYGON_MAP') {
+        cameraRef.current.fitBounds(
+          [bounds[0], bounds[1]],
+          [bounds[2], bounds[3]],
+          40,
+          1000,
+        )
+      } else {
+        handleCamera()
+      }
+    }
+  }
 
   const handleCamera = () => {
     if (cameraRef?.current) {
@@ -190,7 +207,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onDidFinishLoadingMap={handleCamera}
+        onDidFinishLoadingMap={handleCameraViewChange}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
@@ -245,7 +262,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       <ActiveMarkerIcon />
-      <UserlocationMarker high={coordinates.length === 0  && intervention_key === 'multi-tree-registration'} />
+      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} />
     </View>
   )
 }

@@ -312,7 +312,13 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
             imageFile: `data:image/png;base64,${base64Image}`,
             "metadata": getHistory.additionalDetails.length > 0 ? {
                 "public": {
-                    comment: getHistory.additionalDetails[0].value
+                    comment: getHistory.additionalDetails[0].value,
+                },
+                "app": {
+                    deviceLocation: getHistory.additionalDetails[1].value,
+                },
+                "private": {
+                    withinRange: getHistory.additionalDetails[2].value,
                 }
             } : {}
         }
@@ -333,7 +339,13 @@ export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPay
             "status": "dead",
             "metadata": getHistory.additionalDetails.length > 0 ? {
                 "public": {
-                    comment: getHistory.additionalDetails[0].value
+                    comment: getHistory.additionalDetails[0].value,
+                },
+                "app": {
+                    deviceLocation: getHistory.additionalDetails[1].value,
+                },
+                "private": {
+                    withinRange: getHistory.additionalDetails[2].value,
                 }
             } : {}
         }

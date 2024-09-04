@@ -19,6 +19,9 @@ import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
 import { updateProjectModal } from 'src/store/slice/displayMapSlice'
+import { ProjectInterface } from 'src/types/interface/app.interface'
+import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 
 interface Props {
   isVisible: boolean
@@ -138,6 +141,29 @@ const ProjectModal = (props: Props) => {
     }
   }, [isVisible, toggleProjectModal])
 
+  useEffect(() => {
+    if (!currentProject.projectId) {
+      return
+    }
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      currentProject.projectId,
+    )
+    if (!projectSite.siteId || projectSite.siteId === 'other') {
+      const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+      const bounds = bbox(geoJSON)
+      dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+      return
+    }
+    const currentSiteData = ProjectData.sites.filter(
+      el => el.id === projectSite.siteId,
+    )
+    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+    const bounds = bbox(geoJSON)
+    dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+  }, [])
 
 
 
@@ -178,11 +204,11 @@ const ProjectModal = (props: Props) => {
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
-              <ZoomSiteIcon style={styles.iconWrapper} width={24} height={24}/>
+              <ZoomSiteIcon style={styles.iconWrapper} width={24} height={24} />
               <Text style={styles.headerLabel}>{toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
-                <CloseIcon width={20} height={20}/>
+                <CloseIcon width={20} height={20} />
               </TouchableOpacity>
             </View>
             <Text style={styles.projectLabel}>{i18next.t('label.select_project')}</Text>
@@ -265,7 +291,7 @@ const styles = StyleSheet.create({
     fontSize: scaleFont(18),
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.DARK_TEXT,
-    marginLeft:10
+    marginLeft: 10
   },
   cardLabel: {
     fontSize: 16,
@@ -276,7 +302,7 @@ const styles = StyleSheet.create({
   },
   projectLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize:scaleFont(16),
+    fontSize: scaleFont(16),
     marginHorizontal: 20,
     color: Colors.DARK_TEXT,
     marginVertical: 10,
@@ -306,7 +332,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.DARK_TEXT_COLOR,
-    paddingHorizontal:10
+    paddingHorizontal: 10
   },
   handleIndicatorStyle: {
     width: 0,

@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    right: 10,
+    right: '5%',
     backgroundColor: Colors.NEW_PRIMARY + '1A'
   }
 })

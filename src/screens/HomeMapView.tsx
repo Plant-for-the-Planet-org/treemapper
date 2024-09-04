@@ -13,11 +13,11 @@ import CarouselHeader from 'src/components/carousel/CarouselHeader'
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 import { StatusBar } from 'expo-status-bar'
+import MapAttribution from 'src/components/common/MapAttribution'
 const HomeMapView = () => {
 
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [showProjectModal, setShowProjectModal] = useState(false)
-
   const { showCarousel, mainMapView } = useSelector(
     (state: RootState) => state.displayMapState,
   )
@@ -57,6 +57,7 @@ const HomeMapView = () => {
       />
       {showCarousel && <CarouselModal />}
       <LocationPermissionModal />
+      <MapAttribution/>
     </View>
   )
 }

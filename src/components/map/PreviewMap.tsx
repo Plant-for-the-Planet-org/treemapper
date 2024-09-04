@@ -90,7 +90,6 @@ const PreviewMap = (props: Props) => {
           <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
         </TouchableOpacity> : null}
       </View>
-
     </View>
   )
 }

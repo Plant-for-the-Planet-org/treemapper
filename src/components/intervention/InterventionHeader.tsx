@@ -9,7 +9,8 @@ import { useToast } from 'react-native-toast-notifications';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
 import InventoryMigration from '../common/InventoryMigration';
 import { RootState } from 'src/store';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { clearImageSize } from 'src/store/slice/appStateSlice';
 
 
 const InterventionHeader = () => {
@@ -18,8 +19,17 @@ const InterventionHeader = () => {
     })
     const toast = useToast()
     const { addNewLog } = useLogManagement()
-    const dataMigrated = useSelector((state: RootState) => state.appState.dataMigrated)
+    const { dataMigrated, imageSize } = useSelector((state: RootState) => state.appState)
+    const dispatch = useDispatch()
+    const convertBytesToMb = () => {
+        if (imageSize === 0) {
+            return ''
+        }
+        let finalSize = 0
+        finalSize = imageSize / 1048576
+        return `${String(finalSize.toFixed(2)) }MB`
 
+    }
 
     const handleCleanup = async () => {
         const syncedImagesData: SampleTree[] = []
@@ -49,12 +59,16 @@ const InterventionHeader = () => {
                 })
             }
         });
-        toast.show("Space Cleared")
+
+        toast.show(`${convertBytesToMb()} space cleared`)
+        dispatch(clearImageSize())
     }
+
+
 
     return (
         <View style={styles.container}>
-            <FreeUpSpaceButton handleCleanup={handleCleanup} />
+            <FreeUpSpaceButton handleCleanup={handleCleanup} imageSize={convertBytesToMb()} />
             {!dataMigrated && <InventoryMigration />}
         </View>
     )
@@ -65,7 +79,7 @@ export default InterventionHeader
 const styles = StyleSheet.create({
     container: {
         width: '100%',
-        height: 60,
+        height: 70,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',

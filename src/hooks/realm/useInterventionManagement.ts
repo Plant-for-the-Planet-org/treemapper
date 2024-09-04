@@ -8,12 +8,15 @@ import { FormElement } from 'src/types/interface/form.interface'
 import { FIX_REQUIRED, INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/app.type'
 import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
 import { useToast } from 'react-native-toast-notifications'
+import { useDispatch } from 'react-redux'
+import RNFS from 'react-native-fs';
+import { updateImageSize } from 'src/store/slice/appStateSlice'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
   const { addNewLog } = useLogManagement()
   const toast = useToast()
-
+  const dispatch = useDispatch()
   const initializeIntervention = async (
     intervention: RegisterFormSliceInitialState,
   ): Promise<boolean> => {
@@ -718,9 +721,24 @@ const useInterventionManagement = () => {
     }
   };
 
+  const checkImageSize = async (url: string) => {
+    try {
+      const imageSize = await RNFS.stat(url)
+      dispatch(updateImageSize(imageSize.size))
+    } catch (error) {
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB write error Image size',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+    }
+  }
 
   const updateTreeImageStatus = async (tree_id: string, interventionId: string, cdnImage: string): Promise<boolean> => {
     try {
+      let imagePath = ''
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
         treeDetails.status = 'SYNCED'
@@ -729,6 +747,7 @@ const useInterventionManagement = () => {
           isImageUploaded: true,
         }
         treeDetails.cdn_image_url = cdnImage
+        imagePath = treeDetails.image_url
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
         const filterTrees = intervention.sample_trees.filter(el => el.tree_id !== tree_id)
         const hasPendingSampleTree = filterTrees.some(el => el.status !== 'SYNCED')
@@ -736,6 +755,7 @@ const useInterventionManagement = () => {
           intervention.status = 'SYNCED'
         }
       });
+      checkImageSize(imagePath)
       addNewLog({
         logType: 'DATA_SYNC',
         message: 'Tree Image status updated ' + tree_id,

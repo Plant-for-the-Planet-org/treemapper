@@ -140,7 +140,7 @@ const FilterModal = (props: Props) => {
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
-                <CloseIcon width={18} height={18} />
+                <CloseIcon width={18} height={18} onPress={closeModal}/>
               </TouchableOpacity>
             </View>
             <View style={[styles.card, { backgroundColor: showPlots ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
@@ -223,7 +223,11 @@ const styles = StyleSheet.create({
   },
   closeWrapper: {
     marginRight: 8,
-    tintColor: Colors.TEXT_COLOR
+    tintColor: Colors.TEXT_COLOR,
+    width:20,
+    height:20,
+    justifyContent:'center',
+    alignItems:'center'
   },
   headerLabel: {
     fontSize: 21,

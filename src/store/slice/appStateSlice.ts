@@ -15,7 +15,8 @@ const initialState: AppInitialState = {
   userSpecies: false,
   lastSyncDate: 0,
   dataMigrated: false,
-  updateAppCount: 10
+  updateAppCount: 10,
+  imageSize: 0
 }
 
 const appStateSlice = createSlice({
@@ -70,12 +71,18 @@ const appStateSlice = createSlice({
         state.updateAppCount = 10
       }
     },
+    updateImageSize(state, action: PayloadAction<number>) {
+      state.imageSize = state.imageSize + action.payload
+    },
+    clearImageSize(state) {
+      state.imageSize = 0
+    },
     logoutAppUser(state) {
       return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL }
     },
   },
 })
 
-export const { setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
 
 export default appStateSlice.reducer

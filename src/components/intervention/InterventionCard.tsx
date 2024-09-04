@@ -67,7 +67,7 @@ const InterventionCard = (props: Props) => {
       overSwipe={OVERSWIPE_DIST}
       renderUnderlayLeft={() => (swipeableLeftComp())}
       renderUnderlayRight={() => <Text>Right</Text>}
-      snapPointsLeft={[175]}
+      snapPointsLeft={item.status=== 'SYNCED'?[100]:[150]}
       snapPointsRight={[0]}
     >
       <Pressable style={styles.container} onPress={handleIntervention}>
@@ -213,11 +213,6 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
     borderRadius: 12,
     backgroundColor: Colors.NEW_PRIMARY + '1A',
-    elevation: 5, // This adds a shadow on Android
-    shadowColor: Colors.GRAY_TEXT,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
   },
   trayIconWrapper: {
     width: 35,

@@ -6,7 +6,7 @@ import { RootState } from 'src/store'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
-import BackIcon from 'assets/images/svg/SimpleBack.svg'
+import BackIcon from 'assets/images/svg/BackIcon.svg'
 import i18next from 'src/locales/index'
 
 

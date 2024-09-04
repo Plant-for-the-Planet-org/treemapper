@@ -79,7 +79,7 @@ export const exportAllInterventionData = async (data: InterventionData) => {
 const zipAndShareFolder = async (id: string) => {
     try {
         const zipFilePath = `${RNFS.CachesDirectoryPath}/Intervention-${id}.zip`;
-        await zip(basePath, zipFilePath);
+        await zip(`${basePath}/${id}`, zipFilePath);
         const shareOptions = {
             title: `Intervention data-${id}`,
             url: `file://${zipFilePath}`,

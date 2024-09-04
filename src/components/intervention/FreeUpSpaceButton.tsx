@@ -9,9 +9,10 @@ import i18next from 'src/locales/index'
 
 interface Props {
   handleCleanup: () => void
+  imageSize: string
 }
 const FreeUpSpaceButton = (props: Props) => {
-  const { handleCleanup } = props;
+  const { handleCleanup, imageSize } = props;
   const [showModal, setShowModal] = useState(false)
   const toggleModal = () => {
     setShowModal(!showModal)
@@ -23,15 +24,17 @@ const FreeUpSpaceButton = (props: Props) => {
   }
 
 
+
+
   return (
     <>
       <TouchableOpacity style={styles.container} onPress={toggleModal}>
         <View style={styles.wrapper}>
           <CleanerPhone width={25} height={25} />
-          <Text style={styles.label}>{i18next.t('label.free_up_space')}</Text>
+          <Text style={styles.label}>{i18next.t('label.free_up_space')} {`${imageSize}`}</Text>
         </View>
       </TouchableOpacity>
-      <ClearSpaceModal isVisible={showModal} toggleModal={toggleModal} handleFreeSpace={handleFreeSpace} />
+      <ClearSpaceModal isVisible={showModal} toggleModal={toggleModal} handleFreeSpace={handleFreeSpace} size={imageSize} />
     </>
 
   )
@@ -41,17 +44,16 @@ export default FreeUpSpaceButton
 
 const styles = StyleSheet.create({
   container: {
-    width: '35%',
     height: '100%',
     justifyContent: "center",
     alignItems: 'center',
     marginRight: 15,
-    marginLeft: '5%'
+    marginLeft: '5%',
   },
   wrapper: {
     backgroundColor: Colors.NEW_PRIMARY + '1A',
     height: '70%',
-    width: '100%',
+    paddingHorizontal:10,
     borderRadius: 8,
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -49,6 +49,8 @@ const SampleTreePreviewList = (props: Props) => {
     setDeleteData(null)
   }
 
+
+
   const editTreeDetails = async (id: string) => {
     navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: id, synced: isSynced, id: interventionId })
   }
@@ -79,6 +81,8 @@ const SampleTreePreviewList = (props: Props) => {
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
+      const uri = details.cdn_image_url ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : details.image_url
+
       return (
         <View style={[styles.wrapper, { backgroundColor: details.tree_id === selectedTree ? Colors.NEW_PRIMARY + '1A' : Colors.WHITE }]} key={details.tree_id + i}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
@@ -110,14 +114,19 @@ const SampleTreePreviewList = (props: Props) => {
               {timestampToBasicDate(details.plantation_date)}
             </Text>
           </View>
-          {!!details.specie_name && <View style={styles.metaWrapper}>
-            <Text style={styles.title}>{i18next.t("label.species")}</Text>
-            <Text style={styles.speciesName}>{details.specie_name}</Text>
-          </View>}
-          {!!details.local_name && <View style={styles.metaWrapper}>
-            <Text style={styles.title}>{i18next.t("label.local_common_name")}</Text>
-            <Text style={styles.valueLabel}>{details.local_name}</Text>
-          </View>}
+          <View style={styles.imageSectionWrapper}>
+            <Image source={{ uri: uri }} style={styles.imageWrapper} />
+            <View style={styles.mainMetaWrapperContent}>
+              {!!details.specie_name && <View style={styles.metaWrapperContent}>
+                <Text style={styles.title}>{i18next.t("label.species")}</Text>
+                <Text style={styles.speciesName}>{details.specie_name}</Text>
+              </View>}
+              {!!details.local_name && <View style={styles.metaWrapperContent}>
+                <Text style={styles.title}>{i18next.t("label.local_common_name")}</Text>
+                <Text style={styles.valueLabel}>{details.local_name}</Text>
+              </View>}
+            </View>
+          </View>
           <View style={styles.dimensionWrapper}>
             <View style={styles.iconWrapper}>
               <Text style={styles.iconTitle}>{i18next.t("label.height")}</Text>
@@ -136,12 +145,20 @@ const SampleTreePreviewList = (props: Props) => {
               </View>
             </View>
           </View>
-          {!!details.tag_id && (
-            <View style={styles.metaWrapper}>
-              <Text style={styles.title}>Tag Id</Text>
-              <Text style={styles.valueLabel}>{details.tag_id}</Text>
-            </View>
-          )}
+          <View style={styles.footerMeta}>
+            {!!details.tag_id && (
+              <View style={styles.footermetaWrapper}>
+                <Text style={styles.title}>Tag Id</Text>
+                <Text style={styles.valueLabel}>{details.tag_id}</Text>
+              </View>
+            )}
+            {!!details.hid && (
+              <View style={styles.footermetaWrapper}>
+                <Text style={styles.title}>HID</Text>
+                <Text style={styles.valueLabel}>{details.hid}</Text>
+              </View>
+            )}
+          </View>
         </View>
       )
     })
@@ -196,6 +213,26 @@ const styles = StyleSheet.create({
     paddingVertical: 5,
     marginBottom: 10,
   },
+  imageSectionWrapper: {
+    flexDirection: 'row',
+    width: '100%',
+    paddingVertical: 5,
+    marginBottom: 10,
+    alignItems: 'center',
+
+  },
+  imageWrapper: {
+    marginLeft: '5%',
+    width: 100,
+    height: 100,
+    borderRadius: 12
+  },
+
+  mainMetaWrapperContent: {
+  },
+  metaWrapperContent: {
+
+  },
   dimensionWrapper: {
     width: '100%',
     paddingVertical: 5,
@@ -222,13 +259,13 @@ const styles = StyleSheet.create({
   },
   valueLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    fontSize: scaleSize(16),
+    fontSize: 14,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
   },
   speciesName: {
     fontFamily: Typography.FONT_FAMILY_ITALIC,
-    fontSize: scaleSize(16),
+    fontSize: 14,
     color: Colors.TEXT_COLOR,
     marginLeft: 20,
   },
@@ -271,5 +308,14 @@ const styles = StyleSheet.create({
   },
   iconHolder: {
     marginTop: 10
+  },
+  footerMeta:{
+    width:'100%',
+    alignItems:'center',
+    justifyContent:'center',
+    flexDirection:'row'
+  },
+  footermetaWrapper:{
+    flex:1
   }
 })

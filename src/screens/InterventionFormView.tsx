@@ -39,6 +39,8 @@ import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import bbox from '@turf/bbox'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
@@ -110,6 +112,30 @@ const InterventionFormView = () => {
     setShowDatePicker(prev => !prev)
   }
 
+  const handleBounds = (pid, sid, isPoint) => {
+    if (userType !== 'tpo') {
+      return
+    }
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      pid,
+    )
+    if (!sid || sid === 'other') {
+      const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+      const bounds = bbox(geoJSON)
+      dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
+      return
+    }
+    const currentSiteData = ProjectData.sites.filter(
+      el => el.id === sid,
+    )
+    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+    const bounds = bbox(geoJSON)
+    dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
+  }
+
   const skipForm = async (
     key: INTERVENTION_TYPE,
   ) => {
@@ -123,6 +149,7 @@ const InterventionFormView = () => {
     InterventionJSON.site_name = projectSite.siteName
     InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
+    handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
     if (result) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker', { id: InterventionJSON.form_id })
@@ -336,6 +363,7 @@ const InterventionFormView = () => {
   };
 
   const navigateToMarkerScreen = () => {
+    handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
     if (registerForm.location_type === 'Point') {
       navigation.replace('PointMarker', { id: registerForm.form_id });
     } else {

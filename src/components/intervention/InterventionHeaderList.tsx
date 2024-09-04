@@ -80,7 +80,7 @@ const styles = StyleSheet.create({
     height: 70,
     alignItems: 'center',
     paddingLeft: '5%',
-    paddingRight:100
+    paddingRight:'10%'
   },
   label: {
     fontSize: scaleFont(15),

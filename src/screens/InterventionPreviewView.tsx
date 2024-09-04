@@ -65,7 +65,7 @@ const InterventionPreviewView = () => {
 
 
   const showInitialToast = () => {
-    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id && InterventionData.status!=='SYNCED') {
+    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
       toast.show("Project not assign")
     }
   }
@@ -100,8 +100,6 @@ const InterventionPreviewView = () => {
   const checkIsTree = async () => {
     if (route?.params?.sampleTree) {
       setHighlightedTree(route.params.sampleTree);
-      return
-      navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: route.params.sampleTree, synced: true, id: interventionID })
     }
   }
 
@@ -182,12 +180,12 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'}
             selectedTree={highlightedTree}
-            />
+          />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} synced={InterventionData.status === 'SYNCED'} />}
-        <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'}/>
+        <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
-        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{Application.nativeApplicationVersion}</Text>}
+        {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{InterventionData.is_legacy ? '1.0.8' : Application.nativeApplicationVersion}</Text>}
         <View style={styles.footer} />
       </ScrollView>
       {!InterventionData.is_complete && <CustomButton

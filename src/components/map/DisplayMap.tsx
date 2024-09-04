@@ -53,14 +53,7 @@ const DisplayMap = () => {
       return data.filtered('is_complete==true')
     },
   )
-  const plotData = useQuery<MonitoringPlot>(
-    RealmSchema.MonitoringPlot,
-    data => {
-      return data.filtered('is_complete==true')
-    },
-  )
-
-
+  const plotData = []
 
 
   const handleGeoJSONData = () => {
@@ -148,6 +141,8 @@ const DisplayMap = () => {
         50,
         1000,
       )
+    } else {
+      handleCamera()
     }
   }
 
@@ -181,14 +176,14 @@ const DisplayMap = () => {
 
   const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
     try {
-      const query = currentIntervention.entire_site ? "coords geoWithin $0 && entire_site == true" : "coords geoWithin $0"
+      const query = currentIntervention.entire_site ? "entire_site == true" : "coords geoWithin $0"
       const boxBounds: GeoBox = {
         bottomLeft: [bound[0], bound[1]],
         topRight: [bound[2], bound[3]],
       };
       const data = realm.objects<InterventionData>(RealmSchema.Intervention).filtered(query, boxBounds);
       const feature = []
-      const updatedData = JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
+      const updatedData = currentIntervention.entire_site ? [] : JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
       currentIntervention.active = true;
       updatedData.unshift(JSON.parse(JSON.stringify(currentIntervention)))
       updatedData.forEach((el: InterventionData) => {
@@ -199,7 +194,19 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasurement_required  && userType === 'tpo'  ? 'remeasurement' : el.intervention_key,
+              key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+            }
+          )
+          feature.push(result.geoJSON)
+        }
+        if (el.location_type === 'Point') {
+          const result = makeInterventionGeoJson(
+            el.location.type,
+            JSON.parse(el.location.coordinates),
+            el.intervention_id,
+            {
+              active: el.active ? 'true' : 'false',
+              key: el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -242,7 +249,19 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasurement_required &&  userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+            key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+          }
+        )
+        feature.push(result.geoJSON)
+      }
+      if (el.location_type === 'Point') {
+        const result = makeInterventionGeoJson(
+          el.location.type,
+          JSON.parse(el.location.coordinates),
+          el.intervention_id,
+          {
+            active: el.active ? 'true' : 'false',
+            key: el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -326,6 +345,7 @@ const DisplayMap = () => {
       compassViewPosition={3}
       attributionEnabled={false}
       ref={mapRef}
+      onDidFinishLoadingMap={handleCameraViewChange}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={mapStyleURL}
     >

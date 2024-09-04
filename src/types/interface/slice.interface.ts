@@ -18,6 +18,7 @@ export interface AppInitialState {
   speciesLocalURL: string
   dataMigrated: boolean
   updateAppCount: number
+  imageSize: number
 }
 
 export interface SyncSlice {

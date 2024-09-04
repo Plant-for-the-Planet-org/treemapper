@@ -30,6 +30,11 @@ import i18next from 'i18next'
 import { measurementValidation } from 'src/utils/constants/measurementValidation'
 import AlertModal from 'src/components/common/AlertModal'
 import DeleteModal from 'src/components/common/DeleteModal'
+import getUserLocation from 'src/utils/helpers/getUserLocation'
+import { point } from '@turf/helpers';
+import distance from '@turf/distance';
+
+
 const PredefineReasons: Array<{
     label: string
     value: TREE_RE_STATUS
@@ -75,7 +80,6 @@ const TreeRemeasurementView = () => {
     const treeId = route.params?.treeId ?? '';
     const isEdit = route.params?.isEdit ?? false;
     const historyID = route.params?.historyId ?? '';
-
     const [type, setType] = useState<DropdownData>(PredefineReasons[0])
     const realm = useRealm()
     const [imageUri, setImageUri] = useState('')
@@ -88,7 +92,7 @@ const TreeRemeasurementView = () => {
     const Country = useSelector((state: RootState) => state.userState.country)
     const isNonISUCountry = nonISUCountries.includes(Country)
     const [showSkipModal, setShowSkipModal] = useState(false)
-
+    const [showAccuracyModal, setShowAccuracyModal] = useState(false)
     useEffect(() => {
         if (treeId) {
             const treeData = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
@@ -115,8 +119,22 @@ const TreeRemeasurementView = () => {
         };
     })
 
+    function isWithinRange(currentLat, currentLng, targetLat, targetLng, range = 20) {
+        // Create point features for the current location and the target location
+        const currentLocation = point([currentLng, currentLat]);
+        const targetLocation = point([targetLng, targetLat]);
+
+        // Calculate the distance between the two points in meters
+        const distanceInMeters = distance(currentLocation, targetLocation, { units: 'meters' });
+
+        // Check if the distance is within the specified range
+        return distanceInMeters <= range;
+    }
+
     const handleSkip = async () => {
         setShowSkipModal(false)
+        const { lat, long } = getUserLocation()
+        const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
         const param: History = {
             history_id: uuid(),
             eventName: 'skip',
@@ -143,6 +161,19 @@ const TreeRemeasurementView = () => {
                     key: 'comment',
                     value: comment,
                     accessType: 'public',
+                },
+                {
+                    key: 'deviceLocation',
+                    value: {
+                        "coordinates": [long, lat],
+                        "type": "Point"
+                    },
+                    accessType: 'app',
+                },
+                {
+                    key: 'withinRange',
+                    value: isWithin20m,
+                    accessType: 'private',
                 }
             ]
         }
@@ -226,7 +257,7 @@ const TreeRemeasurementView = () => {
         setWidthErrorMessage(diameterErrorMessage)
         if (!diameterErrorMessage && !heightErrorMessage) {
             if (isRatioCorrect) {
-                submitHandler();
+                submitHandler()
             } else {
                 setShowOptimalAlert(true);
             }
@@ -245,9 +276,16 @@ const TreeRemeasurementView = () => {
         return isAlive ? "REMEASUREMENT_DATA_UPLOAD" : "REMEASUREMENT_EVENT_UPDATE"
     }
 
-    const submitHandler = async () => {
+    const submitHandler = async (gpsValidated?: boolean) => {
         const finalHeight = height || treeDetails.specie_height
         const finalWidth = height || treeDetails.specie_diameter
+        const { lat, long } = getUserLocation()
+        const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
+
+        if (!gpsValidated && !isWithin20m) {
+            setShowAccuracyModal(true)
+            return
+        }
 
         const param: History = {
             history_id: uuid(),
@@ -275,6 +313,19 @@ const TreeRemeasurementView = () => {
                     key: 'comment',
                     value: comment,
                     accessType: 'public',
+                },
+                {
+                    key: 'deviceLocation',
+                    value: {
+                        "coordinates": [long, lat],
+                        "type": "Point"
+                    },
+                    accessType: 'app',
+                },
+                {
+                    key: 'withinRange',
+                    value: isWithin20m,
+                    accessType: 'private',
                 }
             ]
         }
@@ -295,7 +346,7 @@ const TreeRemeasurementView = () => {
         } else {
             setShowOptimalAlert(false)
             setTimeout(() => {
-                submitHandler();
+                submitHandler()
             }, 300)
         }
     }
@@ -306,6 +357,15 @@ const TreeRemeasurementView = () => {
 
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
+
+    const handleAccuracyAlert = (b: boolean) => {
+        if (b) {
+            setShowAccuracyModal(false)
+        } else {
+            setShowAccuracyModal(false)
+            submitHandler(true)
+        }
+    }
 
 
 
@@ -417,7 +477,16 @@ const TreeRemeasurementView = () => {
                     pressHandler={validateData}
                 />
             </View>
-
+            <AlertModal
+                visible={showAccuracyModal}
+                heading={"Poor GPS Accuracy"}
+                message={"Your device location is not within 20m of the Tree you are remeasuring. Do you wish to continue submitting data?"}
+                primaryBtnText={'cancel'}
+                secondaryBtnText={'Continue'}
+                onPressPrimaryBtn={handleAccuracyAlert}
+                onPressSecondaryBtn={handleAccuracyAlert}
+                showSecondaryButton={true}
+            />
         </SafeAreaView>
     )
 }

@@ -361,7 +361,10 @@ const ReviewTreeDetails = () => {
             <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
                 <View style={styles.container}>
-                    <InterventionCoverImage image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
+                    <InterventionCoverImage 
+                    image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} 
+                    isLegacy={Intervention.is_legacy}
+                    showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
