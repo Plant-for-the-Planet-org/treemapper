@@ -28,7 +28,6 @@ import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
-import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -66,8 +65,16 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    handleCameraViewChange()
-  }, [MapBounds, currentUserLocation])
+    setTimeout(() => {
+      handleCameraViewChange()
+    }, 300);
+  }, [MapBounds])
+
+
+  useEffect(() => {
+    handleCamera()
+  }, [currentUserLocation])
+
 
   const handleCameraViewChange = () => {
     if (cameraRef?.current) {
@@ -79,7 +86,6 @@ const PointMarkerMap = (props: Props) => {
           40,
           1000,
         )
-        dispatch(updateMapBounds({ bounds: [], key: 'UNKNOWN' }))
       } else {
         handleCamera()
       }
@@ -87,11 +93,13 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
-      animationDuration: 1000,
-    })
+    if (cameraRef?.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        zoomLevel: 20,
+        animationDuration: 1000,
+      })
+    }
   }
 
   const getMarkerJSON = () => {

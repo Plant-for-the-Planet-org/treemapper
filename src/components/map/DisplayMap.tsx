@@ -141,7 +141,6 @@ const DisplayMap = () => {
         50,
         1000,
       )
-      dispatch(updateMapBounds({ bounds: [], key: 'UNKNOWN' }))
     } else {
       handleCamera()
     }
