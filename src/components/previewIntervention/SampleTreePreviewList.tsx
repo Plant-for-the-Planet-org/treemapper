@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
 
   },
   imageWrapper: {
-    marginLeft: '5%',
+    marginLeft: '4.5%',
     width: 100,
     height: 100,
     borderRadius: 12
