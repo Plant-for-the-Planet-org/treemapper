@@ -1,5 +1,5 @@
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import CustomButton from 'src/components/common/CustomButton'
@@ -54,6 +54,9 @@ const InterventionPreviewView = () => {
   const { saveIntervention, updateInterventionMetaData } = useInterventionManagement()
   const dispatch = useDispatch()
 
+  const scrollViewRef = useRef(null); // Reference for the ScrollView
+  const childRefs = useRef([]);
+
   useEffect(() => {
     setLoading(false)
     checkIsTree()
@@ -102,6 +105,31 @@ const InterventionPreviewView = () => {
       setHighlightedTree(route.params.sampleTree);
     }
   }
+
+  useEffect(() => {
+    try {
+      if (highlightedTree) {
+        setTimeout(() => {
+          const findIndex = InterventionData.sample_trees.findIndex(el => el.tree_id === highlightedTree)
+          if (highlightedTree) {
+            const index = findIndex
+            if (childRefs.current[index]) {
+              childRefs.current[index].measureLayout(
+                scrollViewRef.current,
+                (x, y) => {
+                  scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
+                },
+                (error) => console.log('Measure failed', error)
+              );
+            }
+          }
+        }, 1000);
+      }
+    } catch (error) {
+      console.log("error", error)
+    }
+  }, [highlightedTree])
+
 
 
   const navigateToNext = async () => {
@@ -166,7 +194,9 @@ const InterventionPreviewView = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        decelerationRate='normal'
+        style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
         <Header label="Review" rightComponent={renderRightContainer()} />
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
@@ -180,6 +210,7 @@ const InterventionPreviewView = () => {
             interventionId={InterventionData.intervention_id}
             hasSampleTress={InterventionData.has_sample_trees} isSynced={InterventionData.status === 'SYNCED'}
             selectedTree={highlightedTree}
+            passRefs={(ref, index) => (childRefs.current[index] = ref)}
           />
         )}
         {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} synced={InterventionData.status === 'SYNCED'} />}
