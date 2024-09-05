@@ -342,7 +342,7 @@ export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPay
                     comment: getHistory.additionalDetails[0].value,
                 },
                 "app": {
-                    deviceLocation: getHistory.additionalDetails[1].value,
+                    deviceLocation: JSON.parse(getHistory.additionalDetails[1].value),
                 },
                 "private": {
                     withinRange: getHistory.additionalDetails[2].value,

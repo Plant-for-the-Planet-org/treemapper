@@ -164,15 +164,15 @@ const TreeRemeasurementView = () => {
                 },
                 {
                     key: 'deviceLocation',
-                    value: {
+                    value: JSON.stringify({
                         "coordinates": [long, lat],
                         "type": "Point"
-                    },
+                    }),
                     accessType: 'app',
                 },
                 {
                     key: 'withinRange',
-                    value: isWithin20m,
+                    value: String(isWithin20m),
                     accessType: 'private',
                 }
             ]
@@ -316,15 +316,15 @@ const TreeRemeasurementView = () => {
                 },
                 {
                     key: 'deviceLocation',
-                    value: {
+                    value: JSON.stringify({
                         "coordinates": [long, lat],
                         "type": "Point"
-                    },
+                    }),
                     accessType: 'app',
                 },
                 {
                     key: 'withinRange',
-                    value: isWithin20m,
+                    value: String(isWithin20m),
                     accessType: 'private',
                 }
             ]
@@ -334,7 +334,9 @@ const TreeRemeasurementView = () => {
             setTimeout(async () => {
                 await checkAndUpdatePlantHistory(interventionId)
             }, 300);
-            navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
+            setTimeout(() => {
+                navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
+            }, 1000);
         } else {
             toast.show("Error occurred")
         }
@@ -347,7 +349,7 @@ const TreeRemeasurementView = () => {
             setShowOptimalAlert(false)
             setTimeout(() => {
                 submitHandler()
-            }, 300)
+            }, 1000)
         }
     }
 
@@ -363,7 +365,9 @@ const TreeRemeasurementView = () => {
             setShowAccuracyModal(false)
         } else {
             setShowAccuracyModal(false)
-            submitHandler(true)
+            setTimeout(() => {
+                submitHandler(true)
+            }, (300));
         }
     }
 
