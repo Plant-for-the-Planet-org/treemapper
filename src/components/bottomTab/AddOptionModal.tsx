@@ -90,12 +90,11 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.project_sites'),
-      coming_soon: false,
+      coming_soon: true,
       onPress: () => {
-        if (checkWhetherProjectIsSelected()) {
-          navigation.navigate('ProjectSites')
-          props.setVisible(false)
-        }
+        toast.hideAll()
+        toast.show(i18next.t('label.coming_soon'))
+        props.setVisible(false)
       },
       disabled: false,
     },
