@@ -227,7 +227,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:Colors.BACKDROP_COLOR
+        backgroundColor:Colors.BACKDROP_COLOR,
+        zIndex:1
     },
     closeWrapper: {
         width: 20,
