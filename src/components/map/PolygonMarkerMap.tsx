@@ -45,6 +45,9 @@ const PolygonMarkerMap = (props: Props) => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
+  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
@@ -268,7 +271,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       <ActiveMarkerIcon />
-      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} />
+      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={userType === 'tpo'} />
     </View>
   )
 }

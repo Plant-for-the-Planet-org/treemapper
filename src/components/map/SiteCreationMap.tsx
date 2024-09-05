@@ -215,7 +215,7 @@ const SiteCreationMap = (props: Props) => {
                 />
             )}
             <ActiveMarkerIcon />
-            <UserlocationMarker />
+            <UserlocationMarker stopAutoFocus/>
         </View>
     )
 }

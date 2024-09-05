@@ -21,6 +21,9 @@ const HomeMapView = () => {
   const { showCarousel, mainMapView } = useSelector(
     (state: RootState) => state.displayMapState,
   )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
+  )
 
 
 
@@ -46,7 +49,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker low />
+      <UserlocationMarker low stopAutoFocus={userType === 'tpo'}/>
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}
