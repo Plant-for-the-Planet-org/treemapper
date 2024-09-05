@@ -229,9 +229,11 @@ const styles = StyleSheet.create({
   },
 
   mainMetaWrapperContent: {
+    justifyContent:'space-between',
+    alignItems:'flex-start'
   },
   metaWrapperContent: {
-
+    marginVertical:'3%'
   },
   dimensionWrapper: {
     width: '100%',

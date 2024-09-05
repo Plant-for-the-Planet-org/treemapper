@@ -5,10 +5,10 @@ export const ProjectSite: ObjectSchema = {
   name: RealmSchema.ProjectSite,
   primaryKey: 'id',
   properties: {
-    id: 'string',
-    name: 'string',
-    description: 'string?',
-    status: 'string?',
-    geometry: 'string',
+  id: 'string',
+  name: 'string',
+  description: 'string?',
+  status: 'string?',
+  geometry: 'string',
   },
 };

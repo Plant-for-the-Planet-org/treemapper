@@ -46,6 +46,7 @@ import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
 import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
+import ProjectSites from './ProjectSitesView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -95,5 +96,6 @@ export default {
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
   SignUpView: SignUpView,
-  PlantHistory:PlantHistory
+  PlantHistory:PlantHistory,
+  ProjectSites:ProjectSites
 }

@@ -53,7 +53,8 @@ export type RootStackParamList = {
   OldInventoryDataView: undefined,
   EditProject: EditProjectView,
   SignUpPage: SignUpPage,
-  PlantHistory: PlantHistory
+  PlantHistory: PlantHistory,
+  ProjectSites: undefined
 }
 
 type SpeciesInfoView = {

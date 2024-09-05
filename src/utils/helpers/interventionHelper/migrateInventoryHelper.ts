@@ -131,7 +131,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         const details: SampleTree = {
             tree_id: tid,
             species_guid: speciesData.id,
-            intervention_id: tid,
+            intervention_id: d.inventory_id,
             count: 1,
             latitude: locDetails.point[1],
             longitude: locDetails.point[0],

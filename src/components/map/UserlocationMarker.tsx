@@ -32,7 +32,7 @@ const UserlocationMarker = (props: Props) => {
   )
 }
 
-export default React.memo(UserlocationMarker)
+export default UserlocationMarker
 
 const styles = StyleSheet.create({
   container: {

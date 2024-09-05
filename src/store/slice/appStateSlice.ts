@@ -16,7 +16,7 @@ const initialState: AppInitialState = {
   lastSyncDate: 0,
   dataMigrated: false,
   updateAppCount: 10,
-  imageSize: 0
+  imageSize: 0,
 }
 
 const appStateSlice = createSlice({
@@ -83,6 +83,6 @@ const appStateSlice = createSlice({
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
+export const {clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
 
 export default appStateSlice.reducer

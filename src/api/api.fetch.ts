@@ -98,3 +98,10 @@ export const updateServerSpeciesDetail = async (params: any, id: string) => {
   const result = await fetchPutCall(uri, params);
   return result;
 };
+
+
+export const createNewSite = async (pid: string, params: any) => {
+  const uri = `${postUrlApi.createNewSite}/${pid}/sites`
+  const result = await fetchPostCall(uri, params);
+  return result;
+};

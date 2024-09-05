@@ -24,6 +24,9 @@ const SiteMapSource = (props: Props) => {
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
+  const { lastProjectAdded } = useSelector(
+    (state: RootState) => state.displayMapState,
+  )
 
   useEffect(() => {
     if (!projectAdded) {
@@ -36,7 +39,7 @@ const SiteMapSource = (props: Props) => {
     if (ProjectData) {
       extractSiteCoordinates([...ProjectData])
     }
-  }, [projectAdded])
+  }, [projectAdded, lastProjectAdded])
 
   const extractSiteCoordinates = (data: any[]) => {
     try {

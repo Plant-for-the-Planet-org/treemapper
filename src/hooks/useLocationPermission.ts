@@ -12,10 +12,13 @@ const useLocationPermission = () => {
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
 
-
   useEffect(() => {
-    if (cameraState !== status) {
-      setCameraState(status)
+    try {
+      if (cameraState?.status !== status?.status) {
+        setCameraState(status)
+      }
+    } catch (error) {
+      console.log("Error",error)
     }
   }, [status])
 

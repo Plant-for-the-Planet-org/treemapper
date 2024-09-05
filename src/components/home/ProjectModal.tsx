@@ -18,10 +18,14 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
-import { updateProjectModal } from 'src/store/slice/displayMapSlice'
+import { updateLastProject, updateProjectModal } from 'src/store/slice/displayMapSlice'
 import { ProjectInterface } from 'src/types/interface/app.interface'
 import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   isVisible: boolean
@@ -45,6 +49,7 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const realm = useRealm()
 
@@ -52,7 +57,7 @@ const ProjectModal = (props: Props) => {
     (state: RootState) => state.projectState,
   )
 
-  const { toggleProjectModal } = useSelector(
+  const { toggleProjectModal, lastProjectAdded } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
@@ -79,6 +84,13 @@ const ProjectModal = (props: Props) => {
   }
 
 
+
+  const createNewSite = () => {
+    closeModal()
+    setTimeout(() => {
+      navigation.navigate('ProjectSites')
+    }, 300);
+  }
 
   const handelSiteSelection = (id: string, item: any) => {
     dispatch(
@@ -130,7 +142,7 @@ const ProjectModal = (props: Props) => {
 
 
   useEffect(() => {
-    if (isVisible || toggleProjectModal) {
+    if (isVisible || toggleProjectModal || lastProjectAdded) {
       const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
       if (allProjects && projectData.length === 0) {
         projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
@@ -138,8 +150,9 @@ const ProjectModal = (props: Props) => {
         projectDataDropDown([])
       }
       handlePresentModalPress()
+      dispatch(updateLastProject(0))
     }
-  }, [isVisible, toggleProjectModal])
+  }, [isVisible, toggleProjectModal, lastProjectAdded])
 
   useEffect(() => {
     if (!currentProject.projectId) {
@@ -149,20 +162,32 @@ const ProjectModal = (props: Props) => {
       RealmSchema.Projects,
       currentProject.projectId,
     )
-    if (!projectSite.siteId || projectSite.siteId === 'other') {
-      const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
-      const bounds = bbox(geoJSON)
-      dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+
+    if (!ProjectData.geometry) {
       return
+    }
+    try {
+      if (!projectSite.siteId || projectSite.siteId === 'other') {
+        const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+        const bounds = bbox(geoJSON)
+        dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+        return
+      }
+    } catch (error) {
+      console.log("Error",error)
     }
     const currentSiteData = ProjectData.sites.filter(
       el => el.id === projectSite.siteId,
     )
-    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
-    const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
-    const bounds = bbox(geoJSON)
-    dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+    try {
+      const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+      const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+      const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+      const bounds = bbox(geoJSON)
+      dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+    } catch (error) {
+      console.log("Error",error)
+    }
   }, [])
 
 
@@ -219,7 +244,13 @@ const ProjectModal = (props: Props) => {
               selectedValue={selectedProject}
               whiteBG
             />
-            <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
+            <View style={styles.projectSiteWrapper}>
+              <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
+              <Pressable style={styles.addnewWrapper} onPress={createNewSite}>
+                <Text style={styles.addNewSite}>Add New Site</Text>
+                <AddIcon height={15} width={15} fill={Colors.NEW_PRIMARY} />
+              </Pressable>
+            </View>
             <View style={styles.siteContainer}>
               <FlatList
                 data={projectSites}
@@ -300,12 +331,29 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
+  projectSiteWrapper: {
+    width: '100%',
+    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  addnewWrapper: {
+    alignItems: "center",
+    flexDirection: 'row',
+    marginHorizontal: 10
+  },
   projectLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleFont(16),
+    fontSize: 16,
     marginHorizontal: 20,
     color: Colors.DARK_TEXT,
     marginVertical: 10,
+  },
+  addNewSite: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: 14,
+    color: Colors.NEW_PRIMARY,
+    marginRight: 5
   },
   siteContainer: {
     width: '100%',

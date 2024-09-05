@@ -158,6 +158,7 @@ export interface DisplayMapSlice {
   showPlots: boolean
   onlyRemeasurement: boolean,
   toggleProjectModal: boolean
+  lastProjectAdded: number
 }
 
 export interface ProjectStateSlice {

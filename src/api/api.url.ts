@@ -12,6 +12,7 @@ export const postUrlApi = {
   updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,
   signupService: `${https}${baseUrl}/app/profile`,
   updateProjectInF: `${https}${baseUrl}/app/projects`,
+  createNewSite:`${https}${baseUrl}/app/projects`,
 };
 
 export const getUrlApi = {
