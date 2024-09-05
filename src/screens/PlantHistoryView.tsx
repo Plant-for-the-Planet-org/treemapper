@@ -1,14 +1,9 @@
-import { FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import { SafeAreaView } from 'react-native-safe-area-context'
-import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
 import { Colors, Typography } from 'src/utils/constants'
-import { BACKDROP_COLOR } from 'src/utils/constants/colors'
-import CustomButton from 'src/components/common/CustomButton'
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
+import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
-import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
 import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
 import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
@@ -19,10 +14,12 @@ import { displayYearDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import { v4 as uuid } from 'uuid'
 import Editicon from 'assets/images/svg/EditPenIcon.svg'
 
+interface Props {
+    plantID: string
+}
 
-const PlantHistory = () => {
-    const route = useRoute<RouteProp<RootStackParamList, 'PlantHistory'>>()
-    const plantID = route.params?.id ?? '';
+const PlantHistory = (props: Props) => {
+    const { plantID } = props;
     const [selectedTimeline, setSelectedTimeline] = useState<History[]>([]);
 
     const plantDetails = useObject<SampleTree>(
@@ -59,7 +56,7 @@ const PlantHistory = () => {
         if (status === "SYNCED") {
             return
         }
-        navigation.navigate('TreeRemeasurement', {
+        navigation.replace('TreeRemeasurement', {
             interventionId: plantDetails.intervention_id,
             treeId: plantID,
             isEdit: true,
@@ -67,13 +64,7 @@ const PlantHistory = () => {
         }
         )
     }
-    const addNewRemeasurement = () => {
-        navigation.navigate('TreeRemeasurement', {
-            interventionId: plantDetails.intervention_id,
-            treeId: plantID
-        }
-        )
-    }
+
 
 
 
@@ -93,16 +84,18 @@ const PlantHistory = () => {
         const label = () => {
             switch (item.eventName) {
                 case 'measurement':
-                    return `Measurement ${index}: ${item.height} m high,${item.diameter} cm wide`
+                    return `Measurement : ${item.height} m high,${item.diameter} cm wide`
                 case 'status':
                     return 'Marked status'
                 default:
-                    return `Tree Planted : ${index}: ${item.height} m high,${item.diameter} cm wide`
+                    return `Tree Planted : ${item.height} m high,${item.diameter} cm wide`
             }
         }
 
         return (
-            <Pressable style={styles.cardContainer} onPress={() => { handleSelection(item.history_id, item.dataStatus) }}>
+            <Pressable
+                key={index + item.history_id}
+                style={styles.cardContainer} onPress={() => { handleSelection(item.history_id, item.dataStatus) }}>
                 <View style={styles.iconWrapper}>
                     <View style={[styles.icon, { backgroundColor: item.eventName === 'status' ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY + '1A' }]}>
                         {renderIcon()}
@@ -114,7 +107,7 @@ const PlantHistory = () => {
                         <Text style={styles.cardHeader}>
                             {displayYearDate(item.eventDate)}
                         </Text>
-                        {item.dataStatus !== 'SYNCED' && <Editicon />}
+                        {item.dataStatus !== 'SYNCED' && <Editicon style={{marginRight:'5%'}}/>}
                     </View>
                     <Text style={styles.cardLabel}>
                         {label()}
@@ -127,42 +120,18 @@ const PlantHistory = () => {
         return null
     }
 
-    const moveToHome = () => {
-        navigation.popToTop()
-        //@ts-expect-error Extra params
-        navigation.navigate('Home', {
-            screen: 'Map'
-        });
-    }
 
-    const rightContainer = () => {
-        if (plantDetails.status === 'SYNCED') {
-            return null
-        }
-        return <UnSyncIcon style={{ marginRight: '5%', marginTop: -10 }} height={30} width={30} onPress={moveToHome} />
-    }
-
-    const renderFooter = () => (<View style={styles.footerWrapper} />)
 
     return (
-        <SafeAreaView style={styles.container} edges={['top']}>
-            <PlotPlantRemeasureHeader tree label={plantDetails.hid} type={'RECRUIT'} species={plantDetails.specie_name} showRemeasure={true} rightComponent={rightContainer()} />
+        <View style={styles.container}>
             <View style={styles.wrapper}>
                 <View style={styles.sectionWrapper}>
-                    <FlatList
-                        showsVerticalScrollIndicator={false}
-                        style={styles.flatListWrapper}
-                        ListFooterComponent={renderFooter}
-                        renderItem={({ item, index }) => { return renderCard(item, index) }}
-                        data={selectedTimeline} />
+                    {selectedTimeline.map((el, i) => {
+                        return renderCard(el, i)
+                    })}
                 </View>
             </View>
-            {plantDetails.is_alive && plantDetails.status === 'SYNCED' ? <CustomButton
-                label="Add New Measurement"
-                containerStyle={styles.btnContainer}
-                pressHandler={addNewRemeasurement}
-            /> : null}
-        </SafeAreaView>
+        </View>
     )
 }
 
@@ -172,13 +141,12 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         alignItems: 'center',
-        backgroundColor: Colors.WHITE
+        paddingTop: 10,
+        paddingBottom: 20
     },
     wrapper: {
-        backgroundColor: BACKDROP_COLOR,
         width: '100%',
         alignItems: 'center',
-        flex: 1
     },
     btnContainer: {
         width: '100%',
@@ -186,23 +154,13 @@ const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 30,
     },
-    imageWrapper: {
-        backgroundColor: Colors.SAPPHIRE_BLUE,
-        borderRadius: 20,
-        marginBottom: 20,
-        width: '100%',
-        height: 240,
-        marginTop: 20
-    },
     sectionWrapper: {
         flex: 1,
         width: '100%',
         alignItems: 'center',
-        paddingTop: 50
+        paddingTop: 10
     },
     footerWrapper: {
-        height: 100,
-        width: '100%'
     },
     flatListWrapper: {
         width: '90%',

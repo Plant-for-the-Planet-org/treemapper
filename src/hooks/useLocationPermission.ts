@@ -34,7 +34,7 @@ const useLocationPermission = () => {
       })
     }
 
-    if (status && status.status === Location.PermissionStatus.GRANTED && !showBlockerModal) {
+    if (status && status.status === Location.PermissionStatus.GRANTED && showBlockerModal) {
       dispatch(updateBlockerModal(false))
       userCurrentLocation()
     }

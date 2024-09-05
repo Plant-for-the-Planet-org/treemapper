@@ -4,7 +4,6 @@ import Share from 'react-native-share';
 import { toBase64 } from 'src/utils/constants/base64';
 import { convertInterventionDetailsToGeoJSON, convertTreeDetailsToGeoJSON } from 'src/utils/helpers/interventionHelper/convertDataToGeoJSON';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
 import { Colors } from 'src/utils/constants';
 import { FONT_FAMILY_BOLD } from 'src/utils/constants/typography';
 import ExportIcon from 'assets/images/svg/ExportJsonIcon.svg'
@@ -70,7 +69,7 @@ export default ExportGeoJSONButton;
 const styles = StyleSheet.create({
     btnContainer: {
         width: '100%',
-        height: scaleSize(55),
+        height: 60,
         justifyContent: 'center',
         alignItems: 'center',
         marginVertical: 10
@@ -91,7 +90,7 @@ const styles = StyleSheet.create({
         elevation: 2
     },
     textStyle: {
-        fontSize: scaleFont(18),
+        fontSize: 18,
         fontFamily: FONT_FAMILY_BOLD,
         color: Colors.DARK_TEXT_COLOR,
     },

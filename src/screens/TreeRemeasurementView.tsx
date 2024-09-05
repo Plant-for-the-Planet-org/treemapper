@@ -336,7 +336,7 @@ const TreeRemeasurementView = () => {
             }, 300);
             setTimeout(() => {
                 navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
-            }, 1000);
+            }, 300);
         } else {
             toast.show("Error occurred")
         }

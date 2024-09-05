@@ -13,7 +13,6 @@ import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import Header from 'src/components/common/Header'
 import InterventionCoverImage from 'src/components/previewIntervention/InterventionCoverImage'
 import { Typography, Colors } from 'src/utils/constants'
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 import CustomButton from 'src/components/common/CustomButton'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
@@ -35,9 +34,11 @@ import { measurementValidation } from 'src/utils/constants/measurementValidation
 import AlertModal from 'src/components/common/AlertModal'
 import DeleteIcon from 'assets/images/svg/BinIcon.svg'
 import DeleteModal from 'src/components/common/DeleteModal'
-import PlantedIcon from 'assets/images/svg/PlantedIcon.svg'
-import DeceasedTreeIcon from 'assets/images/svg/DeceasedTreeIcon.svg'
-import RemeasurementIcon from 'assets/images/svg/RemeasurementIcon.svg'
+
+import RemeasurementIconScalable from 'assets/images/svg/RemeasurementIconScalable.svg'
+import PlantHistory from './PlantHistoryView'
+import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
+import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -103,18 +104,6 @@ const ReviewTreeDetails = () => {
         navigation.replace('LocalForm', { id: interventionId })
     }
 
-    const renderIcon = () => {
-        if (treeDetails.status !== 'SYNCED') {
-            return <UnSyncIcon />
-        }
-        if (!treeDetails.is_alive) {
-            return <DeceasedTreeIcon />
-        }
-        if (treeDetails.history.length > 0) {
-            return <RemeasurementIcon />
-        }
-        return <PlantedIcon />
-    }
 
 
     const addAnotherTree = () => {
@@ -271,10 +260,6 @@ const ReviewTreeDetails = () => {
         setOpenEditModal({ ...openEditModal, value: d })
     }
 
-    const showPlantHistory = () => {
-        navigation.navigate("PlantHistory", { id: treeDetails.tree_id })
-    }
-
     const onDateSelect = async (_event, date: Date) => {
         const finalDetails = { ...treeDetails }
         setShowDatePicker(false)
@@ -282,6 +267,32 @@ const ReviewTreeDetails = () => {
         await updateSampleTreeDetails(finalDetails)
         setTreeDetails({ ...finalDetails })
     }
+
+    const moveToHome = () => {
+        navigation.popToTop()
+        //@ts-expect-error Extra params
+        navigation.navigate('Home', {
+            screen: 'Map'
+        });
+    }
+
+    const rightContainer = () => {
+        if (treeDetails.status === 'SYNCED') {
+            return <View style={styles.deleteContainer}>
+                <TouchableOpacity style={styles.rightWrapper}>
+                    <SyncIcon width={25} height={25} fill={Colors.TEXT_COLOR} />
+                    <Text style={[styles.rightLabel, { color: Colors.NEW_PRIMARY }]}>Synced</Text>
+                </TouchableOpacity>
+            </View>
+        }
+        return <View style={styles.deleteContainer}>
+            <TouchableOpacity style={styles.rightWrapper} onPress={moveToHome}>
+                <UnSyncIcon width={25} height={25} fill={Colors.TEXT_COLOR} />
+                <Text style={[styles.rightLabel, { color: Colors.TEXT_COLOR }]}>Sync</Text>
+            </TouchableOpacity>
+        </View>
+    }
+
 
     const renderDeceasedText = () => {
         if (deleteTree) {
@@ -292,20 +303,15 @@ const ReviewTreeDetails = () => {
                 </TouchableOpacity>
             </View>
         }
+
         if (treeDetails.status === 'INITIALIZED') {
             return null
         }
         if (treeDetails.tree_type === 'single') {
             return null
         }
-        if (type !== 'tpo') {
-            return null
 
-        }
-        return <TouchableOpacity style={styles.rightContainer} onPress={showPlantHistory}>
-            {renderIcon()}
-            <Text style={[styles.deceasedLabel, { color: !treeDetails.is_alive ? Colors.TEXT_COLOR : Colors.NEW_PRIMARY }]}>{treeDetails.is_alive ? "History" : i18next.t('label.marked_deceased')}</Text>
-        </TouchableOpacity>
+        return rightContainer()
     }
 
     if (!treeDetails) {
@@ -348,10 +354,21 @@ const ReviewTreeDetails = () => {
         navigation.goBack()
     }
 
-
+    const addNewRemeasurement = () => {
+        ctaHaptic()
+        navigation.replace('TreeRemeasurement', {
+            interventionId: treeDetails.intervention_id,
+            treeId: treeDetails.sloc_id
+        }
+        )
+    }
 
     return (
         <SafeAreaView style={styles.container}>
+            {type === 'tpo' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive ? <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
+                <RemeasurementIconScalable />
+                <Text style={styles.measureLabel}>Measure</Text>
+            </TouchableOpacity> : null}
             <DeleteModal isVisible={showDeleteTree} toggleModal={() => { setShowDeleteTree(false) }} removeFavSpecie={deleteTreeData} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={null} />
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
                 maximumDate={new Date()}
@@ -361,10 +378,10 @@ const ReviewTreeDetails = () => {
             <Header label={headerLabel} rightComponent={renderDeceasedText()} />
             <ScrollView>
                 <View style={styles.container}>
-                    <InterventionCoverImage 
-                    image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0} 
-                    isLegacy={Intervention.is_legacy}
-                    showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
+                    <InterventionCoverImage
+                        image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0}
+                        isLegacy={Intervention.is_legacy}
+                        showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
@@ -379,63 +396,68 @@ const ReviewTreeDetails = () => {
                             {!!editTree && !synced && !Intervention.has_sample_trees ? <PenIcon style={styles.editIconWrapper} /> : null}
                         </Pressable>
                     </View>
-                    <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('label.height')}</Text>
-                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (showEdit && synced) {
-                                return
-                            }
-                            openEdit('height', String(treeDetails.specie_height), 'decimal-pad')
-                        }}>
-                            <HeightIcon width={14} height={20} style={styles.iconWrapper} />
-                            <Text style={styles.valueLabel}>
-                                {getConvertedMeasurementText(treeDetails.specie_height, 'm')}
-                            </Text>
-                            {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
-                        </Pressable>
+                    <View style={styles.mainMetaWrapper}>
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.title}>{i18next.t('label.height')}</Text>
+                            <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                                if (showEdit && synced) {
+                                    return
+                                }
+                                openEdit('height', String(treeDetails.specie_height), 'decimal-pad')
+                            }}>
+                                <HeightIcon width={14} height={20} style={styles.iconWrapper} />
+                                <Text style={styles.valueLabel}>
+                                    {getConvertedMeasurementText(treeDetails.specie_height, 'm')}
+                                </Text>
+                                {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            </Pressable>
+                        </View>
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.title}>{i18next.t('label.width')}</Text>
+                            <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                                if (showEdit && synced) {
+                                    return
+                                }
+                                openEdit('diameter', String(treeDetails.specie_diameter), 'decimal-pad')
+                            }}>
+                                <WidthIcon width={18} height={8} style={styles.iconWrapper} />
+                                <Text style={styles.valueLabel}>
+                                    {getConvertedMeasurementText(treeDetails.specie_diameter)}
+                                </Text>
+                                {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            </Pressable>
+                        </View>
                     </View>
-                    <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('label.width')}</Text>
-                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (showEdit && synced) {
-                                return
-                            }
-                            openEdit('diameter', String(treeDetails.specie_diameter), 'decimal-pad')
-                        }}>
-                            <WidthIcon width={18} height={8} style={styles.iconWrapper} />
-                            <Text style={styles.valueLabel}>
-                                {getConvertedMeasurementText(treeDetails.specie_diameter)}
-                            </Text>
-                            {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
-                        </Pressable>
-                    </View>
-                    <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t("label.plantation_date")}</Text>
-                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (showEdit && synced) {
-                                return
-                            }
-                            openEdit('date', String(treeDetails.specie_height), 'number-pad')
-                        }}>
-                            <Text style={styles.valueLabel}>
-                                {timestampToBasicDate(treeDetails.plantation_date)}
-                            </Text>
-                            {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
-                        </Pressable>
-                    </View>
-                    <View style={styles.metaWrapper}>
-                        <Text style={styles.title}>{i18next.t('label.tree_tag')}</Text>
-                        <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (showEdit && synced) {
-                                return
-                            }
-                            openEdit('treetag', String(treeDetails.tag_id), 'default')
-                        }}>
-                            <Text style={styles.valueLabel}>
-                                {treeDetails.tag_id || 'Not Tagged'}
-                            </Text>
-                            {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
-                        </Pressable>
+
+                    <View style={styles.mainMetaWrapper}>
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.title}>{i18next.t("label.plantation_date")}</Text>
+                            <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                                if (showEdit && synced) {
+                                    return
+                                }
+                                openEdit('date', String(treeDetails.specie_height), 'number-pad')
+                            }}>
+                                <Text style={styles.valueLabel}>
+                                    {timestampToBasicDate(treeDetails.plantation_date)}
+                                </Text>
+                                {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            </Pressable>
+                        </View>
+                        <View style={styles.sectionWrapper}>
+                            <Text style={styles.title}>{i18next.t('label.tree_tag')}</Text>
+                            <Pressable style={styles.metaSectionWrapper} onPress={() => {
+                                if (showEdit && synced) {
+                                    return
+                                }
+                                openEdit('treetag', String(treeDetails.tag_id), 'default')
+                            }}>
+                                <Text style={styles.valueLabel}>
+                                    {treeDetails.tag_id || 'Not Tagged'}
+                                </Text>
+                                {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
+                            </Pressable>
+                        </View>
                     </View>
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.location')}</Text>
@@ -455,6 +477,8 @@ const ReviewTreeDetails = () => {
                         </View>
                     </View>
                 </View>
+                <Text style={styles.historyLabel}>Plant Timeline</Text>
+                <PlantHistory plantID={treeDetails.tree_id} />
                 <ExportGeoJSONButton details={treeDetails} type='treedetails' />
                 <View style={styles.footer} />
             </ScrollView >
@@ -505,7 +529,42 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE
-    }, metaWrapper: {
+    },
+    measureLabel: {
+        fontSize: 12,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+
+    },
+    floatingIcon: {
+        width: 80,
+        height: 80,
+        position: 'absolute',
+        backgroundColor: Colors.BACKDROP_COLOR,
+        bottom: 50,
+        zIndex: 1,
+        right: 30,
+        borderWidth: 0.5,
+        borderRadius: 100,
+        borderColor: '#f2ebdd',
+        shadowColor: Colors.GRAY_TEXT,
+        shadowOffset: { width: 2, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 5,
+        elevation: 2,
+        justifyContent: 'center',
+        alignItems: "center"
+    },
+    mainMetaWrapper: {
+        width: '100%',
+        flexDirection: 'row',
+        marginBottom: 10,
+        marginLeft: 20,
+        paddingVertical: 5,
+    },
+    sectionWrapper: {
+        flex: 1
+    },
+    metaWrapper: {
         width: '100%',
         paddingVertical: 5,
         marginBottom: 10,
@@ -526,25 +585,32 @@ const styles = StyleSheet.create({
     },
     title: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
-        fontSize: scaleSize(14),
+        fontSize: 14,
         color: Colors.TEXT_COLOR,
     },
     header: {
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        fontSize: scaleSize(18),
+        fontSize: 18,
         color: Colors.TEXT_COLOR,
         marginLeft: 20,
         marginTop: 10,
         marginBottom: 10
     },
+    historyLabel: {
+        width: "100%",
+        fontSize: 16,
+        fontFamily: Typography.FONT_FAMILY_BOLD,
+        marginLeft: 20,
+        color: Colors.TEXT_COLOR
+    },
     valueLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: scaleSize(16),
+        fontSize: 16,
         color: Colors.TEXT_COLOR,
     },
     speciesName: {
         fontFamily: Typography.FONT_FAMILY_ITALIC,
-        fontSize: scaleSize(16),
+        fontSize: 16,
         color: Colors.TEXT_COLOR,
     },
     iconWrapper: {
@@ -560,7 +626,7 @@ const styles = StyleSheet.create({
     },
     btnContainer: {
         width: '96%',
-        height: scaleSize(70),
+        height: 70,
         flexDirection: 'row',
         alignItems: 'center',
         position: 'absolute',
@@ -624,23 +690,21 @@ const styles = StyleSheet.create({
         borderRadius: 10,
     },
     highlightLabel: {
-        fontSize: scaleFont(16),
+        fontSize: 16,
         fontWeight: '400',
         color: Colors.PRIMARY_DARK,
     },
     normalLabel: {
-        fontSize: scaleFont(14),
+        fontSize: 14,
         fontWeight: '400',
         color: Colors.WHITE,
         textAlign: 'center',
     },
     deleteContainer: {
         height: '100%',
-        width: 200,
-        backgroundColor: "purple",
         justifyContent: 'center',
         alignItems: 'center',
-        marginHorizontal: 10
+        marginRight: '5%'
     },
     deleteWrapper: {
         justifyContent: 'center',
@@ -654,6 +718,21 @@ const styles = StyleSheet.create({
     deleteLabel: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,
-        paddingRight: 10
+        paddingRight: 10,
+    },
+    rightWrapper: {
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingVertical: 14,
+        borderRadius: 10,
+        backgroundColor: Colors.BACKDROP_COLOR,
+        flexDirection: 'row'
+    },
+    rightLabel: {
+        fontFamily: Typography.FONT_FAMILY_BOLD,
+        color: Colors.TEXT_COLOR,
+        paddingRight: 10,
+        marginLeft: 10
     }
 })
