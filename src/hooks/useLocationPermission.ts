@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react'
 import * as Location from 'expo-location'
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { updateBlockerModal, updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 import useLogManagement from './realm/useLogManagement';
+import { RootState } from 'src/store';
 
 const useLocationPermission = () => {
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
 
   const [cameraState, setCameraState] = useState(null)
-
+  const showBlockerModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
 
@@ -18,7 +19,7 @@ const useLocationPermission = () => {
         setCameraState(status)
       }
     } catch (error) {
-      console.log("Error",error)
+      console.log("Error", error)
     }
   }, [status])
 
@@ -33,7 +34,7 @@ const useLocationPermission = () => {
       })
     }
 
-    if (status && status.status === Location.PermissionStatus.GRANTED) {
+    if (status && status.status === Location.PermissionStatus.GRANTED && !showBlockerModal) {
       dispatch(updateBlockerModal(false))
       userCurrentLocation()
     }
