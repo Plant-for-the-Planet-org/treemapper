@@ -207,7 +207,6 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.2,
     shadowRadius: 5,
-    elevation: 2,
     borderRadius: 8,
     paddingVertical: 10,
   },

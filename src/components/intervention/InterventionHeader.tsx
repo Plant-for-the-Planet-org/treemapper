@@ -11,6 +11,8 @@ import InventoryMigration from '../common/InventoryMigration';
 import { RootState } from 'src/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearImageSize } from 'src/store/slice/appStateSlice';
+import { Text } from 'react-native';
+import { Colors, Typography } from 'src/utils/constants';
 
 
 const InterventionHeader = () => {
@@ -27,7 +29,7 @@ const InterventionHeader = () => {
         }
         let finalSize = 0
         finalSize = imageSize / 1048576
-        return `${String(finalSize.toFixed(2)) }MB`
+        return `${String(finalSize.toFixed(2))}MB`
 
     }
 
@@ -70,6 +72,7 @@ const InterventionHeader = () => {
         <View style={styles.container}>
             <FreeUpSpaceButton handleCleanup={handleCleanup} imageSize={convertBytesToMb()} />
             {!dataMigrated && <InventoryMigration />}
+            {process.env.EXPO_PUBLIC_APP_ENV === 'staging' && <View style={styles.stagingWrapper}><Text style={styles.stagingLabel}>Staging Env</Text></View>}
         </View>
     )
 }
@@ -90,6 +93,21 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         marginRight: 20
+    },
+    stagingWrapper: {
+        flexDirection: "row",
+        alignItems: 'center',
+        position: 'absolute',
+        right: '5%',
+        backgroundColor: '#FFBF00',
+        top: '20%',
+        borderRadius:8,
+        paddingHorizontal:10,
+        paddingVertical:5
+    },
+    stagingLabel: {
+        color: Colors.WHITE,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        fontSize: 20
     }
-
 })
