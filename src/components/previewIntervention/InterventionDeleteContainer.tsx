@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
         height: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        marginHorizontal: 10
+        marginRight: '5%'
     },
     wrapper: {
         justifyContent: 'center',

@@ -1,4 +1,3 @@
-import SyncSpecies from './SyncSpeciesView'
 import HomeMapView from './HomeMapView'
 import Interventions from './InterventionView'
 import PlotView from './PlotView'
@@ -44,6 +43,10 @@ import AddPlotsToGroupView from './AddPlotToGroupView'
 import TreeRemeasurement from './TreeRemeasurementView'
 import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
+import EditProjectView from './EditProjectView'
+import SignUpView from './SignUpView'
+import PlantHistory from './PlantHistoryView'
+import ProjectSites from './ProjectSitesView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -51,7 +54,6 @@ export default {
   PlotView: PlotView,
   TakePicture: TakePicture,
   PolygonMarker: PolygonMarker,
-  SyncSpecies: SyncSpecies,
   HomeSideDrawer: HomeSideDrawer,
   ManageSpecies: ManageSpeciesView,
   SpeciesInfo: SpeciesInfoView,
@@ -91,5 +93,9 @@ export default {
   AddPlotsToGroup: AddPlotsToGroupView,
   TreeRemeasurement: TreeRemeasurement,
   ProjectRemeasurementConfig: ProjectRemeasurementConfig,
-  OldInventoryData: OldInventoryDataView
+  OldInventoryData: OldInventoryDataView,
+  EditProjectView: EditProjectView,
+  SignUpView: SignUpView,
+  PlantHistory:PlantHistory,
+  ProjectSites:ProjectSites
 }

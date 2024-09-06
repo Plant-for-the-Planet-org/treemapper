@@ -1,10 +1,11 @@
 import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { CameraCapturedPicture, CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera';
-import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from './CustomButton'
 import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
+import useLogManagement from 'src/hooks/realm/useLogManagement';
+import { useToast } from 'react-native-toast-notifications';
 
 
 interface Props {
@@ -13,19 +14,32 @@ interface Props {
 
 const CameraMainView = (props: Props) => {
   const [permission, requestPermission] = useCameraPermissions()
+  const { addNewLog } = useLogManagement()
   const [loading, setLoading] = useState(false)
   const cameraRef = useRef<CameraView>(null)
-
+  const toast = useToast()
   useEffect(() => {
     requestPermission()
   }, [])
 
   const captureImage = async () => {
-    setLoading(true)
-    const data = await cameraRef.current.takePictureAsync({ skipProcessing: true })
-    if (data) {
-      props.takePicture(data)
-    } else {
+    try {
+      setLoading(true)
+      const data = await cameraRef.current.takePictureAsync({ skipProcessing: true, quality: 0, base64: false })
+      if (data) {
+        props.takePicture(data)
+      } else {
+        setLoading(false)
+      }
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error ocurred while capturing image',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      toast.show("Error Ocurred, Please try again");
       setLoading(false)
     }
   }
@@ -36,6 +50,19 @@ const CameraMainView = (props: Props) => {
       Linking.openURL('app-settings:')
     }
   };
+
+
+  const showCameraOrLoading = () => {
+
+    return <>
+      <CameraView
+        facing={i18next.t('label.back')}
+        style={styles.cameraWrapper}
+        ref={cameraRef}
+      />
+      {loading && <View style={styles.cameraBackDrop}></View>}
+    </>
+  }
 
   return (
     <View style={styles.container}>
@@ -49,13 +76,7 @@ const CameraMainView = (props: Props) => {
               {i18next.t('label.open_settings')}
             </Text>
           </>
-        ) : (
-          <CameraView
-            facing={i18next.t('label.back')}
-            style={styles.cameraWrapper}
-            ref={cameraRef}
-          />
-        )}
+        ) : showCameraOrLoading()}
       </View>
       <CustomButton
         label={i18next.t("label.take_picture")}
@@ -78,7 +99,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '95%',
-    height: '85%',
+    height: '80%',
     borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 15,
     overflow: 'hidden',
@@ -109,11 +130,19 @@ const styles = StyleSheet.create({
   cameraWrapper: {
     width: '100%',
     height: '100%',
+    backgroundColor: Colors.BLACK
+  },
+  cameraBackDrop: {
+    position: 'absolute',
+    height: '100%',
+    width: '100%',
+    backgroundColor: Colors.BLACK,
+    zIndex: 10
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
-    bottom: 0,
+    bottom: '5%',
   },
 })

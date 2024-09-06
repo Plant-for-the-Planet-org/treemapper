@@ -18,21 +18,22 @@ interface Props {
   interventionID: string
   tag: 'EDIT_INTERVENTION' | 'EDIT_SAMPLE_TREE'
   treeId?: string
-  isCDN?:boolean
+  isCDN?: boolean
+  showEdit: boolean
+  isLegacy: boolean
 }
 
 const InterventionCoverImage = (props: Props) => {
-  const { image, tag, interventionID, treeId, isCDN } = props
+  const { image, tag, interventionID, treeId, isCDN, showEdit, isLegacy } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
-  const {updateSampleTreeImage } = useInterventionManagement()
+  const { updateSampleTreeImage } = useInterventionManagement()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch();
 
-
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
-        updateSampleTreeImage(interventionID, treeId, imageDetails.url)
+      updateSampleTreeImage(interventionID, treeId, imageDetails.url)
       dispatch(updateImageDetails({
         id: '',
         url: ''
@@ -50,29 +51,29 @@ const InterventionCoverImage = (props: Props) => {
   }
 
   const clearImage = () => {
-      updateSampleTreeImage(interventionID, treeId, '')
+    updateSampleTreeImage(interventionID, treeId, '')
   }
 
 
-  const uri  = isCDN?`${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/project/large/${image}`:image
+  const uri = isCDN ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
   return (
     <View style={styles.container}>
-      {uri.length>0 && <View style={styles.wrapper}>
-      {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
-        <PenIcon width={30} height={30} />
-      </TouchableOpacity>}
-      {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
-        <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
-      </TouchableOpacity>}
-      <Image source={{ uri: uri }} style={styles.imageWrapper} />
+      {uri.length > 0 && <View style={styles.wrapper}>
+        {showEdit && !isLegacy ? <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+          <PenIcon width={30} height={30} />
+        </TouchableOpacity> : null}
+        {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
+          <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
+        </TouchableOpacity>}
+        <Image source={{ uri: uri }} style={styles.imageWrapper} />
       </View>}
-      {uri.length===0 && <View style={styles.emptyContainer}>
-      {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
-        <PenIcon width={30} height={30} />
-      </TouchableOpacity>}
-      <View style={styles.emptyWrapper}>
-        <Text style={styles.emptyLabel}>Add Cover Image</Text>
-      </View>
+      {uri.length === 0 && <View style={styles.emptyContainer}>
+        {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>
+          <PenIcon width={30} height={30} />
+        </TouchableOpacity>}
+        <TouchableOpacity style={styles.emptyWrapper} onPress={editImage}>
+          <Text style={styles.emptyLabel}>Add Tree Image</Text>
+        </TouchableOpacity>
       </View>}
     </View>
   )
@@ -86,7 +87,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  wrapper:{
+  wrapper: {
     width: '100%',
     height: scaleSize(250),
     justifyContent: 'center',
@@ -99,7 +100,7 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: 'black',
   },
-  emptyContainer:{
+  emptyContainer: {
     width: '100%',
     height: scaleSize(60),
     justifyContent: 'center',
@@ -112,14 +113,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 0.5,
     borderColor: Colors.GRAY_TEXT,
-    height:50,
-    width:'90%',
-    borderRadius:8
+    height: 50,
+    width: '90%',
+    borderRadius: 8
   },
-  emptyLabel:{
-    fontSize:16,
-    fontFamily:Typography.FONT_FAMILY_SEMI_BOLD,
-    color:Colors.TEXT_COLOR
+  emptyLabel: {
+    fontSize: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.TEXT_COLOR
   },
   editIconWrapper: {
     width: 30, height: 30,
@@ -147,6 +148,6 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE,
-    textAlign:'center'
+    textAlign: 'center'
   }
 })

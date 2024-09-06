@@ -18,7 +18,6 @@ import { GeoBox } from 'realm'
 import ClusteredShapeSource from './ClusteredShapeSource'
 import SingleInterventionSource from './SingleInterventionSource'
 import { filterToTime } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
-import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
 import MapMarkersOverlay from './MapMarkersOverlay'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import { useNavigation } from '@react-navigation/native'
@@ -37,6 +36,9 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
+  )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { onlyRemeasurement, showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
@@ -51,40 +53,28 @@ const DisplayMap = () => {
       return data.filtered('is_complete==true')
     },
   )
-  const plotData = useQuery<MonitoringPlot>(
-    RealmSchema.MonitoringPlot,
-    data => {
-      return data.filtered('is_complete==true')
-    },
-  )
-
-
+  const plotData = []
 
 
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if (onlyRemeasurement) {
+      if (onlyRemeasurement && userType === 'tpo') {
         return el.remeasurement_required === true
       }
       return el
     })
 
-    const feature = filterData.map((el: InterventionData, index: number) => {
+    const feature = filterData.map((el: InterventionData) => {
       const result = makeInterventionGeoJson(
         el.location.type,
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+          key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
-      if (el.entire_site) {
-        const newCoords = getRandomPointInPolygon(JSON.parse(el.location.coordinates), index)
-        result.geoJSON.geometry.type = "Point"
-        result.geoJSON.geometry.coordinates = newCoords
-      }
       return result.geoJSON
     })
     let f = feature
@@ -142,6 +132,9 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
     if (bounds.length === 0) {
+      if (userType !== 'tpo') {
+        handleCamera()
+      }
       return
     }
     if (key === 'DISPLAY_MAP') {
@@ -151,6 +144,8 @@ const DisplayMap = () => {
         50,
         1000,
       )
+    } else {
+      handleCamera()
     }
   }
 
@@ -184,14 +179,14 @@ const DisplayMap = () => {
 
   const getBoundsAndSetIntervention = async (bound: any, currentIntervention: InterventionData) => {
     try {
-      const query = currentIntervention.entire_site ? "coords geoWithin $0 && entire_site == true" : "coords geoWithin $0"
+      const query = currentIntervention.entire_site ? "entire_site == true" : "coords geoWithin $0"
       const boxBounds: GeoBox = {
         bottomLeft: [bound[0], bound[1]],
         topRight: [bound[2], bound[3]],
       };
       const data = realm.objects<InterventionData>(RealmSchema.Intervention).filtered(query, boxBounds);
       const feature = []
-      const updatedData = JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
+      const updatedData = currentIntervention.entire_site ? [] : JSON.parse(JSON.stringify(data.filter(el => el.intervention_id !== currentIntervention.intervention_id)))
       currentIntervention.active = true;
       updatedData.unshift(JSON.parse(JSON.stringify(currentIntervention)))
       updatedData.forEach((el: InterventionData) => {
@@ -202,7 +197,19 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+              key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+            }
+          )
+          feature.push(result.geoJSON)
+        }
+        if (el.location_type === 'Point') {
+          const result = makeInterventionGeoJson(
+            el.location.type,
+            JSON.parse(el.location.coordinates),
+            el.intervention_id,
+            {
+              active: el.active ? 'true' : 'false',
+              key: el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -245,7 +252,19 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasurement_required ? 'remeasurement' : el.intervention_key,
+            key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+          }
+        )
+        feature.push(result.geoJSON)
+      }
+      if (el.location_type === 'Point') {
+        const result = makeInterventionGeoJson(
+          el.location.type,
+          JSON.parse(el.location.coordinates),
+          el.intervention_id,
+          {
+            active: el.active ? 'true' : 'false',
+            key: el.intervention_key,
           }
         )
         feature.push(result.geoJSON)
@@ -284,7 +303,7 @@ const DisplayMap = () => {
     }
     return null;
   };
-  
+
   const renderMapMarkers = () => {
     if (selectedIntervention) {
       const interventionData = JSON.parse(selectedIntervention);
@@ -309,7 +328,7 @@ const DisplayMap = () => {
     }
     return null;
   };
-  
+
   const renderSingleInterventionSource = () => {
     if (selectedIntervention && !showOverlay) {
       return (
@@ -328,6 +347,11 @@ const DisplayMap = () => {
       logoEnabled={false}
       compassViewPosition={3}
       attributionEnabled={false}
+      onDidFinishLoadingMap={() => {
+        setTimeout(() => {
+          handleCameraViewChange()
+        }, 500);
+      }}
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={mapStyleURL}

@@ -32,7 +32,7 @@ export const convertDateToTimestamp = (d: Date) => {
 }
 
 export const activityLogTime = (timestamp: number) => {
-  return moment(timestamp).format('DD MMM, hh:mm A');
+  return moment(new Date(timestamp)).format('DD MMM, hh:mm A');
 }
 
 export const formatRelativeTimeCustom = (timestamp: number) => {

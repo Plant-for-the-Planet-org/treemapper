@@ -1,11 +1,12 @@
 import React from 'react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
-import {StyleSheet, Text, View} from 'react-native'
-import {Colors, Typography} from 'src/utils/constants'
+import { StyleSheet, Text, View } from 'react-native'
+import { Colors, Typography } from 'src/utils/constants'
 
 interface Props {
   coordinates: Array<number[]>
+  showNumber?: boolean
 }
 
 const AlphabetMarkers = (props: Props) => {
@@ -20,9 +21,9 @@ const AlphabetMarkers = (props: Props) => {
       <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
-            <MapPin fill={Colors.NEW_PRIMARY}/>
+            <MapPin fill={Colors.NEW_PRIMARY} />
           </View>
-          <Text style={styles.labelText}>{alphabet(i)}</Text>
+          <Text style={styles.labelText}>{props.showNumber ? i + 1 : alphabet(i)}</Text>
         </View>
       </MapLibreGL.MarkerView>
     ))

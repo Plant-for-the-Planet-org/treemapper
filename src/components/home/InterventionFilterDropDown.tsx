@@ -44,7 +44,9 @@ const InterventionFilterModal = () => {
     <View style={styles.container}>
       <FlatList
         showsVerticalScrollIndicator={false}
-        data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)} />
+        data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)}
+        ListFooterComponent={() => (<View style={styles.footer} />)}
+      />
     </View>
   )
 }
@@ -53,32 +55,33 @@ export default InterventionFilterModal
 
 const styles = StyleSheet.create({
   container: {
-    maxHeight: 300,
-    width:'100%',
-    justifyContent:'center',
-    alignItems:'center',
-    backgroundColor: Colors.LIGHT_PRIMARY,
-    borderRadius:10,
-    marginBottom:10,
-    top:-1
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 10,
+    marginBottom: 10,
   },
   tileWrapper: {
     width: "98%",
-    height: 60,
+    height: 45,
     alignItems: 'center',
     borderBottomWidth: 0.5,
     borderBottomColor: Colors.WHITE,
     flexDirection: 'row',
-    marginLeft:'1%',
-    justifyContent:'space-evenly',
+    justifyContent: 'space-between',
   },
   tileLabel: {
     fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
     color: Colors.TEXT_COLOR,
-    paddingLeft:20
+    paddingLeft: 20
   },
   divider: {
     flex: 1
+  },
+  footer: {
+    width: '100%',
+    height: 0,
+    marginBottom:500
   }
 })

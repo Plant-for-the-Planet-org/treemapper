@@ -8,28 +8,62 @@ import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomS
 import { useDispatch, useSelector } from 'react-redux'
 import { updateInterventionFilter, updateRemeasurementFilter, updateShowPlots } from 'src/store/slice/displayMapSlice'
 import { RootState } from 'src/store'
-import InterventionTimeModal from './InterventionTimeModal'
 import { INTERVENTION_FILTER } from 'src/types/type/app.type'
 import InterventionFilterModal from './InterventionFilterDropDown'
 import i18next from 'src/locales/index'
+import InterventionDropDown from 'src/components/common/InterventionDropDown'
+import { DropdownData } from 'src/types/interface/app.interface'
+import ArrowDownIcon from 'assets/images/svg/CtaDownIcon.svg'
 
 interface Props {
   isVisible: boolean
   toggleModal: () => void
 }
 
-const FilterModal = (props: Props) => {
-  const [showTimeModal, setShowTimeModal] = useState(false)
-  const [showTypeModal, setShowTypeModal] = useState(false)
+const data: DropdownData[] = [
+  {
+    label: i18next.t('label.show_30'),
+    index: 0,
+    value: 'days',
+    extra:i18next.t('label.within_30'),
+  },
+  {
+    label: i18next.t('label.show_6'),
+    index: 1,
+    value: 'months',
+    extra:i18next.t('label.within_6'),
 
+  },
+  {
+    label: i18next.t('label.show_1'),
+    index: 2,
+    value: 'year',
+    extra:i18next.t('label.within_1'),
+  },
+  {
+    label: i18next.t('label.show_all'),
+    index: 3,
+    value: 'always',
+    extra:i18next.t('label.within_All'),
+  },
+  {
+    label:i18next.t('label.dont_show'),
+    index: 4,
+    value: 'none',
+    extra:i18next.t('label.within_no'),
+  },
+]
+const FilterModal = (props: Props) => {
+  const [showTypeModal, setShowTypeModal] = useState(false)
+  const [showInterventionDropdown, setShowInterventionDropdown] = useState(false)
 
   const { interventionFilter, showPlots, onlyRemeasurement } = useSelector(
     (state: RootState) => state.displayMapState,
   )
+
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  // variables
-  const snapPoints = useMemo(() => ['50%', '85%'], []);
+  const snapPoints = useMemo(() => ['55%', '95%', '80%'], []);
   const { isVisible, toggleModal } = props
   const dispatch = useDispatch()
   useEffect(() => {
@@ -51,39 +85,40 @@ const FilterModal = (props: Props) => {
     dismiss();
   }
 
-  const toggleIntervention = () => {
-    if (interventionFilter === 'none') {
-      dispatch(updateInterventionFilter('always'))
-      setShowTimeModal(true)
-    } else {
-      setShowTimeModal(false)
-      dispatch(updateInterventionFilter('none'))
-    }
-  }
 
-  const toggleTimeModal = () => {
-    setShowTimeModal(!showTimeModal)
-  }
+
 
 
   const toggleTypeModal = () => {
     setShowTypeModal(!showTypeModal)
   }
 
-  const changeInterventionFilter = (e: INTERVENTION_FILTER) => {
-    setShowTimeModal(false)
-    dispatch(updateInterventionFilter(e))
-  }
 
 
   const handleOpenModal = () => {
+    setShowInterventionDropdown(false)
     bottomSheetModalRef.current.snapToIndex(showTypeModal ? 0 : 1)
     toggleTypeModal()
   }
+  
+
+
+
+  const openDropDown = (e: INTERVENTION_FILTER | '') => {
+    setShowTypeModal(false)
+    bottomSheetModalRef.current.snapToIndex(showInterventionDropdown ? 0 : 2)
+    setShowInterventionDropdown(!showInterventionDropdown)
+    if(e){
+      dispatch(updateInterventionFilter(e))
+    }
+  }
+
 
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
   )
+
+
 
   return (
     <BottomSheetModal
@@ -95,36 +130,44 @@ const FilterModal = (props: Props) => {
       enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
-      style={{ paddingTop: 20 }}
+      backgroundStyle={{ backgroundColor: 'transparent' }}
     >
-      <InterventionTimeModal isVisible={showTimeModal} toggleModal={toggleTimeModal} selectedFilter={interventionFilter} changeInterventionFilter={changeInterventionFilter} />
       <BottomSheetView style={styles.container}>
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
-              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} />
+              <FilterMapIcon onPress={() => { }} style={styles.iconWrapper} height={18} width={18} />
               <Text style={styles.headerLabel}>{i18next.t('label.filters')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.closeWrapper} onPress={closeModal}>
-                <CloseIcon />
+                <CloseIcon width={18} height={18} onPress={closeModal}/>
               </TouchableOpacity>
             </View>
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: showPlots ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.monitoring_plots')}</Text>
               <View style={styles.divider} />
               <Switch value={showPlots} onValueChange={() => { dispatch(updateShowPlots(!showPlots)) }} disabled={false} />
             </View>
-            <View style={[styles.card, { backgroundColor: Colors.NEW_PRIMARY + '1A' }]}>
-              <Text style={styles.cardLabel}>{i18next.t('label.intervention')}</Text>
+            <TouchableOpacity style={[styles.card, { backgroundColor: showInterventionDropdown ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={()=>{openDropDown('')}}>
+              <Text style={styles.cardLabel}>{data.find(el => el.value === interventionFilter).label}</Text>
               <View style={styles.divider} />
-              <Switch value={interventionFilter !== 'none'} onValueChange={toggleIntervention} disabled={false} />
-            </View>
-            <TouchableOpacity style={styles.card} onPress={handleOpenModal}>
+              <ArrowDownIcon fill={Colors.GRAY_BORDER} style={{margin:'5%', marginTop:15}}/>
+            </TouchableOpacity>
+            {showInterventionDropdown && <InterventionDropDown
+              onSelect={openDropDown}
+              data={data}
+              selectedValue={{
+                label: '',
+                value: interventionFilter,
+                index: 0,
+              }} />}
+            {interventionFilter !== 'none' && <TouchableOpacity style={[styles.card, { backgroundColor: showTypeModal ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]} onPress={handleOpenModal}>
               <Text style={styles.cardLabel}>{i18next.t('label.filter_intervention')}</Text>
               <View style={styles.divider} />
-            </TouchableOpacity>
+              <ArrowDownIcon fill={Colors.GRAY_BORDER} style={{margin:'5%', marginTop:15}}/>
+            </TouchableOpacity>}
             {showTypeModal && <InterventionFilterModal />}
-            <View style={styles.card}>
+            <View style={[styles.card, { backgroundColor: onlyRemeasurement ? Colors.NEW_PRIMARY + '1A' : Colors.GRAY_LIGHT }]}>
               <Text style={styles.cardLabel}>{i18next.t('label.only_remeasurement')}</Text>
               <View style={styles.divider} />
               <Switch value={onlyRemeasurement} onValueChange={() => { dispatch(updateRemeasurementFilter(!onlyRemeasurement)) }} disabled={false} />
@@ -145,18 +188,22 @@ const styles = StyleSheet.create({
   },
   sectionWrapper: {
     width: '100%',
-    bottom: 0,
-    backgroundColor: '#fff',
+    height: '100%',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     alignItems: 'center',
+    paddingTop: 20,
+    backgroundColor: Colors.WHITE,
+
   },
   contentWrapper: {
-    width: '95%',
-    paddingBottom: 50
+    width: '100%',
+    paddingBottom: 50,
+    paddingHorizontal: '3%',
+    backgroundColor: Colors.WHITE,
   },
   card: {
-    height: 55,
+    height: 60,
     width: '100%',
     flexDirection: 'row',
     alignItems: 'center',
@@ -176,29 +223,31 @@ const styles = StyleSheet.create({
   },
   closeWrapper: {
     marginRight: 8,
-    tintColor: Colors.TEXT_COLOR
+    tintColor: Colors.TEXT_COLOR,
+    width:20,
+    height:20,
+    justifyContent:'center',
+    alignItems:'center'
   },
   headerLabel: {
-    fontSize: 20,
+    fontSize: 21,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_COLOR,
-    paddingLeft: 10
   },
   cardLabel: {
-    fontSize: 16,
+    fontSize: 15,
     marginHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    color: Colors.TEXT_COLOR,
+    color: Colors.DARK_TEXT,
     letterSpacing: 1,
     paddingLeft: 10,
-    textAlign: 'left'
-
+    textAlign: 'left',
+    maxWidth: '80%'
   },
   divider: {
     flex: 1,
   },
   handleIndicatorStyle: {
-    backgroundColor: Colors.WHITE,
     width: 0,
     height: 0
   }

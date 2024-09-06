@@ -70,10 +70,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 12,
     backgroundColor: Colors.NEW_PRIMARY,
-    paddingHorizontal: 20,
+    paddingHorizontal: 24,
     paddingVertical: 13,
     marginBottom: 20,
-    flexDirection: 'row'
+    flexDirection: 'row',
+
   },
   btnIcon: {
     marginRight: 10,

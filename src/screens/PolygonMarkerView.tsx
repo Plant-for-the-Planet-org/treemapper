@@ -2,7 +2,6 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import Header from 'src/components/common/Header'
 import PolygonMarkerMap from 'src/components/map/PolygonMarkerMap'
-import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import { Colors } from 'src/utils/constants'
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import { SafeAreaView } from 'react-native-safe-area-context'
@@ -14,6 +13,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { StatusBar } from 'expo-status-bar'
 
 const PolygonMarker = () => {
   const [showInfoModal, setShowInfoModal] = useState(false)
@@ -32,7 +32,7 @@ const PolygonMarker = () => {
   if (!interventionData) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="small" color={Colors.PRIMARY} />
+        <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
       </View>
     )
   }
@@ -41,10 +41,12 @@ const PolygonMarker = () => {
 
   return (
     <SafeAreaView style={styles.container}>
+      <StatusBar style='dark' />
       <Header label={location_title}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
-      <PolygonMarkerMap species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
-      <UserlocationMarker />
+      <PolygonMarkerMap 
+      intervention_key={interventionData.intervention_key}
+      species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
       <LocationPermissionModal required />
     </SafeAreaView>

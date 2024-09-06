@@ -40,7 +40,7 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
       <LargeButton
         onPress={() =>
           openWebView(
-            `${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_WEBAPP_URL}/manage-projects/add-project`,
+            `https://web.plant-for-the-planet.org/en/profile/projects/new-project`,
           )
         }
         style={{ marginTop: 20 }}
@@ -92,7 +92,7 @@ const ProjectItem = ({
     <View
       style={[
         styles.listItemContainer,
-        isProjectSelected ? { borderColor: Colors.PRIMARY } : {},
+        isProjectSelected ? { borderColor: Colors.NEW_PRIMARY } : {},
       ]}>
       {item.image && process.env.EXPO_PUBLIC_CDN_URL ? (
         <Image
@@ -109,7 +109,7 @@ const ProjectItem = ({
       <Text
         style={[
           styles.projectText,
-          isProjectSelected ? { color: Colors.PRIMARY } : {},
+          isProjectSelected ? { color: Colors.NEW_PRIMARY } : {},
         ]}>
         {item.name}
       </Text>

@@ -56,6 +56,7 @@ const EcosystemList = ({ plotID, data }: Props) => {
                 containerStyle={styles.btnContainer}
                 pressHandler={handleNav}
                 hideFadeIn
+                showAdd
             />
         </>
     )
@@ -71,7 +72,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: 70,
         position: 'absolute',
-        bottom: 10,
+        bottom: 20,
     },
 })
 

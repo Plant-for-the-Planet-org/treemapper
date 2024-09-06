@@ -1,23 +1,24 @@
-import { StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import FormTextInputElement from './FormTextInputElement'
 import FormInfoElement from './FormInfoElement'
 import FormSwitchElement from './FormSwitchElement'
-import { scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from '../common/CustomButton'
 import { CommonActions, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import FormTextAreaElement from './FormTextAreaElement'
 import { useToast } from 'react-native-toast-notifications'
-import {IAdditionalDetailsForm } from 'src/types/interface/app.interface'
+import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import GapElement from './GapElement'
 import HeadingElement from './HeadingElement'
 import YeNoFormElement from './YeNoFormElement'
 import DropDownFormElement from './DropDownElement'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { v4 as uuid } from 'uuid'
+import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
+import { Colors } from 'src/utils/constants'
 
 interface Props {
   formData: MainForm | IAdditionalDetailsForm
@@ -28,6 +29,15 @@ interface Props {
 }
 
 const MainFormSection = (props: Props) => {
+
+  useEffect(() => {
+    AvoidSoftInput.setShouldMimicIOSBehavior(true);
+    return () => {
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
+    };
+  }, [])
+
+
   const { formData, completeLocalForm, page, interventionID, isEditForm } = props
 
   const [showForm, setShowForm] = useState(false)
@@ -78,7 +88,7 @@ const MainFormSection = (props: Props) => {
       animationType: "slide-in",
     });
   };
-  
+
   const validateField = (key, formValues) => {
     if (formValues[key].value.length > 0 && formValues[key].validation.length > 0) {
       const regex = new RegExp(formValues[key].validation);
@@ -89,7 +99,7 @@ const MainFormSection = (props: Props) => {
     }
     return true;
   };
-  
+
   const checkRequiredField = (key, formValues) => {
     if (checkForNonEmptyForm(formValues[key].type) && formValues[key].required && formValues[key].value.length === 0) {
       showToast(`${formValues[key].label} cannot be empty`);
@@ -97,7 +107,7 @@ const MainFormSection = (props: Props) => {
     }
     return true;
   };
-  
+
   const prepareFinalData = (formValues) => {
     const finalData = [];
     for (const [key] of Object.entries(formValues)) {
@@ -110,11 +120,11 @@ const MainFormSection = (props: Props) => {
     }
     return finalData;
   };
-  
+
   const submitHandler = async () => {
     const finalData = prepareFinalData(formValues);
     if (!finalData) return;
-  
+
     if (completeLocalForm) {
       completeLocalForm(finalData, page);
       return;
@@ -206,7 +216,14 @@ const MainFormSection = (props: Props) => {
   }
   return (
     <View style={styles.container}>
-      {renderElement(formData.elements)}
+      <ScrollView>
+        <AvoidSoftInputView
+          avoidOffset={20}
+          showAnimationDuration={200}
+          style={styles.mainContainer}>
+          {renderElement(formData.elements)}
+        </AvoidSoftInputView>
+      </ScrollView>
       <CustomButton
         label="Continue"
         containerStyle={styles.btnContainer}
@@ -224,8 +241,14 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
+  },
+  mainContainer: {
+    flex: 1,
+    backgroundColor: Colors.WHITE,
+    height: '100%',
+    width: '100%'
   },
 })

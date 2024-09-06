@@ -9,17 +9,12 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
-import { PlantedSpecies } from 'src/types/interface/slice.interface'
 import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import { getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
-import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
-import { INTERVENTION_TYPE } from 'src/types/type/app.type'
-import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
-import { useToast } from 'react-native-toast-notifications'
+
 
 const cardSize = scaleSize(60)
 
@@ -27,10 +22,7 @@ interface Props {
   toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[]
   isManageSpecies: boolean
-  showTreeModal: (item: IScientificSpecies) => void
-  interventionEdit: string
-  form_id: string
-  interventionKey: INTERVENTION_TYPE
+  handleSpeciesPress: (item: IScientificSpecies) => void
 }
 
 const ManageSpeciesHome = (props: Props) => {
@@ -38,10 +30,7 @@ const ManageSpeciesHome = (props: Props) => {
     toggleFavSpecies,
     userFavSpecies,
     isManageSpecies,
-    interventionEdit,
-    showTreeModal,
-    form_id,
-    interventionKey
+    handleSpeciesPress
   } = props
   const [loading, setLoading] = useState(false)
 
@@ -49,9 +38,7 @@ const ManageSpeciesHome = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
-  const { updateInterventionPlantedSpecies } = useInterventionManagement()
   const { userSpecies, isLoggedIn } = useSelector((state: RootState) => state.appState)
-  const toast = useToast()
 
   useEffect(() => {
     if (!userSpecies && isLoggedIn) {
@@ -61,14 +48,18 @@ const ManageSpeciesHome = (props: Props) => {
     }
   }, [])
 
+  const handleNav = () => {
+    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSpecies })
+  }
+
 
   const syncUserSpecies = async () => {
     setLoading(true)
     try {
-      const result = await getUserSpecies()
-      if (result && result.length > 0) {
-        const response = await addUserSpecies(result)
-        if (response) {
+      const {response, success} = await getUserSpecies()
+      if (success && response.length > 0) {
+        const result = await addUserSpecies(response)
+        if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
@@ -80,41 +71,6 @@ const ManageSpeciesHome = (props: Props) => {
   }
 
 
-
-  const handleSpeciesPress = async (item: IScientificSpecies) => {
-    const speciesData = JSON.parse(JSON.stringify(item))
-    if (interventionEdit) {
-      showTreeModal(speciesData);
-      return;
-    }
-    const { is_multi_species, tree_details_required } = setUpIntervention(interventionKey)
-    if (!isManageSpecies) {
-      if (is_multi_species) {
-        showTreeModal(speciesData)
-      } else {
-        const updatedSPecies: PlantedSpecies = {
-          guid: speciesData.guid,
-          scientificName: speciesData.scientificName,
-          aliases: speciesData.aliases,
-          count: 1,
-          image: speciesData.image
-        }
-        const result = await updateInterventionPlantedSpecies(form_id, updatedSPecies)
-        if (!result) {
-          errorHaptic()
-          toast.show('Error occurred while adding species')
-          return
-        }
-        if (tree_details_required) {
-          navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: form_id })
-        } else {
-          navigation.navigate('LocalForm', { id: form_id })
-        }
-      }
-    } else {
-      navigation.navigate('SpeciesInfo', { guid: speciesData.guid })
-    }
-  }
 
   const handleRemoveFav = (item: IScientificSpecies) => {
     toggleFavSpecies(item, false)
@@ -134,7 +90,7 @@ const ManageSpeciesHome = (props: Props) => {
       data={userFavSpecies}
       renderItem={({ item }) => renderSpecieCard(item)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader isManageSpecies={isManageSpecies} />}
+      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav}/>}
       ListEmptyComponent={<EmptyManageSpeciesList />}
       refreshControl={
         <RefreshControl

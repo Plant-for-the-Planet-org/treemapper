@@ -2,52 +2,58 @@ import { StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { FORM_TYPE } from 'src/types/type/app.type'
 import i18next from 'src/locales/index'
 
 interface Props {
   data: string
+  synced: boolean
 }
 
+
 const InterventionMetaData = (props: Props) => {
-
-  const [additionalData, setAdditionalData] = useState<{ [key: string]: { value: string, label: string, type?: FORM_TYPE } }>({})
-
+  const [additionalData, setAdditionalData] = useState<Array<{ key: string, value: string }>>([]);
   const { data } = props
+
+
   useEffect(() => {
-    if (data.length) {
-      const parsedData = JSON.parse(data);
-      if (parsedData?.['public'] && Object.keys(parsedData['public']).length === 0) {
-        return
-      }
-      if (parsedData.length !== 0) {
-        setAdditionalData(parsedData)
-      }
-    }
+    convertData()
   }, [data])
 
-  if (Object.keys(additionalData).length === 0) {
-    return null
+
+  const convertData = () => {
+    const checkForPublic = [];
+
+
+    if (!!data && typeof data === 'string') {
+      const parsedData = JSON.parse(data)
+      if (!!parsedData && parsedData?.public) {
+        const publicData = parsedData.public;
+        if (typeof publicData === 'object' && publicData !== null && !Array.isArray(publicData)) {
+          for (const key in publicData) {
+            if (key !== 'isEntireSite' && typeof publicData[key] === 'string') { 
+              checkForPublic.push({ value: publicData[key], key: key });
+            }
+          }
+        }
+      }
+    }
+    setAdditionalData(checkForPublic)
   }
 
 
   const renderData = () => {
-    const finalData = []
-    const publicData = additionalData.public;
-    let i = 0
-    for (const prop in publicData) {
-      i++
-      finalData.push(
-        <View style={styles.cardWrapper} key={i}>
-          <Text style={styles.cardTitle}> {prop}</Text>
-          <Text style={styles.cardLabel}>
-            {publicData[prop]}
-          </Text>
-        </View>
-      )
-    }
-    return finalData
+    return additionalData.map((el) => (<View style={styles.cardWrapper} key={el.key}>
+      <Text style={styles.cardTitle}> {el.key}</Text>
+      <Text style={styles.cardLabel}>
+        {el.value}
+      </Text>
+    </View>))
   }
+
+  if (additionalData.length === 0) {
+    return null
+  }
+
 
   return (
     <View style={styles.container}>
@@ -66,6 +72,7 @@ const styles = StyleSheet.create({
     width: '100%',
     justifyContent: 'center',
     alignItems: 'center',
+    marginTop: 20
   },
   wrapper: {
     width: '90%',
@@ -107,6 +114,7 @@ const styles = StyleSheet.create({
   cardLabel: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: scaleSize(14),
+    marginLeft: 5,
     color: Colors.TEXT_COLOR,
   },
   headerLabel: {

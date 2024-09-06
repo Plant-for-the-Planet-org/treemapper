@@ -6,6 +6,7 @@ import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { FONT_SIZE_18 } from 'src/utils/constants/typography'
 import { Colors, Typography } from 'src/utils/constants'
+import i18next from 'i18next'
 
 
 const ErrorLogs = () => {
@@ -28,20 +29,26 @@ const ErrorLogs = () => {
 
 
     const getAllLogs = async () => {
-        const start = currentPage * 20;
-        const end = start + 20;
-        const objects = realm
-            .objects<LogDetails>(RealmSchema.ActivityLogs)
-            .filtered("logLevel == 'error'")
-            .sorted('timestamp', true)
-            .slice(start, end);
-        setLogs(currentPage ? [...logs, ...objects] : [...objects])
-        setLoading(false)
-    }
+        try {
+            setLoading(true);
+            const start = currentPage * 20;
+            const objects = realm
+                .objects<LogDetails>(RealmSchema.ActivityLogs)
+                .filtered("logLevel == 'error'")
+                .sorted('timestamp', true)
+                .slice(start, start + 20); // Inclusive range for 20 items
+    
+            setLogs(currentPage ? [...logs, ...objects] : [...objects]);
+        } catch (error) {
+            console.error("Failed to fetch logs:", error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
     const emptyComponent = () => {
         return <View style={styles.emptyContainer}>
-            <Text style={styles.emptyLabel}>No log's to show</Text>
+            <Text style={styles.emptyLabel}>{i18next.t('label.no_logs')}</Text>
         </View>
     }
 

@@ -21,8 +21,11 @@ interface Props {
 const SiteMapSource = (props: Props) => {
   const [geoJSON, setGeoJSON] = useState<any[]>([])
   const realm = useRealm()
-  const { currentProject, projectSite, projectAdded } = useSelector(
+  const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
+  )
+  const { lastProjectAdded } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
 
   useEffect(() => {
@@ -30,20 +33,23 @@ const SiteMapSource = (props: Props) => {
       setGeoJSON([])
       return;
     }
-    if (currentProject && currentProject.projectId === '') {
-      return
-    }
-    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+    const ProjectData = realm.objects<ProjectInterface[]>(
       RealmSchema.Projects,
-      currentProject.projectId,
     )
-    extractSiteCoordinates(ProjectData)
+    if (ProjectData) {
+      extractSiteCoordinates([...ProjectData])
+    }
+  }, [projectAdded, lastProjectAdded])
 
-  }, [projectSite, currentProject, projectAdded])
-
-  const extractSiteCoordinates = (data: ProjectInterface) => {
+  const extractSiteCoordinates = (data: any[]) => {
     try {
-      const allProjectSites = [...data.sites];
+
+      const allProjectSites = []
+      data.forEach(el => {
+        if (el.sites && el.sites.length > 0) {
+          allProjectSites.push(...el.sites)
+        }
+      })
       const reducedSites = [];
       for (const siteDetails of allProjectSites) {
         if (siteDetails?.geometry) {

@@ -29,7 +29,7 @@ const OfflineMapList = () => {
   )
 
   const renderEmptyComp = () => (
-    <Text style={styles.emptylabel}>{i18next.t("label.no_offline_map")}</Text>
+    <Text style={styles.emptyLabel}>{i18next.t("label.no_offline_map")}</Text>
   )
 
   return (
@@ -58,7 +58,7 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
     marginTop: 20,
   },
-  emptylabel: {
+  emptyLabel: {
     fontSize: scaleFont(14),
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.TEXT_LIGHT,

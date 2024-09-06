@@ -5,11 +5,12 @@ import { initialInterventionState } from 'src/utils/constants/initialInterventio
 
 const Description: FormElement = {
   index: 0,
-  key: 'description',
-  label: 'Description',
+  key: 'extra-info',
+  label: 'More info',
   default: '',
   type: 'TEXTAREA',
-  placeholder: 'Description',
+  placeholder: 'More info (optional)',
+  title: 'More Info',
   unit: '',
   visibility: 'public',
   condition: null,
@@ -21,11 +22,10 @@ const Description: FormElement = {
   required: false,
   validation: ".+"
 }
-  
 
   
   const otherInterventionForm: MainForm = {
-    title: 'Details',
+    title: 'More Details',
     key: '',
     elements: [Description],
   }
@@ -44,7 +44,7 @@ export const OtherIntervention: RegisterFormSliceInitialState = {
   tree_details_required: false,
   has_sample_trees: false,
   form_details: [otherInterventionForm],
-  can_be_entire_site: false,
+  can_be_entire_site: true,
   entire_site_selected: false,
   key: 'other-intervention',
   should_register_location: false,

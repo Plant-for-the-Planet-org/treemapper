@@ -48,7 +48,7 @@ const LocalForm = () => {
     const data = realm.objects(RealmSchema.AdditionalDetailsForm);
     if (!checkForNonEmptyForm(data)) {
       await updateLocalFormDetailsIntervention(paramId, [])
-      navigation.replace("DynamicForm", {id: paramId})
+      navigation.replace("DynamicForm", { id: paramId })
       return
     }
     setFormPages(JSON.parse(JSON.stringify(data)))
@@ -56,18 +56,24 @@ const LocalForm = () => {
   }
 
 
-  const checkForNonEmptyForm = (data) => {
-    return data.some(form =>
-      form.elements.some(el =>
-        el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH'
-      )
-    );
+  const checkForNonEmptyForm = (data, page = currentPage) => {
+    if (!data[page]) {
+      return false
+    }
+    return data[page].elements.some(el =>
+      el.type === 'INPUT' || el.type === 'DROPDOWN' || el.type === 'YES_NO' || el.type === 'SWITCH'
+    )
   };
+
+
 
   const handleCompletion = async (data: FormElement[], id: string) => {
     const filterData = finalData.filter(el => el.page !== id);
     setFinalData([...filterData, { elements: data, page: id }])
-    if (formPages.length > currentPage + 1) {
+
+    const validPage = formPages.length > currentPage + 1 ? checkForNonEmptyForm(formPages, currentPage + 1) : false
+
+    if (validPage) {
       flatListRef.current.scrollToIndex({ index: currentPage + 1 });
       setCurrentPage(currentPage + 1)
     } else {

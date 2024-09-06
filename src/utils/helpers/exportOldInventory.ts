@@ -77,7 +77,7 @@ export const convertData = async (inventory: any) => {
         }, 1000);
       })
       .catch(err => {
-        console.log("lkj",err)
+        console.log("err",err)
         Alert.alert('Error occurred at folder creation');
       });
   } catch (error) {
@@ -104,7 +104,7 @@ export const onlyExportJSON = async (inventory: any) => {
         await sharedData(folderPath, inventory.inventory_id);
       })
       .catch(err => {
-        console.log("lkj",err)
+        console.log(err)
         Alert.alert('Error occurred at folder creation');
       });
   } catch (error) {

@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   emptyImageContainer: {
     height: scaleSize(200),
-    backgroundColor: Colors.NEW_PRIMARY+'1A',
+    backgroundColor: '#E0EDE8',
     borderRadius: 12,
     borderColor: '#86C059',
     borderWidth: 2,

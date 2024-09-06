@@ -1,33 +1,25 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import Header from '../common/Header'
 import i18next from 'src/locales/index'
 import { Typography, Colors } from 'src/utils/constants'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { useNavigation } from '@react-navigation/native'
-import { StackNavigationProp } from '@react-navigation/stack'
-import { RootStackParamList } from 'src/types/type/navigation.type'
+
 import { SCALE_24, SCALE_30 } from 'src/utils/constants/spacing'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import SpeciesSyncError from './SpeciesSyncError'
 
 interface Props {
-  isManageSpecies: boolean
+  openSearchModal: () => void
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { isManageSpecies } = props
-  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const { openSearchModal } = props
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
 
-  const openSearchModal = () => {
-    navigation.navigate('SpeciesSearch', { manageSpecies: isManageSpecies })
-  }
   return (
     <View style={styles.container}>
-      <Header label="Manage Species" />
       {!isSpeciesDownloaded ? <SpeciesSyncError /> : <View style={styles.wrapper}>
         <Text style={styles.labelNote}>
           {i18next.t('label.explore_and_manage_species')}
@@ -79,14 +71,14 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   speciesNote: {
     textAlign: 'center',
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_14,
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   searchNote: {
     marginTop: 4,
@@ -94,7 +86,7 @@ const styles = StyleSheet.create({
     color: Colors.BLACK,
     fontSize: Typography.FONT_SIZE_12,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
-    letterSpacing:0.5,
+    letterSpacing: 0.5,
   },
   searchBar: {
     flexDirection: 'row',

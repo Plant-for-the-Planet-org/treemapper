@@ -2,7 +2,7 @@ import React from 'react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { SampleTree } from 'src/types/interface/slice.interface'
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native'
+import { View, Text, StyleSheet, Pressable } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
 
 interface Props {
@@ -10,11 +10,12 @@ interface Props {
   hasSampleTree: boolean
   showActive?: boolean
   activeIndex?: number
-  onMarkerPress?: (index: number) => void
+  onMarkerPress?: (index: number, extra?: SampleTree) => void
+  showNumber?: boolean
 }
 
 const MapMarkers = (props: Props) => {
-  const { sampleTreeData, hasSampleTree, showActive, activeIndex, onMarkerPress } = props
+  const { sampleTreeData, hasSampleTree, showActive, activeIndex, onMarkerPress, showNumber } = props
   if (!hasSampleTree) {
     return null
   }
@@ -22,9 +23,9 @@ const MapMarkers = (props: Props) => {
     return String.fromCharCode(i + 65)
   }
 
-  const handleMarkerPress = (index: number) => {
+  const handleMarkerPress = (index: number, d: SampleTree) => {
     if (onMarkerPress) {
-      onMarkerPress(index)
+      onMarkerPress(index, d)
     }
   }
 
@@ -33,7 +34,15 @@ const MapMarkers = (props: Props) => {
       if (activeIndex === i) {
         return Colors.NEW_PRIMARY;
       } else {
-        return el.remeasurement_requires ? 'tomato' : Colors.TEXT_LIGHT;
+        let color: string;
+        if (el.remeasurement_requires) {
+          color = '#FF6200';
+        } else if (el.is_alive) {
+          color = '#89B53A';
+        } else {
+          color = Colors.TEXT_LIGHT;
+        }
+        return color;
       }
     } else {
       return Colors.NEW_PRIMARY;
@@ -54,19 +63,18 @@ const MapMarkers = (props: Props) => {
     return sampleTreeData.map((el, i) => (
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
-
         id={String(i)}
         key={String(el.longitude)}>
-        <TouchableOpacity style={styles.container} onPress={() => {
-          handleMarkerPress(i)
+        <Pressable style={styles.container} onPress={() => {
+          handleMarkerPress(i, el)
         }}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={getPinColor(i, el)} />
           </View>
           <Text style={[styles.labelText, { color: textColor(i) }]}>
-            {alphabet(i)}
+            {showNumber ? i + 1 : alphabet(i)}
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </MapLibreGL.MarkerView>
     ))
   }

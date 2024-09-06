@@ -24,7 +24,7 @@ const MetaDataForm = () => {
   )
 
   useEffect(() => {
-    setMetaData([...allMetaData])
+    setMetaData([...JSON.parse(JSON.stringify(allMetaData))])
   }, [allMetaData])
 
 

@@ -31,6 +31,7 @@ export const BACKDROP_RED = '#EB5757'
 export const PALE_RED = '#FBDDDD'
 export const SHADOW_BORDER = '#f2ebdd'
 export const DARK_TEXT = '#333333'
+export const RGB_TRANSPARENT = 'rgba(0,0,0,0.5)'
 
 // ACTIONS
 export const SUCCESS = '#2ecc71'

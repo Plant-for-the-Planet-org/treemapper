@@ -13,5 +13,6 @@ export const ScientificSpecies: Realm.ObjectSchema = {
     image: { type: 'string', default: '' },
     description: { type: 'string', default: '' },
     isUpdated: { type: 'bool', default: true },
+    specieId:  {type: 'string', default: '' }
   },
 };

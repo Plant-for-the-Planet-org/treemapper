@@ -29,7 +29,7 @@ const TakePicture = () => {
     })
   }
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <Header
         label={i18next.t('label.take_picture')}
         note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}

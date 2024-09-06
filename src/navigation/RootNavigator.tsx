@@ -8,9 +8,9 @@ const Stack = createNativeStackNavigator<RootStackParamList>()
 
 const RootNavigator = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="SyncSpecies" component={Screens.SyncSpecies} />
+    <Stack.Navigator screenOptions={{ headerShown: false }} initialRouteName='Home'>
       <Stack.Screen name="Home" component={BottomTabStack} />
+      <Stack.Screen name="SignUpPage" component={Screens.SignUpView} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
       <Stack.Screen name="PolygonMarker" component={Screens.PolygonMarker} />
       <Stack.Screen name="ManageSpecies" component={Screens.ManageSpecies} />
@@ -55,6 +55,9 @@ const RootNavigator = () => {
       <Stack.Screen name='TreeRemeasurement' component={Screens.TreeRemeasurement} />
       <Stack.Screen name='ProjectRemeasurementConfig' component={Screens.ProjectRemeasurementConfig} />
       <Stack.Screen name='OldInventoryDataView' component={Screens.OldInventoryData} />
+      <Stack.Screen name='EditProject' component={Screens.EditProjectView} />
+      <Stack.Screen name='PlantHistory' component={Screens.PlantHistory} />
+      <Stack.Screen name="ProjectSites" component={Screens.ProjectSites} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

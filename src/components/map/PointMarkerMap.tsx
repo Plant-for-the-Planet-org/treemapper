@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import { scaleSize } from 'src/utils/constants/mixins'
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -66,8 +65,16 @@ const PointMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    handleCameraViewChange()
-  }, [MapBounds, currentUserLocation])
+    setTimeout(() => {
+      handleCameraViewChange()
+    }, 300);
+  }, [MapBounds])
+
+
+  useEffect(() => {
+    handleCamera()
+  }, [currentUserLocation])
+
 
   const handleCameraViewChange = () => {
     if (cameraRef?.current) {
@@ -86,11 +93,13 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
-      animationDuration: 1000,
-    })
+    if (cameraRef?.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        zoomLevel: 20,
+        animationDuration: 1000,
+      })
+    }
   }
 
   const getMarkerJSON = () => {
@@ -220,7 +229,7 @@ const PointMarkerMap = (props: Props) => {
       </MapLibreGL.MapView>
       <SatelliteIconWrapper low />
       <CustomButton
-        label="Select location & Continue"
+        label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}
         pressHandler={checkForAccuracy}
         loading={loading}
@@ -255,8 +264,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     position: 'absolute',
-    bottom: 20,
+    bottom: 30,
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
   },
 })

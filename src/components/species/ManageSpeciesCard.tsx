@@ -76,7 +76,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {!isSelectSpecies && <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
+          {!isSelectSpecies && item.guid !== 'unknown' ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (
@@ -84,7 +84,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 <RemoveSpeciesIcon width={18} height={18} fill="tomato" />
               </View>
             )}
-          </TouchableOpacity>}
+          </TouchableOpacity> : null}
         </TouchableOpacity>
       </View>
     </View>
@@ -119,7 +119,7 @@ const styles = StyleSheet.create({
     paddingRight: 18,
     paddingLeft: 8,
   },
-  cardWrapper:{
+  cardWrapper: {
     backgroundColor: Colors.WHITE,
     borderRadius: 12,
     borderColor: '#f2ebdd',

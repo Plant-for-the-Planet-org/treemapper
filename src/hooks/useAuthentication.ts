@@ -9,11 +9,13 @@ const auth0 = new Auth0({ domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN, clientId
 
 
 const useAuthentication = () => {
-  const { authorize, getCredentials, clearSession, clearCredentials, user } = useAuth0()
+  const { authorize, getCredentials, clearSession, clearCredentials, user, error } = useAuth0()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
   const { deleteAllProjects } = useProjectManagement()
   const { deleteAllUserSpecies } = useManageScientificSpecies()
   const { addNewLog } = useLogManagement()
+
+
   const getUserCredentials = async () => {
     const result = await getCredentials()
     return result
@@ -79,7 +81,6 @@ const useAuthentication = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      Bugsnag.notify(error)
       return {
         credentials: null,
         success: false,
@@ -114,7 +115,7 @@ const useAuthentication = () => {
 
 
 
-  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken }
+  return { getUserCredentials, logoutUser, authorizeUser, user, getCredentials, refreshUserToken, error }
 }
 
 export default useAuthentication

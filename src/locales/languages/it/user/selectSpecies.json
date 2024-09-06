@@ -43,7 +43,7 @@
   "select_species_search_specie_not_present": "La specie '{{searchText}}' non è presente",
   "select_species_search_atleast_3_characters": "Inserisci almeno 3 caratteri per ottenere un risultato migliore",
   "select_species_looks_empty_here": "Sembra vuoto qui!",
-  "select_species_add_species_desscription": "Aggiungi delle specie alla tua lista cercando le specie",
+  "select_species_add_species_description": "Aggiungi delle specie alla tua lista cercando le specie",
   "select_species_tree_species": "Specie di alberi",
   "sample_one_tree_for_each_species": "Si prega di campionare almeno un albero per ogni specie piantata.",
   "species_name": "Nome della specie",

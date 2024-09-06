@@ -72,13 +72,15 @@ const PlotPlantRemeasureView = () => {
             updateDetails()
             return
         }
-        if (height.length === 0) {
-            toast.show('Height can not be empty')
-            return
-        }
-        if (width.length === 0) {
-            toast.show('Diameter can not be empty')
-            return
+        if (isAlive) {
+            if (height.length === 0) {
+                toast.show('Height can not be empty')
+                return
+            }
+            if (width.length === 0) {
+                toast.show('Diameter can not be empty')
+                return
+            }
         }
         const updateTimeline: PlantTimeLine = {
             status: isAlive ? 'REMEASUREMENT' : 'DECEASED',
@@ -231,6 +233,7 @@ const styles = StyleSheet.create({
         height: 70,
         position: 'absolute',
         bottom: 50,
+        flexDirection:'row'
     },
     btnMinorContainer: {
         width: '100%',

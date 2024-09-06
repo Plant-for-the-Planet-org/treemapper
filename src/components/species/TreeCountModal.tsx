@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react'
 import {
-  KeyboardAvoidingView,
-  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -16,6 +14,7 @@ import SpeciesIcon from 'assets/images/svg/SpeciesIcon.svg'
 import { InputOutlineMethods } from 'react-native-input-outline/lib/typescript/components/InputOutline'
 import i18next from 'src/locales/index'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { AvoidSoftInputView } from 'react-native-avoid-softinput'
 
 interface TreeCountModalProps {
   showTreeCountModal: boolean
@@ -32,7 +31,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
 }) => {
   const [treeCount, setTreeCount] = useState('')
   const inputRef = React.useRef<InputOutlineMethods>(null)
-
+  const [errorMessage, setErrorMessage] = useState('')
   useEffect(() => {
     setTreeCount('')
     if (showTreeCountModal) {
@@ -43,17 +42,32 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   }, [showTreeCountModal])
 
   const handlePressNext = () => {
+    if (errorMessage.length > 0 || treeCount === '0' || treeCount.length == 0) {
+      return null
+    }
     inputRef?.current?.blur()
     onPressTreeCountNextBtn(treeCount)
+  }
+
+
+  const isValidNumberString = (input: string) => {
+    const regex = /^\d*\.?\d+$/;
+    if (regex.test(input)) {
+      setTreeCount(input)
+      setErrorMessage("")
+    } else {
+      setErrorMessage("Please input valid Tree count")
+    }
   }
 
   return (
     <Modal style={styles.container}
       isVisible={showTreeCountModal}
       onBackdropPress={() => { }}>
-      <KeyboardAvoidingView style={styles.sectionWrapper}
-        behavior={Platform.OS == 'ios' ? 'padding' : 'height'}
-      >
+      <AvoidSoftInputView
+        avoidOffset={0}
+        showAnimationDuration={200}
+        style={styles.sectionWrapper}>
         <View style={styles.wrapper}>
           <View style={styles.headerWrapper}>
             <SpeciesIcon />
@@ -75,24 +89,24 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
             <View style={styles.input}>
               <InputOutline
                 style={styles.inputHolder}
-                value={''}
                 ref={inputRef}
                 placeholder={'Tree Count'}
                 activeColor={Colors.NEW_PRIMARY}
                 inactiveColor={Colors.GRAY_TEXT}
                 placeholderTextColor={Colors.GRAY_TEXT}
                 fontSize={scaleFont(16)}
-                onChangeText={setTreeCount}
-                keyboardType='number-pad'
+                onChangeText={isValidNumberString}
+                keyboardType='numeric'
+                error={errorMessage.length > 0 ? errorMessage : null}
                 fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
               />
             </View>
-            <TouchableOpacity style={styles.button} onPress={handlePressNext}>
+            <TouchableOpacity style={[styles.button, { backgroundColor: errorMessage.length > 0 ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY }]} onPress={handlePressNext}>
               <Text style={styles.btnLabel}>{i18next.t("label.continue")}</Text>
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AvoidSoftInputView>
     </Modal>
   )
 }
@@ -145,12 +159,12 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 55,
     flexDirection: 'row',
-    marginTop: 20
+    marginTop: 20,
   },
   input: {
     width: '60%',
     height: '100%',
-    marginHorizontal: 10
+    marginHorizontal: 10,
   },
   speciesLabel: {
     fontFamily: Typography.FONT_FAMILY_ITALIC_BOLD
@@ -158,7 +172,6 @@ const styles = StyleSheet.create({
   button: {
     width: "30%",
     height: '100%',
-    backgroundColor: Colors.NEW_PRIMARY,
     borderRadius: 10,
     justifyContent: 'center',
     alignItems: 'center'

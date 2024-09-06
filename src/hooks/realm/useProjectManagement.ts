@@ -1,5 +1,6 @@
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import { ProjectInterface } from 'src/types/interface/app.interface'
 
 const useProjectManagement = () => {
   const realm = useRealm()
@@ -24,6 +25,8 @@ const useProjectManagement = () => {
             sites: [],
             geometry: JSON.stringify(project.geometry),
             purpose: properties.purpose,
+            intensity: properties.intensity || 0,
+            frequency: properties.revisionPeriodicityLevel || 'low',
           }
 
           for (const site of properties.sites) {
@@ -41,12 +44,11 @@ const useProjectManagement = () => {
             Realm.UpdateMode.Modified,
           )
         })
-        return Promise.resolve(true)
       })
-      return Promise.resolve(true)
+      return true
     } catch (error) {
       console.error('Error while adding projects', error)
- return false
+      return false
     }
   }
 
@@ -57,13 +59,43 @@ const useProjectManagement = () => {
         const unSyncedObjects = realm.objects(RealmSchema.Projects);
         realm.delete(unSyncedObjects);
       });
-      return true    } catch (error) {
+      return true
+    } catch (error) {
       console.error('Error during update:', error);
- return false;
+      return false;
     }
   };
 
-  return { addAllProjects, deleteAllProjects }
+
+  const updateProjectInF = async (pID: string, f: string, i: number): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const projectDetails = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pID);
+        projectDetails.frequency = f
+        projectDetails.intensity = i
+      });
+      return true
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const addNewSite = async (projectID: string, siteData: any): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const projectData =  realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects,projectID)
+        const existingSites = [...projectData.sites]
+        existingSites.push(siteData)
+        projectData.sites = existingSites
+      })
+      return true
+    } catch (error) {
+      console.error('Error while adding site', error)
+      return false
+    }
+  }
+
+  return { addAllProjects, deleteAllProjects, updateProjectInF, addNewSite }
 }
 
 export default useProjectManagement

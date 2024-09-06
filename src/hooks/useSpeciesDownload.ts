@@ -5,19 +5,25 @@ import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import useLogManagement from './realm/useLogManagement'
 import { getUrlApi } from 'src/api/api.url'
 import Bugsnag from '@bugsnag/expo'
+import { useToast } from 'react-native-toast-notifications'
+import RNFS from 'react-native-fs';
+import { updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
+import { useDispatch } from 'react-redux'
+import { updateSpeciesDownloading } from 'src/store/slice/tempStateSlice'
+import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 
 const useDownloadFile = () => {
   const [currentState, setCurrentState] = useState(SPECIES_SYNC_STATE.INITIAL)
-  const [finalURL, setFinalURL] = useState<string | null>(null)
   const { addNewLog } = useLogManagement()
-
+  const toast = useToast()
+  const dispatch = useDispatch()
   const fileUrl = getUrlApi.getAllSpeciesAchieve
-  const zipFilePath = `${FileSystem.cacheDirectory}archive.zip`
-  const targetFilePath = `${FileSystem.cacheDirectory}unzipped`
-
+  const zipFilePath = `${FileSystem.documentDirectory}archive.zip`
+  const targetFilePath = `${FileSystem.documentDirectory}unzipped`
   const downloadFile = async () => {
     try {
       setCurrentState(SPECIES_SYNC_STATE.DOWNLOADING)
+      dispatch(updateSpeciesDownloading(true))
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Species data downloading started",
@@ -39,8 +45,10 @@ const useDownloadFile = () => {
       setCurrentState(SPECIES_SYNC_STATE.UNZIPPING_FILE)
       await unzipFile(zipFilePath, targetFilePath)
     } catch (error) {
+      dispatch(updateSpeciesDownloading(false))
       Bugsnag.notify(error)
       setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
+      toast.show("Error occurred while downloading species data")
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Error occurred while downloading species",
@@ -72,8 +80,10 @@ const useDownloadFile = () => {
         logLevel: 'info',
         statusCode: '000',
       })
+      await updateLocalSpeciesSync();
+      dispatch(updateSpeciesDownloading(false))
+      dispatch(updateSpeciesDownloaded(targetFilePath))
       setCurrentState(SPECIES_SYNC_STATE.READING_FILE)
-      setFinalURL(targetFilePath)
     } catch (error) {
       addNewLog({
         logType: 'DATA_SYNC',
@@ -86,7 +96,19 @@ const useDownloadFile = () => {
     }
   }
 
-  return { downloadFile, finalURL, currentState }
+  const checkDownloadFolder = async () => {
+    try {
+      const folderExists = await RNFS.exists(zipFilePath);
+      if (folderExists) {
+        return true
+      }
+      return false
+    } catch (error) {
+      return false
+    }
+  }
+
+  return { downloadFile, currentState, checkDownloadFolder }
 }
 
 export default useDownloadFile

@@ -47,7 +47,7 @@ const FormTextInputElement = (props: Props) => {
         inactiveColor={Colors.TEXT_LIGHT}
         placeholderTextColor={Colors.TEXT_LIGHT}
         fontSize={16}
-        paddingVertical={15}
+        paddingVertical={18}
         value={formValues[data.key].value}
         onChangeText={handleChange}
         returnKeyType='done'
@@ -70,7 +70,6 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     borderRadius: 10,
-    paddingHorizontal: 10,
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',

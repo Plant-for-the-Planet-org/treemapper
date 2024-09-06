@@ -78,9 +78,8 @@ const OfflineMapDisplay = () => {
       const offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
       const coords = await mapRef.current.getCenter();
       const bounds = await mapRef.current.getVisibleBounds();
-      const areaName = ''
-      const LocationDetails = await getAreaName(coords)
-      const placeName = LocationDetails?.features?.[0]?.place_name;
+      const {response} = await getAreaName(coords)
+      const placeName = response?.features?.[0]?.place_name || 'Not specified'
       if (placeName) {
         setAreaName(placeName);
       }      
@@ -92,7 +91,7 @@ const OfflineMapDisplay = () => {
           maxZoom: 20,
           bounds: bounds,
         },
-        (o, s) => { progressListener(o, s, areaName, offlineMapId) },
+        (o, s) => { progressListener(o, s, placeName, offlineMapId) },
         errorListener,
       );
     } catch (err) {
@@ -126,6 +125,7 @@ const OfflineMapDisplay = () => {
           label="Save Area"
           containerStyle={styles.btnContainer}
           pressHandler={onPressDownloadArea}
+          showDown
         />
       </View>
       <LoaderModal isLoaderShow={isLoaderShow} areaName={areaName} />

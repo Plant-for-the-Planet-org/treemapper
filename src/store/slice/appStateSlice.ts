@@ -8,10 +8,15 @@ const initialState: AppInitialState = {
   refreshToken: '',
   expiringAt: 0,
   speciesSync: false,
+  speciesLocalURL: '',
   serverInterventionAdded: false,
   lastServerInterventionpage: '',
   intervention_updated: 0,
-  userSpecies: false
+  userSpecies: false,
+  lastSyncDate: 0,
+  dataMigrated: false,
+  updateAppCount: 10,
+  imageSize: 0,
 }
 
 const appStateSlice = createSlice({
@@ -50,12 +55,34 @@ const appStateSlice = createSlice({
     updateUserSpeciesadded(state, action: PayloadAction<boolean>) {
       state.userSpecies = action.payload
     },
-    logoutAppUser() {
-      return { ...initialState, speciesSync: true }
+    updateLastSyncData(state, action: PayloadAction<number>) {
+      state.lastSyncDate = action.payload
+    },
+    updateSpeciesDownloaded(state, action: PayloadAction<string>) {
+      state.speciesLocalURL = action.payload
+    },
+    updateDataMigrated(state, action: PayloadAction<boolean>) {
+      state.dataMigrated = action.payload
+    },
+    setUpdateAppCount(state) {
+      if (state.updateAppCount > 0) {
+        state.updateAppCount -= 1
+      } else {
+        state.updateAppCount = 10
+      }
+    },
+    updateImageSize(state, action: PayloadAction<number>) {
+      state.imageSize = state.imageSize + action.payload
+    },
+    clearImageSize(state) {
+      state.imageSize = 0
+    },
+    logoutAppUser(state) {
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL }
     },
   },
 })
 
-export const { updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention } = appStateSlice.actions
+export const {clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData } = appStateSlice.actions
 
 export default appStateSlice.reducer

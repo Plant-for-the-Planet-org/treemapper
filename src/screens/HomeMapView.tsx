@@ -12,14 +12,21 @@ import CarouselHeader from 'src/components/carousel/CarouselHeader'
 
 import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
+import { StatusBar } from 'expo-status-bar'
+import MapAttribution from 'src/components/common/MapAttribution'
 const HomeMapView = () => {
 
   const [showFilterModal, setShowFilterModal] = useState(false)
   const [showProjectModal, setShowProjectModal] = useState(false)
-
-  const showCarousel = useSelector(
-    (state: RootState) => state.displayMapState.showCarousel,
+  const { showCarousel, mainMapView } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
+  const userType = useSelector(
+    (state: RootState) => state.userState.type,
+  )
+
+
+
   const toggleFilterModal = () => {
     setShowFilterModal(!showFilterModal)
   }
@@ -31,6 +38,7 @@ const HomeMapView = () => {
 
   return (
     <View style={[styles.container]}>
+      <StatusBar style={mainMapView === 'SATELLITE' ? 'light' : 'dark'} />
       {showCarousel ? (
         <CarouselHeader />
       ) : (
@@ -41,7 +49,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker />
+      <UserlocationMarker low stopAutoFocus={userType === 'tpo'}/>
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}
@@ -52,6 +60,7 @@ const HomeMapView = () => {
       />
       {showCarousel && <CarouselModal />}
       <LocationPermissionModal />
+      <MapAttribution/>
     </View>
   )
 }

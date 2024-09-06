@@ -5,11 +5,12 @@ import { initialInterventionState } from 'src/utils/constants/initialInterventio
 
 const Description: FormElement = {
   index: 0,
-  key: 'description',
-  label: 'Description',
+  key: 'extra-info',
+  label: 'More info',
   default: '',
   type: 'TEXTAREA',
-  placeholder: 'Description',
+  placeholder: 'More info (optional)',
+  title: 'More Info',
   unit: '',
   visibility: 'public',
   condition: null,
@@ -22,14 +23,29 @@ const Description: FormElement = {
   validation: ".+"
 }
 
-
-
-
+const Periodicity: FormElement = {
+  index: 0,
+  key: 'maintenance-periodicity',
+  label: 'Maintenance periodicity',
+  default: '',
+  type: 'INPUT',
+  placeholder: 'Maintenance periodicity',
+  unit: 'times/year',
+  visibility: 'public',
+  condition: null,
+  data_type: 'number',
+  keyboard_type: 'number-pad',
+  sub_form: undefined,
+  editable: true,
+  value: '',
+  required: true,
+  validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|100000)$"
+}
 
 const maintenanceForm: MainForm = {
-  title: 'Details',
+  title: 'More Details',
   key: '',
-  elements: [Description],
+  elements: [Periodicity, Description],
 }
 
 
@@ -47,7 +63,7 @@ export const Maintenance: RegisterFormSliceInitialState = {
   tree_details_required: false,
   has_sample_trees: false,
   form_details: [maintenanceForm],
-  can_be_entire_site: false,
+  can_be_entire_site: true,
   entire_site_selected: false,
   key: 'maintenance',
   should_register_location: false,

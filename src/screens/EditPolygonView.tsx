@@ -31,12 +31,6 @@ const EditPolygonMap = () => {
     const interventionId = route.params?.id ?? '';
     const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const [history, setHistory] = useState<Array<{
-        coords: any,
-        index: number
-    }>>([])
-    // const [_currentStep, setSteps] = useState(0)
-    console.log("history", history)
     const { updateInterventionLocation } = useInterventionManagement()
     const cameraRef = useRef<MapLibreGL.Camera>(null)
     const mapRef = useRef<MapLibreGL.MapView>(null)
@@ -133,7 +127,7 @@ const EditPolygonMap = () => {
         const interventionCoords = JSON.parse(Intervention.location.coordinates)
         setCoordinates(interventionCoords)
         // setSteps(0)
-        setHistory([])
+        // setHistory([])
     }
 
     const changeTheCoordinates = async (index: number, coords: any) => {
@@ -147,12 +141,12 @@ const EditPolygonMap = () => {
             updatedCoordinates[updatedCoordinates.length - 1] = coords
         }
         setCoordinates(updatedCoordinates)
-        setHistory((prev) => {
-            return [...prev, {
-                coords: coords,
-                index: index
-            }]
-        })
+        // setHistory((prev) => {
+        //     return [...prev, {
+        //         coords: coords,
+        //         index: index
+        //     }]
+        // })
     }
 
 

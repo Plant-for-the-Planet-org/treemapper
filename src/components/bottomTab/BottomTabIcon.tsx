@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text } from 'react-native'
+import { StyleSheet, View, Text, useWindowDimensions } from 'react-native'
 import React from 'react'
 
 import MapTabIcon from 'assets/images/svg/MapTabIcon.svg'
@@ -6,7 +6,6 @@ import InterventionTabIcon from 'assets/images/svg/InterventionTabIcon.svg'
 import PlotTabIcon from 'assets/images/svg/PlotTabIcon.svg'
 import * as Colors from 'src/utils/constants/colors'
 import { Typography } from 'src/utils/constants'
-import { scaleFont } from 'src/utils/constants/mixins'
 import { SCALE_26 } from 'src/utils/constants/spacing'
 
 interface Props {
@@ -15,11 +14,13 @@ interface Props {
   isFocused: boolean
 }
 
+
 const BottomTabIcon = (props: Props) => {
   const { label, index } = props
+  const { width } = useWindowDimensions()
   return (
     <View
-      style={[styles.container, { borderTopLeftRadius: index === 0 ? 20 : 0 }]}>
+      style={[styles.container, { width: width / 4, borderTopLeftRadius: index === 0 ? 10 : 0, }]}>
       <View style={styles.iconWrapper}>
         {index === 0 && (
           <MapTabIcon
@@ -50,7 +51,7 @@ const BottomTabIcon = (props: Props) => {
         ]}>
         {label}
       </Text>
-      <View style={styles.bottomBar}/>
+      <View style={styles.bottomBar}></View>
     </View>
   )
 }
@@ -59,24 +60,24 @@ export default BottomTabIcon
 
 const styles = StyleSheet.create({
   container: {
-    height: 80,
-    width: '100%',
     alignItems: 'center',
-    justifyContent:'center',
-    backgroundColor: Colors.WHITE,
+    justifyContent: 'center',
+    height: '100%',
+    backgroundColor: "white"
   },
   iconWrapper: {
-    marginBottom:5
+    marginBottom: 5,
+    marginTop: 5
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleFont(13),
+    fontSize: 12,
   },
-  bottomBar:{
-    position:'absolute',
-    bottom:-30,
-    height:30,
-    width:'100%',
-    backgroundColor:Colors.WHITE
+  bottomBar: {
+    position: 'absolute',
+    bottom: -30,
+    height: 30,
+    width: '100%',
+    backgroundColor: 'white'
   }
 })
