@@ -155,39 +155,40 @@ const ProjectModal = (props: Props) => {
   }, [isVisible, toggleProjectModal, lastProjectAdded])
 
   useEffect(() => {
-    if (!currentProject.projectId) {
-      return
-    }
-    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
-      RealmSchema.Projects,
-      currentProject.projectId,
-    )
-
-    if (!ProjectData.geometry) {
-      return
-    }
-    try {
-      if (!projectSite.siteId || projectSite.siteId === 'other') {
-        const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
-        const bounds = bbox(geoJSON)
-        dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+    setTimeout(() => {
+      if (!currentProject.projectId) {
         return
       }
-    } catch (error) {
-      console.log("Error",error)
-    }
-    const currentSiteData = ProjectData.sites.filter(
-      el => el.id === projectSite.siteId,
-    )
-    try {
-      const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-      const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
-      const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
-      const bounds = bbox(geoJSON)
-      dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
-    } catch (error) {
-      console.log("Error",error)
-    }
+      const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+        RealmSchema.Projects,
+        currentProject.projectId,
+      )
+      if (!ProjectData.geometry) {
+        return
+      }
+      try {
+        if (!projectSite.siteId || projectSite.siteId === 'other') {
+          const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+          const bounds = bbox(geoJSON)
+          dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+          return
+        }
+      } catch (error) {
+        console.log("Error",error)
+      }
+      const currentSiteData = ProjectData.sites.filter(
+        el => el.id === projectSite.siteId,
+      )
+      try {
+        const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+        const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+        const bounds = bbox(geoJSON)
+        dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+      } catch (error) {
+        console.log("Error",error)
+      }
+    }, 500);
   }, [])
 
 

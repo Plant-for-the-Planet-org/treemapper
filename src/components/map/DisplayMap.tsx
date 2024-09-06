@@ -132,6 +132,9 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
     if (bounds.length === 0) {
+      if (userType !== 'tpo') {
+        handleCamera()
+      }
       return
     }
     if (key === 'DISPLAY_MAP') {
@@ -344,6 +347,11 @@ const DisplayMap = () => {
       logoEnabled={false}
       compassViewPosition={3}
       attributionEnabled={false}
+      onDidFinishLoadingMap={() => {
+        setTimeout(() => {
+          handleCameraViewChange()
+        }, 500);
+      }}
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       styleURL={mapStyleURL}

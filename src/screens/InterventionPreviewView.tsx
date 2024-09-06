@@ -1,4 +1,4 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View , TouchableOpacity} from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -10,6 +10,7 @@ import InterventionBasicInfo from 'src/components/previewIntervention/Interventi
 import InterventionArea from 'src/components/previewIntervention/InterventionArea'
 import { useDispatch, useSelector } from 'react-redux'
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
+import UnsyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import { RootState } from 'src/store'
 import {
   makeInterventionGeoJson,
@@ -176,11 +177,21 @@ const InterventionPreviewView = () => {
     </View>
   }
 
+  const moveToHome = () => {
+    navigation.popToTop()
+    //@ts-expect-error Extra params
+    navigation.navigate('Home', {
+      screen: 'Map'
+    });
+  }
 
 
   const renderRightContainer = () => {
     if (InterventionData.is_complete && InterventionData.status !== 'SYNCED') {
-      return null
+      return <TouchableOpacity style={[styles.syncContainer]} onPress={moveToHome}>
+        <UnsyncIcon width={20} height={20} />
+        <Text style={styles.label}>Sync Now</Text>
+      </TouchableOpacity>
     }
     if (InterventionData.status === 'SYNCED') {
       return <View style={styles.syncContainer}>

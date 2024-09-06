@@ -385,7 +385,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (!!editTree && synced && !Intervention.has_sample_trees) {
+                            if (Intervention.status!=='INITIALIZED' || Intervention.has_sample_trees) {
                                 return
                             }
                             openEdit('species', String(treeDetails.specie_height), 'number-pad')

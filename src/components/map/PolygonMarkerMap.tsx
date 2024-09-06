@@ -141,7 +141,7 @@ const PolygonMarkerMap = (props: Props) => {
         [oneMarker[1], oneMarker[0]],
         'meters',
       );
-      if (distanceInMeters < 1) {
+      if (distanceInMeters < 0.5) {
         errorHaptic()
         toast.show("Marker is close to previous point.", {
           type: "normal",
