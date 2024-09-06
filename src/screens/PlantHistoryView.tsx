@@ -86,7 +86,7 @@ const PlantHistory = (props: Props) => {
                 case 'measurement':
                     return `Measurement : ${item.height} m high,${item.diameter} cm wide`
                 case 'status':
-                    return 'Marked status'
+                    return 'Marked deceased.'
                 default:
                     return `Tree Planted : ${item.height} m high,${item.diameter} cm wide`
             }

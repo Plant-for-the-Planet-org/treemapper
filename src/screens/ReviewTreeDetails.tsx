@@ -279,10 +279,10 @@ const ReviewTreeDetails = () => {
     const rightContainer = () => {
         if (treeDetails.status === 'SYNCED') {
             return <View style={styles.deleteContainer}>
-                <TouchableOpacity style={styles.rightWrapper}>
+                <View style={styles.rightWrapper}>
                     <SyncIcon width={25} height={25} fill={Colors.TEXT_COLOR} />
                     <Text style={[styles.rightLabel, { color: Colors.NEW_PRIMARY }]}>Synced</Text>
-                </TouchableOpacity>
+                </View>
             </View>
         }
         return <View style={styles.deleteContainer}>

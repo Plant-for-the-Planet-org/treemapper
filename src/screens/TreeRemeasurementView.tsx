@@ -75,6 +75,7 @@ const TreeRemeasurementView = () => {
     const [comment, setComment] = useState('')
     const imageDetails = useSelector((state: RootState) => state.cameraState)
     const [imageId, setImageId] = useState('')
+    const [loading, setLoading] = useState(false)
     const toast = useToast()
     const interventionId = route.params?.interventionId ?? "";
     const treeId = route.params?.treeId ?? '';
@@ -223,6 +224,7 @@ const TreeRemeasurementView = () => {
     const takePicture = () => {
         const newID = uuid()
         setImageId(newID)
+        setLoading(false)
         navigation.navigate('TakePicture', {
             id: newID,
             screen: 'REMEASUREMENT_IMAGE',
@@ -239,6 +241,7 @@ const TreeRemeasurementView = () => {
     };
 
     const validateData = () => {
+        setLoading(true)
         if (!isAlive) {
             submitHandler()
             return;
@@ -336,8 +339,9 @@ const TreeRemeasurementView = () => {
             }, 300);
             setTimeout(() => {
                 navigation.replace('InterventionPreview', { id: 'preview', intervention: interventionId, sampleTree: treeId, interventionId: interventionId })
-            }, 300);
+            }, 1000);
         } else {
+            setLoading(false)
             toast.show("Error occurred")
         }
     }
@@ -345,6 +349,7 @@ const TreeRemeasurementView = () => {
     const handleOptimalAlert = (p: boolean) => {
         if (p) {
             setShowOptimalAlert(false)
+            setLoading(false)
         } else {
             setShowOptimalAlert(false)
             setTimeout(() => {
@@ -363,6 +368,7 @@ const TreeRemeasurementView = () => {
     const handleAccuracyAlert = (b: boolean) => {
         if (b) {
             setShowAccuracyModal(false)
+            setLoading(false)
         } else {
             setShowAccuracyModal(false)
             setTimeout(() => {
@@ -479,12 +485,14 @@ const TreeRemeasurementView = () => {
                     label={!isAlive ? "Save" : imageURL()}
                     containerStyle={styles.btnContainer}
                     pressHandler={validateData}
+                    loading={loading}
+                    disable={loading}
                 />
             </View>
             <AlertModal
                 visible={showAccuracyModal}
-                heading={"Poor GPS Accuracy"}
-                message={"Your device location is not within 20m of the Tree you are remeasuring. Do you wish to continue submitting data?"}
+                heading={"Location Warning"}
+                message={"Your device is more than 20 meters away from the tree you are remeasuring. Do you still want to submit the data?"}
                 primaryBtnText={'cancel'}
                 secondaryBtnText={'Continue'}
                 onPressPrimaryBtn={handleAccuracyAlert}
