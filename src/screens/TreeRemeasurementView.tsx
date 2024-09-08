@@ -252,7 +252,7 @@ const TreeRemeasurementView = () => {
         }
 
         const finalHeight = height || treeDetails.specie_height
-        const finalWidth = height || treeDetails.specie_diameter
+        const finalWidth = width || treeDetails.specie_diameter
 
         const validationObject = measurementValidation(finalHeight, finalWidth, isNonISUCountry);
         const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
@@ -281,7 +281,7 @@ const TreeRemeasurementView = () => {
 
     const submitHandler = async (gpsValidated?: boolean) => {
         const finalHeight = height || treeDetails.specie_height
-        const finalWidth = height || treeDetails.specie_diameter
+        const finalWidth = width || treeDetails.specie_diameter
         const { lat, long } = getUserLocation()
         const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
 
