@@ -4,7 +4,7 @@ import { initialInterventionState } from 'src/utils/constants/initialInterventio
 
 
 
-const Description: FormElement = {
+const DescriptionMarking: FormElement = {
     index: 0,
     key: 'extra-info',
     label: 'More info',
@@ -50,7 +50,7 @@ const Stakes: FormElement = {
 const regenerantForm: MainForm = {
     title: 'More Details',
     key: '',
-    elements: [Stakes, Description],
+    elements: [Stakes, DescriptionMarking],
 }
 
 

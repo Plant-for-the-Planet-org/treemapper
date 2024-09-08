@@ -19,117 +19,33 @@ const interventionTittleSwitch = (t: INTERVENTION_TYPE): {
     key: INTERVENTION_TYPE
     hasSampleTrees: boolean
 } => {
-    switch (t) {
-        case 'single-tree-registration':
-            return {
-                title: "Single Tree Plantation",
-                key: 'single-tree-registration',
-                hasSampleTrees: false
-            }
-        case 'multi-tree-registration':
-            return {
-                title: "Multi Tree Plantation",
-                key: 'multi-tree-registration',
-                hasSampleTrees: true
-            }
-        case 'fire-patrol':
-            return {
-                title: "Fire Patrol",
-                key: 'fire-patrol',
-                hasSampleTrees: false
-            }
-        case 'fire-suppression':
-            return {
-                title: "Fire Suppression Team",
-                key: 'fire-suppression',
-                hasSampleTrees: false
-            }
-        case 'firebreaks':
-            return {
-                title: "Establish Fire Breaks",
-                key: 'firebreaks',
-                hasSampleTrees: false
-            }
-        case 'fencing':
-            return {
-                title: "Fencing",
-                key: 'fencing',
-                hasSampleTrees: false
-            }
-        case 'removal-invasive-species':
-            return {
-                title: "Removal of Invasive Species",
-                key: 'removal-invasive-species',
-                hasSampleTrees: false
-            }
-        case 'direct-seeding':
-            return {
-                title: "Direct Seeding",
-                key: 'direct-seeding',
-                hasSampleTrees: false
-            }
-        case 'grass-suppression':
-            return {
-                title: "Grass Suppression",
-                key: 'grass-suppression',
-                hasSampleTrees: false
-            }
-        case 'marking-regenerant':
-            return {
-                title: "Marking Regenerant",
-                key: 'marking-regenerant',
-                hasSampleTrees: true
-            }
-        case 'enrichment-planting':
-            return {
-                title: "Enrichment Planting",
-                key: 'enrichment-planting',
-                hasSampleTrees: true
-            }
-        case 'liberating-regenerant':
-            return {
-                title: "Liberating Regenerant",
-                key: 'liberating-regenerant',
-                hasSampleTrees: false
-            }
-        case 'soil-improvement':
-            return {
-                title: "Soil Improvement",
-                key: 'soil-improvement',
-                hasSampleTrees: false
-            }
-        case 'assisting-seed-rain':
-            return {
-                title: "Assisting Seed Rain",
-                key: 'assisting-seed-rain',
-                hasSampleTrees: false
-            }
-        case 'stop-tree-harvesting':
-            return {
-                title: "Stop Tree Harvesting",
-                key: 'stop-tree-harvesting',
-                hasSampleTrees: false
-            }
-        case 'maintenance':
-            return {
-                title: "Assisting Seed Rain",
-                key: 'maintenance',
-                hasSampleTrees: false
-            }
-        case 'other-intervention':
-            return {
-                title: "Maintenance",
-                key: 'other-intervention',
-                hasSampleTrees: false
-            }
-        default:
-            return {
-                title: "",
-                key: 'multi-tree-registration',
-                hasSampleTrees: true
-            }
+    const interventions = {
+        'single-tree-registration': { title: "Single Tree Plantation", hasSampleTrees: false },
+        'multi-tree-registration': { title: "Multi Tree Plantation", hasSampleTrees: true },
+        'fire-patrol': { title: "Fire Patrol", hasSampleTrees: false },
+        'fire-suppression': { title: "Fire Suppression Team", hasSampleTrees: false },
+        'firebreaks': { title: "Establish Fire Breaks", hasSampleTrees: false },
+        'fencing': { title: "Fencing", hasSampleTrees: false },
+        'removal-invasive-species': { title: "Removal of Invasive Species", hasSampleTrees: false },
+        'direct-seeding': { title: "Direct Seeding", hasSampleTrees: false },
+        'grass-suppression': { title: "Grass Suppression", hasSampleTrees: false },
+        'marking-regenerant': { title: "Marking Regenerant", hasSampleTrees: true },
+        'enrichment-planting': { title: "Enrichment Planting", hasSampleTrees: true },
+        'liberating-regenerant': { title: "Liberating Regenerant", hasSampleTrees: false },
+        'soil-improvement': { title: "Soil Improvement", hasSampleTrees: false },
+        'assisting-seed-rain': { title: "Assisting Seed Rain", hasSampleTrees: false },
+        'stop-tree-harvesting': { title: "Stop Tree Harvesting", hasSampleTrees: false },
+        'maintenance': { title: "Maintenance", hasSampleTrees: false },
+        'other-intervention': { title: "Other Intervention", hasSampleTrees: false }
+    }
+
+    return {
+        title: interventions[t]?.title || "",
+        key: t,
+        hasSampleTrees: interventions[t]?.hasSampleTrees || false
     }
 }
+
 
 const getGeometry = (g: any) => {
     return {
@@ -213,7 +129,6 @@ const remeasurementCalculator = (nextMeasurementDate: null | string | { date: st
         return { requireRemeasurement: false, d: 0 };
     }
 }
-
 
 
 const singleTreeDetails = (d: any): SampleTree => {

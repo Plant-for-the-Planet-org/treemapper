@@ -83,129 +83,99 @@ const SpeciesSync = () => {
 
 
   const handleSpeciesSync = async () => {
-    const speciesRequireSync = realm.objects<any>(RealmSchema.ScientificSpecies).filtered('isUploaded == true AND isUpdated==false')
-    const queeData = speciesRequireSync.map(el => {
-      if (el.guid === 'unknown') {
-        return {
-          type: "skip",
-          guid: el.guid,
-          id: el.specieId || '',
-          data: {
-            "scientificSpecies": el.guid,
-            "aliases": el.aliases || el.scientificName,
-            "description": el.description || '',
-          },
-          nextStatus: {
-            isUploaded: true,
-            isUpdated: true
-          }
-        }
-      }
-
-
-      if (el.isUserSpecies && el.isUploaded && !el.isUpdated && !el.specieId) {
-        return {
-          type: "addToFav",
-          guid: el.guid,
-          id: el.specieId || '',
-          data: {
-            "scientificSpecies": el.guid,
-            "aliases": el.aliases || '',
-            "description": el.description || '',
-          },
-          nextStatus: {
-            isUploaded: true,
-            isUpdated: true
-          }
-        }
-      }
-
-      if (!el.isUserSpecies && el.isUploaded && !el.isUpdated) {
-        return {
-          type: "removeFromFav",
-          guid: el.guid,
-          id: el.specieId || '',
-          data: {
-            "scientificSpecies": el.guid,
-            "aliases": el.aliases || '',
-            "description": el.description || '',
-          },
-          nextStatus: {
-            isUploaded: false,
-            isUpdated: true
-          }
-        }
-      }
-
-      if (el.isUserSpecies && el.specieId) {
-        return {
-          type: "edit",
-          guid: el.guid,
-          id: el.specieId || '',
-          data: {
-            "scientificSpecies": el.guid,
-            "aliases": el.aliases || '',
-            "description": el.description || ''
-          },
-          nextStatus: {
-            isUploaded: true,
-            isUpdated: true
-          }
-        }
-      }
-      return {
-        type: "skip",
+    const speciesRequireSync = realm
+      .objects<any>(RealmSchema.ScientificSpecies)
+      .filtered('isUploaded == true AND isUpdated == false');
+  
+    const mapToQueueData = (el: any) => {
+      const commonData = {
         guid: el.guid,
         id: el.specieId || '',
         data: {
-          "scientificSpecies": el.guid,
-          "aliases": el.aliases || '',
-          "description": el.description || '',
+          scientificSpecies: el.guid,
+          aliases: el.aliases || el.scientificName || '',
+          description: el.description || '',
         },
         nextStatus: {
           isUploaded: true,
-          isUpdated: true
-        }
+          isUpdated: true,
+        },
+      };
+  
+      if (el.guid === 'unknown') {
+        return { ...commonData, type: 'skip' };
       }
-    })
-    if (queeData.length > 0) {
-      syncUploadHelper(queeData)
+  
+      if (el.isUserSpecies && !el.specieId) {
+        return { ...commonData, type: 'addToFav' };
+      }
+  
+      if (!el.isUserSpecies) {
+        return { ...commonData, type: 'removeFromFav', nextStatus: { isUploaded: false, isUpdated: true } };
+      }
+  
+      if (el.specieId) {
+        return { ...commonData, type: 'edit' };
+      }
+  
+      return { ...commonData, type: 'skip' };
+    };
+  
+    const queueData = speciesRequireSync.map(mapToQueueData);
+  
+    if (queueData.length > 0) {
+      syncUploadHelper(queueData);
     }
-  }
-
+  };
 
   const syncUploadHelper = async (queeData) => {
+    const handleSkip = async (element) => {
+      await updateDBSpeciesSyncStatus(element.guid, true, true, '');
+    };
+  
+    const handleAddToFav = async (element) => {
+      const { success, response } = await addUserSpeciesToServer({
+        "scientificSpecies": element.data.scientificSpecies,
+        "aliases": element.data.aliases || element.data.scientificSpecies,
+        "description": element.data.description,
+      });
+      if (success && response?.id) {
+        await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, response.id || element.id);
+      }
+    };
+  
+    const handleRemoveFromFav = async (element) => {
+      await removeUserSpeciesToServer(element.id);
+      await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
+    };
+  
+    const handleEdit = async (element) => {
+      await updateServerSpeciesDetail({
+        "scientificSpecies": element.data.scientificSpecies,
+        "aliases": element.data.aliases || element.data.scientificSpecies,
+        "description": element.data.description,
+      }, element.id);
+      await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id);
+    };
+  
     for (const element of queeData) {
-
-      if (element.type === 'skip') {
-        await updateDBSpeciesSyncStatus(element.guid, true, true, '')
-      }
-      if (element.type === 'addToFav') {
-        const { success, response } = await addUserSpeciesToServer({
-          "scientificSpecies": element.data.scientificSpecies,
-          "aliases": element.data.aliases || element.data.scientificSpecies,
-          "description": element.data.description,
-        })
-        if (success && response?.id) {
-          await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, response.id || element.id)
-        }
-      }
-      if (element.type == 'removeFromFav') {
-        await removeUserSpeciesToServer(element.id)
-        await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '')
-      }
-
-      if (element.type === 'edit') {
-        await updateServerSpeciesDetail({
-          "scientificSpecies": element.data.scientificSpecies,
-          "aliases": element.data.aliases || element.data.scientificSpecies,
-          "description": element.data.description,
-        }, element.id)
-        await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id)
-
+      switch (element.type) {
+        case 'skip':
+          await handleSkip(element);
+          break;
+        case 'addToFav':
+          await handleAddToFav(element);
+          break;
+        case 'removeFromFav':
+          await handleRemoveFromFav(element);
+          break;
+        case 'edit':
+          await handleEdit(element);
+          break;
       }
     }
-  }
+  };
+  
 
 
   const showUpdateAlert = (url: string) => {

@@ -21,7 +21,6 @@ import { remeasurement, skipRemeasurement, uploadIntervention, uploadInterventio
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
-import { v4 as uuid } from 'uuid';
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
@@ -57,9 +56,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
             syncUploaded()
-        }
-        if (process.env.EXPO_TESTING) {
-            mimicUploadForTesting()
         }
     }, [uploadData])
 
@@ -110,36 +106,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         setMoreUpload(false)
         uploadObjectsSequentially(uploadData);
     }
-
-    const mimicUploadForTesting = async () => {
-        // Simulate an upload with a random timeout between 1-3 seconds
-        const uploadTime = Math.floor(Math.random() * 2000) + 1000;
-
-        // Simulate an async upload with a delay
-        await new Promise(resolve => setTimeout(resolve, uploadTime));
-
-        // Randomly decide if the upload should fail (e.g., 20% chance of failure)
-        const shouldFail = Math.random() < 0.2;
-
-        if (shouldFail) {
-            throw new Error("Upload failed due to a simulated error");
-        }
-
-        // If it doesn't fail, return a successful upload response
-        const uploadId = uuid();
-        return {
-            id: uploadId,
-            hid: uuid(),
-            coordinates: [
-                {
-                    "coordinateIndex": 0,
-                    "image": "66be19139d356578593650.jpg",
-                    "status": "complete",
-                    "id": uuid()
-                }
-            ]
-        };
-    };
 
 
     const handleIntervention = async (el) => {

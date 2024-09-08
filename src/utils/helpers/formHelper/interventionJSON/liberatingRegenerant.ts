@@ -3,7 +3,7 @@ import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface
 import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 
-const Description: FormElement = {
+const DescriptionRegenerant: FormElement = {
     index: 0,
     key: 'extra-info',
     label: 'More info',
@@ -23,7 +23,7 @@ const Description: FormElement = {
     validation: ".+"
 }
 
-const Stakes: FormElement = {
+const SeedlingsLiberated: FormElement = {
     index: 0,
     key: 'liberated-seedlings',
     label: 'Seedlings liberated',
@@ -49,7 +49,7 @@ const Stakes: FormElement = {
 const liberationForm: MainForm = {
     title: 'More Details',
     key: '',
-    elements: [Stakes, Description],
+    elements: [SeedlingsLiberated, DescriptionRegenerant],
 }
 
 

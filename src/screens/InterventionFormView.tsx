@@ -149,7 +149,9 @@ const InterventionFormView = () => {
     InterventionJSON.site_name = projectSite.siteName
     InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
-    handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
+    if (userType === 'tpo') {
+      handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
+    }
     if (result) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker', { id: InterventionJSON.form_id })
@@ -363,7 +365,9 @@ const InterventionFormView = () => {
   };
 
   const navigateToMarkerScreen = () => {
-    handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
+    if(userType==='tpo'){
+      handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
+    }
     if (registerForm.location_type === 'Point') {
       navigation.replace('PointMarker', { id: registerForm.form_id });
     } else {

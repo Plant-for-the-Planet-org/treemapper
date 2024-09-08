@@ -6,7 +6,6 @@ import i18next from 'src/locales/index'
 
 interface Props {
   data: string
-  synced: boolean
 }
 
 
@@ -21,24 +20,22 @@ const InterventionMetaData = (props: Props) => {
 
 
   const convertData = () => {
-    const checkForPublic = [];
-
-
-    if (!!data && typeof data === 'string') {
-      const parsedData = JSON.parse(data)
-      if (!!parsedData && parsedData?.public) {
-        const publicData = parsedData.public;
-        if (typeof publicData === 'object' && publicData !== null && !Array.isArray(publicData)) {
-          for (const key in publicData) {
-            if (key !== 'isEntireSite' && typeof publicData[key] === 'string') { 
-              checkForPublic.push({ value: publicData[key], key: key });
-            }
+    const checkForPublic: { value: string; key: string }[] = [];
+  
+    if (typeof data === 'string') {
+      const parsedData = JSON.parse(data);
+      
+      if (parsedData?.public && typeof parsedData.public === 'object' && !Array.isArray(parsedData.public)) {
+        Object.entries(parsedData.public).forEach(([key, value]) => {
+          if (key !== 'isEntireSite' && typeof value === 'string') {
+            checkForPublic.push({ value, key });
           }
-        }
+        });
       }
     }
-    setAdditionalData(checkForPublic)
-  }
+    
+    setAdditionalData(checkForPublic);
+  };
 
 
   const renderData = () => {

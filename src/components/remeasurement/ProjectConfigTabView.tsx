@@ -16,6 +16,22 @@ interface Props {
   pid: string
 }
 
+
+
+const renderScene = (
+  intensityProject,
+  setIntensityProject,
+  syncAndUpdate,
+  loading,
+  frequencyProject,
+  setFrequencyProject
+) => (SceneMap({
+  intensity: () => (<Intensity intensity={intensityProject} setSelectedIntensity={setIntensityProject} save={syncAndUpdate} loading={loading} />),
+  frequency: () => (<Frequency frequency={frequencyProject} setSelectedFrequency={setFrequencyProject} save={syncAndUpdate} loading={loading} />),
+}))
+
+
+
 const ProjectConfigTabView = (props: Props) => {
   const { pid } = props
   const [intensityProject, setIntensityProject] = useState(0)
@@ -58,18 +74,6 @@ const ProjectConfigTabView = (props: Props) => {
     }
   }
 
-  const IntensityComp = () => {
-    return <Intensity intensity={intensityProject} setSelectedIntensity={setIntensityProject} save={syncAndUpdate} loading={loading}/>
-  }
-
-  const FrequencyComp = () => {
-    return <Frequency frequency={frequencyProject} setSelectedFrequency={setFrequencyProject} save={syncAndUpdate} loading={loading}/>
-  }
-
-  const renderScene = SceneMap({
-    intensity: IntensityComp,
-    frequency: FrequencyComp,
-  })
 
 
 
@@ -82,7 +86,12 @@ const ProjectConfigTabView = (props: Props) => {
   return (
     <TabView
       navigationState={{ index: routeIndex, routes: tabRoutes }}
-      renderScene={renderScene}
+      renderScene={renderScene(intensityProject,
+        setIntensityProject,
+        syncAndUpdate,
+        loading,
+        frequencyProject,
+        setFrequencyProject)}
       onIndexChange={setRouteIndex}
       initialLayout={{ width: layout.width }}
       renderTabBar={props => (

@@ -33,14 +33,12 @@ const InterventionCard = (props: Props) => {
     openIntervention({ ...finalItem })
   }
   const renderFixLabel = () => {
-    switch (item.fix_required) {
-      case "PROJECT_ID_MISSING":
-        return "Project not assigned"
-      default:
-        return "Fix Require"
+    if (item.fix_required === "PROJECT_ID_MISSING") {
+      return "Project not assigned";
+    } else {
+      return "Fix Required";
     }
-  }
-
+  };
   const exportInterventionData = async () => {
     await exportAllInterventionData(item)
   }

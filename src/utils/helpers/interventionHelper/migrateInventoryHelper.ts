@@ -148,7 +148,7 @@ const singleTreeDetails = (d: any): SampleTree => {
             status_complete: true,
             location_id: d.locationId || '',
             tree_type: d.treeType === 'sample' ? 'sample' : 'single',
-            additional_details: '', //todo
+            additional_details: '',
             app_meta_data: JSON.stringify(d.appMetadata),
             hid: d.hid || '',
             device_latitude: dlocation.lat,
@@ -209,7 +209,7 @@ const migrateSampleTree = (d: any, pId: string): SampleTree => {
             status_complete: true,
             location_id: d.locationId || '',
             tree_type: 'sample',
-            additional_details: '', //todo
+            additional_details: '',
             app_meta_data: JSON.stringify(d.appMetadata),
             hid: d.hid || '',
             device_latitude: d.deviceLatitude,

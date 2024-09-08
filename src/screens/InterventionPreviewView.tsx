@@ -224,7 +224,7 @@ const InterventionPreviewView = () => {
             passRefs={(ref, index) => (childRefs.current[index] = ref)}
           />
         )}
-        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} synced={InterventionData.status === 'SYNCED'} />}
+        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data}/>}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{InterventionData.is_legacy ? '1.0.8' : Application.nativeApplicationVersion}</Text>}

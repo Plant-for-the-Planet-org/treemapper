@@ -150,19 +150,22 @@ const useManageScientificSpecies = () => {
   const deleteAllUserSpecies = async () => {
     try {
       const favoriteData = realm.objects<IScientificSpecies>(RealmSchema.ScientificSpecies).filtered('isUserSpecies == true');
+
       realm.write(() => {
         favoriteData.forEach(specie => {
-          specie.isUserSpecies = false,
-          specie.isUploaded = false,
-          specie.isUpdated = true
-        })
-      })
-      return Promise.resolve(true)
+          specie.isUserSpecies = false;
+          specie.isUploaded = false;
+          specie.isUpdated = true;
+        });
+      });
+
+      return true;
     } catch (error) {
-      console.error('Error during bulk write:', error)
-      return false
+      console.error('Error during bulk write:', error);
+      return false;
     }
-  }
+  };
+
 
   const updateDBSpeciesSyncStatus = async (guid: string, isUpdated: boolean, isUploaded: boolean, id: string) => {
     try {
@@ -189,7 +192,7 @@ const useManageScientificSpecies = () => {
   }
 
 
-  
+
   return { updateDBSpeciesSyncStatus, addUndefinedSpecies, writeBulkSpecies, updateUserFavSpecies, updateSpeciesDetails, addUserSpecies, deleteAllUserSpecies }
 }
 

@@ -14,7 +14,7 @@ const renderScene = SceneMap({
 })
 
 const AdditionalTabView = () => {
-  const layout = useWindowDimensions()
+  const layoutData = useWindowDimensions()
 
   const [routeIndex, setRouteIndex] = useState(0)
   const [tabRoutes] = useState([
@@ -27,7 +27,7 @@ const AdditionalTabView = () => {
       navigationState={{ index: routeIndex, routes: tabRoutes }}
       renderScene={renderScene}
       onIndexChange={setRouteIndex}
-      initialLayout={{ width: layout.width }}
+      initialLayout={{ width: layoutData.width }}
       renderTabBar={props => (
         <ActivityLogsTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
       )}

@@ -10,25 +10,25 @@ import i18next from 'i18next'
 
 
 const ErrorLogs = () => {
-    const [logs, setLogs] = useState<LogDetails[]>([])
+    const [errorLogs, setErrorLogs] = useState<LogDetails[]>([])
     const [loading, setLoading] = useState(false)
     const [currentPage, setCurrentPage] = useState(0);
     const realm = useRealm()
 
 
     useEffect(() => {
-        getAllLogs()
+        getAllErrorLogs()
     }, [currentPage])
 
 
     const refreshHandler = () => {
         setLoading(true)
-        setLogs([])
+        setErrorLogs([])
         setCurrentPage(0);
     }
 
 
-    const getAllLogs = async () => {
+    const getAllErrorLogs = async () => {
         try {
             setLoading(true);
             const start = currentPage * 20;
@@ -38,7 +38,7 @@ const ErrorLogs = () => {
                 .sorted('timestamp', true)
                 .slice(start, start + 20); // Inclusive range for 20 items
     
-            setLogs(currentPage ? [...logs, ...objects] : [...objects]);
+            setErrorLogs(currentPage ? [...errorLogs, ...objects] : [...objects]);
         } catch (error) {
             console.error("Failed to fetch logs:", error);
         } finally {
@@ -46,7 +46,7 @@ const ErrorLogs = () => {
         }
     };
 
-    const emptyComponent = () => {
+    const emptyErrorComponent = () => {
         return <View style={styles.emptyContainer}>
             <Text style={styles.emptyLabel}>{i18next.t('label.no_logs')}</Text>
         </View>
@@ -54,11 +54,11 @@ const ErrorLogs = () => {
 
     return (
         <View style={styles.container}>
-            <FlatList data={logs} renderItem={({ item }) => (<LogCard data={item} />)}
+            <FlatList data={errorLogs} renderItem={({ item }) => (<LogCard data={item} />)}
                 onEndReached={() => {
                     setCurrentPage(currentPage + 1);
                 }}
-                ListEmptyComponent={emptyComponent()}
+                ListEmptyComponent={emptyErrorComponent()}
                 onEndReachedThreshold={0.5}
                 refreshControl={
                     <RefreshControl

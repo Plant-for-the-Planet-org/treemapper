@@ -22,13 +22,32 @@ const protocol = process.env.EXPO_PUBLIC_API_PROTOCOL
 
 
 interface Props {
-    visible: boolean
-    openModal: (b: boolean) => void
-    userCountry: (e: CountryCode) => void
+    readonly visible: boolean
+    readonly openModal: (b: boolean) => void
+    readonly userCountry: (e: CountryCode) => void
 }
+
+
+const Item = ({ title, onPress }: { title: CountryCode, onPress: () => void }) => (
+    <TouchableOpacity style={styles.item} onPress={onPress}>
+        <View style={{ flexDirection: 'row' }}>
+            <Image
+                source={{
+                    uri: cdnUrl ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${title.countryCode}.png` : null,
+                }}
+                style={styles.countryFlag}
+                resizeMode="contain"
+            />
+            <View style={{ paddingLeft: 20 }}>
+                <Text style={{ color: 'black', paddingTop: 12 }}>{title.countryName}</Text>
+            </View>
+        </View>
+    </TouchableOpacity>
+);
 
 export default function CountryModal(props: Props) {
     const { visible, openModal, userCountry } = props
+
     const [countryData, setCountryData] = useState(null);
 
     const renderItem = ({ item }: { item: CountryCode }) => {
@@ -37,22 +56,7 @@ export default function CountryModal(props: Props) {
     const selectCountry = (data: CountryCode) => {
         userCountry(data);
     };
-    const Item = ({ title, onPress }: { title: CountryCode, onPress: () => void }) => (
-        <TouchableOpacity style={styles.item} onPress={onPress}>
-            <View style={{ flexDirection: 'row' }}>
-                <Image
-                    source={{
-                        uri: cdnUrl ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${title.countryCode}.png` : null,
-                    }}
-                    style={styles.countryFlag}
-                    resizeMode="contain"
-                />
-                <View style={{ paddingLeft: 20 }}>
-                    <Text style={{ color: 'black', paddingTop: 12 }}>{title.countryName}</Text>
-                </View>
-            </View>
-        </TouchableOpacity>
-    );
+ 
     const sort = () => {
         CountryData.sort((a, b) => {
             if (a.countryName > b.countryName) {

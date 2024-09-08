@@ -40,12 +40,15 @@ const InterventionFilterModal = () => {
 
     </TouchableOpacity>)
   }
+  const renderFooter = () => {
+    return (<View style={styles.footer} />)
+  }
   return (
     <View style={styles.container}>
       <FlatList
         showsVerticalScrollIndicator={false}
         data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)}
-        ListFooterComponent={() => (<View style={styles.footer} />)}
+        ListFooterComponent={renderFooter}
       />
     </View>
   )
@@ -82,6 +85,6 @@ const styles = StyleSheet.create({
   footer: {
     width: '100%',
     height: 0,
-    marginBottom:500
+    marginBottom: 500
   }
 })

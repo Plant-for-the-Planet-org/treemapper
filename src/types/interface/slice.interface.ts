@@ -77,11 +77,11 @@ export interface OldSampleTree {
   hid: string
 }
 
-export interface BodyPayload {
-  error: string,
-  message: string,
-  fixRequired: FIX_REQUIRED,
-  pData: null | any
+export interface BodyPayload<T = null> {
+  error: string;
+  message: string;
+  fixRequired: FIX_REQUIRED;
+  pData: T;
   historyID?: string
 }
 

@@ -31,11 +31,15 @@ export const groupIntervention = (data: InterventionData[]) => {
       finalObject[intervention_title] = { count: 1, id: intervention_key };
     }
     if (status == 'PENDING_DATA_UPLOAD' && is_complete) {
-      finalObject['Unsynced'] = {
-        count: (finalObject['Unsynced'].count += 1),
-        ...finalObject['Unsynced'],
-      }
-    }
+        // Increment the count and store it in a variable
+        const updatedCount = finalObject['Unsynced'].count + 1;
+    
+        // Update finalObject with the new count value
+        finalObject['Unsynced'] = {
+            count: updatedCount,
+            ...finalObject['Unsynced'],
+        };
+  }
   });
 
   return Object.entries(finalObject).map(([key, value]) => ({
