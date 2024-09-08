@@ -26,8 +26,53 @@ import useAuthentication from 'src/hooks/useAuthentication'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { useToast } from 'react-native-toast-notifications'
 
+interface AccountTypeButtonProps {
+    type: string,
+    accountType: string
+    setAccountType: (s: string) => void
+    label: string
+}
 
+const AccountTypeButton = ({ type, accountType, setAccountType, label }: AccountTypeButtonProps) => (
+    <TouchableOpacity
+        style={[styles.typeWrapper, { backgroundColor: accountType === type ? Colors.NEW_PRIMARY : Colors.WHITE }]}
+        onPress={() => setAccountType(type)}
+    >
+        <Text style={[styles.typeLabel, { color: accountType === type ? Colors.WHITE : Colors.TEXT_COLOR }]}>
+            {label}
+        </Text>
+    </TouchableOpacity>
+);
 
+interface CountrySelectorProps {
+    country: CountryCode,
+    setModalVisible: () => void
+    protocol: string,
+    cdnUrl: string
+}
+
+const CountrySelector = ({ country, setModalVisible, protocol, cdnUrl }: CountrySelectorProps) => (
+    <TouchableOpacity style={styles.countryWrapper} onPress={setModalVisible}>
+        {!!country?.countryCode && (
+            <View style={styles.countryFlag}>
+                <Image
+                    source={{ uri: `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png` }}
+                    resizeMode="contain"
+                    style={styles.countryFlag}
+                />
+            </View>
+        )}
+        <View style={styles.countryMeta}>
+            <Text style={styles.countryLabel}>
+                {country.countryCode ? country.countryName : "Select Country"}
+            </Text>
+            <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                <Text style={styles.countryChangeLabel}>Change country</Text>
+                <CtaArrow style={{ marginTop: 3 }} height={10} />
+            </View>
+        </View>
+    </TouchableOpacity>
+);
 
 const SignUpView = () => {
     const [accountType, setAccountType] = useState('tpo');
@@ -156,7 +201,7 @@ const SignUpView = () => {
             duration: Snackbar.LENGTH_SHORT,
         });
     };
-    
+
     const validateField = (field, errorSetter, errorMessage) => {
         if (field === '') {
             errorSetter(true);
@@ -165,38 +210,38 @@ const SignUpView = () => {
         }
         return true;
     };
-    
+
     const validateOrgFields = () => {
         let isValid = true;
-    
+
         // Organization-specific fields
         isValid = validateField(nameOfOrg, setNameError, 'label.enter_organisation_name') && isValid;
-    
+
         if (accountType === 'tpo') {
             isValid = validateField(city, setCityError, 'label.enter_city_name') && isValid;
             isValid = validateField(zipCode, setZipCodeError, 'label.enter_zipcode') && isValid;
             isValid = validateField(address, setAddressError, 'label.enter_address') && isValid;
         }
-    
+
         return isValid;
     };
-    
+
     const validateFields = () => {
         let isValid = true;
-    
+
         // Basic fields
         isValid = accountType === '' ? (showSnackbar('label.select_role_type'), false) : isValid;
         isValid = validateField(firstName, setFirstNameError, 'label.enter_first_name') && isValid;
         isValid = validateField(lastName, setLastNameError, 'label.enter_last_name') && isValid;
-    
+
         // Organization validation
         if (accountType === 'tpo' || accountType === 'education' || accountType === 'company') {
             isValid = validateOrgFields() && isValid;
         }
-    
+
         return isValid;
     };
-    
+
     const buildUserData = (): any => {
         const commonData = {
             firstname: firstName,
@@ -208,7 +253,7 @@ const SignUpView = () => {
             oAuthAccessToken: accessToken,
             type: accountType,
         };
-    
+
         if (accountType === 'tpo') {
             return {
                 ...commonData,
@@ -226,17 +271,17 @@ const SignUpView = () => {
         }
         return commonData;
     };
-    
+
     const submitDetails = async () => {
         if (!validateFields()) {
             return;
         }
-    
+
         const userData = buildUserData();
         setLoading(true);
-    
+
         const { success } = await createUserProfile(userData);
-    
+
         if (success) {
             const { response, success: detailsSuccess } = await getUserDetails();
             if (detailsSuccess && response) {
@@ -274,8 +319,12 @@ const SignUpView = () => {
 
     return (
         <View style={styles.container}>
-            <Header label='Complete Sign Up' />
-            <CountryModal visible={modalVisible} openModal={openModal} userCountry={userCountry} />
+            <Header label="Complete Sign Up" />
+            <CountryModal
+                visible={modalVisible}
+                openModal={openModal}
+                userCountry={userCountry}
+            />
             <ScrollView showsVerticalScrollIndicator={false}>
                 <AvoidSoftInputView
                     avoidOffset={20}
@@ -285,52 +334,53 @@ const SignUpView = () => {
                     <View style={styles.wrapper}>
                         <Text style={styles.headline}>Account Type</Text>
                         <View style={styles.typeContainer}>
-                            <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'individual' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('individual')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'individual' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Individual</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'company' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('company')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'company' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Company</Text>
-                            </TouchableOpacity>
-                        </View>
-                        <View style={styles.typeContainer}>
-                            <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'tpo' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('tpo')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'tpo' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Tree Planting {'\n'}Organisation</Text>
-                            </TouchableOpacity>
-                            <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'education' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('education')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'education' ? Colors.WHITE : Colors.TEXT_COLOR }]}>School</Text>
-                            </TouchableOpacity>
+                            <AccountTypeButton
+                                type="individual"
+                                accountType={accountType}
+                                setAccountType={setAccountType}
+                                label="Individual"
+                            />
+                            <AccountTypeButton
+                                type="company"
+                                accountType={accountType}
+                                setAccountType={setAccountType}
+                                label="Company"
+                            />
+                            <AccountTypeButton
+                                type="tpo"
+                                accountType={accountType}
+                                setAccountType={setAccountType}
+                                label="Tree Planting\nOrganisation"
+                            />
+                            <AccountTypeButton
+                                type="education"
+                                accountType={accountType}
+                                setAccountType={setAccountType}
+                                label="School"
+                            />
                         </View>
                         <TextInput
                             style={styles.textInputWrapper}
-                            placeholder='First Name'
+                            placeholder="First Name"
                             onChangeText={setFirstName}
                             returnKeyType={completeCheck ? 'done' : 'next'}
                         />
-                        {!!firstNameError && <Text style={styles.errorLabel}>{firstNameError}</Text>}
+                        {firstNameError && <Text style={styles.errorLabel}>{firstNameError}</Text>}
                         <TextInput
                             style={styles.textInputWrapper}
-                            placeholder='Last Name'
+                            placeholder="Last Name"
                             onChangeText={setLastName}
                             returnKeyType={completeCheck ? 'done' : 'next'}
                         />
-                        {!!lastNameError && <Text style={styles.errorLabel}>{lastNameError}</Text>}
+                        {lastNameError && <Text style={styles.errorLabel}>{lastNameError}</Text>}
                         <Text style={styles.countryTitle}>Country</Text>
-                        <TouchableOpacity style={styles.countryWrapper} onPress={() => { setModalVisible(!modalVisible) }}>
-                            {!!country?.countryCode && <View style={styles.countryFlag}>
-                                <Image
-                                    source={{
-                                        uri: `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png`
-                                    }}
-                                    resizeMode="contain"
-                                    style={styles.countryFlag}
-                                />
-                            </View>}
-                            <View style={styles.countryMeta}>
-                                <Text style={styles.countryLabel}>{country.countryCode ? country.countryName : "Select Country"}</Text>
-                                <View style={{ flexDirection: "row", alignItems: 'center' }}><Text style={styles.countryChangeLabel}>Change country</Text><CtaArrow style={{ marginTop: 3 }} height={10} /></View>
-                            </View>
-                        </TouchableOpacity>
-                        {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
+                        <CountrySelector
+                            country={country}
+                            setModalVisible={() => { setModalVisible(prev => !prev) }}
+                            protocol={protocol}
+                            cdnUrl={cdnUrl}
+                        />
+                        {(accountType === 'company' || accountType === 'tpo' || accountType === 'education') && (
                             <>
                                 <TextInput
                                     style={styles.textInputWrapper}
@@ -338,27 +388,29 @@ const SignUpView = () => {
                                     onChangeText={setNameOfOrg}
                                     returnKeyType={completeCheck ? 'done' : 'next'}
                                 />
-                                {!!nameError && <Text style={styles.errorLabel}>{nameError}</Text>}
+                                {nameError && <Text style={styles.errorLabel}>{nameError}</Text>}
                             </>
-                        ) : null}
+                        )}
                         <SignUpOutline
-                            placeholder={'Email'}
-                            keyboardType={'default'}
-                            value={emailID} errMsg={''}                        />
-                        {accountType === 'tpo' ? (
+                            placeholder="Email"
+                            keyboardType="default"
+                            value={emailID}
+                            errMsg=""
+                        />
+                        {accountType === 'tpo' && (
                             <>
                                 <TextInput
                                     style={styles.textInputWrapper}
-                                    placeholder={'Address'}
+                                    placeholder="Address"
                                     onChangeText={setAddress}
                                     returnKeyType={completeCheck ? 'done' : 'next'}
                                 />
-                                {!!addressError && <Text style={styles.errorLabel}>{addressError}</Text>}
+                                {addressError && <Text style={styles.errorLabel}>{addressError}</Text>}
                                 <View style={{ flexDirection: 'row', justifyContent: "space-between", width: "100%" }}>
                                     <View style={styles.addressWrapper}>
                                         <TextInput
                                             style={styles.textInputWrapper}
-                                            placeholder={'City'}
+                                            placeholder="City"
                                             onChangeText={setCity}
                                             returnKeyType={completeCheck ? 'done' : 'next'}
                                         />
@@ -366,17 +418,16 @@ const SignUpView = () => {
                                     <View style={styles.addressWrapper}>
                                         <TextInput
                                             style={styles.textInputWrapper}
-                                            placeholder={'Zip Code'}
+                                            placeholder="Zip Code"
                                             onChangeText={setZipCode}
                                             returnKeyType={completeCheck ? 'done' : 'next'}
                                         />
                                     </View>
-                                    {!!zipCodeError && <Text style={styles.errorLabel}>{zipCodeError}</Text>}
-                                    {!!cityError && <Text style={styles.errorLabel}>{cityError}</Text>}
+                                    {zipCodeError && <Text style={styles.errorLabel}>{zipCodeError}</Text>}
+                                    {cityError && <Text style={styles.errorLabel}>{cityError}</Text>}
                                 </View>
                             </>
-                        ) : null}
-
+                        )}
                         <View style={styles.infoSwitchWrapper}>
                             <Text style={styles.infoText}>I agree to have my name published in the Plant-for-the-Planet Website and App.</Text>
                             <View style={styles.switch}>
@@ -390,7 +441,7 @@ const SignUpView = () => {
                             </View>
                         </View>
                         <View style={styles.infoSwitchWrapper}>
-                            <Text style={styles.infoText}>I agree that I many be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.</Text>
+                            <Text style={styles.infoText}>I agree that I may be contacted by Plant-for-the-Planet for tree planting news and challenges.</Text>
                             <View style={styles.switch}>
                                 <Switch
                                     trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
@@ -402,7 +453,7 @@ const SignUpView = () => {
                             </View>
                         </View>
                         <CustomButton
-                            label={"Create Profile"}
+                            label="Create Profile"
                             containerStyle={styles.btnContainer}
                             pressHandler={submitDetails}
                             loading={loading}
@@ -411,9 +462,9 @@ const SignUpView = () => {
                     </View>
                 </AvoidSoftInputView>
             </ScrollView>
-
         </View>
-    )
+    );
+
 }
 
 export default SignUpView

@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, Text } from 'react-native'
 import React from 'react'
 import FreeUpSpaceButton from './FreeUpSpaceButton'
 import { useQuery } from '@realm/react';
@@ -11,7 +11,6 @@ import InventoryMigration from '../common/InventoryMigration';
 import { RootState } from 'src/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearImageSize } from 'src/store/slice/appStateSlice';
-import { Text } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 
 
