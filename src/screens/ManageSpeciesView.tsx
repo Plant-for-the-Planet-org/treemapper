@@ -151,44 +151,45 @@ const ManageSpeciesView = () => {
   }
 
   const handleSpeciesPress = async (item: IScientificSpecies) => {
-    const speciesData = JSON.parse(JSON.stringify(item))
+    const speciesData = { ...item }; // Simplified deep copy
+  
     if (EditInterventionSpecies) {
-      handleSelectedMultiSpecies(speciesData);
-      return;
+      return handleSelectedMultiSpecies(speciesData);
     }
-    const { is_multi_species, tree_details_required } = setUpIntervention(interventionData ? interventionData.intervention_key : 'single-tree-registration')
-    if (!isManageSpecies) {
-      if (is_multi_species) {
-        handleSelectedMultiSpecies(speciesData)
-      } else {
-        const updatedSPecies: PlantedSpecies = {
-          guid: speciesData.guid,
-          scientificName: speciesData.scientificName,
-          aliases: speciesData.aliases,
-          count: 1,
-          image: speciesData.image
-        }
-        const result = await updateInterventionPlantedSpecies(interventionData ? interventionData.form_id : "", updatedSPecies, isMultiTreeEdit)
-        if (!result) {
-          errorHaptic()
-          toast.show('Error occurred while adding species')
-          return
-        }
-        if (tree_details_required) {
-          navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: interventionData ? interventionData.form_id : "" })
-        } else {
-          navigation.navigate('LocalForm', { id: interventionData ? interventionData.form_id : "" })
-        }
-      }
-    } else {
+  
+    const { is_multi_species, tree_details_required } = setUpIntervention(interventionData?.intervention_key || 'single-tree-registration');
+  
+    if (isManageSpecies) {
       if (speciesData.guid === 'unknown') {
-        toast.show("Unknown species cannot be edited")
-        return
+        return toast.show("Unknown species cannot be edited");
       }
-      navigation.navigate('SpeciesInfo', { guid: speciesData.guid })
+      return navigation.navigate('SpeciesInfo', { guid: speciesData.guid });
     }
-  }
-
+  
+    if (is_multi_species) {
+      return handleSelectedMultiSpecies(speciesData);
+    }
+  
+    const updatedSpecies: PlantedSpecies = {
+      guid: speciesData.guid,
+      scientificName: speciesData.scientificName,
+      aliases: speciesData.aliases,
+      count: 1,
+      image: speciesData.image,
+    };
+  
+    const result = await updateInterventionPlantedSpecies(interventionData?.form_id || "", updatedSpecies, isMultiTreeEdit);
+    
+    if (!result) {
+      errorHaptic();
+      return toast.show('Error occurred while adding species');
+    }
+  
+    const route = tree_details_required ? 'ReviewTreeDetails' : 'LocalForm';
+    const params = { id: interventionData?.form_id || "", ...(tree_details_required && { detailsCompleted: false }) };
+  
+    navigation.navigate(route, params);
+  };
 
   const renderRightComponent = () => {
     if (speciesWriting) {

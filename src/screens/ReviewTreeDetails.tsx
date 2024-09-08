@@ -363,12 +363,19 @@ const ReviewTreeDetails = () => {
         )
     }
 
-    return (
-        <SafeAreaView style={styles.container}>
-            {type === 'tpo' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive ? <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
+    const remeasurementIcon = () => {
+        if (type === 'tpo' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
+            return <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
                 <RemeasurementIconScalable />
                 <Text style={styles.measureLabel}>Measure</Text>
-            </TouchableOpacity> : null}
+            </TouchableOpacity>
+        }
+        return null
+    }
+
+    return (
+        <SafeAreaView style={styles.container}>
+            {remeasurementIcon()}
             <DeleteModal isVisible={showDeleteTree} toggleModal={() => { setShowDeleteTree(false) }} removeFavSpecie={deleteTreeData} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={null} />
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
                 maximumDate={new Date()}
@@ -385,7 +392,7 @@ const ReviewTreeDetails = () => {
                     <View style={styles.metaWrapper}>
                         <Text style={styles.title}>{i18next.t('label.species')}</Text>
                         <Pressable style={styles.metaSectionWrapper} onPress={() => {
-                            if (Intervention.status!=='INITIALIZED' || Intervention.has_sample_trees) {
+                            if (Intervention.status !== 'INITIALIZED' || Intervention.has_sample_trees) {
                                 return
                             }
                             openEdit('species', String(treeDetails.specie_height), 'number-pad')
@@ -522,7 +529,6 @@ const ReviewTreeDetails = () => {
         </SafeAreaView >
     )
 }
-
 export default ReviewTreeDetails
 
 const styles = StyleSheet.create({
