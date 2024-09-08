@@ -1,16 +1,16 @@
-import {RegisterFormSliceInitialState} from 'src/types/interface/slice.interface'
+import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 
 // import {FormElement, MainForm} from 'src/types/interface/form.interface'
-import {FormElement, MainForm} from 'src/types/interface/form.interface'
+import { FormElement, MainForm } from 'src/types/interface/form.interface'
 import { initialInterventionState } from 'src/utils/constants/initialInterventionState'
 
 const TeamName: FormElement = {
   index: 0,
   key: 'team-name',
-  label: 'Name',
+  label: 'Team Name',
   default: '',
   type: 'INPUT',
-  placeholder: 'Name',
+  placeholder: 'Team Name (optional)',
   unit: '',
   visibility: 'public',
   condition: null,
@@ -19,7 +19,7 @@ const TeamName: FormElement = {
   sub_form: undefined,
   editable: true,
   value: '',
-  required: true,
+  required: false,
   validation: "^.{5,100}$"
 }
 
@@ -39,7 +39,7 @@ const NumberOfMembers: FormElement = {
   editable: true,
   value: '',
   required: true,
-  validation:"^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
+  validation: "^(?!0$)(?!0\\d)\\d{1,2}$|^(?:1\\d\\d|200)$"
 }
 
 
@@ -47,7 +47,7 @@ const NumberOfMembers: FormElement = {
 const fireSuppressionForm: MainForm = {
   title: 'Team Details',
   key: '',
-  elements: [TeamName, NumberOfMembers, ],
+  elements: [TeamName, NumberOfMembers,],
 }
 
 

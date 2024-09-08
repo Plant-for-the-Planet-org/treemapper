@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
@@ -16,10 +16,14 @@ import RotatingView from '../common/RotatingView';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
-import { getPostBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
-import { updateNewIntervention } from 'src/store/slice/appStateSlice';
+import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
+import { remeasurement, skipRemeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
+// import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
+import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
+import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
+import useLogManagement from 'src/hooks/realm/useLogManagement';
 interface Props {
     isLoggedIn: boolean
 }
@@ -30,20 +34,25 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [moreUpload, setMoreUpload] = useState(false)
     const [retryCount, setRetryCount] = useState(10)
     const [showFullSync, setShowFullSync] = useState(false)
-
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus } = useInterventionManagement()
+    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus } = useInterventionManagement()
     const dispatch = useDispatch()
-
+    const { addNewLog } = useLogManagement()
+    const { isConnected } = useNetInfo();
+    const lastSyncDate = useSelector(
+        (state: RootState) => state.appState.lastSyncDate,
+    )
+    const uType = useSelector(
+        (state: RootState) => state.userState.type,
+    )
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
-
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
             syncUploaded()
@@ -69,6 +78,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         }
         if (!isSyncing) {
             dispatch(updateSyncDetails(true))
+            dispatch(updateLastSyncData(Date.now()))
         }
         if (retryCount > 1) {
             setRetryCount(prev => prev - 1)
@@ -78,16 +88,16 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             toast.show("Syncing Failed, Please try again")
             return
         }
-        const quaeData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
-        const prioritizeData = [...quaeData].sort((a, b) => a.priority - b.priority);
+        const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const prioritizeData = [...qData].sort((a, b) => a.priority - b.priority);
         if (prioritizeData.length > 0) {
             setMoreUpload(true)
             setUploadData(() => prioritizeData)
-            dispatch(updateNewIntervention())
         } else {
             dispatch(updateSyncDetails(false))
             setMoreUpload(false)
             setShowFullSync(true)
+            dispatch(updateNewIntervention())
             toast.show("All data is synced")
         }
     }
@@ -97,78 +107,227 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         uploadObjectsSequentially(uploadData);
     }
 
+
     const handleIntervention = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired === 'PROJECT_ID_MISSING') {
+                await updateProjectIdMissing(el.p1Id)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response) {
-                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
-                if (!result) {
-                    console.log("Error updating intervention");
-                }
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.hid && response?.id) {
+                await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
             }
         } catch (error) {
-            console.log("Error occurred during individual upload:", error);
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Intervention API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
         }
     };
 
     const handleSingleTree = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired === 'PROJECT_ID_MISSING') {
+                await updateProjectIdMissing(el.p1Id)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response) {
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.id && response?.hid) {
                 const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
                     await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
-                } else {
-                    console.log("Failed to write to db");
                 }
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Single Tree API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
             }
         } catch (error) {
-            console.log("Error occurred during individual upload:", error);
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Single Tree API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
         }
     };
 
-    const handleSampleTree = async (el) => {
+    const handleRemeasurement = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, historyID } = await getRemeasurementBody(el);
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const response = await uploadIntervention(body);
-            if (response) {
-                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, body.parent, response.coordinates);
+            const { success } = await remeasurement(el.p2Id, pData);
+            if (success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
             } else {
-                console.log("Failed to write to db");
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Remeasurement Tree API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
             }
         } catch (error) {
-            console.log("Error occurred during individual upload:", error);
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Remeasurement error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+    const handleSkipRemeasurement = async (el) => {
+        try {
+            const { success } = await skipRemeasurement(el.p2Id, {
+                "type": "skip-measurement"
+            });
+            if (success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, '', true);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Remeasurement SKIP API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Remeasurement SKIP error',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+
+    const handleSampleTree = async (el) => {
+        try {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                await updateTreeStatusFixRequire(el.p1Id, el.p2Id, fixRequired)
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Sample Tree fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            if (!pData) {
+                throw new Error("Not able to convert body");
+            }
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.hid && response?.id && response.coordinates) {
+                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, pData.parent, response.coordinates);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Sample Tree API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Sample Tree API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
         }
     };
 
     const handleTreeImage = async (el) => {
         try {
-            const body = await getPostBody(el);
-            if (!body) {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            if (fixRequired !== 'NO') {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            await uploadInterventionImage(body.locationId, body.imageId, {
-                imageFile: body.imageFile
+            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+                imageFile: pData.imageFile
             });
-            await updateTreeImageStatus(el.p2Id, el.p1Id);
+            if (success && response.status === "complete") {
+                const cdnImage = response.image || ''
+                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Image Upload API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
         } catch (error) {
-            console.log("Error occurred during individual upload:", error);
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Image Upload API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
         }
     };
 
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
         for (const el of d) {
+            if (!isConnected) {
+                dispatch(updateSyncDetails(false))
+                setMoreUpload(false)
+                toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
+                return;
+            }
             switch (el.type) {
                 case 'intervention':
                     await handleIntervention(el);
@@ -182,6 +341,15 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 case 'treeImage':
                     await handleTreeImage(el);
                     break;
+                case 'remeasurementData':
+                    await handleRemeasurement(el);
+                    break
+                case 'remeasurementStatus':
+                    await handleRemeasurement(el);
+                    break;
+                case 'skipRemeasurement':
+                    await handleSkipRemeasurement(el);
+                    break;
                 default:
                     console.log("Unknown type:", el.type);
             }
@@ -189,19 +357,21 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         startSyncingData();
     };
 
+
     const renderSyncView = () => (
-        <View style={styles.container}>
+        <TouchableOpacity style={styles.container}>
             <RotatingView isClockwise={true}>
                 <RefreshIcon />
             </RotatingView>
-            <Text style={styles.label}>{i18next.t("label.syncing")}</Text>
-        </View>
+            <Text style={styles.label}>{i18next.t("label.syncing")} • {interventionData.length} left</Text>
+            {/* <InfoIcon width={18} height={18} style={styles.infoIconWrapper} onPress={toggleInfo} /> */}
+        </TouchableOpacity>
     )
 
     const renderUnSyncView = () => (
         <Pressable style={styles.container} onPress={showLogin}>
             <UnSyncIcon width={20} height={20} />
-            <Text style={styles.label}>{i18next.t("label.sync_data")}</Text>
+            <Text style={styles.label}>{lastSyncDate ? formatRelativeTimeCustom(lastSyncDate) : i18next.t("label.sync_data")}{interventionData.length ? ` • ${interventionData.length} left` : ""}</Text>
         </Pressable>
     )
 
@@ -219,7 +389,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         return null
     }
 
-    return renderTile()
+    return <View>
+        {renderTile()}
+    </View>
 }
 
 
@@ -228,7 +400,7 @@ export default SyncIntervention
 const styles = StyleSheet.create({
     container: {
         paddingHorizontal: 10,
-        height: 45,
+        height: 50,
         justifyContent: 'center',
         alignItems: 'center',
         flexDirection: 'row',
@@ -239,6 +411,10 @@ const styles = StyleSheet.create({
         fontSize: 16,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
-        marginLeft: 5
-    }
+        marginLeft: 8
+    },
+    infoIconWrapper: {
+        marginRight: 5,
+        marginLeft: 10
+    },
 })

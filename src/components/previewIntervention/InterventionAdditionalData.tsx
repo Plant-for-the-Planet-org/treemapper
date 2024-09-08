@@ -12,6 +12,7 @@ import i18next from 'src/locales/index'
 interface Props {
   data: FormElement[]
   id: string
+  canEdit: boolean
 }
 
 const InterventionAdditionalData = (props: Props) => {
@@ -19,7 +20,7 @@ const InterventionAdditionalData = (props: Props) => {
   const [additionalData, setAdditionalData] = useState<FormElement[]>([])
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  const { data, id } = props
+  const { data, id, canEdit } = props
 
   useEffect(() => {
     if (data.length > 0) {
@@ -34,6 +35,13 @@ const InterventionAdditionalData = (props: Props) => {
   const renderValue = (d: FormElement) => {
     if (d.type === "DROPDOWN") {
       return d.value.length ? JSON.parse(d.value).value : d.value + d.unit;
+    } else if (d.type === 'YES_NO') {
+      const parsedData = d.value.length ? JSON.parse(d.value) : false
+      if (parsedData) {
+        return 'Yes'
+      } else {
+        return 'No'
+      }
     } else {
       return d.value + " " + d.unit;
     }
@@ -65,7 +73,6 @@ const InterventionAdditionalData = (props: Props) => {
         )
       }
     })
-
     return finalData
   }
 
@@ -76,9 +83,9 @@ const InterventionAdditionalData = (props: Props) => {
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        <TouchableOpacity onPress={editData} style={styles.editWrapper}>
-          <PenIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
-        </TouchableOpacity>
+        {canEdit && <TouchableOpacity onPress={editData} style={styles.editWrapper}>
+          <PenIcon width={30} height={30} />
+        </TouchableOpacity>}
         <Text style={styles.title}>{i18next.t("label.additional_data")}</Text>
         {renderData()}
       </View>
@@ -144,14 +151,14 @@ const styles = StyleSheet.create({
     color: Colors.TEXT_COLOR,
   },
   editWrapper: {
-    position: 'absolute',
-    right: 10,
-    top: 10,
     width: 35,
     height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: Colors.GRAY_BACKDROP,
     borderRadius: 8,
-    justifyContent: 'center',
-    alignItems: 'center'
-  },
+    right: 10,
+    position: 'absolute',
+    top: 10
+  }
 })

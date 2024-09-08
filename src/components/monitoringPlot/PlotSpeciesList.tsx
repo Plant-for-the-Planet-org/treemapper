@@ -26,7 +26,7 @@ const PlantPlotListModal = (props: Props) => {
 
     const { isVisible, toogleModal, setSpecies } = props
     const [plantData, setPlantData] = useState<IScientificSpecies[]>([])
-    const [search, setSearch] = useState('Search for species')
+    const [search, setSearch] = useState('')
 
     const realm = useRealm()
 
@@ -62,6 +62,10 @@ const PlantPlotListModal = (props: Props) => {
         }
         querySearchResult()
     }, [search])
+
+    const searchHandler = (t: string) => {
+        setSearch(t)
+    }
 
     const renderSpecieCard = (item: IScientificSpecies) => {
         return (
@@ -115,8 +119,9 @@ const PlantPlotListModal = (props: Props) => {
                             <SearchIcon style={styles.searchIcon} />
                             <TextInput
                                 style={styles.input}
-                                placeholder={search}
-                                onChangeText={setSearch}
+                                placeholder={'Search for species'}
+                                value={search}
+                                onChangeText={searchHandler}
                                 underlineColorAndroid="transparent"
                             />
                         </View>

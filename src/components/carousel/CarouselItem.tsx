@@ -36,11 +36,11 @@ const CarouselItem = (props: Props) => {
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
-      {data.remeasurement_requires && <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {data.remeasurement_requires && data.status === 'SYNCED' ?<TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
-      </TouchableOpacity>}
+      </TouchableOpacity>: null}
     </TouchableOpacity>
   } else {
     return <TouchableOpacity style={styles.container} onPress={() => {
@@ -127,7 +127,6 @@ const styles = StyleSheet.create({
     color: Colors.NEW_PRIMARY,
   },
   nextButton: {
-    width: 100,
     height: 35,
     justifyContent: 'center',
     alignItems: 'center',
@@ -136,6 +135,7 @@ const styles = StyleSheet.create({
     right: 10,
     backgroundColor: Colors.NEW_PRIMARY,
     borderRadius: 12,
+    paddingHorizontal:10
   },
   nextButtonLabel: {
     fontSize: 12,

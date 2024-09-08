@@ -12,6 +12,7 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import FadeBackground from './FadeBackground'
 import AddIcon from 'assets/images/svg/AddIcon.svg'
+import ArrowDownIcon from 'assets/images/svg/ShowDownIcon.svg'
 
 interface Props {
   label: string
@@ -24,6 +25,7 @@ interface Props {
   disable?: boolean
   hideFadeIn?: boolean
   showAdd?: boolean
+  showDown?:boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -37,7 +39,8 @@ const CustomButton = (props: Props) => {
     leftIcon,
     disable,
     hideFadeIn,
-    showAdd
+    showAdd,
+    showDown
   } = props
 
   const handlePress = () => {
@@ -58,7 +61,7 @@ const CustomButton = (props: Props) => {
       <View
         style={[
           styles.wrapper,
-          { backgroundColor: disable ? Colors.GRAY_LIGHT : Colors.NEW_PRIMARY },
+          { backgroundColor: disable ? '#209653' : Colors.NEW_PRIMARY },
           { ...wrapperStyle },
         ]}>
         {loading ? (
@@ -66,6 +69,7 @@ const CustomButton = (props: Props) => {
         ) : (
           <View style={styles.labelWrapper}>
             {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
+            {showDown && <ArrowDownIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
             <Text style={[styles.labelStyle, { ...labelStyle }]}>{label}</Text>
           </View>
         )}

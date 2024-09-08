@@ -56,6 +56,8 @@ const SingleInterventionSource = (props: Props) => {
         id={'poly_line_shape_source'}
         style={{ ...polyline, lineColor: FillColor }}
       />
+      <MapLibreGL.CircleLayer id={'singleEsntire'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
+
     </MapLibreGL.ShapeSource>
   )
 }

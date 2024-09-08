@@ -19,6 +19,8 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
+import { SCALE_24 } from 'src/utils/constants/spacing'
+import SpeciesSync from '../common/SpeciesSync'
 
 interface Props {
   toggleFilterModal: () => void
@@ -38,7 +40,9 @@ const HomeHeader = (props: Props) => {
   const { projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
-
+  const { isSyncing } = useSelector(
+    (state: RootState) => state.syncState,
+  )
   const dispatch = useDispatch()
 
   const openHomeDrawer = () => {
@@ -62,10 +66,10 @@ const HomeHeader = (props: Props) => {
 
   const syncUserSpecies = async () => {
     try {
-      const result = await getUserSpecies()
-      if (result && result.length > 0) {
-        const response = await addUserSpecies(result)
-        if (response) {
+      const { response, success } = await getUserSpecies()
+      if (success && response.length > 0) {
+        const result = await addUserSpecies(response)
+        if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
@@ -116,30 +120,30 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType && !serverInterventionAdded) {
+    if (userType && !serverInterventionAdded && !isSyncing) {
       addServerIntervention()
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
   //Remove this Intervention from Staging DB.
-  const deleteThis = ["loc_IkUNHz5Cn2vf7iy0FOcmIBHN", "loc_fVSURzjYpGU0ozFD60dPrbJF", "loc_8HnYd9gTXBt108EUALRiEhnp"]
+  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
 
   const addServerIntervention = async () => {
     try {
-      const result = await getServerIntervention(lastServerInterventionpage)
-      if (result?.items) {
-        if (!result._links.next || result._links.next === result._links.self) {
-          dispatch(updateServerIntervention(true))
-          return;
-        }//loc_fVSURzjYpGU0ozFD60dPrbJF
-        for (let index = 0; index < result.count; index++) {
-          if (result.items[index] && deleteThis.includes(result.items[index].id)) {
+      const { response, success } = await getServerIntervention(lastServerInterventionpage)
+      if (success && response?.items) {
+        for (let index = 0; index < response.count; index++) {
+          if (response.items[index] && deleteThis.includes(response.items[index].id)) {
             continue;
           }
-          const element = convertInventoryToIntervention(result.items[index]);
+          const element = convertInventoryToIntervention(response.items[index]);
           await addNewIntervention(element)
         }
-        const nextPage = getExtendedPageParam(result._links.next)
+        if (!response._links.next || response._links.next === response._links.self) {
+          dispatch(updateServerIntervention(true))
+          return;
+        }
+        const nextPage = getExtendedPageParam(response._links.next)
         dispatch(updateLastServerIntervention(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
@@ -168,8 +172,8 @@ const HomeHeader = (props: Props) => {
 
 
   const handleProjects = async () => {
-    const response = await getAllProjects()
-    if (response) {
+    const { response, success } = await getAllProjects()
+    if (success && response) {
       const result = await addAllProjects(response)
       if (result) {
         dispatch(updateProjectState(true))
@@ -201,22 +205,23 @@ const HomeHeader = (props: Props) => {
   return (
     <View style={styles.container}>
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
-        <HamburgerIcon onPress={openHomeDrawer} width={22} height={22} />
+        <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
+      <SpeciesSync />
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
       {userType && userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}
-            width={22} height={22}
+            width={SCALE_24} height={SCALE_24}
           />
         </Pressable>
       ) : null}
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}
-          width={22} height={22}
+          width={SCALE_24} height={SCALE_24}
         />
       </Pressable>
     </View>
@@ -236,8 +241,8 @@ const styles = StyleSheet.create({
     top: 80,
   },
   iconWrapper: {
-    width: 45,
-    height: 45,
+    width: 50,
+    height: 50,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.NEW_PRIMARY,

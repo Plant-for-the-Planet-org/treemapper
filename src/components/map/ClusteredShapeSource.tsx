@@ -45,6 +45,7 @@ const ClusteredShapeSource = (props: Props) => {
         id={'polygon_cluster_line'}
         style={{ ...polyline, lineColor: FillColor }}
       />
+      <MapLibreGL.CircleLayer id={'singleEntire'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
     </MapLibreGL.ShapeSource>
   )
 }

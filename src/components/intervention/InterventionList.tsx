@@ -28,15 +28,24 @@ const InterventionList = (props: Props) => {
   const { interventionData, selectedLabel, setSelectedLabel, handlePageIncrement, refreshHandler, loading } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [deleteData, setDeleteData] = useState(null)
-  const { deleteIntervention } = useInterventionManagement()
+  const [editModal, setEditModal] = useState(null)
+
+  const { resetIntervention, deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
   const handleNavigation = (item: InterventionData) => {
     setDeleteData(null)
+    setEditModal(null)
     const navDetails = lastScreenNavigationHelper(item)
     //@ts-expect-error ignore
     navigation.navigate(navDetails.screen, { ...navDetails.params })
   }
+
+  const closeAllModals = () => {
+    setDeleteData(null)
+    setEditModal(null)
+  }
+
 
   const handleDelete = async (item: InterventionData) => {
     setDeleteData(null)
@@ -44,12 +53,27 @@ const InterventionList = (props: Props) => {
     dispatch(updateNewIntervention())
   }
 
+  const handleEdit = async (item: InterventionData) => {
+    const d = JSON.parse(JSON.stringify(item))
+    setEditModal(null)
+    await resetIntervention(item.intervention_id)
+    dispatch(updateNewIntervention())
+    navigation.navigate("InterventionPreview", { id: 'review', intervention: d.intervention_id, interventionId: d.intervention_id })
+  }
+
+  const openEditModal = (item: InterventionData) => {
+    const obj = JSON.parse(JSON.stringify(item))
+    setEditModal(obj)
+  }
+
   const showInfoModal = (item: InterventionData) => {
-    if (!item.is_complete) {
-      setDeleteData(item)
-    } else {
-      handleNavigation(item)
-    }
+    const obj = JSON.parse(JSON.stringify(item))
+    handleNavigation(obj)
+  }
+
+  const showDeleteModal = (item: InterventionData) => {
+    const obj = JSON.parse(JSON.stringify(item))
+    setDeleteData(obj)
   }
 
 
@@ -65,8 +89,8 @@ const InterventionList = (props: Props) => {
 
   return (
     <>
-      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleNavigation} headerLabel={'Continue Intervention'} noteLabel={'Do you want to continue completing intervention.'} primeLabel={'Continue'} secondaryLabel={'Delete'} extra={deleteData} secondaryHandler={handleDelete} />
-
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Intervention'} noteLabel={'Do you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'close'} extra={deleteData} />
+      <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleEdit} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Edit'} secondaryLabel={'Cancel'} extra={editModal} secondaryHandler={closeAllModals} />
       <FlashList
         data={interventionData}
         renderItem={({ item }) => (
@@ -74,6 +98,8 @@ const InterventionList = (props: Props) => {
             item={item}
             key={item.intervention_id}
             openIntervention={showInfoModal}
+            deleteHandler={showDeleteModal}
+            openEditModal={openEditModal}
           />
         )}
         estimatedItemSize={100}
@@ -114,16 +140,18 @@ const styles = StyleSheet.create({
   },
   emptyHeaderLabel: {
     fontSize: 18,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    width: '100%',
     textAlign: 'center',
-    marginHorizontal: 50,
-    marginVertical: 20,
-    color: Colors.DARK_TEXT_COLOR
+    marginTop: 10
   },
   emptyLabel: {
-    fontSize: 14,
+    fontSize: 16,
+    color: Colors.TEXT_COLOR,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginTop: 10,
+    width: '100%',
     textAlign: 'center',
-    color: Colors.TEXT_COLOR
   }
 })

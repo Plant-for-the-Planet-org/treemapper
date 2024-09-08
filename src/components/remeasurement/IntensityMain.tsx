@@ -1,51 +1,48 @@
 import i18next from 'i18next';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet, Text, View, ScrollView } from 'react-native';
 import { Colors, Typography } from 'src/utils/constants';
 import CustomButton from '../common/CustomButton';
-import { scaleSize } from 'src/utils/constants/mixins';
 import IntensitySelector from './IntensitySelector';
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput';
 
 interface Props {
   intensity: any;
+  setSelectedIntensity: (i: number) => void
+  save: () => void
+  loading: boolean
 }
 
-const Intensity: React.FC<Props> = ({ intensity }) => {
-  const [selectedIntensity, setSelectedIntensity] = useState(intensity);
+const Intensity: React.FC<Props> = (props: Props) => {
+  const { setSelectedIntensity, intensity, save, loading } = props;
 
   useEffect(() => {
     AvoidSoftInput.setShouldMimicIOSBehavior(true);
     return () => {
-      AvoidSoftInput.setShouldMimicIOSBehavior(true);
+      AvoidSoftInput.setShouldMimicIOSBehavior(false);
     };
   }, []);
 
-  useEffect(() => {
-    if (intensity) {
-      setSelectedIntensity(intensity);
-    }
-  }, [intensity]);
 
   return (
-    <AvoidSoftInputView avoidOffset={20} style={{ flex: 1 }}>
+    <AvoidSoftInputView avoidOffset={20} style={{ flex: 1 }} showAnimationDuration={200}>
       <View style={[styles.scene, styles.defaultSpacing]}>
         <ScrollView style={styles.scrollView}>
           <Text style={[styles.description, styles.descriptionMarginTop]}>
             {i18next.t('label.select_intensity_for_remeasurement')}
           </Text>
           <IntensitySelector
-            selectedIntensity={selectedIntensity}
+            selectedIntensity={intensity}
             setSelectedIntensity={setSelectedIntensity}
           />
         </ScrollView>
-        <View style={styles.buttonContainer}>
-          <CustomButton
-            label={i18next.t('label.save')}
-            containerStyle={styles.btnContainer}
-            pressHandler={() => {}}
-          />
-        </View>
+        <CustomButton
+          label={i18next.t('label.save')}
+          containerStyle={styles.btnContainer}
+          pressHandler={save}
+          disable={loading}
+          loading={loading}
+        />
       </View>
     </AvoidSoftInputView>
   );
@@ -78,8 +75,8 @@ const styles = StyleSheet.create({
   },
   btnContainer: {
     width: '100%',
-    height: scaleSize(70),
+    height: 80,
     position: 'absolute',
-    bottom: 50,
+    bottom: 30,
   },
 });

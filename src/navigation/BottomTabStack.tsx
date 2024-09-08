@@ -5,6 +5,7 @@ import Screens from 'src/screens'
 import BottomTabIcon from 'src/components/bottomTab/BottomTabIcon'
 import { StyleSheet } from 'react-native'
 import AddBottomTabIcon from 'src/components/bottomTab/AddBottomTabIcon'
+import i18next from 'i18next'
 
 const BottomTabStack = createBottomTabNavigator<BottomTabParamList>()
 
@@ -14,12 +15,12 @@ const Blank = () => {
 
 const BottomStack = () => {
   const mapIcon = ({ focused }) => {
-    return <BottomTabIcon label={'Map'} index={0} isFocused={focused} />
+    return <BottomTabIcon label={i18next.t('label.map')} index={0} isFocused={focused} />
   }
   const interventionIcon = ({ focused }) => {
     return (
       <BottomTabIcon
-        label={'Interventions'}
+        label={i18next.t('label.interventions')}
         index={1}
         isFocused={focused}
       />
@@ -27,7 +28,7 @@ const BottomStack = () => {
   }
   const plotIcon = ({ focused }) => {
     return (
-      <BottomTabIcon label={'Plots'} index={2} isFocused={focused} />
+      <BottomTabIcon label={i18next.t('label.plots')} index={2} isFocused={focused} />
     )
   }
   const addIcon = () => {
@@ -67,7 +68,7 @@ const BottomStack = () => {
         name="Add"
         component={Blank}
         options={{
-          tabBarIcon: addIcon
+          tabBarButton: addIcon,
         }}
       />
     </BottomTabStack.Navigator>
@@ -82,9 +83,11 @@ const styles = StyleSheet.create({
     margin: 0,
     padding: 0,
     borderTopWidth: 0,
-    width: '100%',
-    height: 100,
+    // width: '100%',
+    // height: 100,
     position: 'absolute',
     elevation: 0,
+    width: '100%',
+    height: 100,
   },
 })

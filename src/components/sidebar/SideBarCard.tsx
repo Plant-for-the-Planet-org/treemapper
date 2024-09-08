@@ -12,6 +12,7 @@ import useAuthentication from 'src/hooks/useAuthentication'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
+import { SCALE_16 } from 'src/utils/constants/spacing'
 
 interface Props {
   item: SideDrawerItem
@@ -63,7 +64,7 @@ return (
         <Text style={styles.label}>{label}</Text>
       </View>
       <View style={styles.arrowWrapper}>
-        <CtaArrow />
+        <CtaArrow  width={SCALE_16} height={SCALE_16}/>
       </View>
     </View>
   </Pressable>
@@ -75,7 +76,7 @@ export default SideBarCard
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: scaleSize(60),
+    height: scaleSize(64),
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -87,6 +88,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: '#fff',
     borderRadius: 10,
+    shadowColor: Colors.GRAY_BACKDROP,           // Shadow color
+    shadowOffset: { width: 0, height: 2 }, // Shadow offset (width, height)
+    shadowOpacity: 0.25,           // Shadow opacity (0 to 1)
+    shadowRadius: 3.84,    
+    elevation: 2, // Elevation property for shadow
   },
   iconWrapper: {
     height: 25,
@@ -107,7 +113,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    fontSize: scaleFont(14),
+    fontSize: scaleFont(16),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     color: Colors.TEXT_COLOR,
     marginLeft: 10

@@ -1,4 +1,4 @@
-import { ActivityIndicator, SafeAreaView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import ActivityLogsTab from 'src/components/activityLogs/ActivityLogsTab'
@@ -12,6 +12,7 @@ import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales/index'
+import { SafeAreaView } from 'react-native-safe-area-context'
 
 const ActivityLogsView = () => {
     const [loading, setLoading] = useState(false)
@@ -36,7 +37,7 @@ const ActivityLogsView = () => {
                 "country": UserDetails.country,
                 "email": UserDetails.email,
                 "id": UserDetails.id,
-                "type":UserDetails.type
+                "type": UserDetails.type
             }
         })
     }
@@ -79,7 +80,6 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: Colors.WHITE,
-        paddingTop: 20
     },
     modal: {
         flex: 1,

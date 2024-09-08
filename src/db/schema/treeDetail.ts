@@ -8,7 +8,7 @@ export const TreeDetail: ObjectSchema = {
     tree_id: 'string',
     species_guid: 'string',
     intervention_id: 'string',
-    parent_id: 'string',//remove this later
+    parent_id: 'string',
     sloc_id: 'string',
     count: 'int',
     latitude: 'double',
@@ -23,7 +23,7 @@ export const TreeDetail: ObjectSchema = {
     specie_diameter: 'double',
     specie_height: 'double',
     tag_id: 'string',
-    plantation_date: 'int',
+    plantation_date: 'double',
     status_complete: 'bool',
     status: 'string',
     location_id: 'string',

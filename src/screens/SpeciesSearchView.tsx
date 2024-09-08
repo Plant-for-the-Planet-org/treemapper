@@ -1,4 +1,4 @@
-import { StyleSheet, } from 'react-native'
+import { StyleSheet, Text, } from 'react-native'
 import React, { useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import SpeciesSearchHeader from 'src/components/species/SpeciesSearchHeader'
@@ -7,19 +7,26 @@ import { IScientificSpecies } from 'src/types/interface/app.interface'
 import SpeciesSearchCard from 'src/components/species/SpeciesSearchCard'
 import { FlashList } from '@shopify/flash-list'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import { useNavigation } from '@react-navigation/native'
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import { useToast } from 'react-native-toast-notifications'
+import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
+import { useDispatch } from 'react-redux'
+import { updateSelectedSpeciesId, updateSpeciesUpdatedAt } from 'src/store/slice/tempStateSlice'
+import { updateSpeciesDownloaded } from 'src/store/slice/appStateSlice'
 
 const SpeciesSearchView = () => {
   const [specieList, setSpecieList] = useState<IScientificSpecies[]>([])
   const { updateUserFavSpecies } = useManageScientificSpecies()
   const [showSpeciesSyncAlert, setShowSpeciesSyncAlert] = useState(false);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const route = useRoute<RouteProp<RootStackParamList, 'SpeciesSearch'>>()
+  const isManageSpecies = route.params?.manageSpecies;
+  const dispatch = useDispatch()
   const toast = useToast()
   const handleBackPress = () => {
     navigation.goBack()
@@ -38,25 +45,30 @@ const SpeciesSearchView = () => {
       )
     })
     updateUserFavSpecies(item.guid, status)
+    toast.hideAll();
     if (status) {
-      toast.show(`"${item.scientificName}" added to favorites`)
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> added to favorites</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     } else {
-      toast.show(`"${item.scientificName}" removed from favorites`)
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> removed from favorites</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     }
   }
 
   const handleCardPress = async (
     item: IScientificSpecies,
-    status: boolean,
+    status: boolean
   ) => {
-    handleFavSpecies(item, status)
+    if (!isManageSpecies) {
+      navigation.goBack()
+      dispatch(updateSelectedSpeciesId(item.guid))
+    } else {
+      handleFavSpecies(item, status)
+    }
   }
 
   const handleSpeciesSyncPress = async () => {
     setShowSpeciesSyncAlert(false)
-    setTimeout(() => {
-      navigation.navigate('SyncSpecies', { inApp: true })
-    }, 300);
+    dispatch(updateSpeciesDownloaded(''))
+    dispatch(updateSpeciesUpdatedAt())
   }
 
 
@@ -103,4 +115,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: Colors.WHITE,
   },
+  toastLabel: {
+    fontSize: 16,
+    fontFamily: FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT
+  },
+  speciesLabel: {
+    fontFamily: FONT_FAMILY_ITALIC,
+  }
 })

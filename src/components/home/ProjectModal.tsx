@@ -1,5 +1,5 @@
 import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
@@ -18,6 +18,14 @@ import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView, useBottomSheetModal } from '@gorhom/bottom-sheet'
 import i18next from 'src/locales/index'
+import { updateLastProject, updateProjectModal } from 'src/store/slice/displayMapSlice'
+import { ProjectInterface } from 'src/types/interface/app.interface'
+import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
+import AddIcon from 'assets/images/svg/AddIcon.svg'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface Props {
   isVisible: boolean
@@ -25,15 +33,13 @@ interface Props {
 }
 
 const ProjectModal = (props: Props) => {
-  // ref
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { dismiss } = useBottomSheetModal()
-  // variables
   const snapPoints = useMemo(() => ['65%'], []);
-
   const { isVisible, toggleModal } = props
   const [projectData, setProjectData] = useState<any>([])
   const [projectSites, setProjectSites] = useState<any>([])
+
   const [selectedProject, setSelectedProject] = useState<{
     label: string
     value: string
@@ -43,9 +49,16 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
   const realm = useRealm()
-  const { currentProject, projectSite, projectAdded } = useSelector(
+
+  const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
+  )
+
+  const { toggleProjectModal, lastProjectAdded } = useSelector(
+    (state: RootState) => state.displayMapState,
   )
 
   const dispatch = useDispatch()
@@ -59,32 +72,25 @@ const ProjectModal = (props: Props) => {
       }
     })
     if (ProjectData.length > 0) {
-      setProjectData(ProjectData)
-      setSelectedProject(ProjectData[0])
-
-      if (data.length && data[0].sites) {
-        setProjectSites(data[0].sites)
-      }
-      if (currentProject.projectId === '') {
-        dispatch(
-          updateCurrentProject({
-            name: ProjectData[0].label,
-            id: ProjectData[0].value,
-          }),
-        )
+      setProjectData(() => ([...ProjectData]))
+      if (currentProject.projectId !== '') {
+        const indexOf = ProjectData.findIndex(obj => obj.value === currentProject.projectId);
+        if (indexOf >= 0) {
+          setSelectedProject(ProjectData[indexOf])
+          setProjectSites(data[indexOf].sites)
+        }
       }
     }
   }
 
-  useEffect(() => {
-    const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
-    if (allProjects && projectData.length === 0) {
-      projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
-    } else {
-      projectDataDropDown([])
 
-    }
-  }, [projectAdded])
+
+  const createNewSite = () => {
+    closeModal()
+    setTimeout(() => {
+      navigation.navigate('ProjectSites')
+    }, 300);
+  }
 
   const handelSiteSelection = (id: string, item: any) => {
     dispatch(
@@ -93,17 +99,19 @@ const ProjectModal = (props: Props) => {
         id,
       }),
     )
-
-    const geometry = JSON.parse(item?.geometry)
-    const bounds = bbox(geometry)
-    dispatch(
-      updateMapBounds({
-        bounds: bounds,
-        key: 'DISPLAY_MAP',
-      }),
-    )
     dismiss()
     toggleModal()
+    dispatch(updateProjectModal(false))
+    if (!toggleProjectModal) {
+      const geometry = JSON.parse(item?.geometry)
+      const bounds = bbox(geometry)
+      dispatch(
+        updateMapBounds({
+          bounds: bounds,
+          key: 'DISPLAY_MAP',
+        }),
+      )
+    }
   }
 
   const handleProjectSelection = (data: {
@@ -128,19 +136,69 @@ const ProjectModal = (props: Props) => {
     setProjectSites(allProjects[data.index].sites)
   }
 
-  useEffect(() => {
-    if (isVisible) {
-      handlePresentModalPress()
-    }
-  }, [isVisible])
-
-  // callbacks
-  const handlePresentModalPress = useCallback(() => {
+  const handlePresentModalPress = () => {
     bottomSheetModalRef.current?.present();
-  }, []);
+  }
+
+
+  useEffect(() => {
+    if (isVisible || toggleProjectModal || lastProjectAdded) {
+      const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
+      if (allProjects && projectData.length === 0) {
+        projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
+      } else {
+        projectDataDropDown([])
+      }
+      handlePresentModalPress()
+      dispatch(updateLastProject(0))
+    }
+  }, [isVisible, toggleProjectModal, lastProjectAdded])
+
+  useEffect(() => {
+    setTimeout(() => {
+      if (!currentProject.projectId) {
+        return
+      }
+      const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+        RealmSchema.Projects,
+        currentProject.projectId,
+      )
+      if (!ProjectData.geometry) {
+        return
+      }
+      try {
+        if (!projectSite.siteId || projectSite.siteId === 'other') {
+          const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+          const bounds = bbox(geoJSON)
+          dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+          return
+        }
+      } catch (error) {
+        console.log("Error",error)
+      }
+      const currentSiteData = ProjectData.sites.filter(
+        el => el.id === projectSite.siteId,
+      )
+      try {
+        const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+        const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+        const bounds = bbox(geoJSON)
+        dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
+      } catch (error) {
+        console.log("Error",error)
+      }
+    }, 500);
+  }, [])
+
+
+
+
+
   const closeModal = () => {
     toggleModal()
     dismiss();
+    dispatch(updateProjectModal(false))
   }
   const backdropModal = ({ style }: BottomSheetBackdropProps) => (
     <Pressable style={[style, { backgroundColor: 'rgba(0, 0, 0, 0.5)' }]} onPress={closeModal} />
@@ -166,16 +224,17 @@ const ProjectModal = (props: Props) => {
       handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
       snapPoints={snapPoints}
       backdropComponent={backdropModal}
+      backgroundStyle={{ backgroundColor: 'transparent' }}
     >
       <BottomSheetView style={styles.container} >
         <View style={styles.sectionWrapper}>
           <View style={styles.contentWrapper}>
             <View style={styles.header}>
-              <ZoomSiteIcon style={styles.iconWrapper} />
-              <Text style={styles.headerLabel}>{i18next.t('label.zoom_to_site')}</Text>
+              <ZoomSiteIcon style={styles.iconWrapper} width={24} height={24} />
+              <Text style={styles.headerLabel}>{toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}</Text>
               <View style={styles.divider} />
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal} >
-                <CloseIcon />
+                <CloseIcon width={20} height={20} />
               </TouchableOpacity>
             </View>
             <Text style={styles.projectLabel}>{i18next.t('label.select_project')}</Text>
@@ -184,9 +243,15 @@ const ProjectModal = (props: Props) => {
               data={projectData}
               onSelect={handleProjectSelection}
               selectedValue={selectedProject}
+              whiteBG
             />
-
-            <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
+            <View style={styles.projectSiteWrapper}>
+              <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
+              <Pressable style={styles.addnewWrapper} onPress={createNewSite}>
+                <Text style={styles.addNewSite}>Add New Site</Text>
+                <AddIcon height={15} width={15} fill={Colors.NEW_PRIMARY} />
+              </Pressable>
+            </View>
             <View style={styles.siteContainer}>
               <FlatList
                 data={projectSites}
@@ -207,9 +272,9 @@ const ProjectModal = (props: Props) => {
                       }}>
                       <Text style={styles.siteCardLabel}>{item.name}</Text>
                       <View style={styles.divider} />
-                      {projectSite.siteId === item.id && (
-                        <Entypo size={16} name="check" color={Colors.PRIMARY} />
-                      )}
+                      {projectSite.siteId === item.id && toggleProjectModal ? (
+                        <Entypo size={16} name="check" color={Colors.NEW_PRIMARY} />
+                      ) : null}
                     </TouchableOpacity>
                   )
                 }}
@@ -234,20 +299,15 @@ const styles = StyleSheet.create({
   sectionWrapper: {
     width: '100%',
     backgroundColor: Colors.WHITE,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
     alignItems: 'center',
+    paddingTop: 10
   },
   contentWrapper: {
     width: '95%',
-    borderRadius: 30
-  },
-  card: {
-    height: 50,
-    width: '100%',
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 5,
-    borderRadius: 10,
-    backgroundColor: Colors.GRAY_LIGHT,
+    borderRadius: 30,
+    height: '100%'
   },
   header: {
     height: 50,
@@ -260,9 +320,10 @@ const styles = StyleSheet.create({
     marginHorizontal: 10,
   },
   headerLabel: {
-    fontSize: scaleFont(16),
+    fontSize: scaleFont(18),
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    color: Colors.DARK_TEXT
+    color: Colors.DARK_TEXT,
+    marginLeft: 10
   },
   cardLabel: {
     fontSize: 16,
@@ -271,40 +332,59 @@ const styles = StyleSheet.create({
   divider: {
     flex: 1,
   },
+  projectSiteWrapper: {
+    width: '100%',
+    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between'
+  },
+  addnewWrapper: {
+    alignItems: "center",
+    flexDirection: 'row',
+    marginHorizontal: 10
+  },
   projectLabel: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: Typography.FONT_SIZE_14,
+    fontSize: 16,
     marginHorizontal: 20,
     color: Colors.DARK_TEXT,
-    marginVertical: 10
+    marginVertical: 10,
+  },
+  addNewSite: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: 14,
+    color: Colors.NEW_PRIMARY,
+    marginRight: 5
   },
   siteContainer: {
     width: '100%',
-    marginLeft: '5%',
-    maxHeight: '47.5%',
+    marginLeft: '2.5%',
+    height: '45%'
   },
   siteWrapper: {
     height: '100%',
-    width: '90%',
+    width: '95%',
     backgroundColor: Colors.GRAY_LIGHTEST + '1A',
     borderRadius: 10,
     paddingVertical: 5,
   },
   siteCard: {
-    width: '90%',
+    width: '95%',
     flexDirection: 'row',
     alignItems: 'center',
     borderBottomColor: Colors.GRAY_BACKDROP,
     marginLeft: 10,
-    paddingVertical: 14
+    paddingVertical: 20,
+    borderBottomWidth: 0.5
   },
   siteCardLabel: {
     fontSize: 14,
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-    color: Colors.DARK_TEXT_COLOR
+    color: Colors.DARK_TEXT_COLOR,
+    paddingHorizontal: 10
   },
   handleIndicatorStyle: {
-    backgroundColor: Colors.WHITE,
-    borderRadius: 30
+    width: 0,
+    height: 0
   }
 })

@@ -6,7 +6,6 @@ import Bugsnag from '@bugsnag/expo';
 
 const mainFolder = "TreeMapper";
 export const basePath = `${RNFS.DocumentDirectoryPath}/${mainFolder}`;
-const tempDirectory = `${RNFS.CachesDirectoryPath}/TreeMapper_Data_${Date.now()}.zip`;
 
 export const createNewInterventionFolder = async (id: string) => {
     try {
@@ -29,6 +28,16 @@ const exportRealmData = async (data: InterventionData) => {
         await createNewInterventionFolder(data.intervention_id);
     } catch (error) {
         console.error("Error exporting realm data:", error);
+    }
+}
+
+export const deleteImageFile = async (fileURI: string) => {
+    try {
+        await RNFS.unlink(fileURI);
+        return true
+    } catch (error) {
+        Bugsnag.notify(error)
+        return false
     }
 }
 
@@ -57,25 +66,22 @@ export const createBasePath = async () => {
     }
 }
 
-export const exportAllInterventionData = async (dataArray: InterventionData[]) => {
+export const exportAllInterventionData = async (data: InterventionData) => {
     try {
-        const createFolderPromises = dataArray.map(data => exportRealmData(data));
-        await Promise.all(createFolderPromises);
-
-        const writeDataPromises = dataArray.map(data => interData(data));
-        await Promise.all(writeDataPromises);
-        await zipAndShareFolder();
+        await exportRealmData(data);
+        await interData(data);
+        await zipAndShareFolder(data.intervention_id);
     } catch (error) {
         //error
     }
 }
 
-const zipAndShareFolder = async () => {
+const zipAndShareFolder = async (id: string) => {
     try {
-        const zipFilePath = tempDirectory;
-        await zip(basePath, zipFilePath);
+        const zipFilePath = `${RNFS.CachesDirectoryPath}/Intervention-${id}.zip`;
+        await zip(`${basePath}/${id}`, zipFilePath);
         const shareOptions = {
-            title: 'Share Folder',
+            title: `Intervention data-${id}`,
             url: `file://${zipFilePath}`,
             type: 'application/zip',
         };

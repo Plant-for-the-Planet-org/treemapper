@@ -9,10 +9,11 @@ interface Props {
     isVisible: boolean
     toggleModal: () => void
     handleFreeSpace: () => void
+    size: string
 }
 
 const ClearSpaceModal = (props: Props) => {
-    const { isVisible, toggleModal, handleFreeSpace } = props
+    const { isVisible, toggleModal, handleFreeSpace , size} = props
 
     return (
         <Modal
@@ -37,17 +38,19 @@ const ClearSpaceModal = (props: Props) => {
                     <TouchableOpacity
                         onPress={handleFreeSpace}
                         style={{
-                            paddingHorizontal: 10,
-                            paddingVertical: 5,
+                            paddingHorizontal: 20,
+                            paddingVertical: 15,
                             alignSelf: 'center',
+                            backgroundColor:Colors.NEW_PRIMARY,
+                            borderRadius:8,
                         }}>
                         <Text
                             style={{
-                                color: Colors.NEW_PRIMARY,
+                                color: Colors.WHITE,
                                 fontFamily: Typography.FONT_FAMILY_BOLD,
                                 fontSize: Typography.FONT_SIZE_16,
                             }}>
-                            {i18next.t("label.free_up_space")}
+                            {i18next.t("label.free_up_space")} {size}
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -79,8 +82,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderRadius: 10,
-        paddingLeft: 25,
-        paddingRight: 15,
         paddingVertical: 25,
     },
     accuracyModalText: {

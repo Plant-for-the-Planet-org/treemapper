@@ -27,7 +27,7 @@ const styles = StyleSheet.create({
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.TEXT_COLOR,
   },
-  primaryColor: {color: Colors.PRIMARY},
+  primaryColor: {color: Colors.NEW_PRIMARY},
 })
 
 export default FlatButton

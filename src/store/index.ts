@@ -40,7 +40,7 @@ const appReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage: AsyncStorage,
-  whitelist: ['appState', 'userState', 'projectState'],
+  whitelist: ['appState', 'userState', 'projectState', 'gpsState'],
   timeout: null
 }
 

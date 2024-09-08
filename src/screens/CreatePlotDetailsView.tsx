@@ -88,43 +88,26 @@ const CreatePlotDetailsView = () => {
     const validatePlotDimensions = (plotShape: string) => {
         if (plotShape === 'RECTANGULAR') {
             return isRectangularPlotValid(plotWidth, plotLength);
-        } else if (plotShape === 'CIRCULAR') {
+        } 
+        if(plotShape === 'CIRCULAR'){
             if (!isCircularPlotValid(plotRadius)) return false;
-    
-            const validWidth = validateNumber(plotWidth, 'width', 'width');
-            const validHeight = validateNumber(plotLength, 'length', 'length');
-            if (validHeight.hasError) {
-                toast.show(validHeight.errorMessage);
-                return false;
-            }
-            if (validWidth.hasError) {
-                toast.show(validWidth.errorMessage);
-                return false;
-            }
-            if (Number(plotWidth) < 4 || Number(plotLength) < 25) {
-                toast.show("Please add valid Dimensions as per note");
-                return false;
-            }
-            return true;
-        } else {
-            toast.show("Invalid plot shape");
-            return false;
         }
+        return true
     };
-    
+
     const submitHandler = async () => {
         if (!isPlotNameValid(plotName)) {
             toast.show("Please add valid Plot Name");
             return;
         }
-    
+
         if (!validatePlotDimensions(plotShape)) return;
-    
+
         if (!isPlotImageValid(plotImage)) {
             toast.show("Please add Plot Image");
             return;
         }
-    
+
         const data: PlotDetailsParams = {
             name: plotName,
             length: Number(plotLength),
@@ -132,7 +115,7 @@ const CreatePlotDetailsView = () => {
             radius: Number(plotRadius),
             group: null
         };
-    
+
         const result = await updatePlotDetails(plotID, data);
         if (result) {
             await handlePostUpdate();
@@ -141,14 +124,13 @@ const CreatePlotDetailsView = () => {
             toast.show("Error occurred while adding data");
         }
     };
-    
-    
+
+
     const isPlotNameValid = (name: string) => name.trim().length > 0;
-    
+
     const isRectangularPlotValid = (width: string, length: string) => {
         const validWidth = validateNumber(width, 'width', 'width');
         const validHeight = validateNumber(length, 'length', 'length');
-    
         if (validHeight.hasError) {
             toast.show(validHeight.errorMessage);
             return false;
@@ -163,7 +145,7 @@ const CreatePlotDetailsView = () => {
         }
         return true;
     };
-    
+
     const isCircularPlotValid = (radius: string) => {
         const validRadius = validateNumber(radius, 'Radius', 'Radius');
         if (validRadius.hasError) {
@@ -176,9 +158,9 @@ const CreatePlotDetailsView = () => {
         }
         return true;
     };
-    
+
     const isPlotImageValid = (image: string) => image.trim() !== '';
-    
+
     const handlePostUpdate = async () => {
         if (type.value) {
             const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
@@ -191,16 +173,14 @@ const CreatePlotDetailsView = () => {
     }
 
 
-
-
-
     return (
         <SafeAreaView style={styles.container}>
-            <AvoidSoftInputView
-                avoidOffset={20}
-                style={styles.container}>
-                <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
-                <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
+            <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
+                <AvoidSoftInputView
+                    avoidOffset={20}
+                    showAnimationDuration={200}
+                    style={styles.container}>
+                    <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                     <View style={styles.wrapper}>
                         <View style={{ paddingHorizontal: 20 }}>
                             <AddPlotImage image={plotImage} plotID={plotID} />
@@ -246,9 +226,8 @@ const CreatePlotDetailsView = () => {
                             />
                         </View>}
                     </View>
-
-                </ScrollView>
-            </AvoidSoftInputView>
+                </AvoidSoftInputView>
+            </ScrollView>
             <CustomButton
                 label={i18next.t('label.create')}
                 containerStyle={styles.btnContainer}
@@ -270,13 +249,14 @@ const styles = StyleSheet.create({
         paddingTop: 20,
         paddingBottom: 100,
         height: '100%',
-        width: '100%'
+        width: '100%',
+        backgroundColor: Colors.BACKDROP_COLOR
     },
     btnContainer: {
         width: '100%',
         height: scaleSize(70),
         position: 'absolute',
-        bottom: 20,
+        bottom: 30,
     },
     infoWrapper: {
         marginRight: '5%'

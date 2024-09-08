@@ -1,7 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import { CameraCapturedPicture } from 'expo-camera'
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import CustomButton from 'src/components/common/CustomButton'
 import { Image } from 'expo-image'
 import { Colors } from 'src/utils/constants'
@@ -30,8 +29,18 @@ const ImagePreview = (props: Props) => {
   const dispatch = useDispatch()
 
   const navigateToNext = async () => {
-    const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE'
-    const finalURL = await copyImageAndGetData(imageData.uri, interventionID, hasSpecies)
+    const hasSpecies = screen === 'SPECIES_INFO' || screen === 'PLOT_IMAGE' ||  screen === 'REMEASUREMENT_IMAGE' 
+    const getBasics = () => {
+      if (screen === 'SPECIES_INFO'  || screen === 'PLOT_IMAGE' || screen === 'REMEASUREMENT_IMAGE') {
+        return { uid: id, hasSpecies: hasSpecies }
+      }
+      return {
+        uid: interventionID || id,
+        hasSpecies: hasSpecies || false
+      }
+    }
+    const d = getBasics()
+    const finalURL = await copyImageAndGetData(imageData.uri, d.uid, d.hasSpecies)
     dispatch(
       updateImageDetails({
         id: id,
@@ -88,19 +97,19 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '95%',
-    height: '85%',
+    height: '80%',
     borderTopColor: Colors.GRAY_BACKDROP,
     borderRadius: 15,
     overflow: 'hidden',
     marginTop: "5%"
   },
   btnContainer: {
-    width: '100%',
-    height: scaleSize(70),
+    width: '95%',
+    height:80,
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: '5%',
   },
   btnWrapper: {
     flex: 1,
@@ -146,12 +155,12 @@ const styles = StyleSheet.create({
     borderRadius: 10,
   },
   highlightLabel: {
-    fontSize: scaleFont(16),
+    fontSize: 18,
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
   normalLabel: {
-    fontSize: scaleFont(14),
+    fontSize: 14,
     fontWeight: '400',
     color: Colors.WHITE,
     textAlign: 'center',

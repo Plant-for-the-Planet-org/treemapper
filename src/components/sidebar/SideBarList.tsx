@@ -11,6 +11,7 @@ import DataExplorerIcon from 'assets/images/svg/DataExplorerIcon.svg'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales'
+import { SCALE_24 } from 'src/utils/constants/spacing'
 
 interface Props {
   isLoggedIn: boolean
@@ -25,28 +26,28 @@ const SideBarList = (props: Props) => {
     {
       label: i18next.t('label.manage_species'),
       screen: 'ManageSpecies',
-      icon: <ManageSpeciesIcon />,
+      icon: <ManageSpeciesIcon width={SCALE_24} height={SCALE_24}/>,
       visible: true,
       key: 'manage_species'
     },
     {
       label: i18next.t('label.manage_project'),
       screen: 'ManageProjects',
-      icon: <ManageProjectIcon />,
+      icon: <ManageProjectIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: UserType==='tpo',
       key: 'manage_projects'
     },
     {
       label: i18next.t('label.additional_data'),
       screen: 'AdditionalData',
-      icon: <AdditionalDataIcon />,
+      icon: <AdditionalDataIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: true,
       key: 'additional_data'
     },
     {
       label: i18next.t('label.offline_maps'),
       screen: 'OfflineMap',
-      icon: <OfflineMapIcon />,
+      icon: <OfflineMapIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: true,
       key: 'offline_map',
       disable: false
@@ -54,21 +55,21 @@ const SideBarList = (props: Props) => {
     {
       label: i18next.t('label.data_explorer'),
       screen: 'DataExplorer',
-      icon: <DataExplorerIcon />,
+      icon: <DataExplorerIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: true,
       key: 'data_explorer'
     },
     {
       label: i18next.t('label.activity_logs'),
       screen: 'ActivityLog',
-      icon: <ManageProjectIcon />,
+      icon: <ManageProjectIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: true,
       key: 'activity_log'
     },
     {
       label: i18next.t('label.logout'),
       screen: 'ManageSpecies',
-      icon: <LogoutIcon />,
+      icon: <LogoutIcon  width={SCALE_24} height={SCALE_24}/>,
       visible: isLoggedIn,
       key: 'logout'
     },
@@ -88,6 +89,6 @@ export default SideBarList
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop:10
+    marginTop:10,
   },
 })

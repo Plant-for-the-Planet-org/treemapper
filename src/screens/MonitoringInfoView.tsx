@@ -8,8 +8,8 @@ import i18next from 'src/locales/index'
 const MonitoringInfoView = () => {
     return (
         <SafeAreaView style={styles.container}>
+            <ScrollView contentContainerStyle={{paddingTop:20}}>
             <Header label='Monitoring Plots' />
-            <ScrollView>
                 <View style={styles.headerSection}>
                     <View style={styles.backDrop}></View>
                     <Text style={styles.headerNote}>
@@ -65,6 +65,7 @@ export default MonitoringInfoView
 
 const styles = StyleSheet.create({
     container: {
+        flex:1,
         backgroundColor: Colors.WHITE
     },
     wrapper: {

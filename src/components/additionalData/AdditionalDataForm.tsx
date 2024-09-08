@@ -45,9 +45,11 @@ const AdditionalDataForm = () => {
 
   return (
     <View style={styles.container}>
-      <FlatList data={allFormData} 
-      keyExtractor={({ form_id }) => form_id}
-      renderItem={({ item, index }) => (<AddDataElement data={item} pressHandler={elementHandler} pageNo={index} openHandler={openMediaElementView} />)} ListEmptyComponent={<AdditionalDataFormNote newForm={createNewForm} />} />
+      <FlatList 
+        style={{flex:1}}
+        data={allFormData}
+        keyExtractor={({ form_id }) => form_id}
+        renderItem={({ item, index }) => (<AddDataElement data={item} pressHandler={elementHandler} pageNo={index} openHandler={openMediaElementView} />)} ListEmptyComponent={<AdditionalDataFormNote newForm={createNewForm} />} />
     </View>
   )
 }

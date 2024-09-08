@@ -36,12 +36,9 @@ const EditInputModal = ({
   placeholder = '',
   returnKeyType = 'default',
 }: IInputModalProps) => {
-
   const textInput = useRef<TextInput>(null);
   const setFocus = () => {
-    setTimeout(() => {
-      textInput?.current.focus();
-    }, 300)
+    textInput?.current.focus();
   }
   return (
     <Modal
@@ -75,7 +72,7 @@ const EditInputModal = ({
               <MCIcon
                 name={'arrow-right'}
                 size={30}
-                color={(isRequired && value) || !isRequired ? Colors.PRIMARY : Colors.GRAY_DARK}
+                color={(isRequired && value) || !isRequired ? Colors.NEW_PRIMARY : Colors.GRAY_DARK}
               />
             </TouchableOpacity>
           </View>

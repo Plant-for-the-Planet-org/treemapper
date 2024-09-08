@@ -3,7 +3,6 @@ import { StyleSheet, Text, View } from 'react-native'
 import { Dropdown } from 'react-native-element-dropdown'
 import { Colors, Typography } from 'src/utils/constants'
 import SelectIcon from 'assets/images/svg/SelectIcon.svg'
-import { scaleSize } from 'src/utils/constants/mixins'
 import { DropdownData } from 'src/types/interface/app.interface'
 
 interface Props {
@@ -26,7 +25,7 @@ const CustomDropdownComponent = (props: Props) => {
 
   const renderLabel = () => {
     return (
-      <Text style={[styles.label, { backgroundColor: whiteBG ? Colors.WHITE : Colors.BACKDROP_COLOR }, isFocus && { color: Colors.PRIMARY }]}>
+      <Text style={[styles.label, { backgroundColor: whiteBG ? Colors.WHITE : Colors.BACKDROP_COLOR }, isFocus && { color: Colors.NEW_PRIMARY }]}>
         {label}
       </Text>
     )
@@ -73,35 +72,37 @@ const styles = StyleSheet.create({
     width: '100%'
   },
   dropdown: {
-    height: scaleSize(55),
+    height:58,
     borderColor: Colors.GRAY_BORDER,
     borderWidth: 0.5,
     borderRadius: 5,
     width: '100%',
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
   },
   icon: {
     marginRight: 5,
   },
   label: {
     position: 'absolute',
-    left: 22,
+    left: 30,
     top: 8,
     zIndex: 1,
-    paddingHorizontal: 8,
+    paddingHorizontal: 6,
     fontSize: 14,
-    color: Colors.TEXT_COLOR,
+    color: Colors.BLACK,
     fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
   placeholderStyle: {
     fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
     paddingHorizontal: 3,
-    color: Colors.TEXT_COLOR
+    color:Colors.DARK_TEXT,
   },
   selectedTextStyle: {
-    fontSize: 16,
-    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: 18,
+    color:Colors.DARK_TEXT,
+    paddingHorizontal:5,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
   },
   itemTextStyle: {
     fontSize: 16,

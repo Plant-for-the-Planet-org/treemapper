@@ -17,7 +17,7 @@ const CoordinatesList = (props: Props) => {
   const toast = useToast();
 
   const { coordinates, type } = props
-  
+
   const listCoord = coordinates;
   if (listCoord.length > 10) {
     return null
@@ -25,6 +25,7 @@ const CoordinatesList = (props: Props) => {
 
   const copyToClipboard = async (el: string) => {
     await Clipboard.setStringAsync(el);
+    toast.hideAll()
     toast.show("Coordinates Copied", {
       type: "normal",
       placement: "bottom",
@@ -36,11 +37,11 @@ const CoordinatesList = (props: Props) => {
 
   const renderCard = () => {
     return listCoord.map((el, i) => {
-      if (type === 'Polygon' && i === listCoord.length-1) {
+      if (type === 'Polygon' && i === listCoord.length - 1) {
         return null
       }
       return (
-        <View style={styles.wrapper} key={`${String.fromCharCode(i + 65)}`}>
+        <View style={styles.wrapper} key={`${String.fromCharCode(i + 65)}+${i}`}>
           <View style={styles.card}>
             <View style={styles.metaWrapper}>
               <Text style={styles.coordinateTitle}>Coordinate {type === 'Polygon' ? `${String.fromCharCode(i + 65)}` : ""}</Text>
@@ -74,7 +75,7 @@ const styles = StyleSheet.create({
   },
   wrapper: {
     width: '90%',
-    height: scaleSize(70),
+    height: 60,
     justifyContent: 'space-between',
     alignItems: 'center',
     marginLeft: 10,
@@ -82,9 +83,9 @@ const styles = StyleSheet.create({
     marginVertical: 5,
   },
   card: {
-    width: '75%',
+    width: '80%',
     height: '100%',
-    backgroundColor: Colors.GRAY_BACKDROP,
+    backgroundColor: '#EDEDED',
     borderRadius: 10,
     flexDirection: 'row',
     alignItems: 'center',
@@ -103,7 +104,7 @@ const styles = StyleSheet.create({
   },
   coordinateTitle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
-    fontSize: scaleSize(16),
+    fontSize: 16,
     color: Colors.TEXT_COLOR,
     marginBottom: 5,
   },
@@ -114,9 +115,9 @@ const styles = StyleSheet.create({
     letterSpacing: 0.2,
   },
   copyIconWrapper: {
-    width: '18%',
-    height: scaleSize(70),
-    backgroundColor: Colors.GRAY_BACKDROP,
+    width: '15%',
+    height: 60,
+    backgroundColor: "#EDEDED",
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,

@@ -85,34 +85,5 @@ const styles = StyleSheet.create({
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',
-    },
-    selectWrapper: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1
-    },
-    outerCircle: {
-        width: 18,
-        height: 18,
-        justifyContent: "center",
-        alignItems: 'center',
-        borderRadius: 20,
-        borderWidth: 1,
-        borderColor: Colors.TEXT_COLOR
-    },
-    innerCircle: {
-        width: 10,
-        height: 10,
-        borderRadius: 20,
-        backgroundColor: Colors.NEW_PRIMARY
-    },
-    checkBoxLabel: {
-        fontSize: scaleFont(16),
-        fontFamily: Typography.FONT_FAMILY_BOLD,
-        color: Colors.TEXT_COLOR,
-        paddingHorizontal: 10
-    },
-    checkBox: {
-        width: 20
     }
 })

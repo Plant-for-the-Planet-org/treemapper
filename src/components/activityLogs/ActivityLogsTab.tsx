@@ -5,6 +5,7 @@ import { useState } from 'react'
 import ActivityLogsTabBar from './ActivityLogsTabBar'
 import AllLogs from './AllLogs'
 import ErrorLogs from './ErrorLogs'
+import i18next from 'i18next'
 
 
 const renderScene = SceneMap({
@@ -13,12 +14,12 @@ const renderScene = SceneMap({
 })
 
 const AdditionalTabView = () => {
-  const layout = useWindowDimensions()
+  const layoutData = useWindowDimensions()
 
   const [routeIndex, setRouteIndex] = useState(0)
   const [tabRoutes] = useState([
-    { key: 'all', title: "All" },
-    { key: 'errors', title: "Errors" },
+    { key: 'all', title: i18next.t('label.all') },
+    { key: 'errors', title: i18next.t('label.errors') },
   ]);
 
   return (
@@ -26,7 +27,7 @@ const AdditionalTabView = () => {
       navigationState={{ index: routeIndex, routes: tabRoutes }}
       renderScene={renderScene}
       onIndexChange={setRouteIndex}
-      initialLayout={{ width: layout.width }}
+      initialLayout={{ width: layoutData.width }}
       renderTabBar={props => (
         <ActivityLogsTabBar {...props} tabRoutes={tabRoutes} setRouteIndex={setRouteIndex} />
       )}

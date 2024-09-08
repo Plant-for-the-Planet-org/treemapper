@@ -9,10 +9,10 @@ export type DATA_VISIBILITY = 'public' | 'private' | 'app'
 
 export type MAP_BOUNDS = "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_MAP" | "UNKNOWN"
 
-export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory'
+export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory' | 'language'
 
 
-export type INTERVENTION_STATUS = 'SYNCED' | 'INITIALIZED' | 'PENDING_DATA_UPLOAD' | 'PENDING_SAMPLE_TREE' | "PENDING_TREE_IMAGE"
+export type INTERVENTION_STATUS = 'SYNCED' | 'INITIALIZED' | 'PENDING_DATA_UPLOAD' | 'PENDING_SAMPLE_TREE' | "PENDING_TREE_IMAGE" | "PENDING_REMEASUREMENT_SYNC" | "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
 
 export type POST_BODY_TYPE = 'intervention' | 'singleTree' | 'sampleTree' | 'treeImage'
 
@@ -30,8 +30,9 @@ export type PLOT_PLANT = "PLANTED" | "RECRUIT"
 export type PLOT_PLANT_STATUS = "PLANTED" | "RECRUIT" | "REMEASUREMENT" | "DECEASED"
 export type OBSERVATION_TYPE = "CANOPY" | "SOIL_MOISTURE" | "BIOACOUSTICS"
 export type MAP_VIEW = "SATELLITE" | "VECTOR"
-export type TREE_RE_STATUS = "FLOOD" | "FIRE" | "DROUGHT" | "OTHER"
+export type TREE_RE_STATUS = "flood" | "fire" | "drought" | "other"
 export type PlotAttributes = PLOT_COMPLEXITY | PLOT_SHAPE | PLOT_TYPE;
 
 
 export type LAST_SCREEN = "FORM" | "LOCATION" | "SPECIES" | "TOTAL_TREES" | "TREE_DETAILS" | "LOCAL_FORM" | "DYNAMIC_FORM" | "PREVIEW"
+export type FIX_REQUIRED = "NO" | "PROJECT_ID_MISSING" | "UNKNOWN" 

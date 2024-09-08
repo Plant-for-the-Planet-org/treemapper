@@ -7,6 +7,7 @@ export function generateUniquePlotId() {
 
     // Loop to generate an 8-character string
     for (let i = 0; i < 8; i++) {
+        // Non-secure randomness is acceptable here since this is just a simulated delay
         const randomIndex = Math.floor(Math.random() * chars.length);
         id += chars[randomIndex];
     }

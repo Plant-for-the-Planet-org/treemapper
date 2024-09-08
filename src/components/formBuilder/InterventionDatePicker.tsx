@@ -1,27 +1,18 @@
-import React, { useState } from 'react';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import React from 'react';
 import { StyleSheet, Text, View, TouchableOpacity } from 'react-native';
-import { scaleFont, scaleSize } from 'src/utils/constants/mixins';
 import { Colors, Typography } from 'src/utils/constants';
-import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
+import { timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 
 interface Props {
   placeHolder: string;
   value: number;
-  callBack: (d: number) => void;
+  showPicker: () => void;
 }
 
-const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, callBack }) => {
-  const [showPicker, setShowPicker] = useState(false);
+const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, showPicker }) => {
 
-  const openPicker = () => setShowPicker(true);
+  const openPicker = () => showPicker();
 
-  const onDateSelect = (_event: any, date: Date | undefined) => {
-    setShowPicker(false);
-    if (date) {
-      callBack(convertDateToTimestamp(date));
-    }
-  };
 
   return (
     <View style={styles.container}>
@@ -29,15 +20,6 @@ const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, callBack 
         <Text style={styles.placeHolder}>{placeHolder}</Text>
         <Text style={styles.label}>{timestampToBasicDate(value)}</Text>
       </TouchableOpacity>
-      {showPicker && (
-        <View style={styles.dateStyle}>
-          <DateTimePicker
-            value={new Date(value)}
-            onChange={onDateSelect}
-            display="spinner"
-          />
-        </View>
-      )}
     </View>
   );
 };
@@ -47,7 +29,7 @@ export default InterventionDatePicker;
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: scaleSize(55),
+    height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
@@ -66,7 +48,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 5,
     paddingVertical: 3,
     backgroundColor: Colors.BACKDROP_COLOR,
-    fontSize: scaleFont(14),
+    fontSize: 14,
     color: Colors.TEXT_COLOR,
     position: 'absolute',
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

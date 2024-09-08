@@ -10,6 +10,7 @@
   "register_tree": "Bäume registrieren",
   "loading_content": "Lade Inhalte ...",
   "add": "Hinzufügen",
-  "plots": "Grundstücke",
-  "map": "Karte"
+  "plots": "Plots",
+  "map": "Karte",
+  "interventions":"Interventionen"
 }

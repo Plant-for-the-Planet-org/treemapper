@@ -2,7 +2,7 @@ import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import SingleTreeImage from 'assets/images/svg/SingleTreeIcon.svg'
+import SingleTreeImage from 'assets/images/svg/PlaceholderAvatar.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Skeleton } from 'moti/skeleton'
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     position: 'absolute',
-    right: 10,
+    right: '5%',
     backgroundColor: Colors.NEW_PRIMARY + '1A'
   }
 })

@@ -1,7 +1,8 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import i18next from 'src/locales/index'
-import { Colors, Typography } from 'src/utils/constants'
+import { Typography } from 'src/utils/constants'
+import CustomButton from '../common/CustomButton'
 
 interface Props {
     closeModal: () => void
@@ -41,21 +42,11 @@ const GpsAccuracyInfoContent = (props: Props) => {
                 </Text>{' '}
                 {i18next.t('label.red_info')}
             </Text>
-            <TouchableOpacity
-                style={{
-                    alignSelf: 'center',
-                    paddingTop: 25,
-                }}>
-                <Text
-                    style={{
-                        color: '#87B738',
-                        fontFamily: Typography.FONT_FAMILY_REGULAR,
-                        fontSize: Typography.FONT_SIZE_14,
-                    }}
-                    onPress={closeModal}>
-                    {i18next.t('label.close')}
-                </Text>
-            </TouchableOpacity>
+            <CustomButton
+                hideFadeIn
+                label={i18next.t('label.close')} pressHandler={closeModal}
+                containerStyle={{ width: '100%', height: 70, bottom: 0, marginTop: 20 }}
+            />
         </View>
     )
 }
@@ -64,18 +55,16 @@ export default GpsAccuracyInfoContent
 
 const styles = StyleSheet.create({
     contentContainer: {
-        backgroundColor: Colors.WHITE,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
         borderRadius: 10,
-        paddingLeft: 25,
-        paddingRight: 15,
-        paddingVertical: 25,
+        justifyContent: "center",
+        alignItems: 'center'
     },
     accuracyModalText: {
         color: '#000000',
         lineHeight: Typography.LINE_HEIGHT_20,
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_14,
+        width: '100%',
+        paddingLeft: '5%'
     },
 })

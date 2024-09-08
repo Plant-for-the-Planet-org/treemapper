@@ -1,15 +1,14 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React from 'react'
+import { Dimensions, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { IAdditionalDetailsForm } from 'src/types/interface/app.interface'
 import { FormElement } from 'src/types/interface/form.interface'
 import useAdditionalForm from 'src/hooks/realm/useAdditionalForm'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-import YeNoElement from './YeNoElement'
-import { Dropdown } from 'react-native-element-dropdown'
 import { scaleSize } from 'src/utils/constants/mixins'
 import i18next from 'src/locales/index'
-
+import AdditionalElement from './AdditionalElement'
+import DraggableFlatList from "react-native-draggable-flatlist";
 
 interface Props {
   data: IAdditionalDetailsForm
@@ -17,118 +16,22 @@ interface Props {
   pageNo: number
   openHandler: (id: string) => void
 }
+const { width } = Dimensions.get('window');
 
-const Element = (props: { elementDetails: FormElement, form_id: string, pressHandler: (data: FormElement, form_id: string) => void }) => {
-  const { elementDetails, pressHandler, form_id } = props;
-  const getDropDownData = (d: any) => {
-    return d.map((el, i) => {
-      return {
-        label: el.key,
-        value: el.value,
-        index: i
-      }
-    })
-  }
-  const renderBody = () => {
-    switch (elementDetails.type) {
-      case "INPUT":
-        return (
-          <View style={styles.wrapper}>
-            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>{i18next.t('label.input_element')}</Text>
-              <View style={styles.bodyWrapper}>
-                <Text style={styles.inputWrapper}>
-                  {elementDetails.label}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )
-      case "YES_NO":
-        return (
-          <View style={styles.wrapper}>
-            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>{i18next.t('label.yes_no_element')}</Text>
-              <View style={styles.bodyWrapper}>
-                <View style={styles.yesNoWrapper}>
-                  <Text style={styles.inputWrapper}>
-                    {elementDetails.label}
-                  </Text>
-                  <YeNoElement />
-                </View>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )
-      case "GAP":
-        return (
-          <View style={styles.wrapper}>
-            <TouchableOpacity style={styles.gapWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>{i18next.t('label.gap_element')}</Text>
-            </TouchableOpacity>
-          </View>
-        )
-      case "HEADING":
-        return (
-          <View style={styles.wrapper}>
-            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>{i18next.t('label.heading_element')}</Text>
-              <View style={styles.bodyWrapper}>
-                <Text style={styles.inputWrapper}>
-                  Title: {elementDetails.label}
-                </Text>
-              </View>
-            </TouchableOpacity>
-          </View>
-        )
-      case "DROPDOWN":
-        return (
-          <View style={styles.wrapper}>
-            <TouchableOpacity style={styles.sectionWrapper} onPress={editSelection} >
-              <Text style={styles.keyLabel}>{i18next.t('label.dropdown_element')}</Text>
-                <Dropdown
-                  style={styles.dropdown}
-                  placeholderStyle={styles.placeholderStyle}
-                  placeholder={elementDetails.label}
-                  selectedTextStyle={styles.selectedTextStyle}
-                  data={getDropDownData(JSON.parse(elementDetails.dropDownData))}
-                  autoScroll
-                  maxHeight={250}
-                  minHeight={100}
-                  labelField="label"
-                  valueField="value"
-                  onChange={() => { }}
-                  fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
-                  containerStyle={styles.listContainer}
-                  itemTextStyle={styles.itemTextStyle}
-                />
-            </TouchableOpacity>
-          </View>
-        )
-      default:
-        return (
-          null
-        )
-    }
-  }
-
-  const editSelection = () => {
-    pressHandler(elementDetails, form_id)
-  }
-
-  return (
-    <View style={styles.container}>
-      {renderBody()}
-    </View>
-  )
-}
 
 const AddDataElement = (props: Props) => {
   const { data, pageNo, openHandler, pressHandler } = props
-  const { deleteForm } = useAdditionalForm()
+  const { deleteForm, updateElementIndex } = useAdditionalForm()
   const handlePress = () => {
     openHandler(data.form_id)
   }
+  const [elementData, setElementData] = useState([])
+
+  useEffect(() => {
+    setElementData(props.data.elements)
+  }, [props.data])
+
+
   const renderFooter = () => {
     return (
       <View style={styles.footerWrapper}>
@@ -143,6 +46,11 @@ const AddDataElement = (props: Props) => {
     deleteForm(data.form_id)
   }
 
+  const handleIndexUpdate = (d: FormElement[]) => {
+    setElementData(d)
+    updateElementIndex(d, data.form_id)
+  }
+
   return (
     <View style={styles.container}>
       <View style={styles.headerTitleWrapper}>
@@ -151,9 +59,16 @@ const AddDataElement = (props: Props) => {
           <BinIcon width={15} height={15} fill={'tomato'} />
         </TouchableOpacity>
       </View>
-      <FlatList data={data.elements}
+      <DraggableFlatList
+        data={elementData}
+        scrollEnabled={false}
+        onDragEnd={({ data }) => handleIndexUpdate(data)}
+        dragHitSlop={{ right: -width + 50 + 36 }}
         keyExtractor={({ element_id }) => element_id}
-        renderItem={({ item }) => (<Element elementDetails={item} pressHandler={pressHandler} form_id={data.form_id} />)} ListFooterComponent={renderFooter()} />
+        renderItem={({ item, drag, isActive }) => (<AdditionalElement
+          drag={drag}
+          isActive={isActive}
+          elementDetails={item} pressHandler={pressHandler} form_id={data.form_id} />)} ListFooterComponent={renderFooter()} />
     </View>
   )
 }
@@ -165,7 +80,8 @@ export default AddDataElement
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    marginLeft: '2%'
+    marginLeft: '2%',
+    flex: 1
   },
   wrapper: {
     width: "90%",

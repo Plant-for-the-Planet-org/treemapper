@@ -11,7 +11,6 @@ export type RootStackParamList = {
   Home: undefined
   TakePicture: TakePictureView
   PolygonMarker: PolygonMarkerView
-  SyncSpecies: SyncSpeciesView
   HomeSideDrawer: undefined
   InterventionPreview: InterventionPreviewView
   ManageSpecies: ManageSpeciesView
@@ -51,7 +50,11 @@ export type RootStackParamList = {
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
-  OldInventoryDataView: undefined
+  OldInventoryDataView: undefined,
+  EditProject: EditProjectView,
+  SignUpPage: SignUpPage,
+  PlantHistory: PlantHistory,
+  ProjectSites: undefined
 }
 
 type SpeciesInfoView = {
@@ -74,9 +77,13 @@ type InterventionPreviewView = {
   interventionId: string
 }
 
+type SignUpPage = {
+  email: string,
+  accessToken: string
+}
 
-type SyncSpeciesView = {
-  inApp?: boolean
+type PlantHistory = {
+  id: string,
 }
 
 
@@ -84,10 +91,14 @@ type ManageSpeciesView = {
   manageSpecies: boolean
   reviewTreeSpecies?: string
   id?: string
+  selectedId?: string
+  multiTreeEdit?: boolean
 }
 type TotalTreesView = {
   isSelectSpecies: boolean
   interventionId: string
+  isEditTrees?: boolean
+  treeId?: string
 }
 
 type ReviewTreeDetailsView = {
@@ -95,6 +106,7 @@ type ReviewTreeDetailsView = {
   interventionID?: string
   synced?: boolean
   id: string
+  deleteTree?: boolean
 }
 
 type SearchSpeciesView = {
@@ -105,6 +117,12 @@ type MetaDataElementView = {
   order: number
   edit?: boolean
   id?: string
+}
+
+type EditProjectView = {
+  interventionId: string
+  siteId: string
+  projectId: string
 }
 
 type AdditionDataElementView = {
@@ -189,6 +207,8 @@ type AddPlotsToGroup = {
 type TreeRemeasurementView = {
   interventionId: string
   treeId: string
+  isEdit?: boolean
+  historyId?: string
 }
 type ProjectRemeasurementConfig = {
   id: string

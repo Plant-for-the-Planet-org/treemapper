@@ -32,7 +32,7 @@
   "select_species_search_species": "Arten suchen",
   "select_species_done": "Fertig",
   "select_species_add_name": "Name hinzufügen",
-  "select_species_my_species": "Meine Arten",
+  "select_species_my_species": "Favorit",
   "search_result": "Suchergebnis",
   "select_species_diameter_more_than_error": "Durchmesser muss zwischen {{minValue}} und {{maxValue}} liegen.",
   "select_species_height_more_than_error": "Höhe muss zwischen {{minValue}} und {{maxValue}} liegen.",
@@ -42,9 +42,9 @@
   "select_species_tagged_for_identification": "Dieser Baum wurde zur Identifizierung getaggt.",
   "select_species_unknown": "Unbekannt",
   "select_species_search_specie_not_present": "Die Art '{{searchText}}' ist nicht vorhanden",
-  "select_species_search_atleast_3_characters": "Gib mindestens 3 Zeichen ein, um ein besseres Ergebnis zu erhalten",
+  "select_species_search_atleast_3_characters": "Gebe mindestens 3 Zeichen ein um ein besseres Ergebnis zu erhalten",
   "select_species_looks_empty_here": "Sieht leer aus hier!",
-  "select_species_add_species_desscription": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
+  "select_species_add_species_description": "Füge eine Art in die Liste hinzu, in dem du nach ihr suchst.",
   "select_species_tree_species": "Baumarten",
   "sample_one_tree_for_each_species": "Bitte bestimme mindestens einen Musterbaum für jede gepflanzte Art.",
   "species_name": "Artenname",
@@ -71,8 +71,8 @@
   "sure_remove_species": "Möchten Sie diese Art wirklich aus Ihren Favoriten entfernen?",
   "remove": "Entfernen",
   "cancel": "Stornieren",
-  "explore_and_manage_species": "Erkunden und verwalten Sie Arten",
-  "search": "Erkunden und verwalten Sie Arten ",
-  "number_species": "60.000 Arten",
-  "add_species_in_fav": "und Arten hinzufügen \n Ihre Favoriten"
+  "explore_and_manage_species": "Durchsuche und verwalte Arten",
+  "search": "Durchsuche ",
+  "number_species": "60.000 Arten ",
+  "add_species_in_fav": "und füge Arten zu \ndeinen Favoriten hinzu."
 }

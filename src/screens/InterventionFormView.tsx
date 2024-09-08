@@ -28,8 +28,7 @@ import { AllIntervention } from 'src/utils/constants/knownIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { makeInterventionGeoJson, metaDataTransformer } from 'src/utils/helpers/interventionFormHelper'
-import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
+import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { createBasePath } from 'src/utils/helpers/fileManagementHelper'
 import SelectionLocationType from 'src/components/intervention/SelectLocationType'
 import { useToast } from 'react-native-toast-notifications'
@@ -37,6 +36,11 @@ import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { RegisterFormSliceInitialState } from 'src/types/interface/slice.interface'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
+import i18next from 'i18next'
+import { getRandomPointInPolygon } from 'src/utils/helpers/generatePointInPolygon'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import bbox from '@turf/bbox'
+import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 
 const InterventionFormView = () => {
   const [projectStateData, setProjectStateData] = useState<DropdownData[]>([])
@@ -47,6 +51,7 @@ const InterventionFormView = () => {
   const [locationType, setLocationType] = useState<'Polygon' | 'Point'>('Polygon')
   const [registerForm, setRegisterForm] = useState<RegisterFormSliceInitialState | null>(null)
   const userType = useSelector((state: RootState) => state.userState.type)
+  const [showDatePicker, setShowDatePicker] = useState(false)
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
   const { currentProject, projectSite } = useSelector(
@@ -96,11 +101,39 @@ const InterventionFormView = () => {
     if (paramId) {
       skipForm(paramId)
     } else {
-      handleInterventionType({ label: "Fencing", value: 'fencing', index: 0 })
+      handleInterventionType({ label: "Fire Patrol", value: 'fire-patrol', index: 0 })
       if (isTpoUser) {
         setupProjectAndSiteDropDown()
       }
     }
+  }
+
+  const toggleDatePicker = () => {
+    setShowDatePicker(prev => !prev)
+  }
+
+  const handleBounds = (pid, sid, isPoint) => {
+    if (userType !== 'tpo') {
+      return
+    }
+    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      pid,
+    )
+    if (!sid || sid === 'other') {
+      const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
+      const bounds = bbox(geoJSON)
+      dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
+      return
+    }
+    const currentSiteData = ProjectData.sites.filter(
+      el => el.id === sid,
+    )
+    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+    const bounds = bbox(geoJSON)
+    dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
   }
 
   const skipForm = async (
@@ -110,19 +143,15 @@ const InterventionFormView = () => {
     InterventionJSON.form_id = uuid()
     InterventionJSON.intervention_date = new Date().getTime()
     InterventionJSON.user_type = userType
-    const existingMetaData = JSON.parse(InterventionJSON.meta_data);
-    const appMeta = getDeviceDetails()
-    const finalMetaData = metaDataTransformer(existingMetaData, {
-      public: {},
-      private: {},
-      app: appMeta
-    })
-    InterventionJSON.meta_data = finalMetaData
+    InterventionJSON.meta_data = '{}'
     InterventionJSON.project_name = currentProject.projectName
     InterventionJSON.project_id = currentProject.projectId
     InterventionJSON.site_name = projectSite.siteName
     InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
+    if (userType === 'tpo') {
+      handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
+    }
     if (result) {
       if (InterventionJSON.location_type === 'Point') {
         navigation.replace('PointMarker', { id: InterventionJSON.form_id })
@@ -172,13 +201,22 @@ const InterventionFormView = () => {
       }
     })
     if (siteValidate && siteValidate.length > 0) {
-      setProjectSites(siteValidate)
+      setProjectSites([...siteValidate, {
+        label: 'Other',
+        value: 'other',
+        index: 0,
+      },])
       setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
     } else {
       setProjectSites([
         {
           label: 'Project has no site',
           value: '',
+          index: 0,
+        },
+        {
+          label: 'Other',
+          value: 'other',
           index: 0,
         },
       ])
@@ -209,7 +247,12 @@ const InterventionFormView = () => {
   }
 
   const handleDateSelection = (n: number) => {
+    if (!n) {
+      setShowDatePicker(false)
+      return
+    }
     setRegisterForm(prevState => ({ ...prevState, intervention_date: n }))
+    setShowDatePicker(false)
   }
 
   const handleEntireSiteArea = (b: boolean) => {
@@ -225,18 +268,21 @@ const InterventionFormView = () => {
       el => el.id === registerForm.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    return parsedGeometry.coordinates[0]
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    return [newCoords]
   }
 
   const pressContinue = async () => {
     try {
       prepareFormForSubmission();
-  
+
       const metaData = constructMetaData(locationName, furtherInfo);
-      registerForm.meta_data = transformMetaData(metaData);
-  
+      registerForm.meta_data = JSON.stringify({
+        app: {},
+        public: { ...metaData, isEntireSite: registerForm.entire_site_selected },
+        private: {}
+      })
       const result = await initializeIntervention(registerForm);
-  
       if (result) {
         await handleSuccessfulInterventionInitialization();
       } else {
@@ -246,72 +292,68 @@ const InterventionFormView = () => {
       logInitializationError(error);
     }
   };
-  
+
   const prepareFormForSubmission = () => {
-    if (registerForm.entire_site_selected) {
-      registerForm.coordinates = siteCoordinatesSelect();
+
+    if (registerForm.entire_site_selected && registerForm.site_id !== 'other') {
+      registerForm.location_type = 'Point'
+    }
+    if (registerForm.site_id === 'other') {
+      registerForm.entire_site_selected = false
     }
     if (registerForm.optionalLocation) {
       registerForm.location_type = locationType;
     }
   };
-  
+
   const constructMetaData = (locationName: string, furtherInfo: string) => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
       metaData["Location Name"] = locationName;
     }
     if (furtherInfo && furtherInfo.length > 0) {
-      metaData["Info"] = furtherInfo;
+      metaData["Info"] = furtherInfo
     }
     return metaData;
   };
-  
-  const transformMetaData = (metaData: any) => {
-    const existingMetaData = JSON.parse(registerForm.meta_data);
-    const appMeta = getDeviceDetails();
-    return metaDataTransformer(existingMetaData, {
-      public: metaData,
-      private: {},
-      app: appMeta
-    });
-  };
-  
+
+
+
   const handleSuccessfulInterventionInitialization = async () => {
+    dispatch(updateNewIntervention());
     if (registerForm.entire_site_selected) {
       await handleEntireSiteSelected();
     } else {
       navigateToMarkerScreen();
     }
-    dispatch(updateNewIntervention());
   };
-  
+
   const handleEntireSiteSelected = async () => {
     const { coordinates } = makeInterventionGeoJson(
-      registerForm.location_type,
+      'Point',
       siteCoordinatesSelect(),
       registerForm.form_id,
       ''
     );
     const locationUpdated = await updateInterventionLocation(
       registerForm.form_id,
-      { type: 'Polygon', coordinates: coordinates },
+      { type: 'Point', coordinates: coordinates },
       true
     );
-  
+
     if (!locationUpdated) {
       handleLocationUpdateError();
       return;
     }
-  
+
     navigateBasedOnFormDetails();
   };
-  
+
   const handleLocationUpdateError = () => {
     errorHaptic();
     toast.show("Error occurred while updating location");
   };
-  
+
   const navigateBasedOnFormDetails = () => {
     if (registerForm.species_required) {
       navigation.replace('ManageSpecies', { manageSpecies: false, id: registerForm.form_id });
@@ -321,15 +363,18 @@ const InterventionFormView = () => {
       navigation.replace('InterventionPreview', { id: 'review', intervention: '', interventionId: registerForm.form_id });
     }
   };
-  
+
   const navigateToMarkerScreen = () => {
+    if(userType==='tpo'){
+      handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
+    }
     if (registerForm.location_type === 'Point') {
       navigation.replace('PointMarker', { id: registerForm.form_id });
     } else {
       navigation.replace('PolygonMarker', { id: registerForm.form_id });
     }
   };
-  
+
   const handleInterventionInitializationError = () => {
     addNewLog({
       logType: 'INTERVENTION',
@@ -340,7 +385,7 @@ const InterventionFormView = () => {
     toast.show("Error occurred while creating intervention");
     errorHaptic();
   };
-  
+
   const logInitializationError = (error: any) => {
     addNewLog({
       logType: 'INTERVENTION',
@@ -355,23 +400,27 @@ const InterventionFormView = () => {
   if (!registerForm) {
     return (
       <View style={styles.container}>
-        <ActivityIndicator size="small" color={Colors.PRIMARY} />
+        <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
       </View>
     )
   }
 
   return (
     <SafeAreaView style={styles.mainContainer}>
-      <AvoidSoftInputView
-        avoidOffset={20}
-        style={styles.container}>
-        <Header label="Intervention" />
-        <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+      <Header label={i18next.t('label.intervention')} />
+      {showDatePicker && <CustomDatePicker cb={handleDateSelection}
+        selectedData={registerForm.intervention_date || Date.now()}
+      />}
+      <ScrollView bounces={false} showsVerticalScrollIndicator={false}>
+        <AvoidSoftInputView
+          avoidOffset={20}
+          showAnimationDuration={200}
+          style={styles.container}>
           <View style={styles.container}>
             <View style={styles.wrapper}>
               {isTpoUser && (
                 <CustomDropDown
-                  label={'Project'}
+                  label={i18next.t('label.project')}
                   data={projectStateData}
                   onSelect={handleProjectSelect}
                   selectedValue={{
@@ -383,7 +432,7 @@ const InterventionFormView = () => {
               )}
               {isTpoUser && (
                 <CustomDropDown
-                  label={'Site'}
+                  label={i18next.t('label.site')}
                   data={projectSites}
                   onSelect={handleSiteSelect}
                   selectedValue={{
@@ -395,7 +444,7 @@ const InterventionFormView = () => {
               )}
               {isTpoUser && <View style={styles.divider} />}
               <CustomDropDown
-                label={'Intervention Type'}
+                label={i18next.t("label.intervention_type")}
                 data={allIntervention}
                 onSelect={handleInterventionType}
                 selectedValue={{
@@ -404,7 +453,7 @@ const InterventionFormView = () => {
                   index: 0
                 }}
               />
-              {registerForm.optionalLocation && <SelectionLocationType header={'Location Type'} labelOne={{
+              {registerForm.optionalLocation && registerForm.entire_site_selected === false ? <SelectionLocationType header={'Location Type'} labelOne={{
                 key: 'Polygon',
                 value: 'Polygon'
               }} labelTwo={{
@@ -413,40 +462,42 @@ const InterventionFormView = () => {
               }} disabled={false}
                 selectedValue={locationType}
                 onSelect={setLocationType}
-              />}
-              {registerForm.can_be_entire_site && isTpoUser ? (
+              /> : null}
+              {registerForm.can_be_entire_site && isTpoUser && registerForm.site_id !== 'other' ? (
                 <PlaceHolderSwitch
-                  description={'Apply Intervention to entire site'}
+                  description={i18next.t("label.apply_intervention")}
                   selectHandler={handleEntireSiteArea}
                   value={registerForm.entire_site_selected}
                 />
               ) : null}
               <InterventionDatePicker
-                placeHolder={'Intervention Date'}
+                placeHolder={i18next.t("label.intervention_date")}
                 value={registerForm.intervention_date || Date.now()}
-                callBack={handleDateSelection}
+                showPicker={toggleDatePicker}
               />
               <CustomTextInput
-                label={'Location Name [Optional]'}
+                label={i18next.t('label.location_optional')}
                 onChangeHandler={setLocationName}
                 value={locationName}
               />
               <CustomTextInput
-                label={'Further Information [Optional]'}
+                label={i18next.t('label.further_info')}
                 onChangeHandler={setFurtherInfo}
                 value={furtherInfo}
               />
             </View>
           </View>
-        </ScrollView>
-        <CustomButton
-          label={'Continue'}
-          pressHandler={pressContinue}
-          containerStyle={styles.btnContainer}
-          wrapperStyle={styles.btnWrapper}
-          disable={!registerForm}
-        />
-      </AvoidSoftInputView>
+        </AvoidSoftInputView>
+      </ScrollView>
+      <CustomButton
+        label={i18next.t('label.continue')}
+        pressHandler={pressContinue}
+        containerStyle={styles.btnContainer}
+        wrapperStyle={styles.btnWrapper}
+        disable={!registerForm}
+        hideFadeIn
+      />
+      <View style={styles.footer} />
     </SafeAreaView>
   )
 }
@@ -457,23 +508,34 @@ const styles = StyleSheet.create({
   mainContainer: {
     flex: 1,
     backgroundColor: Colors.WHITE,
+    height: '100%',
+    width: '100%'
+  },
+  wrapperScrollView: {
+    flexGrow: 1,
+    height: '100%',
+    width: '100%'
   },
   container: {
-    flex: 1,
+    flexGrow: 1,
     alignItems: 'center',
     backgroundColor: Colors.BACKDROP_COLOR,
+    height: '100%',
+    width: '100%'
   },
   wrapper: {
     width: '98%',
     marginTop: 10,
     flex: 1,
-    paddingBottom: 50
+    paddingBottom: 100,
+    backgroundColor: Colors.BACKDROP_COLOR,
   },
   btnContainer: {
     width: '100%',
     height: scaleSize(70),
-    bottom: 0,
+    bottom: 20,
     marginBottom: 20,
+    position: 'absolute',
   },
   btnWrapper: {
     width: '90%',
@@ -486,4 +548,11 @@ const styles = StyleSheet.create({
     marginTop: 10,
     marginHorizontal: '5%',
   },
+  footer: {
+    position: 'absolute',
+    height: 40,
+    width: '100%',
+    backgroundColor: Colors.BACKDROP_COLOR,
+    bottom: 0
+  }
 })

@@ -51,12 +51,12 @@ const PolygonShapeSource = (props: Props) => {
           'interpolate',
           ['linear'],
           ['zoom'],
-          1, 5,   // At zoom level 1, radius is 1
-          4, 5,   // At zoom level 4, radius is 5
-          8, 10,  // At zoom level 8, radius is 10
+          1, 1,   // At zoom level 1, radius is 1
+          4, 1,   // At zoom level 4, radius is 5
+          8, 5,  // At zoom level 8, radius is 10
           12, 10, // At zoom level 12, radius is 20
-          20, 20,
-          22, 25  // Use the same radius as zoom level 12 for higher zoom levels
+          20, 5,
+          22, 5  // Use the same radius as zoom level 12 for higher zoom levels
         ],
         circleTranslate: [0, 0]
       }}

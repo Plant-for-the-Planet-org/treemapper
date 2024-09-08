@@ -1,5 +1,5 @@
-import { FlatList, StyleSheet, View } from 'react-native'
-import React from 'react'
+import { FlatList, StyleSheet, Text, View } from 'react-native'
+import React, { useState } from 'react'
 import Header from 'src/components/common/Header'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { useDispatch } from 'react-redux'
@@ -15,11 +15,15 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { InterventionData, PlantedSpecies } from 'src/types/interface/slice.interface'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { useRealm } from '@realm/react'
+import { useObject } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { useToast } from 'react-native-toast-notifications'
+import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typography'
+import AskSampleTreeModal from 'src/components/common/AskSampleTreeModal'
+import AlertModal from 'src/components/common/AlertModal'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 
 
 
@@ -27,33 +31,78 @@ const TotalTreesView = () => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const route = useRoute<RouteProp<RootStackParamList, 'TotalTrees'>>()
-  const { updateInterventionLastScreen, removeInterventionPlantedSpecies } = useInterventionManagement()
+  const { updateInterventionLastScreen, removeInterventionPlantedSpecies, updateSampleTreeSpecies } = useInterventionManagement()
   const dispatch = useDispatch()
-  const realm = useRealm()
   const isSelectSpecies = route.params?.isSelectSpecies
   const interventionId = route.params?.interventionId ?? "";
-  const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
+  const isEditTrees = route.params?.isEditTrees;
+  const singleTreeEdit = route.params?.treeId;
+
+  const [showExistingTree, setShowExistingTree] = useState('')
   const toast = useToast()
+  const [showSampleTreeModal, setShowSampleTreeModal] = useState(false)
+
   const goBack = () => {
+    if (isEditTrees) {
+      navigation.navigate('ManageSpecies', { manageSpecies: false, id: intervention.intervention_id, multiTreeEdit: true })
+      return
+    }
     navigation.goBack()
   }
 
 
 
+  const intervention = useObject<InterventionData>(
+    RealmSchema.Intervention, interventionId
+  )
   const navigationToNext = async () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
-    const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
-    if (!result) {
-      errorHaptic()
-      toast.show("Error occurred while updating data")
+    if(!isEditTrees){
+      const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
+      if (!result) {
+        errorHaptic()
+        toast.show("Error occurred while updating data")
+        return
+      }
+    }
+
+    if (isEditTrees) {
+      navigation.goBack()
       return
     }
-    navigation.navigate('ReviewTreeDetails', { detailsCompleted: !has_sample_trees, id: intervention.form_id })
+
+    if (has_sample_trees && intervention.location.type !== 'Point') {
+      setShowSampleTreeModal(true)
+      return;
+    }
+
+    if (!has_sample_trees) {
+      navigation.replace('LocalForm', { id: interventionId })
+    } else if (has_sample_trees && intervention.location.type === 'Point') {
+      navigation.replace('LocalForm', { id: interventionId })
+    } else {
+      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
+    }
   }
 
 
 
-  const cardPress = (item: PlantedSpecies) => {
+
+
+
+  const cardPress = async (item: PlantedSpecies) => {
+    if (singleTreeEdit) {
+      const specieData: IScientificSpecies = {
+        guid: item.guid,
+        scientificName: item.scientificName,
+        isUserSpecies: false,
+        aliases: item.aliases
+      }
+      await updateSampleTreeSpecies(interventionId, singleTreeEdit, specieData)
+      navigation.goBack()
+      return
+    }
+
     if (isSelectSpecies) {
       dispatch(updateCurrentSpecies(JSON.parse(JSON.stringify(item))))
       const newID = String(new Date().getTime())
@@ -62,13 +111,31 @@ const TotalTreesView = () => {
   }
 
   const removeHandler = async (item: PlantedSpecies) => {
-    const result = await removeInterventionPlantedSpecies(interventionId, item)
+    if (isEditTrees && checkForExistingTrees(item.guid)) {
+      return;
+    }
+    const result = await removeInterventionPlantedSpecies(interventionId, item, isEditTrees)
     if (!result) {
       toast.show("Error occurred while removing species")
       errorHaptic()
     } else {
-      toast.show(`${item.scientificName} removed`)
+      toast.show(<Text style={styles.toastLabel}><Text style={styles.speciesLabel}>"{item.scientificName}"</Text> removed from list</Text>, { style: { backgroundColor: Colors.GRAY_LIGHT }, textStyle: { textAlign: 'center' } })
     }
+  }
+
+
+
+  const checkForExistingTrees = (id: string) => {
+    if (intervention.planted_species.length === 0) {
+      toast.show("At least 1 planted species is required")
+      return true
+    }
+    const sampleTree = intervention.sample_trees.find(obj => obj.species_guid === id);
+    if (sampleTree) {
+      setShowExistingTree(sampleTree.tree_id)
+      return true;
+    }
+    return false
   }
 
   const renderSpecieCard = (
@@ -85,12 +152,49 @@ const TotalTreesView = () => {
     )
   }
 
+  const closeModal = () => {
+    setShowSampleTreeModal(false)
+  }
+
+  const secondaryBtnHandler = () => {
+    setShowSampleTreeModal(false)
+    setTimeout(() => {
+      navigation.navigate('LocalForm', { id: interventionId })
+    }, 200);
+  }
+
+
+  const onPrimaryPress = () => {
+    setShowSampleTreeModal(false)
+    setTimeout(() => {
+      navigation.navigate('ReviewTreeDetails', { detailsCompleted: false, id: intervention.form_id })
+    }, 200);
+  }
+
   const renderFooter = () => <View style={styles.footerWrapper} />
 
+  const navToSampleTree = () => {
+    const existingTreeID = showExistingTree
+    setShowExistingTree('')
+    navigation.navigate("ReviewTreeDetails", { detailsCompleted: false, interventionID: existingTreeID, synced: false, id: intervention.intervention_id, deleteTree: true })
+  }
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Total Trees" note='List all species planted at the location' />
+      <Header label="Total Trees" note='List all species planted at the site' />
+      <AskSampleTreeModal isVisible={showSampleTreeModal} toggleModal={closeModal} removeFavSpecie={onPrimaryPress} headerLabel={'Sample Tree Registration'} noteLabel={' Do you want to add sample trees ?'} primeLabel={'Add Sample Tree'} secondaryLabel={'Finish'} extra={undefined} secondaryHandler={secondaryBtnHandler} />
+      <AlertModal
+        visible={showExistingTree !== ''}
+        heading={"Warning"}
+        message={"Sample Trees exist with this species, please remove the planted species first."}
+        showSecondaryButton={true}
+        primaryBtnText={"Show Tree"}
+        secondaryBtnText={"cancel"}
+        onPressPrimaryBtn={navToSampleTree}
+        onPressSecondaryBtn={() => {
+          setShowExistingTree('')
+        }}
+      />
       <View style={styles.wrapper}>
         <FlatList
           data={intervention.planted_species}
@@ -108,7 +212,7 @@ const TotalTreesView = () => {
               labelStyle={styles.highlightLabel}
             />
             <CustomButton
-              label="Continue"
+              label={isEditTrees ? "Save" : "Continue"}
               containerStyle={styles.btnWrapper}
               pressHandler={navigationToNext}
               disable={intervention.planted_species.length === 0}
@@ -151,7 +255,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     position: 'absolute',
-    bottom: 0,
+    bottom: 10,
   },
   btnWrapper: {
     flex: 1,
@@ -200,4 +304,12 @@ const styles = StyleSheet.create({
     height: scaleFont(70),
     width: '100%',
   },
+  toastLabel: {
+    fontSize: 16,
+    fontFamily: FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT
+  },
+  speciesLabel: {
+    fontFamily: FONT_FAMILY_ITALIC,
+  }
 })

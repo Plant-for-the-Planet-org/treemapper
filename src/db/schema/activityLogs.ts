@@ -13,7 +13,7 @@ export const ActivityLogs: ObjectSchema = {
     // defines the log level. Refer constants - LogLevels
     logLevel: 'string',
     // time at which the log was created or modified
-    timestamp: 'double',
+    timestamp: 'date',
     // text which is to be logged
     message: 'string',
     // version of tree mapper app

@@ -1,5 +1,5 @@
 {
-  "updating_species": "Updating species",
+  "updating_species":"Updating Species",
   "running_migration": "Running a migration",
   "migration_description": "You recently updated your app. Please do not close the app as we are applying changes to ensure compatibility.",
   "species_data_status": "Checking species data status.",

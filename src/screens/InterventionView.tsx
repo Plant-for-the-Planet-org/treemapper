@@ -13,7 +13,7 @@ import InterventionHeader from 'src/components/intervention/InterventionHeader'
 const InterventionView = () => {
   const [selectedLabel, setSelectedLabel] = useState('all')
   const [allIntervention, setAllIntervention] = useState<InterventionData[] | any[]>([])
-  const { intervention_updated } = useSelector((state: RootState) => state.appState)
+  const { intervention_updated , dataMigrated} = useSelector((state: RootState) => state.appState)
 
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true)
@@ -26,7 +26,7 @@ const InterventionView = () => {
 
   const getQuery = (label) => {
     if (label === 'unsync') {
-      return 'status != "SYNCED" AND is_complete == true';
+      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
     } else if (label === 'incomplete') {
       return 'is_complete==false';
     } else if (label === 'all') {
@@ -51,8 +51,9 @@ const InterventionView = () => {
   useEffect(() => {
     if (!loading) {
       refreshHandler()
+      setSelectedLabel('all')
     }
-  }, [intervention_updated])
+  }, [intervention_updated, dataMigrated])
 
 
   const handlePageIncrement = () => {
