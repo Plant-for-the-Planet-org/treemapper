@@ -51,7 +51,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
 
 
   const isValidNumberString = (input: string) => {
-    const regex = /^\d*\.?\d+$/;
+    const regex = /^\d+(\.\d+)?$/;
     if (regex.test(input)) {
       setTreeCount(input)
       setErrorMessage("")
