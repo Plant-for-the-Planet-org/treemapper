@@ -132,26 +132,14 @@ const SignUpView = () => {
     };
 
     const checkValidation = (name: string) => {
-        if (name === 'individual') {
-            if (lastName && firstName && country) {
-                setCompleteCheck(true);
-            } else {
-                setCompleteCheck(false);
-            }
-        } else if (name === 'education' || name === 'company') {
-            if (lastName && firstName && nameOfOrg && country) {
-                setCompleteCheck(true);
-            } else {
-                setCompleteCheck(false);
-            }
-        } else if (name === 'tpo') {
-            if (lastName && firstName && nameOfOrg && zipCode && city && address && country) {
-                setCompleteCheck(true);
-            } else {
-                setCompleteCheck(false);
-            }
-        }
-    };
+        const requiredFields: { [key: string]: boolean } = {
+            'individual': !!lastName && !!firstName && !!country,
+            'education': !!lastName && !!firstName && !!nameOfOrg && !!country,
+            'company': !!lastName && !!firstName && !!nameOfOrg && !!country,
+            'tpo': !!lastName && !!firstName && !!nameOfOrg && !!zipCode && !!city && !!address && !!country,
+        };
+        setCompleteCheck(!!requiredFields[name]);
+    }
 
     const openModal = (data) => {
         setModalVisible(data);
@@ -162,138 +150,111 @@ const SignUpView = () => {
         setModalVisible(!modalVisible);
     };
 
-    const submitDetails = async () => {
-        const countryName = country.countryCode;
-        const lang = getLocales()[0];
-        const locale = lang?.languageCode;
-        let userData;
-        if (accountType === '') {
-            Snackbar.show({
-                text: i18next.t('label.select_role_type'),
-                duration: Snackbar.LENGTH_SHORT,
-            });
+    const showSnackbar = (message: string) => {
+        Snackbar.show({
+            text: i18next.t(message),
+            duration: Snackbar.LENGTH_SHORT,
+        });
+    };
+    
+    const validateField = (field, errorSetter, errorMessage) => {
+        if (field === '') {
+            errorSetter(true);
+            showSnackbar(errorMessage);
+            return false;
         }
-
-        if (firstName === '') {
-            setFirstNameError(true);
-            Snackbar.show({
-                text: i18next.t('label.enter_first_name'),
-                duration: Snackbar.LENGTH_SHORT,
-            });
-        }
-
-        if (lastName === '') {
-            setLastNameError(true);
-            Snackbar.show({
-                text: i18next.t('label.enter_last_name'),
-                duration: Snackbar.LENGTH_SHORT,
-            });
-        }
+        return true;
+    };
+    
+    const validateOrgFields = () => {
+        let isValid = true;
+    
+        // Organization-specific fields
+        isValid = validateField(nameOfOrg, setNameError, 'label.enter_organisation_name') && isValid;
+    
         if (accountType === 'tpo') {
-            if (city === '') {
-                setCityError(true);
-                Snackbar.show({
-                    text: i18next.t('label.enter_city_name'),
-                    duration: Snackbar.LENGTH_SHORT,
+            isValid = validateField(city, setCityError, 'label.enter_city_name') && isValid;
+            isValid = validateField(zipCode, setZipCodeError, 'label.enter_zipcode') && isValid;
+            isValid = validateField(address, setAddressError, 'label.enter_address') && isValid;
+        }
+    
+        return isValid;
+    };
+    
+    const validateFields = () => {
+        let isValid = true;
+    
+        // Basic fields
+        isValid = accountType === '' ? (showSnackbar('label.select_role_type'), false) : isValid;
+        isValid = validateField(firstName, setFirstNameError, 'label.enter_first_name') && isValid;
+        isValid = validateField(lastName, setLastNameError, 'label.enter_last_name') && isValid;
+    
+        // Organization validation
+        if (accountType === 'tpo' || accountType === 'education' || accountType === 'company') {
+            isValid = validateOrgFields() && isValid;
+        }
+    
+        return isValid;
+    };
+    
+    const buildUserData = (): any => {
+        const commonData = {
+            firstname: firstName,
+            lastname: lastName,
+            getNews,
+            isPrivate,
+            country: country.countryCode,
+            locale: getLocales()[0]?.languageCode,
+            oAuthAccessToken: accessToken,
+            type: accountType,
+        };
+    
+        if (accountType === 'tpo') {
+            return {
+                ...commonData,
+                city,
+                zipCode,
+                address,
+                name: nameOfOrg,
+            };
+        }
+        if (accountType === 'education' || accountType === 'company') {
+            return {
+                ...commonData,
+                name: nameOfOrg,
+            };
+        }
+        return commonData;
+    };
+    
+    const submitDetails = async () => {
+        if (!validateFields()) {
+            return;
+        }
+    
+        const userData = buildUserData();
+        setLoading(true);
+    
+        const { success } = await createUserProfile(userData);
+    
+        if (success) {
+            const { response, success: detailsSuccess } = await getUserDetails();
+            if (detailsSuccess && response) {
+                loginAndUpdateDetails(response);
+                navigation.goBack();
+            } else {
+                Bugsnag.notify("/app/profile failed to fetch user details");
+                addNewLog({
+                    logType: 'USER',
+                    message: "User details api failed to fetch data",
+                    logLevel: 'error',
+                    statusCode: '',
                 });
-            }
-            if (zipCode === '') {
-                setZipCodeError(true);
-                Snackbar.show({
-                    text: i18next.t('label.enter_zipcode'),
-                    duration: Snackbar.LENGTH_SHORT,
-                });
-            }
-            if (address === '') {
-                setAddressError(true);
-                Snackbar.show({
-                    text: i18next.t('label.enter_address'),
-                    duration: Snackbar.LENGTH_SHORT,
-                });
-            }
-            if (nameOfOrg === '') {
-                setNameError(true);
-                Snackbar.show({
-                    text: i18next.t('label.enter_organisation_name'),
-                    duration: Snackbar.LENGTH_SHORT,
-                });
-            }
-            if (completeCheck) {
-                userData = {
-                    firstname: firstName,
-                    lastname: lastName,
-                    getNews,
-                    isPrivate,
-                    country: countryName,
-                    locale,
-                    city,
-                    zipCode,
-                    address,
-                    oAuthAccessToken: accessToken,
-                    type: accountType,
-                    name: nameOfOrg,
-                };
-            }
-        } else if (accountType === 'education' || accountType === 'company') {
-            if (nameOfOrg === '') {
-                setNameError(true);
-                Snackbar.show({
-                    text: i18next.t('label.enter_organisation_name'),
-                    duration: Snackbar.LENGTH_SHORT,
-                });
-            }
-            if (firstName && lastName && accountType && nameOfOrg) {
-                setCompleteCheck(true);
-                userData = {
-                    firstname: firstName,
-                    lastname: lastName,
-                    getNews,
-                    isPrivate,
-                    country: countryName,
-                    locale,
-                    oAuthAccessToken: accessToken,
-                    type: accountType,
-                    name: nameOfOrg,
-                };
-            }
-        } else {
-            if (firstName && lastName && accountType) {
-                setCompleteCheck(true);
-                userData = {
-                    firstname: firstName,
-                    lastname: lastName,
-                    getNews,
-                    isPrivate,
-                    country: countryName,
-                    locale,
-                    oAuthAccessToken: accessToken,
-                    type: accountType,
-                };
+                dispatch(updateWebAuthLoading(false));
+                handleLogout();
             }
         }
-
-        if (completeCheck) {
-            setLoading(true)
-            const { success } = await createUserProfile(userData)
-            if (success) {
-                const { response, success } = await getUserDetails()
-                if (success && response) {
-                    loginAndUpdateDetails(response)
-                    navigation.goBack()
-                } else {
-                    Bugsnag.notify("/app/profile failed to fetch user details")
-                    addNewLog({
-                        logType: 'USER',
-                        message: "User details api failed to fetch data",
-                        logLevel: 'error',
-                        statusCode: '',
-                    })
-                    dispatch(updateWebAuthLoading(false))
-                    handleLogout()
-                }
-            }
-        }
-    }
+    };
 
     const handleLogout = async () => {
         try {
@@ -355,7 +316,7 @@ const SignUpView = () => {
                         {!!lastNameError && <Text style={styles.errorLabel}>{lastNameError}</Text>}
                         <Text style={styles.countryTitle}>Country</Text>
                         <TouchableOpacity style={styles.countryWrapper} onPress={() => { setModalVisible(!modalVisible) }}>
-                            {country.countryCode && <View style={styles.countryFlag}>
+                            {!!country?.countryCode && <View style={styles.countryFlag}>
                                 <Image
                                     source={{
                                         uri: `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png`
@@ -383,9 +344,7 @@ const SignUpView = () => {
                         <SignUpOutline
                             placeholder={'Email'}
                             keyboardType={'default'}
-                            trailingText={''} errMsg={''}
-                            value={emailID}
-                        />
+                            value={emailID} errMsg={''}                        />
                         {accountType === 'tpo' ? (
                             <>
                                 <TextInput
