@@ -30,7 +30,7 @@ interface Props {
 
 const SiteCreationMap = (props: Props) => {
     const { setGeometry, close, projectBounds } = props
-    const [loading, setLoading] = useState(true)
+    const [loadingSite, setLoadingSite] = useState(true)
     const [lineError, setLineError] = useState(false)
     const [coordinates, setCoordinates] = useState([])
     const [polygonComplete, setPolygonComplete] = useState(false)
@@ -148,18 +148,18 @@ const SiteCreationMap = (props: Props) => {
 
 
     const onRegionDidChange = async () => {
-        setLoading(false)
+        setLoadingSite(false)
         setLineError(false)
     }
 
 
     return (
-        <View style={styles.container}>
-            <TouchableOpacity style={styles.closeWrapper} onPress={close}>
+        <View style={styles.containerSite}>
+            <TouchableOpacity style={styles.closeWrapperSite} onPress={close}>
                 <CloseIcon fill={mainMapView === 'SATELLITE' ? Colors.WHITE : Colors.TEXT_COLOR} stroke={mainMapView === 'SATELLITE' ? Colors.WHITE : Colors.TEXT_COLOR} />
             </TouchableOpacity>
-            {coordinates.length > 0 && <TouchableOpacity style={styles.undoButton} onPress={handlePreviousPoint}>
-                <Text style={styles.undoLabel}>Previous Point</Text>
+            {coordinates.length > 0 && <TouchableOpacity style={styles.undoButtonSite} onPress={handlePreviousPoint}>
+                <Text style={styles.undoLabelSite}>Previous Point</Text>
                 <Icon
                     name="undo-alt"
                     size={16}
@@ -167,13 +167,13 @@ const SiteCreationMap = (props: Props) => {
                 />
             </TouchableOpacity>}
             <MapLibreGL.MapView
-                style={styles.map}
+                style={styles.mapSite}
                 ref={mapRef}
                 logoEnabled={false}
                 onDidFinishLoadingMap={handleCameraViewChange}
                 onRegionDidChange={onRegionDidChange}
                 onRegionIsChanging={() => {
-                    setLoading(true)
+                    setLoadingSite(true)
                 }}
                 attributionEnabled={false}
                 styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
@@ -188,30 +188,30 @@ const SiteCreationMap = (props: Props) => {
             </MapLibreGL.MapView>
             <SatelliteIconWrapper />
             {polygonComplete && (
-                <View style={styles.btnFooter}>
+                <View style={styles.btnFooterSite}>
                     <CustomButton
                         label="Complete"
-                        containerStyle={styles.btnWrapper}
+                        containerStyle={styles.btnWrapperSite}
                         pressHandler={makeComplete}
-                        wrapperStyle={styles.borderWrapper}
-                        labelStyle={styles.highlightLabel}
+                        wrapperStyle={styles.borderWrapperSite}
+                        labelStyle={styles.highlightLabelSite}
                     />
                     <CustomButton
                         label="Continue"
-                        containerStyle={styles.btnWrapper}
+                        containerStyle={styles.btnWrapperSite}
                         pressHandler={onSelectLocation}
-                        wrapperStyle={styles.opaqueWrapper}
-                        labelStyle={styles.normalLabel}
+                        wrapperStyle={styles.opaqueWrapperSite}
+                        labelStyle={styles.normalLabelSite}
                     />
                 </View>
             )}
             {!polygonComplete && (
                 <CustomButton
                     label="Select location & continue"
-                    containerStyle={styles.btnContainer}
+                    containerStyle={styles.btnContainerSite}
                     pressHandler={onSelectLocation}
-                    disable={loading || lineError}
-                    loading={loading}
+                    disable={loadingSite || lineError}
+                    loading={loadingSite}
                 />
             )}
             <ActiveMarkerIcon />
@@ -223,14 +223,14 @@ const SiteCreationMap = (props: Props) => {
 export default SiteCreationMap
 
 const styles = StyleSheet.create({
-    container: {
+    containerSite: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor:Colors.BACKDROP_COLOR,
         zIndex:1
     },
-    closeWrapper: {
+    closeWrapperSite: {
         width: 20,
         height: 20,
         position: "absolute",
@@ -238,7 +238,7 @@ const styles = StyleSheet.create({
         top: 30,
         zIndex: 10
     },
-    map: {
+    mapSite: {
         flex: 1,
         alignSelf: 'stretch',
         borderTopLeftRadius: 0,
@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
         overflow:'hidden'
     },
 
-    btnFooter: {
+    btnFooterSite: {
         position: 'absolute',
         bottom: 20,
         width: '100%',
@@ -256,23 +256,23 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
     },
 
-    btnContainer: {
+    btnContainerSite: {
         position: 'absolute',
         bottom: 20,
         width: '100%',
         height: 70
     },
-    btnWrapper: {
+    btnWrapperSite: {
         flex: 1,
         height: '100%',
     },
-    pointWrapper: {
+    pointWrapperSite: {
         position: 'absolute',
         bottom: 90,
         width: '100%',
         height: 70
     },
-    pointButton: {
+    pointButtonSite: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -285,7 +285,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: Colors.PRIMARY_DARK,
     },
-    borderWrapper: {
+    borderWrapperSite: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
         borderWidth: 2,
         borderColor: Colors.PRIMARY_DARK,
     },
-    opaqueWrapper: {
+    opaqueWrapperSite: {
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
@@ -309,18 +309,18 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.PRIMARY_DARK,
         borderRadius: 12,
     },
-    highlightLabel: {
+    highlightLabelSite: {
         fontSize: 16,
         color: Colors.PRIMARY_DARK,
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
-    normalLabel: {
+    normalLabelSite: {
         fontSize: 16,
         color: Colors.WHITE,
         textAlign: 'center',
         fontFamily: Typography.FONT_FAMILY_BOLD
     },
-    undoButton: {
+    undoButtonSite: {
         height: 30,
         flexDirection: 'row',
         alignItems: 'center',
@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
         top: 30,
         zIndex: 10
     },
-    undoLabel: {
+    undoLabelSite: {
         fontSize: 12,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         marginRight: 5,

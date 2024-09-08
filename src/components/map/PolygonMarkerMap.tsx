@@ -45,7 +45,7 @@ const PolygonMarkerMap = (props: Props) => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const userType = useSelector(
+  const user = useSelector(
     (state: RootState) => state.userState.type,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -63,8 +63,8 @@ const PolygonMarkerMap = (props: Props) => {
 
   useEffect(() => {
     setTimeout(() => {
-      handleCameraViewChange()
-    }, 300);
+      handleCameraView()
+    }, 400);
   }, [MapBounds])
 
 
@@ -72,7 +72,7 @@ const PolygonMarkerMap = (props: Props) => {
     handleCamera()
   }, [currentUserLocation])
 
-  const handleCameraViewChange = () => {
+  const handleCameraView = () => {
     if (cameraRef?.current) {
       const { bounds, key } = MapBounds
       if (key === 'POLYGON_MAP') {
@@ -216,7 +216,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onDidFinishLoadingMap={handleCameraViewChange}
+        onDidFinishLoadingMap={handleCameraView}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
@@ -271,7 +271,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       <ActiveMarkerIcon />
-      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={userType === 'tpo'} />
+      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo'} />
     </View>
   )
 }
