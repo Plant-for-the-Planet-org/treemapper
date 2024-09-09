@@ -54,6 +54,10 @@ const InterventionCoverImage = (props: Props) => {
     updateSampleTreeImage(interventionID, treeId, '')
   }
 
+  if(image===''){
+    return null
+  }
+
 
   const uri = isCDN ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
   return (
