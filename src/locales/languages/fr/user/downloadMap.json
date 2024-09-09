@@ -1,10 +1,10 @@
 {
-  "download_map_complete": "Téléchargement de la carte terminé",
-  "download_map_area": "Télécharger cette zone?",
-  "download_map": "Télécharger",
-  "download_map_view": "Tout voir",
-  "download_map_area_failed": "Impossible de télécharger la carte. Veuillez réessayer plus tard.",
-  "download_map_area_exists": "La carte a déjà été téléchargée.",
-  "network_error": "Erreur de réseau",
-  "network_error_message": "Pas de connexion Internet. Réessayer plus tard."
+  "download_map_complete": "Map download complete",
+  "download_map_area": "Download this area?",
+  "download_map": "Download",
+  "download_map_view": "View All",
+  "download_map_area_failed": "Could not download the map. Please try again later.",
+  "download_map_area_exists": "The map was already downloaded.",
+  "network_error": "Network Error",
+  "network_error_message": "No internet connection. Please try again later."
 }

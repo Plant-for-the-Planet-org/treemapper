@@ -47,7 +47,7 @@
     "add_plant": "Add Plants",
     "tree_planted": "This tree was planted",
     "tree_planted_note": "Whether the tree is planted or if it is a recruit (naturally occurring in the plot)",
-    "measurment_date": "Measurement Date",
+    "measurement_date": "Measurement Date",
     "planting_date": "Planting Date",
     "species": "Species",
     "height": "Height",

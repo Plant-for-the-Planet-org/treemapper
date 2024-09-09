@@ -7,8 +7,8 @@ import { initReactI18next } from 'react-i18next';
 import delabels from './languages/de';
 import enlabels from './languages/en';
 import eslabels from './languages/es';
-import frlabels from './languages/fr';
-import ptBRlabels from './languages/pt-BR';
+// import frlabels from './languages/fr';
+// import ptBRlabels from './languages/pt-BR';
 
 let userLang = undefined;
 const lang = getLocales()[0];
@@ -43,16 +43,16 @@ i18next.use(initReactI18next).init({
         label: eslabels,
       },
     },
-    fr: {
-      translation: {
-        label: frlabels,
-      },
-    },
-    pt: {
-      translation: {
-        label: ptBRlabels,
-      },
-    },
+    // fr: {
+    //   translation: {
+    //     label: frlabels,
+    //   },
+    // },
+    // pt: {
+    //   translation: {
+    //     label: ptBRlabels,
+    //   },
+    // },
   },
 });
 

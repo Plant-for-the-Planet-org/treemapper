@@ -1,14 +1,17 @@
 {
-  "login": "Se connecter / S'inscrire",
+  "login": "Log in / Sign Up",
+  "fetch_all_items": "Fetch all Items",
+  "fetch_necessary_items": "Fetch Necessary Items",
   "tree_mapper": "TreeMapper",
-  "tree_inventory": "Inventaire forestier",
-  "tree_inventory_sub_header": "Inscriptions en projet et en attente",
-  "download_maps": "Télécharger les cartes",
-  "download_maps_sub_header": "pour une utilisation hors ligne",
-  "register_tree": "Enregistrer l'arbre",
-  "loading_content": "Chargement du contenu...",
-  "add": "Ajouter",
-  "plots": "Parcelles",
-  "map": "Carte",
-  "interventions": "Interventions"
+  "tree_inventory": "Tree Inventory",
+  "tree_inventory_sub_header": "of draft and pending registrations",
+  "download_maps": "Offline Maps",
+  "download_maps_sub_header": "for offline use",
+  "register_tree": "Register Trees",
+  "loading_content": "Loading content ...",
+  "add": "Add",
+  "plots": "Plots",
+  "map": "Map",
+  "interventions":"Interventions"
+
 }

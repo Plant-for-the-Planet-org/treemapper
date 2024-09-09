@@ -1,8 +1,12 @@
 {
-  "add_new_project": "Ajouter un nouveau projet",
-  "add_new_project_desc": "Ajouter des projets pour mettre en valeur vos progrès passés ou pour recevoir des dons pour en planter davantage.",
-  "select_project": "Sélectionner un Projet",
-  "select_project_desc": "Les arbres que vous pouvez enregistrer peuvent être associés à un projet spécifique.",
-  "continue_without_project": "Continuer sans projet",
-  "continue_without_project_desc": "Les arbres ne seront pas associés à un projet."
+  "add_new_project": "Add new project",
+  "add_new_project_desc": "Add projects to showcase your past progress or to receive donations to plant more.",
+  "select_project": "Select Project",
+  "select_project_desc": "Trees you register can be associated to a specific project.",
+  "continue_without_project": "Continue without a Project",
+  "continue_without_project_desc": "Trees wont be associated with a project.",
+  "dropdownpicker_placeholder": "Select an item",
+  "dropdownpicker_search_placeholder": "Search for ...",
+  "dropdownpicker_selected_items_count": "{count} items have been selected",
+  "dropdownpicker_nothing_to_show": "No items found!"
 }
