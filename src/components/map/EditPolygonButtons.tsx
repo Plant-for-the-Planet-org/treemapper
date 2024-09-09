@@ -31,14 +31,14 @@ const EditPolygonButtons = (props: IEditPolygonButtonsProps) => {
     isPointJSON = false,
   } = props
   return (
-    <View style={styles.bottomButtons}>
+    <View style={styles.bottomButtonsEdit}>
       {/* maps the undo redo buttons only visible if geometry is not point */}
       {!isPointJSON ? (
-        <View style={styles.undoRedoContainer}>
+        <View style={styles.undoRedoContainerEdit}>
           <TouchableOpacity
             disabled={isUndoDisabled}
             onPress={() => undoGeoJSON()}
-            style={[styles.backIconContainer, { marginRight: 8 }]}>
+            style={[styles.backIconContainerEdit, { marginRight: 8 }]}>
             <Icon
               name="undo-alt"
               size={16}
@@ -48,7 +48,7 @@ const EditPolygonButtons = (props: IEditPolygonButtonsProps) => {
           <TouchableOpacity
             disabled={isRedoDisabled}
             onPress={() => redoGeoJSON()}
-            style={styles.backIconContainer}>
+            style={styles.backIconContainerEdit}>
             <Icon
               name="redo-alt"
               size={16}
@@ -59,20 +59,20 @@ const EditPolygonButtons = (props: IEditPolygonButtonsProps) => {
       ) : (
         []
       )}
-      <View style={styles.btnContainer}>
+      <View style={styles.btnContainerEdit}>
         <CustomButton
           label={i18next.t('label.reset')}
-          containerStyle={styles.btnWrapper}
+          containerStyle={styles.btnWrapperEdit}
           pressHandler={resetGeoJSON}
-          wrapperStyle={styles.borderWrapper}
-          labelStyle={styles.highlightLabel}
+          wrapperStyle={styles.borderWrapperEdit}
+          labelStyle={styles.highlightLabelEdit}
           disable={disableButtons}
         />
         <CustomButton
           label={i18next.t('label.save')}
-          containerStyle={styles.btnWrapper}
+          containerStyle={styles.btnWrapperEdit}
           pressHandler={saveGeoJSON}
-          wrapperStyle={styles.noBorderWrapper}
+          wrapperStyle={styles.noBorderWrapperEdit}
           disable={disableButtons}
         />
       </View>
@@ -83,48 +83,48 @@ const EditPolygonButtons = (props: IEditPolygonButtonsProps) => {
 export default EditPolygonButtons;
 
 const styles = StyleSheet.create({
-  extraInfoContainer: {
+  extraInfoContainerEdit: {
     position: 'absolute',
     top: IS_ANDROID ? 25 : 56,
     left: 25,
     alignItems: 'flex-start',
   },
-  bottomButtons: {
+  bottomButtonsEdit: {
     position: 'absolute',
     bottom: IS_ANDROID ? 36 : 72,
     left: 25,
     right: 25,
     flexDirection: 'column',
   },
-  undoRedoContainer: {
+  undoRedoContainerEdit: {
     flexDirection: 'row',
     alignSelf: 'flex-end',
   },
-  heading: {
+  headingEdit: {
     fontFamily: Typography.FONT_FAMILY_EXTRA_BOLD,
     fontSize: Typography.FONT_SIZE_27,
     color: Colors.TEXT_COLOR,
     marginTop: 10,
   },
-  text: {
+  textEdit: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
     marginTop: 4,
   },
-  backIconContainer: {
+  backIconContainerEdit: {
     backgroundColor: Colors.WHITE,
     padding: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: Colors.GRAY_LIGHT,
   },
-  buttonContainer: {
+  buttonContainerEdit: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginTop: 16,
   },
-  btnContainer: {
+  btnContainerEdit: {
     width: '100%',
     height: scaleSize(70),
     flexDirection: 'row',
@@ -132,15 +132,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 0,
   },
-  btnWrapper: {
+  btnWrapperEdit: {
     flex: 1,
     width: '90%',
   },
-  imageContainer: {
+  imageContainerEdit: {
     width: '100%',
     height: '100%',
   },
-  borderWrapper: {
+  borderWrapperEdit: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.PRIMARY_DARK,
   },
-  noBorderWrapper: {
+  noBorderWrapperEdit: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -164,7 +164,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 12,
   },
-  opaqueWrapper: {
+  opaqueWrapperEdit: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -175,12 +175,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 10,
   },
-  highlightLabel: {
+  highlightLabelEdit: {
     fontSize: scaleFont(16),
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLabel: {
+  normalLabelEdit: {
     fontSize: scaleFont(14),
     fontWeight: '400',
     color: Colors.WHITE,

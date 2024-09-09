@@ -16,29 +16,29 @@ const RemoveSpeciesModal = (props: Props) => {
   const { isVisible, toggleModal, removeFavSpecie } = props
   return (
     <Modal
-      style={styles.container}
+      style={styles.containerModal}
       isVisible={isVisible}
       onBackdropPress={toggleModal}>
-      <View style={styles.subContainer}>
+      <View style={styles.subContainerModal}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <PinkHeart />
-          <Text style={styles.alertHeader}>
+          <Text style={styles.alertHeaderModal}>
             {i18next.t('label.remove_species')}
           </Text>
         </View>
-        <Text style={styles.alertMessage}>
+        <Text style={styles.alertMessageModal}>
           {i18next.t('label.sure_remove_species')}
         </Text>
-        <View style={styles.bottomBtnContainer}>
+        <View style={styles.bottomBtnContainerModal}>
           <FlatButton
             onPress={toggleModal}
             text={i18next.t('label.cancel')}
-            style={styles.secondaryButtonStyle}
+            style={styles.secondaryButtonStyleModal}
           />
           <TouchableOpacity
             onPress={removeFavSpecie}
-            style={styles.primaryButtonStyle}>
-            <Text style={styles.removeLabel}>{i18next.t('label.remove')}</Text>
+            style={styles.primaryButtonStyleModal}>
+            <Text style={styles.removeLabelModal}>{i18next.t('label.remove')}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -49,25 +49,25 @@ const RemoveSpeciesModal = (props: Props) => {
 export default RemoveSpeciesModal
 
 const styles = StyleSheet.create({
-  container: {
+  containerModal: {
     flex: 1,
     margin: 0,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  contentWrapper: {
+  contentWrapperModal: {
     flex: 1,
     paddingTop: 10,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  subContainer: {
+  subContainerModal: {
     width: '90%',
     backgroundColor: Colors.WHITE,
     borderRadius: 10,
     padding: 20,
   },
-  alertHeader: {
+  alertHeaderModal: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_18,
     lineHeight: Typography.LINE_HEIGHT_24,
@@ -75,29 +75,29 @@ const styles = StyleSheet.create({
     marginVertical: 10,
     marginLeft: 8,
   },
-  alertMessage: {
+  alertMessageModal: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_16,
     lineHeight: Typography.LINE_HEIGHT_24,
     color: Colors.BLACK,
   },
-  bottomBtnContainer: {
+  bottomBtnContainerModal: {
     flexDirection: 'row',
     justifyContent: 'flex-end',
     marginTop: 24,
   },
-  removeLabel: {
+  removeLabelModal: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_16,
     color: Colors.NEW_PRIMARY,
     lineHeight: Typography.LINE_HEIGHT_24,
   },
-  primaryButtonStyle: {
+  primaryButtonStyleModal: {
     marginLeft: 16,
     paddingVertical: 6,
     paddingHorizontal: 10,
   },
-  secondaryButtonStyle: {
+  secondaryButtonStyleModal: {
     paddingVertical: 6,
     paddingHorizontal: 10,
     fontFamily: Typography.FONT_FAMILY_BOLD,

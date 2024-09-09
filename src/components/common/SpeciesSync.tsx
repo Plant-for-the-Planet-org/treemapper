@@ -61,25 +61,36 @@ const SpeciesSync = () => {
 
   const checkForAppUpdate = async () => {
     try {
-      const data = await VersionCheck.needUpdate()
+      const data = await VersionCheck.needUpdate();
       if (data?.currentVersion && data?.latestVersion) {
-        const current = data.currentVersion.split('.').map(Number);
-        const latest = data.latestVersion.split('.').map(Number);
-        for (let i = 0; i < current.length; i++) {
+        const current = data.currentVersion.split('.').map(Number); // Convert current version to [major, minor, patch]
+        const latest = data.latestVersion.split('.').map(Number); // Convert latest version to [major, minor, patch]
+  
+        // Compare major and minor versions first
+        for (let i = 0; i < current.length - 1; i++) {
           if (latest[i] > current[i]) {
-            return showUpdateAlert(data.storeUrl || '')
+            // Major or Minor version incremented -> Compulsory update
+            return showCompulsoryUpdateAlert(data.storeUrl || '');
           } else if (latest[i] < current[i]) {
-            return false
+            return false; // If current version is ahead of the latest version
           }
         }
-        return false
+  
+        // If we reached here, only the patch version is different
+        if (latest[2] > current[2]) {
+          // Patch version incremented -> Optional update
+          return showOptionalUpdateAlert(data.storeUrl || '');
+        }
+  
+        return false; // No update needed
       } else {
-        return false
+        return false; // Data invalid, no version info found
       }
     } catch (error) {
-      return false
+      console.error("Error checking for update: ", error);
+      return false; // Error occurred
     }
-  }
+  };
 
 
   const handleSpeciesSync = async () => {
@@ -178,17 +189,41 @@ const SpeciesSync = () => {
   
 
 
-  const showUpdateAlert = (url: string) => {
-    Alert.alert("Update Available", "To ensure the app runs smoothly, please update the TreeMapper app to the latest version.",
+
+  
+  // Show compulsory update alert (no cancel button)
+  const showCompulsoryUpdateAlert = (url: string) => {
+    Alert.alert(
+      "Update Required",
+      "A new version of the app is available. Please update to continue.",
+      [
+        {
+          text: 'Update',
+          onPress: () => { Linking.openURL(url) },
+        }
+      ],
+      { cancelable: false } // User cannot cancel the alert
+    );
+  };
+  
+  // Show optional update alert (with cancel button)
+  const showOptionalUpdateAlert = (url: string) => {
+    Alert.alert(
+      "Update Available",
+      "A new version of the app is available. Would you like to update?",
       [
         {
           text: 'Cancel',
           onPress: () => console.log('Cancel Pressed'),
           style: 'cancel',
         },
-        { text: 'Update', onPress: () => { Linking.openURL(url) } }]
-    )
-  }
+        {
+          text: 'Update',
+          onPress: () => { Linking.openURL(url) },
+        }
+      ]
+    );
+  };
 
 
   const isSpeciesDownloaded = async () => {

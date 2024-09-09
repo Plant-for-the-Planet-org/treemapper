@@ -21,29 +21,29 @@ const DeleteModal = (props: Props) => {
     const { isVisible, toggleModal, removeFavSpecie, extra, secondaryHandler } = props
     return (
         <Modal
-            style={styles.container}
+            style={styles.containerDelete}
             isVisible={isVisible}
             onBackdropPress={() => { toggleModal(null) }}>
-            <View style={styles.subContainer}>
+            <View style={styles.subContainerDelete}>
                 <View style={{ flexDirection: 'row', alignItems: 'center' }}>
                     <PinkHeart />
-                    <Text style={styles.alertHeader}>
+                    <Text style={styles.alertHeaderDelete}>
                         {props.headerLabel}
                     </Text>
                 </View>
-                <Text style={styles.alertMessage}>
+                <Text style={styles.alertMessageDelete}>
                     {props.noteLabel}
                 </Text>
-                <View style={styles.bottomBtnContainer}>
+                <View style={styles.bottomBtnContainerDelete}>
                     <FlatButton
                         onPress={() => { secondaryHandler ? secondaryHandler(extra) : toggleModal(null) }}
                         text={props.secondaryLabel}
-                        style={styles.secondaryButtonStyle}
+                        style={styles.secondaryButtonStyleDelete}
                     />
                     <TouchableOpacity
                         onPress={() => { removeFavSpecie(extra) }}
-                        style={styles.primaryButtonStyle}>
-                        <Text style={[styles.removeLabel, { color: secondaryHandler ? Colors.NEW_PRIMARY : 'tomato' }]}>{props.primeLabel}</Text>
+                        style={styles.primaryButtonStyleDelete}>
+                        <Text style={[styles.removeLabelDelete, { color: secondaryHandler ? Colors.NEW_PRIMARY : 'tomato' }]}>{props.primeLabel}</Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -54,25 +54,25 @@ const DeleteModal = (props: Props) => {
 export default DeleteModal
 
 const styles = StyleSheet.create({
-    container: {
+    containerDelete: {
         flex: 1,
         margin: 0,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    contentWrapper: {
+    contentWrapperDelete: {
         flex: 1,
         paddingTop: 10,
         justifyContent: 'center',
         alignItems: 'center',
     },
-    subContainer: {
+    subContainerDelete: {
         width: '90%',
         backgroundColor: Colors.WHITE,
         borderRadius: 10,
         padding: 20,
     },
-    alertHeader: {
+    alertHeaderDelete: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         fontSize: Typography.FONT_SIZE_18,
         lineHeight: Typography.LINE_HEIGHT_24,
@@ -80,29 +80,29 @@ const styles = StyleSheet.create({
         marginVertical: 10,
         marginLeft: 8,
     },
-    alertMessage: {
+    alertMessageDelete: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         fontSize: Typography.FONT_SIZE_16,
         lineHeight: Typography.LINE_HEIGHT_24,
         color: Colors.BLACK,
     },
-    bottomBtnContainer: {
+    bottomBtnContainerDelete: {
         flexDirection: 'row',
         justifyContent: 'flex-end',
         marginTop: 24,
     },
-    removeLabel: {
+    removeLabelDelete: {
         fontFamily: Typography.FONT_FAMILY_BOLD,
         fontSize: Typography.FONT_SIZE_16,
         color: 'tomato',
         lineHeight: Typography.LINE_HEIGHT_24,
     },
-    primaryButtonStyle: {
+    primaryButtonStyleDelete: {
         marginLeft: 16,
         paddingVertical: 6,
         paddingHorizontal: 10,
     },
-    secondaryButtonStyle: {
+    secondaryButtonStyleDelete: {
         paddingVertical: 6,
         paddingHorizontal: 10,
         fontFamily: Typography.FONT_FAMILY_BOLD,

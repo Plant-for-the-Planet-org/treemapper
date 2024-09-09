@@ -1,10 +1,10 @@
 {
-  "permission_camera_title": "Autorisation d'utiliser la caméra",
-  "permission_camera_message": "Nous avons besoin de votre autorisation pour utiliser votre appareil photo.",
+  "permission_camera_title": "Permission to use camera",
+  "permission_camera_message": "We need your permission to use your camera.",
   "permission_camera_ok": "OK",
-  "permission_camera_cancel": "Annuler",
-  "storage_permission_android_title": "Autorisation de stockage",
-  "storage_permission_android_message": "L'application a besoin d'accéder à la mémoire pour télécharger le fichier",
-  "storage_permission_denied_header": "Permission refusée!",
-  "storage_permission_denied_sub_header": "Vous devez donner l'autorisation de stockage pour enregistrer le fichier geoJSON"
+  "permission_camera_cancel": "Cancel",
+  "storage_permission_android_title": "Storage Permission",
+  "storage_permission_android_message": "App needs access to memory to download the file",
+  "storage_permission_denied_header": "Permission Denied!",
+  "storage_permission_denied_sub_header": "You need to give storage permission to save the geoJSON file"
 }

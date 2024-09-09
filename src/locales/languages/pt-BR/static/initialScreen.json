@@ -1,11 +1,11 @@
 {
-  "updating_species": "Atualizando espécies",
-  "running_migration": "Executando uma migração",
-  "migration_description": "Você atualizou recentemente o seu aplicativo. Por favor, não feche o aplicativo, pois estamos aplicando alterações para garantir a compatibilidade.",
-  "species_data_status": "Verificando o status dos dados das espécies.",
-  "downloading_archive": "Fazendo download do arquivo de espécies",
-  "unzipping_archive": "Extraindo o arquivo de espécies",
-  "fetch_and_add_species_to_database": "Obtendo e adicionando espécies à base de dados.",
-  "species_data_loaded": "Dados das espécies carregados.",
-  "please_wait": "Por favor, espere..."
+  "updating_species":"Updating Species",
+  "running_migration": "Running a migration",
+  "migration_description": "You recently updated your app. Please do not close the app as we are applying changes to ensure compatibility.",
+  "species_data_status": "Checking species data status.",
+  "downloading_archive": "Downloading species archive.",
+  "unzipping_archive": "Unzipping the species archive.",
+  "fetch_and_add_species_to_database": "Fetching and adding species into database.",
+  "species_data_loaded": "Species data loaded.",
+  "please_wait": "Please wait ..."
 }

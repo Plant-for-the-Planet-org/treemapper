@@ -32,7 +32,7 @@ interface Props {
 }
 
 const SampleTreePreviewList = (props: Props) => {
-  const { sampleTress, interventionId, hasSampleTress, isSynced, status, selectedTree , passRefs} = props
+  const { sampleTress, interventionId, hasSampleTress, isSynced, status, selectedTree, passRefs } = props
   const [deleteData, setDeleteData] = useState(null)
   const { country, type } = useSelector((state: RootState) => state.userState)
   const Country = country
@@ -82,12 +82,14 @@ const SampleTreePreviewList = (props: Props) => {
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
-      const uri = details.cdn_image_url ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : details.image_url
-
+      let uri = details.cdn_image_url ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : details.image_url
+      if (details.cdn_image_url === '' && details.image_url === '') {
+        uri = ''
+      }
       return (
-        <View 
-        ref={(ref) => passRefs(ref, i)} 
-        style={[styles.wrapper, { backgroundColor: details.tree_id === selectedTree ? Colors.NEW_PRIMARY + '1A' : Colors.WHITE }]} key={details.tree_id + i}>
+        <View
+          ref={(ref) => passRefs(ref, i)}
+          style={[styles.wrapper, { backgroundColor: details.tree_id === selectedTree ? Colors.NEW_PRIMARY + '1A' : Colors.WHITE }]} key={details.tree_id + i}>
           <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Tree'} noteLabel={'Are you sure you want to Delete this tree.'} primeLabel={'Delete'} secondaryLabel={'Cancel'} extra={deleteData} />
           <View style={styles.deleteWrapper}>
             {status === 'INITIALIZED' && <TouchableOpacity style={styles.deleteWrapperIcon} onPress={() => {
@@ -100,7 +102,7 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive ? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
               <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
@@ -118,7 +120,7 @@ const SampleTreePreviewList = (props: Props) => {
             </Text>
           </View>
           <View style={styles.imageSectionWrapper}>
-            <Image source={{ uri: uri }} style={styles.imageWrapper} />
+            {uri !== '' && <Image source={{ uri: uri }} style={styles.imageWrapper} />}
             <View style={styles.mainMetaWrapperContent}>
               {!!details.specie_name && <View style={styles.metaWrapperContent}>
                 <Text style={styles.title}>{i18next.t("label.species")}</Text>
@@ -231,11 +233,11 @@ const styles = StyleSheet.create({
   },
 
   mainMetaWrapperContent: {
-    justifyContent:'space-between',
-    alignItems:'flex-start'
+    justifyContent: 'space-between',
+    alignItems: 'flex-start'
   },
   metaWrapperContent: {
-    marginVertical:'3%'
+    marginVertical: '3%'
   },
   dimensionWrapper: {
     width: '100%',
@@ -313,13 +315,13 @@ const styles = StyleSheet.create({
   iconHolder: {
     marginTop: 10
   },
-  footerMeta:{
-    width:'100%',
-    alignItems:'center',
-    justifyContent:'center',
-    flexDirection:'row'
+  footerMeta: {
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row'
   },
-  footermetaWrapper:{
-    flex:1
+  footermetaWrapper: {
+    flex: 1
   }
 })

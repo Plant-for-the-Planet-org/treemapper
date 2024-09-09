@@ -1,14 +1,17 @@
 {
-  "login": "Iniciar Sessão / Registar",
+  "login": "Log in / Sign Up",
+  "fetch_all_items": "Fetch all Items",
+  "fetch_necessary_items": "Fetch Necessary Items",
   "tree_mapper": "TreeMapper",
-  "tree_inventory": "Inventário de Árvores",
-  "tree_inventory_sub_header": "de rascunhos e inscrições pendentes",
-  "download_maps": "Mapas off-line",
-  "download_maps_sub_header": "para utilização offline",
-  "register_tree": "Registrar Árvores",
-  "loading_content": "Carregando conteúdo...",
-  "add": "Adicionar",
-  "plots": "Parcelas",
-  "map": "Mapa",
+  "tree_inventory": "Tree Inventory",
+  "tree_inventory_sub_header": "of draft and pending registrations",
+  "download_maps": "Offline Maps",
+  "download_maps_sub_header": "for offline use",
+  "register_tree": "Register Trees",
+  "loading_content": "Loading content ...",
+  "add": "Add",
+  "plots": "Plots",
+  "map": "Map",
   "interventions":"Interventions"
+
 }

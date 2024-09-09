@@ -15,12 +15,12 @@ const MetaDataFormNote: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.formMessageContainer}>
-        <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
-        <Text style={styles.desc}>{i18next.t('label.get_started_forms_description')}</Text>
+    <View style={styles.containerMeta}>
+      <View style={styles.formMessageContainerMeta}>
+        <Text style={styles.titleMeta}>{i18next.t('label.get_started_forms')}</Text>
+        <Text style={styles.descMeta}>{i18next.t('label.get_started_forms_description')}</Text>
         <CustomButton label={i18next.t('label.create__meta_form')}
-          pressHandler={handlePress} containerStyle={styles.btnContainer} />
+          pressHandler={handlePress} containerStyle={styles.btnContainerMeta} />
       </View>
     </View>
   );
@@ -29,25 +29,25 @@ const MetaDataFormNote: React.FC = () => {
 export default MetaDataFormNote;
 
 const styles = StyleSheet.create({
-  container: {
+  containerMeta: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  formMessageContainer: {
+  formMessageContainerMeta: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '95%',
     marginTop: '20%',
   },
-  title: {
+  titleMeta: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_22,
     color: Colors.TEXT_COLOR,
     paddingHorizontal: 20,
   },
-  desc: {
+  descMeta: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
@@ -56,7 +56,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     paddingHorizontal: 30,
   },
-  btnContainer: {
+  btnContainerMeta: {
     width: '100%',
     height: 60,
     justifyContent: 'center',

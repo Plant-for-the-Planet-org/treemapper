@@ -9,11 +9,11 @@ interface Props {
   callBack: () => void;
 }
 
-const StaticOutlineInput: React.FC<Props> = ({ placeHolder, value, callBack }) => (
-  <View style={styles.container}>
-    <TouchableOpacity style={styles.wrapper} onPress={callBack}>
-      <Text style={styles.placeHolder}>{placeHolder}</Text>
-      <Text style={styles.label}>{value}</Text>
+const StaticOutlineInput = ({ placeHolder, value, callBack }: Props) => (
+  <View style={styles.containerOutline}>
+    <TouchableOpacity style={styles.wrapperOutline} onPress={callBack}>
+      <Text style={styles.placeHolderOutline}>{placeHolder}</Text>
+      <Text style={styles.labelOutline}>{value}</Text>
     </TouchableOpacity>
   </View>
 );
@@ -21,14 +21,14 @@ const StaticOutlineInput: React.FC<Props> = ({ placeHolder, value, callBack }) =
 export default StaticOutlineInput;
 
 const styles = StyleSheet.create({
-  container: {
+  containerOutline: {
     width: '100%',
     height: scaleSize(55),
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
   },
-  wrapper: {
+  wrapperOutline: {
     width: '90%',
     height: '100%',
     borderWidth: 1,
@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  placeHolder: {
+  placeHolderOutline: {
     paddingHorizontal: 5,
     paddingVertical: 3,
     backgroundColor: Colors.BACKDROP_COLOR,
@@ -49,7 +49,7 @@ const styles = StyleSheet.create({
     top: -12,
     left: 10,
   },
-  label: {
+  labelOutline: {
     paddingLeft: 15,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },

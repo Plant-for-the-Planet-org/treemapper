@@ -1,6 +1,6 @@
 {
-  "save_areas_delete": "Excluir",
-  "save_areas_header": "Áreas Salvas",
-  "save_areas_offline": "Nenhuma área offline encontrada",
-  "save_areas_add_area": "Adicionar área"
+  "save_areas_delete": "Delete",
+  "save_areas_header": "Saved Areas",
+  "save_areas_offline": "No offline area found",
+  "save_areas_add_area": "Add Area"
 }

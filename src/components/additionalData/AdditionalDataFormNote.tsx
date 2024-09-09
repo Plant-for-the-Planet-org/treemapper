@@ -8,15 +8,15 @@ interface Props {
   newForm: () => void;
 }
 
-const AdditionalDataFormNote: React.FC<Props> = ({ newForm }) => (
-  <View style={styles.container}>
-    <View style={styles.formMessageContainer}>
-      <Text style={styles.title}>{i18next.t('label.get_started_forms')}</Text>
-      <Text style={styles.desc}>{i18next.t('label.get_started_forms_description')}</Text>
+const AdditionalDataFormNote = ({ newForm }: Props) => (
+  <View style={styles.containerNote}>
+    <View style={styles.formMessageContainerNote}>
+      <Text style={styles.titleNote}>{i18next.t('label.get_started_forms')}</Text>
+      <Text style={styles.descNote}>{i18next.t('label.get_started_forms_description')}</Text>
       <CustomButton
         label={i18next.t('label.create_form')}
         pressHandler={newForm}
-        containerStyle={styles.btnContainer}
+        containerStyle={styles.btnContainerNote}
       />
     </View>
   </View>
@@ -25,25 +25,25 @@ const AdditionalDataFormNote: React.FC<Props> = ({ newForm }) => (
 export default AdditionalDataFormNote;
 
 const styles = StyleSheet.create({
-  container: {
+  containerNote: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  formMessageContainer: {
+  formMessageContainerNote: {
     flex: 1,
     justifyContent: 'flex-start',
     alignItems: 'center',
     width: '95%',
     marginTop: '20%',
   },
-  title: {
+  titleNote: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: Typography.FONT_SIZE_22,
     color: Colors.TEXT_COLOR,
     paddingHorizontal: 20,
   },
-  desc: {
+  descNote: {
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_14,
     color: Colors.TEXT_COLOR,
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
     paddingHorizontal: 30,
   },
-  btnContainer: {
+  btnContainerNote: {
     width: '100%',
     height: 60,
     justifyContent: 'center',

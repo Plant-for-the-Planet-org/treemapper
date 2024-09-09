@@ -72,7 +72,6 @@ const ReviewTreeDetails = () => {
     );
     const [showDeleteTree, setShowDeleteTree] = useState(false)
 
-
     useEffect(() => {
         if (!editTree) {
             if (detailsCompleted) {
@@ -386,7 +385,7 @@ const ReviewTreeDetails = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <InterventionCoverImage
-                        image={treeDetails.image_url || treeDetails.cdn_image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0}
+                        image={treeDetails.cdn_image_url || treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0}
                         isLegacy={Intervention.is_legacy}
                         showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
                     <View style={styles.metaWrapper}>

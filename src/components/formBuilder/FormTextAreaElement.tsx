@@ -35,12 +35,12 @@ const FormTextAreaElement = (props: Props) => {
     return null
   }
 
-  const renderTrail=() => <Text style={styles.unitLabel}>{data.unit}</Text>
+  const renderTrail=() => <Text style={styles.unitLabelForm}>{data.unit}</Text>
 
   return (
-    <View style={styles.container}>
+    <View style={styles.containerForm}>
       <InputOutline
-        style={styles.inputWrapper}
+        style={styles.inputWrapperForm}
         keyboardType={data.keyboard_type}
         placeholder={data.placeholder}
         activeColor={Colors.NEW_PRIMARY}
@@ -61,21 +61,21 @@ const FormTextAreaElement = (props: Props) => {
 export default FormTextAreaElement
 
 const styles = StyleSheet.create({
-  container: {
+  containerForm: {
     width: '100%',
     minHeight:130,
     alignItems: 'center',
     marginVertical: 20,
     flexDirection: 'row',
   },
-  inputWrapper: {
+  inputWrapperForm: {
     borderRadius: 10,
     paddingHorizontal: 10,
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',
   },
-  unitLabel: {
+  unitLabelForm: {
     color: Colors.TEXT_LIGHT,
   },
 })
