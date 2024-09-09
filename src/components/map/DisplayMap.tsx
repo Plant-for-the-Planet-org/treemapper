@@ -53,7 +53,12 @@ const DisplayMap = () => {
       return data.filtered('is_complete==true')
     },
   )
-  const plotData = []
+  const plotData = useQuery<MonitoringPlot>(
+    RealmSchema.MonitoringPlot,
+    data => {
+      return data.filtered('is_complete==true')
+    },
+  )
 
 
   const handleGeoJSONData = () => {
