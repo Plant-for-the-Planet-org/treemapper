@@ -6,7 +6,7 @@ import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
-import { InterventionData, MonitoringPlot } from 'src/types/interface/slice.interface'
+import { InterventionData } from 'src/types/interface/slice.interface'
 import MapMarkers from './MapMarkers'
 import { updateActiveIndex, updateActiveInterventionIndex, updateAdjacentIntervention, updateSelectedIntervention } from 'src/store/slice/displayMapSlice'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -40,7 +40,7 @@ const DisplayMap = () => {
     (state: RootState) => state.userState.type,
   )
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const { onlyRemeasurement, showPlots, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
+  const { onlyRemeasurement, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -49,12 +49,6 @@ const DisplayMap = () => {
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
-    data => {
-      return data.filtered('is_complete==true')
-    },
-  )
-  const plotData = useQuery<MonitoringPlot>(
-    RealmSchema.MonitoringPlot,
     data => {
       return data.filtered('is_complete==true')
     },
@@ -83,35 +77,13 @@ const DisplayMap = () => {
       return result.geoJSON
     })
     let f = feature
-    let m = displayPlots()
-    if (!showPlots) {
-      m = []
-    }
+
     if (interventionFilter === 'none') {
       f = []
     }
-    return [...m, ...f]
+    return [...f]
   }
-  const displayPlots = () => {
-    const feature = plotData.map((el: MonitoringPlot) => {
-      const coords = JSON.parse(el.location.coordinates)
-      const result = {
-        "type": "Feature",
-        "properties": {
-          "id": el.plot_id,
-          "key": "single-tree-registration",
-          "site": false,
-          "isPlot": true
-        },
-        "geometry": {
-          "coordinates": coords,
-          "type": "Polygon"
-        }
-      }
-      return result
-    })
-    return feature
-  }
+
 
   useEffect(() => {
     if (cameraRef?.current !== null) {
