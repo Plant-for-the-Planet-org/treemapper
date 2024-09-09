@@ -14,14 +14,14 @@ interface Props {
     onSelect: (key: "Polygon" | "Point") => void;
 }
 
-const SelectionLocationType: React.FC<Props> = ({ header, labelOne, labelTwo, disabled, selectedValue, onSelect }) => {
+const SelectionLocationType = ({ header, labelOne, labelTwo, disabled, selectedValue, onSelect }: Props) => {
     const isCheckedOne = selectedValue === labelOne.key;
 
     return (
-        <View style={styles.container}>
-            <View style={styles.wrapper}>
-                <Text style={styles.headerLabel}>{header}</Text>
-                <View style={styles.checkWrapper}>
+        <View style={styles.containerType}>
+            <View style={styles.wrapperType}>
+                <Text style={styles.headerLabelType}>{header}</Text>
+                <View style={styles.checkWrapperType}>
                     <SelectableItem
                         label={labelOne}
                         isChecked={isCheckedOne}
@@ -44,21 +44,21 @@ export default SelectionLocationType;
 
 
 const styles = StyleSheet.create({
-    container: {
+    containerType: {
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
         paddingBottom: 25,
         marginTop: 8
     },
-    wrapper: {
+    wrapperType: {
         width: '92%',
         height: 50,
         borderRadius: 12,
         justifyContent: 'center',
         paddingHorizontal: 20,
     },
-    comingSoonWrapper: {
+    comingSoonWrapperType: {
         position: 'absolute',
         top: 0,
         right: '6%',
@@ -70,18 +70,18 @@ const styles = StyleSheet.create({
         borderBottomLeftRadius: 10,
         borderBottomRightRadius: 10
     },
-    comingSoonLabel: {
+    comingSoonLabelType: {
         fontSize: scaleFont(10),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT
     },
-    headerLabel: {
+    headerLabelType: {
         fontSize: scaleFont(14),
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_LIGHT,
         marginBottom: 10
     },
-    checkWrapper: {
+    checkWrapperType: {
         width: '100%',
         flexDirection: 'row',
         alignItems: 'center',

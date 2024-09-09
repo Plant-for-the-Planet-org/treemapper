@@ -15,10 +15,10 @@ const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, showPicke
 
 
   return (
-    <View style={styles.container}>
-      <TouchableOpacity style={styles.wrapper} onPress={openPicker}>
-        <Text style={styles.placeHolder}>{placeHolder}</Text>
-        <Text style={styles.label}>{timestampToBasicDate(value)}</Text>
+    <View style={styles.containerPicker}>
+      <TouchableOpacity style={styles.wrapperPicker} onPress={openPicker}>
+        <Text style={styles.placeHolderPicker}>{placeHolder}</Text>
+        <Text style={styles.labelPicker}>{timestampToBasicDate(value)}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -27,14 +27,14 @@ const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, showPicke
 export default InterventionDatePicker;
 
 const styles = StyleSheet.create({
-  container: {
+  containerPicker: {
     width: '100%',
     height: 60,
     justifyContent: 'center',
     alignItems: 'center',
     marginVertical: 10,
   },
-  wrapper: {
+  wrapperPicker: {
     width: '90%',
     height: '100%',
     borderWidth: 1,
@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
   },
-  placeHolder: {
+  placeHolderPicker: {
     paddingHorizontal: 5,
     paddingVertical: 3,
     backgroundColor: Colors.BACKDROP_COLOR,
@@ -55,11 +55,11 @@ const styles = StyleSheet.create({
     top: -12,
     left: 10,
   },
-  label: {
+  labelPicker: {
     paddingLeft: 15,
     fontFamily: Typography.FONT_FAMILY_BOLD,
   },
-  dateStyle: {
+  dateStylePicker: {
     position: 'absolute',
     zIndex: 1,
     backgroundColor: Colors.WHITE,

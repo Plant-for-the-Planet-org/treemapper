@@ -10,9 +10,9 @@ interface SelectableItemProps {
     onSelect: (key: string) => void;
 }
 
-const SelectableItem: React.FC<SelectableItemProps> = ({ label, isChecked, disabled, onSelect }) => (
+const SelectableItem = ({ label, isChecked, disabled, onSelect }: SelectableItemProps) => (
     <Pressable
-        style={styles.selectWrapper}
+        style={styles.selectWrapperItem}
         onPress={() => {
             if (!disabled) {
                 onSelect(label.key);
@@ -21,15 +21,15 @@ const SelectableItem: React.FC<SelectableItemProps> = ({ label, isChecked, disab
     >
         <View
             style={[
-                styles.outerCircle,
+                styles.outerCircleItem,
                 { borderColor: isChecked && !disabled ? Colors.NEW_PRIMARY : Colors.TEXT_LIGHT }
             ]}
         >
-            {isChecked && !disabled && <View style={styles.innerCircle} />}
+            {isChecked && !disabled && <View style={styles.innerCircleItem} />}
         </View>
         <Text
             style={[
-                styles.checkBoxLabel,
+                styles.checkBoxLabelItem,
                 { color: isChecked && !disabled ? Colors.DARK_TEXT_COLOR : Colors.TEXT_LIGHT }
             ]}
         >
@@ -42,54 +42,12 @@ export default SelectableItem;
 
 
 const styles = StyleSheet.create({
-    container: {
-        width: '100%',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingBottom:25,
-        marginTop:8
-    },
-    wrapper: {
-        width: '92%',
-        height:50,
-        borderRadius: 12,
-        justifyContent: 'center',
-        paddingHorizontal: 20,
-    },
-    comingSoonWrapper: {
-        position: 'absolute',
-        top: 0,
-        right: '6%',
-        backgroundColor: Colors.GRAY_BACKDROP,
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderBottomLeftRadius: 10,
-        borderBottomRightRadius: 10
-    },
-    comingSoonLabel: {
-        fontSize: scaleFont(10),
-        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_LIGHT
-    },
-    headerLabel: {
-        fontSize: scaleFont(14),
-        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
-        color: Colors.TEXT_LIGHT,
-        marginBottom: 10
-    },
-    checkWrapper: {
-        width: '100%',
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    selectWrapper: {
+    selectWrapperItem: {
         flexDirection: 'row',
         alignItems: 'center',
         flex: 1
     },
-    outerCircle: {
+    outerCircleItem: {
         width: 18,
         height: 18,
         justifyContent: "center",
@@ -98,19 +56,16 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: Colors.TEXT_COLOR
     },
-    innerCircle: {
+    innerCircleItem: {
         width: 10,
         height: 10,
         borderRadius: 20,
         backgroundColor: Colors.NEW_PRIMARY
     },
-    checkBoxLabel: {
+    checkBoxLabelItem: {
         fontSize: scaleFont(16),
         fontFamily: Typography.FONT_FAMILY_BOLD,
         color: Colors.TEXT_COLOR,
         paddingHorizontal: 10
-    },
-    checkBox: {
-        width: 20
     }
 })

@@ -59,28 +59,28 @@ const ImagePreview = (props: Props) => {
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.wrapper}>
+    <View style={styles.containerPreview}>
+      <View style={styles.wrapperPreview}>
         <Image
-          style={styles.imageContainer}
+          style={styles.imageContainerPreview}
           source={imageData.uri}
           contentFit="cover"
         />
       </View>
-      <View style={styles.btnContainer}>
+      <View style={styles.btnContainerPreview}>
         <CustomButton
           label={i18next.t('label.retake')}
-          containerStyle={styles.btnWrapper}
+          containerStyle={styles.btnWrapperPreview}
           pressHandler={retakePicture}
-          wrapperStyle={styles.borderWrapper}
-          labelStyle={styles.highlightLabel}
+          wrapperStyle={styles.borderWrapperPreview}
+          labelStyle={styles.highlightLabelPreview}
           hideFadeIn
         />
         <CustomButton
           label={i18next.t('label.continue')}
-          containerStyle={styles.btnWrapper}
+          containerStyle={styles.btnWrapperPreview}
           pressHandler={navigateToNext}
-          wrapperStyle={styles.noBorderWrapper}
+          wrapperStyle={styles.noBorderWrapperPreview}
           hideFadeIn
         />
       </View>
@@ -91,11 +91,11 @@ const ImagePreview = (props: Props) => {
 export default ImagePreview
 
 const styles = StyleSheet.create({
-  container: {
+  containerPreview: {
     flex: 1,
     alignItems: 'center',
   },
-  wrapper: {
+  wrapperPreview: {
     width: '95%',
     height: '80%',
     borderTopColor: Colors.GRAY_BACKDROP,
@@ -103,7 +103,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     marginTop: "5%"
   },
-  btnContainer: {
+  btnContainerPreview: {
     width: '95%',
     height:80,
     flexDirection: 'row',
@@ -111,15 +111,15 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: '5%',
   },
-  btnWrapper: {
+  btnWrapperPreview: {
     flex: 1,
     width: '90%',
   },
-  imageContainer: {
+  imageContainerPreview: {
     width: '100%',
     height: '100%',
   },
-  borderWrapper: {
+  borderWrapperPreview: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: Colors.PRIMARY_DARK,
   },
-  noBorderWrapper: {
+  noBorderWrapperPreview: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -143,7 +143,7 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 12,
   },
-  opaqueWrapper: {
+  opaqueWrapperPreview: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
@@ -154,12 +154,12 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.PRIMARY_DARK,
     borderRadius: 10,
   },
-  highlightLabel: {
+  highlightLabelPreview: {
     fontSize: 18,
     fontWeight: '400',
     color: Colors.PRIMARY_DARK,
   },
-  normalLabel: {
+  normalLabelPreview: {
     fontSize: 14,
     fontWeight: '400',
     color: Colors.WHITE,

@@ -35,12 +35,12 @@ const FormTextInputElement = (props: Props) => {
     return null
   }
 
-  const renderTrail=() => <Text style={styles.unitLabel}>{data.unit}</Text>
+  const renderTrail=() => <Text style={styles.unitLabelInput}>{data.unit}</Text>
 
   return (
-    <View style={styles.container}>
+    <View style={styles.containerInput}>
       <InputOutline
-        style={styles.inputWrapper}
+        style={styles.inputWrapperInput}
         keyboardType={data.keyboard_type}
         placeholder={data.placeholder}
         activeColor={Colors.NEW_PRIMARY}
@@ -61,20 +61,20 @@ const FormTextInputElement = (props: Props) => {
 export default FormTextInputElement
 
 const styles = StyleSheet.create({
-  container: {
+  containerInput: {
     width: '100%',
     height: 60,
     alignItems: 'center',
     marginVertical: 20,
     flexDirection: 'row',
   },
-  inputWrapper: {
+  inputWrapperInput: {
     borderRadius: 10,
     width: '90%',
     height: '100%',
     marginHorizontal: '5%',
   },
-  unitLabel: {
+  unitLabelInput: {
     color: Colors.TEXT_LIGHT,
   },
 })
