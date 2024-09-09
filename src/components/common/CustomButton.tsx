@@ -25,7 +25,8 @@ interface Props {
   disable?: boolean
   hideFadeIn?: boolean
   showAdd?: boolean
-  showDown?:boolean
+  showDown?: boolean
+  grayOut?: boolean
 }
 
 const CustomButton = (props: Props) => {
@@ -40,7 +41,8 @@ const CustomButton = (props: Props) => {
     disable,
     hideFadeIn,
     showAdd,
-    showDown
+    showDown,
+    grayOut
   } = props
 
   const handlePress = () => {
@@ -53,6 +55,16 @@ const CustomButton = (props: Props) => {
     }
   }
 
+  const returnButtonColor = () => {
+    if (grayOut) {
+      return Colors.GRAY_BACKDROP
+    }
+    if (disable) {
+      return '#209653'
+    }
+    return Colors.NEW_PRIMARY
+  }
+
   return (
     <TouchableOpacity
       style={[styles.container, { ...containerStyle }]}
@@ -61,15 +73,15 @@ const CustomButton = (props: Props) => {
       <View
         style={[
           styles.wrapper,
-          { backgroundColor: disable ? '#209653' : Colors.NEW_PRIMARY },
+          { backgroundColor: returnButtonColor() },
           { ...wrapperStyle },
         ]}>
         {loading ? (
           <ActivityIndicator color={Colors.WHITE} size="small" />
         ) : (
           <View style={styles.labelWrapper}>
-            {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
-            {showDown && <ArrowDownIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE}/>}
+            {showAdd && <AddIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE} />}
+            {showDown && <ArrowDownIcon width={15} height={15} style={{ marginRight: 10 }} fill={Colors.WHITE} />}
             <Text style={[styles.labelStyle, { ...labelStyle }]}>{label}</Text>
           </View>
         )}

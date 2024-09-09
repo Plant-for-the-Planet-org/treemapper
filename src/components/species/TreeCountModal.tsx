@@ -59,6 +59,13 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
       setErrorMessage("Please input valid Tree count")
     }
   }
+  const returnButtonColor = () => {
+    if (errorMessage.length || treeCount.length === 0) {
+      return Colors.GRAY_BACKDROP
+    }
+    return Colors.NEW_PRIMARY
+  }
+
 
   return (
     <Modal style={styles.container}
@@ -101,7 +108,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
                 fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
               />
             </View>
-            <TouchableOpacity style={[styles.button, { backgroundColor: errorMessage.length > 0 ? Colors.GRAY_BACKDROP : Colors.NEW_PRIMARY }]} onPress={handlePressNext}>
+            <TouchableOpacity style={[styles.button, { backgroundColor: returnButtonColor()}]} onPress={handlePressNext}>
               <Text style={styles.btnLabel}>{i18next.t("label.continue")}</Text>
             </TouchableOpacity>
           </View>

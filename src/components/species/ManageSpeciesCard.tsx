@@ -16,6 +16,7 @@ interface SpecieCardProps {
   actionName: string
   handleRemoveFavorite?: any
   isSelectSpecies: boolean
+  allowRemove?: boolean
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -23,7 +24,8 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   onPressSpecies,
   handleRemoveFavorite,
   actionName,
-  isSelectSpecies
+  isSelectSpecies,
+  allowRemove
 }) => {
   const handlePress = () => {
     onPressSpecies(item)
@@ -76,7 +78,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {!isSelectSpecies && item.guid !== 'unknown' ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
+          {!isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (

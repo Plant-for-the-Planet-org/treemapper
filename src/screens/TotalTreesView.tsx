@@ -96,7 +96,8 @@ const TotalTreesView = () => {
         guid: item.guid,
         scientificName: item.scientificName,
         isUserSpecies: false,
-        aliases: item.aliases
+        aliases: item.aliases,
+        specieId: ''
       }
       await updateSampleTreeSpecies(interventionId, singleTreeEdit, specieData)
       navigation.goBack()
@@ -148,6 +149,7 @@ const TotalTreesView = () => {
         actionName={'remove'}
         handleRemoveFavorite={removeHandler}
         isSelectSpecies={isSelectSpecies}
+        allowRemove
       />
     )
   }
@@ -216,6 +218,7 @@ const TotalTreesView = () => {
               containerStyle={styles.btnWrapper}
               pressHandler={navigationToNext}
               disable={intervention.planted_species.length === 0}
+              grayOut={intervention.planted_species.length === 0}
             />
           </View>
         )}

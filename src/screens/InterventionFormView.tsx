@@ -404,9 +404,7 @@ const InterventionFormView = () => {
 
   if (!registerForm) {
     return (
-      <View style={styles.container}>
-        <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
-      </View>
+      <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.activityIndicator}/>
     )
   }
 
@@ -515,6 +513,11 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.WHITE,
     height: '100%',
     width: '100%'
+  },
+  activityIndicator:{
+    position:'absolute',
+    top:'40%',
+    left:'49%'
   },
   wrapperScrollView: {
     flexGrow: 1,

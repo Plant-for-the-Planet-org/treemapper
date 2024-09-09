@@ -36,8 +36,8 @@ export const groupIntervention = (data: InterventionData[]) => {
     
         // Update finalObject with the new count value
         finalObject['Unsynced'] = {
-            count: updatedCount,
-            ...finalObject['Unsynced'],
+          ...finalObject['Unsynced'],
+            count: updatedCount
         };
   }
   });
