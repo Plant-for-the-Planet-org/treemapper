@@ -113,28 +113,33 @@ const InterventionFormView = () => {
   }
 
   const handleBounds = (pid, sid, isPoint) => {
-    if (userType !== 'tpo') {
-      return
+    try {
+      if (userType !== 'tpo') return;
+  
+      const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pid);
+      if (!ProjectData) return;
+  
+      const updateBounds = (geometry) => {
+        const { geoJSON } = makeInterventionGeoJson('Point', [geometry], 'sd');
+        const bounds = bbox(geoJSON);
+        dispatch(updateMapBounds({ bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }));
+      };
+  
+      if (!sid || sid === 'other') {
+        if (!ProjectData.geometry) return;
+        const coords = JSON.parse(ProjectData.geometry);
+        updateBounds(coords.coordinates);
+      } else {
+        const site = ProjectData.sites.find(el => el.id === sid);
+        if (!site?.geometry) return; // Using optional chaining here
+        const parsedGeometry = JSON.parse(site.geometry);
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1);
+        updateBounds(newCoords);
+      }
+    } catch (error) {
+      console.log("error", error);
     }
-    const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
-      RealmSchema.Projects,
-      pid,
-    )
-    if (!sid || sid === 'other') {
-      const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
-      const bounds = bbox(geoJSON)
-      dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
-      return
-    }
-    const currentSiteData = ProjectData.sites.filter(
-      el => el.id === sid,
-    )
-    const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
-    const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
-    const bounds = bbox(geoJSON)
-    dispatch(updateMapBounds({ bounds: bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }))
-  }
+  };
 
   const skipForm = async (
     key: INTERVENTION_TYPE,
@@ -365,7 +370,7 @@ const InterventionFormView = () => {
   };
 
   const navigateToMarkerScreen = () => {
-    if(userType==='tpo'){
+    if (userType === 'tpo') {
       handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
     }
     if (registerForm.location_type === 'Point') {
