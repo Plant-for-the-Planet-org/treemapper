@@ -89,7 +89,7 @@ const InterventionList = (props: Props) => {
 
   return (
     <>
-      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Intervention'} noteLabel={'Do you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'close'} extra={deleteData} />
+      <DeleteModal isVisible={deleteData !== null} toggleModal={setDeleteData} removeFavSpecie={handleDelete} headerLabel={'Delete Intervention'} noteLabel={'Do you want to delete this intervention.'} primeLabel={'Delete'} secondaryLabel={'Close'} extra={deleteData} />
       <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleEdit} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Edit'} secondaryLabel={'Cancel'} extra={editModal} secondaryHandler={closeAllModals} />
       <FlashList
         data={interventionData}

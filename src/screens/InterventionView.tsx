@@ -13,7 +13,7 @@ import InterventionHeader from 'src/components/intervention/InterventionHeader'
 const InterventionView = () => {
   const [selectedLabel, setSelectedLabel] = useState('all')
   const [allIntervention, setAllIntervention] = useState<InterventionData[] | any[]>([])
-  const { intervention_updated , dataMigrated} = useSelector((state: RootState) => state.appState)
+  const { intervention_updated, dataMigrated } = useSelector((state: RootState) => state.appState)
 
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true)
@@ -51,7 +51,10 @@ const InterventionView = () => {
   useEffect(() => {
     if (!loading) {
       refreshHandler()
-      setSelectedLabel('all')
+      setSelectedLabel((prev) => {
+        const newLabel = prev
+        return newLabel
+      })
     }
   }, [intervention_updated, dataMigrated])
 

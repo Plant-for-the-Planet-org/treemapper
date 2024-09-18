@@ -148,7 +148,7 @@ const ProjectSitesView = () => {
     }
     return <View style={styles.rightHeader}>
       <CustomDropDown
-        label={'status'}
+        label={'Status'}
         data={statusData}
         onSelect={setSelectedStatus}
         selectedValue={selectedStatus}

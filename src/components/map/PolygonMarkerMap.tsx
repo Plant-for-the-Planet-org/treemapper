@@ -151,16 +151,6 @@ const PolygonMarkerMap = (props: Props) => {
         })
         isValidMarkers = false;
       }
-      if (distanceInMeters > 100) {
-        errorHaptic()
-        toast.show("Marker is too far from previous point.", {
-          type: "normal",
-          placement: "bottom",
-          duration: 2000,
-          animationType: "slide-in",
-        })
-        isValidMarkers = false;
-      }
     }
     return isValidMarkers;
   };
