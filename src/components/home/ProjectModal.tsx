@@ -239,7 +239,7 @@ const ProjectModal = (props: Props) => {
             </View>
             <Text style={styles.projectLabel}>{i18next.t('label.select_project')}</Text>
             <CustomDropDownPicker
-              label={'Project'}
+              label={`${i18next.t("label.project")}`}
               data={projectData}
               onSelect={handleProjectSelection}
               selectedValue={selectedProject}
@@ -248,8 +248,8 @@ const ProjectModal = (props: Props) => {
             <View style={styles.projectSiteWrapper}>
               <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
               <Pressable style={styles.addnewWrapper} onPress={createNewSite}>
-                <Text style={styles.addNewSite}>Add New Site</Text>
-                <AddIcon height={15} width={15} fill={Colors.NEW_PRIMARY} />
+                <Text style={styles.addNewSite}>{i18next.t("label.add_new_site")}</Text>
+                <AddIcon height={12} width={12} fill={Colors.NEW_PRIMARY} />
               </Pressable>
             </View>
             <View style={styles.siteContainer}>

@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     width: '100%',
-    paddingTop: '40%',
+    paddingTop: '35%',
     paddingLeft: '6.5%'
   },
   labelStyle: {

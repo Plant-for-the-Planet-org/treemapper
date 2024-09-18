@@ -90,5 +90,21 @@
     "show_6": "Interventionen innerhalb von 6 Monaten anzeigen",
     "show_1": "Interventionen innerhalb von 1 Jahr anzeigen",
     "show_all": "Alle Interventionen anzeigen",
-    "dont_show": "Keine Interventionen anzeigen"
+    "dont_show": "Keine Interventionen anzeigen",
+    "add_new_site": "Neue Site hinzufügen",
+    "project_status": "Status",
+    "site_area": "Standortbereich",
+    "site_names:": "Standortname",
+    "create_site": "Standort erstellen",
+    "create_new_site_": "Neue Standortkarte erstellen",
+    "status_planting": "Bepflanzung",
+    "status_planted": "Gepflanzt",
+    "status_barren": "Unfruchtbar",
+    "status_refforestation": "Wiederaufforstung",
+    "select_location_continue": "Standort auswählen und fortfahren",
+    "use_point_location": "Punktstandort verwenden",
+    "list_all_species":"Alle am Standort gepflanzten Arten auflisten",
+    "select_location": "Standort auswählen",
+    "plant_timeline":"Zeitleiste der Pflanzung",
+    "previous_point":"Vorheriger Punkt"
 }

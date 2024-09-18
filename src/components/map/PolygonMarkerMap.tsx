@@ -21,6 +21,7 @@ import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
+import i18next from 'i18next'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -133,26 +134,27 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
-    let isValidMarkers = true;
-
-    for (const oneMarker of coords) {
-      const distanceInMeters = distanceCalculator(
-        [centerCoordinates[1], centerCoordinates[0]],
-        [oneMarker[1], oneMarker[0]],
-        'meters',
-      );
-      if (distanceInMeters < 0.5) {
-        errorHaptic()
-        toast.show("Marker is close to previous point.", {
-          type: "normal",
-          placement: "bottom",
-          duration: 2000,
-          animationType: "slide-in",
-        })
-        isValidMarkers = false;
+    try {
+      for (const oneMarker of coords) {
+        const distanceInMeters = distanceCalculator(
+          [centerCoordinates[1], centerCoordinates[0]],
+          [oneMarker[1], oneMarker[0]],
+          'meters',
+        );
+        if (!distanceInMeters) {
+          errorHaptic()
+          toast.show("Marker is close to previous point.", {
+            type: "normal",
+            placement: "bottom",
+            duration: 2000,
+            animationType: "slide-in",
+          })
+        }
       }
+      return true;
+    } catch (error) {
+      return true
     }
-    return isValidMarkers;
   };
 
   const makeComplete = async () => {
@@ -243,7 +245,7 @@ const PolygonMarkerMap = (props: Props) => {
       )}
       {!polygonComplete && (
         <CustomButton
-          label="Select location & continue"
+          label={`${i18next.t('label.select_location_continue')}`}
           containerStyle={styles.btnContainer}
           pressHandler={onSelectLocation}
           disable={loading || lineError}
@@ -252,7 +254,7 @@ const PolygonMarkerMap = (props: Props) => {
       )}
       {!loading && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
         <CustomButton
-          label="Use Point Location"
+          label={`${i18next.t('label.use_point_location')}`}
           containerStyle={styles.pointWrapper}
           pressHandler={makePointLocation}
           wrapperStyle={styles.pointButton}

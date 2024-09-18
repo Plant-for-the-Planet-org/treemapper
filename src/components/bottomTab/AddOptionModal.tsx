@@ -176,7 +176,9 @@ const AddOptionModal = (props: Props) => {
               <EyeIcon />
             </View>
             <View style={styles.projectSection}>
-              <Text style={styles.projectLabel}>Project</Text>
+              <Text style={styles.projectLabel}>
+                {i18next.t('label.project')}
+              </Text>
               <Text style={styles.projectName}>{ProjectName}</Text>
             </View>
             <View style={styles.projectDown}>

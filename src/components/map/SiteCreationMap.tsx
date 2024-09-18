@@ -17,6 +17,7 @@ import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
 import Icon from '@expo/vector-icons/FontAwesome5';
 import CloseIcon from 'assets/images/svg/CloseIconFill.svg'
+import i18next from 'i18next'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -107,26 +108,31 @@ const SiteCreationMap = (props: Props) => {
 
 
     const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
-        let isValidMarkers = true;
+        try {
+            let isValidMarkers = true;
 
-        for (const oneMarker of coords) {
-            const distanceInMeters = distanceCalculator(
-                [centerCoordinates[1], centerCoordinates[0]],
-                [oneMarker[1], oneMarker[0]],
-                'meters',
-            );
-            if (distanceInMeters < 0.5) {
-                errorHaptic()
-                toast.show("Marker is close to previous point.", {
-                    type: "normal",
-                    placement: "bottom",
-                    duration: 2000,
-                    animationType: "slide-in",
-                })
-                isValidMarkers = false;
+            for (const oneMarker of coords) {
+                const distanceInMeters = distanceCalculator(
+                    [centerCoordinates[1], centerCoordinates[0]],
+                    [oneMarker[1], oneMarker[0]],
+                    'meters',
+                );
+                if (distanceInMeters < 0.1) {
+                    errorHaptic()
+                    toast.show("Marker is close to previous point.", {
+                        type: "normal",
+                        placement: "bottom",
+                        duration: 2000,
+                        animationType: "slide-in",
+                    })
+                    isValidMarkers = false;
+                }
             }
+            return isValidMarkers;
+        } catch (error) {
+            return true
         }
-        return isValidMarkers;
+
     };
 
     const makeComplete = async () => {
@@ -197,7 +203,7 @@ const SiteCreationMap = (props: Props) => {
             )}
             {!polygonComplete && (
                 <CustomButton
-                    label="Select location & continue"
+                    label={`${i18next.t('label.select_location_continue')}`}
                     containerStyle={styles.btnContainerSite}
                     pressHandler={onSelectLocation}
                     disable={loadingSite || lineError}
@@ -205,7 +211,7 @@ const SiteCreationMap = (props: Props) => {
                 />
             )}
             <ActiveMarkerIcon />
-            <UserlocationMarker stopAutoFocus/>
+            <UserlocationMarker stopAutoFocus />
         </View>
     )
 }
@@ -217,8 +223,8 @@ const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor:Colors.BACKDROP_COLOR,
-        zIndex:1
+        backgroundColor: Colors.BACKDROP_COLOR,
+        zIndex: 1
     },
     closeWrapperSite: {
         width: 20,
@@ -233,7 +239,7 @@ const styles = StyleSheet.create({
         alignSelf: 'stretch',
         borderTopLeftRadius: 0,
         borderTopRightRadius: 0,
-        overflow:'hidden'
+        overflow: 'hidden'
     },
 
     btnFooterSite: {

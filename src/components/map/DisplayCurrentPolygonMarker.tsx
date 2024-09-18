@@ -17,7 +17,7 @@ const DisplayCurrentPolygonMarker = (props: Props) => {
       <Text style={styles.label}>{i18next.t('label.corner')} {id}</Text>
       <Text style={styles.note}>{i18next.t('label.please_select')} {id === 'A' ? 'first' : 'next'} {i18next.t('label.lowercase_corner')}</Text>
       {id !== 'A' && <TouchableOpacity style={styles.undoButton} onPress={undo}>
-      <Text style={styles.undoLabel}>Previous Point</Text>
+      <Text style={styles.undoLabel}>{i18next.t('label.previous_point')}</Text>
         <Icon
           name="undo-alt"
           size={16}

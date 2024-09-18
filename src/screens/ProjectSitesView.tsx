@@ -30,8 +30,6 @@ import { updateLastProject } from 'src/store/slice/displayMapSlice'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
-
-
 const ProjectSitesView = () => {
 
 
@@ -143,7 +141,7 @@ const ProjectSitesView = () => {
   }
 
   const rightContainer = () => {
-    if(showMap){
+    if (showMap) {
       return null
     }
     return <View style={styles.rightHeader}>
@@ -236,7 +234,7 @@ const ProjectSitesView = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-     {!showMap &&  <Header label='Create Site' rightComponent={rightContainer()} />}
+      {!showMap && <Header label='Create Site' rightComponent={rightContainer()} />}
       <View style={styles.wrapper}>
         <CustomDropDown
           label={i18next.t('label.project')}
@@ -245,13 +243,13 @@ const ProjectSitesView = () => {
           selectedValue={selectedProject}
         />
         <CustomTextInput
-          label={"Site name"}
+          label={i18next.t('label.site_names')}
           onChangeHandler={setSiteName}
           value={siteName}
         />
-        <Text style={styles.siteArea}>Site Area</Text>
+        <Text style={styles.siteArea}>{i18next.t("label.site_area")}</Text>
         {!showMap && <Pressable style={styles.siteWrapper} onPress={toggleSiteCreation}>
-          {geometry && !showMap ? <Text style={styles.siteLabel}> Edit site map</Text> : <Text style={styles.siteLabel}> Create new site map</Text>}
+          {geometry && !showMap ? <Text style={styles.siteLabel}> Edit site map</Text> : <Text style={styles.siteLabel}> {i18next.t("label.create_new_site_")}</Text>}
           {!geometry && !showMap ? <AddIcon height={14} width={14} fill={Colors.NEW_PRIMARY} /> : <PenIcon height={14} width={14} fill={Colors.NEW_PRIMARY} />}
         </Pressable>}
         {showMap && <View style={styles.mapWrapper}>
@@ -290,7 +288,7 @@ const ProjectSitesView = () => {
         {!showMap && <CustomButton
           loading={loading}
           disable={loading}
-          label={'Create Site'} pressHandler={submitHandler} containerStyle={styles.buttonContainer} />}
+          label={`${i18next.t('label.create_site')}`} pressHandler={submitHandler} containerStyle={styles.buttonContainer} />}
       </View>
     </SafeAreaView>
   )
@@ -316,9 +314,9 @@ const styles = StyleSheet.create({
   },
   mapWrapper: {
     flex: 1,
-    width:'100%',
-    height:'100%',
-    position:'absolute'
+    width: '100%',
+    height: '100%',
+    position: 'absolute'
   },
   siteArea: {
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,

@@ -24,6 +24,7 @@ import { FONT_FAMILY_ITALIC, FONT_FAMILY_REGULAR } from 'src/utils/constants/typ
 import AskSampleTreeModal from 'src/components/common/AskSampleTreeModal'
 import AlertModal from 'src/components/common/AlertModal'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import i18next from 'i18next'
 
 
 
@@ -57,7 +58,7 @@ const TotalTreesView = () => {
   )
   const navigationToNext = async () => {
     const { has_sample_trees } = setUpIntervention(intervention.intervention_key)
-    if(!isEditTrees){
+    if (!isEditTrees) {
       const result = await updateInterventionLastScreen(intervention.form_id, 'TOTAL_TREES')
       if (!result) {
         errorHaptic()
@@ -183,7 +184,7 @@ const TotalTreesView = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header label="Total Trees" note='List all species planted at the site' />
+      <Header label={i18next.t('label.total_trees')} note={`${i18next.t('label.list_all_species')}`} />
       <AskSampleTreeModal isVisible={showSampleTreeModal} toggleModal={closeModal} removeFavSpecie={onPrimaryPress} headerLabel={'Sample Tree Registration'} noteLabel={' Do you want to add sample trees ?'} primeLabel={'Add Sample Tree'} secondaryLabel={'Finish'} extra={undefined} secondaryHandler={secondaryBtnHandler} />
       <AlertModal
         visible={showExistingTree !== ''}
