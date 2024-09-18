@@ -213,8 +213,10 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             postData.plantedSpecies = planted_species
         }
         postData.interventionStartDate = postTimeConvertor(d.intervention_date)
-        if(d.intervention_end_date){
+        if (d.intervention_end_date) {
             postData.interventionEndDate = postTimeConvertor(d.intervention_end_date)
+        } else {
+            postData.interventionEndDate = postTimeConvertor(d.intervention_date)
         }
         if (d.sample_trees.length > 0) {
             postData.sampleTreeCount = d.sample_trees.length
@@ -258,6 +260,8 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
                 width: d.specie_diameter
             },
         }
+        postData.interventionStartDate = postTimeConvertor(d.plantation_date)
+        postData.interventionEndDate = postTimeConvertor(d.plantation_date)
         if (uType === 'tpo' && !i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         } else {
