@@ -122,10 +122,9 @@ const PolygonMarkerMap = (props: Props) => {
     const centerCoordinates = await mapRef.current.getCenter()
     if (centerCoordinates.length !== 0) {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-      setLineError(!checkValidDistance)
+      setLineError(false)
       if (!checkValidDistance) {
         errorHaptic()
-        return
       }
       setCoordinates([...coordinates, centerCoordinates])
       setCurrentCoordinate(prevState => ({
@@ -148,18 +147,18 @@ const PolygonMarkerMap = (props: Props) => {
           'meters',
         );
         if (!distanceInMeters) {
-          errorHaptic()
           toast.show("Marker is close to previous point.", {
             type: "normal",
             placement: "bottom",
             duration: 2000,
             animationType: "slide-in",
           })
+          return false
         }
       }
       return true;
     } catch (error) {
-      return true
+      return false
     }
   };
 
