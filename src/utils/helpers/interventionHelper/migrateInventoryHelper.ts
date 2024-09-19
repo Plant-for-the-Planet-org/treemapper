@@ -301,7 +301,7 @@ export const migrateInventoryToIntervention = async (inventory: Inventory): Prom
             locate_tree: "",
             remeasurement_required: false,
             next_measurement_date: 0,
-            intervention_end_date: 0,
+            intervention_end_date: dateStringToTimestamp(inventory.plantation_date),
             fix_required: "NO",
             is_legacy: true
         };

@@ -68,17 +68,8 @@ const EditPolygonMap = () => {
             );
             // if the current marker position is less than one meter to already present markers nearby,
             // then makes the current marker position invalid
-            if (distanceInMeters < 1) {
+            if (distanceInMeters < 0.1) {
                 toast.show("Marker is close to previous point.", {
-                    type: "normal",
-                    placement: "bottom",
-                    duration: 2000,
-                    animationType: "slide-in",
-                })
-                isValidMarkers = false;
-            }
-            if (distanceInMeters > 100) {
-                toast.show("Marker is too far from previous point.", {
                     type: "normal",
                     placement: "bottom",
                     duration: 2000,

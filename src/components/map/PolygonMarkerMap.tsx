@@ -21,6 +21,7 @@ import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
+import i18next from 'i18next'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -55,6 +56,7 @@ const PolygonMarkerMap = (props: Props) => {
 
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
+  const [mapRender, setMapRender] = useState(false)
 
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
@@ -62,14 +64,18 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      handleCameraView()
-    }, 400);
+    if (!mapRender) {
+      setTimeout(() => {
+        handleCameraView()
+      }, 300);
+    }
   }, [MapBounds])
 
 
   useEffect(() => {
-    handleCamera()
+    if (mapRender) {
+      handleCamera()
+    }
   }, [currentUserLocation])
 
   const handleCameraView = () => {
@@ -85,6 +91,7 @@ const PolygonMarkerMap = (props: Props) => {
       } else {
         handleCamera()
       }
+      setMapRender(true)
     }
   }
 
@@ -115,10 +122,9 @@ const PolygonMarkerMap = (props: Props) => {
     const centerCoordinates = await mapRef.current.getCenter()
     if (centerCoordinates.length !== 0) {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
-      setLineError(!checkValidDistance)
+      setLineError(false)
       if (!checkValidDistance) {
         errorHaptic()
-        return
       }
       setCoordinates([...coordinates, centerCoordinates])
       setCurrentCoordinate(prevState => ({
@@ -133,36 +139,27 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
-    let isValidMarkers = true;
-
-    for (const oneMarker of coords) {
-      const distanceInMeters = distanceCalculator(
-        [centerCoordinates[1], centerCoordinates[0]],
-        [oneMarker[1], oneMarker[0]],
-        'meters',
-      );
-      if (distanceInMeters < 0.5) {
-        errorHaptic()
-        toast.show("Marker is close to previous point.", {
-          type: "normal",
-          placement: "bottom",
-          duration: 2000,
-          animationType: "slide-in",
-        })
-        isValidMarkers = false;
+    try {
+      for (const oneMarker of coords) {
+        const distanceInMeters = distanceCalculator(
+          [centerCoordinates[1], centerCoordinates[0]],
+          [oneMarker[1], oneMarker[0]],
+          'meters',
+        );
+        if (!distanceInMeters) {
+          toast.show("Marker is close to previous point.", {
+            type: "normal",
+            placement: "bottom",
+            duration: 2000,
+            animationType: "slide-in",
+          })
+          return false
+        }
       }
-      if (distanceInMeters > 100) {
-        errorHaptic()
-        toast.show("Marker is too far from previous point.", {
-          type: "normal",
-          placement: "bottom",
-          duration: 2000,
-          animationType: "slide-in",
-        })
-        isValidMarkers = false;
-      }
+      return true;
+    } catch (error) {
+      return false
     }
-    return isValidMarkers;
   };
 
   const makeComplete = async () => {
@@ -216,7 +213,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onDidFinishLoadingMap={handleCameraView}
+        onDidFinishLoadingMap={!mapRender ? handleCameraView : null}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
@@ -253,7 +250,7 @@ const PolygonMarkerMap = (props: Props) => {
       )}
       {!polygonComplete && (
         <CustomButton
-          label="Select location & continue"
+          label={`${i18next.t('label.select_location_continue')}`}
           containerStyle={styles.btnContainer}
           pressHandler={onSelectLocation}
           disable={loading || lineError}
@@ -262,7 +259,7 @@ const PolygonMarkerMap = (props: Props) => {
       )}
       {!loading && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
         <CustomButton
-          label="Use Point Location"
+          label={`${i18next.t('label.use_point_location')}`}
           containerStyle={styles.pointWrapper}
           pressHandler={makePointLocation}
           wrapperStyle={styles.pointButton}

@@ -90,6 +90,22 @@
     "show_6": "Show interventions within 6 months",
     "show_1": "Show interventions within 1 year",
     "show_all": "Show all interventions",
-    "dont_show": "Don't show interventions"
+    "dont_show": "Don't show interventions",
+    "add_new_site": "Add New Site",
+    "project_status": "Status",
+    "site_area": "Site Area",
+    "site_names:": "Site name",
+    "create_site": "Create Site",
+    "create_new_site_": "Create new site map",
+    "status_planting": "Planting",
+    "status_planted": "Planted",
+    "status_barren": "Barren",
+    "status_refforestation": "Reforestation",
+    "select_location_continue": "Select location & continue",
+    "use_point_location": "Use Point location",
+    "list_all_species":"List all species planted at the site",
+    "select_location": "Select Location",
+    "plant_timeline":"Plant Timeline",
+    "previous_point":"Previous Point"
 
 }

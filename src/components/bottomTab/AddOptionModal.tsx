@@ -92,8 +92,14 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.project_sites'),
       coming_soon: false,
       onPress: () => {
-        navigation.navigate('ProjectSites')
-        props.setVisible(false)
+        if (userType !== 'tpo') {
+          toast.hideAll()
+          toast.show("Please login from RO account")
+          props.setVisible(false)
+        } else {
+          navigation.navigate('ProjectSites')
+          props.setVisible(false)
+        }
       },
       disabled: false,
     },
@@ -144,23 +150,27 @@ const AddOptionModal = (props: Props) => {
   }
 
   const calcComponents = useMemo(() => {
-    return addOptions.map((option) => (
-      <TouchableOpacity
-        key={String(option.title)}
-        style={styles.addButtonOptionWrap}
-        disabled={option.disabled}
-        onPress={option.onPress}>
-        <View style={styles.addButtonOption}>
-          <View style={styles.icon}>{option.svgIcon}</View>
-          <View>
-            <Text style={styles.text}>{i18next.t(option.title)}</Text>
-            {option.coming_soon && (
-              <Text style={styles.coming_soon}>{i18next.t('label.coming_soon')}</Text>
-            )}
-          </View>
-        </View>
-      </TouchableOpacity>
-    ))
+    return addOptions.map((option) => {
+      return (
+        (
+          <TouchableOpacity
+            key={String(option.title)}
+            style={styles.addButtonOptionWrap}
+            disabled={option.disabled}
+            onPress={option.onPress}>
+            <View style={styles.addButtonOption}>
+              <View style={styles.icon}>{option.svgIcon}</View>
+              <View>
+                <Text style={styles.text}>{i18next.t(option.title)}</Text>
+                {option.coming_soon && (
+                  <Text style={styles.coming_soon}>{i18next.t('label.coming_soon')}</Text>
+                )}
+              </View>
+            </View>
+          </TouchableOpacity>
+        )
+      )
+    })
   }, [addOptions])
   const ProjectName = currentProject.projectName || ''
   return (
@@ -176,7 +186,9 @@ const AddOptionModal = (props: Props) => {
               <EyeIcon />
             </View>
             <View style={styles.projectSection}>
-              <Text style={styles.projectLabel}>Project</Text>
+              <Text style={styles.projectLabel}>
+                {i18next.t('label.project')}
+              </Text>
               <Text style={styles.projectName}>{ProjectName}</Text>
             </View>
             <View style={styles.projectDown}>

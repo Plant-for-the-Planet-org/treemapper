@@ -408,7 +408,7 @@ const styles = StyleSheet.create({
         borderRadius: 10
     },
     label: {
-        fontSize: 16,
+        fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
         marginLeft: 8

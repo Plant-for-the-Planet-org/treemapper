@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch, useSelector } from 'react-redux';
 import { updateBlockerModal, updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
@@ -8,20 +8,10 @@ import { RootState } from 'src/store';
 const useLocationPermission = () => {
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
 
-  const [cameraState, setCameraState] = useState(null)
   const showBlockerModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
 
-  useEffect(() => {
-    try {
-      if (cameraState?.status !== status?.status) {
-        setCameraState(status)
-      }
-    } catch (error) {
-      console.log("Error", error)
-    }
-  }, [status])
 
   useEffect(() => {
     if (status && status.status === Location.PermissionStatus.DENIED) {
@@ -38,7 +28,7 @@ const useLocationPermission = () => {
       dispatch(updateBlockerModal(false))
       userCurrentLocation()
     }
-  }, [cameraState])
+  }, [])
 
 
   useEffect(() => {

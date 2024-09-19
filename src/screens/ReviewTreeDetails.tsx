@@ -483,7 +483,7 @@ const ReviewTreeDetails = () => {
                         </View>
                     </View>
                 </View>
-                <Text style={styles.historyLabel}>Plant Timeline</Text>
+                <Text style={styles.historyLabel}>{`${i18next.t('label.plant_timeline')}`}</Text>
                 <PlantHistory plantID={treeDetails.tree_id} />
                 <ExportGeoJSONButton details={treeDetails} type='treedetails' />
                 <View style={styles.footer} />

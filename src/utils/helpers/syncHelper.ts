@@ -159,8 +159,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
-
-
 export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
     try {
         const metaData = JSON.parse(d.meta_data);
@@ -187,7 +185,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
                 type: d.location.type,
                 coordinates: d.location.type === 'Point' ? JSON.parse(d.location.coordinates)[0] : [JSON.parse(d.location.coordinates)]
             },
-            registrationDate: postTimeConvertor(d.intervention_date),
+            registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
         if (uType === 'tpo' && !d.project_id) {
@@ -213,8 +211,10 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             postData.plantedSpecies = planted_species
         }
         postData.interventionStartDate = postTimeConvertor(d.intervention_date)
-        if(d.intervention_end_date){
+        if (d.intervention_end_date) {
             postData.interventionEndDate = postTimeConvertor(d.intervention_end_date)
+        } else {
+            postData.interventionEndDate = postTimeConvertor(d.intervention_date)
         }
         if (d.sample_trees.length > 0) {
             postData.sampleTreeCount = d.sample_trees.length
@@ -251,13 +251,15 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
                 type: 'Point',
                 coordinates: [d.longitude, d.latitude]
             },
-            registrationDate: postTimeConvertor(d.plantation_date),
+            registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
             measurements: {
                 height: d.specie_height,
                 width: d.specie_diameter
             },
         }
+        postData.interventionStartDate = postTimeConvertor(d.plantation_date)
+        postData.interventionEndDate = postTimeConvertor(d.plantation_date)
         if (uType === 'tpo' && !i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         } else {
