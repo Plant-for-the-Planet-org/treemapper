@@ -96,10 +96,10 @@ const AddOptionModal = (props: Props) => {
           toast.hideAll()
           toast.show("Please login from RO account")
           props.setVisible(false)
-          return ''
+        } else {
+          navigation.navigate('ProjectSites')
+          props.setVisible(false)
         }
-        navigation.navigate('ProjectSites')
-        props.setVisible(false)
       },
       disabled: false,
     },
