@@ -151,12 +151,21 @@ const PointMarkerMap = (props: Props) => {
 
   const handleAccuracyAlert = (val: boolean) => {
     if (val) {
-      setAlertModal(false)
+      handleAcceptAccuracyAlert()
     } else {
-      setAlertModal(false)
-      onSelectLocation()
+      handleRejectAccuracyAlert()
     }
   }
+
+
+  const handleAcceptAccuracyAlert = () => {
+    setAlertModal(false);
+  };
+  
+  const handleRejectAccuracyAlert = () => {
+    setAlertModal(false);
+    onSelectLocation();
+  };
 
   const checkForAccuracy = async () => {
     const { accuracy } = getUserLocation()

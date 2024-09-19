@@ -23,17 +23,35 @@ export const getIsValidMeasurement = (measurement: string) => measurementRegex.t
 // returns the converted diameter by checking the user's country metric
 export const getConvertedDiameter = (
   treeDiameter: string | number,
-  value: boolean = false,
+  isNonISUCountry: boolean = false,
 ) => {
-  return value ? Number(treeDiameter) * inchToCm : Number(treeDiameter);
+  return isNonISUCountry ? getDiameterInCm(treeDiameter) * inchToCm : getDiameterInISUUnits(treeDiameter);
 };
+
+export const getDiameterInCm = (treeDiameter: string | number) => {
+  return Number(treeDiameter) * inchToCm;
+};
+
+export const getDiameterInISUUnits = (treeDiameter: string | number) => {
+  return Number(treeDiameter);
+};
+
+
+export const getHeightInMeters = (treeHeight: string | number) => {
+  return Number(treeHeight) * footToMeter;
+};
+
+export const getHeightInISUUnits = (treeHeight: string | number) => {
+  return Number(treeHeight);
+};
+
 
 // returns the converted height by checking the user's country metric
 export const getConvertedHeight = (
   treeHeight: string | number,
   isNonISUCountry: boolean = false,
 ) => {
-  return isNonISUCountry ? Number(treeHeight) * footToMeter : Number(treeHeight);
+  return isNonISUCountry ? getHeightInMeters(treeHeight) : getHeightInISUUnits(treeHeight);
 };
 
 // returns min diameter value based on the country

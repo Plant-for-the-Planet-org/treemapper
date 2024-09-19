@@ -346,15 +346,23 @@ const TreeRemeasurementView = () => {
         }
     }
 
+    const handleOptimalAlertAccept = () => {
+        setShowOptimalAlert(false);
+        setLoading(false);
+    };
+
+    const handleOptimalAlertReject = () => {
+        setShowOptimalAlert(false);
+        setTimeout(() => {
+            submitHandler();
+        }, 1000);
+    };
+
     const handleOptimalAlert = (alertValue: boolean) => {
         if (alertValue) {
-            setShowOptimalAlert(false)
-            setLoading(false)
+            handleOptimalAlertAccept()
         } else {
-            setShowOptimalAlert(false)
-            setTimeout(() => {
-                submitHandler()
-            }, 1000)
+            handleOptimalAlertReject()
         }
     }
 
@@ -365,17 +373,28 @@ const TreeRemeasurementView = () => {
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
 
-    const handleAccuracyAlert = (alertValue: boolean) => {
-        if (alertValue) {
-            setShowAccuracyModal(false)
-            setLoading(false)
+
+
+    const handleAccuracyAlert = (val: boolean) => {
+        if (val) {
+            handleAcceptAccuracyAlert()
         } else {
-            setShowAccuracyModal(false)
-            setTimeout(() => {
-                submitHandler(true)
-            }, (300));
+            handleRejectAccuracyAlert()
         }
     }
+
+
+    const handleAcceptAccuracyAlert = () => {
+        setShowAccuracyModal(false)
+        setLoading(false)
+    };
+
+    const handleRejectAccuracyAlert = () => {
+        setShowAccuracyModal(false)
+        setTimeout(() => {
+            submitHandler(true)
+        }, (300));
+    };
 
 
 
