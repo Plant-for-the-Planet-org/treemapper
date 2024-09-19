@@ -149,8 +149,8 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
-  const handleAccuracyAlert = (b: boolean) => {
-    if (b) {
+  const handleAccuracyAlert = (val: boolean) => {
+    if (val) {
       setAlertModal(false)
     } else {
       setAlertModal(false)

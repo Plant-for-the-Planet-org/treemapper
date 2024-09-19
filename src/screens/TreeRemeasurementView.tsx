@@ -346,8 +346,8 @@ const TreeRemeasurementView = () => {
         }
     }
 
-    const handleOptimalAlert = (p: boolean) => {
-        if (p) {
+    const handleOptimalAlert = (alertValue: boolean) => {
+        if (alertValue) {
             setShowOptimalAlert(false)
             setLoading(false)
         } else {
@@ -365,8 +365,8 @@ const TreeRemeasurementView = () => {
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
 
-    const handleAccuracyAlert = (b: boolean) => {
-        if (b) {
+    const handleAccuracyAlert = (alertValue: boolean) => {
+        if (alertValue) {
             setShowAccuracyModal(false)
             setLoading(false)
         } else {

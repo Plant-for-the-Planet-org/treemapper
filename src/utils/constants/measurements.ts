@@ -23,9 +23,9 @@ export const getIsValidMeasurement = (measurement: string) => measurementRegex.t
 // returns the converted diameter by checking the user's country metric
 export const getConvertedDiameter = (
   treeDiameter: string | number,
-  isNonISUCountry: boolean = false,
+  value: boolean = false,
 ) => {
-  return isNonISUCountry ? Number(treeDiameter) * inchToCm : Number(treeDiameter);
+  return value ? Number(treeDiameter) * inchToCm : Number(treeDiameter);
 };
 
 // returns the converted height by checking the user's country metric

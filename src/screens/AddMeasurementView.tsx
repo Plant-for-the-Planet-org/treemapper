@@ -130,8 +130,8 @@ const AddMeasurement = () => {
   }
 
 
-  const handleOptimalAlert = (p: boolean) => {
-    if (p) {
+  const handleOptimalAlert = (alertValue: boolean) => {
+    if (alertValue) {
       setShowOptimalAlert(false)
     } else {
       setShowOptimalAlert(false)
