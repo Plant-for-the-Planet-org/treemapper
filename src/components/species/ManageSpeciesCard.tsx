@@ -48,7 +48,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
             {item.image ? (
               <Image
                 source={{
-                  uri: `${item.image}`,
+                  uri: item.image.includes('/') ? `${item.image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
                 }}
                 style={styles.imageView}
               />
