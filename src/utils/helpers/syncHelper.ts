@@ -159,8 +159,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
-
-
 export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
     try {
         const metaData = JSON.parse(d.meta_data);
@@ -187,7 +185,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
                 type: d.location.type,
                 coordinates: d.location.type === 'Point' ? JSON.parse(d.location.coordinates)[0] : [JSON.parse(d.location.coordinates)]
             },
-            registrationDate: postTimeConvertor(d.intervention_date),
+            registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
         if (uType === 'tpo' && !d.project_id) {
@@ -253,7 +251,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
                 type: 'Point',
                 coordinates: [d.longitude, d.latitude]
             },
-            registrationDate: postTimeConvertor(d.plantation_date),
+            registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
             measurements: {
                 height: d.specie_height,

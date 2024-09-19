@@ -62,17 +62,23 @@ const PointMarkerMap = (props: Props) => {
   const mapRef = useRef<MapLibreGL.MapView>(null)
 
   const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
+  const [mapRender, setMapRender] = useState(false)
 
 
   useEffect(() => {
-    setTimeout(() => {
-      handleCameraViewChange()
-    }, 300);
+    if (!mapRender) {
+      setTimeout(() => {
+        handleCameraViewChange()
+      }, 300);
+    }
+
   }, [MapBounds])
 
 
   useEffect(() => {
-    handleCamera()
+    if (mapRender) {
+      handleCamera()
+    }
   }, [currentUserLocation])
 
 
@@ -89,6 +95,7 @@ const PointMarkerMap = (props: Props) => {
       } else {
         handleCamera()
       }
+      setMapRender(true)
     }
   }
 
@@ -205,7 +212,7 @@ const PointMarkerMap = (props: Props) => {
         logoEnabled={false}
         attributionEnabled={false}
         onRegionDidChange={handleDrag}
-        onDidFinishLoadingMap={handleCameraViewChange}
+        onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
         onRegionIsChanging={() => {
           setLoading(true)
         }}

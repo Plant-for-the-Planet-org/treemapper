@@ -32,7 +32,7 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`;
     const compFile = await compressImage(inputPath, 0.7)
     await RNFS.copyFile(compFile, outputPath);
-    return Platform.OS === 'android' ? `${outputPath}` : outputPath;
+    return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;
   } catch (error) {
     throw new Error(error);
   }

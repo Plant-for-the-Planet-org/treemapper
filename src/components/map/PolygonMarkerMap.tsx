@@ -56,6 +56,7 @@ const PolygonMarkerMap = (props: Props) => {
 
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
+  const [mapRender, setMapRender] = useState(false)
 
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
@@ -63,14 +64,18 @@ const PolygonMarkerMap = (props: Props) => {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      handleCameraView()
-    }, 400);
+    if (!mapRender) {
+      setTimeout(() => {
+        handleCameraView()
+      }, 300);
+    }
   }, [MapBounds])
 
 
   useEffect(() => {
-    handleCamera()
+    if (mapRender) {
+      handleCamera()
+    }
   }, [currentUserLocation])
 
   const handleCameraView = () => {
@@ -86,6 +91,7 @@ const PolygonMarkerMap = (props: Props) => {
       } else {
         handleCamera()
       }
+      setMapRender(true)
     }
   }
 
@@ -208,7 +214,7 @@ const PolygonMarkerMap = (props: Props) => {
         style={styles.map}
         ref={mapRef}
         logoEnabled={false}
-        onDidFinishLoadingMap={handleCameraView}
+        onDidFinishLoadingMap={!mapRender ? handleCameraView : null}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
