@@ -243,7 +243,7 @@ const ProjectSitesView = () => {
           selectedValue={selectedProject}
         />
         <CustomTextInput
-          label={i18next.t('label.site_names')}
+          label={'Site name'}
           onChangeHandler={setSiteName}
           value={siteName}
         />
