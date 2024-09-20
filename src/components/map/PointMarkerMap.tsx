@@ -149,19 +149,10 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
-  const handleAccuracyAlert = (val: boolean) => {
-    if (val) {
-      handleAcceptAccuracyAlert()
-    } else {
-      handleRejectAccuracyAlert()
-    }
-  }
-
-
   const handleAcceptAccuracyAlert = () => {
     setAlertModal(false);
   };
-  
+
   const handleRejectAccuracyAlert = () => {
     setAlertModal(false);
     onSelectLocation();
@@ -258,8 +249,8 @@ const PointMarkerMap = (props: Props) => {
         message={i18next.t('label.poor_accuracy_message')}
         primaryBtnText={i18next.t('label.try_again')}
         secondaryBtnText={i18next.t('label.continue')}
-        onPressPrimaryBtn={handleAccuracyAlert}
-        onPressSecondaryBtn={handleAccuracyAlert}
+        onPressPrimaryBtn={handleAcceptAccuracyAlert}
+        onPressSecondaryBtn={handleRejectAccuracyAlert}
         showSecondaryButton={true}
       />
     </View>
