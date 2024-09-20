@@ -99,6 +99,9 @@ const DisplayMap = () => {
   }, [currentUserLocation])
 
   const handleCamera = () => {
+    if(currentUserLocation && currentUserLocation.length>0 && currentUserLocation[0]===0){
+      return
+    }
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
       zoomLevel: 20,

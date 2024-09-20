@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import CustomButton from '../common/CustomButton'
 import { useDispatch, useSelector } from 'react-redux'
 import { resetUserDetails, updateUserDetails } from 'src/store/slice/userStateSlice'
@@ -27,7 +27,7 @@ const LoginButton = () => {
   const dispatch = useDispatch()
   const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
+  const [buttonMounted, setButtonMounted] = useState(false)
 
 
   useEffect(() => {
@@ -44,9 +44,10 @@ const LoginButton = () => {
 
 
   useEffect(() => {
-    if (user) {
+    if (user && buttonMounted) {
       getDetails()
     }
+    setButtonMounted(true)
   }, [user])
 
   const getDetails = async () => {

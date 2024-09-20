@@ -2,7 +2,7 @@ import { createSlice, PayloadAction } from '@reduxjs/toolkit'
 import { GpsSliceInitialState } from 'src/types/interface/slice.interface'
 
 const initialState: GpsSliceInitialState = {
-  user_location: [51.1657, 10.4515],
+  user_location: [0, 0],
   showBlockerModal: false,
   accuracy: 0
 }
