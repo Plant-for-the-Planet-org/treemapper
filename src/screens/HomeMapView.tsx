@@ -9,8 +9,6 @@ import CarouselModal from 'src/components/carousel/CarouselModal'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CarouselHeader from 'src/components/carousel/CarouselHeader'
-
-import LocationPermissionModal from 'src/components/map/LocationPermissionModal'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 import { StatusBar } from 'expo-status-bar'
 import MapAttribution from 'src/components/common/MapAttribution'
@@ -59,7 +57,6 @@ const HomeMapView = () => {
         toggleModal={toggleProjectModal}
       />
       {showCarousel && <CarouselModal />}
-      <LocationPermissionModal />
       <MapAttribution/>
     </View>
   )

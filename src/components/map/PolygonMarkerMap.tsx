@@ -96,6 +96,9 @@ const PolygonMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
+    if (currentUserLocation[0] === 0) {
+      return
+    }
     if (cameraRef?.current) {
       cameraRef.current.setCamera({
         centerCoordinate: [...currentUserLocation],
@@ -120,6 +123,17 @@ const PolygonMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
+    if(!centerCoordinates){
+      return
+    }
+    if(centerCoordinates && centerCoordinates[0]===0){
+      toast.show("Please click on location")
+      return
+    }
+    if(currentUserLocation && currentUserLocation[0]===0){
+      toast.show("Please click on location")
+      return
+    }
     if (centerCoordinates.length !== 0) {
       const checkValidDistance = await checkIsValidMarker(centerCoordinates, [...coordinates])
       setLineError(false)
@@ -181,6 +195,17 @@ const PolygonMarkerMap = (props: Props) => {
 
   const makePointLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
+    if(!centerCoordinates){
+      return
+    }
+    if(centerCoordinates && centerCoordinates[0]===0){
+      toast.show("Please click on your location")
+      return
+    }
+    if(currentUserLocation && currentUserLocation[0]===0){
+      toast.show("Please click on your location")
+      return
+    }
     if (centerCoordinates.length !== 0) {
       const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)

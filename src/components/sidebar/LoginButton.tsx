@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import CustomButton from '../common/CustomButton'
 import { useDispatch, useSelector } from 'react-redux'
-import { resetUserDetails, updateUserDetails } from 'src/store/slice/userStateSlice'
+import { resetUserDetails, updateName, updateUserDetails } from 'src/store/slice/userStateSlice'
 import { logoutAppUser, updateNewIntervention, updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import { getUserDetails } from 'src/api/api.fetch'
@@ -29,6 +29,18 @@ const LoginButton = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [buttonMounted, setButtonMounted] = useState(false)
 
+  function getFirstAndLastName(fullName) {
+    // Split the full name into an array based on spaces
+    const nameParts = fullName.trim().split(' ');
+
+    // Get the first word as first name
+    const firstName = nameParts[0];
+
+    // Get the last word as last name (ignore all the middle words)
+    const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
+
+    return { firstName, lastName };
+}
 
   useEffect(() => {
     if (error) {
@@ -52,14 +64,18 @@ const LoginButton = () => {
 
   const getDetails = async () => {
     const credentials = await getUserCredentials()
-    dispatch(
-      updateUserToken({
-        idToken: credentials.idToken,
-        accessToken: credentials.accessToken,
-        expiringAt: credentials.expiresAt,
-        refreshToken: credentials.refreshToken
-      }),
-    )
+    if(credentials){
+      const {firstName, lastName} = getFirstAndLastName(user.name)
+      dispatch(
+        updateUserToken({
+          idToken: credentials.idToken,
+          accessToken: credentials.accessToken,
+          expiringAt: credentials.expiresAt,
+          refreshToken: credentials.refreshToken
+        }),
+      )
+      dispatch(updateName({firstName, lastName}))
+    }
     if (!credentials?.accessToken) {
       handleLogout()
       return

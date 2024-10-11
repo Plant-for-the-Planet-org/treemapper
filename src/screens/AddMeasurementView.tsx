@@ -92,6 +92,8 @@ const AddMeasurement = () => {
     }
     // Ensure there is at most one decimal point
   };
+  
+
 
 
   const onSubmit = () => {
@@ -100,19 +102,19 @@ const AddMeasurement = () => {
     setHeightErrorMessage(heightErrorMessage)
     setWidthErrorMessage(diameterErrorMessage)
     let isTagIdValid = false;
-    if (tagEnable) {
-      if (tagId.length === 0) {
+    if(tagEnable){
+      if(tagId.length===0){
         setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
-      } else {
+      }else{
         const regex = /^[a-zA-Z0-9]+$/;
-        const isValidId = regex.test(tagId)
-        if (!isValidId) {
+        const isValidId = regex.test(tagId) 
+        if(!isValidId){
           setTagIdErrorMessage(i18next.t('Please input a valid id.'));
-        } else {
+        }else{
           isTagIdValid = true
         }
       }
-    } else {
+    }else{
       setTagIdErrorMessage('');
       isTagIdValid = true;
     }
@@ -128,15 +130,14 @@ const AddMeasurement = () => {
   }
 
 
-
-  const handleOptimalAlertAccept = () => {
-    setShowOptimalAlert(false);
-  };
-
-  const handleOptimalAlertReject = () => {
-    setShowOptimalAlert(false);
-    submitDetails();
-  };
+  const handleOptimalAlert = (alertValue: boolean) => {
+    if (alertValue) {
+      setShowOptimalAlert(false)
+    } else {
+      setShowOptimalAlert(false)
+      submitDetails();
+    }
+  }
 
   const submitDetails = async () => {
     const { lat, long, accuracy } = getUserLocation()
@@ -255,8 +256,8 @@ const AddMeasurement = () => {
         <AlertModal
           showSecondaryButton
           visible={showOptimalAlert}
-          onPressPrimaryBtn={handleOptimalAlertAccept}
-          onPressSecondaryBtn={handleOptimalAlertReject}
+          onPressPrimaryBtn={handleOptimalAlert}
+          onPressSecondaryBtn={handleOptimalAlert}
           heading={i18next.t('label.not_optimal_ratio')}
           secondaryBtnText={i18next.t('label.continue')}
           primaryBtnText={i18next.t('label.check_again')}

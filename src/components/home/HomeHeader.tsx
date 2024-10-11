@@ -10,10 +10,10 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement'
 import { getAllProjects, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
-import { updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
+import { resetProjectState, updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastServerIntervention, updateServerIntervention, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
+import { logoutAppUser, updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserLogin, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
@@ -21,6 +21,8 @@ import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 import { SCALE_24 } from 'src/utils/constants/spacing'
 import SpeciesSync from '../common/SpeciesSync'
+import { resetUserDetails } from 'src/store/slice/userStateSlice'
+import NetInfo from "@react-native-community/netinfo";
 
 interface Props {
   toggleFilterModal: () => void
@@ -30,6 +32,7 @@ interface Props {
 const HomeHeader = (props: Props) => {
   const { addAllProjects } = useProjectManagement()
   const { addUserSpecies } = useManageScientificSpecies()
+  const { logoutUser } = useAuthentication()
   const { toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -86,7 +89,27 @@ const HomeHeader = (props: Props) => {
   }, [expiringAt])
 
 
+
+  const handleLogout = async () => {
+    try {
+      await logoutUser()
+      dispatch(resetProjectState())
+      dispatch(updateUserLogin(false))
+      dispatch(resetUserDetails())
+      dispatch(logoutAppUser())
+      dispatch(updateNewIntervention())
+    } catch (error) {
+      console.log("Error occurred while logout")
+    }
+  }
+
+
+
   const refreshUser = async () => {
+    const isConnected = await checkInternetConnectivity();
+    if (!isConnected) {
+      return;
+    }
     try {
       const credentials = await refreshUserToken(refreshToken)
       if (credentials) {
@@ -99,11 +122,14 @@ const HomeHeader = (props: Props) => {
           })
         )
       }
+      if (!credentials && isLoggedIn) {
+        handleLogout()
+      }
     } catch (error) {
+      handleLogout()
       console.log("error", error)
     }
   }
-
 
   function hasTimestampExpiredOrCloseToExpiry(timestamp) {
     // Convert timestamp to milliseconds
@@ -127,6 +153,12 @@ const HomeHeader = (props: Props) => {
 
   //Remove this Intervention from Staging DB.
   const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
+
+  const checkInternetConnectivity = async () => {
+    const netInfo = await NetInfo.fetch();
+    return netInfo.isConnected;
+  }
+
 
   const addServerIntervention = async () => {
     try {

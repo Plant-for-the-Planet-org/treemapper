@@ -176,7 +176,6 @@ export interface ProjectStateSlice {
 
 export interface GpsSliceInitialState {
   user_location: number[],
-  showBlockerModal: boolean,
   accuracy: number
 }
 

@@ -134,6 +134,7 @@ const remeasurementCalculator = (nextMeasurementDate: null | string | { date: st
 const singleTreeDetails = (d: any): SampleTree => {
     const rData = remeasurementCalculator(d.nextMeasurementDate)
     const lData = remeasurementCalculator(d.lastMeasurementDate)
+    const invStartDate = d.plantDate ? d.plantDate : d.interventionStartDate
     const details: SampleTree = {
         tree_id: d.id,
         species_guid: d.scientificSpecies || '',
@@ -152,7 +153,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
         tag_id: d.tag || '',
-        plantation_date: moment(d.plantDate).valueOf() || moment(d.registrationDate).valueOf() || 0,
+        plantation_date: moment(invStartDate).valueOf() || moment(d.registrationDate).valueOf() || 0,
         status_complete: false,
         location_id: d.id,
         tree_type: d.type === 'sample-tree-registration' ? 'sample' : 'single',
@@ -210,6 +211,7 @@ const getEntireSiteCheck = (data: any) => {
 export const convertInventoryToIntervention = (data: any): InterventionData => {
     const extraData = interventionTittleSwitch(data.type);
     const geometryData = getGeometry(data.geometry);
+    const invStartDate = data.plantDate ? data.plantDate : data.interventionStartDate
     const sample_trees: SampleTree[] = []
     const rData = remeasurementCalculator(data.nextMeasurementDate)
     if (extraData.key !== 'single-tree-registration') {
@@ -229,7 +231,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
         intervention_id: data.id,
         intervention_key: extraData.key,
         intervention_title: extraData.title,
-        intervention_date: moment(data.plantDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
+        intervention_date: moment(invStartDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
         project_id: data.plantProject || '',
         project_name: "",
         site_name: "",
@@ -239,7 +241,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData => {
         has_sample_trees: extraData.hasSampleTrees,
         sample_trees: sample_trees,
         is_complete: true,
-        site_id:  data.plantProjectSite || '',
+        site_id: data.plantProjectSite || '',
         intervention_type: extraData.key,
         form_data: [],
         additional_data: [],

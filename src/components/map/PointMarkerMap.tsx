@@ -39,7 +39,6 @@ interface Props {
 }
 
 const PointMarkerMap = (props: Props) => {
-
   const { tree_details, interventionKey, form_id } = props
   const [geoJSON, setGeoJSON] = useState(null)
   const [alertModal, setAlertModal] = useState(false)
@@ -100,6 +99,9 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
+    if (currentUserLocation[0] === 0) {
+      return
+    }
     if (cameraRef?.current) {
       cameraRef.current.setCamera({
         centerCoordinate: [...currentUserLocation],
@@ -127,6 +129,17 @@ const PointMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
+    if(!centerCoordinates){
+      return
+    }
+    if(centerCoordinates && centerCoordinates[0]===0){
+      toast.show("Please click on your location")
+      return
+    }
+    if(currentUserLocation && currentUserLocation[0]===0){
+      toast.show("Please click on your location")
+      return
+    }
     if (has_sample_trees) {
       dispatch(updateSampleTreeCoordinates([centerCoordinates]))
     } else {
@@ -148,6 +161,15 @@ const PointMarkerMap = (props: Props) => {
       navigation.navigate('LocalForm', { id: form_id })
     }
   }
+
+  const handleAccuracyAlert = (val: boolean) => {
+    if (val) {
+      handleAcceptAccuracyAlert()
+    } else {
+      handleRejectAccuracyAlert()
+    }
+  }
+
 
   const handleAcceptAccuracyAlert = () => {
     setAlertModal(false);
@@ -249,8 +271,8 @@ const PointMarkerMap = (props: Props) => {
         message={i18next.t('label.poor_accuracy_message')}
         primaryBtnText={i18next.t('label.try_again')}
         secondaryBtnText={i18next.t('label.continue')}
-        onPressPrimaryBtn={handleAcceptAccuracyAlert}
-        onPressSecondaryBtn={handleRejectAccuracyAlert}
+        onPressPrimaryBtn={handleAccuracyAlert}
+        onPressSecondaryBtn={handleAccuracyAlert}
         showSecondaryButton={true}
       />
     </View>

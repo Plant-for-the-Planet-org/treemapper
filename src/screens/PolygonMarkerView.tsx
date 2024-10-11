@@ -48,7 +48,7 @@ const PolygonMarker = () => {
         intervention_key={interventionData.intervention_key}
         species_required={species_required} form_id={interventionData.form_id || interventionData.intervention_id} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
-      <LocationPermissionModal required />
+      <LocationPermissionModal/>
     </SafeAreaView>
   )
 }

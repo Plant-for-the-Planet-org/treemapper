@@ -19,7 +19,7 @@
       [
         "expo-location",
         {
-          "locationAlwaysAndWhenInUsePermission": "Allow Tracer to use your location."
+          "locationAlwaysAndWhenInUsePermission": "We need access to location to be able to register trees on planted location."
         }
       ],
       [
@@ -31,7 +31,7 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow $(PRODUCT_NAME) to access your camera"
+          "cameraPermission": "To take pictures of the trees you have planted, please allow access to your camera."
         }
       ],
       [
@@ -58,9 +58,8 @@
         "aps-environment": "development"
       },
       "infoPlist": {
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Allows App to use location services in the foreground and background.",
         "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
-        "NSLocationWhenInUseUsageDescription": "Allows App to use Face ID for a simpler sign in."
+        "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees."
       }
     },
     "android": {
