@@ -33,6 +33,7 @@ import { RootState } from 'src/store'
 import EyeIcon from 'assets/images/svg/EyeIcon.svg'
 import DropDownIcon from 'assets/images/svg/DownIcon.svg'
 import { updateProjectModal } from 'src/store/slice/displayMapSlice'
+import useLocationPermission from 'src/hooks/useLocationPermission'
 
 
 interface Props {
@@ -44,8 +45,10 @@ const AddOptionModal = (props: Props) => {
   const heightValue = useDerivedValue(() => {
     return withTiming(props.visible ? 0 : 600, { duration: 500 })
   }, [props.visible])
+  const { userCurrentLocation } = useLocationPermission()
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
   const userType = useSelector((state: RootState) => state.userState.type)
+  const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
 
   const dispatch = useDispatch()
   const opacity = useDerivedValue(() => {
@@ -74,6 +77,15 @@ const AddOptionModal = (props: Props) => {
     return true;
   }
 
+  const provideLocation = () => {
+    try {
+      if (GPSLocation[0] === 0) {
+        userCurrentLocation()
+      }
+    } catch (error) {
+      console.log("Error")
+    }
+  }
 
   const addOptions = [
     {
@@ -97,6 +109,7 @@ const AddOptionModal = (props: Props) => {
           toast.show("Please login from RO account")
           props.setVisible(false)
         } else {
+          provideLocation()
           navigation.navigate('ProjectSites')
           props.setVisible(false)
         }
@@ -109,6 +122,7 @@ const AddOptionModal = (props: Props) => {
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
+          provideLocation()
           navigation.navigate('InterventionForm')
           props.setVisible(false)
         }
@@ -121,6 +135,7 @@ const AddOptionModal = (props: Props) => {
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
+          provideLocation()
           navigation.navigate('InterventionForm', {
             id: 'single-tree-registration',
           })
@@ -135,6 +150,7 @@ const AddOptionModal = (props: Props) => {
       coming_soon: false,
       onPress: () => {
         if (checkWhetherProjectIsSelected()) {
+          provideLocation()
           navigation.navigate('InterventionForm', {
             id: 'multi-tree-registration',
           })
