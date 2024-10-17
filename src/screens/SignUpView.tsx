@@ -55,10 +55,23 @@ const SignUpView = () => {
 
     const toast = useToast()
 
+    function removeDomainFromEmail(email) {
+        const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        try {
+            if (emailPattern.test(email)) {
+                return email.split('@')[0];
+            } else {
+                return email;
+            }
+        } catch (error) {
+            return email;
+        }
+    }
 
     useEffect(() => {
         if (userDetails && userDetails.firstName) {
-            setFirstName(userDetails.firstName)
+            const updatedName = removeDomainFromEmail(userDetails.firstName)
+            setFirstName(updatedName)
             setLastName(userDetails.lastName)
         }
     }, [userDetails])

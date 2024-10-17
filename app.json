@@ -59,7 +59,9 @@
       },
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
-        "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees."
+        "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSMinimumSystemVersion": "12.0"
       }
     },
     "android": {

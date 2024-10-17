@@ -55,6 +55,7 @@ export type RootStackParamList = {
   SignUpPage: SignUpPage,
   PlantHistory: PlantHistory,
   ProjectSites: undefined
+  DeleteAccount: undefined
 }
 
 type SpeciesInfoView = {

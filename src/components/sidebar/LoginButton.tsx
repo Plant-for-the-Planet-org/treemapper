@@ -45,11 +45,13 @@ const LoginButton = () => {
   useEffect(() => {
     if (error) {
       if (error.code === "unauthorized") {
-        toast.show("Please confirm your email \nusing the link sent to your inbox.", {
-          duration: 5000,
-          textStyle: { textAlign: 'center' },
-          placement: 'center'
-        })
+        setTimeout(() => {
+          toast.show("Please confirm your email \nusing the link sent to your inbox.", {
+            duration: 8000,
+            textStyle: { textAlign: 'center' },
+            placement: 'center'
+          })
+        }, 3000);
       }
     }
   }, [error])
