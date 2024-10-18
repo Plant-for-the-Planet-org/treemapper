@@ -366,17 +366,19 @@ const TreeRemeasurementView = () => {
         }
     }
 
-    const handleOptimalAlert = (p: boolean) => {
-        if (p) {
-            setShowOptimalAlert(false)
-            setLoading(false)
-        } else {
-            setShowOptimalAlert(false)
-            setTimeout(() => {
-                submitHandler()
-            }, 1000)
-        }
+
+    const acceptOptimalAlert=()=>{
+        setShowOptimalAlert(false)
+        setLoading(false)
     }
+
+    const rejectOptimalAlert=()=>{
+        setShowOptimalAlert(false)
+        setTimeout(() => {
+            submitHandler()
+        }, 1000)
+    }
+
 
     if (!treeDetails) {
         return null
@@ -384,17 +386,16 @@ const TreeRemeasurementView = () => {
 
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
+    const acceptAccuracyAlert=()=>{
+        setShowAccuracyModal(false)
+        setLoading(false)
+    }
 
-    const handleAccuracyAlert = (b: boolean) => {
-        if (b) {
-            setShowAccuracyModal(false)
-            setLoading(false)
-        } else {
-            setShowAccuracyModal(false)
-            setTimeout(() => {
-                submitHandler(true)
-            }, (300));
-        }
+    const rejectAccuracyAlert=()=>{
+        setShowAccuracyModal(false)
+        setTimeout(() => {
+            submitHandler(true)
+        }, (300));
     }
 
 
@@ -484,8 +485,8 @@ const TreeRemeasurementView = () => {
                     <AlertModal
                         showSecondaryButton
                         visible={showOptimalAlert}
-                        onPressPrimaryBtn={handleOptimalAlert}
-                        onPressSecondaryBtn={handleOptimalAlert}
+                        onPressPrimaryBtn={acceptOptimalAlert}
+                        onPressSecondaryBtn={rejectOptimalAlert}
                         heading={i18next.t('label.not_optimal_ratio')}
                         secondaryBtnText={i18next.t('label.continue')}
                         primaryBtnText={i18next.t('label.check_again')}
@@ -515,8 +516,8 @@ const TreeRemeasurementView = () => {
                 message={"Your device is more than 20 meters away from the tree you are remeasuring. Do you still want to submit the data?"}
                 primaryBtnText={'cancel'}
                 secondaryBtnText={'Continue'}
-                onPressPrimaryBtn={handleAccuracyAlert}
-                onPressSecondaryBtn={handleAccuracyAlert}
+                onPressPrimaryBtn={acceptAccuracyAlert}
+                onPressSecondaryBtn={rejectAccuracyAlert}
                 showSecondaryButton={true}
             />
         </SafeAreaView>

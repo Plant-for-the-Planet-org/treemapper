@@ -130,13 +130,14 @@ const AddMeasurement = () => {
   }
 
 
-  const handleOptimalAlert = (alertValue: boolean) => {
-    if (alertValue) {
-      setShowOptimalAlert(false)
-    } else {
-      setShowOptimalAlert(false)
-      submitDetails();
-    }
+
+  const acceptOptimalAlert=()=>{
+    setShowOptimalAlert(false)
+  }
+
+  const rejectOptimalAlert=()=>{
+    setShowOptimalAlert(false)
+    submitDetails();
   }
 
   const submitDetails = async () => {
@@ -256,8 +257,8 @@ const AddMeasurement = () => {
         <AlertModal
           showSecondaryButton
           visible={showOptimalAlert}
-          onPressPrimaryBtn={handleOptimalAlert}
-          onPressSecondaryBtn={handleOptimalAlert}
+          onPressPrimaryBtn={acceptOptimalAlert}
+          onPressSecondaryBtn={rejectOptimalAlert}
           heading={i18next.t('label.not_optimal_ratio')}
           secondaryBtnText={i18next.t('label.continue')}
           primaryBtnText={i18next.t('label.check_again')}

@@ -69,7 +69,7 @@ const SignUpView = () => {
     }
 
     useEffect(() => {
-        if (userDetails && userDetails.firstName) {
+        if (!!userDetails && userDetails.firstName) {
             const updatedName = removeDomainFromEmail(userDetails.firstName)
             setFirstName(updatedName)
             setLastName(userDetails.lastName)

@@ -25,7 +25,7 @@ const DeleteAccount = () => {
   const { email, name } = useSelector((state: RootState) => state.userState)
   const [timer, setTimer] = useState(10)
   const [loading, setLoading] = useState(false)
-  const [showSubModal, setShowModal] = useState(false)
+  const [subModal, setSubModal] = useState(false)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const toast = useToast()
@@ -52,10 +52,10 @@ const DeleteAccount = () => {
       setLoading(true)
       const result = await deleteAccount()
       if(result && !result.success){
-        setShowModal(true)
+        setSubModal(true)
         return
       }
-      if(result && result.success){
+      if(result?.success){
         toast.show("Account Deleted")
         await logoutUser()
         dispatch(resetProjectState())
@@ -80,7 +80,7 @@ const DeleteAccount = () => {
   }
 
   const closeSubModal=()=>{
-    setShowModal(false)
+    setSubModal(false)
     navigation.goBack()
   }
 
@@ -111,7 +111,7 @@ const DeleteAccount = () => {
         loading={loading}
         disable={timer > 0}
       />
-      <DeleteModal isVisible={showSubModal} toggleModal={()=>{setShowModal(prev=>!prev)}} removeFavSpecie={openWeb} headerLabel={'Further steps required'} noteLabel={'Your account cannot be deleted as there might be Projects linked or you have balance in your account. \nPlease press Continue to resolve this before Deleting account.'} primeLabel={'Continue'} secondaryLabel={'Close'}  secondaryHandler={closeSubModal}
+      <DeleteModal isVisible={subModal} toggleModal={()=>{setSubModal(prev=>!prev)}} removeFavSpecie={openWeb} headerLabel={'Further steps required'} noteLabel={'Your account cannot be deleted as there might be Projects linked or you have balance in your account. \nPlease press Continue to resolve this before Deleting account.'} primeLabel={'Continue'} secondaryLabel={'Close'}  secondaryHandler={closeSubModal}
       extra={undefined}/>
     </SafeAreaView>
   )
