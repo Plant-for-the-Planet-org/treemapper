@@ -63,20 +63,38 @@ const SampleTreePreviewList = (props: Props) => {
   const remeasurement = async (id: string) => {
     navigation.navigate("TreeRemeasurement", { interventionId: interventionId, treeId: id })
   }
+  const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
-  const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
-    let text = i18next.t('label.tree_review_unable');
-    const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
-    if (measurement && isNonISUCountry) {
-      text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
-        unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
-      )} `;
-    } else if (measurement) {
-      text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+
+  function convertMeasurements(value, unit) {
+    // Conversion factors
+    const metersToFeet = 3.28084;
+    const cmToInches = 0.393701;
+    if (isNonISUCountry) {
+        // Convert based on the unit type
+        if (unit === 'm') {
+            // Convert meters to feet
+            const feet = (value * metersToFeet).toFixed(2); // rounding to 2 decimal places
+            return `${feet}`;
+        } else if (unit === 'cm') {
+            // Convert centimeters to inches
+            const inches = (value * cmToInches).toFixed(2); // rounding to 2 decimal places
+            return `${inches}`;
+        } else {
+            return 'Invalid unit provided'; // Handle invalid units
+        }
+    } else {
+        // If ISU country, return the value as is
+        if (unit === 'm') {
+            return `${value}`;
+        } else if (unit === 'cm') {
+            return `${value}`;
+        } else {
+            return 'Invalid unit provided'; // Handle invalid units
+        }
     }
-    return text;
-  };
+}
 
 
   const hasDetails = sampleTress && sampleTress.length > 0
@@ -137,7 +155,7 @@ const SampleTreePreviewList = (props: Props) => {
               <Text style={styles.iconTitle}>{i18next.t("label.height")}</Text>
               <View style={styles.iconMetaWrapper}>
                 <HeightIcon width={10} height={20} />
-                <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_height, 'm')}</Text>
+                <Text style={styles.iconLabel}> {convertMeasurements(details.specie_height, 'm')} {isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}</Text>
               </View>
             </View>
             <View style={styles.iconWrapper}>
@@ -146,7 +164,7 @@ const SampleTreePreviewList = (props: Props) => {
                 <View style={styles.iconHolder}>
                   <WidthIcon width={20} height={20} />
                 </View>
-                <Text style={styles.iconLabel}> {getConvertedMeasurementText(details.specie_diameter)}</Text>
+                <Text style={styles.iconLabel}> {convertMeasurements(details.specie_diameter,'cm')} {isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}</Text>
               </View>
             </View>
           </View>
