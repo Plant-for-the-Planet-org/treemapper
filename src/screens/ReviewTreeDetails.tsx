@@ -39,6 +39,7 @@ import RemeasurementIconScalable from 'assets/images/svg/RemeasurementIconScalab
 import PlantHistory from './PlantHistoryView'
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -71,6 +72,7 @@ const ReviewTreeDetails = () => {
         i18next.t('label.tree_inventory_input_error_message'),
     );
     const [showDeleteTree, setShowDeleteTree] = useState(false)
+    const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
     useEffect(() => {
         if (!editTree) {
@@ -175,7 +177,10 @@ const ReviewTreeDetails = () => {
                         setShowIncorrectRatioAlert(true);
                         hasError = true
                     } else {
-                        finalDetails.specie_height = Number(openEditModal.value)
+                        finalDetails.specie_height = getConvertedHeight(
+                            Number(openEditModal.value),
+                            isNonISUCountry
+                          )
                     }
                 }
             } else {
@@ -202,7 +207,10 @@ const ReviewTreeDetails = () => {
                         setShowIncorrectRatioAlert(true);
                         hasError = true
                     } else {
-                        finalDetails.specie_diameter = Number(openEditModal.value)
+                        finalDetails.specie_diameter = getConvertedDiameter(
+                            Number(openEditModal.value),
+                            isNonISUCountry
+                          )
                     }
                 }
             } else {
@@ -228,14 +236,20 @@ const ReviewTreeDetails = () => {
         switch (openEditModal.label) {
             case 'height':
                 if (!validate) {
-                    finalDetails.specie_height = Number(openEditModal.value)
+                    finalDetails.specie_height =  getConvertedHeight(
+                        Number(openEditModal.value),
+                        isNonISUCountry
+                      )
                 } else {
                     handleHeightValidation()
                 }
                 break;
             case 'diameter':
                 if (!validate) {
-                    finalDetails.specie_diameter = Number(openEditModal.value)
+                    finalDetails.specie_diameter = getConvertedDiameter(
+                        Number(openEditModal.value),
+                        isNonISUCountry
+                      )
                 } else {
                     handleDiameterValidation()
                 }
@@ -319,20 +333,36 @@ const ReviewTreeDetails = () => {
     const headerLabel = editTree ? i18next.t("label.tree_details") : i18next.t("label.review_tree_details")
     const showEdit = editTree || treeDetails.tree_id
 
-    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
-        let text = i18next.t('label.tree_review_unable');
-        const isNonISUCountry: boolean = nonISUCountries.includes(Country);
-
-        if (measurement && isNonISUCountry) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
-                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
-            )} `;
-        } else if (measurement) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
+    function convertMeasurements(value, unit) {
+        // Conversion factors
+        const metersToFeet = 3.28084;
+        const cmToInches = 0.393701;
+        if (isNonISUCountry) {
+            // Convert based on the unit type
+            if (unit === 'm') {
+                // Convert meters to feet
+                const feet = (value * metersToFeet).toFixed(2); // rounding to 2 decimal places
+                return `${feet}`;
+            } else if (unit === 'cm') {
+                // Convert centimeters to inches
+                const inches = (value * cmToInches).toFixed(2); // rounding to 2 decimal places
+                return `${inches}`;
+            } else {
+                return 'Invalid unit provided'; // Handle invalid units
+            }
+        } else {
+            // If ISU country, return the value as is
+            if (unit === 'm') {
+                return `${value}`;
+            } else if (unit === 'cm') {
+                return `${value}`;
+            } else {
+                return 'Invalid unit provided'; // Handle invalid units
+            }
         }
-        return text;
-    };
+    }
 
+    
     const handleRatioPrimary = () => {
         setShowIncorrectRatioAlert(false);
         setOpenEditModal({ label: '', value: '', type: 'default', open: false });
@@ -372,6 +402,8 @@ const ReviewTreeDetails = () => {
         return null
     }
 
+    
+
     return (
         <SafeAreaView style={styles.container}>
             {remeasurementIcon()}
@@ -409,11 +441,13 @@ const ReviewTreeDetails = () => {
                                 if (showEdit && synced) {
                                     return
                                 }
-                                openEdit('height', String(treeDetails.specie_height), 'decimal-pad')
+                                const convertedHeight = convertMeasurements(treeDetails.specie_height, 'm')
+                                openEdit('height', String(convertedHeight), 'decimal-pad')
                             }}>
                                 <HeightIcon width={14} height={20} style={styles.iconWrapper} />
                                 <Text style={styles.valueLabel}>
-                                    {getConvertedMeasurementText(treeDetails.specie_height, 'm')}
+                                    {convertMeasurements(treeDetails.specie_height, 'm')} {''}
+                                     {isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                 </Text>
                                 {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                             </Pressable>
@@ -424,11 +458,13 @@ const ReviewTreeDetails = () => {
                                 if (showEdit && synced) {
                                     return
                                 }
-                                openEdit('diameter', String(treeDetails.specie_diameter), 'decimal-pad')
+                                const convertedWidth = convertMeasurements(treeDetails.specie_diameter, 'cm')
+                                openEdit('diameter', String(convertedWidth), 'decimal-pad')
                             }}>
                                 <WidthIcon width={18} height={8} style={styles.iconWrapper} />
                                 <Text style={styles.valueLabel}>
-                                    {getConvertedMeasurementText(treeDetails.specie_diameter)}
+                                    {convertMeasurements(treeDetails.specie_diameter, 'cm')} {''}
+                                    {isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
                                 </Text>
                                 {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                             </Pressable>
@@ -610,7 +646,6 @@ const styles = StyleSheet.create({
     },
     valueLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: 16,
         color: Colors.TEXT_COLOR,
     },
     speciesName: {

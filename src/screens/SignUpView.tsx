@@ -418,7 +418,7 @@ const SignUpView = () => {
                             </View>
                         </View>
                         <View style={styles.infoSwitchWrapper}>
-                            <Text style={styles.infoText}>I agree that I many be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.</Text>
+                            <Text style={styles.infoText}>I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.</Text>
                             <View style={styles.switch}>
                                 <Switch
                                     trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}
