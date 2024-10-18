@@ -85,3 +85,31 @@ export const getIsMeasurementRatioCorrect = ({
 
   return roundOffRatio >= minHeightDiameterRatio && roundOffRatio <= maxHeightDiameterRatio;
 };
+
+
+export function convertMeasurements(value, unit, isNonISUCountry) {
+  // Conversion factors
+  const metersToFeet = 3.28084;
+  const cmToInches = 0.393701;
+  
+  // If in a non-ISU country
+  if (isNonISUCountry) {
+    if (unit === 'm') {
+      // Convert meters to feet
+      const feet = (value * metersToFeet).toFixed(2); // rounding to 2 decimal places
+      return `${feet}`;
+    } else if (unit === 'cm') {
+      // Convert centimeters to inches
+      const inches = (value * cmToInches).toFixed(2); // rounding to 2 decimal places
+      return `${inches}`;
+    }
+  } else {
+    // If ISU country, return the value as is
+    if (unit === 'm' || unit === 'cm') {
+      return `${value}`;
+    }
+  }
+
+  // Handle invalid units
+  return `${value}`;
+}

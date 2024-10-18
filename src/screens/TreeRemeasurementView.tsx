@@ -25,7 +25,7 @@ import { RootState } from 'src/store'
 import { SCALE_26, SCALE_36 } from 'src/utils/constants/spacing'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
-import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
+import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import i18next from 'i18next'
 import { measurementValidation } from 'src/utils/constants/measurementValidation'
 import AlertModal from 'src/components/common/AlertModal'
@@ -231,34 +231,7 @@ const TreeRemeasurementView = () => {
         })
     }
 
-    function convertMeasurements(value, unit) {
-        // Conversion factors
-        const metersToFeet = 3.28084;
-        const cmToInches = 0.393701;
-        if (isNonISUCountry) {
-            // Convert based on the unit type
-            if (unit === 'm') {
-                // Convert meters to feet
-                const feet = (value * metersToFeet).toFixed(2); // rounding to 2 decimal places
-                return `${feet}`;
-            } else if (unit === 'cm') {
-                // Convert centimeters to inches
-                const inches = (value * cmToInches).toFixed(2); // rounding to 2 decimal places
-                return `${inches}`;
-            } else {
-                return 'Invalid unit provided'; // Handle invalid units
-            }
-        } else {
-            // If ISU country, return the value as is
-            if (unit === 'm') {
-                return `${value}`;
-            } else if (unit === 'cm') {
-                return `${value}`;
-            } else {
-                return 'Invalid unit provided'; // Handle invalid units
-            }
-        }
-    }
+
 
     const validateData = () => {
         setLoading(true)
@@ -438,7 +411,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={handleHeightChange}
                                     autoFocus
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={convertMeasurements(treeDetails.specie_height,'m')}
+                                    defaultValue={convertMeasurements(treeDetails.specie_height,'m', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                     errMsg={heightErrorMessage} />
                             </View>
@@ -447,7 +420,7 @@ const TreeRemeasurementView = () => {
                                     placeholder={diameterLabel}
                                     changeHandler={handleDiameterChange}
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={convertMeasurements(treeDetails.specie_diameter,'cm')}
+                                    defaultValue={convertMeasurements(treeDetails.specie_diameter,'cm', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
                                     errMsg={widthErrorMessage}
                                     info={i18next.t('label.measurement_diameter_info', {
