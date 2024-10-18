@@ -103,13 +103,6 @@ export function convertMeasurements(value, unit, isNonISUCountry) {
       const inches = (value * cmToInches).toFixed(2); // rounding to 2 decimal places
       return `${inches}`;
     }
-  } else {
-    // If ISU country, return the value as is
-    if (unit === 'm' || unit === 'cm') {
-      return `${value}`;
-    }
   }
-
-  // Handle invalid units
   return `${value}`;
 }
