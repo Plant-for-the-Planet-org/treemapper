@@ -5,6 +5,9 @@ import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
 import * as FileSystem from 'expo-file-system';
 import { FormElement } from "src/types/interface/form.interface";
+import { updateFilePath } from "./fileSystemHelper";
+import sampleTreeBase64 from '../../../assets/images/base64/sampleTree'
+
 
 const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
@@ -18,8 +21,7 @@ const getImageAsBase64 = async (fileUri: string) => {
         });
         return base64;
     } catch (error) {
-        console.error("Error reading file as base64:", error);
-        throw error;
+        return sampleTreeBase64;
     }
 };
 
@@ -131,7 +133,7 @@ export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPaylo
             if (TreeDetails.sloc_id === '') {
                 return null
             }
-            const base64Image = await getImageAsBase64(TreeDetails.image_url)
+            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
             const body = {
                 imageFile: `data:image/png;base64,${base64Image}`,
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
@@ -141,7 +143,6 @@ export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPaylo
         } catch (error) {
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
-
     }
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
@@ -305,7 +306,7 @@ const handleAdditionalData = (aData: FormElement[]) => {
 export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
     try {
         const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_DATA_UPLOAD')
-        const base64Image = await getImageAsBase64(d.image_url)
+        const base64Image = await getImageAsBase64(updateFilePath(d.image_url))
         const postData: any = {
             "type": "measurement",
             "eventDate": postTimeConvertor(getHistory.eventDate),

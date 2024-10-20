@@ -15,7 +15,7 @@ const setAndGetSessionId = async () => {
 }
 
 const defaultHeaders = {
-  "x-accept-versions": "2.0.0",
+  "x-accept-versions": `${Application.nativeApplicationVersion}`,
   "Content-Type": "application/json",
   "User-Agent": `treemapper/${Platform.OS}/${Application.nativeApplicationVersion}`
 }
