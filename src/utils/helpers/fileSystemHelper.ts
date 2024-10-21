@@ -55,6 +55,12 @@ async function compressImage(uri: string, compressValue: number): Promise<string
   }
 }
 
+function replaceId(originalString) {
+   // Use a regular expression to match everything up to and including "/Documents"
+   const updatedString = originalString.replace(/.*\/Documents/, '');
+   return `${FileSystem.documentDirectory}${updatedString}`;
+}
+
 // Function to update old paths by removing everything before '/TreeMapper' and adding RNFS.DocumentDirectoryPath
 export function updateFilePath(oldPath) {
   // Find the position of '/TreeMapper' in the old path
@@ -69,9 +75,10 @@ export function updateFilePath(oldPath) {
     const newPath = `${RNFS.DocumentDirectoryPath}${relativePath}`;
 
     return Platform.OS==='android'?`file://${newPath}`:newPath;
-  } else {
-    // If '/TreeMapper' is not found, return the original path (or handle the error)
-    console.error("Path does not contain '/TreeMapper':", oldPath);
+  } else {  
+    if(Platform.OS==='ios'){
+      return replaceId(oldPath)
+    }
     return oldPath;
   }
 }
