@@ -191,11 +191,13 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
         }
         if (uType === 'tpo' && !d.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
-        } else {
+        }
+
+        if (uType === 'tpo' && d.project_id) {
             postData.plantProject = d.project_id
         }
 
-        if (d.site_id && d.site_id !== 'other') {
+        if (uType === 'tpo' && d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {
@@ -263,11 +265,13 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
         if (uType === 'tpo' && !i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
-        } else {
-            postData.plantProject = i.project_id
         }
 
-        if (i.site_id && i.site_id !== 'other') {
+        if (uType === 'tpo' && d.project_id) {
+            postData.plantProject = d.project_id
+        }
+
+        if (uType === 'tpo'  && i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {
