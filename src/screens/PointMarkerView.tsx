@@ -47,7 +47,7 @@ const PointMarkerView = () => {
       <PointMarkerMap interventionKey={interventionData.intervention_key} form_id={interventionData.form_id || interventionData.intervention_id} tree_details={interventionData.sample_trees} />
       <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
       <UserlocationMarker stopAutoFocus />
-      <LocationPermissionModal required />
+      <LocationPermissionModal/>
     </SafeAreaView>
   )
 }

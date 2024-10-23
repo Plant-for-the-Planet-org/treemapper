@@ -1,44 +1,50 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { PermissionBlockedAlert } from '../common/LocationPermissionAlerts'
-import { useDispatch, useSelector } from 'react-redux'
-import { updateBlockerModal } from 'src/store/slice/gpsStateSlice'
-import { RootState } from 'src/store'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
+import * as Location from 'expo-location';
+import { useDispatch } from 'react-redux'
+import { updateUserLocation } from 'src/store/slice/gpsStateSlice'
 
 
-interface Props {
-    required?: boolean
-}
 
-const LocationPermissionModal = (props: Props) => {
-    const { required } = props
-    const showAlertModal = useSelector((state: RootState) => state.gpsState.showBlockerModal)
-    const dispatch = useDispatch()
+const LocationPermissionModal = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+    const [showBlockModal, setShowBlockModal] = useState(false)
+    const dispatch = useDispatch()
+    useEffect(() => {
+        checkForGpsPermission()
+    }, [])
 
-    if (!showAlertModal) {
+    const checkForGpsPermission = async () => {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+            setShowBlockModal(true)
+        }
+    }
+
+
+
+    if (!showBlockModal) {
         return null
     }
     const handlePrimaryBtn = () => {
         return null
     }
+
     const handleSecondaryBtn = () => {
-        if (required) {
-            dispatch(updateBlockerModal(false))
-            setTimeout(() => {
-                navigation.goBack()
-            }, 300);
-        } else {
-            dispatch(updateBlockerModal(false))
-        }
+        setShowBlockModal(false)
+        setTimeout(() => {
+            navigation.goBack()
+        }, 500);
+        dispatch(updateUserLocation([0,0]))
         return null
     }
 
     return (
         <PermissionBlockedAlert
-            isPermissionBlockedAlertShow={showAlertModal}
+            isPermissionBlockedAlertShow={showBlockModal}
             setIsPermissionBlockedAlertShow={() => null}
             onPressPrimaryBtn={handlePrimaryBtn}
             onPressSecondaryBtn={handleSecondaryBtn}

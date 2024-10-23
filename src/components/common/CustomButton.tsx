@@ -7,7 +7,7 @@ import {
   View,
   ActivityIndicator,
 } from 'react-native'
-import React from 'react'
+import React, { ReactNode } from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import FadeBackground from './FadeBackground'
@@ -15,7 +15,7 @@ import AddIcon from 'assets/images/svg/AddIcon.svg'
 import ArrowDownIcon from 'assets/images/svg/ShowDownIcon.svg'
 
 interface Props {
-  label: string
+  label: string | ReactNode
   pressHandler: () => void
   containerStyle?: ViewStyle
   labelStyle?: TextStyle
@@ -27,6 +27,7 @@ interface Props {
   showAdd?: boolean
   showDown?: boolean
   grayOut?: boolean
+  rightIcon?: React.ReactNode
 }
 
 const CustomButton = (props: Props) => {
@@ -42,7 +43,8 @@ const CustomButton = (props: Props) => {
     hideFadeIn,
     showAdd,
     showDown,
-    grayOut
+    grayOut,
+    rightIcon
   } = props
 
   const handlePress = () => {
@@ -86,6 +88,8 @@ const CustomButton = (props: Props) => {
           </View>
         )}
         {leftIcon && <View style={styles.leftIconWrapper}>{leftIcon}</View>}
+        {rightIcon && <View style={styles.rightIconWrapper}>{rightIcon}</View>}
+
       </View>
     </TouchableOpacity>
   )
@@ -119,6 +123,10 @@ const styles = StyleSheet.create({
   leftIconWrapper: {
     position: 'absolute',
     left: 20,
+  },
+  rightIconWrapper: {
+    position: 'absolute',
+    right: '5%',
   },
   labelWrapper: {
     flex: 1,

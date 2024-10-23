@@ -12,6 +12,7 @@ import { RootState } from 'src/store';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearImageSize } from 'src/store/slice/appStateSlice';
 import { Colors, Typography } from 'src/utils/constants';
+import { updateFilePath } from 'src/utils/helpers/fileSystemHelper';
 
 
 const InterventionHeader = () => {
@@ -43,7 +44,7 @@ const InterventionHeader = () => {
         });
 
         syncedImagesData.forEach(async d => {
-            const result = await deleteImageFile(d.image_url)
+            const result = await deleteImageFile(updateFilePath(d.image_url))
             if (result) {
                 addNewLog({
                     logType: 'DATA_SYNC',

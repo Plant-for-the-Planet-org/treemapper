@@ -29,7 +29,7 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     // stores the destination path in which image should be stored
     const outputPath = isSpecies ? `${FileSystem.documentDirectory}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
     // stores the path from which the image should be copied
-    const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`;
+    const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`; //TESTING
     const compFile = await compressImage(inputPath, 0.7)
     await RNFS.copyFile(compFile, outputPath);
     return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;
@@ -52,5 +52,33 @@ async function compressImage(uri: string, compressValue: number): Promise<string
   } catch (error) {
     console.error('Error compressing image:', error);
     return '';
+  }
+}
+
+function replaceId(originalString) {
+   // Use a regular expression to match everything up to and including "/Documents"
+   const updatedString = originalString.replace(/.*\/Documents/, '');
+   return `${FileSystem.documentDirectory}${updatedString}`;
+}
+
+// Function to update old paths by removing everything before '/TreeMapper' and adding RNFS.DocumentDirectoryPath
+export function updateFilePath(oldPath) {
+  // Find the position of '/TreeMapper' in the old path
+  const treeMapperIndex = oldPath.indexOf('/TreeMapper');
+
+  // If '/TreeMapper' is found in the path
+  if (treeMapperIndex !== -1) {
+    // Extract the part after '/TreeMapper'
+    const relativePath = oldPath.substring(treeMapperIndex);
+
+    // Prepend RNFS.DocumentDirectoryPath to construct the new path
+    const newPath = `${RNFS.DocumentDirectoryPath}${relativePath}`;
+
+    return Platform.OS==='android'?`file://${newPath}`:newPath;
+  } else {  
+    if(Platform.OS==='ios'){
+      return replaceId(oldPath)
+    }
+    return oldPath;
   }
 }

@@ -25,7 +25,7 @@ import { RootState } from 'src/store'
 import { SCALE_26, SCALE_36 } from 'src/utils/constants/spacing'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
-import { getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
+import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
 import i18next from 'i18next'
 import { measurementValidation } from 'src/utils/constants/measurementValidation'
 import AlertModal from 'src/components/common/AlertModal'
@@ -232,13 +232,6 @@ const TreeRemeasurementView = () => {
     }
 
 
-    const getConvertedMeasurementText = (measurement: any): string => {
-        const isNonISUCountry: boolean = nonISUCountries.includes(Country);
-        if (measurement && isNonISUCountry) {
-            return `${Math.round(Number(measurement) * 1000) / 1000}`;
-        }
-        return String(measurement);
-    };
 
     const validateData = () => {
         setLoading(true)
@@ -346,18 +339,18 @@ const TreeRemeasurementView = () => {
         }
     }
 
-    const handleOptimalAlertAccept = () => {
-        setShowOptimalAlert(false);
-        setLoading(false);
-    };
 
-    const handleOptimalAlertReject = () => {
-        setShowOptimalAlert(false);
+    const acceptOptimalAlert=()=>{
+        setShowOptimalAlert(false)
+        setLoading(false)
+    }
+
+    const rejectOptimalAlert=()=>{
+        setShowOptimalAlert(false)
         setTimeout(() => {
-            submitHandler();
-        }, 1000);
-    };
-
+            submitHandler()
+        }, 1000)
+    }
 
 
     if (!treeDetails) {
@@ -366,18 +359,17 @@ const TreeRemeasurementView = () => {
 
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
-
-    const handleAcceptAccuracyAlert = () => {
+    const acceptAccuracyAlert=()=>{
         setShowAccuracyModal(false)
         setLoading(false)
-    };
+    }
 
-    const handleRejectAccuracyAlert = () => {
+    const rejectAccuracyAlert=()=>{
         setShowAccuracyModal(false)
         setTimeout(() => {
             submitHandler(true)
         }, (300));
-    };
+    }
 
 
 
@@ -419,7 +411,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={handleHeightChange}
                                     autoFocus
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_height)}
+                                    defaultValue={convertMeasurements(treeDetails.specie_height,'m', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                     errMsg={heightErrorMessage} />
                             </View>
@@ -428,7 +420,7 @@ const TreeRemeasurementView = () => {
                                     placeholder={diameterLabel}
                                     changeHandler={handleDiameterChange}
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={getConvertedMeasurementText(treeDetails.specie_diameter)}
+                                    defaultValue={convertMeasurements(treeDetails.specie_diameter,'cm', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
                                     errMsg={widthErrorMessage}
                                     info={i18next.t('label.measurement_diameter_info', {
@@ -466,8 +458,8 @@ const TreeRemeasurementView = () => {
                     <AlertModal
                         showSecondaryButton
                         visible={showOptimalAlert}
-                        onPressPrimaryBtn={handleOptimalAlertAccept}
-                        onPressSecondaryBtn={handleOptimalAlertReject}
+                        onPressPrimaryBtn={acceptOptimalAlert}
+                        onPressSecondaryBtn={rejectOptimalAlert}
                         heading={i18next.t('label.not_optimal_ratio')}
                         secondaryBtnText={i18next.t('label.continue')}
                         primaryBtnText={i18next.t('label.check_again')}
@@ -497,8 +489,8 @@ const TreeRemeasurementView = () => {
                 message={"Your device is more than 20 meters away from the tree you are remeasuring. Do you still want to submit the data?"}
                 primaryBtnText={'cancel'}
                 secondaryBtnText={'Continue'}
-                onPressPrimaryBtn={handleAcceptAccuracyAlert}
-                onPressSecondaryBtn={handleRejectAccuracyAlert}
+                onPressPrimaryBtn={acceptAccuracyAlert}
+                onPressSecondaryBtn={rejectAccuracyAlert}
                 showSecondaryButton={true}
             />
         </SafeAreaView>

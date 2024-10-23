@@ -15,7 +15,7 @@ const setAndGetSessionId = async () => {
 }
 
 const defaultHeaders = {
-  "x-accept-versions": "2.0.0",
+  "x-accept-versions": `${Application.nativeApplicationVersion}`,
   "Content-Type": "application/json",
   "User-Agent": `treemapper/${Platform.OS}/${Application.nativeApplicationVersion}`
 }
@@ -45,7 +45,6 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     const response = await fetch(uri, options);
     const responseJson = await response.json();
-
     if (response.status === 303) {
       return { response: { signUpRequire: true }, success: true, status: response.status, extra: {} }
     }
@@ -62,4 +61,4 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 export const fetchPostCall = (uri: string, params: any, authRequire?: boolean) => fetchCall('POST', uri, params, authRequire);
 export const fetchGetCall = (uri: string, authRequire: boolean) => fetchCall('GET', uri, null, authRequire);
 export const fetchPutCall = (uri: string, params: any) => fetchCall('PUT', uri, params);
-export const fetchDeleteCall = (uri: string) => fetchCall('DELETE', uri,{});
+export const fetchDeleteCall = (uri: string) => fetchCall('DELETE', uri, {}, true);

@@ -39,6 +39,8 @@ import RemeasurementIconScalable from 'assets/images/svg/RemeasurementIconScalab
 import PlantHistory from './PlantHistoryView'
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import { convertMeasurements, getConvertedDiameter, getConvertedHeight } from 'src/utils/constants/measurements'
+import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 
 
 type EditLabels = 'height' | 'diameter' | 'treetag' | '' | 'species' | 'date'
@@ -71,6 +73,7 @@ const ReviewTreeDetails = () => {
         i18next.t('label.tree_inventory_input_error_message'),
     );
     const [showDeleteTree, setShowDeleteTree] = useState(false)
+    const isNonISUCountry: boolean = nonISUCountries.includes(Country);
 
     useEffect(() => {
         if (!editTree) {
@@ -175,7 +178,10 @@ const ReviewTreeDetails = () => {
                         setShowIncorrectRatioAlert(true);
                         hasError = true
                     } else {
-                        finalDetails.specie_height = Number(openEditModal.value)
+                        finalDetails.specie_height = getConvertedHeight(
+                            Number(openEditModal.value),
+                            isNonISUCountry
+                        )
                     }
                 }
             } else {
@@ -202,7 +208,10 @@ const ReviewTreeDetails = () => {
                         setShowIncorrectRatioAlert(true);
                         hasError = true
                     } else {
-                        finalDetails.specie_diameter = Number(openEditModal.value)
+                        finalDetails.specie_diameter = getConvertedDiameter(
+                            Number(openEditModal.value),
+                            isNonISUCountry
+                        )
                     }
                 }
             } else {
@@ -228,14 +237,20 @@ const ReviewTreeDetails = () => {
         switch (openEditModal.label) {
             case 'height':
                 if (!validate) {
-                    finalDetails.specie_height = Number(openEditModal.value)
+                    finalDetails.specie_height = getConvertedHeight(
+                        Number(openEditModal.value),
+                        isNonISUCountry
+                    )
                 } else {
                     handleHeightValidation()
                 }
                 break;
             case 'diameter':
                 if (!validate) {
-                    finalDetails.specie_diameter = Number(openEditModal.value)
+                    finalDetails.specie_diameter = getConvertedDiameter(
+                        Number(openEditModal.value),
+                        isNonISUCountry
+                    )
                 } else {
                     handleDiameterValidation()
                 }
@@ -319,20 +334,6 @@ const ReviewTreeDetails = () => {
     const headerLabel = editTree ? i18next.t("label.tree_details") : i18next.t("label.review_tree_details")
     const showEdit = editTree || treeDetails.tree_id
 
-    const getConvertedMeasurementText = (measurement: any, unit: 'cm' | 'm' = 'cm'): string => {
-        let text = i18next.t('label.tree_review_unable');
-        const isNonISUCountry: boolean = nonISUCountries.includes(Country);
-
-        if (measurement && isNonISUCountry) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${i18next.t(
-                unit === 'cm' ? 'label.select_species_inches' : 'label.select_species_feet',
-            )} `;
-        } else if (measurement) {
-            text = ` ${Math.round(Number(measurement) * 1000) / 1000} ${unit} `;
-        }
-        return text;
-    };
-
     const handleRatioPrimary = () => {
         setShowIncorrectRatioAlert(false);
         setOpenEditModal({ label: '', value: '', type: 'default', open: false });
@@ -372,6 +373,8 @@ const ReviewTreeDetails = () => {
         return null
     }
 
+
+
     return (
         <SafeAreaView style={styles.container}>
             {remeasurementIcon()}
@@ -385,7 +388,7 @@ const ReviewTreeDetails = () => {
             <ScrollView>
                 <View style={styles.container}>
                     <InterventionCoverImage
-                        image={treeDetails.cdn_image_url || treeDetails.image_url} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0}
+                        image={treeDetails.cdn_image_url || updateFilePath(treeDetails.image_url)} interventionID={treeDetails.intervention_id} tag={'EDIT_SAMPLE_TREE'} treeId={treeDetails.tree_id} isCDN={treeDetails.cdn_image_url.length > 0}
                         isLegacy={Intervention.is_legacy}
                         showEdit={!synced || treeDetails.status === 'PENDING_TREE_IMAGE' || !editTree} />
                     <View style={styles.metaWrapper}>
@@ -409,11 +412,13 @@ const ReviewTreeDetails = () => {
                                 if (showEdit && synced) {
                                     return
                                 }
-                                openEdit('height', String(treeDetails.specie_height), 'decimal-pad')
+                                const convertedHeight = convertMeasurements(treeDetails.specie_height, 'm', isNonISUCountry)
+                                openEdit('height', String(convertedHeight), 'decimal-pad')
                             }}>
                                 <HeightIcon width={14} height={20} style={styles.iconWrapper} />
                                 <Text style={styles.valueLabel}>
-                                    {getConvertedMeasurementText(treeDetails.specie_height, 'm')}
+                                    {convertMeasurements(treeDetails.specie_height, 'm', isNonISUCountry)} {''}
+                                    {isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                 </Text>
                                 {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                             </Pressable>
@@ -424,11 +429,13 @@ const ReviewTreeDetails = () => {
                                 if (showEdit && synced) {
                                     return
                                 }
-                                openEdit('diameter', String(treeDetails.specie_diameter), 'decimal-pad')
+                                const convertedWidth = convertMeasurements(treeDetails.specie_diameter, 'cm', isNonISUCountry)
+                                openEdit('diameter', String(convertedWidth), 'decimal-pad')
                             }}>
                                 <WidthIcon width={18} height={8} style={styles.iconWrapper} />
                                 <Text style={styles.valueLabel}>
-                                    {getConvertedMeasurementText(treeDetails.specie_diameter)}
+                                    {convertMeasurements(treeDetails.specie_diameter, 'cm', isNonISUCountry)} {''}
+                                    {isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
                                 </Text>
                                 {showEdit && !synced ? <PenIcon style={styles.editIconWrapper} /> : null}
                             </Pressable>
@@ -610,7 +617,6 @@ const styles = StyleSheet.create({
     },
     valueLabel: {
         fontFamily: Typography.FONT_FAMILY_REGULAR,
-        fontSize: 16,
         color: Colors.TEXT_COLOR,
     },
     speciesName: {

@@ -13,6 +13,7 @@ export const postUrlApi = {
   signupService: `${https}${baseUrl}/app/profile`,
   updateProjectInF: `${https}${baseUrl}/app/projects`,
   createNewSite:`${https}${baseUrl}/app/projects`,
+  deleteAccount:`${https}${baseUrl}/app/profile`,
 };
 
 export const getUrlApi = {

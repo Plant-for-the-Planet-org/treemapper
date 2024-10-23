@@ -9,7 +9,7 @@ export type DATA_VISIBILITY = 'public' | 'private' | 'app'
 
 export type MAP_BOUNDS = "DISPLAY_MAP" | "POINT_MAP" | "POLYGON_MAP" | "PREVIEW_MAP" | "UNKNOWN"
 
-export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory' | 'language'
+export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_projects' | 'additional_data' | 'offline_map' | 'data_explorer' | 'activity_log' | 'inventory' | 'language' | 'delete'
 
 
 export type INTERVENTION_STATUS = 'SYNCED' | 'INITIALIZED' | 'PENDING_DATA_UPLOAD' | 'PENDING_SAMPLE_TREE' | "PENDING_TREE_IMAGE" | "PENDING_REMEASUREMENT_SYNC" | "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"

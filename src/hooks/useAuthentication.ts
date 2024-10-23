@@ -1,11 +1,9 @@
-import Auth0, { Credentials, useAuth0 } from 'react-native-auth0'
+import { Credentials, useAuth0 } from 'react-native-auth0'
 import useInterventionManagement from './realm/useInterventionManagement'
 import useProjectManagement from './realm/useProjectManagement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
 import Bugsnag from '@bugsnag/expo'
 import useLogManagement from './realm/useLogManagement'
-
-const auth0 = new Auth0({ domain: process.env.EXPO_PUBLIC_AUTH0_DOMAIN, clientId: process.env.EXPO_PUBLIC_CLIENT_ID_AUTH0 });
 
 
 const useAuthentication = () => {
@@ -91,7 +89,7 @@ const useAuthentication = () => {
 
   const refreshUserToken = async (refreshToken: string) => {
     try {
-      const result = await auth0.auth.refreshToken({ refreshToken })
+      const result = await getCredentials(refreshToken)
       addNewLog({
         logType: 'USER',
         message: 'Refresh token generated successfully.',
@@ -107,7 +105,6 @@ const useAuthentication = () => {
         statusCode: '',
         logStack: JSON.stringify(error)
       })
-      Bugsnag.notify(error)
       return null
     }
   }
