@@ -267,8 +267,8 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'tpo' && d.project_id) {
-            postData.plantProject = d.project_id
+        if (uType === 'tpo' && i.project_id) {
+            postData.plantProject = i.project_id
         }
 
         if (uType === 'tpo'  && i.site_id && i.site_id !== 'other') {
