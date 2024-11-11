@@ -89,10 +89,9 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: true,
+      coming_soon: false,
       onPress: () => {
-        toast.hideAll()
-        toast.show(i18next.t('label.coming_soon'))
+        navigation.navigate('CreatePlot')
         props.setVisible(false)
       },
       disabled: false,
