@@ -74,6 +74,7 @@ const CreatePlotView = () => {
             <CustomButton
                 label={i18next.t('label.continue')}
                 containerStyle={styles.btnContainer}
+                wrapperStyle={{width:'92%'}}
                 pressHandler={handleNav}
                 hideFadeIn
             />
@@ -103,6 +104,6 @@ const styles = StyleSheet.create({
         height: 50,
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: '5%'
+        marginRight: '3%'
     }
 })

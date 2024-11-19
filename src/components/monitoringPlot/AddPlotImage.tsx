@@ -105,9 +105,9 @@ const styles = StyleSheet.create({
     },
     emptyImageContainer: {
         height: scaleSize(130),
-        backgroundColor: Colors.NEW_PRIMARY + '1A',
+        backgroundColor: 'rgba(0,122,73,0.2)',
         borderRadius: 12,
-        borderColor: '#86C059',
+        borderColor: 'rgb(0,122,73)',
         borderWidth: 2,
         borderStyle: 'dashed',
         justifyContent: 'center',

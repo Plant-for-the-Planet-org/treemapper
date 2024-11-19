@@ -182,7 +182,7 @@ const CreatePlotDetailsView = () => {
                     style={styles.container}>
                     <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                     <View style={styles.wrapper}>
-                        <View style={{ paddingHorizontal: 20 }}>
+                        <View style={{ paddingHorizontal: '3%' }}>
                             <AddPlotImage image={plotImage} plotID={plotID} />
                             <OutlinedTextInput
                                 placeholder={i18next.t('label.plot_name')}
@@ -231,6 +231,7 @@ const CreatePlotDetailsView = () => {
             <CustomButton
                 label={i18next.t('label.create')}
                 containerStyle={styles.btnContainer}
+                wrapperStyle={{width:'92%'}}
                 pressHandler={submitHandler}
                 hideFadeIn
             />
@@ -259,10 +260,10 @@ const styles = StyleSheet.create({
         bottom: 30,
     },
     infoWrapper: {
-        marginRight: '5%'
+        marginRight: '3%'
     },
     noteWrapper: {
-        marginHorizontal: '5%',
+        marginHorizontal: '3%',
         fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.TEXT_LIGHT,
         letterSpacing: 0.4,
