@@ -273,7 +273,7 @@ const InterventionFormView = () => {
       el => el.id === registerForm.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
     return [newCoords]
   }
 
