@@ -122,10 +122,10 @@ const InterventionPreviewView = () => {
           const publicKey = formatString(el.key)
           updatedMetadata.public = {
             ...updatedMetadata.public, [publicKey]: {
-              "key": "more-info",
-              "originalKey": "more-info",
+              "key": publicKey,
+              "originalKey": publicKey,
               "value": el.value,
-              "label": "More Info",
+              "label": el.key,
               "type": "input",
               "unit": "",
               "visibility": "public",
