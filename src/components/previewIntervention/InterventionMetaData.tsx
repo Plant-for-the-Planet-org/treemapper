@@ -21,19 +21,20 @@ const InterventionMetaData = (props: Props) => {
 
   const convertData = () => {
     const checkForPublic: { value: string; key: string }[] = [];
-  
     if (typeof data === 'string') {
       const parsedData = JSON.parse(data);
-      
       if (parsedData?.public && typeof parsedData.public === 'object' && !Array.isArray(parsedData.public)) {
-        Object.entries(parsedData.public).forEach(([key, value]) => {
+        Object.entries(parsedData.public).forEach(([key, value]: [string, { value: string, label: string }]) => {
           if (key !== 'isEntireSite' && typeof value === 'string') {
             checkForPublic.push({ value, key });
+          }
+          if (key !== 'isEntireSite' && typeof value !== 'string' && value.value && value.label) {
+            checkForPublic.push({ value: value.value, key: value.label });
           }
         });
       }
     }
-    
+
     setAdditionalData(checkForPublic);
   };
 
