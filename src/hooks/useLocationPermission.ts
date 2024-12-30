@@ -67,7 +67,6 @@ const useLocationPermission = () => {
 
 
   const requestLocationPermission = async () => {
-    await Location.enableNetworkProviderAsync()
     await requestForegroundPermissionsAsync()
   }
 
