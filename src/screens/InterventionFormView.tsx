@@ -133,7 +133,7 @@ const InterventionFormView = () => {
         const site = ProjectData.sites.find(el => el.id === sid);
         if (!site?.geometry) return; // Using optional chaining here
         const parsedGeometry = JSON.parse(site.geometry);
-        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1);
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0]);
         updateBounds(newCoords);
       }
     } catch (error) {
