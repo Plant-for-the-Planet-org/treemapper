@@ -64,7 +64,6 @@ const InterventionCard = (props: Props) => {
       item={item}
       overSwipe={OVERSWIPE_DIST}
       renderUnderlayLeft={() => (swipeableLeftComp())}
-      renderUnderlayRight={() => <Text>Right</Text>}
       snapPointsLeft={item.status=== 'SYNCED'?[100]:[150]}
       snapPointsRight={[0]}
     >
