@@ -200,6 +200,9 @@ const getEntireSiteCheck = (data: any) => {
         if (typeof publicData === 'object' && publicData !== null && !Array.isArray(publicData)) {
             for (const key in publicData) {
                 if (key == 'isEntireSite') {  // optional: ensure the property is not inherited
+                    if (publicData[key] === 'false' || publicData[key] === false) {
+                        return false
+                    }
                     return true
                 }
             }
