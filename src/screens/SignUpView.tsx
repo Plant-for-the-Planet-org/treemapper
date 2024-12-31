@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TextInput, View, Switch, TouchableOpacity, Image } from 'react-native'
+import { ScrollView, StyleSheet, Text, TextInput, View, Switch, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import Header from 'src/components/common/Header'
@@ -26,6 +26,7 @@ import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { useToast } from 'react-native-toast-notifications'
 import { RootState } from 'src/store'
 import i18next from 'i18next'
+import * as ExpoImage from 'expo-image';
 
 
 
@@ -345,11 +346,11 @@ const SignUpView = () => {
                         <Text style={styles.countryTitle}>Country</Text>
                         <TouchableOpacity style={styles.countryWrapper} onPress={() => { setModalVisible(!modalVisible) }}>
                             {!!country?.countryCode && <View style={styles.countryFlag}>
-                                <Image
+                                <ExpoImage.Image
                                     source={{
                                         uri: `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png`
                                     }}
-                                    resizeMode="contain"
+                                    contentFit="contain"
                                     style={styles.countryFlag}
                                 />
                             </View>}

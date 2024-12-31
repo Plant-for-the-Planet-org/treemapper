@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import {ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants'
@@ -33,7 +33,7 @@ import DeleteModal from 'src/components/common/DeleteModal'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { point } from '@turf/helpers';
 import distance from '@turf/distance';
-
+import * as ExpoImage from 'expo-image'
 
 const PredefineReasons: Array<{
     label: string
@@ -397,7 +397,7 @@ const TreeRemeasurementView = () => {
                         />
                         {isAlive ? <>
                             {!!imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
-                                <Image
+                                <ExpoImage.Image
                                     source={{
                                         uri: imageUri,
                                     }}

@@ -1,6 +1,6 @@
 import React from 'react'
 import i18next from 'src/locales/index'
-import { StyleSheet, Text, TouchableOpacity, View, Image } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import { Typography, Colors } from 'src/utils/constants'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import PinkHeart from 'assets/images/svg/PinkHeart.svg'
@@ -9,6 +9,7 @@ import { SCALE_30 } from 'src/utils/constants/spacing'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { PlantedSpecies } from 'src/types/interface/slice.interface'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import * as ExpoImage from 'expo-image';
 
 interface SpecieCardProps {
   item: PlantedSpecies | IScientificSpecies
@@ -46,7 +47,8 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
           onPress={handlePress}>
           <View style={styles.imageCon}>
             {item.image ? (
-              <Image
+              <ExpoImage.Image
+                cachePolicy='memory-disk'
                 source={{
                   uri: item.image.includes('/') ? `${item.image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
                 }}
