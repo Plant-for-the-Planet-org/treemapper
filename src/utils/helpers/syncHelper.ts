@@ -288,7 +288,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {
-        return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
+        return { pData: null, message: "Unknown error occurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
 }
 
@@ -298,10 +298,30 @@ const handleAdditionalData = (aData: FormElement[]) => {
     const publicAdd = {}
     aData.forEach(el => {
         if (el.visibility === 'private') {
-            privateAdd[el.label] = el.value
+            privateAdd[el.key] = {
+                "key": el.key,
+                "originalKey":el.element_id,
+                "value":el.value,
+                "label":el.label,
+                "type":el.type,
+                "unit":el.unit,
+                "visibility":"private",
+                "dataType":el.data_type,
+                "elementType":"additionalData"
+            };
         }
         if (el.visibility === 'public') {
-            publicAdd[el.label] = el.value
+            publicAdd[el.key] = {
+                "key": el.key,
+                "originalKey":el.element_id,
+                "value":el.value,
+                "label":el.label,
+                "type":el.type,
+                "unit":el.unit,
+                "visibility":"public",
+                "dataType":el.data_type,
+                "elementType":"additionalData"
+            };
         }
     })
     return { privateAdd, publicAdd }

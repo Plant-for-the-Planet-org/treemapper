@@ -1,10 +1,10 @@
-import { Image, StyleSheet, View, TouchableOpacity, Text } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-
+import * as ExpoImage from 'expo-image';
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -54,7 +54,7 @@ const InterventionCoverImage = (props: Props) => {
     updateSampleTreeImage(interventionID, treeId, '')
   }
 
-  if(image===''){
+  if (image === '') {
     return null
   }
 
@@ -69,7 +69,7 @@ const InterventionCoverImage = (props: Props) => {
         {!treeId && <TouchableOpacity style={styles.editBinWrapper} onPress={clearImage}>
           <BinIcon width={15} height={15} fill={Colors.TEXT_COLOR} />
         </TouchableOpacity>}
-        <Image source={{ uri: uri }} style={styles.imageWrapper} />
+        <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: uri }} style={styles.imageWrapper} />
       </View>}
       {uri.length === 0 && <View style={styles.emptyContainer}>
         {!isCDN && <TouchableOpacity style={styles.editIconWrapper} onPress={editImage}>

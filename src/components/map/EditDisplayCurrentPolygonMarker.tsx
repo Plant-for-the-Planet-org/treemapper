@@ -3,6 +3,7 @@ import React from 'react'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
 import BackIcon from 'assets/images/svg/BackIcon.svg'
+import i18next from 'i18next'
 
 interface Props {
 
@@ -15,8 +16,8 @@ const EditDisplayCurrentPolygonMarker = (props: Props) => {
     <View style={styles.container}>
       <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>
       <View style={styles.wrapper}>
-        <Text style={styles.label}>Corner</Text>
-        <Text style={styles.note}>Please select the point and drag</Text>
+        <Text style={styles.label}>{i18next.t("label.corner")}</Text>
+        <Text style={styles.note}>{i18next.t("label.please_drag_point")}</Text>
       </View>
     </View>
   )

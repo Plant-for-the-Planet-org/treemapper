@@ -18,22 +18,38 @@ const InterventionMetaData = (props: Props) => {
     convertData()
   }, [data])
 
+  function isJsonString(str) {
+    try {
+      const parsed = JSON.parse(str);
+      return typeof parsed === 'object' && parsed !== null;
+    } catch (e) {
+      return false;
+    }
+  }
+
 
   const convertData = () => {
     const checkForPublic: { value: string; key: string }[] = [];
-  
     if (typeof data === 'string') {
       const parsedData = JSON.parse(data);
-      
       if (parsedData?.public && typeof parsedData.public === 'object' && !Array.isArray(parsedData.public)) {
-        Object.entries(parsedData.public).forEach(([key, value]) => {
+        Object.entries(parsedData.public).forEach(([key, value]: [string, { value: string , label: string }]) => {
           if (key !== 'isEntireSite' && typeof value === 'string') {
             checkForPublic.push({ value, key });
+          }
+          if (key !== 'isEntireSite' && typeof value !== 'string' && value.value && value.label) {
+            if (isJsonString(value.value)) {
+              const parsedData = JSON.parse(value.value)
+              if (JSON.parse(value.value))
+                checkForPublic.push({ value: parsedData.value, key: value.label });
+            } else {
+              checkForPublic.push({ value: value.value, key: value.label });
+            }
           }
         });
       }
     }
-    
+
     setAdditionalData(checkForPublic);
   };
 

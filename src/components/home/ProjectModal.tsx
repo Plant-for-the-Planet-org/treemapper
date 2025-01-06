@@ -181,7 +181,7 @@ const ProjectModal = (props: Props) => {
       )
       try {
         const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
         const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
         const bounds = bbox(geoJSON)
         dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))

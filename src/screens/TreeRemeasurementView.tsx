@@ -1,4 +1,4 @@
-import { Image, ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import {ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants'
@@ -33,7 +33,7 @@ import DeleteModal from 'src/components/common/DeleteModal'
 import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { point } from '@turf/helpers';
 import distance from '@turf/distance';
-
+import * as ExpoImage from 'expo-image'
 
 const PredefineReasons: Array<{
     label: string
@@ -134,6 +134,8 @@ const TreeRemeasurementView = () => {
 
     const handleSkip = async () => {
         setShowSkipModal(false)
+        const updatedHeight = height.replace(/,/g, '.');
+        const updatedWidth = width.replace(/,/g, '.');
         const { lat, long } = getUserLocation()
         const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
         const param: History = {
@@ -143,11 +145,11 @@ const TreeRemeasurementView = () => {
             imageUrl: imageUri,
             cdnImageUrl: '',
             diameter: isAlive ? getConvertedDiameter(
-                width,
+                updatedWidth,
                 isNonISUCountry,
             ) : treeDetails.specie_diameter,
             height: isAlive ? getConvertedHeight(
-                height,
+                updatedHeight,
                 isNonISUCountry,
             ) : treeDetails.specie_height,
             appMetadata: '',
@@ -193,11 +195,12 @@ const TreeRemeasurementView = () => {
     const handleHeightChange = (text: string) => {
         setHeightErrorMessage('');
         const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-        const isValid = regex.test(text)
+        const updatedHeight = text.replace(/,/g, '.');
+        const isValid = regex.test(updatedHeight)
         // Ensure there is at most one decimal point
         if (isValid) {
             setHeight(text);
-            const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+            const convertedHeight = height ? getConvertedHeight(updatedHeight, isNonISUCountry) : 0;
             if (convertedHeight < DBHInMeter) {
                 setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
             } else {
@@ -211,9 +214,10 @@ const TreeRemeasurementView = () => {
     const handleDiameterChange = (text: string) => {
         setWidthErrorMessage('');
         const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-        const isValid = regex.test(text)
+        const updatedWidth = text.replace(/,/g, '.');
+        const isValid = regex.test(updatedWidth)
         if (isValid) {
-            setWidth(text);
+            setWidth(updatedWidth);
         } else {
             setWidthErrorMessage('Please provide the correct diameter.')
         }
@@ -273,8 +277,11 @@ const TreeRemeasurementView = () => {
     }
 
     const submitHandler = async (gpsValidated?: boolean) => {
-        const finalHeight = height || treeDetails.specie_height
-        const finalWidth = width || treeDetails.specie_diameter
+        const updatedHeight = height.replace(/,/g, '.');
+        const updatedWidth = width.replace(/,/g, '.');
+
+        const finalHeight = updatedHeight || treeDetails.specie_height
+        const finalWidth = updatedWidth || treeDetails.specie_diameter
         const { lat, long } = getUserLocation()
         const isWithin20m = isWithinRange(lat, long, treeDetails.latitude, treeDetails.longitude)
 
@@ -390,7 +397,7 @@ const TreeRemeasurementView = () => {
                         />
                         {isAlive ? <>
                             {!!imageUri && <View style={styles.imageWrapper}><View style={styles.imageContainer}>
-                                <Image
+                                <ExpoImage.Image
                                     source={{
                                         uri: imageUri,
                                     }}

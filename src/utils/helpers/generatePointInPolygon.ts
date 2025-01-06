@@ -1,6 +1,3 @@
-import seedrandom from 'seedrandom';
-
-
 /**
  * Generates a random point coordinate within a given polygon.
  *
@@ -8,7 +5,7 @@ import seedrandom from 'seedrandom';
  * @param {number} index - An index to differentiate points for polygons with similar coordinates.
  * @returns {Array} The random point coordinate [longitude, latitude].
  */
-export const getRandomPointInPolygon = (polygon, index) => {
+export const getRandomPointInPolygon = (polygon) => {
   // Calculate the bounding box of the polygon
   const bounds = polygon.reduce(
     (prev, curr) => {
@@ -23,45 +20,39 @@ export const getRandomPointInPolygon = (polygon, index) => {
     { minLon: Infinity, maxLon: -Infinity, minLat: Infinity, maxLat: -Infinity }
   );
 
-  // Create a seed based on the polygon's coordinates and the index
-  const seed = JSON.stringify(polygon) + index;
-  const rng = seedrandom(seed);
+  // Helper function to check if a point is inside the polygon
+  const isPointInPolygon = (point, polygon) => {
+    let inside = false;
+    for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
+      const xi = polygon[i][0], yi = polygon[i][1];
+      const xj = polygon[j][0], yj = polygon[j][1];
+      
+      const intersect = ((yi > point[1]) !== (yj > point[1]))
+          && (point[0] < (xj - xi) * (point[1] - yi) / (yj - yi) + xi);
+      if (intersect) inside = !inside;
+    }
+    return inside;
+  };
 
-  // Generate a random point within the bounding box
-  let randomPoint;
-  let isInPolygon = false;
-  while (!isInPolygon) {
-    const lon = bounds.minLon + rng() * (bounds.maxLon - bounds.minLon);
-    const lat = bounds.minLat + rng() * (bounds.maxLat - bounds.minLat);
-    randomPoint = [lon, lat];
-
-    // Check if the random point is within the polygon
-    isInPolygon = isPointInPolygon(randomPoint, polygon);
+  // Generate random points until we find one inside the polygon
+  let attempts = 0;
+  const maxAttempts = 1000;  // Prevent infinite loop
+  
+  while (attempts < maxAttempts) {
+    const randomLon = bounds.minLon + Math.random() * (bounds.maxLon - bounds.minLon);
+    const randomLat = bounds.minLat + Math.random() * (bounds.maxLat - bounds.minLat);
+    
+    if (isPointInPolygon([randomLon, randomLat], polygon)) {
+      return [randomLon, randomLat, 0];  // Adding 0 for elevation to match input format
+    }
+    
+    attempts++;
   }
-
-  return randomPoint;
+  
+  // If we couldn't find a point after max attempts, return center of bounding box
+  return [
+    (bounds.minLon + bounds.maxLon) / 2,
+    (bounds.minLat + bounds.maxLat) / 2,
+    0
+  ];
 };
-
-/**
- * Checks if a point is within a given polygon.
- *
- * @param {Array} point - The point coordinate [longitude, latitude].
- * @param {Array} polygon - An array of coordinate arrays representing the polygon.
- * @returns {boolean} True if the point is within the polygon, false otherwise.
- */
-function isPointInPolygon(point, polygon) {
-  const [x, y] = point;
-  let isInside = false;
-
-  for (let i = 0, j = polygon.length - 1; i < polygon.length; j = i++) {
-    const [x1, y1] = polygon[i];
-    const [x2, y2] = polygon[j];
-
-    const intersect =
-      y1 > y !== y2 > y && x < ((x2 - x1) * (y - y1)) / (y2 - y1) + x1;
-
-    if (intersect) isInside = !isInside;
-  }
-
-  return isInside;
-}

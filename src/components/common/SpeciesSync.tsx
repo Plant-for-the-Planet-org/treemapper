@@ -311,7 +311,7 @@ const SpeciesSync = () => {
           <RotatingView isClockwise={true}>
             <RefreshIcon />
           </RotatingView>
-          <Text style={styles.label}>Species {i18next.t("label.syncing")}</Text>
+          <Text style={styles.label}>{i18next.t("label.species_caps")}{i18next.t("label.syncing")}</Text>
         </View>
       )
     }

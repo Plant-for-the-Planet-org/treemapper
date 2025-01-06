@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
-import {updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
+import { updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
 import useLogManagement from './realm/useLogManagement';
 
 const useLocationPermission = () => {
@@ -57,9 +57,10 @@ const useLocationPermission = () => {
     } catch (error) {
       addNewLog({
         logType: 'LOCATION',
-        message: JSON.stringify(error),
+        message: "Last Known location",
         logLevel: 'error',
-        statusCode: ''
+        statusCode: '',
+        logStack: JSON.stringify(error)
       })
     }
   }
@@ -67,8 +68,17 @@ const useLocationPermission = () => {
 
 
   const requestLocationPermission = async () => {
-    await Location.enableNetworkProviderAsync()
-    await requestForegroundPermissionsAsync()
+    try {
+      await requestForegroundPermissionsAsync()
+    } catch (error) {
+      addNewLog({
+        logType: 'LOCATION',
+        message: "Location Permission",
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+    }
   }
 
 

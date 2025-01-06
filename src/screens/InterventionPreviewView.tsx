@@ -92,6 +92,9 @@ const InterventionPreviewView = () => {
       toast.show("Project not assign")
     }
   }
+  function formatString(str) {
+    return str.toLowerCase().replace(/\s+/g, '-');
+  }
 
   const setupMetaData = async () => {
     const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
@@ -100,10 +103,36 @@ const InterventionPreviewView = () => {
     if (localMeta?.length) {
       localMeta.forEach(el => {
         if (el.accessType === 'private') {
-          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
+          const privateKey = formatString(el.key)
+          updatedMetadata.private = {
+            ...updatedMetadata.private, [privateKey]: {
+              "key":privateKey,
+              "originalKey": privateKey,
+              "value": el.value,
+              "label": el.key,
+              "type": "input",
+              "unit": "",
+              "visibility": "private",
+              "dataType": "string",
+              "elementType": "metaData"
+            }
+          }
         }
         if (el.accessType === 'public') {
-          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: el.value }
+          const publicKey = formatString(el.key)
+          updatedMetadata.public = {
+            ...updatedMetadata.public, [publicKey]: {
+              "key": publicKey,
+              "originalKey": publicKey,
+              "value": el.value,
+              "label": el.key,
+              "type": "input",
+              "unit": "",
+              "visibility": "public",
+              "dataType": "string",
+              "elementType": "metaData"
+            }
+          }
         }
       })
     }
@@ -209,7 +238,7 @@ const InterventionPreviewView = () => {
     if (InterventionData.is_complete && InterventionData.status === 'PENDING_DATA_UPLOAD') {
       return (
         <View style={styles.rightWrapper}>
-          <TouchableOpacity style={styles.editWrapper} onPress={()=>{openEditModal(InterventionData)}}>
+          <TouchableOpacity style={styles.editWrapper} onPress={() => { openEditModal(InterventionData) }}>
             <Text style={styles.editText}>Edit</Text>
             <PenIcon width={30} height={30} />
           </TouchableOpacity>
@@ -319,7 +348,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'row',
     borderRadius: 10,
-    marginRight:'5%'
+    marginRight: '5%'
   },
   editWrapper: {
     height: 50,
