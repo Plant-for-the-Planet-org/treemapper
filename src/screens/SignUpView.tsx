@@ -1,4 +1,4 @@
-import { ScrollView, StyleSheet, Text, TextInput, View, Switch, TouchableOpacity, Image } from 'react-native'
+import { ScrollView, StyleSheet, Text, TextInput, View, Switch, TouchableOpacity } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import Header from 'src/components/common/Header'
@@ -7,7 +7,6 @@ import CtaArrow from 'assets/images/svg/CtaArrow.svg'
 import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
-import i18next from 'i18next'
 import Snackbar from 'react-native-snackbar'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { handleFilter } from 'src/utils/constants/CountryDataFilter'
@@ -26,6 +25,8 @@ import useAuthentication from 'src/hooks/useAuthentication'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { useToast } from 'react-native-toast-notifications'
 import { RootState } from 'src/store'
+import i18next from 'i18next'
+import * as ExpoImage from 'expo-image';
 
 
 
@@ -309,21 +310,21 @@ const SignUpView = () => {
                     style={styles.mainContainer}
                 >
                     <View style={styles.wrapper}>
-                        <Text style={styles.headline}>Account Type</Text>
+                        <Text style={styles.headline}>{i18next.t("label.acc_type")}</Text>
                         <View style={styles.typeContainer}>
                             <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'individual' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('individual')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'individual' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Individual</Text>
+                                <Text style={[styles.typeLabel, { color: accountType === 'individual' ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.individual")}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'company' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('company')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'company' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Company</Text>
-                            </TouchableOpacity>
+                                <Text style={[styles.typeLabel, { color: accountType === 'company' ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.company")}</Text>
+                                </TouchableOpacity>
                         </View>
                         <View style={styles.typeContainer}>
                             <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'tpo' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('tpo')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'tpo' ? Colors.WHITE : Colors.TEXT_COLOR }]}>Tree Planting {'\n'}Organisation</Text>
+                                <Text style={[styles.typeLabel, { color: accountType === 'tpo' ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.tree_organisation")}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity style={[styles.typeWrapper, { backgroundColor: accountType === 'education' ? Colors.NEW_PRIMARY : Colors.WHITE }]} onPress={() => setAccountType('education')}>
-                                <Text style={[styles.typeLabel, { color: accountType === 'education' ? Colors.WHITE : Colors.TEXT_COLOR }]}>School</Text>
+                                <Text style={[styles.typeLabel, { color: accountType === 'education' ? Colors.WHITE : Colors.TEXT_COLOR }]}>{i18next.t("label.school")}</Text>
                             </TouchableOpacity>
                         </View>
                         <TextInput
@@ -345,17 +346,17 @@ const SignUpView = () => {
                         <Text style={styles.countryTitle}>Country</Text>
                         <TouchableOpacity style={styles.countryWrapper} onPress={() => { setModalVisible(!modalVisible) }}>
                             {!!country?.countryCode && <View style={styles.countryFlag}>
-                                <Image
+                                <ExpoImage.Image
                                     source={{
                                         uri: `${protocol}://${cdnUrl}/media/images/flags/png/256/${country.countryCode}.png`
                                     }}
-                                    resizeMode="contain"
+                                    contentFit="contain"
                                     style={styles.countryFlag}
                                 />
                             </View>}
                             <View style={styles.countryMeta}>
                                 <Text style={styles.countryLabel}>{country.countryCode ? country.countryName : "Select Country"}</Text>
-                                <View style={{ flexDirection: "row", alignItems: 'center' }}><Text style={styles.countryChangeLabel}>Change country</Text><CtaArrow style={{ marginTop: 3 }} height={10} /></View>
+                                <View style={{ flexDirection: "row", alignItems: 'center' }}><Text style={styles.countryChangeLabel}>{i18next.t("label.country_change")}</Text><CtaArrow style={{ marginTop: 3 }} height={10} /></View>
                             </View>
                         </TouchableOpacity>
                         {accountType === 'company' || accountType === 'tpo' || accountType === 'education' ? (
@@ -406,7 +407,7 @@ const SignUpView = () => {
                         ) : null}
 
                         <View style={styles.infoSwitchWrapper}>
-                            <Text style={styles.infoText}>I agree to have my name published in the Plant-for-the-Planet Website and App.</Text>
+                            <Text style={styles.infoText}>{i18next.t("label.agree_2")}</Text>
                             <View style={styles.switch}>
                                 <Switch
                                     value={isPrivate}
@@ -418,7 +419,7 @@ const SignUpView = () => {
                             </View>
                         </View>
                         <View style={styles.infoSwitchWrapper}>
-                            <Text style={styles.infoText}>I agree that I may be contacted by the children and youth organization Plant-for-the-Planet as part of tree planting news and challenges.</Text>
+                            <Text style={styles.infoText}>{i18next.t("label.agree_signup")}</Text>
                             <View style={styles.switch}>
                                 <Switch
                                     trackColor={{ false: Colors.LIGHT_BORDER_COLOR, true: '#d9e7c0' }}

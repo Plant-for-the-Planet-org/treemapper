@@ -20,6 +20,8 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
+import i18next from 'src/locales/index'
+
 
 const DeleteAccount = () => {
   const { email, name } = useSelector((state: RootState) => state.userState)
@@ -89,21 +91,21 @@ const DeleteAccount = () => {
     <SafeAreaView style={styles.wrapper} edges={['top']}>
       <Header label="Delete Account" />
       <View style={styles.container}>
-        <Text style={styles.header}>To continue with deletion {'\n'}Press Delete now.{'\n'}</Text>
+        <Text style={styles.header}>{i18next.t("label.delete_acc_header")}</Text>
         <Text style={styles.section}>
-          By clicking "Delete", I am requesting Plant-for-the-Planet to delete all data associated with my Plant-for-the-Planet account. Donation data may be kept for up to eight years. Trees I have registered will not be removed, however, will be anonymized and can't be claimed again.
+          {i18next.t("label.click_agree")}
         </Text>
         <Text style={[styles.section, { textDecorationStyle: 'solid', fontFamily: FONT_FAMILY_BOLD, }]}>
-          Before proceeding, make sure you've cancelled all subscriptions.
+          {i18next.t('label.delete_acc_imp_note')}
         </Text>
         <Text>
           {'\n'}
         </Text>
-        <Text style={[styles.section, { color: "tomato" }]}>I also understand that account deletion of <Text style={{ fontFamily: FONT_FAMILY_BOLD }}>{email || name}</Text> is irreversible.</Text>
+        <Text style={[styles.section, { color: "tomato" }]}>{i18next.t("label.delete_info_note_1")} <Text style={{ fontFamily: FONT_FAMILY_BOLD }}>{email || name}</Text> {i18next.t("label.delete_info_note_2")}</Text>
       </View>
       <CustomButton
         label={timer > 0 ? <Text>
-          You can Delete in {timer} seconds
+          {i18next.t("label.delete_in")} {timer} seconds
         </Text> : "Delete Now"}
         containerStyle={styles.btnContainer}
         pressHandler={handleDelete}

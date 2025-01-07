@@ -2,7 +2,7 @@ import { StyleSheet, View } from 'react-native'
 import React from 'react'
 import { CameraCapturedPicture } from 'expo-camera'
 import CustomButton from 'src/components/common/CustomButton'
-import { Image } from 'expo-image'
+import * as ExpoImage from 'expo-image';
 import { Colors } from 'src/utils/constants'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -61,7 +61,7 @@ const ImagePreview = (props: Props) => {
   return (
     <View style={styles.containerPreview}>
       <View style={styles.wrapperPreview}>
-        <Image
+        <ExpoImage.Image
           style={styles.imageContainerPreview}
           source={imageData.uri}
           contentFit="cover"

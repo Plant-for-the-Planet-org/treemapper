@@ -1,4 +1,4 @@
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -9,6 +9,7 @@ import { Skeleton } from 'moti/skeleton'
 import ProfileEditIcon from 'assets/images/svg/ProfileEdit.svg'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import Popover from 'react-native-popover-view'
+import * as ExpoImage from 'expo-image';
 
 
 
@@ -59,7 +60,7 @@ const SidebarHeader = () => {
       <View style={styles.avatarWrapper}>
         <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           {image ? (
-            <Image source={{ uri: avatar }} style={styles.imageWrapper} />
+            <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: avatar }} style={styles.imageWrapper} />
           ) : (
             <SingleTreeImage style={styles.imageWrapper} />
           )}
