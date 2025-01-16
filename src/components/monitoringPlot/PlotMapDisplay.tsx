@@ -19,7 +19,7 @@ interface Props {
 }
 
 const PlotMapDisplay = (props: Props) => {
-    const cameraRef = useRef<MapLibreGL.Camera>(null)
+    const cameraRef = useRef<MapLibreGL.CameraRef>(null)
     const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -50,7 +50,7 @@ const PlotMapDisplay = (props: Props) => {
                 [bounds[0], bounds[1]],
                 [bounds[2], bounds[3]],
                 20,
-                1000,
+                0,
             )
         }
     }

@@ -1,4 +1,4 @@
-import { Dimensions, StyleSheet, TouchableOpacity } from 'react-native'
+import { Dimensions, DimensionValue, StyleSheet, TouchableOpacity } from 'react-native'
 import React, { useEffect } from 'react'
 import UserLocationIcon from 'assets/images/svg/UserLocationIcon.svg'
 import useLocationPermission from 'src/hooks/useLocationPermission'
@@ -9,12 +9,13 @@ import { Colors } from 'src/utils/constants'
 interface Props {
   stopAutoFocus?: boolean
   low?: boolean
-  high?: boolean
+  high?: boolean,
+  rightPercent?: DimensionValue
 }
 const windowWidth = Dimensions.get('window').width;
 
 const UserlocationMarker = (props: Props) => {
-  const { stopAutoFocus, low, high } = props
+  const { stopAutoFocus, low, high, rightPercent } = props
   const { userCurrentLocation } = useLocationPermission()
 
 
@@ -26,7 +27,7 @@ const UserlocationMarker = (props: Props) => {
 
   const isHigh = high ? windowWidth / 2.2 : windowWidth / 2.8
   return (
-    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 : isHigh }]} onPress={userCurrentLocation}>
+    <TouchableOpacity style={[styles.container, { bottom: low ? windowWidth / 2.4 : isHigh, right: rightPercent ? rightPercent : '9%' }]} onPress={userCurrentLocation}>
       <UserLocationIcon width={SCALE_20} height={SCALE_20} onPress={userCurrentLocation} />
     </TouchableOpacity>
   )
@@ -38,7 +39,6 @@ const styles = StyleSheet.create({
   container: {
     position: 'absolute',
     zIndex: 1,
-    right: '9%',
     bottom: windowWidth / 2.4,
     width: 40,
     height: 40,
@@ -46,6 +46,5 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: Colors.WHITE,
-
   },
 })

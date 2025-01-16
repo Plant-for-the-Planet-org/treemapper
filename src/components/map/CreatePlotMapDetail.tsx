@@ -44,8 +44,8 @@ interface Props {
 
 const CreatePlotMapDetail = (props: Props) => {
   const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees } = props
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<MapLibreGL.CameraRef>(null)
+  const mapRef = useRef<MapLibreGL.MapViewRef>(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -234,6 +234,7 @@ const CreatePlotMapDetail = (props: Props) => {
         onRegionDidChange={() => {
           setLoading(false)
         }}
+        onDidFinishLoadingMap={handleCamera}
         onRegionIsChanging={() => {
           setLoading(true)
         }}

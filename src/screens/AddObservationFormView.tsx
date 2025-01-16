@@ -95,7 +95,7 @@ const AddObservationForm = () => {
 
     const submitHandler = async () => {
         if (value.trim().length === 0) {
-            toast.show("Please add valid Plot Name")
+            toast.show("Please add valid Plot Name",{duration:2000})
             return
         }
         const obsDetails: PlotObservation = {
@@ -112,10 +112,10 @@ const AddObservationForm = () => {
     const deleteHandler = async () => {
         const result = await deletePlotObservation(plotID, obsId)
         if (result) {
-            toast.show("Observation deleted")
+            toast.show("Observation deleted",{duration:2000})
             navigation.goBack()
         } else {
-            toast.show("Error occurred while deleting")
+            toast.show("Error occurred while deleting",{duration:2000})
         }
     }
 
@@ -129,10 +129,10 @@ const AddObservationForm = () => {
         }
         const result = await updatePlotObservation(plotID, obsDetails)
         if (result) {
-            toast.show("Observation details updated")
+            toast.show("Observation details updated",{duration:2000})
             navigation.goBack()
         } else {
-            toast.show("Error occurred while updating")
+            toast.show("Error occurred while updating",{duration:2000})
         }
     }
 

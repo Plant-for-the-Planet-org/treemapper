@@ -88,8 +88,8 @@ const CreatePlotDetailsView = () => {
     const validatePlotDimensions = (plotShape: string) => {
         if (plotShape === 'RECTANGULAR') {
             return isRectangularPlotValid(plotWidth, plotLength);
-        } 
-        if(plotShape === 'CIRCULAR'){
+        }
+        if (plotShape === 'CIRCULAR') {
             if (!isCircularPlotValid(plotRadius)) return false;
         }
         return true
@@ -97,16 +97,11 @@ const CreatePlotDetailsView = () => {
 
     const submitHandler = async () => {
         if (!isPlotNameValid(plotName)) {
-            toast.show("Please add valid Plot Name");
+            toast.show("Please add valid Plot Name",{duration:2000})
             return;
         }
 
         if (!validatePlotDimensions(plotShape)) return;
-
-        if (!isPlotImageValid(plotImage)) {
-            toast.show("Please add Plot Image");
-            return;
-        }
 
         const data: PlotDetailsParams = {
             name: plotName,
@@ -121,7 +116,7 @@ const CreatePlotDetailsView = () => {
             await handlePostUpdate();
             navigation.replace('CreatePlotMap', { id: plotID });
         } else {
-            toast.show("Error occurred while adding data");
+            toast.show("Error occurred while adding data",{duration:2000})
         }
     };
 
@@ -139,8 +134,8 @@ const CreatePlotDetailsView = () => {
             toast.show(validWidth.errorMessage);
             return false;
         }
-        if (Number(width) < 4 || Number(length) < 25) {
-            toast.show("Please add valid Dimensions as per note");
+        if (Number(width) < 0) {
+            toast.show("Please add valid Dimensions",{duration:2000})
             return false;
         }
         return true;
@@ -149,17 +144,15 @@ const CreatePlotDetailsView = () => {
     const isCircularPlotValid = (radius: string) => {
         const validRadius = validateNumber(radius, 'Radius', 'Radius');
         if (validRadius.hasError) {
-            toast.show(validRadius.errorMessage);
+            toast.show(validRadius.errorMessage,{duration:2000})
             return false;
         }
-        if (Number(radius) < 25) {
-            toast.show("Please add valid Radius as per note");
+        if (Number(radius) < 0) {
+            toast.show("Please add valid Radius",{duration:2000})
             return false;
         }
         return true;
     };
-
-    const isPlotImageValid = (image: string) => image.trim() !== '';
 
     const handlePostUpdate = async () => {
         if (type.value) {
@@ -175,12 +168,12 @@ const CreatePlotDetailsView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
+            <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
             <ScrollView style={{ backgroundColor: Colors.BACKDROP_COLOR }}>
                 <AvoidSoftInputView
                     avoidOffset={20}
                     showAnimationDuration={200}
                     style={styles.container}>
-                    <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
                     <View style={styles.wrapper}>
                         <View style={{ paddingHorizontal: '3%' }}>
                             <AddPlotImage image={plotImage} plotID={plotID} />
@@ -231,7 +224,7 @@ const CreatePlotDetailsView = () => {
             <CustomButton
                 label={i18next.t('label.create')}
                 containerStyle={styles.btnContainer}
-                wrapperStyle={{width:'92%'}}
+                wrapperStyle={{ width: '92%' }}
                 pressHandler={submitHandler}
                 hideFadeIn
             />

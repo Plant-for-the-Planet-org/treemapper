@@ -10,7 +10,6 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { SCALE_36, SCALE_26 } from 'src/utils/constants/spacing'
-import { scaleSize } from 'src/utils/constants/mixins'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { useToast } from 'react-native-toast-notifications'
 import { updateMonitoringPlotData } from 'src/store/slice/monitoringPlotStateSlice'
@@ -101,10 +100,10 @@ const styles = StyleSheet.create({
     container: {
         width: '100%',
         justifyContent: 'center',
-        paddingBottom: 20
+        paddingBottom: 20,
     },
     emptyImageContainer: {
-        height: scaleSize(130),
+        height: 200,
         backgroundColor: 'rgba(0,122,73,0.2)',
         borderRadius: 12,
         borderColor: 'rgb(0,122,73)',
@@ -113,7 +112,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         width: '96%',
-        marginLeft: '2%'
+        marginLeft: '2%',
     },
 
     imageContainer: {
