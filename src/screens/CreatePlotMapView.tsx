@@ -17,6 +17,7 @@ import { PLOT_SHAPE } from 'src/types/type/app.type'
 import UserlocationMarker from 'src/components/map/UserlocationMarker'
 import NewDimensionModal from 'src/components/monitoringPlot/NewDimensionModal'
 import i18next from 'src/locales/index'
+import InfoModal from 'src/components/common/InfoModal'
 
 
 const CreatePlotMapView = () => {
@@ -37,6 +38,7 @@ const CreatePlotMapView = () => {
     const [plantedTrees, setPlantedTrees] = useState<PlantedPlotSpecies[]>([])
     const toast = useToast()
     const [showDimensionModal, setShowDimensionModal] = useState(false)
+    const [showInfoModal, setShowInfoModal] = useState(false)
 
     useEffect(() => {
         getPlotDetails()
@@ -46,6 +48,7 @@ const CreatePlotMapView = () => {
 
     const getPlotDetails = () => {
         const plotData = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
+
         if (plotData) {
             setPlotShape(plotData.shape)
             setPlotLength(plotData.length)
@@ -74,8 +77,9 @@ const CreatePlotMapView = () => {
 
 
     return (
-        <SafeAreaView style={styles.container}>
-            <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={() => null} />} />
+        <SafeAreaView style={styles.container} edges={['top']}>
+            <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
+            <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
             <View style={styles.noteWrapper}>
                 <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
             </View>
@@ -95,7 +99,7 @@ const CreatePlotMapView = () => {
                 isEdit={isEdit}
                 plantedTrees={plantedTrees}
                 plot_shape={plotShape} radius={plotRadius} length={plotLength} width={plotWidth} plotId={plotID} />
-            <UserlocationMarker />
+            <UserlocationMarker rightPercent={'5%'} />
         </SafeAreaView>
     )
 }
@@ -111,7 +115,7 @@ const styles = StyleSheet.create({
         width: '100%',
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 20
+        paddingBottom: 10
     },
     noteLabel: {
         width: '90%',
