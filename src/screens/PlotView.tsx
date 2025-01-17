@@ -14,6 +14,7 @@ import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import Popover from 'react-native-popover-view';
 import i18next from 'src/locales/index'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
+import PlotSyncing from 'src/components/monitoringPlot/PlotSyncing'
 
 
 const PlotView = () => {
@@ -43,9 +44,6 @@ const PlotView = () => {
     return <Popover
       isVisible={popupVisible}
       backgroundStyle={{ opacity: 0 }}
-      popoverStyle={{
-
-      }}
       verticalOffset={Platform.OS === 'android' ? -50 : 0}
       onRequestClose={togglePopup}
       from={(
@@ -61,6 +59,7 @@ const PlotView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
+      <PlotSyncing isLoggedIn={true}/>
       <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
       <View style={styles.wrapper}>
         <PlotList data={[...plotData]} />

@@ -14,6 +14,7 @@ export const postUrlApi = {
   updateProjectInF: `${https}${baseUrl}/app/projects`,
   createNewSite:`${https}${baseUrl}/app/projects`,
   deleteAccount:`${https}${baseUrl}/app/profile`,
+  createPlot:`${https}${baseUrl}//treemapper/plots`,
 };
 
 export const getUrlApi = {

@@ -1,4 +1,4 @@
-import { FIX_REQUIRED, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { FIX_REQUIRED, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_STATUS, PLOT_TYPE } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -239,6 +239,15 @@ export interface QuaeBody {
   p3Id?: string
 }
 
+export interface PlotQuaeBody {
+  type: string
+  priority: number
+  nextStatus: PLOT_STATUS
+  p1Id?: string
+  p2Id?: string
+  p3Id?: string
+}
+
 export interface SampleTree {
   project_id?: string
   site_id?: string
@@ -450,7 +459,7 @@ export interface MonitoringPlot {
   is_complete: boolean
   additional_data: string
   meta_data: string
-  status: 'NOT_SYNCED' | "SYNCED"
+  status: PLOT_STATUS
   hid: string
   lastScreen: string
   plot_plants: PlantedPlotSpecies[]

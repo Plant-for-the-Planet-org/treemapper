@@ -17,6 +17,7 @@ export interface PlotDetailsParams {
 
 const useMonitoringPlotManagement = () => {
   const realm = useRealm()
+
   const initializeNewPlot = async (
     plotDetails: MonitoringPlot,
   ): Promise<boolean> => {
@@ -47,6 +48,7 @@ const useMonitoringPlotManagement = () => {
         plotData.width = data.width
         plotData.radius = data.radius
         plotData.lastScreen = 'details'
+        plotData.status = 'UPLOAD_PLOT'
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -124,7 +126,6 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
-
   const updatePlotName = async (
     id: string,
     name: string
@@ -140,6 +141,7 @@ const useMonitoringPlotManagement = () => {
  return false
     }
   }
+
   const updatePlotPlantLocation = async (
     id: string,
     plantId: string,
@@ -160,7 +162,6 @@ const useMonitoringPlotManagement = () => {
  return false
     }
   }
-
 
   const deleteMonitoringPlot = async (plotID: string): Promise<boolean> => {
     try {
@@ -216,9 +217,6 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
-
-
-
   const updateTimelineDetails = async (
     id: string,
     plantId: string,
@@ -249,7 +247,6 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
-
   const deletePlotTimeline = async (
     id: string,
     plantId: string,
@@ -271,7 +268,6 @@ const useMonitoringPlotManagement = () => {
  return false
     }
   }
-
 
   const updatePlotPlatDetails = async (
     id: string,
@@ -304,7 +300,6 @@ const useMonitoringPlotManagement = () => {
  return false
     }
   }
-
 
   const deletePlantDetails = async (id: string, plantId: string): Promise<boolean> => {
     try {
@@ -378,7 +373,6 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
-
   const createNewPlotGroup = async (
     groupDetails: PlotGroups,
   ): Promise<boolean> => {
@@ -451,7 +445,6 @@ const useMonitoringPlotManagement = () => {
  return false
     }
   }
-
 
 
   return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots }

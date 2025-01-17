@@ -112,3 +112,9 @@ export const createNewSite = async (pid: string, params: any) => {
   const result = await fetchPostCall(uri, params);
   return result;
 };
+
+export const uploadPlotData = async (params: any) => {
+  const uri = `${postUrlApi.createPlot}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
