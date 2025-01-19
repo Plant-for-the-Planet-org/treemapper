@@ -39,9 +39,12 @@ const NewDimensionModal = (props: Props) => {
 
 
     const handlePress = () => {
+        const updatedWidth = dimensionWidth.replace(/,/g, '.');
+        const updatedLength = dimensionHeight.replace(/,/g, '.');
+        const updatedRadius = dimensionRadius.replace(/,/g, '.');
         if (shape === 'RECTANGULAR') {
-            const validWidth = validateNumber(dimensionWidth, 'width', 'width')
-            const validHeight = validateNumber(dimensionHeight, 'length', 'length')
+            const validWidth = validateNumber(updatedWidth, 'width', 'width')
+            const validHeight = validateNumber(updatedLength, 'length', 'length')
             if (validHeight.hasError) {
                 toast.show(validHeight.errorMessage)
                 return
@@ -51,17 +54,17 @@ const NewDimensionModal = (props: Props) => {
                 return
             }
         } else {
-            const validRadius = validateNumber(dimensionRadius, 'Radius', 'Radius')
+            const validRadius = validateNumber(updatedRadius, 'Radius', 'Radius')
             if (!validRadius) {
                 toast.show(validRadius.errorMessage)
                 return
             }
-            if (Number(dimensionRadius) < 25) {
-                toast.show("Please add valid Radius as per note")
+            if (Number(updatedRadius)<0) {
+                toast.show("Please add valid Radius")
                 return
             }
         }
-        updatedDimensions(Number(dimensionHeight), Number(dimensionWidth), Number(dimensionRadius))
+        updatedDimensions(Number(updatedLength), Number(updatedWidth), Number(updatedRadius))
     }
 
 
@@ -69,26 +72,26 @@ const NewDimensionModal = (props: Props) => {
     return (
         <Modal style={styles.container} isVisible={isVisible} onBackButtonPress={toogleModal} onBackdropPress={toogleModal}>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.header}>{i18next.t('local.update_dimensions')}</Text>
+                <Text style={styles.header}>{i18next.t('label.update_dimensions')}</Text>
                 {shape === "RECTANGULAR" ? <>
                     <CustomTextInput
-                        label={i18next.t('local.height')}
+                        label={i18next.t('label.height')}
                         onChangeHandler={setDimensionHeight}
                         value={dimensionHeight}
                     />
                     <CustomTextInput
-                        label={i18next.t('local.width')}
+                        label={i18next.t('label.width')}
                         onChangeHandler={setDimensionWidth}
                         value={dimensionWidth}
                     />
                 </> :
                     <CustomTextInput
-                        label={i18next.t('local.radius')}
+                        label={i18next.t('label.radius')}
                         onChangeHandler={setDimensionRadius}
                         value={dimensionRadius}
                     />}
                 <CustomButton
-                    label={i18next.t('local.continue')}
+                    label={i18next.t('label.continue')}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
                     hideFadeIn

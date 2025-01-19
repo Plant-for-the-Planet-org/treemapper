@@ -33,7 +33,6 @@ import CreatePlotMapView from './CreatePlotMapView'
 import PlotDetailsView from './PlotDetailsView'
 import PlotPlantRemeasureView from './PlotPlantRemeasureView'
 import AddPlantDetailsPlotView from './AddPlantDetailsPlotView'
-import AddPlotDetailsView from './AddPlotDetailsView'
 import MonitoringInfoView from './MonitoringInfoView';
 import AddRemeasurementView from './AddRemeasurementView'
 import PlotGroupView from './PlotGroupView';
@@ -85,7 +84,6 @@ export default {
   PlotDetails: PlotDetailsView,
   PlotPlantRemeasure: PlotPlantRemeasureView,
   AddPlantDetailsPlot: AddPlantDetailsPlotView,
-  AddPlotDetails: AddPlotDetailsView,
   MonitoringInfo: MonitoringInfoView,
   AddRemeasurement: AddRemeasurementView,
   PlotGroup: PlotGroupView,

@@ -42,7 +42,6 @@ export type RootStackParamList = {
   PlotPlantRemeasure: PlotPlantDetails
   AddObservationForm: AddObservation
   AddPlantDetailsPlot: AddPlantDetailsPlot
-  AddPlotDetails: undefined
   MonitoringInfo: undefined
   AddRemeasurement: AddRemeasurementView
   PlotGroup: undefined
