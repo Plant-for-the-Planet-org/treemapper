@@ -23,6 +23,13 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import i18next from 'src/locales/index'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
+import { getConvertedHeight } from 'src/utils/constants/measurements'
+import { measurementValidation } from 'src/utils/constants/measurementValidation'
+import AlertModal from 'src/components/common/AlertModal'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
@@ -37,8 +44,32 @@ const AddPlantDetailsPlotView = () => {
     const [isTreeAlive, setIsTreeAlive] = useState(true)
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
+    const [pickerSelected, setPickerSelected] = useState('none')
     const [speciesModal, setSpeciesModal] = useState(false)
     const { addPlantDetailsPlot, updatePlotPlatDetails, deletePlantDetails } = useMonitoringPlotManagement()
+    const Country = useSelector((state: RootState) => state.userState.country)
+    const [isNonISUCountry, setIsNonISUCountry] = useState(false);
+    const [showOptimalAlert, setShowOptimalAlert] = useState(false)
+
+
+    const [diameterLabel, setDiameterLabel] = useState<string>(
+        i18next.t('label.measurement_basal_diameter'),
+    );
+    const [heightErrorMessage, setHeightErrorMessage] = useState('')
+    const [widthErrorMessage, setWidthErrorMessage] = useState('')
+
+
+    const acceptOptimalAlert = () => {
+        setShowOptimalAlert(false)
+    }
+
+    const rejectOptimalAlert = () => {
+        setShowOptimalAlert(false)
+        setTimeout(() => {
+            submitHandler(true)
+        }, 1000);
+    }
+
     const toggleSpeciesModal = () => {
         setSpeciesModal(!speciesModal)
     }
@@ -53,11 +84,12 @@ const AddPlantDetailsPlotView = () => {
         const aliases = species.aliases.length > 0 ? species.aliases : ''; // Convert array to comma-separated string
         const scientificName = species.scientificName;
 
-        return `${aliases} ${scientificName}`.trim(); // Use trim() to remove any leading/trailing spaces
+        return `${aliases} (${scientificName})`.trim(); // Use trim() to remove any leading/trailing spaces
     };
     const realm = useRealm()
 
     useEffect(() => {
+        setCountry();
         // This should be run when screen gains focus - enable the module where it's needed
         AvoidSoftInput.setShouldMimicIOSBehavior(true);
         return () => {
@@ -71,6 +103,15 @@ const AddPlantDetailsPlotView = () => {
             getPlantDetails()
         }
     }, [isEdit])
+
+    const setCountry = () => {
+        setIsNonISUCountry(nonISUCountries.includes(Country));
+    };
+
+
+    const togglePicker = (type: string) => {
+        setPickerSelected(type)
+    }
 
     const updateDetails = async () => {
         if (!species) {
@@ -113,6 +154,7 @@ const AddPlantDetailsPlotView = () => {
                 scientificName: plantData.scientificName,
                 isUserSpecies: false,
                 aliases: plantData.aliases,
+                specieId: ''
             }
             setSpecies(speciesData)
             setTag(plantData.tag)
@@ -121,30 +163,83 @@ const AddPlantDetailsPlotView = () => {
     }
 
 
-    const submitHandler = async () => {
+
+    const handleHeightChange = (text: string) => {
+        setHeightErrorMessage('');
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const finalText = text.replace(/,/g, '.');
+        const isValid = regex.test(finalText)
+        // Ensure there is at most one decimal point
+        if (isValid) {
+            setHeight(text);
+            const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+            if (convertedHeight < DBHInMeter) {
+                setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+            } else {
+                setDiameterLabel(i18next.t('label.measurement_DBH'));
+            }
+        } else {
+            setHeightErrorMessage('Please provide the correct height.')
+        }
+    };
+
+    const handleDiameterChange = (text: string) => {
+        setWidthErrorMessage('');
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const finalText = text.replace(/,/g, '.');
+        const isValid = regex.test(finalText)
+        if (isValid) {
+            setWidth(text);
+        } else {
+            setWidthErrorMessage('Please provide the correct diameter.')
+        }
+        // Ensure there is at most one decimal point
+    };
+
+
+
+
+    const submitHandler = async (ignoreValidation?: boolean) => {
+        const updatedWidth = width.replace(/,/g, '.');
+        const updatedHeight = height.replace(/,/g, '.');
         if (isTreeAlive) {
-            const validWidth = validateNumber(width, 'width', 'width')
-            const validHeight = validateNumber(height, 'height', 'height')
+            const validWidth = validateNumber(updatedWidth, 'width', 'width')
+            const validHeight = validateNumber(updatedHeight, 'height', 'height')
             if (validHeight.hasError) {
                 toast.show(validHeight.errorMessage)
-                return
+                return null
             }
             if (validWidth.hasError) {
                 toast.show(validWidth.errorMessage)
-                return
+                return null
             }
             if (!species) {
                 toast.show("Please select a species")
-                return
+                return null
             }
         }
         const checkIsPlanted = () => {
             return isPlanted ? 'PLANTED' : 'RECRUIT'
         }
+
+        if (!ignoreValidation) {
+            const validationObject = measurementValidation(updatedHeight, updatedWidth, isNonISUCountry);
+            const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+            setHeightErrorMessage(heightErrorMessage)
+            setWidthErrorMessage(diameterErrorMessage)
+            if (heightErrorMessage.length > 0 || diameterErrorMessage.length > 0) {
+                return null
+            }
+            if (isRatioCorrect) {
+                setShowOptimalAlert(true);
+                return null
+            }
+        }
+
         const plantTimeline: PlantTimeLine = {
             status: !isTreeAlive ? 'DECEASED' : checkIsPlanted(),
-            length: Number(height),
-            width: Number(width),
+            length: Number(updatedHeight),
+            width: Number(updatedWidth),
             date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
@@ -171,16 +266,29 @@ const AddPlantDetailsPlotView = () => {
         navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })
     }
 
+    const handleDateSelection = (d: number) => {
+        if (pickerSelected === 'plantingDate') {
+            setPlantingDate(d)
+        }
+
+        if (pickerSelected === 'measurementDate') {
+            setMeasurementDate(d)
+        }
+        setPickerSelected('none')
+    }
 
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Add Plant' />
+            {pickerSelected !== 'none' && <CustomDatePicker cb={handleDateSelection}
+                selectedData={pickerSelected === 'plantingDate' ? plantingDate : measurementDate}
+            />}
             <ScrollView>
                 <AvoidSoftInputView
                     avoidOffset={20}
                     showAnimationDuration={200}
                     style={styles.container}>
-                    <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />
+                    <PlantPlotListModal isVisible={speciesModal} toggleModal={toggleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>
                         <PlaceHolderSwitch
                             description={i18next.t('label.tree_planted')}
@@ -192,23 +300,33 @@ const AddPlantDetailsPlotView = () => {
                         {!isEdit && <InterventionDatePicker
                             placeHolder={i18next.t('label.measurement_date')}
                             value={measurementDate}
-                            callBack={setMeasurementDate}
+                            showPicker={() => { togglePicker('measurementDate') }}
                         />}
                         <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toggleSpeciesModal} />
                         {!isEdit && <>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={i18next.t('label.height')}
-                                    changeHandler={setHeight}
+                                    placeholder={i18next.t('label.select_species_height')}
+                                    changeHandler={handleHeightChange}
+                                    autoFocus
                                     keyboardType={'decimal-pad'}
-                                    trailingText={'m'} errMsg={''} />
+                                    trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
+                                    errMsg={heightErrorMessage} />
                             </View>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput
-                                    placeholder={i18next.t('label.diameter')}
-                                    changeHandler={setWidth}
+                                    placeholder={diameterLabel}
+                                    changeHandler={handleDiameterChange}
                                     keyboardType={'decimal-pad'}
-                                    trailingText={'cm'} errMsg={''} />
+                                    trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
+                                    errMsg={widthErrorMessage}
+                                    info={i18next.t('label.measurement_diameter_info', {
+                                        height: isNonISUCountry
+                                            ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
+                                            : DBHInMeter,
+                                        unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
+                                    })}
+                                />
                             </View>
                             <PlaceHolderSwitch
                                 description={i18next.t('label.tree_alive')}
@@ -218,7 +336,7 @@ const AddPlantDetailsPlotView = () => {
                             <InterventionDatePicker
                                 placeHolder={i18next.t('label.planting_date')}
                                 value={plantingDate}
-                                callBack={setPlantingDate}
+                                showPicker={() => { togglePicker('plantingDate') }}
                             />
                         </>}
 
@@ -254,9 +372,19 @@ const AddPlantDetailsPlotView = () => {
                 <CustomButton
                     label="Save and Continue"
                     containerStyle={styles.btnContainer}
-                    pressHandler={submitHandler}
+                    pressHandler={() => { submitHandler(false) }}
                     hideFadeIn
                 />}
+            <AlertModal
+                showSecondaryButton
+                visible={showOptimalAlert}
+                onPressPrimaryBtn={acceptOptimalAlert}
+                onPressSecondaryBtn={rejectOptimalAlert}
+                heading={i18next.t('label.not_optimal_ratio')}
+                secondaryBtnText={i18next.t('label.continue')}
+                primaryBtnText={i18next.t('label.check_again')}
+                message={i18next.t('label.not_optimal_ratio_message')}
+            />
         </SafeAreaView>
     )
 }

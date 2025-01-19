@@ -12,8 +12,6 @@ interface Props {
 const InterventionDatePicker: React.FC<Props> = ({ placeHolder, value, showPicker }) => {
 
   const openPicker = () => showPicker();
-
-
   return (
     <View style={styles.containerPicker}>
       <TouchableOpacity style={styles.wrapperPicker} onPress={openPicker}>

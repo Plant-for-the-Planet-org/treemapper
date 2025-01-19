@@ -3,7 +3,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
-import { useRealm } from '@realm/react'
+import { useQuery, useRealm } from '@realm/react'
 import { Colors, Typography } from 'src/utils/constants'
 import { FlashList } from '@shopify/flash-list'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
@@ -14,7 +14,7 @@ import i18next from 'src/locales/index'
 
 interface Props {
     isVisible: boolean
-    toogleModal: () => void
+    toggleModal: () => void
     setSpecies: (i: IScientificSpecies) => void
 }
 
@@ -24,14 +24,15 @@ const PlantPlotListModal = (props: Props) => {
     // variables
     const snapPoints = useMemo(() => ['70%'], []);
 
-    const { isVisible, toogleModal, setSpecies } = props
+    const { isVisible, toggleModal, setSpecies } = props
     const [plantData, setPlantData] = useState<IScientificSpecies[]>([])
     const [search, setSearch] = useState('')
-
     const realm = useRealm()
 
 
-
+    const userFavSpecies = useQuery<IScientificSpecies>(RealmSchema.ScientificSpecies, data => {
+        return data.filtered('isUserSpecies == true')
+    })
 
     useEffect(() => {
         if (isVisible) {
@@ -41,8 +42,10 @@ const PlantPlotListModal = (props: Props) => {
         }
     }, [isVisible])
 
+
+
     const handleItemSelection = (item: IScientificSpecies) => {
-        toogleModal()
+        toggleModal()
         setSpecies(item)
     }
 
@@ -80,7 +83,7 @@ const PlantPlotListModal = (props: Props) => {
 
     const closeModal = () => {
         bottomSheetModalRef.current.dismiss()
-        toogleModal()
+        toggleModal()
     }
 
     const backdropModal = ({ style }: BottomSheetBackdropProps) => (
@@ -90,7 +93,7 @@ const PlantPlotListModal = (props: Props) => {
     const renderEmptyList = () => {
         return (<View style={styles.emptyWrapper}>
             <Text style={styles.emptyLabel}>
-                {search.length === 0 || search === `${i18next.t("label.search_for_species")}` ? i18next.t('label.species_note') : i18next.t('label.type_three_word')}
+                {search.length === 3 ? i18next.t('No species found') : i18next.t('label.type_three_word')}
             </Text>
         </View>)
     }
@@ -112,7 +115,7 @@ const PlantPlotListModal = (props: Props) => {
                         <Text style={styles.headerLabel}>
                             {i18next.t('label.select_species')}
                         </Text>
-                        <CloseIcon width={18} height={18} onPress={toogleModal} />
+                        <CloseIcon width={18} height={18} onPress={toggleModal} />
                     </View>
                     <View style={styles.searchWrapper}>
                         <View style={styles.searchBar}>
@@ -130,7 +133,7 @@ const PlantPlotListModal = (props: Props) => {
                         <FlashList
                             estimatedItemSize={100}
                             ListEmptyComponent={renderEmptyList}
-                            data={plantData}
+                            data={search.length === 0 ? [...userFavSpecies] : [...plantData]}
                             renderItem={({ item }) => renderSpecieCard(item)}
                         />
                     </View>

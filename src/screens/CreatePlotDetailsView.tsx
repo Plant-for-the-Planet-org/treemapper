@@ -102,12 +102,14 @@ const CreatePlotDetailsView = () => {
         }
 
         if (!validatePlotDimensions(plotShape)) return;
-
+        const updatedWidth = plotWidth.replace(/,/g, '.');
+        const updatedLength = plotLength.replace(/,/g, '.');
+        const updatedRadius = plotRadius.replace(/,/g, '.');
         const data: PlotDetailsParams = {
             name: plotName,
-            length: Number(plotLength),
-            width: Number(plotWidth),
-            radius: Number(plotRadius),
+            length: Number(updatedLength),
+            width: Number(updatedWidth),
+            radius: Number(updatedRadius),
             group: null
         };
 
@@ -124,8 +126,10 @@ const CreatePlotDetailsView = () => {
     const isPlotNameValid = (name: string) => name.trim().length > 0;
 
     const isRectangularPlotValid = (width: string, length: string) => {
-        const validWidth = validateNumber(width, 'width', 'width');
-        const validHeight = validateNumber(length, 'length', 'length');
+        const updatedWidth = width.replace(/,/g, '.');
+        const updatedLength = length.replace(/,/g, '.');
+        const validWidth = validateNumber(updatedWidth, 'width', 'width');
+        const validHeight = validateNumber(updatedLength, 'length', 'length');
         if (validHeight.hasError) {
             toast.show(validHeight.errorMessage);
             return false;
@@ -134,7 +138,7 @@ const CreatePlotDetailsView = () => {
             toast.show(validWidth.errorMessage);
             return false;
         }
-        if (Number(width) < 0) {
+        if (Number(updatedWidth) < 0 || Number(updatedLength) < 0) {
             toast.show("Please add valid Dimensions",{duration:2000})
             return false;
         }
@@ -142,12 +146,13 @@ const CreatePlotDetailsView = () => {
     };
 
     const isCircularPlotValid = (radius: string) => {
-        const validRadius = validateNumber(radius, 'Radius', 'Radius');
+        const updatedRadius = radius.replace(/,/g, '.');
+        const validRadius = validateNumber(updatedRadius, 'Radius', 'Radius');
         if (validRadius.hasError) {
             toast.show(validRadius.errorMessage,{duration:2000})
             return false;
         }
-        if (Number(radius) < 0) {
+        if (Number(updatedRadius) < 0) {
             toast.show("Please add valid Radius",{duration:2000})
             return false;
         }

@@ -78,10 +78,10 @@ const CreatePlotMapView = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
-            <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
+            <Header label={markLocation?"Tree Location":i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
             <InfoModal isVisible={showInfoModal} toggleModal={setShowInfoModal} />
             <View style={styles.noteWrapper}>
-                <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
+                <Text style={styles.noteLabel}>{markLocation?"Mark the location of the tree within the highlighted plot.":`${i18next.t('label.plot_map_note_1')} ${plotName} ${i18next.t('label.plot_map_note_2')}`}</Text>
             </View>
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {

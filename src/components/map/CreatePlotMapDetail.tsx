@@ -234,7 +234,7 @@ const CreatePlotMapDetail = (props: Props) => {
         onRegionDidChange={() => {
           setLoading(false)
         }}
-        onDidFinishLoadingMap={handleCamera}
+        // onDidFinishLoadingMap={handleCamera}
         onRegionIsChanging={() => {
           setLoading(true)
         }}
@@ -301,7 +301,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {isMarking && (
         <CustomButton
-          label={i18next.t('label.select_center')}
+          label={"Save & Continue"}
           containerStyle={styles.btnContainer}
           pressHandler={setSampleMarker}
           disable={loading}
@@ -311,8 +311,8 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {plotCoordinates.length === 0 || isEdit && updatedCoords.length === 0 ? (
         <CustomButton
-          label={"Select center of Plot"}
-          containerStyle={styles.btnContainer}
+        label={i18next.t('label.select_center')}
+        containerStyle={styles.btnContainer}
           pressHandler={handleContinuePress}
           disable={loading}
           loading={loading}
