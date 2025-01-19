@@ -19,6 +19,8 @@ import { useToast } from 'react-native-toast-notifications'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import { validateNumber } from 'src/utils/helpers/formHelper/validationHelper'
 
 
 
@@ -46,7 +48,7 @@ const AddObservationForm = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddObservationForm'>>()
     const plotID = route.params?.id ?? '';
     const obsId = route.params?.obsId ?? '';
-
+    const [showDatePicker, setShowDatePicker] = useState(false)
     const [type, setType] = useState<{
         label: string
         value: OBSERVATION_TYPE
@@ -95,14 +97,22 @@ const AddObservationForm = () => {
 
     const submitHandler = async () => {
         if (value.trim().length === 0) {
-            toast.show("Please add valid Plot Name",{duration:2000})
+            toast.show("Please add valid Plot Value", { duration: 2000 })
             return
         }
+        const updatedValue = value.replace(/,/g, '.');
+        const validatedValue = validateNumber(updatedValue, 'value', 'Value')
+
+        if (validatedValue.hasError) {
+            toast.show(validatedValue.errorMessage)
+            return null
+        }
+
         const obsDetails: PlotObservation = {
             obs_id: generateUniquePlotId(),
             type: type.value,
             obs_date: observationDate,
-            value: Number(value),
+            value: Number(updatedValue),
             unit: unit
         }
         await addPlotObservation(plotID, obsDetails)
@@ -112,10 +122,10 @@ const AddObservationForm = () => {
     const deleteHandler = async () => {
         const result = await deletePlotObservation(plotID, obsId)
         if (result) {
-            toast.show("Observation deleted",{duration:2000})
+            toast.show("Observation deleted", { duration: 2000 })
             navigation.goBack()
         } else {
-            toast.show("Error occurred while deleting",{duration:2000})
+            toast.show("Error occurred while deleting", { duration: 2000 })
         }
     }
 
@@ -129,17 +139,28 @@ const AddObservationForm = () => {
         }
         const result = await updatePlotObservation(plotID, obsDetails)
         if (result) {
-            toast.show("Observation details updated",{duration:2000})
+            toast.show("Observation details updated", { duration: 2000 })
             navigation.goBack()
         } else {
-            toast.show("Error occurred while updating",{duration:2000})
+            toast.show("Error occurred while updating", { duration: 2000 })
         }
     }
 
+    const handleDateSelection = (d: number) => {
+        setObservationDate(d)
+        setShowDatePicker(false)
+    }
+
+    const togglePicker = () => {
+        setShowDatePicker(prev => !prev)
+    }
 
 
     return (
         <SafeAreaView style={styles.container}>
+            {showDatePicker && <CustomDatePicker cb={handleDateSelection}
+                selectedData={observationDate}
+            />}
             <Header label='Add Observation' />
             <View style={styles.wrapper}>
                 <CustomDropDownPicker
@@ -151,7 +172,7 @@ const AddObservationForm = () => {
                 <InterventionDatePicker
                     placeHolder={'Observation Date'}
                     value={observationDate}
-                    callBack={setObservationDate}
+                    showPicker={togglePicker}
                 />
                 <View style={styles.inputWrapper}>
                     <OutlinedTextInput
