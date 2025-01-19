@@ -5,6 +5,8 @@ import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import EmptyPlotIcon from 'assets/images/svg/EmptyPlotIcon.svg'
+
 interface Props {
     item: MonitoringPlot
     handleSelection: (id: string, lastScreen: string) => void
@@ -25,7 +27,8 @@ const PlotCards = (props: Props) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.plot_id, item.lastScreen) }}>
-                <Image source={{ uri: item.local_image }} style={styles.avatar} />
+                {item.local_image ? <Image source={{ uri: item.local_image }} style={styles.avatar} /> :
+                    <EmptyPlotIcon style={[styles.avatar, { overflow: 'hidden', padding:10 }]} height={60} width={60} />}
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.idLabel}>{item.name}</Text>

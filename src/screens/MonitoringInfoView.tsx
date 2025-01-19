@@ -1,16 +1,15 @@
-import { ActivityIndicator, SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
+import { SafeAreaView, ScrollView, StyleSheet, Text, View } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import { Colors, Typography } from 'src/utils/constants'
-import YoutubePlayer from "react-native-youtube-iframe";
 import i18next from 'src/locales/index'
 
 const MonitoringInfoView = () => {
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView contentContainerStyle={{paddingTop:20}}>
             <Header label='Monitoring Plots' />
-                <View style={styles.headerSection}>
+            <ScrollView>
+                {/* <View style={styles.headerSection}>
                     <View style={styles.backDrop}></View>
                     <Text style={styles.headerNote}>
                         {i18next.t('label.m_info_h1')}
@@ -25,34 +24,34 @@ const MonitoringInfoView = () => {
                             videoId={"8UPHyT_oakM"}
                         />
                     </View>
-                </View>
+                </View> */}
                 <View style={styles.sectionWrapper}>
                     <Text style={styles.h2Label}>
-                    {i18next.t('label.m_info_n1')}
+                        {i18next.t('label.m_info_n1')}
                     </Text>
                     <Text style={styles.h1Label}>
-                    {i18next.t('label.m_info_h2')}
+                        {i18next.t('label.m_info_h2')}
                     </Text>
                     <Text style={styles.h3Label}>
-                    {i18next.t('label.m_info_n2')}
+                        {i18next.t('label.m_info_n2')}
                     </Text>
                     <Text style={styles.h1Label}>
-                    {i18next.t('label.m_info_h3')}
+                        {i18next.t('label.m_info_h3')}
                     </Text>
                     <Text style={styles.h2Label}>
-                    {i18next.t('label.m_info_n3')}
+                        {i18next.t('label.m_info_n3')}
                     </Text>
                     <Text style={styles.h1Label}>
-                    {i18next.t('label.m_info_h4')}
+                        {i18next.t('label.m_info_h4')}
                     </Text>
                     <Text style={styles.h2Label}>
-                    {i18next.t('label.m_info_n4')}
+                        {i18next.t('label.m_info_n4')}
                     </Text>
                     <Text style={styles.h1Label}>
-                    {i18next.t('label.m_info_h5')}
+                        {i18next.t('label.m_info_h5')}
                     </Text>
                     <Text style={styles.h2Label}>
-                    {i18next.t('label.m_info_n5')}
+                        {i18next.t('label.m_info_n5')}
                     </Text>
                 </View>
                 <View style={styles.divider}></View>
@@ -65,7 +64,7 @@ export default MonitoringInfoView
 
 const styles = StyleSheet.create({
     container: {
-        flex:1,
+        flex: 1,
         backgroundColor: Colors.WHITE
     },
     wrapper: {
@@ -104,7 +103,7 @@ const styles = StyleSheet.create({
     },
     sectionWrapper: {
         paddingHorizontal: 20,
-        paddingTop: 20
+        paddingTop: 0
     },
     h2Label: {
         fontSize: 16,

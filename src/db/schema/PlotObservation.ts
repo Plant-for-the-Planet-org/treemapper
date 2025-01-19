@@ -11,6 +11,8 @@ export const PlotObservation: ObjectSchema = {
     type: { type: 'string' },
     obs_date: { type: 'double' },
     unit: { type: 'string' },
-    value: 'double'
+    value: 'double',
+    is_complete: { type: 'bool', default: false },
+    status: { type: 'string', default: 'INIT' },
   },
 }

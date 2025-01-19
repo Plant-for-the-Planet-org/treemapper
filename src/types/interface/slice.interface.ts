@@ -517,4 +517,6 @@ export interface PlotObservation {
   obs_date: number
   value: number
   unit: string
+  is_complete: boolean
+  status: PLOT_PLANT_SYNC_STATUS
 }

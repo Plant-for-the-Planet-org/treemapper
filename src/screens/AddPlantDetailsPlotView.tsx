@@ -235,7 +235,7 @@ const AddPlantDetailsPlotView = () => {
             if (heightErrorMessage.length > 0 || diameterErrorMessage.length > 0) {
                 return null
             }
-            if (isRatioCorrect) {
+            if (!isRatioCorrect) {
                 setShowOptimalAlert(true);
                 return null
             }
