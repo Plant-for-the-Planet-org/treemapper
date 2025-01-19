@@ -1,7 +1,24 @@
-import { FIX_REQUIRED, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_STATUS, PLOT_TYPE } from '../type/app.type'
-import { IScientificSpecies } from './app.interface'
-import { FormElement, MainForm } from './form.interface'
-
+import {
+  FIX_REQUIRED,
+  INTERVENTION_FILTER,
+  INTERVENTION_STATUS,
+  INTERVENTION_TYPE,
+  LAST_SCREEN,
+  LOG_LEVELS,
+  LOG_TYPES,
+  MAP_BOUNDS,
+  MAP_VIEW,
+  OBSERVATION_TYPE,
+  PLOT_COMPLEXITY,
+  PLOT_PLANT,
+  PLOT_PLANT_STATUS,
+  PLOT_PLANT_SYNC_STATUS,
+  PLOT_SHAPE,
+  PLOT_STATUS,
+  PLOT_TYPE,
+} from '../type/app.type'
+import {IScientificSpecies} from './app.interface'
+import {FormElement, MainForm} from './form.interface'
 
 export interface AppInitialState {
   isLoggedIn: boolean
@@ -9,12 +26,12 @@ export interface AppInitialState {
   idToken: string
   expiringAt: number
   speciesSync: boolean
-  serverInterventionAdded: boolean,
+  serverInterventionAdded: boolean
   lastServerInterventionpage: string
   intervention_updated: number
-  userSpecies: boolean,
-  refreshToken: string,
-  lastSyncDate: number,
+  userSpecies: boolean
+  refreshToken: string
+  lastSyncDate: number
   speciesLocalURL: string
   dataMigrated: boolean
   updateAppCount: number
@@ -36,18 +53,18 @@ export interface MonitoringPlotSlice {
 }
 
 export interface SyncInfoData {
-  type: 'INTERVENTION' | "SAMPLE_TREE" | "IMAGES" | "SPECIES" | "REMEASUREMENT"
-  message: string,
-  status: "SYNCING" | "FAILED" | "UPLOADED" | 'ADDED',
-  id: string,
+  type: 'INTERVENTION' | 'SAMPLE_TREE' | 'IMAGES' | 'SPECIES' | 'REMEASUREMENT'
+  message: string
+  status: 'SYNCING' | 'FAILED' | 'UPLOADED' | 'ADDED'
+  id: string
   error: string
 }
 export interface TempStateSlice {
   webAuthLoading: boolean
   synData: SyncInfoData[]
-  selectedId: string,
+  selectedId: string
   speciesDownloading: boolean
-  speciesWriting: boolean,
+  speciesWriting: boolean
   speciesUpdatedAt: number
 }
 
@@ -78,19 +95,19 @@ export interface OldSampleTree {
 }
 
 export interface BodyPayload<T = null> {
-  error: string;
-  message: string;
-  fixRequired: FIX_REQUIRED;
-  pData: T;
+  error: string
+  message: string
+  fixRequired: FIX_REQUIRED
+  pData: T
   historyID?: string
 }
 
 export interface CountryCode {
-  countryCode: string;
-  countryName: string;
-  currencyCode: string;
-  currencyCountryFlag: string;
-  currencyName: string;
+  countryCode: string
+  countryName: string
+  currencyCode: string
+  currencyCountryFlag: string
+  currencyName: string
 }
 export interface Inventory {
   inventory_id: string
@@ -109,7 +126,7 @@ export interface Inventory {
   polygons: Array<{
     type: string
     coordinates: Array<{
-      latitude: number,
+      latitude: number
       longitude: number
       imageUrl: string
       cdnImageUrl: string
@@ -138,8 +155,6 @@ export interface Inventory {
   originalGeometry: string
 }
 
-
-
 export interface MapBoundSlice {
   bounds: number[]
   key: MAP_BOUNDS
@@ -149,14 +164,14 @@ export interface DisplayMapSlice {
   selectedIntervention: string
   showCarousel: boolean
   activeIndex: number
-  adjacentIntervention: InterventionData[],
+  adjacentIntervention: InterventionData[]
   showOverlay: boolean
   activeInterventionIndex: number
   interventionFilter: INTERVENTION_FILTER
   selectedFilters: INTERVENTION_TYPE[]
   mainMapView: MAP_VIEW
   showPlots: boolean
-  onlyRemeasurement: boolean,
+  onlyRemeasurement: boolean
   toggleProjectModal: boolean
   lastProjectAdded: number
 }
@@ -175,7 +190,7 @@ export interface ProjectStateSlice {
 }
 
 export interface GpsSliceInitialState {
-  user_location: number[],
+  user_location: number[]
   accuracy: number
 }
 
@@ -275,12 +290,12 @@ export interface SampleTree {
   parent_id: string
   additional_details: string
   app_meta_data: string
-  hid: string,
-  history: History[],
+  hid: string
+  history: History[]
   status: INTERVENTION_STATUS
   remeasurement_dates: RemeasurementDate
-  remeasurement_requires: boolean,
-  is_alive: boolean,
+  remeasurement_requires: boolean
+  is_alive: boolean
   fix_required: FIX_REQUIRED
   image_data: {
     latitude: number
@@ -291,15 +306,15 @@ export interface SampleTree {
     currentloclong: number
     isImageUploaded: boolean
     coordinateID: string
-  },
+  }
 }
 
 export interface PlantedSpecies {
-  id?: string,
-  guid: string,
-  scientificName: string,
-  aliases: string,
-  count: number,
+  id?: string
+  guid: string
+  scientificName: string
+  aliases: string
+  count: number
   image: string
 }
 
@@ -315,11 +330,9 @@ export interface SampleTreeSlice {
   boundary: Array<number[]>
   coordinates: Array<number[]>
   image_url: string
-  current_species: PlantedSpecies,
+  current_species: PlantedSpecies
   form_id: string
 }
-
-
 
 export interface UserInterface {
   country: string
@@ -362,14 +375,18 @@ export interface History {
   appMetadata: string
   status: string
   statusReason: string
-  dataStatus: 'SYNCED' |  "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
+  dataStatus:
+    | 'SYNCED'
+    | 'REMEASUREMENT_DATA_UPLOAD'
+    | 'REMEASUREMENT_EVENT_UPDATE'
+    | 'SKIP_REMEASUREMENT'
   parentId: string
   samplePlantLocationIndex: number
   lastScreen: string
 }
 
 export interface InterventionData {
-  form_id: string,
+  form_id: string
   intervention_id: string
   intervention_key: INTERVENTION_TYPE
   intervention_title: string
@@ -381,7 +398,7 @@ export interface InterventionData {
   location_type: string
   location: InterventionLocation
   image: string
-  image_data: [],
+  image_data: []
   has_species: boolean
   planted_species: PlantedSpecies[]
   has_sample_trees: boolean
@@ -393,12 +410,12 @@ export interface InterventionData {
   additional_data: FormElement[]
   meta_data: string
   last_updated_at?: number
-  status: INTERVENTION_STATUS,
-  hid: string,
+  status: INTERVENTION_STATUS
+  hid: string
   coords: {
-    type: 'Point',
+    type: 'Point'
     coordinates: number[]
-  },
+  }
   entire_site: boolean
   active?: boolean
   last_screen: LAST_SCREEN
@@ -411,16 +428,15 @@ export interface InterventionData {
 }
 
 export interface LogDetails {
-  logType: LOG_TYPES,
-  message: string,
-  referenceId?: string,
-  logLevel: LOG_LEVELS,
-  statusCode: string,
+  logType: LOG_TYPES
+  message: string
+  referenceId?: string
+  logLevel: LOG_LEVELS
+  statusCode: string
   logStack?: string
   timestamp?: number
   id?: string
 }
-
 
 export interface PlantTimeLine {
   status: PLOT_PLANT_STATUS
@@ -433,10 +449,9 @@ export interface PlantTimeLine {
   timeline_id: string
 }
 
-
 export interface PlotGroups {
-  name: string,
-  group_id: string,
+  name: string
+  group_id: string
   date_created: number
   details_updated_at: number
   plots: MonitoringPlot[]
@@ -453,9 +468,9 @@ export interface MonitoringPlot {
   name: string
   location: InterventionLocation
   coords: {
-    type: 'Point',
+    type: 'Point'
     coordinates: number[]
-  },
+  }
   is_complete: boolean
   additional_data: string
   meta_data: string
@@ -463,17 +478,18 @@ export interface MonitoringPlot {
   hid: string
   lastScreen: string
   plot_plants: PlantedPlotSpecies[]
-  plot_created_at: number,
-  plot_updated_at: number,
-  local_image: string,
-  cdn_image: string,
-  plot_group?: any,
+  plot_created_at: number
+  plot_updated_at: number
+  local_image: string
+  cdn_image: string
+  plot_group?: any
   observations: PlotObservation[]
 }
 
 export interface ValidationResult {
-  hasError: boolean,
-  errorMessage: string, key: string
+  hasError: boolean
+  errorMessage: string
+  key: string
 }
 
 export interface PlantedPlotSpecies {
@@ -491,10 +507,9 @@ export interface PlantedPlotSpecies {
   details_updated_at: number
   latitude: number
   longitude: number
+  is_complete: boolean
+  status: PLOT_PLANT_SYNC_STATUS
 }
-
-
-
 
 export interface PlotObservation {
   obs_id: string

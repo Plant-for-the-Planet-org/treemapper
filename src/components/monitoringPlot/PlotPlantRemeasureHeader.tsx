@@ -29,9 +29,10 @@ const PlotPlantRemeasureHeader = ({ label, type, species, showRemeasure, rightCo
                 <View style={styles.headerLabelContainer}>
                     {showRemeasure ? <>
                         <Text style={styles.headerLabel}>{tree ? 'Remeasurement  ' : 'Remeasure '}</Text>
-                        <Text style={styles.highlight}>{label}</Text>
-                    </> : <><Text style={styles.headerLabel}>{label}</Text>
-                        <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}><Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? `${i18next.t("label.planted")}` : `${i18next.t("label.recruit")}`}</Text></View></>}
+                        <Text style={styles.highlight}>{label || 'No Tag'}</Text>
+                    </> : <><Text style={styles.headerLabel}>{label || 'No Tag'}</Text>
+                        <View style={[styles.chip, { backgroundColor: type == 'PLANTED' ? Colors.NEW_PRIMARY + '1A' : Colors.RECRUIT_PLANT_THEME + '1A' }]}>
+                            <Text style={[styles.chipLabel, { color: type === 'PLANTED' ? Colors.NEW_PRIMARY : Colors.RECRUIT_PLANT_THEME }]}>{type === 'PLANTED' ? `${i18next.t("label.planted")}` : `${i18next.t("label.recruit")}`}</Text></View></>}
                 </View>
                 <Text style={styles.noteLabel}>
                     {species}

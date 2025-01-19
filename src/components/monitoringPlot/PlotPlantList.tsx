@@ -27,9 +27,13 @@ const PlotPlantList = (props: Props) => {
     }
 
     useEffect(() => {
-        setPlantData(plants)
+        filterData()
     }, [plants])
 
+
+    const filterData = () => {
+        setPlantData(plants.filter(el => el.is_complete === true))
+    }
 
     const addMorePlants = () => {
         navigation.navigate('AddPlantDetailsPlot', { id: plotID, })

@@ -78,7 +78,6 @@ const useMonitoringPlotManagement = () => {
           type: 'Point',
           coordinates: [coordinate[0][0][0]]
         }
-        plotData.is_complete = true
         plotData.lastScreen = 'location'
         if (isEdit) {
           plotData.length = dimensions.h
@@ -154,6 +153,7 @@ const useMonitoringPlotManagement = () => {
         const plantIndex = plotData.plot_plants.findIndex(el => el.plot_plant_id === plantId)
         plotData.plot_plants[plantIndex].latitude = lat
         plotData.plot_plants[plantIndex].longitude = long
+        plotData.plot_plants[plantIndex].is_complete = true
         plotData.plot_updated_at = Date.now()
       })
       return Promise.resolve(true)

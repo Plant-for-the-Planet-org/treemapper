@@ -163,12 +163,12 @@ const AddObservationForm = () => {
             />}
             <Header label='Add Observation' />
             <View style={styles.wrapper}>
-                <CustomDropDownPicker
-                    label={'Project'}
+                {obsId.length === 0 && <CustomDropDownPicker
+                    label={'Observation Type'}
                     data={AllObservation}
                     onSelect={handleDropDown}
                     selectedValue={type}
-                />
+                />}
                 <InterventionDatePicker
                     placeHolder={'Observation Date'}
                     value={observationDate}

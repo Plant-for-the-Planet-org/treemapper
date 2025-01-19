@@ -18,6 +18,8 @@ export const PlotPlantedSpecies: ObjectSchema = {
     details_updated_at: { type: 'double' },
     latitude: 'double',
     longitude: 'double',
+    is_complete: { type: 'bool', default: false },
+    status: { type: 'string', default: 'INIT' },
   }
 };
 

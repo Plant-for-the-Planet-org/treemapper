@@ -222,6 +222,11 @@ const AddPlantDetailsPlotView = () => {
             return isPlanted ? 'PLANTED' : 'RECRUIT'
         }
 
+        if (tag.length === 0 || tag.length > 30) {
+            toast.show("Please add valid tag")
+            return null
+        }
+
         if (!ignoreValidation) {
             const validationObject = measurementValidation(updatedHeight, updatedWidth, isNonISUCountry);
             const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
@@ -261,6 +266,8 @@ const AddPlantDetailsPlotView = () => {
             details_updated_at: Date.now(),
             latitude: 0,
             longitude: 0,
+            is_complete: false,
+            status: 'INIT'
         }
         await addPlantDetailsPlot(plotID, plantDetails)
         navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })

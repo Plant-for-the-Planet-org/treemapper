@@ -19,6 +19,14 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
 import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
+import i18next from 'i18next'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { DBHInMeter, meterToFoot, nonISUCountries } from 'src/utils/constants/appConstant'
+import { getConvertedHeight } from 'src/utils/constants/measurements'
+import { measurementValidation } from 'src/utils/constants/measurementValidation'
+import AlertModal from 'src/components/common/AlertModal'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
 
 interface Params {
     l: number,
@@ -41,12 +49,26 @@ const PlotPlantRemeasureView = () => {
     const [isAlive, setIsAlive] = useState(true)
     const [isEdit, setIsEdit] = useState(false)
     const [disableDelete, setDisableDelete] = useState(false)
+    const Country = useSelector((state: RootState) => state.userState.country)
+    const [isNonISUCountry, setIsNonISUCountry] = useState(false);
+    const [showOptimalAlert, setShowOptimalAlert] = useState(false)
+
+
+    const [diameterLabel, setDiameterLabel] = useState<string>(
+        i18next.t('label.measurement_basal_diameter'),
+    );
+    const [heightErrorMessage, setHeightErrorMessage] = useState('')
+    const [widthErrorMessage, setWidthErrorMessage] = useState('')
+    const [showDatePicker, setShowDatePicker] = useState(false)
 
     const toast = useToast()
     const { addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
     const realm = useRealm()
 
+
+
     useEffect(() => {
+        setCountry()
         const plotDetails = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotID);
         if (plotDetails) {
             const getPlantDetails = plotDetails.plot_plants.find(el => el.plot_plant_id === plantID)
@@ -67,7 +89,74 @@ const PlotPlantRemeasureView = () => {
         }
     }, [plotID])
 
-    const submitHandler = async () => {
+    const setCountry = () => {
+        setIsNonISUCountry(nonISUCountries.includes(Country));
+    };
+
+
+    const acceptOptimalAlert = () => {
+        setShowOptimalAlert(false)
+    }
+
+    const rejectOptimalAlert = () => {
+        setShowOptimalAlert(false)
+        setTimeout(() => {
+            submitHandler(true)
+        }, 1000);
+    }
+
+    const handleHeightChange = (text: string) => {
+        setHeightErrorMessage('');
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const finalText = text.replace(/,/g, '.');
+        const isValid = regex.test(finalText)
+        // Ensure there is at most one decimal point
+        if (isValid) {
+            setHeight(text);
+            const convertedHeight = height ? getConvertedHeight(text, isNonISUCountry) : 0;
+            if (convertedHeight < DBHInMeter) {
+                setDiameterLabel(i18next.t('label.measurement_basal_diameter'));
+            } else {
+                setDiameterLabel(i18next.t('label.measurement_DBH'));
+            }
+        } else {
+            setHeightErrorMessage('Please provide the correct height.')
+        }
+    };
+
+    const handleDiameterChange = (text: string) => {
+        setWidthErrorMessage('');
+        const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
+        const finalText = text.replace(/,/g, '.');
+        const isValid = regex.test(finalText)
+        if (isValid) {
+            setWidth(text);
+        } else {
+            setWidthErrorMessage('Please provide the correct diameter.')
+        }
+        // Ensure there is at most one decimal point
+    };
+
+
+
+    const submitHandler = async (ignoreValidation?: boolean) => {
+
+        const updatedWidth = width.replace(/,/g, '.');
+        const updatedHeight = height.replace(/,/g, '.');
+        if (!ignoreValidation && isAlive) {
+            const validationObject = measurementValidation(updatedHeight, updatedWidth, isNonISUCountry);
+            const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
+            setHeightErrorMessage(heightErrorMessage)
+            setWidthErrorMessage(diameterErrorMessage)
+            if (heightErrorMessage.length > 0 || diameterErrorMessage.length > 0) {
+                return null
+            }
+            if (isRatioCorrect) {
+                setShowOptimalAlert(true);
+                return null
+            }
+        }
+
         if (isEdit) {
             updateDetails()
             return
@@ -84,8 +173,8 @@ const PlotPlantRemeasureView = () => {
         }
         const updateTimeline: PlantTimeLine = {
             status: isAlive ? 'REMEASUREMENT' : 'DECEASED',
-            length: Number(height),
-            width: Number(width),
+            length: Number(updatedHeight),
+            width: Number(updatedWidth),
             date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
@@ -123,8 +212,21 @@ const PlotPlantRemeasureView = () => {
         return true
     }
 
+    const handleDateSelection = (d: number) => {
+        setMeasurementDate(d)
+        setShowDatePicker(false)
+    }
+
+    const togglePicker = () => {
+        setShowDatePicker(prev => !prev)
+    }
+
+
     const updateDetails = async () => {
+        const updatedWidth = width.replace(/,/g, '.');
+        const updatedHeight = height.replace(/,/g, '.');
         const index = selectedTimeline.timeline.findIndex(el => el.timeline_id === timelineId)
+
         if (index === 0 && !isAlive) {
             toast.show("Planted Status cannot be marked as deceased.\nPlease create new measurement and mark it as deceased.")
             return
@@ -138,12 +240,13 @@ const PlotPlantRemeasureView = () => {
         }
         const latestStatus = () => isAlive ? 'REMEASUREMENT' : 'DECEASED'
         const updateTimeline: Params = {
-            l: Number(height),
-            w: Number(width),
+            l: Number(updatedHeight),
+            w: Number(updatedWidth),
             date: measurementDate,
             status: isEdit && index === 0 ? 'PLANTED' : latestStatus()
         }
         const result = await updateTimelineDetails(plotID, plantID, timelineId, updateTimeline)
+
         if (result) {
             toast.show("Details updated")
             navigation.goBack()
@@ -153,6 +256,9 @@ const PlotPlantRemeasureView = () => {
     }
     return (
         <SafeAreaView style={styles.container}>
+            {showDatePicker && <CustomDatePicker cb={handleDateSelection}
+                selectedData={measurementDate}
+            />}
             <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={true} />
             <View style={styles.wrapper}>
                 <PlaceHolderSwitch
@@ -162,24 +268,30 @@ const PlotPlantRemeasureView = () => {
                 />
                 {isAlive && <><InterventionDatePicker
                     placeHolder={'Measurement Date'}
-                    value={measurementDate}
-                    callBack={setMeasurementDate}
-                />
+                    value={measurementDate} showPicker={togglePicker} />
                     <View style={styles.inputWrapper}>
                         <OutlinedTextInput
-                            placeholder={'Height'}
-                            changeHandler={setHeight}
-                            defaultValue={height}
+                            placeholder={i18next.t('label.select_species_height')}
+                            changeHandler={handleHeightChange}
+                            autoFocus
                             keyboardType={'decimal-pad'}
-                            trailingText={'m'} errMsg={''} />
+                            trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
+                            errMsg={heightErrorMessage} />
                     </View>
                     <View style={styles.inputWrapper}>
                         <OutlinedTextInput
-                            placeholder={'Diameter'}
-                            changeHandler={setWidth}
+                            placeholder={diameterLabel}
+                            changeHandler={handleDiameterChange}
                             keyboardType={'decimal-pad'}
-                            defaultValue={width}
-                            trailingText={'cm'} errMsg={''} />
+                            trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
+                            errMsg={widthErrorMessage}
+                            info={i18next.t('label.measurement_diameter_info', {
+                                height: isNonISUCountry
+                                    ? Math.round(DBHInMeter * meterToFoot * 1000) / 1000
+                                    : DBHInMeter,
+                                unit: isNonISUCountry ? i18next.t('label.select_species_inches') : 'm',
+                            })}
+                        />
                     </View></>}
             </View>
             {isEdit && !disableDelete ?
@@ -196,7 +308,7 @@ const PlotPlantRemeasureView = () => {
                     <CustomButton
                         label={'Save'}
                         containerStyle={styles.btnWrapper}
-                        pressHandler={updateDetails}
+                        pressHandler={submitHandler}
                         wrapperStyle={styles.noBorderWrapper}
                         hideFadeIn
                     />
@@ -207,6 +319,16 @@ const PlotPlantRemeasureView = () => {
                     pressHandler={submitHandler}
                     hideFadeIn
                 />}
+            <AlertModal
+                showSecondaryButton
+                visible={showOptimalAlert}
+                onPressPrimaryBtn={acceptOptimalAlert}
+                onPressSecondaryBtn={rejectOptimalAlert}
+                heading={i18next.t('label.not_optimal_ratio')}
+                secondaryBtnText={i18next.t('label.continue')}
+                primaryBtnText={i18next.t('label.check_again')}
+                message={i18next.t('label.not_optimal_ratio_message')}
+            />
         </SafeAreaView>
     )
 }
@@ -233,7 +355,7 @@ const styles = StyleSheet.create({
         height: 70,
         position: 'absolute',
         bottom: 50,
-        flexDirection:'row'
+        flexDirection: 'row'
     },
     btnMinorContainer: {
         width: '100%',

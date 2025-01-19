@@ -14,6 +14,8 @@ export type SIDE_DRAWER_ELEMENTS = 'logout' | 'manage_species' | 'manage_project
 
 export type INTERVENTION_STATUS = 'SYNCED' | 'INITIALIZED' | 'PENDING_DATA_UPLOAD' | 'PENDING_SAMPLE_TREE' | "PENDING_TREE_IMAGE" | "PENDING_REMEASUREMENT_SYNC" | "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
 export type PLOT_STATUS = "NOT_SYNCED" | "SYNCED" | "UPLOAD_PLOT" | "UPDATE_PLOT"
+export type PLOT_PLANT_SYNC_STATUS = "INIT" | "SYNCED"
+
 
 
 export type POST_BODY_TYPE = 'intervention' | 'singleTree' | 'sampleTree' | 'treeImage'
