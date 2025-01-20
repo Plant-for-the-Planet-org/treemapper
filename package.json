@@ -1,0 +1,13 @@
+{
+  "name": "treemapper",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "native": "cd apps/native && yarn start",
+    "web": "cd apps/next && yarn dev"
+  },
+  "packageManager": "yarn@1.22.19"
+}

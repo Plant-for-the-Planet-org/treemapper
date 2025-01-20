@@ -1,0 +1,19 @@
+{
+    "name": "@treemapper/app",
+    "version": "0.0.0",
+    "main": "index.ts",
+    "dependencies": {
+      "solito": "^3.0.0",
+      "expo-constants": "*",
+      "@react-navigation/native": "*",
+      "@react-navigation/native-stack": "*"
+    },
+    "devDependencies": {
+      "@types/react": "*",
+      "@types/react-native": "*"
+    },
+    "peerDependencies": {
+      "react": "*",
+      "react-native": "*"
+    }
+  }
