@@ -1,0 +1,23 @@
+{
+  "edit_profile": "Editar Perfil",
+  "logout": "Cerrar Sesión",
+  "logout_anyway": "Cerrar la sesión de todos modos",
+  "privacy_policy": "Política de privacidad",
+  "terms_of_service": "Condiciones de servicio",
+  "imprint": "Aviso Legal",
+  "legal_docs": "Documentos legales",
+  "open_source_license": "Licencia de código abierto",
+  "edit": "Editar",
+  "manage_offline": "Administrar los mapas fuera de línea",
+  "manage_species": "Administrar especies",
+  "activity_logging": "Registro de actividades",
+  "activity_logs": "Registro de actividades",
+  "all_backed_up": "Todos los cambios se han guardado",
+  "upload_pending": "{{count}}pendiente",
+  "sync_remaining": "Sincronización - {{count}} restante",
+  "support": "Ayuda",
+  "complete_signup": "Registro completo",
+  "manage_projects": "Administrar los proyectos",
+  "additional_data": "Datos adicionales",
+  "login_signup": "Iniciar sesión/Registrarse"
+}

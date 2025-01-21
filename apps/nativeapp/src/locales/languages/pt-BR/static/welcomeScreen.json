@@ -1,0 +1,17 @@
+{
+  "login": "Log in / Sign Up",
+  "fetch_all_items": "Fetch all Items",
+  "fetch_necessary_items": "Fetch Necessary Items",
+  "tree_mapper": "TreeMapper",
+  "tree_inventory": "Tree Inventory",
+  "tree_inventory_sub_header": "of draft and pending registrations",
+  "download_maps": "Offline Maps",
+  "download_maps_sub_header": "for offline use",
+  "register_tree": "Register Trees",
+  "loading_content": "Loading content ...",
+  "add": "Add",
+  "plots": "Plots",
+  "map": "Map",
+  "interventions":"Interventions"
+
+}

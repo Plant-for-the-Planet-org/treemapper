@@ -1,0 +1,10 @@
+{
+  "permission_camera_title": "Permission to use camera",
+  "permission_camera_message": "We need your permission to use your camera.",
+  "permission_camera_ok": "OK",
+  "permission_camera_cancel": "Cancel",
+  "storage_permission_android_title": "Storage Permission",
+  "storage_permission_android_message": "App needs access to memory to download the file",
+  "storage_permission_denied_header": "Permission Denied!",
+  "storage_permission_denied_sub_header": "You need to give storage permission to save the geoJSON file"
+}

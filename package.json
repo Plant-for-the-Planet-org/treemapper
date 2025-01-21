@@ -1,0 +1,38 @@
+{
+  "name": "tracer",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "lint": "turbo lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "postinstall": "patch-package",
+    "heroku-postbuild": "cd apps/server && yarn install && yarn run build",
+    "start": "cd apps/server && yarn start"
+  },
+  "devDependencies": {
+    "prettier": "^3.2.5",
+    "turbo": "^2.2.3",
+    "typescript": "5.5.4",
+    "patch-package": "^8.0.0"
+  },
+  "dependencies": {
+    "dotenv-cli": "^7.1.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0"
+  },
+  "resolutions": {
+    "react": "18.2.0",
+    "react-native": "0.74.2",
+    "react-dom": "18.2.0",
+    "@types/react": "18.2.6"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "packageManager": "yarn@1.22.19",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
+}

@@ -1,0 +1,100 @@
+{
+  "expo": {
+    "name": "TreeMapper",
+    "slug": "treemapper",
+    "version": "2.0.4",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "cover",
+      "backgroundColor": "#F0F7EA"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "plugins": [
+      "@maplibre/maplibre-react-native",
+      [
+        "expo-build-properties",
+        {
+          "ios": {
+            "deploymentTarget": "15.5"
+          }
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "We need access to location to be able to register trees on planted location."
+        }
+      ],
+      [
+        "react-native-auth0",
+        {
+          "domain": "accounts.plant-for-the-planet.org"
+        }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "To take pictures of the trees you have planted, please allow access to your camera."
+        }
+      ],
+      [
+        "expo-font",
+        {
+          "fonts": [
+            "./assets/fonts/OpenSans-Regular.ttf",
+            "./assets/fonts/OpenSans-Bold.ttf",
+            "./assets/fonts/OpenSans-SemiBold.ttf",
+            "./assets/fonts/OpenSans-ExtraBold.ttf",
+            "./assets/fonts/OpenSans-Italic.ttf",
+            "./assets/fonts/OpenSans-BoldItalic.ttf",
+            "./assets/fonts/OpenSans-SemiBoldItalic.ttf"
+          ]
+        }
+      ],
+      "expo-localization",
+      "expo-secure-store",
+      "expo-build-properties"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "org.pftp.treemapper",
+      "entitlements": {
+        "aps-environment": "development"
+      },
+      "infoPlist": {
+        "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
+        "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees.",
+        "ITSAppUsesNonExemptEncryption": false,
+        "LSMinimumSystemVersion": "12.0"
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#007A49"
+      },
+      "permissions": [
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_COARSE_LOCATION"
+      ],
+      "package": "org.pftp.treemapper"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "hooks": {
+      "postPublish": [
+        {
+          "file": "@bugsnag/expo/hooks/post-publish.js",
+          "config": {}
+        }
+      ]
+    }
+  }
+}
