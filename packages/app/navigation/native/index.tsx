@@ -1,14 +1,15 @@
-import { createNativeStackNavigator } from '@react-navigation/native-stack'
+import React from "react";
+import { createNativeStackNavigator } from "@react-navigation/native-stack";
 
-import { HomeScreen } from '../../features/home/screen'
-import { UserDetailScreen } from '../../features/user/detail-screen'
+import { HomeScreen } from "../../features/home/screen";
+import { UserDetailScreen } from "../../features/user/detail-screen";
 
 const Stack = createNativeStackNavigator<{
-  home: undefined
-  'user-detail': {
-    id: string
-  }
-}>()
+  home: undefined;
+  "user-detail": {
+    id: string;
+  };
+}>();
 
 export function NativeNavigation() {
   return (
@@ -17,16 +18,16 @@ export function NativeNavigation() {
         name="home"
         component={HomeScreen}
         options={{
-          title: 'Home',
+          title: "Home",
         }}
       />
       <Stack.Screen
         name="user-detail"
         component={UserDetailScreen}
         options={{
-          title: 'User',
+          title: "User",
         }}
       />
     </Stack.Navigator>
-  )
+  );
 }

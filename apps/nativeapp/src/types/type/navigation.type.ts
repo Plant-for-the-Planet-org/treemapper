@@ -1,4 +1,4 @@
-import { AFTER_CAPTURE, FORM_TYPE, INTERVENTION_TYPE } from './app.type'
+import {AFTER_CAPTURE, FORM_TYPE, INTERVENTION_TYPE} from './app.type'
 
 export type BottomTabParamList = {
   Map: undefined
@@ -8,6 +8,7 @@ export type BottomTabParamList = {
 }
 
 export type RootStackParamList = {
+  Dashboard: undefined
   Home: undefined
   TakePicture: TakePictureView
   PolygonMarker: PolygonMarkerView
@@ -46,14 +47,14 @@ export type RootStackParamList = {
   MonitoringInfo: undefined
   AddRemeasurement: AddRemeasurementView
   PlotGroup: undefined
-  AddPlotGroup: AddPlotGroup,
-  AddPlotsToGroup: AddPlotsToGroup,
+  AddPlotGroup: AddPlotGroup
+  AddPlotsToGroup: AddPlotsToGroup
   TreeRemeasurement: TreeRemeasurementView
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
-  OldInventoryDataView: undefined,
-  EditProject: EditProjectView,
-  SignUpPage: SignUpPage,
-  PlantHistory: PlantHistory,
+  OldInventoryDataView: undefined
+  EditProject: EditProjectView
+  SignUpPage: SignUpPage
+  PlantHistory: PlantHistory
   ProjectSites: undefined
   DeleteAccount: undefined
 }
@@ -74,19 +75,18 @@ type IntermediateFormView = {
 type InterventionPreviewView = {
   id: 'preview' | 'review'
   intervention: string
-  sampleTree?: string,
+  sampleTree?: string
   interventionId: string
 }
 
 type SignUpPage = {
-  email: string,
+  email: string
   accessToken: string
 }
 
 type PlantHistory = {
-  id: string,
+  id: string
 }
-
 
 type ManageSpeciesView = {
   manageSpecies: boolean
@@ -127,8 +127,8 @@ type EditProjectView = {
 }
 
 type AdditionDataElementView = {
-  edit?: boolean,
-  element: FORM_TYPE,
+  edit?: boolean
+  element: FORM_TYPE
   element_id?: string
   form_id: string
   element_order: number
@@ -154,7 +154,7 @@ type LocalFormView = {
 }
 
 type CreatePlotDetails = {
-  id: string,
+  id: string
   isEdit?: boolean
 }
 
@@ -163,9 +163,9 @@ type EditPolygonView = {
 }
 
 type CreatePlotMap = {
-  id: string,
-  markLocation?: boolean,
-  plantId?: string,
+  id: string
+  markLocation?: boolean
+  plantId?: string
   isEdit?: boolean
 }
 type PlotDetails = {
@@ -173,20 +173,19 @@ type PlotDetails = {
 }
 
 type AddPlantDetailsPlot = {
-  id: string,
+  id: string
   isEdit?: boolean
   plantId?: string
 }
 
 type PlotPlantDetails = {
-  id: string,
-  plantID: string,
+  id: string
+  plantID: string
   timelineId?: string
 }
 
-
 type AddRemeasurementView = {
-  id: string,
+  id: string
   plantID: string
   timelineId?: string
 }
@@ -197,7 +196,7 @@ type AddObservation = {
 }
 
 type AddPlotGroup = {
-  isEdit: boolean,
+  isEdit: boolean
   groupId: string
 }
 

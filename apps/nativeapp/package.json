@@ -9,7 +9,8 @@
     "web": "expo start --web"
   },
   "dependencies": {
-   "@bugsnag/expo": "^51.0.0",
+    "app": "*",
+    "@bugsnag/expo": "^51.0.0",
     "@expo/metro-runtime": "~3.2.1",
     "@expo/vector-icons": "^14.0.0",
     "@gorhom/bottom-sheet": "^4.6.3",
