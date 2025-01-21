@@ -1,25 +1,10 @@
 {
-    "compilerOptions": {
-      "baseUrl": ".",
-      "paths": {
-        "@treemapper/*": ["packages/*"]
-      },
-      "strict": true,
-      "module": "esnext",
-      "moduleResolution": "bundler",
-      "target": "es2017",
-      "lib": ["es2017", "dom"],
-      "jsx": "preserve",
-      "skipLibCheck": true,
-      "resolveJsonModule": true,
-      "noEmit": true,
-      "isolatedModules": true,
-      "esModuleInterop": true,
-      "allowJs": true,
-      "forceConsistentCasingInFileNames": true,
-      "incremental": true
-    },
-    "exclude": ["node_modules"],
-    "include": ["**/*.ts", "**/*.tsx"]
-  }
-  
+  "compilerOptions": {
+    "strictNullChecks": true,
+    "noUncheckedIndexedAccess": true,
+    "paths": {
+      "app/*": ["./packages/app/*"]
+    }
+  },
+  "extends": "expo/tsconfig.base"
+}
