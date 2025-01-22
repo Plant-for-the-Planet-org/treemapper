@@ -16,7 +16,7 @@ import {StatusBar} from 'expo-status-bar'
 import {BottomSheetModalProvider} from '@gorhom/bottom-sheet'
 import Bugsnag from '@bugsnag/expo'
 import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
-import {Dripsy} from 'app/provider/dripsy'
+import {Dripsy} from 'dashboard/provider/dripsy'
 
 Bugsnag.start(BugSnagConfig)
 MapLibreGL.setAccessToken(null)

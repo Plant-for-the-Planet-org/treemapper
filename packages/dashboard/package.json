@@ -1,6 +1,6 @@
 {
   "version": "0.0.0",
-  "name": "app",
+  "name": "dashboard",
   "main": "index.ts",
   "dependencies": {
     "@react-navigation/native": "7.0.0",

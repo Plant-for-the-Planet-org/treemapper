@@ -1,12 +1,12 @@
 import 'raf/polyfill'
 import 'setimmediate'
 
-import { Provider } from 'app/provider'
+import {Provider} from 'dashboard/provider'
 import Head from 'next/head'
 import React from 'react'
-import type { SolitoAppProps } from 'solito'
+import type {SolitoAppProps} from 'solito'
 
-function MyApp({ Component, pageProps }: SolitoAppProps) {
+function MyApp({Component, pageProps}: SolitoAppProps) {
   return (
     <>
       <Head>

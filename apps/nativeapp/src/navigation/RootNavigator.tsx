@@ -3,7 +3,7 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import BottomTabStack from './BottomTabStack'
 import Screens from 'src/screens'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {HomeScreen} from 'app/features/home/screen'
+import {HomeScreen} from 'dashboard/features/home/screen'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 

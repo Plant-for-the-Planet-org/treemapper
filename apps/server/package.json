@@ -10,7 +10,7 @@
   },
   "dependencies": {
     "@expo/next-adapter": "5.0.2",
-    "app": "*",
+    "dashboard": "*",
     "next": "^14.2.11",
     "raf": "^3.4.1",
     "react-dom": "18.2.0",
