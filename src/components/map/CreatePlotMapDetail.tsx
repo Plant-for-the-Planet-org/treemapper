@@ -234,7 +234,7 @@ const CreatePlotMapDetail = (props: Props) => {
         onRegionDidChange={() => {
           setLoading(false)
         }}
-        // onDidFinishLoadingMap={handleCamera}
+        onDidFinishLoadingMap={handleCamera}
         onRegionIsChanging={() => {
           setLoading(true)
         }}
