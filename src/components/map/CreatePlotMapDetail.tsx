@@ -93,6 +93,9 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
   const handleCamera = () => {
+    if (currentUserLocation[0] === 0) {
+      return
+    }
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
       zoomLevel: 20,
@@ -311,8 +314,8 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {plotCoordinates.length === 0 || isEdit && updatedCoords.length === 0 ? (
         <CustomButton
-        label={i18next.t('label.select_center')}
-        containerStyle={styles.btnContainer}
+          label={i18next.t('label.select_center')}
+          containerStyle={styles.btnContainer}
           pressHandler={handleContinuePress}
           disable={loading}
           loading={loading}
