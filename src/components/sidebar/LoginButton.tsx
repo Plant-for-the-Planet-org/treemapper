@@ -44,7 +44,7 @@ const LoginButton = () => {
 
   useEffect(() => {
     if (error) {
-      if (error.code === "unauthorized") {
+      if (error.code === "unauthorized" || error.code==="access_denied") {
         setTimeout(() => {
           toast.show("Please confirm your email \nusing the link sent to your inbox.", {
             duration: 8000,
