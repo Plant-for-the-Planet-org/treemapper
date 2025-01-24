@@ -118,3 +118,15 @@ export const uploadPlotData = async (params: any) => {
   const result = await fetchPostCall(uri, params);
   return result;
 };
+
+export const uploadPlotIntervention = async (params: any, plotId) => {
+  const uri = `${postUrlApi.plotBaseUrl}/${plotId}/interventions`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const uploadPlotObservation = async (params: any, obsId) => {
+  const uri = `${postUrlApi.plotBaseUrl}/${obsId}/observations`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};

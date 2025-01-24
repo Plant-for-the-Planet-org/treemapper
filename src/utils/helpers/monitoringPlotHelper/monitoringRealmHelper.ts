@@ -46,7 +46,8 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         local_image: "",
         cdn_image: "",
         plot_group: null,
-        observations: []
+        observations: [],
+        server_id: ""
     }
     return details
 }

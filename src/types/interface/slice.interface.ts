@@ -459,6 +459,7 @@ export interface PlotGroups {
 
 export interface MonitoringPlot {
   plot_id: string
+  server_id: string
   complexity: PLOT_COMPLEXITY
   shape: PLOT_SHAPE
   type: PLOT_TYPE

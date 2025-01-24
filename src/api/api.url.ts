@@ -14,7 +14,8 @@ export const postUrlApi = {
   updateProjectInF: `${https}${baseUrl}/app/projects`,
   createNewSite:`${https}${baseUrl}/app/projects`,
   deleteAccount:`${https}${baseUrl}/app/profile`,
-  createPlot:`${https}${baseUrl}//treemapper/plots`,
+  createPlot:`${https}${baseUrl}/treemapper/plots`,
+  plotBaseUrl:`${https}${baseUrl}/treemapper/plots`,
 };
 
 export const getUrlApi = {
@@ -29,5 +30,3 @@ export const getUrlApi = {
   getAllSpeciesAchieve: `${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
   getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
-
-

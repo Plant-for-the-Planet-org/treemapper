@@ -24,12 +24,12 @@ function findPolygonCenter(feature, shape) {
         throw new Error('Invalid input: Feature must be a GeoJSON Polygon');
     }
 
-    if (!['rectangle', 'square', 'circle'].includes(shape.toLowerCase())) {
+    if (!['rectangle', 'square', 'circular'].includes(shape.toLowerCase())) {
         throw new Error('Invalid shape type: Must be rectangle, square, or circle');
     }
 
     switch (shape.toLowerCase()) {
-        case 'circle': {
+        case 'circular': {
             // For circles, use turf.center as it will find the center of mass
             const center = turf.center(feature);
             return center.geometry.coordinates;
@@ -45,46 +45,6 @@ function findPolygonCenter(feature, shape) {
             return [centerLong, centerLat];
         }
     }
-}
-
-// Example usage:
-const rectanglePolygon = {
-    type: 'Feature',
-    properties: {},
-    geometry: {
-        type: 'Polygon',
-        coordinates: [[
-            [-73.9876, 40.7661],
-            [-73.9876, 40.7681],
-            [-73.9856, 40.7681],
-            [-73.9856, 40.7661],
-            [-73.9876, 40.7661]
-        ]]
-    }
-};
-
-// Find center of a rectangular polygon
-const rectangleCenter = findPolygonCenter(rectanglePolygon, 'rectangle');
-console.log('Rectangle Center:', rectangleCenter);
-
-// Validation helper function
-function validatePolygon(feature) {
-    if (!feature || !feature.geometry || feature.geometry.type !== 'Polygon') {
-        return false;
-    }
-
-    const coordinates = feature.geometry.coordinates[0];
-    if (!coordinates || coordinates.length < 4) {
-        return false;
-    }
-
-    // Check if the polygon is closed (first and last points are the same)
-    if (coordinates[0][0] !== coordinates[coordinates.length - 1][0] ||
-        coordinates[0][1] !== coordinates[coordinates.length - 1][1]) {
-        return false;
-    }
-
-    return true;
 }
 
 const getImageAsBase64 = async (fileUri: string) => {
@@ -117,6 +77,7 @@ export const postPlotConvertor = (d: MonitoringPlot[]) => {
 }
 
 export const getPlotPostBody = async (r: PlotQuaeBody, uType: string): Promise<BodyPayload> => {
+
     if (r.type === 'plot_upload') {
         const PlotData = appRealm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, r.p1Id);
         return convertPlotBody(JSON.parse(JSON.stringify(PlotData)))
@@ -182,7 +143,7 @@ const plotCenterFinder = (p: MonitoringPlot)=>{
             "type": "Feature",
             "properties": {},
             "geometry": {
-              "coordinates": [p.coords],
+              "coordinates": JSON.parse(p.location.coordinates),
               "type": "Polygon"
             }
           
@@ -192,8 +153,7 @@ const plotCenterFinder = (p: MonitoringPlot)=>{
         "type": "Feature",
         "properties": {},
         "geometry": {
-          "coordinates": [...center
-          ],
+          "coordinates": [...center],
           "type": "Point"
         }
       }

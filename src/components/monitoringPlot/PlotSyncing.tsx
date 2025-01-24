@@ -12,14 +12,14 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
 import { useToast } from 'react-native-toast-notifications';
 import RotatingView from '../common/RotatingView';
-import { useSelector } from 'react-redux';
-import { RootState } from 'src/store';
+// import { useSelector } from 'react-redux';
+// import { RootState } from 'src/store';
 import { uploadPlotData } from 'src/api/api.fetch';
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
-import { convertPlotBody, postPlotConvertor } from 'src/utils/helpers/plotSyncHelper';
+import { getPlotPostBody, postPlotConvertor } from 'src/utils/helpers/plotSyncHelper';
 interface Props {
     isLoggedIn: boolean
 }
@@ -38,17 +38,19 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-    const {} = useMonitoringPlotManagement()
+    const { updatePlotDetailsServer } = useMonitoringPlotManagement()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
 
-    const uType = useSelector(
-        (state: RootState) => state.userState.type,
-    )
+    // const uType = useSelector(
+    //     (state: RootState) => state.userState.type,
+    // )
+
     const monitoringPlotData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
+
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
             syncUploaded()
@@ -72,15 +74,12 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
             showLogin()
             return
         }
-        // if (!isSyncing) {
-        //     dispatch(updateSyncDetails(true))
-        //     dispatch(updateLastSyncData(Date.now()))
-        // }
         if (retryCount > 1) {
             setRetryCount(prev => prev - 1)
         } else {
             setMoreUpload(false)
-            toast.show("Syncing Failed, Please try again")
+            setSyncing(false)
+            toast.show("Retry reach limit.")
             return
         }
         const qData = postPlotConvertor(JSON.parse(JSON.stringify(monitoringPlotData)))
@@ -105,16 +104,14 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
 
     const handlePlotDataUpload = async (el) => {
         try {
-            const { pData, fixRequired, error, message } = convertPlotBody(el);
+            const { pData } = await getPlotPostBody(el, '');
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            console.log("SDc",pData)
-            return
-            const { response, success } = await uploadPlotData(pData);
-            console.log("Final response", response)
+            const { response, success, } = await uploadPlotData(pData);
+            console.log("Uploaded",response)
             if (success && response?.hid && response?.id) {
-                // await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+                await updatePlotDetailsServer(el.p1Id, response.hid, response.id);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -151,7 +148,7 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
                     console.log("Unknown type:", el.type);
             }
         }
-        startSyncingData();
+        // startSyncingData();
     };
 
 
@@ -179,7 +176,7 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
     )
 
     const renderTile = () => {
-        if (monitoringPlotData.length>0 && !syncing ) return renderUnSyncView()
+        if (monitoringPlotData.length > 0 && !syncing) return renderUnSyncView()
         if (syncing) return renderSyncView()
         if (showFullSync) return renderFullySyncView()
         return null

@@ -8,6 +8,7 @@ export const MonitoringPlot: ObjectSchema = {
   primaryKey: 'plot_id',
   properties: {
     plot_id: 'string',
+    server_id:'string',
     complexity: { type: 'string' },
     shape: { type: 'string' },
     type: { type: 'string' },
