@@ -1,25 +1,36 @@
+const { withTamagui } = require('@tamagui/next-plugin')
 const { withExpo } = require('@expo/next-adapter')
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // reanimated (and thus, Moti) doesn't work with strict mode currently...
-  // https://github.com/nandorojo/moti/issues/224
-  // https://github.com/necolas/react-native-web/pull/2330
-  // https://github.com/nandorojo/moti/issues/224
-  // once that gets fixed, set this back to true
   reactStrictMode: false,
   transpilePackages: [
     'react-native',
     'react-native-web',
     'solito',
-    'dripsy',
-    '@dripsy/core',
     'moti',
     'app',
     'react-native-reanimated',
     '@expo/html-elements',
     'react-native-gesture-handler',
+    'tamagui',
+    '@tamagui/core',
+    '@tamagui/theme-base',
+    '@tamagui/config',
+    // add all packages that use Tamagui
+    'dashboard' // <-- add your packages that use Tamagui
   ],
 }
 
-module.exports = withExpo(nextConfig)
+const plugins = [
+  withTamagui({
+    config: '../../packages/ui/tamagui.config.ts',
+    components: ['tamagui'],
+    importsWhitelist: ['constants.js', 'colors.js'],
+    logTimings: true,
+    disableExtraction: process.env.NODE_ENV === 'development',
+    useReactNativeWebLite: true // <-- add this
+  })
+]
+
+module.exports = withExpo(plugins.reduce((acc, next) => next(acc), nextConfig))

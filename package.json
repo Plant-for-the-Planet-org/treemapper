@@ -14,12 +14,23 @@
     "prettier": "^3.2.5",
     "turbo": "^2.2.3",
     "typescript": "5.5.4",
-    "patch-package": "^8.0.0"
+    "patch-package": "^8.0.0",
+    "@tamagui/babel-plugin": "1.91.1",
+    "@tamagui/next-plugin": "1.91.1",
+    "babel-plugin-transform-inline-environment-variables": "^7.22.5"
   },
   "dependencies": {
     "dotenv-cli": "^7.1.0",
     "react": "18.2.0",
-    "react-dom": "18.2.0"
+    "react-dom": "18.2.0",
+    "@tamagui/config": "1.91.1",
+    "@tamagui/core": "1.91.1",
+    "@tamagui/font-inter": "1.91.1",
+    "@tamagui/react-native-media-driver": "1.91.1",
+    "@tamagui/shorthands": "1.91.1",
+    "@tamagui/themes": "1.91.1",
+    "@tamagui/theme-base": "1.91.1",
+    "tamagui": "1.91.1"
   },
   "resolutions": {
     "react": "18.2.0",

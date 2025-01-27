@@ -1,27 +1,18 @@
-import 'raf/polyfill'
-import 'setimmediate'
-
-import {Provider} from 'dashboard/provider'
+import type { AppProps } from 'next/app'
+import {Wrapper} from 'dashboard/provider/index'
 import Head from 'next/head'
-import React from 'react'
-import type {SolitoAppProps} from 'solito'
+import 'raf/polyfill'
 
-function MyApp({Component, pageProps}: SolitoAppProps) {
+export default function App({ Component, pageProps }: AppProps) {
+
   return (
     <>
       <Head>
-        <title>Solito Example App</title>
-        <meta
-          name="description"
-          content="Expo + Next.js with Solito. By Fernando Rojo."
-        />
-        <link rel="icon" href="/favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
       </Head>
-      <Provider>
+      <Wrapper>
         <Component {...pageProps} />
-      </Provider>
+      </Wrapper>
     </>
   )
 }
-
-export default MyApp

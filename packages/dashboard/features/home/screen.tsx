@@ -1,75 +1,63 @@
-import React from "react";
-import { Text, useSx, View, H1, P, Row, A } from "dripsy";
-import { TextLink } from "solito/link";
-import { MotiLink } from "solito/moti";
-
+import { Stack, XStack, YStack, Text, Button, Input } from 'tamagui'
+import React from 'react'
 export function HomeScreen() {
-  const sx = useSx();
-
   return (
-    <View
-      sx={{ flex: 1, justifyContent: "center", alignItems: "center", p: 16 }}
-    >
-      <H1 sx={{ fontWeight: "800" }}>Welcome to Solito.</H1>
-      <View sx={{ maxWidth: 600 }}>
-        <P sx={{ textAlign: "center" }}>
-          Here is a basic starter to show you how you can navigate from one
-          screen to another. This screen uses the same code on Next.js and React
-          Native.
-        </P>
-        <P sx={{ textAlign: "center" }}>
-          Solito is made by{" "}
-          <A
-            href="https://twitter.com/fernandotherojo"
-            hrefAttrs={{
-              target: "_blank",
-              rel: "noreferrer",
-            }}
-            sx={{ color: "blue" }}
-          >
-            Fernando Rojo
-          </A>
-          .
-        </P>
-      </View>
-      <View sx={{ height: 32 }} />
-      <Row>
-        <TextLink
-          href="/user/fernando"
-          textProps={{
-            style: sx({ fontSize: 16, fontWeight: "bold", color: "blue" }),
-          }}
-        >
-          Regular Link
-        </TextLink>
-        <View sx={{ width: 32 }} />
-        <MotiLink
-          href="/user/fernando"
-          animate={({ hovered, pressed }) => {
-            "worklet";
+    <YStack flex={1} padding="$4" backgroundColor="$background">
+      {/* Header Section */}
+      <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+        <Text fontSize="$6" fontWeight="bold">
+          My App
+        </Text>
+        <Button size="$3" variant="outlined">
+          Menu
+        </Button>
+      </XStack>
 
-            return {
-              scale: pressed ? 0.95 : hovered ? 1.1 : 1,
-              rotateZ: pressed ? "0deg" : hovered ? "-3deg" : "0deg",
-            };
-          }}
-          from={{
-            scale: 0,
-            rotateZ: "0deg",
-          }}
-          transition={{
-            type: "timing",
-            duration: 150,
-          }}
+      {/* Content Section */}
+      <YStack space="$4" flex={1}>
+        <Text fontSize="$5" fontWeight="bold">
+          Welcome Back
+        </Text>
+
+        <Input
+          size="$4"
+          placeholder="Search..."
+          marginTop="$2"
+        />
+
+        {/* Card-like container */}
+        <YStack
+          backgroundColor="$gray3"
+          padding="$4"
+          borderRadius="$4"
+          marginTop="$2"
         >
-          <Text
-            selectable={false}
-            sx={{ fontSize: 16, color: "black", fontWeight: "bold" }}
-          >
-            Moti Link
+          <Text fontSize="$4" marginBottom="$2">
+            Featured Content
           </Text>
-        </MotiLink>
-      </Row>
-    </View>
-  );
+          <Text color="$gray11">
+            This is a sample card with some content. You can add more components
+            and style them according to your needs.
+          </Text>
+        </YStack>
+
+        {/* Action Buttons */}
+        <XStack space="$3" marginTop="$4">
+          <Button flex={1} size="$4" theme="blue">
+            Get Started
+          </Button>
+          <Button flex={1} size="$4" variant="outlined">
+            Learn More
+          </Button>
+        </XStack>
+      </YStack>
+
+      {/* Footer */}
+      <XStack justifyContent="center" paddingVertical="$4">
+        <Text color="$gray11" fontSize="$3">
+          © 2025 My App
+        </Text>
+      </XStack>
+    </YStack>
+  )
 }

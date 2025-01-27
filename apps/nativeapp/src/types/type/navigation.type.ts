@@ -8,7 +8,6 @@ export type BottomTabParamList = {
 }
 
 export type RootStackParamList = {
-  Dashboard: undefined
   Home: undefined
   TakePicture: TakePictureView
   PolygonMarker: PolygonMarkerView
@@ -57,6 +56,9 @@ export type RootStackParamList = {
   PlantHistory: PlantHistory
   ProjectSites: undefined
   DeleteAccount: undefined
+  Dashboard: undefined
+  UserScreen: undefined
+
 }
 
 type SpeciesInfoView = {
