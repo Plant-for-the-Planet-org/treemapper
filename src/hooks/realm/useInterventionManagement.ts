@@ -17,6 +17,7 @@ const useInterventionManagement = () => {
   const { addNewLog } = useLogManagement()
   const toast = useToast()
   const dispatch = useDispatch()
+  
   const initializeIntervention = async (
     intervention: RegisterFormSliceInitialState,
   ): Promise<boolean> => {

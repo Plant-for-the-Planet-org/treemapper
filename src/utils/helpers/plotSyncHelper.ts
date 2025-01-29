@@ -1,16 +1,17 @@
-import moment from "moment";
-import { BodyPayload, InterventionData, MonitoringPlot, PlotQuaeBody, QuaeBody, SampleTree } from "src/types/interface/slice.interface";
-import * as turf from '@turf/turf';
-import { appRealm } from "src/db/RealmProvider";
-import { RealmSchema } from "src/types/enum/db.enum";
-import * as FileSystem from 'expo-file-system';
-import { FormElement } from "src/types/interface/form.interface";
-import { updateFilePath } from "./fileSystemHelper";
-import sampleTreeBase64 from '../../../assets/images/base64/sampleTree'
-
+import moment from 'moment'
+import {
+  BodyPayload,
+  MonitoringPlot,
+  PlantedPlotSpecies,
+  PlotObservation,
+  PlotQuaeBody,
+} from 'src/types/interface/slice.interface'
+import * as turf from '@turf/turf'
+import {appRealm} from 'src/db/RealmProvider'
+import {RealmSchema} from 'src/types/enum/db.enum'
 
 const postTimeConvertor = (t: number) => {
-    return moment(t).format('YYYY-MM-DD')
+  return moment(t).format('YYYY-MM-DD')
 }
 
 /**
@@ -20,314 +21,259 @@ const postTimeConvertor = (t: number) => {
  * @returns {Array} Center coordinates [longitude, latitude]
  */
 function findPolygonCenter(feature, shape) {
-    if (!feature || !feature.geometry || feature.geometry.type !== 'Polygon') {
-        throw new Error('Invalid input: Feature must be a GeoJSON Polygon');
+  if ((!feature && !feature.geometry) || feature.geometry.type !== 'Polygon') {
+    throw new Error('Invalid input: Feature must be a GeoJSON Polygon')
+  }
+
+  if (!['rectangle', 'square', 'circular'].includes(shape.toLowerCase())) {
+    throw new Error('Invalid shape type: Must be rectangle, square, or circle')
+  }
+  let result = []
+  switch (shape.toLowerCase()) {
+    case 'circular': {
+      // For circles, use turf.center as it will find the center of mass
+      const center = turf.center(feature)
+      result = center.geometry.coordinates
+      break
     }
 
-    if (!['rectangle', 'square', 'circular'].includes(shape.toLowerCase())) {
-        throw new Error('Invalid shape type: Must be rectangle, square, or circle');
+    case 'rectangle':
+    case 'square': {
+      // For rectangles and squares, we can use the bounding box center
+      // This is more accurate than center of mass for these shapes
+      const bbox = turf.bbox(feature)
+      const centerLong = (bbox[0] + bbox[2]) / 2
+      const centerLat = (bbox[1] + bbox[3]) / 2
+      result = [centerLong, centerLat]
+      break
     }
-
-    switch (shape.toLowerCase()) {
-        case 'circular': {
-            // For circles, use turf.center as it will find the center of mass
-            const center = turf.center(feature);
-            return center.geometry.coordinates;
-        }
-
-        case 'rectangle':
-        case 'square': {
-            // For rectangles and squares, we can use the bounding box center
-            // This is more accurate than center of mass for these shapes
-            const bbox = turf.bbox(feature);
-            const centerLong = (bbox[0] + bbox[2]) / 2;
-            const centerLat = (bbox[1] + bbox[3]) / 2;
-            return [centerLong, centerLat];
-        }
+    default: {
+      result = []
     }
+  }
+  return result
 }
-
-const getImageAsBase64 = async (fileUri: string) => {
-    try {
-        const base64 = await FileSystem.readAsStringAsync(fileUri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        return base64;
-    } catch (error) {
-        return sampleTreeBase64;
-    }
-};
-
-
 
 export const postPlotConvertor = (d: MonitoringPlot[]) => {
-    const quae: PlotQuaeBody[] = []
-    d.forEach(plot => {
-        if(plot.status==='UPLOAD_PLOT'){
-            quae.push({
-                type: 'plot_upload',
-                priority: 1,
-                nextStatus: 'SYNCED',
-                p1Id: plot.plot_id,
-                p2Id: '',
-            })
-        }
-    });
-    return quae
+  const quae: PlotQuaeBody[] = []
+  d.forEach(plot => {
+    if (plot.status === 'UPLOAD_PLOT') {
+      quae.push({
+        type: 'plot_upload',
+        priority: 1,
+        nextStatus: 'SYNCED',
+        parentID: plot.plot_id,
+        uploadID: plot.plot_id,
+      })
+    }
+    const plantQuee = postPlotInterventionConvertor(
+      plot.plot_plants,
+      plot.plot_id,
+    )
+    const obsQuee = postPlotObservationConvertor(
+      plot.observations,
+      plot.plot_id,
+    )
+    quae.push(...plantQuee, ...obsQuee)
+  })
+  return quae
 }
 
-export const getPlotPostBody = async (r: PlotQuaeBody, uType: string): Promise<BodyPayload> => {
-
-    if (r.type === 'plot_upload') {
-        const PlotData = appRealm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, r.p1Id);
-        return convertPlotBody(JSON.parse(JSON.stringify(PlotData)))
+export const postPlotInterventionConvertor = (
+  d: PlantedPlotSpecies[],
+  parent_id: string,
+) => {
+  const quae: PlotQuaeBody[] = []
+  d.forEach(plant => {
+    if (plant.status === 'UPLOAD_REQUIRED') {
+      quae.push({
+        type: 'plot_intervention_upload',
+        priority: 1,
+        nextStatus: 'SYNCED',
+        parentID: parent_id,
+        uploadID: plant.plot_plant_id,
+      })
     }
-    if (r.type === 'singleTree') {
-        const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])), uType)
-    }
-    if (r.type === 'sampleTree') {
-        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, TreeDetails.intervention_id);
-        if (Intervention.location_id === '') {
-            return null
-        }
-        return convertTreeToBody(Intervention, TreeDetails, uType)
-    }
-    if (r.type === 'treeImage') {
-        try {
-            const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-            if (TreeDetails.sloc_id === '') {
-                return null
-            }
-            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
-            const body = {
-                imageFile: `data:image/png;base64,${base64Image}`,
-                locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
-                imageId: TreeDetails.image_data.coordinateID
-            };
-            return { pData: body, message: '', fixRequired: "NO", error: "" }
-        } catch (error) {
-            return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
-        }
-    }
-    return { pData: null, message: '', fixRequired: "NO", error: "" }
-}
-export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> => {
-    if (r.type === 'remeasurementData') {
-        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return convertRemeasurementBody(TreeDetails)
-    }
-    if (r.type === 'remeasurementStatus') {
-        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return convertRemeasurementStatus(TreeDetails)
-    }
-    return { pData: null, message: '', fixRequired: "NO", error: "" }
+  })
+  return quae
 }
 
-const plotShapeHelper = (p: MonitoringPlot)=>{
-    if(p.shape==='RECTANGULAR'){
-        return {
-            "length": p.length,
-            "width": p.width,
-        }
+export const postPlotObservationConvertor = (
+  d: PlotObservation[],
+  parent_id: string,
+) => {
+  const quae: PlotQuaeBody[] = []
+  d.forEach(obs => {
+    if (obs.status === 'UPLOAD_REQUIRED') {
+      quae.push({
+        type: 'plot_observation_upload',
+        priority: 1,
+        nextStatus: 'SYNCED',
+        parentID: parent_id,
+        uploadID: obs.obs_id,
+      })
     }
+  })
+  return quae
+}
+
+const plotShapeHelper = (p: MonitoringPlot) => {
+  if (p.shape === 'RECTANGULAR') {
     return {
-        "radius":p.radius
+      length: p.length,
+      width: p.width,
     }
+  }
+  return {
+    radius: p.radius,
+  }
 }
 
-const plotCenterFinder = (p: MonitoringPlot)=>{
-    const center = findPolygonCenter(
-        {
-            "type": "Feature",
-            "properties": {},
-            "geometry": {
-              "coordinates": JSON.parse(p.location.coordinates),
-              "type": "Polygon"
-            }
-          
-    }, p.shape);
+const plotCenterFinder = (p: MonitoringPlot) => {
+  const center = findPolygonCenter(
+    {
+      type: 'Feature',
+      properties: {},
+      geometry: {
+        coordinates: JSON.parse(p.location.coordinates),
+        type: 'Polygon',
+      },
+    },
+    p.shape,
+  )
 
-    return {
-        "type": "Feature",
-        "properties": {},
-        "geometry": {
-          "coordinates": [...center],
-          "type": "Point"
-        }
+  return {
+    type: 'Feature',
+    properties: {},
+    geometry: {
+      coordinates: [...center],
+      type: 'Point',
+    },
+  }
+}
+
+export const getPlotPostBody = async (
+  r: PlotQuaeBody,
+): Promise<BodyPayload> => {
+  try {
+    const PlotData = appRealm.objectForPrimaryKey<MonitoringPlot>(
+      RealmSchema.MonitoringPlot,
+      r.uploadID,
+    )
+    const plotDimensions = plotShapeHelper(PlotData)
+    const plotGeometry = plotCenterFinder(PlotData)
+    const postData: any = {
+      type: PlotData.type.toLowerCase(),
+      shape: PlotData.shape.toLocaleLowerCase(),
+      name: PlotData.name,
+      ...plotDimensions,
+      geometry: {...plotGeometry},
+      captureDate: postTimeConvertor(PlotData.plot_created_at),
+    }
+    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+  } catch (error) {
+    return {pData: null, message: '', fixRequired: 'NO', error: ''}
+  }
+}
+
+export const getPlotInterventionBody = async (
+  r: PlotQuaeBody,
+): Promise<BodyPayload> => {
+  try {
+    const PlotData = appRealm.objectForPrimaryKey<MonitoringPlot>(
+      RealmSchema.MonitoringPlot,
+      r.parentID,
+    )
+    if (PlotData.server_id !== '') {
+      return {pData: null, message: '', fixRequired: 'NO', error: ''}
+    }
+    const PlantData = appRealm.objectForPrimaryKey<PlantedPlotSpecies>(
+      RealmSchema.PlotPlantedSpecies,
+      r.uploadID,
+    )
+
+    const postData: any = {
+      isRecruit: PlantData.type === 'RECRUIT',
+      tag: PlantData.tag,
+      plot: PlotData.server_id,
+      interventionStartDate: postTimeConvertor(PlantData.planting_date),
+      interventionEndDate: postTimeConvertor(PlantData.planting_date),
+      geometry: {
+        type: 'Point',
+        coordinates: [PlantData.latitude, PlantData.longitude],
+      },
+      measurements: {
+        height: PlantData.timeline[0].length,
+        width: PlantData.timeline[0].width,
+      },
+      captureMode: 'on-site',
+      deviceLocation: {
+        coordinates: [73.77440575566384, 18.49951042415884],
+        type: 'Point',
+      },
+      metadata: {
+        public: [{}],
+        private: [{}],
+        app: {
+          deviceLocation: {
+            coordinates: [73.77440575566384, 18.49951042415884],
+            type: 'Point',
+          },
+        },
+      },
+    }
+
+    if (PlantData.scientificName === 'Unknown') {
+      postData.otherSpecies = 'unknown'
+    } else {
+      postData.scientificSpecies = PlantData.guid
+    }
+
+    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+  } catch (error) {
+    console.log('KLJK', error)
+    return {pData: null, message: '', fixRequired: 'NO', error: ''}
+  }
+}
+
+export const getPlotObservationBody = async (
+  r: PlotQuaeBody,
+): Promise<BodyPayload> => {
+  try {
+    const PlotData = appRealm.objectForPrimaryKey<MonitoringPlot>(
+      RealmSchema.MonitoringPlot,
+      r.parentID,
+    )
+    if (PlotData.server_id !== '') {
+      return {pData: null, message: '', fixRequired: 'NO', error: ''}
+    }
+    const ObservationData = appRealm.objectForPrimaryKey<PlotObservation>(
+      RealmSchema.PlotObservation,
+      r.uploadID,
+    )
+
+    const observationTypeData = () => {
+      switch (ObservationData.type) {
+        case 'CANOPY':
+          return 'canopy'
+        case 'SOIL_MOISTURE':
+          return 'soil-moisture'
+        case 'BIOACOUSTICS':
+          return 'bioacoustics'
+        default:
+          return 'canopy'
       }
-}
-
-
-export const convertPlotBody = (d: MonitoringPlot): BodyPayload => {
-    try {
-        const plotDimensions = plotShapeHelper(d)
-        const plotGeometry = plotCenterFinder(d)
-        const postData: any = {
-                "type": d.type.toLowerCase(),
-                "shape": d.shape.toLocaleLowerCase(),
-                "name": d.name,
-                ...plotDimensions,
-                "geometry": {...plotGeometry},
-                "captureDate": postTimeConvertor(d.plot_created_at)
-        }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
-    } catch (error) {
-        return { pData: null, message: "Unknown error occurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
-}
 
-export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: string): BodyPayload => {
-    try {
-        const metaData = JSON.parse(i.meta_data);
-        const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
-        const finalMeta = {
-            app: {
-                ...metaData.app
-            },
-            public: {
-                ...additionalDataConvert.publicAdd,
-                ...metaData.public
-            },
-            private: {
-                ...additionalDataConvert.privateAdd,
-                ...metaData.privateAdd
-            }
-        }
-        const postData: any = {
-            type: i.intervention_type === 'single-tree-registration' ? 'single-tree-registration' : 'sample-tree-registration',
-            captureMode: "on-site",
-            deviceLocation: metaData.app.deviceLocation,
-            geometry: {
-                type: 'Point',
-                coordinates: [d.longitude, d.latitude]
-            },
-            registrationDate: postTimeConvertor(Date.now()),
-            metadata: finalMeta,
-            measurements: {
-                height: d.specie_height,
-                width: d.specie_diameter
-            },
-        }
-        postData.interventionStartDate = postTimeConvertor(d.plantation_date)
-        postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-        if (uType === 'tpo' && !i.project_id) {
-            return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
-        }
-
-        if (uType === 'tpo' && i.project_id) {
-            postData.plantProject = i.project_id
-        }
-
-        if (uType === 'tpo'  && i.site_id && i.site_id !== 'other') {
-            postData.plantProjectSite = i.site_id
-        }
-        if (d.species_guid == "unknown") {
-            postData.otherSpecies = "Unknown"
-        } else {
-            postData.scientificSpecies = d.species_guid
-        }
-
-        if (d.tree_type === 'sample') {
-            postData.parent = i.location_id
-        }
-        if (d.tag_id) {
-            postData.tag = d.tag_id
-        }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
-    } catch (error) {
-        return { pData: null, message: "Unknown error occurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
+    const postData: any = {
+      type: observationTypeData(),
+      observationDate: postTimeConvertor(ObservationData.obs_date),
+      captureDate: postTimeConvertor(Date.now()),
+      unit: ObservationData.unit,
+      value: ObservationData.value,
     }
+    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+  } catch (error) {
+    return {pData: null, message: '', fixRequired: 'NO', error: ''}
+  }
 }
-
-const handleAdditionalData = (aData: FormElement[]) => {
-    const privateAdd = {}
-    const publicAdd = {}
-    aData.forEach(el => {
-        if (el.visibility === 'private') {
-            privateAdd[el.key] = {
-                "key": el.key,
-                "originalKey":el.element_id,
-                "value":el.value,
-                "label":el.label,
-                "type":el.type,
-                "unit":el.unit,
-                "visibility":"private",
-                "dataType":el.data_type,
-                "elementType":"additionalData"
-            };
-        }
-        if (el.visibility === 'public') {
-            publicAdd[el.key] = {
-                "key": el.key,
-                "originalKey":el.element_id,
-                "value":el.value,
-                "label":el.label,
-                "type":el.type,
-                "unit":el.unit,
-                "visibility":"public",
-                "dataType":el.data_type,
-                "elementType":"additionalData"
-            };
-        }
-    })
-    return { privateAdd, publicAdd }
-}
-
-export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
-    try {
-        const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_DATA_UPLOAD')
-        const base64Image = await getImageAsBase64(updateFilePath(d.image_url))
-        const postData: any = {
-            "type": "measurement",
-            "eventDate": postTimeConvertor(getHistory.eventDate),
-            "measurements": {
-                "height": d.specie_height,
-                "width": d.specie_diameter,
-            },
-            imageFile: `data:image/png;base64,${base64Image}`,
-            "metadata": getHistory.additionalDetails.length > 0 ? {
-                "public": {
-                    comment: getHistory.additionalDetails[0].value,
-                },
-                "app": {
-                    deviceLocation: getHistory.additionalDetails[1].value,
-                },
-                "private": {
-                    withinRange: getHistory.additionalDetails[2].value,
-                }
-            } : {}
-        }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
-    } catch (error) {
-        return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
-    }
-}
-
-export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPayload> => {
-    const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
-    try {
-        const postData: any = {
-            "type": "status",
-            "eventDate": postTimeConvertor(getHistory.eventDate || Date.now()),
-            "statusReason": getHistory.statusReason || '',
-            "status": "dead",
-            "metadata": getHistory.additionalDetails.length > 0 ? {
-                "public": {
-                    comment: getHistory.additionalDetails[0].value,
-                },
-                "app": {
-                    deviceLocation: JSON.parse(getHistory.additionalDetails[1].value),
-                },
-                "private": {
-                    withinRange: getHistory.additionalDetails[2].value,
-                }
-            } : {}
-        }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
-    } catch (error) {
-        return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
-    }
-}
-

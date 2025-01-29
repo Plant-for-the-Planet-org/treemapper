@@ -53,7 +53,9 @@ const useMonitoringPlotManagement = () => {
         plotData.width = data.width
         plotData.radius = data.radius
         plotData.lastScreen = 'details'
-        plotData.status = 'UPLOAD_PLOT'
+        if (plotData.server_id !== '') {
+          plotData.status = 'UPDATE_PLOT'
+        }
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -92,6 +94,9 @@ const useMonitoringPlotManagement = () => {
           plotData.length = dimensions.h
           plotData.width = dimensions.w
           plotData.radius = dimensions.r
+          plotData.status = 'UPDATE_PLOT'
+        } else {
+          plotData.status = 'UPLOAD_PLOT'
         }
       })
       return Promise.resolve(true)
@@ -112,6 +117,9 @@ const useMonitoringPlotManagement = () => {
           id,
         )
         plotData.local_image = image
+        if (plotData.server_id !== '') {
+          plotData.status = 'UPDATE_PLOT'
+        }
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -140,22 +148,6 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
-  const updatePlotName = async (id: string, name: string): Promise<boolean> => {
-    try {
-      realm.write(() => {
-        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(
-          RealmSchema.MonitoringPlot,
-          id,
-        )
-        plotData.name = name
-      })
-      return Promise.resolve(true)
-    } catch (error) {
-      console.error('Error during write:', error)
-      return false
-    }
-  }
-
   const updatePlotPlantLocation = async (
     id: string,
     plantId: string,
@@ -174,7 +166,31 @@ const useMonitoringPlotManagement = () => {
         plotData.plot_plants[plantIndex].latitude = lat
         plotData.plot_plants[plantIndex].longitude = long
         plotData.plot_plants[plantIndex].is_complete = true
+        if (plotData.plot_plants[plantIndex].server_id!=='') {
+          plotData.plot_plants[plantIndex].status = 'EDITED'
+        }else{
+          plotData.plot_plants[plantIndex].status = 'UPLOAD_REQUIRED'
+        }
         plotData.plot_updated_at = Date.now()
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return false
+    }
+  }
+
+  const updatePlotName = async (id: string, name: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plotData = realm.objectForPrimaryKey<MonitoringPlot>(
+          RealmSchema.MonitoringPlot,
+          id,
+        )
+        plotData.name = name
+        if (plotData.server_id !== '') {
+          plotData.status = 'UPDATE_PLOT'
+        }
       })
       return Promise.resolve(true)
     } catch (error) {
@@ -430,6 +446,7 @@ const useMonitoringPlotManagement = () => {
         observation.type = observationDEtails.type
         observation.value = observationDEtails.value
         observation.unit = observationDEtails.unit
+        observation.status = observationDEtails.status
         plotData.plot_updated_at = Date.now()
       })
       return Promise.resolve(true)

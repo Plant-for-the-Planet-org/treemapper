@@ -267,7 +267,8 @@ const AddPlantDetailsPlotView = () => {
             latitude: 0,
             longitude: 0,
             is_complete: false,
-            status: 'INIT'
+            status: 'INIT',
+            server_id: ''
         }
         await addPlantDetailsPlot(plotID, plantDetails)
         navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })

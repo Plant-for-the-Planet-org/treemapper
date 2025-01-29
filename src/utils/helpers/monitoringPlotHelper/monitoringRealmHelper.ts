@@ -37,7 +37,7 @@ export const newPlotDetails = (shape: PLOT_SHAPE, type: PLOT_TYPE, complexity: P
         is_complete: false,
         additional_data: "",
         meta_data: "",
-        status: "NOT_SYNCED",
+        status: "INIT",
         hid: "",
         lastScreen: "form",
         plot_plants: [],

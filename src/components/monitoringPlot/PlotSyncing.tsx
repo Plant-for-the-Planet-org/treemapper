@@ -12,14 +12,11 @@ import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
 import { useToast } from 'react-native-toast-notifications';
 import RotatingView from '../common/RotatingView';
-// import { useSelector } from 'react-redux';
-// import { RootState } from 'src/store';
-import { uploadPlotData } from 'src/api/api.fetch';
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
-import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
-import { getPlotPostBody, postPlotConvertor } from 'src/utils/helpers/plotSyncHelper';
+// import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement';
+import { getPlotInterventionBody, getPlotObservationBody, getPlotPostBody, postPlotConvertor } from 'src/utils/helpers/plotSyncHelper';
 interface Props {
     isLoggedIn: boolean
 }
@@ -31,20 +28,12 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
     const [retryCount, setRetryCount] = useState(10)
     const [showFullSync, setShowFullSync] = useState(false)
     const [syncing, setSyncing] = useState(false)
-
-    // const { syncRequired, isSyncing } = useSelector(
-    //     (state: RootState) => state.syncState,
-    // )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
-    const { updatePlotDetailsServer } = useMonitoringPlotManagement()
+    // const { updatePlotDetailsServer } = useMonitoringPlotManagement()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
 
-    // const uType = useSelector(
-    //     (state: RootState) => state.userState.type,
-    // )
 
     const monitoringPlotData = useQuery<MonitoringPlot>(
         RealmSchema.MonitoringPlot,
@@ -56,7 +45,6 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
             syncUploaded()
         }
     }, [uploadData])
-
 
 
     const showLogin = () => {
@@ -101,36 +89,6 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
         uploadObjectsSequentially(uploadData);
     }
 
-
-    const handlePlotDataUpload = async (el) => {
-        try {
-            const { pData } = await getPlotPostBody(el, '');
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-            const { response, success, } = await uploadPlotData(pData);
-            console.log("Uploaded",response)
-            if (success && response?.hid && response?.id) {
-                await updatePlotDetailsServer(el.p1Id, response.hid, response.id);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            }
-        } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Intervention API response error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
-        }
-    };
-
     const uploadObjectsSequentially = async (d: PlotQuaeBody[]) => {
         setSyncing(true)
         for (const el of d) {
@@ -144,12 +102,111 @@ const PlotSyncing = ({ isLoggedIn }: Props) => {
                 case 'plot_upload':
                     await handlePlotDataUpload(el);
                     break;
+                case 'plot_intervention_upload':
+                    await handlePlotInterventionDataUpload(el);
+                    break;
+                case 'plot_observation_upload':
+                    await handlePlotObservationUpload(el);
+                    break;
                 default:
                     console.log("Unknown type:", el.type);
             }
         }
-        // startSyncingData();
     };
+
+
+    const handlePlotDataUpload = async (el) => {
+        try {
+            const { pData } = await getPlotPostBody(el);
+            console.log("This is handlePlotDataUpload", JSON.stringify(pData,null,2));
+            // if (!pData) {
+            //     throw new Error("Not able to convert body");
+            // }
+            // const { response, success, } = await uploadPlotData(pData);
+            // if (success && response?.hid && response?.id) {
+            //     await updatePlotDetailsServer(el.p1Id, response.hid, response.id);
+            // } else {
+            //     addNewLog({
+            //         logType: 'DATA_SYNC',
+            //         message: 'Intervention API response error',
+            //         logLevel: 'error',
+            //         statusCode: '',
+            //     })
+            // }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Intervention API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+    const handlePlotInterventionDataUpload = async (el) => {
+        
+        try {
+            const { pData } = await getPlotInterventionBody(el);
+            console.log("This is handlePlotInterventionDataUpload", JSON.stringify(pData,null,2));
+
+            if (!pData) {
+                throw new Error("Not able to convert body");
+            }
+            // const { response, success, } = await uploadPlotData(pData);
+            // if (success && response?.hid && response?.id) {
+            //     await updatePlotDetailsServer(el.p1Id, response.hid, response.id);
+            // } else {
+            //     addNewLog({
+            //         logType: 'DATA_SYNC',
+            //         message: 'Intervention API response error',
+            //         logLevel: 'error',
+            //         statusCode: '',
+            //     })
+            // }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Intervention API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+    const handlePlotObservationUpload = async (el) => {
+        try {
+            const { pData } = await getPlotObservationBody(el);
+            console.log("This is handlePlotObservationUpload", JSON.stringify(pData,null,2));
+
+            // if (!pData) {
+            //     throw new Error("Not able to convert body");
+            // }
+            // const { response, success, } = await uploadPlotData(pData);
+            // if (success && response?.hid && response?.id) {
+            //     await updatePlotDetailsServer(el.p1Id, response.hid, response.id);
+            // } else {
+            //     addNewLog({
+            //         logType: 'DATA_SYNC',
+            //         message: 'Intervention API response error',
+            //         logLevel: 'error',
+            //         statusCode: '',
+            //     })
+            // }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Intervention API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+
+
 
 
     const renderSyncView = () => (

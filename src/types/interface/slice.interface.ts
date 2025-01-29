@@ -10,6 +10,8 @@ import {
   MAP_VIEW,
   OBSERVATION_TYPE,
   PLOT_COMPLEXITY,
+  PLOT_GROUP_SYNC_STATUS,
+  PLOT_OBSERVATION_SYNC_STATUS,
   PLOT_PLANT,
   PLOT_PLANT_STATUS,
   PLOT_PLANT_SYNC_STATUS,
@@ -258,9 +260,9 @@ export interface PlotQuaeBody {
   type: string
   priority: number
   nextStatus: PLOT_STATUS
-  p1Id?: string
-  p2Id?: string
-  p3Id?: string
+  parentID: string
+  serverID?: string
+  uploadID?: string
 }
 
 export interface SampleTree {
@@ -451,10 +453,12 @@ export interface PlantTimeLine {
 
 export interface PlotGroups {
   name: string
+  server_id: string
   group_id: string
   date_created: number
   details_updated_at: number
   plots: MonitoringPlot[]
+  status: PLOT_GROUP_SYNC_STATUS
 }
 
 export interface MonitoringPlot {
@@ -495,6 +499,7 @@ export interface ValidationResult {
 
 export interface PlantedPlotSpecies {
   plot_plant_id: string
+  server_id: string
   tag: string
   guid: string
   scientificName: string
@@ -514,10 +519,11 @@ export interface PlantedPlotSpecies {
 
 export interface PlotObservation {
   obs_id: string
+  server_id: string
   type: OBSERVATION_TYPE
   obs_date: number
   value: number
   unit: string
   is_complete: boolean
-  status: PLOT_PLANT_SYNC_STATUS
+  status: PLOT_OBSERVATION_SYNC_STATUS
 }

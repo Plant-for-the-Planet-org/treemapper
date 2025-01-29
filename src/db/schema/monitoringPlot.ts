@@ -19,7 +19,7 @@ export const MonitoringPlot: ObjectSchema = {
     location: `${RealmSchema.Polygon}`,
     coords: `${RealmSchema.GeoSpatial}`,
     plot_plants: `${RealmSchema.PlotPlantedSpecies}[]`,
-    is_complete: { type: 'bool', default: false },
+    observations: `${RealmSchema.PlotObservation}[]`,
     additional_data: { type: 'string', default: '' },
     meta_data: { type: 'string', default: '{}' },
     status: { type: 'string', default: 'NOT_SYNCED' },
@@ -29,7 +29,7 @@ export const MonitoringPlot: ObjectSchema = {
     plot_updated_at: "double",
     local_image: 'string',
     cdn_image: 'string',
-    observations: `${RealmSchema.PlotObservation}[]`,
+    is_complete: { type: 'bool', default: false },
     plot_group: {
       type: 'linkingObjects',
       objectType: `${RealmSchema.PlotGroups}`,

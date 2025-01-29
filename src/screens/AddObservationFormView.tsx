@@ -113,7 +113,10 @@ const AddObservationForm = () => {
             type: type.value,
             obs_date: observationDate,
             value: Number(updatedValue),
-            unit: unit
+            unit: unit,
+            server_id: '',
+            is_complete: true,
+            status: 'UPLOAD_REQUIRED'
         }
         await addPlotObservation(plotID, obsDetails)
         navigation.goBack()
@@ -135,7 +138,10 @@ const AddObservationForm = () => {
             type: type.value,
             obs_date: observationDate,
             value: Number(value),
-            unit: unit
+            unit: unit,
+            server_id: '',
+            is_complete: true,
+            status: 'EDITED'
         }
         const result = await updatePlotObservation(plotID, obsDetails)
         if (result) {
