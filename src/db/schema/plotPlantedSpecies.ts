@@ -22,5 +22,6 @@ export const PlotPlantedSpecies: ObjectSchema = {
     longitude: 'double',
     is_complete: {type: 'bool', default: false},
     status: {type: 'string', default: 'INIT'},
+    plot_id:{type: 'string', default: ''},
   },
 }

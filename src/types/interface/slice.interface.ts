@@ -102,6 +102,7 @@ export interface BodyPayload<T = null> {
   fixRequired: FIX_REQUIRED
   pData: T
   historyID?: string
+  urlID?: string
 }
 
 export interface CountryCode {
@@ -515,6 +516,7 @@ export interface PlantedPlotSpecies {
   longitude: number
   is_complete: boolean
   status: PLOT_PLANT_SYNC_STATUS
+  plot_id: string
 }
 
 export interface PlotObservation {
@@ -526,4 +528,5 @@ export interface PlotObservation {
   unit: string
   is_complete: boolean
   status: PLOT_OBSERVATION_SYNC_STATUS
+  plot_id: string
 }

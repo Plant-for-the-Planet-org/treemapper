@@ -586,6 +586,47 @@ const useMonitoringPlotManagement = () => {
     }
   }
 
+  const updatePlotInterventionServer = async (
+    id: string,
+    server_id: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plantData = realm.objectForPrimaryKey<PlantedPlotSpecies>(
+          RealmSchema.PlotPlantedSpecies,
+          id,
+        )
+        plantData.server_id = server_id
+        plantData.status = 'SYNCED'
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return false
+    }
+  }
+
+  const updatePlotObservationServer = async (
+    id: string,
+    server_id: string,
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const plantData = realm.objectForPrimaryKey<PlotObservation>(
+          RealmSchema.PlotObservation,
+          id,
+        )
+        plantData.server_id = server_id
+        plantData.status = 'SYNCED'
+      })
+      return Promise.resolve(true)
+    } catch (error) {
+      console.error('Error during write:', error)
+      return false
+    }
+  }
+
+
   return {
     updatePlotObservation,
     deletePlotObservation,
@@ -609,6 +650,8 @@ const useMonitoringPlotManagement = () => {
     addPlantDetailsPlot,
     addNewMeasurementPlantPlots,
     updatePlotDetailsServer,
+    updatePlotInterventionServer,
+    updatePlotObservationServer,
   }
 }
 

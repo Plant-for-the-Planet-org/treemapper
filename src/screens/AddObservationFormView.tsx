@@ -116,7 +116,8 @@ const AddObservationForm = () => {
             unit: unit,
             server_id: '',
             is_complete: true,
-            status: 'UPLOAD_REQUIRED'
+            status: 'UPLOAD_REQUIRED',
+            plot_id: plotID
         }
         await addPlotObservation(plotID, obsDetails)
         navigation.goBack()
@@ -141,7 +142,8 @@ const AddObservationForm = () => {
             unit: unit,
             server_id: '',
             is_complete: true,
-            status: 'EDITED'
+            status: 'EDITED',
+            plot_id: plotID
         }
         const result = await updatePlotObservation(plotID, obsDetails)
         if (result) {

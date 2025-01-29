@@ -66,31 +66,21 @@ export const postPlotConvertor = (d: MonitoringPlot[]) => {
         uploadID: plot.plot_id,
       })
     }
-    const plantQuee = postPlotInterventionConvertor(
-      plot.plot_plants,
-      plot.plot_id,
-    )
-    const obsQuee = postPlotObservationConvertor(
-      plot.observations,
-      plot.plot_id,
-    )
-    quae.push(...plantQuee, ...obsQuee)
   })
   return quae
 }
 
 export const postPlotInterventionConvertor = (
   d: PlantedPlotSpecies[],
-  parent_id: string,
 ) => {
   const quae: PlotQuaeBody[] = []
   d.forEach(plant => {
     if (plant.status === 'UPLOAD_REQUIRED') {
       quae.push({
         type: 'plot_intervention_upload',
-        priority: 1,
+        priority: 2,
         nextStatus: 'SYNCED',
-        parentID: parent_id,
+        parentID: plant.plot_id,
         uploadID: plant.plot_plant_id,
       })
     }
@@ -100,16 +90,15 @@ export const postPlotInterventionConvertor = (
 
 export const postPlotObservationConvertor = (
   d: PlotObservation[],
-  parent_id: string,
 ) => {
   const quae: PlotQuaeBody[] = []
   d.forEach(obs => {
     if (obs.status === 'UPLOAD_REQUIRED') {
       quae.push({
         type: 'plot_observation_upload',
-        priority: 1,
+        priority: 2,
         nextStatus: 'SYNCED',
-        parentID: parent_id,
+        parentID: obs.plot_id,
         uploadID: obs.obs_id,
       })
     }
@@ -170,9 +159,15 @@ export const getPlotPostBody = async (
       geometry: {...plotGeometry},
       captureDate: postTimeConvertor(PlotData.plot_created_at),
     }
-    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+    return {
+      pData: postData,
+      message: '',
+      fixRequired: 'NO',
+      error: '',
+      urlID: PlotData.server_id,
+    }
   } catch (error) {
-    return {pData: null, message: '', fixRequired: 'NO', error: ''}
+    return {pData: null, message: '', fixRequired: 'NO', error: '', urlID: ''}
   }
 }
 
@@ -184,7 +179,7 @@ export const getPlotInterventionBody = async (
       RealmSchema.MonitoringPlot,
       r.parentID,
     )
-    if (PlotData.server_id !== '') {
+    if (PlotData.server_id === '') {
       return {pData: null, message: '', fixRequired: 'NO', error: ''}
     }
     const PlantData = appRealm.objectForPrimaryKey<PlantedPlotSpecies>(
@@ -195,7 +190,6 @@ export const getPlotInterventionBody = async (
     const postData: any = {
       isRecruit: PlantData.type === 'RECRUIT',
       tag: PlantData.tag,
-      plot: PlotData.server_id,
       interventionStartDate: postTimeConvertor(PlantData.planting_date),
       interventionEndDate: postTimeConvertor(PlantData.planting_date),
       geometry: {
@@ -229,7 +223,13 @@ export const getPlotInterventionBody = async (
       postData.scientificSpecies = PlantData.guid
     }
 
-    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+    return {
+      pData: postData,
+      message: '',
+      fixRequired: 'NO',
+      error: '',
+      urlID: PlotData.server_id,
+    }
   } catch (error) {
     console.log('KLJK', error)
     return {pData: null, message: '', fixRequired: 'NO', error: ''}
@@ -244,7 +244,7 @@ export const getPlotObservationBody = async (
       RealmSchema.MonitoringPlot,
       r.parentID,
     )
-    if (PlotData.server_id !== '') {
+    if (PlotData.server_id === '') {
       return {pData: null, message: '', fixRequired: 'NO', error: ''}
     }
     const ObservationData = appRealm.objectForPrimaryKey<PlotObservation>(
@@ -272,7 +272,13 @@ export const getPlotObservationBody = async (
       unit: ObservationData.unit,
       value: ObservationData.value,
     }
-    return {pData: postData, message: '', fixRequired: 'NO', error: ''}
+    return {
+      pData: postData,
+      message: '',
+      fixRequired: 'NO',
+      error: '',
+      urlID: PlotData.server_id,
+    }
   } catch (error) {
     return {pData: null, message: '', fixRequired: 'NO', error: ''}
   }

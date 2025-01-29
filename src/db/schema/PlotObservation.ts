@@ -13,5 +13,6 @@ export const PlotObservation: ObjectSchema = {
     value: 'double',
     is_complete: {type: 'bool', default: false},
     status: {type: 'string', default: 'INIT'},
+    plot_id:{type: 'string', default: ''},
   },
 }
