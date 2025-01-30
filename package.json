@@ -17,7 +17,7 @@
     "patch-package": "^8.0.0",
     "@tamagui/babel-plugin": "1.91.1",
     "@tamagui/next-plugin": "1.91.1",
-    "babel-plugin-transform-inline-environment-variables": "^7.22.5"
+    "babel-plugin-transform-inline-environment-variables": "^6.8.0"
   },
   "dependencies": {
     "dotenv-cli": "^7.1.0",

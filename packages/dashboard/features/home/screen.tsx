@@ -1,10 +1,14 @@
-import { Stack, XStack, YStack, Text, Button, Input } from 'tamagui'
 import React from 'react'
+import {Button, Input, Text, XStack, YStack} from 'tamagui'
+
 export function HomeScreen() {
   return (
     <YStack flex={1} padding="$4" backgroundColor="$background">
       {/* Header Section */}
-      <XStack justifyContent="space-between" alignItems="center" marginBottom="$4">
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+        marginBottom="$4">
         <Text fontSize="$6" fontWeight="bold">
           My App
         </Text>
@@ -19,19 +23,14 @@ export function HomeScreen() {
           Welcome Back
         </Text>
 
-        <Input
-          size="$4"
-          placeholder="Search..."
-          marginTop="$2"
-        />
+        <Input size="$4" placeholder="Search..." marginTop="$2" />
 
         {/* Card-like container */}
         <YStack
           backgroundColor="$gray3"
           padding="$4"
           borderRadius="$4"
-          marginTop="$2"
-        >
+          marginTop="$2">
           <Text fontSize="$4" marginBottom="$2">
             Featured Content
           </Text>

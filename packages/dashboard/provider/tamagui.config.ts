@@ -1,20 +1,43 @@
-import { createTamagui } from 'tamagui'
 import { createInterFont } from '@tamagui/font-inter'
-import { shorthands } from '@tamagui/shorthands'
-import { tokens } from '@tamagui/themes'
 import { createMedia } from '@tamagui/react-native-media-driver'
-import { themes } from '@tamagui/themes'
+import { shorthands } from '@tamagui/shorthands'
+import { themes, tokens } from '@tamagui/themes'
+import { createTamagui } from 'tamagui'
 
-const headingFont = createInterFont()
+const headingFont = createInterFont({})
+const bodyFont = createInterFont({})
+const interFont = createInterFont({
+  family: 'Inter',
+  face: {
+    '400': { normal: 'Inter-Regular', italic: 'Inter-Italic' },
+    '600': { normal: 'Inter-SemiBold', italic: 'Inter-SemiBoldItalic' },
+    '700': { normal: 'Inter-Bold', italic: 'Inter-BoldItalic' },
+  },
+  size: {
+    1: 12,
+    2: 14,
+    3: 16,
+    4: 18,
+    5: 20,
+    6: 24,
+  },
+  weight: {
+    1: '400',
+    2: '600',
+    3: '700',
+  },
+})
 
 export const config = createTamagui({
   defaultTheme: 'light',
+  defaultFont: 'body',
   shouldAddPrefersColorThemes: true,
   themeClassNameOnRoot: true,
   shorthands,
   fonts: {
     heading: headingFont,
-    body: headingFont,
+    body: bodyFont,
+    inter: interFont,
   },
   themes,
   tokens,

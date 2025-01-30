@@ -4,7 +4,6 @@ import BottomTabStack from './BottomTabStack'
 import Screens from 'src/screens'
 import {RootStackParamList} from 'src/types/type/navigation.type'
 import {HomeScreen} from 'dashboard/features/home/screen'
-import {UserDetailScreen} from 'dashboard/features/user/detail-screen'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -12,7 +11,7 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{headerShown: false}}
-      initialRouteName="Home">
+      initialRouteName="Dashboard">
       <Stack.Screen name="Home" component={BottomTabStack} />
       <Stack.Screen name="SignUpPage" component={Screens.SignUpView} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
@@ -118,8 +117,6 @@ const RootNavigator = () => {
         }}
       />
       <Stack.Screen name="Dashboard" component={HomeScreen} />
-      <Stack.Screen name="user" component={UserDetailScreen} />
-
     </Stack.Navigator>
   )
 }
