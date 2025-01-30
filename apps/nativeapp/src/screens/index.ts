@@ -34,9 +34,9 @@ import PlotDetailsView from './PlotDetailsView'
 import PlotPlantRemeasureView from './PlotPlantRemeasureView'
 import AddPlantDetailsPlotView from './AddPlantDetailsPlotView'
 import AddPlotDetailsView from './AddPlotDetailsView'
-import MonitoringInfoView from './MonitoringInfoView';
+import MonitoringInfoView from './MonitoringInfoView'
 import AddRemeasurementView from './AddRemeasurementView'
-import PlotGroupView from './PlotGroupView';
+import PlotGroupView from './PlotGroupView'
 import AddObservationFormView from './AddObservationFormView'
 import AddPlotGroupView from './AddPlotGroupView'
 import AddPlotsToGroupView from './AddPlotToGroupView'
@@ -48,6 +48,7 @@ import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
+import {DashboardIndexScreen} from 'dashboard/features/index/screen'
 
 export default {
   HomeMapView: HomeMapView,
@@ -65,7 +66,8 @@ export default {
   AddMeasurement: AddMeasurementView,
   TotalTrees: TotalTreesView,
   ManageProjects: ManageProjectsView,
-  DataExplore: DataExplorerView,
+  // DataExplore: DataExplorerView,
+  DataExplore: DashboardIndexScreen,
   InterventionPreview: InterventionPreview,
   AdditionalData: AdditionalDataView,
   OfflineMap: OfflineMapView,
@@ -97,7 +99,7 @@ export default {
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
   SignUpView: SignUpView,
-  PlantHistory:PlantHistory,
-  ProjectSites:ProjectSites,
-  DeleteAccount: DeleteAccount
+  PlantHistory: PlantHistory,
+  ProjectSites: ProjectSites,
+  DeleteAccount: DeleteAccount,
 }

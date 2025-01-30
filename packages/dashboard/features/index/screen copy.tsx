@@ -1,7 +1,7 @@
 import React from 'react'
-import {Button, Input, Text, XStack, YStack} from 'tamagui'
+import { Button, Input, Text, XStack, YStack } from 'tamagui'
 
-export function HomeScreen() {
+export function DashboardIndexScreen() {
   return (
     <YStack flex={1} padding="$4" backgroundColor="$background">
       {/* Header Section */}

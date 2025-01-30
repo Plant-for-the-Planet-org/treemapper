@@ -3,7 +3,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack'
 import BottomTabStack from './BottomTabStack'
 import Screens from 'src/screens'
 import {RootStackParamList} from 'src/types/type/navigation.type'
-import {HomeScreen} from 'dashboard/features/home/screen'
 
 const Stack = createNativeStackNavigator<RootStackParamList>()
 
@@ -11,7 +10,7 @@ const RootNavigator = () => {
   return (
     <Stack.Navigator
       screenOptions={{headerShown: false}}
-      initialRouteName="Dashboard">
+      initialRouteName="Home">
       <Stack.Screen name="Home" component={BottomTabStack} />
       <Stack.Screen name="SignUpPage" component={Screens.SignUpView} />
       <Stack.Screen name="TakePicture" component={Screens.TakePicture} />
@@ -116,7 +115,6 @@ const RootNavigator = () => {
           animation: 'slide_from_left',
         }}
       />
-      <Stack.Screen name="Dashboard" component={HomeScreen} />
     </Stack.Navigator>
   )
 }

@@ -1,3 +1,3 @@
-import {HomeScreen} from 'dashboard/features/home/screen'
+import { DashboardIndexScreen } from 'dashboard/features/index/screen'
 
-export default HomeScreen
+export default DashboardIndexScreen
