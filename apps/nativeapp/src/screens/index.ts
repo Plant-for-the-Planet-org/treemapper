@@ -14,7 +14,7 @@ import TotalTreesView from './TotalTreesView'
 import AddMeasurementView from './AddMeasurementView'
 import DynamicFormView from './DynamicFormView'
 import ManageProjectsView from './ManageProjectsView'
-import DataExplorerView from './DataExplorerView'
+// import DataExplorerView from './DataExplorerView'
 import AdditionalDataView from './AdditionalDataView'
 import OfflineMapSelectionView from './OfflineMapSelectionView'
 import OfflineMapView from './OfflineMapView'
@@ -48,7 +48,7 @@ import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
-import {DashboardIndexScreen} from 'dashboard/features/index/screen'
+import DashboardNavigation from 'dashboard/features/index/navigation'
 
 export default {
   HomeMapView: HomeMapView,
@@ -67,7 +67,7 @@ export default {
   TotalTrees: TotalTreesView,
   ManageProjects: ManageProjectsView,
   // DataExplore: DataExplorerView,
-  DataExplore: DashboardIndexScreen,
+  DataExplore: DashboardNavigation,
   InterventionPreview: InterventionPreview,
   AdditionalData: AdditionalDataView,
   OfflineMap: OfflineMapView,

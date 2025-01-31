@@ -1,15 +1,15 @@
 import React from 'react'
-import { Text, YStack } from 'tamagui'
-import { HeaderSkeleton } from '../../components/skeleton/header'
+import { YStack } from 'tamagui'
 import { ContentSkeleton } from '../../components/skeleton/content'
-import { PrimaryTabs } from '../../components/skeleton/primary-tabs'
+import { HeaderSkeleton } from '../../components/skeleton/header'
+import { DashboardTabs } from '../../components/skeleton/dashboard-tabs'
 
-export function DashboardIndexScreen() {
+export default function DashboardIndexScreen() {
   return (
     <YStack flex={1} backgroundColor="$background">
-      <HeaderSkeleton />
+      <HeaderSkeleton headerText="Dashboard" />
       <ContentSkeleton>
-        <PrimaryTabs />
+        <DashboardTabs />
       </ContentSkeleton>
     </YStack>
   )

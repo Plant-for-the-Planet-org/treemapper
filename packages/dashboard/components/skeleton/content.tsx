@@ -3,7 +3,7 @@ import { YStack } from 'tamagui'
 
 export function ContentSkeleton({ children }: { children?: React.ReactNode }) {
   return (
-    <YStack flexGrow={1} backgroundColor={'$gray4'}>
+    <YStack flexGrow={1} backgroundColor={'$gray3'}>
       {children}
     </YStack>
   )
