@@ -26,7 +26,7 @@ const SideBarList = (props: Props) => {
   const data: SideDrawerItem[] = [
     {
       label: i18next.t('label.manage_species'),
-      screen: 'Dashboard',
+      screen: 'ManageSpecies',
       icon: <ManageSpeciesIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
       key: 'manage_species'
