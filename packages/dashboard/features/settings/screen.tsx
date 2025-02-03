@@ -1,35 +1,35 @@
+import { ArrowLeft } from '@tamagui/lucide-icons'
 import React from 'react'
-import { Text, YStack, Stack, Button } from 'tamagui'
-import { HeaderSkeleton } from '../../components/skeleton/header'
+import { useRouter } from 'solito/router'
+import { Button, Stack, Text, YStack } from 'tamagui'
 import { ContentSkeleton } from '../../components/skeleton/content'
 import { SettingsTabs } from '../../components/skeleton/settings-tabs'
-import { useNavigation } from '@react-navigation/native'
-import { ArrowLeft } from '@tamagui/lucide-icons'
 
 export default function SettingsIndexScreen() {
-  const navigation = useNavigation()
+  const router = useRouter()
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      <Stack 
-        flexDirection="row" 
-        alignItems="center" 
+      <Stack
+        flexDirection="row"
+        alignItems="center"
         paddingHorizontal="$1"
-        paddingTop="$5"
-      >
+        paddingTop="$5">
         <Button
           size="$5"
           padding="$2"
           circular
-          icon={ArrowLeft}
+          // icon={ArrowLeft}
           backgroundColor="transparent"
-          onPress={() => navigation.goBack()}
-          pressStyle={{ 
+          onPress={() => router.back()}
+          pressStyle={{
             backgroundColor: '$gray4',
-            scale: 0.97 
+            scale: 0.97,
           }}
         />
-        <Text fontSize="$6" fontWeight="bold">Settings</Text>
+        <Text fontSize="$6" fontWeight="bold">
+          Settings
+        </Text>
       </Stack>
       <ContentSkeleton>
         <SettingsTabs />

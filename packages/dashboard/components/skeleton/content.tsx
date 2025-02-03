@@ -1,10 +1,6 @@
 import React from 'react'
-import { YStack } from 'tamagui'
+import { ScrollView, YStack } from 'tamagui'
 
 export function ContentSkeleton({ children }: { children?: React.ReactNode }) {
-  return (
-    <YStack flexGrow={1} backgroundColor={'$gray3'}>
-      {children}
-    </YStack>
-  )
+  return <ScrollView>{children}</ScrollView>
 }

@@ -4,28 +4,28 @@ import ProfileScreen from './profile/screen'
 import SettingsIndexScreen from './screen'
 
 const SettingsNavigationStack = createNativeStackNavigator<{
-  'dashboard.settings': undefined
-  'dashboard.settings.index': undefined
-  'dashboard.settings.profile': undefined
-  'dashboard.settings.notifications': undefined
+  // '/dashboard/settings': undefined
+  '/dashboard/settings.index': undefined
+  '/dashboard/settings/profile': undefined
+  '/dashboard/settings/notifications': undefined
 }>()
 
 export default function SettingsNavigation() {
   return (
     <SettingsNavigationStack.Navigator
       id={'dashboard.settings'}
-      initialRouteName="dashboard.settings.index"
+      initialRouteName="/dashboard/settings.index"
       screenOptions={{ headerShown: false }}>
       <SettingsNavigationStack.Screen
-        name="dashboard.settings.index"
+        name="/dashboard/settings.index"
         component={SettingsIndexScreen}
       />
       <SettingsNavigationStack.Screen
-        name="dashboard.settings.profile"
+        name="/dashboard/settings/profile"
         component={ProfileScreen}
       />
       <SettingsNavigationStack.Screen
-        name="dashboard.settings.notifications"
+        name="/dashboard/settings/notifications"
         component={ProfileScreen}
       />
     </SettingsNavigationStack.Navigator>

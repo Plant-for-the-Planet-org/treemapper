@@ -1,8 +1,9 @@
 import type { TabsContentProps } from 'tamagui'
-import { useNavigation } from '@react-navigation/native'
+import { useRouter } from 'solito/router'
 import React from 'react'
 import { isWeb, Tabs, Text, YStack, Stack } from 'tamagui'
 import OverviewScreen from '../../features/overview/screen'
+import MembersScreen from '../../features/teams/members/screen'
 
 const TabsData = [
   {
@@ -13,19 +14,20 @@ const TabsData = [
   {
     label: 'Species',
     value: 'species',
-    route: 'dashboard.species',
+    route: '/dashboard/species',
     component: null,
   },
   {
     label: 'Teams',
     value: 'teams',
-    route: 'dashboard.teams',
-    component: null,
+    // route: '/dashboard/teams',
+    route: '/dashboard/teams/members',
+    component: MembersScreen,
   },
   {
     label: 'Settings',
     value: 'settings',
-    route: 'dashboard.settings',
+    route: '/dashboard/settings',
     component: null,
   },
 ]
@@ -43,7 +45,7 @@ export function DashboardTabs() {
 }
 
 const HorizontalTabs = () => {
-  const { navigate } = useNavigation()
+  const router = useRouter()
 
   return (
     <Tabs
@@ -72,12 +74,12 @@ const HorizontalTabs = () => {
               marginHorizontal="$1"
               backgroundColor="transparent"
               borderRadius="$4"
-              pressStyle={{ 
+              pressStyle={{
                 backgroundColor: '$gray4',
-                scale: 0.97 
+                scale: 0.97,
               }}
               onPress={() => {
-                if (tab.route) navigate(tab.route)
+                if (tab.route) router.push(tab.route)
               }}>
               <Text
                 fontFamily="$body"
@@ -102,11 +104,7 @@ const HorizontalTabs = () => {
 
 const TabsContent = (props: TabsContentProps) => {
   return (
-    <Tabs.Content
-      backgroundColor="$gray1"
-      padding="$4"
-      flex={1}
-      {...props}>
+    <Tabs.Content backgroundColor="$gray1" padding="$4" flex={1} {...props}>
       {props.children}
     </Tabs.Content>
   )

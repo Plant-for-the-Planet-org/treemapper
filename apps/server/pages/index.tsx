@@ -1,3 +1,3 @@
-import { DashboardIndexScreen } from 'dashboard/features/index/screen'
-
-export default DashboardIndexScreen
+export default function Index() {
+  return <div>Hello world!</div>
+}
