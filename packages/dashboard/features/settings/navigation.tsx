@@ -4,7 +4,7 @@ import ProfileScreen from './profile/screen'
 import SettingsIndexScreen from './screen'
 
 const SettingsNavigationStack = createNativeStackNavigator<{
-  // '/dashboard/settings': undefined
+  '/dashboard/settings': undefined
   '/dashboard/settings.index': undefined
   '/dashboard/settings/profile': undefined
   '/dashboard/settings/notifications': undefined
