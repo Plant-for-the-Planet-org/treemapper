@@ -32,6 +32,7 @@ const ClusteredShapeSource = (props: Props) => {
       onPress={handlePress}>
       <MapLibreGL.FillLayer
         id={'inactivePolyFill'} // Unique ID for inactive FillLayer
+        filter={['all', ["!=", ["geometry-type"], "Point"]]}
         style={{
           fillOpacity: [
             'match',
@@ -44,6 +45,7 @@ const ClusteredShapeSource = (props: Props) => {
       <MapLibreGL.LineLayer
         id={'polygon_cluster_line'}
         style={{ ...polyline, lineColor: FillColor }}
+        filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
       <MapLibreGL.CircleLayer id={'singleEntire'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
     </MapLibreGL.ShapeSource>
