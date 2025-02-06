@@ -22,25 +22,51 @@ export class ApiClient {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const authHeaders = await this.getAuthHeader();
-    
-    const response = await fetch(`${this.baseUrl}${endpoint}`, {
-      ...options,
-      headers: {
-        ...this.defaultHeaders,
-        ...authHeaders,
-        ...options.headers,
-      },
-    });
-
-    const data = await response.json();
-
-    return {
-      data,
-      status: response.status,
-    };
+    try {
+      console.log("[API] Starting request to:", endpoint);
+      const authHeaders = await this.getAuthHeader();
+      console.log("[API] Full URL:", `${this.baseUrl}${endpoint}`);
+  
+      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+        ...options,
+        headers: {
+          ...this.defaultHeaders,
+          ...authHeaders,
+          ...options.headers,
+        },
+      });
+      
+      console.log("[API] Response received");
+      console.log("[API] Response status:", response.status);
+      console.log("[API] Content-Type:", response.headers.get("content-type"));
+  
+      // Always try to get the response text first
+      const responseText = await response.text();
+      console.log("[API] Raw response text:", responseText);
+  
+      // Then parse it as JSON if it's not empty
+      let data;
+      try {
+        data = responseText ? JSON.parse(responseText) : null;
+        console.log("[API] Parsed JSON data:", data);
+      } catch (parseError) {
+        console.error("[API] JSON parse error:", parseError);
+        throw new Error(`Failed to parse response: ${responseText}`);
+      }
+  
+      if (!response.ok) {
+        throw new Error(JSON.stringify(data));
+      }
+  
+      return {
+        data,
+        status: response.status,
+      };
+    } catch (error) {
+      console.error("[API] Error in fetchWithAuth:", error);
+      throw error;
+    }
   }
-
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.fetchWithAuth<T>(endpoint, { method: 'GET' });
   }
