@@ -1,5 +1,5 @@
 {
-  "name": "tracer",
+  "name": "treemapper",
   "private": true,
   "scripts": {
     "build": "turbo build",
@@ -8,7 +8,8 @@
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
     "postinstall": "patch-package",
     "heroku-postbuild": "cd apps/server && yarn install && yarn run build",
-    "start": "cd apps/server && yarn start"
+    "start": "cd apps/server && yarn start",
+    "clean": "rm -rf node_modules && rm -rf yarn.lock && rm -rf package-lock.json && rm -rf bun.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +"
   },
   "devDependencies": {
     "prettier": "^3.2.5",

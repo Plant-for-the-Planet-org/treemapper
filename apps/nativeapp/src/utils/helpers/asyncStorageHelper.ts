@@ -27,3 +27,11 @@ export const checkForMigrateSpecies = async () => {
   }
 }
 
+export const setLocalAuthToken = async (token:string) => {
+  try {
+    await AsyncStorage.setItem('auth_token', token)
+    return true
+  } catch (err) {
+    return false
+  }
+}

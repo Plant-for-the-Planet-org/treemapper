@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'i18next'
+import { setLocalAuthToken } from 'src/utils/helpers/asyncStorageHelper'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -76,6 +77,7 @@ const LoginButton = () => {
           refreshToken: credentials.refreshToken
         }),
       )
+      await setLocalAuthToken(credentials.accessToken)
       dispatch(updateName({firstName, lastName}))
     }
     if (!credentials?.accessToken) {
