@@ -1,6 +1,6 @@
 import React from 'react'
 import { Button, H3, XStack, Image } from 'tamagui'
-import { useNavigation } from '@react-navigation/native'
+import { useRouter } from 'next/router'
 
 const BackIcon = require('../../../public/images/back.png')
 
@@ -9,15 +9,18 @@ type HeaderSkeletonProps = {
 }
 
 export function HeaderSkeleton({ headerText }: HeaderSkeletonProps) {
-  const navigation = useNavigation()
+  const router = useRouter()
+  const handleBack = () => {
 
+      router.back()
+  }
   return (
     <XStack alignItems="center" gap="$2" paddingTop="$5">
       <Button
         size="$4"
         paddingHorizontal="$2"
         chromeless
-        onPress={() => { navigation.goBack() }}
+        onPress={handleBack}
       >
         <Image src={BackIcon} />
       </Button>
