@@ -30,7 +30,6 @@ export default function OverviewScreen() {
       setError(null)
 
       const response = await apiClient.get<HealthCheckResponse>('/api/users/me')
-      console.log("LKJCD",response.status)
       if (response.status === 200) {
         setHealthStatus(response.data)
       } else {

@@ -34,16 +34,13 @@ export class ApiClient {
           ...authHeaders,
           ...options.headers,
         },
-      });
-      
+      });  
       console.log("[API] Response received");
       console.log("[API] Response status:", response.status);
       console.log("[API] Content-Type:", response.headers.get("content-type"));
-  
       // Always try to get the response text first
       const responseText = await response.text();
       console.log("[API] Raw response text:", responseText);
-  
       // Then parse it as JSON if it's not empty
       let data;
       try {
@@ -53,11 +50,9 @@ export class ApiClient {
         console.error("[API] JSON parse error:", parseError);
         throw new Error(`Failed to parse response: ${responseText}`);
       }
-  
       if (!response.ok) {
         throw new Error(JSON.stringify(data));
       }
-  
       return {
         data,
         status: response.status,
