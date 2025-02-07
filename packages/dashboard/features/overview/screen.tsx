@@ -3,6 +3,7 @@ import React, { useEffect, useState } from 'react'
 import { YStack, H1, Text, Spinner, Button } from 'tamagui'
 import { MembersTable } from '../../components/tables/MembersTable'
 import { ApiClient } from '../../../api/index'
+import ProjectDetails from '../../components/projects/projects'
 
 interface HealthCheckResponse {
   status: string
@@ -47,7 +48,6 @@ export default function OverviewScreen() {
   return (
     <YStack space="$4" padding="$4">
       <H1>System Overview</H1>
-      
       {loading ? (
         <YStack alignItems="center" paddingVertical="$4">
           <Spinner size="large" />
