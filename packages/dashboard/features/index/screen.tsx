@@ -7,7 +7,7 @@ import ProjectDetails from '../../components/projects/projects'
 
 export default function DashboardIndexScreen() {
   return (
-    <YStack flex={1} backgroundColor="$background">
+    <YStack flex={1} backgroundColor="$background" paddingTop="$5">
       <HeaderSkeleton headerText="Dashboard" />
       <ProjectDetails />
       <ContentSkeleton>

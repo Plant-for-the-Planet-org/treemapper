@@ -1,9 +1,12 @@
 import React from 'react'
-import { Check, ChevronDown, ChevronUp } from '@tamagui/lucide-icons'
-
 import type { FontSizeTokens, SelectProps } from 'tamagui'
-import { Adapt, Label, Select, Sheet, XStack, YStack, getFontSize } from 'tamagui'
+import { Adapt, Label, Select, Sheet, XStack, YStack, getFontSize, Image } from 'tamagui'
 import { LinearGradient } from 'tamagui/linear-gradient'
+
+const Check = require('../../../public/images/check.png')
+const ChevronUp = require('../../../public/images/chevron-up.png')
+const ChevronDown = require('../../../public/images/chevron-down.png')
+
 
 export function SelectDemo() {
   return (
@@ -30,7 +33,7 @@ export function ProjectDropDown(props: SelectProps) {
 
   return (
     <Select value={val} onValueChange={setVal} disablePreventBodyScroll {...props}>
-      <Select.Trigger width={220} iconAfter={ChevronDown}>
+      <Select.Trigger width={220} iconAfter={() => (<Image src={ChevronDown} size={20} />)}>
         <Select.Value placeholder="Something" />
       </Select.Trigger>
 
@@ -59,7 +62,7 @@ export function ProjectDropDown(props: SelectProps) {
           height="$3"
         >
           <YStack zIndex={10}>
-            <ChevronUp size={20} />
+            <Image src={ChevronUp} size={20} />
           </YStack>
           <LinearGradient
             start={[0, 0]}
@@ -92,7 +95,7 @@ export function ProjectDropDown(props: SelectProps) {
                     >
                       <Select.ItemText>{item.name}</Select.ItemText>
                       <Select.ItemIndicator marginLeft="auto">
-                        <Check size={16} />
+                        <Image src={Check} size={20} />
                       </Select.ItemIndicator>
                     </Select.Item>
                   )
@@ -112,9 +115,7 @@ export function ProjectDropDown(props: SelectProps) {
               width={'$4'}
               pointerEvents="none"
             >
-              <ChevronDown
-                size={getFontSize((props.size as FontSizeTokens) ?? '$true')}
-              />
+              <Image src={ChevronDown} size={20} />
             </YStack>
           )}
         </Select.Viewport>
@@ -127,7 +128,7 @@ export function ProjectDropDown(props: SelectProps) {
           height="$3"
         >
           <YStack zIndex={10}>
-            <ChevronDown size={20} />
+            <Image src={ChevronDown} size={16} />
           </YStack>
           <LinearGradient
             start={[0, 0]}
