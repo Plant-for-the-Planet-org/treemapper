@@ -11,16 +11,13 @@ interface HealthCheckResponse {
   // Add other health check fields as needed
 }
 
-// Initialize API client
-const apiClient = new ApiClient({
-  baseUrl: 'http://192.168.1.33:3000',
-})
+
 
 export default function OverviewScreen() {
   const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const api = ApiClient.getInstance();
   useEffect(() => {
     checkHealth()
   }, [])
@@ -30,7 +27,7 @@ export default function OverviewScreen() {
       setLoading(true)
       setError(null)
 
-      const response = await apiClient.get<HealthCheckResponse>('/api/users/me')
+      const response = await api.get<HealthCheckResponse>('/api/health')
       if (response.status === 200) {
         setHealthStatus(response.data)
       } else {

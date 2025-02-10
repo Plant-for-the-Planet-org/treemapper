@@ -2,15 +2,29 @@ import { storage } from './storage';
 import { ApiConfig, ApiResponse } from './types';
 
 export class ApiClient {
+  private static instance: ApiClient;
   private baseUrl: string;
   private defaultHeaders: Record<string, string>;
 
-  constructor(config: ApiConfig) {
+  private constructor(config: ApiConfig) {
     this.baseUrl = config.baseUrl;
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       ...config.headers,
     };
+  }
+
+  public static initialize(config: ApiConfig): void {
+    if (!ApiClient.instance) {
+      ApiClient.instance = new ApiClient(config);
+    }
+  }
+
+  public static getInstance(): ApiClient {
+    if (!ApiClient.instance) {
+      throw new Error('ApiClient must be initialized before use');
+    }
+    return ApiClient.instance;
   }
 
   private async getAuthHeader(): Promise<Record<string, string>> {
@@ -38,10 +52,10 @@ export class ApiClient {
       console.log("[API] Response received");
       console.log("[API] Response status:", response.status);
       console.log("[API] Content-Type:", response.headers.get("content-type"));
-      // Always try to get the response text first
+
       const responseText = await response.text();
       console.log("[API] Raw response text:", responseText);
-      // Then parse it as JSON if it's not empty
+
       let data;
       try {
         data = responseText ? JSON.parse(responseText) : null;
@@ -50,9 +64,11 @@ export class ApiClient {
         console.error("[API] JSON parse error:", parseError);
         throw new Error(`Failed to parse response: ${responseText}`);
       }
+
       if (!response.ok) {
         throw new Error(JSON.stringify(data));
       }
+
       return {
         data,
         status: response.status,
@@ -62,6 +78,7 @@ export class ApiClient {
       throw error;
     }
   }
+
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
     return this.fetchWithAuth<T>(endpoint, { method: 'GET' });
   }
