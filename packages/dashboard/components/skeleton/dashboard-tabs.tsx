@@ -1,7 +1,7 @@
 import type { TabsContentProps } from 'tamagui'
 import { useRouter } from 'solito/router'
 import React from 'react'
-import { isWeb, Tabs, Text, YStack, Stack } from 'tamagui'
+import { isWeb, Tabs, Text, YStack, Stack, ScrollView } from 'tamagui'
 import OverviewScreen from '../../features/overview/screen'
 import MembersScreen from '../../features/teams/members/screen'
 import SettingsIndexScreen from '../../features/settings/screen'
@@ -13,6 +13,11 @@ const TabsData = [
     component: OverviewScreen,
   },
   {
+    label: 'Sites',
+    value: 'Sites',
+    component: () => null,
+  },
+  {
     label: 'Species',
     value: 'species',
     route: '/dashboard/species',
@@ -21,7 +26,6 @@ const TabsData = [
   {
     label: 'Teams',
     value: 'teams',
-    // route: '/dashboard/teams',
     route: '/dashboard/teams/members',
     component: MembersScreen,
   },
@@ -30,6 +34,12 @@ const TabsData = [
     value: 'settings',
     route: '/dashboard/settings',
     component: SettingsIndexScreen,
+  },
+  {
+    label: 'Teams',
+    value: 'teams',
+    route: '/dashboard/teams/members',
+    component: MembersScreen,
   },
 ]
 
@@ -58,40 +68,42 @@ const HorizontalTabs = () => {
         backgroundColor="$gray2"
         borderBottomWidth={1}
         borderColor="$gray5">
-        <Tabs.List
-          disablePassBorderRadius
-          flexDirection="row"
-          justifyContent="space-between"
-          width="100%"
-          paddingHorizontal="$4"
-          paddingVertical="$2">
-          {TabsData.map((tab, index) => (
-            <Tabs.Tab
-              key={index}
-              flex={1}
-              value={tab.value}
-              paddingVertical="$2"
-              paddingHorizontal="$3"
-              marginHorizontal="$1"
-              backgroundColor="transparent"
-              borderRadius="$4"
-              pressStyle={{
-                backgroundColor: '$gray4',
-                scale: 0.97,
-              }}
-              onPress={() => {
-                if (tab.route) router.push(tab.route)
-              }}>
-              <Text
-                fontFamily="$body"
-                fontSize="$2"
-                textAlign="center"
-                color="$gray11">
-                {tab.label}
-              </Text>
-            </Tabs.Tab>
-          ))}
-        </Tabs.List>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          bounces={false}>
+          <Tabs.List
+            disablePassBorderRadius
+            flexDirection="row"
+            paddingHorizontal="$4"
+            paddingVertical="$2">
+            {TabsData.map((tab, index) => (
+              <Tabs.Tab
+                key={index}
+                value={tab.value}
+                paddingVertical="$2"
+                paddingHorizontal="$3"
+                marginHorizontal="$1"
+                backgroundColor="transparent"
+                borderRadius="$4"
+                pressStyle={{
+                  backgroundColor: '$gray4',
+                  scale: 0.97,
+                }}
+                onPress={() => {
+                  if (tab.route) router.push(tab.route)
+                }}>
+                <Text
+                  fontFamily="$body"
+                  fontSize="$2"
+                  textAlign="center"
+                  color="$gray11">
+                  {tab.label}
+                </Text>
+              </Tabs.Tab>
+            ))}
+          </Tabs.List>
+        </ScrollView>
       </Stack>
 
       {TabsData.map((tab, index) => (

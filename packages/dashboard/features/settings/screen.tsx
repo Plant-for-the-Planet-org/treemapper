@@ -1,4 +1,3 @@
-import { ArrowLeft } from '@tamagui/lucide-icons'
 import React from 'react'
 import { useRouter } from 'solito/router'
 import { Button, Stack, Text, YStack } from 'tamagui'

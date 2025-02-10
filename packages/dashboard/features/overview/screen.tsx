@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react'
 import { Button, H1, Spinner, Text, YStack } from 'tamagui'
 import { ApiClient } from '../../../api/index'
+import ProjectDetails from '../../components/projects/projects'
 
 interface HealthCheckResponse {
   status: string
@@ -9,18 +10,13 @@ interface HealthCheckResponse {
   // Add other health check fields as needed
 }
 
-// Initialize API client
-const apiClient = new ApiClient({
-  baseUrl: 'http://192.168.1.6:3000',
-})
-
 export default function OverviewScreen() {
   const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(
     null,
   )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-
+  const api = ApiClient.getInstance()
   useEffect(() => {
     checkHealth()
   }, [])
@@ -28,28 +24,22 @@ export default function OverviewScreen() {
   const checkHealth = async () => {
     try {
       setLoading(true)
-      setError(null)
-
-      const response = await apiClient.get<HealthCheckResponse>('/api/users/me')
-      if (response.status === 200) {
-        setHealthStatus(response.data)
-      } else {
-        setError('Server returned unexpected status')
+      setError('')
+      const response = await api.get('/api/projects')
+      const transformedResponse = JSON.stringify(response, null, 2)
+      if (transformedResponse.success) {
+        setLoading(false)
       }
     } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : 'Failed to check server health'
-      setError(errorMessage)
+      setError(err)
       console.error('Health check error:', err)
     } finally {
       setLoading(false)
     }
   }
-
   return (
     <YStack space="$4" padding="$4">
       <H1>System Overview</H1>
-
       {loading ? (
         <YStack alignItems="center" paddingVertical="$4">
           <Spinner size="large" />

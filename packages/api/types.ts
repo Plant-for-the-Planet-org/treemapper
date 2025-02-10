@@ -3,8 +3,19 @@ export interface ApiConfig {
     headers?: Record<string, string>;
   }
   
-  export interface ApiResponse<T> {
+  export type ApiResponse<T> = ApiSuccessResponse<T> | ApiErrorResponse;
+
+
+  export interface ApiSuccessResponse<T> {
     data: T;
+    success: true;
     status: number;
+    error: null;
   }
   
+  export interface ApiErrorResponse {
+    data: null;
+    success: false;
+    status: number;
+    error: string;
+  }
