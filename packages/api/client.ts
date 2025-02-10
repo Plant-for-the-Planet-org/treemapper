@@ -1,103 +1,125 @@
-import { storage } from './storage';
-import { ApiConfig, ApiResponse } from './types';
+import { storage } from './storage'
+import { ApiConfig, ApiResponse } from './types'
 
 export class ApiClient {
-  private static instance: ApiClient;
-  private baseUrl: string;
-  private defaultHeaders: Record<string, string>;
+  private static instance: ApiClient
+  private baseUrl: string
+  private defaultHeaders: Record<string, string>
 
   private constructor(config: ApiConfig) {
-    this.baseUrl = config.baseUrl;
+    this.baseUrl = config.baseUrl
     this.defaultHeaders = {
       'Content-Type': 'application/json',
       ...config.headers,
-    };
+    }
   }
 
   public static initialize(config: ApiConfig): void {
     if (!ApiClient.instance) {
-      ApiClient.instance = new ApiClient(config);
+      ApiClient.instance = new ApiClient(config)
     }
   }
 
   public static getInstance(): ApiClient {
     if (!ApiClient.instance) {
-      throw new Error('ApiClient must be initialized before use');
+      throw new Error('ApiClient must be initialized before use')
     }
-    return ApiClient.instance;
+    return ApiClient.instance
   }
 
   private async getAuthHeader(): Promise<Record<string, string>> {
-    const token = await storage.getItem('auth_token');
-    return token ? { Authorization: `Bearer ${token}` } : {};
+    try {
+      const token = await storage.getItem('auth_token')
+      const headers: Record<string, string> = token
+        ? { Authorization: `Bearer ${token}` }
+        : {}
+      return headers
+    } catch (error) {
+      throw error
+    }
   }
 
   private async fetchWithAuth<T>(
     endpoint: string,
-    options: RequestInit = {}
+    options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     try {
-      console.log("[API] Starting request to:", endpoint);
-      const authHeaders = await this.getAuthHeader();
-      console.log("[API] Full URL:", `${this.baseUrl}${endpoint}`);
-  
-      const response = await fetch(`${this.baseUrl}${endpoint}`, {
+      const authHeaders = await this.getAuthHeader()
+      const fullUrl = `${this.baseUrl}${endpoint}`
+      const requestOptions: RequestInit = {
         ...options,
+        credentials: 'include', // Add this for CORS
         headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
           ...this.defaultHeaders,
           ...authHeaders,
           ...options.headers,
         },
-      });  
-      console.log("[API] Response received");
-      console.log("[API] Response status:", response.status);
-      console.log("[API] Content-Type:", response.headers.get("content-type"));
-
-      const responseText = await response.text();
-      console.log("[API] Raw response text:", responseText);
-
-      let data;
-      try {
-        data = responseText ? JSON.parse(responseText) : null;
-        console.log("[API] Parsed JSON data:", data);
-      } catch (parseError) {
-        console.error("[API] JSON parse error:", parseError);
-        throw new Error(`Failed to parse response: ${responseText}`);
       }
-
+      const response = await fetch(fullUrl, requestOptions).catch(error => {
+        throw error
+      })
       if (!response.ok) {
-        throw new Error(JSON.stringify(data));
+        const errorText = await response.text()
+        return {
+          data: null,
+          success: false,
+          status: response.status,
+          error: `Request failed: ${errorText}`,
+        }
       }
-
-      return {
-        data,
-        status: response.status,
-      };
+      const rawResponse = await response.text()
+      let responseJson
+      try {
+        responseJson = JSON.parse(rawResponse)
+        return {
+          data: responseJson,
+          success: true,
+          status: response.status,
+          error: null,
+        }
+      } catch (parseError) {
+        return {
+          data: null,
+          success: false,
+          status: response.status,
+          error: 'Invalid JSON response from server',
+        }
+      }
     } catch (error) {
-      console.error("[API] Error in fetchWithAuth:", error);
-      throw error;
+      return {
+        data: null,
+        success: false,
+        status: 500,
+        error:
+          error instanceof Error
+            ? `${error.name}: ${error.message}`
+            : 'An unexpected error occurred',
+      }
     }
   }
 
   async get<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.fetchWithAuth<T>(endpoint, { method: 'GET' });
+    const result = await this.fetchWithAuth<T>(endpoint, { method: 'GET' })
+    return result
   }
 
   async post<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
     return this.fetchWithAuth<T>(endpoint, {
       method: 'POST',
       body: JSON.stringify(body),
-    });
+    })
   }
 
   async put<T>(endpoint: string, body: unknown): Promise<ApiResponse<T>> {
     return this.fetchWithAuth<T>(endpoint, {
       method: 'PUT',
       body: JSON.stringify(body),
-    });
+    })
   }
 
   async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
-    return this.fetchWithAuth<T>(endpoint, { method: 'DELETE' });
+    return this.fetchWithAuth<T>(endpoint, { method: 'DELETE' })
   }
 }

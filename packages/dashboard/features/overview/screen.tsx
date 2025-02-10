@@ -22,26 +22,24 @@ export default function OverviewScreen() {
     checkHealth()
   }, [])
 
+
+
   const checkHealth = async () => {
     try {
       setLoading(true)
-      setError(null)
-
-      const response = await api.get<HealthCheckResponse>('/api/health')
-      if (response.status === 200) {
-        setHealthStatus(response.data)
-      } else {
-        setError('Server returned unexpected status')
+      setError('')
+      const response = await api.get('/api/projects')
+      const transformedResponse = JSON.stringify(response, null, 2)
+      if (transformedResponse.success) {
+        setLoading(false)
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check server health'
-      setError(errorMessage)
+      setError(err)
       console.error('Health check error:', err)
     } finally {
       setLoading(false)
     }
   }
-
   return (
     <YStack space="$4" padding="$4">
       <H1>System Overview</H1>
@@ -53,7 +51,7 @@ export default function OverviewScreen() {
       ) : error ? (
         <YStack backgroundColor="$red2" padding="$4" borderRadius="$2">
           <Text color="$red11">Error: {error}</Text>
-          <Button 
+          <Button
             onPress={checkHealth}
             marginTop="$2"
           >
@@ -62,9 +60,9 @@ export default function OverviewScreen() {
         </YStack>
       ) : (
         <YStack space="$4">
-          <YStack 
-            backgroundColor="$green2" 
-            padding="$4" 
+          <YStack
+            backgroundColor="$green2"
+            padding="$4"
             borderRadius="$2"
           >
             <Text color="$green11">
@@ -76,7 +74,7 @@ export default function OverviewScreen() {
               </Text>
             )}
           </YStack>
-          
+
           <Button onPress={checkHealth}>
             Refresh Status
           </Button>

@@ -1,35 +1,42 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import type { FontSizeTokens, SelectProps } from 'tamagui'
 import { Adapt, Label, Select, Sheet, XStack, YStack, getFontSize, Image } from 'tamagui'
 import { LinearGradient } from 'tamagui/linear-gradient'
+import { ApiClient } from '../../../api/client'
 
 const Check = require('../../../public/images/check.png')
 const ChevronUp = require('../../../public/images/chevron-up.png')
 const ChevronDown = require('../../../public/images/chevron-down.png')
 
 
-export function SelectDemo() {
-  return (
-    <YStack gap="$4">
-      <XStack ai="center" gap="$4">
-        <Label htmlFor="select-demo-1" f={1} miw={80}>
-          Custom
-        </Label>
-        <ProjectDropDown id="select-demo-1" />
-      </XStack>
-
-      <XStack ai="center" gap="$4">
-        <Label htmlFor="select-demo-2" f={1} miw={80}>
-          Native
-        </Label>
-        <ProjectDropDown id="select-demo-2" native />
-      </XStack>
-    </YStack>
-  )
-}
 
 export function ProjectDropDown(props: SelectProps) {
   const [val, setVal] = React.useState('apple')
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const api = ApiClient.getInstance();
+
+  useEffect(() => {
+    // getUserProjects()
+  }, [])
+
+  const getUserProjects = async () => {
+    console.log("start")
+    try {
+      setLoading(true)
+      setError('')
+      const response = await api.get('/api/projects')
+      const transformedResponse = JSON.stringify(response, null, 2)
+     if(transformedResponse.success){
+      setLoading(false)
+     }
+    } catch (err) {
+      setError(err)
+      console.error('Health check error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   return (
     <Select value={val} onValueChange={setVal} disablePreventBodyScroll {...props}>
