@@ -1,7 +1,6 @@
 // packages/dashboard/features/overview/screen.tsx
 import React, { useEffect, useState } from 'react'
-import { YStack, H1, Text, Spinner, Button } from 'tamagui'
-import { MembersTable } from '../../components/tables/MembersTable'
+import { Button, H1, Spinner, Text, YStack } from 'tamagui'
 import { ApiClient } from '../../../api/index'
 
 interface HealthCheckResponse {
@@ -12,11 +11,13 @@ interface HealthCheckResponse {
 
 // Initialize API client
 const apiClient = new ApiClient({
-  baseUrl: 'http://192.168.1.33:3000',
+  baseUrl: 'http://192.168.1.6:3000',
 })
 
 export default function OverviewScreen() {
-  const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(null)
+  const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(
+    null,
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,7 +37,8 @@ export default function OverviewScreen() {
         setError('Server returned unexpected status')
       }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to check server health'
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to check server health'
       setError(errorMessage)
       console.error('Health check error:', err)
     } finally {
@@ -47,7 +49,7 @@ export default function OverviewScreen() {
   return (
     <YStack space="$4" padding="$4">
       <H1>System Overview</H1>
-      
+
       {loading ? (
         <YStack alignItems="center" paddingVertical="$4">
           <Spinner size="large" />
@@ -56,33 +58,23 @@ export default function OverviewScreen() {
       ) : error ? (
         <YStack backgroundColor="$red2" padding="$4" borderRadius="$2">
           <Text color="$red11">Error: {error}</Text>
-          <Button 
-            onPress={checkHealth}
-            marginTop="$2"
-          >
+          <Button onPress={checkHealth} marginTop="$2">
             Retry Check
           </Button>
         </YStack>
       ) : (
         <YStack space="$4">
-          <YStack 
-            backgroundColor="$green2" 
-            padding="$4" 
-            borderRadius="$2"
-          >
-            <Text color="$green11">
-              Status: {healthStatus?.status}
-            </Text>
+          <YStack backgroundColor="$green2" padding="$4" borderRadius="$2">
+            <Text color="$green11">Status: {healthStatus?.status}</Text>
             {healthStatus?.timestamp && (
               <Text color="$green11">
-                Last Updated: {new Date(healthStatus.timestamp).toLocaleString()}
+                Last Updated:{' '}
+                {new Date(healthStatus.timestamp).toLocaleString()}
               </Text>
             )}
           </YStack>
-          
-          <Button onPress={checkHealth}>
-            Refresh Status
-          </Button>
+
+          <Button onPress={checkHealth}>Refresh Status</Button>
         </YStack>
       )}
     </YStack>

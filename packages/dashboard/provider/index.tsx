@@ -1,14 +1,15 @@
 import React from 'react'
-import { NavigationProvider } from './navigation'
+import { QueryClientProvider } from '@tanstack/react-query'
+import { queryClient } from './react-query'
 import { TamaguiProvider } from './tamagui'
 
 export function Wrapper({ children }: { children: React.ReactNode }) {
   return (
-    // <NavigationProvider>
-    <TamaguiProvider>
-      <>{children}</>
-    </TamaguiProvider>
-    // </NavigationProvider>
+    <QueryClientProvider client={queryClient}>
+      <TamaguiProvider>
+        <>{children}</>
+      </TamaguiProvider>
+    </QueryClientProvider>
   )
 }
 

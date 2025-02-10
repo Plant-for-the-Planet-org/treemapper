@@ -4,6 +4,7 @@ import React from 'react'
 import { isWeb, Tabs, Text, YStack, Stack } from 'tamagui'
 import OverviewScreen from '../../features/overview/screen'
 import MembersScreen from '../../features/teams/members/screen'
+import SettingsIndexScreen from '../../features/settings/screen'
 
 const TabsData = [
   {
@@ -28,7 +29,7 @@ const TabsData = [
     label: 'Settings',
     value: 'settings',
     route: '/dashboard/settings',
-    component: null,
+    component: SettingsIndexScreen,
   },
 ]
 

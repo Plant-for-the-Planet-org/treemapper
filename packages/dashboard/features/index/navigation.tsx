@@ -9,7 +9,7 @@ import SingleMemberScreen from '../teams/members/single.screen'
 const DashboardNavigationStack = createNativeStackNavigator<{
   dashboard: undefined
   '/dashboard.index': undefined
-  '/`dashboard/overview`': undefined
+  '/dashboard/overview`': undefined
   '/dashboard/species': undefined
   '/dashboard/teams': undefined
   '/dashboard/teams/members': undefined

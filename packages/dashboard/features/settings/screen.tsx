@@ -11,7 +11,7 @@ export default function SettingsIndexScreen() {
 
   return (
     <YStack flex={1} backgroundColor="$background">
-      {/* <HeaderSkeleton headerText="Settings" /> */}
+      <HeaderSkeleton headerText="Settings" />
       <ContentSkeleton>
         <SettingsTabs />
       </ContentSkeleton>
