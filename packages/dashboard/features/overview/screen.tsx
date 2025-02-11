@@ -1,7 +1,6 @@
 // packages/dashboard/features/overview/screen.tsx
 import React, { useEffect, useState } from 'react'
-import { YStack, H1, Text, Spinner, Button } from 'tamagui'
-import { MembersTable } from '../../components/tables/MembersTable'
+import { Button, H1, Spinner, Text, YStack } from 'tamagui'
 import { ApiClient } from '../../../api/index'
 import ProjectDetails from '../../components/projects/projects'
 
@@ -11,18 +10,16 @@ interface HealthCheckResponse {
   // Add other health check fields as needed
 }
 
-
-
 export default function OverviewScreen() {
-  const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(null)
+  const [healthStatus, setHealthStatus] = useState<HealthCheckResponse | null>(
+    null,
+  )
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
-  const api = ApiClient.getInstance();
+  const api = ApiClient.getInstance()
   useEffect(() => {
     checkHealth()
   }, [])
-
-
 
   const checkHealth = async () => {
     try {
@@ -51,33 +48,23 @@ export default function OverviewScreen() {
       ) : error ? (
         <YStack backgroundColor="$red2" padding="$4" borderRadius="$2">
           <Text color="$red11">Error: {error}</Text>
-          <Button
-            onPress={checkHealth}
-            marginTop="$2"
-          >
+          <Button onPress={checkHealth} marginTop="$2">
             Retry Check
           </Button>
         </YStack>
       ) : (
         <YStack space="$4">
-          <YStack
-            backgroundColor="$green2"
-            padding="$4"
-            borderRadius="$2"
-          >
-            <Text color="$green11">
-              Status: {healthStatus?.status}
-            </Text>
+          <YStack backgroundColor="$green2" padding="$4" borderRadius="$2">
+            <Text color="$green11">Status: {healthStatus?.status}</Text>
             {healthStatus?.timestamp && (
               <Text color="$green11">
-                Last Updated: {new Date(healthStatus.timestamp).toLocaleString()}
+                Last Updated:{' '}
+                {new Date(healthStatus.timestamp).toLocaleString()}
               </Text>
             )}
           </YStack>
 
-          <Button onPress={checkHealth}>
-            Refresh Status
-          </Button>
+          <Button onPress={checkHealth}>Refresh Status</Button>
         </YStack>
       )}
     </YStack>

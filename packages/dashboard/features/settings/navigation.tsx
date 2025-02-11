@@ -11,10 +11,12 @@ const SettingsNavigationStack = createNativeStackNavigator<{
 }>()
 
 export default function SettingsNavigation() {
+  console.log('SettingsNavigation')
   return (
     <SettingsNavigationStack.Navigator
       id={'dashboard.settings'}
-      initialRouteName="/dashboard/settings.index"
+      // initialRouteName="/dashboard/settings.index"
+      initialRouteName="/dashboard/settings/profile"
       screenOptions={{ headerShown: false }}>
       <SettingsNavigationStack.Screen
         name="/dashboard/settings.index"

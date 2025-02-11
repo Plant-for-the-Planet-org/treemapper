@@ -3,11 +3,14 @@
   "name": "dashboard",
   "main": "index.ts",
   "dependencies": {
+    "@treemapper/api": "*",
     "@react-navigation/native": "7.0.0",
     "@react-navigation/native-stack": "7.0.0",
     "@tamagui/lucide-icons": "^1.123.4",
+    "@tanstack/react-query": "^5.66.0",
     "@tanstack/react-table": "^8.20.6",
     "moti": "latest",
+    "react-hook-form": "^7.54.2",
     "solito": "4.3.0",
     "zustand": "^5.0.3"
   },
