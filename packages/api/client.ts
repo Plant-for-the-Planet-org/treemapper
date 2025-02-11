@@ -30,6 +30,7 @@ export class ApiClient {
   private async getAuthHeader(): Promise<Record<string, string>> {
     try {
       const token = await storage.getItem('auth_token')
+      console.log({ token })
       const headers: Record<string, string> = token
         ? { Authorization: `Bearer ${token}` }
         : {}
@@ -46,6 +47,7 @@ export class ApiClient {
     try {
       const authHeaders = await this.getAuthHeader()
       const fullUrl = `${this.baseUrl}${endpoint}`
+      // console.debug('Full URL', fullUrl, '\n', 'Token', authHeaders)
       const requestOptions: RequestInit = {
         ...options,
         credentials: 'include', // Add this for CORS
@@ -57,6 +59,7 @@ export class ApiClient {
           ...options.headers,
         },
       }
+
       const response = await fetch(fullUrl, requestOptions).catch(error => {
         throw error
       })
