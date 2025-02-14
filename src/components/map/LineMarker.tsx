@@ -6,6 +6,7 @@ import { point, distance } from '@turf/turf';
 
 interface Props {
   coordinates: Array<number[]>;
+  isSatellite: boolean
 }
 
 type DistanceUnits = 'meters' | 'kilometers';
@@ -44,7 +45,7 @@ const LineMarker = (props: Props) => {
         (coord[0] + nextCoord[0]) / 2,
         (coord[1] + nextCoord[1]) / 2,
       ];
-      
+
       return {
         type: 'Feature' as const,
         properties: {
@@ -71,7 +72,7 @@ const LineMarker = (props: Props) => {
         type: 'FeatureCollection',
         features: features,
       }}>
-      <MapLibreGL.LineLayer id="poly_line_marker" style={styles.lineStyle} />
+      <MapLibreGL.LineLayer id="poly_line_marker" style={{lineWidth: 2,lineColor:props.isSatellite?"#fff": Colors.PRIMARY_DARK}} />
       <MapLibreGL.SymbolLayer
         id="distance_labels"
         style={styles.distanceLabel}
@@ -83,10 +84,6 @@ const LineMarker = (props: Props) => {
 export default LineMarker;
 
 const styles = StyleSheet.create({
-  lineStyle: {
-    lineColor: Colors.PRIMARY_DARK,
-    lineWidth: 2,
-  },
   distanceLabel: {
     textField: ['get', 'distance'],
     textSize: 16,

@@ -251,7 +251,7 @@ const PolygonMarkerMap = (props: Props) => {
           androidRenderMode="gps"
           minDisplacement={1}
         />
-        <LineMarker coordinates={coordinates} />
+        <LineMarker coordinates={coordinates} isSatellite={mainMapView === 'SATELLITE'}/>
         <AlphabetMarkers coordinates={coordinates} />
       </MapLibreGL.MapView>
       <SatelliteIconWrapper />
