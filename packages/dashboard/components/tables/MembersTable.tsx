@@ -165,6 +165,7 @@ export function MembersTable({ users, onViewUser }: UserTableProps) {
           ))}
         </YStack>
       </ScrollView>
+      <Text height="$5"/>
     </YStack>
   )
 }

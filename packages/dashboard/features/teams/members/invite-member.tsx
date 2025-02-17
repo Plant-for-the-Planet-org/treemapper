@@ -105,7 +105,8 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
 
         <Button
           size="$4"
-          themeInverse
+          color={"#fff"}
+          backgroundColor={"#007A49"}
           onPress={handleInvite}
           disabled={!email}
           pressStyle={{ scale: 0.97 }}
