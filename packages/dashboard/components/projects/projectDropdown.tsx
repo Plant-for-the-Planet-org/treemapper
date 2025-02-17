@@ -163,14 +163,14 @@ export function ProjectDropDown(props: SelectProps) {
           animateOnly={['transform', 'opacity']}
           // enterStyle={{ opacity: 0, y: -10 }}
           // exitStyle={{ opacity: 0, y: 10 }}
-          padding="$2"
         >
-          <Select.Group space="$1">
+          <Select.Group>
             <Select.Label 
               paddingHorizontal="$3" 
               paddingVertical="$2"
-              color="$textSecondary"
-              fontSize="$2"
+              color="#fff"
+              backgroundColor="#007A49"
+              fontSize="$3"
             >
               Create New Project
             </Select.Label>
