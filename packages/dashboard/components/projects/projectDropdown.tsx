@@ -1,75 +1,153 @@
 import React, { useEffect, useState } from 'react'
-import type { FontSizeTokens, SelectProps } from 'tamagui'
-import { Adapt, Label, Select, Sheet, XStack, YStack, getFontSize, Image } from 'tamagui'
+import type { SelectProps } from 'tamagui'
+import { Adapt, Label, Select, Sheet, XStack, YStack, Image } from 'tamagui'
 import { LinearGradient } from 'tamagui/linear-gradient'
-import { ApiClient } from '../../../api/client'
+import { styled } from 'tamagui'
 
 const Check = require('../../../public/images/check.png')
 const ChevronUp = require('../../../public/images/chevron-up.png')
 const ChevronDown = require('../../../public/images/chevron-down.png')
 
+// Custom styled components
+const StyledTrigger = styled(Select.Trigger, {
+  backgroundColor: '$background',
+  borderWidth: 1,
+  borderColor: '$borderColor',
+  borderRadius: '$4',
+  paddingVertical: '$2',
+  paddingHorizontal: '$3',
+  shadowColor: '$shadowColor',
+  shadowOffset: { width: 0, height: 2 },
+  // shadowOpacity: 0.1,
+  shadowRadius: 4,
+  hoverStyle: {
+    backgroundColor: '$backgroundHover',
+    borderColor: '$borderColorHover',
+  },
+})
 
+const StyledItem = styled(Select.Item, {
+  paddingVertical: '$2',
+  paddingHorizontal: '$3',
+  marginVertical: '$1',
+  borderRadius: '$2',
+  backgroundColor: 'transparent',
+  hoverStyle: {
+    backgroundColor: '$backgroundHover',
+  },
+})
+
+const StyledLabel = styled(Label, {
+  color: '$textSecondary',
+  fontSize: '$3',
+  fontWeight: '500',
+})
+
+export function SelectDemo() {
+  return (
+    <YStack gap="$6" padding="$4">
+      <XStack ai="center" gap="$4">
+        <StyledLabel htmlFor="select-demo-1" f={1} miw={80}>
+          Custom Select
+        </StyledLabel>
+        <ProjectDropDown id="select-demo-1" />
+      </XStack>
+
+      <XStack ai="center" gap="$4">
+        <StyledLabel htmlFor="select-demo-2" f={1} miw={80}>
+          Native Select
+        </StyledLabel>
+        <ProjectDropDown id="select-demo-2" native />
+      </XStack>
+    </YStack>
+  )
+}
 
 export function ProjectDropDown(props: SelectProps) {
   const [val, setVal] = React.useState('apple')
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState('')
-  const api = ApiClient.getInstance();
-
   useEffect(() => {
-    // getUserProjects()
+    fetchData()
   }, [])
 
-  const getUserProjects = async () => {
-    console.log("start")
-    try {
-      setLoading(true)
-      setError('')
-      const response = await api.get('/api/projects')
-      const transformedResponse = JSON.stringify(response, null, 2)
-     if(transformedResponse.success){
-      setLoading(false)
-     }
-    } catch (err) {
-      setError(err)
-      console.error('Health check error:', err)
-    } finally {
-      setLoading(false)
-    }
-  }
+  const fetchData=async()=>{
 
+  }
+  
+  
   return (
-    <Select value={val} onValueChange={setVal} disablePreventBodyScroll {...props}>
-      <Select.Trigger width={220} iconAfter={() => (<Image src={ChevronDown} size={20} />)}>
-        <Select.Value placeholder="Something" />
-      </Select.Trigger>
+    <Select 
+      value={val} 
+      onValueChange={setVal} 
+      disablePreventBodyScroll 
+      {...props}
+    >
+      <StyledTrigger 
+        width={220} 
+        elevation={2}
+        iconAfter={() => (
+          <Image 
+            src={ChevronDown} 
+            size={16} 
+            // opacity={0.6}
+            animation="quick"
+            // enterStyle={{ rotate: '0deg' }}
+            // exitStyle={{ rotate: '180deg' }}
+          />
+        )}
+      >
+        <Select.Value 
+          placeholder="Select a fruit" 
+          fontSize="$3"
+          color="$text"
+        />
+      </StyledTrigger>
 
       <Adapt when="sm" platform="touch">
-        <Sheet native={!!props.native} modal dismissOnSnapToBottom animation="medium">
-          <Sheet.Frame>
+        <Sheet 
+          native={!!props.native} 
+          modal 
+          dismissOnSnapToBottom 
+          animation="quick"
+          zIndex={200000}
+          handlePosition="inside"
+        >
+          <Sheet.Frame padding="$4">
             <Sheet.ScrollView>
               <Adapt.Contents />
             </Sheet.ScrollView>
           </Sheet.Frame>
-          <Sheet.Overlay
-            backgroundColor="$shadowColor"
-            animation="lazy"
-            enterStyle={{ opacity: 0 }}
-            exitStyle={{ opacity: 0 }}
+          <Sheet.Overlay 
+            backgroundColor="$shadowColor" 
+            // opacity={0.5}
+            animation="quick"
+            // enterStyle={{ opacity: 0 }}
+            // exitStyle={{ opacity: 0 }}
           />
         </Sheet>
       </Adapt>
 
-      <Select.Content zIndex={200000}>
+      <Select.Content 
+        zIndex={200000}
+        backgroundColor="$background"
+        borderRadius="$4"
+        elevation={6}
+        bordered
+        animation="quick"
+      >
         <Select.ScrollUpButton
           alignItems="center"
           justifyContent="center"
           position="relative"
           width="100%"
           height="$3"
+          // opacity={0.8}
         >
           <YStack zIndex={10}>
-            <Image src={ChevronUp} size={20} />
+            <Image 
+              src={ChevronUp} 
+              size={16}
+              // opacity={0.6} 
+            />
           </YStack>
           <LinearGradient
             start={[0, 0]}
@@ -81,36 +159,43 @@ export function ProjectDropDown(props: SelectProps) {
         </Select.ScrollUpButton>
 
         <Select.Viewport
-          // to do animations:
-          // animation="quick"
-          // animateOnly={['transform', 'opacity']}
-          // enterStyle={{ o: 0, y: -10 }}
-          // exitStyle={{ o: 0, y: 10 }}
-          minWidth={200}
+          animation="quick"
+          animateOnly={['transform', 'opacity']}
+          // enterStyle={{ opacity: 0, y: -10 }}
+          // exitStyle={{ opacity: 0, y: 10 }}
+          padding="$2"
         >
-          <Select.Group>
-            <Select.Label>Fruits</Select.Label>
-            {/* for longer lists memoizing these is useful */}
+          <Select.Group space="$1">
+            <Select.Label 
+              paddingHorizontal="$3" 
+              paddingVertical="$2"
+              color="$textSecondary"
+              fontSize="$2"
+            >
+              Create New Project
+            </Select.Label>
             {React.useMemo(
               () =>
-                items.map((item, i) => {
-                  return (
-                    <Select.Item
-                      index={i}
-                      key={item.name}
-                      value={item.name.toLowerCase()}
-                    >
-                      <Select.ItemText>{item.name}</Select.ItemText>
-                      <Select.ItemIndicator marginLeft="auto">
-                        <Image src={Check} size={20} />
-                      </Select.ItemIndicator>
-                    </Select.Item>
-                  )
-                }),
+                items.map((item, i) => (
+                  <StyledItem
+                    index={i}
+                    key={item.name}
+                    value={item.name.toLowerCase()}
+                  >
+                    <Select.ItemText>{item.name}</Select.ItemText>
+                    <Select.ItemIndicator marginLeft="auto">
+                      <Image 
+                        src={Check} 
+                        size={16}
+                        // opacity={0.8}
+                      />
+                    </Select.ItemIndicator>
+                  </StyledItem>
+                )),
               [items]
             )}
           </Select.Group>
-          {/* Native gets an extra icon */}
+          
           {props.native && (
             <YStack
               position="absolute"
@@ -119,10 +204,14 @@ export function ProjectDropDown(props: SelectProps) {
               bottom={0}
               alignItems="center"
               justifyContent="center"
-              width={'$4'}
+              width="$4"
               pointerEvents="none"
             >
-              <Image src={ChevronDown} size={20} />
+              <Image 
+                src={ChevronDown} 
+                size={16}
+                // opacity={0.6}
+              />
             </YStack>
           )}
         </Select.Viewport>
@@ -133,9 +222,14 @@ export function ProjectDropDown(props: SelectProps) {
           position="relative"
           width="100%"
           height="$3"
+          // opacity={0.8}
         >
           <YStack zIndex={10}>
-            <Image src={ChevronDown} size={16} />
+            <Image 
+              src={ChevronDown} 
+              size={16}
+              // opacity={0.6}
+            />
           </YStack>
           <LinearGradient
             start={[0, 0]}
@@ -152,7 +246,4 @@ export function ProjectDropDown(props: SelectProps) {
 
 const items = [
   { name: 'Apple' },
-  { name: 'Pear' },
-  { name: 'Blackberry' },
-  { name: 'Peach' },
 ]

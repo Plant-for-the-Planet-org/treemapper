@@ -1,12 +1,31 @@
 import type { TabsContentProps } from 'tamagui'
 import { useRouter } from 'solito/router'
-import React from 'react'
-import { isWeb, Tabs, Text, YStack, Stack, ScrollView } from 'tamagui'
 import OverviewScreen from '../../features/overview/screen'
 import MembersScreen from '../../features/teams/members/screen'
 import SettingsIndexScreen from '../../features/settings/screen'
+import React, { useState } from 'react'
+import {
+  isWeb,
+  Tabs,
+  Text,
+  YStack,
+  Stack,
+  ScrollView,
+  XStack,
+  AnimatePresence,
+} from 'tamagui'
 
-const TabsData = [
+// Improved type safety with TypeScript
+interface TabItem {
+  label: string
+  value: string
+  route?: string
+  component: (() => React.ReactNode) | null
+  icon?: React.ReactNode // Optional icon support
+  badge?: number // Optional badge support
+}
+
+const TabsData: TabItem[] = [
   {
     label: 'Overview',
     value: 'overview',
@@ -14,7 +33,7 @@ const TabsData = [
   },
   {
     label: 'Sites',
-    value: 'Sites',
+    value: 'sites',
     component: () => null,
   },
   {
@@ -35,21 +54,17 @@ const TabsData = [
     route: '/dashboard/settings',
     component: SettingsIndexScreen,
   },
-  {
-    label: 'Teams',
-    value: 'teams',
-    route: '/dashboard/teams/members',
-    component: MembersScreen,
-  },
 ]
 
 export function DashboardTabs() {
   return (
     <YStack
       flex={1}
+      backgroundColor="$background"
       {...(isWeb && {
         position: 'unset' as any,
-      })}>
+      })}
+    >
       <HorizontalTabs />
     </YStack>
   )
@@ -57,67 +72,97 @@ export function DashboardTabs() {
 
 const HorizontalTabs = () => {
   const router = useRouter()
-
+  const [activeIndex, setActiveIndex] = useState(0)
   return (
     <Tabs
       flex={1}
       flexDirection="column"
       orientation="horizontal"
-      defaultValue={TabsData[0].value}>
-      <Stack
-        backgroundColor="$gray2"
-        borderBottomWidth={1}
-        borderColor="$gray5">
+      defaultValue={TabsData[0].value}
+    >
+      <Stack>
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
-          bounces={false}>
+          bounces={false}
+        >
           <Tabs.List
             disablePassBorderRadius
             flexDirection="row"
             paddingHorizontal="$4"
-            paddingVertical="$2">
+            paddingVertical="$3"
+            gap="$2"
+          >
             {TabsData.map((tab, index) => (
               <Tabs.Tab
-                key={index}
+                key={tab.value}
                 value={tab.value}
-                paddingVertical="$2"
-                paddingHorizontal="$3"
-                marginHorizontal="$1"
-                backgroundColor="transparent"
-                borderRadius="$4"
+                paddingVertical="$2.5"
+                paddingHorizontal="$4"
+                backgroundColor={index === activeIndex ? "#007A49" : "$backgroundTransparent"}
+                borderRadius="$6"
+                animation="quick"
                 pressStyle={{
                   backgroundColor: '$gray4',
                   scale: 0.97,
                 }}
+                hoverStyle={{
+                  backgroundColor: '$gray3',
+                }}
+                focusStyle={{
+                  backgroundColor: '$gray3',
+                  borderColor: '$blue8',
+                  borderWidth: 2,
+                }}
                 onPress={() => {
+                  setActiveIndex(index)
                   if (tab.route) router.push(tab.route)
-                }}>
-                <Text
-                  fontFamily="$body"
-                  fontSize="$2"
-                  textAlign="center"
-                  color="$gray11">
-                  {tab.label}
-                </Text>
+                }}
+              >
+                <XStack gap="$2" alignItems="center">
+                  {tab.icon && <XStack>{tab.icon}</XStack>}
+                  <Text
+                    fontFamily="$body"
+                    fontSize="$3"
+                    fontWeight={'400'}
+                    textAlign="center"
+                    color={index === activeIndex ? 'white' : '$gray11'}
+                  >
+                    {tab.label}
+                  </Text>
+                </XStack>
               </Tabs.Tab>
             ))}
           </Tabs.List>
         </ScrollView>
       </Stack>
 
-      {TabsData.map((tab, index) => (
-        <TabsContent key={index} value={tab.value}>
-          {tab.component && <tab.component />}
-        </TabsContent>
-      ))}
+      <AnimatePresence>
+        {TabsData.map((tab) => (
+          <TabsContent
+            key={tab.value}
+            value={tab.value}
+            animation="quick"
+            enterStyle={{ opacity: 0, scale: 0.95 }}
+            exitStyle={{ opacity: 0, scale: 0.95 }}
+          >
+            {tab.component && <tab.component />}
+          </TabsContent>
+        ))}
+      </AnimatePresence>
     </Tabs>
   )
 }
 
 const TabsContent = (props: TabsContentProps) => {
   return (
-    <Tabs.Content backgroundColor="$gray1" padding="$4" flex={1} {...props}>
+    <Tabs.Content
+      backgroundColor="$gray1"
+      padding="$4"
+      flex={1}
+      animation="quick"
+      {...props}
+    >
       {props.children}
     </Tabs.Content>
   )
