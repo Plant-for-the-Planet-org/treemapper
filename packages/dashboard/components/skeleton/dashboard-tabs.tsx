@@ -3,6 +3,8 @@ import { useRouter } from 'solito/router'
 import OverviewScreen from '../../features/overview/screen'
 import MembersScreen from '../../features/teams/members/screen'
 import SettingsIndexScreen from '../../features/settings/screen'
+import SiteScreen from '../../features/sites/screen'
+
 import React, { useState } from 'react'
 import {
   isWeb,
@@ -34,7 +36,7 @@ const TabsData: TabItem[] = [
   {
     label: 'Sites',
     value: 'sites',
-    component: () => null,
+    component: SiteScreen,
   },
   {
     label: 'Species',

@@ -14,10 +14,10 @@ export default function DashboardIndexScreen() {
     },
   })
   return (
-    <YStack flex={1} backgroundColor="$background" paddingTop="$5">
+    <YStack flex={1} backgroundColor="$background" paddingTop="$5" flexGrow={1}>
       <HeaderSkeleton headerText="Dashboard" />
       <ProjectDetails />
-      <ContentSkeleton>
+      <ContentSkeleton >
         <DashboardTabs />
       </ContentSkeleton>
     </YStack>

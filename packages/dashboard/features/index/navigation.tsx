@@ -2,7 +2,7 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import DashboardIndexScreen from './screen'
 import OverviewScreen from '../overview/screen'
-import SettingNavigation from '../settings/navigation'
+import SettingNavigation from '../settings/screen'
 import MembersScreen from '../teams/members/screen'
 import SingleMemberScreen from '../teams/members/single.screen'
 

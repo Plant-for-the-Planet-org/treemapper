@@ -3,6 +3,7 @@ import type { SelectProps } from 'tamagui'
 import { Adapt, Label, Select, Sheet, XStack, YStack, Image } from 'tamagui'
 import { LinearGradient } from 'tamagui/linear-gradient'
 import { styled } from 'tamagui'
+import CreateNewProject from './CreateNewProject'
 
 const Check = require('../../../public/images/check.png')
 const ChevronUp = require('../../../public/images/chevron-up.png')
@@ -89,7 +90,6 @@ export function ProjectDropDown(props: SelectProps) {
             src={ChevronDown} 
             size={16} 
             // opacity={0.6}
-            animation="quick"
             // enterStyle={{ rotate: '0deg' }}
             // exitStyle={{ rotate: '180deg' }}
           />
@@ -165,15 +165,7 @@ export function ProjectDropDown(props: SelectProps) {
           // exitStyle={{ opacity: 0, y: 10 }}
         >
           <Select.Group>
-            <Select.Label 
-              paddingHorizontal="$3" 
-              paddingVertical="$2"
-              color="#fff"
-              backgroundColor="#007A49"
-              fontSize="$3"
-            >
-              Create New Project
-            </Select.Label>
+          <CreateNewProject/>
             {React.useMemo(
               () =>
                 items.map((item, i) => (
