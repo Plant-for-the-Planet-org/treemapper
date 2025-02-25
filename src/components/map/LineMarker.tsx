@@ -47,11 +47,10 @@ const LineMarker = (props: Props) => {
         (coord[0] + nextCoord[0]) / 2,
         (coord[1] + nextCoord[1]) / 2,
       ];
-
       return {
         type: 'Feature' as const,
         properties: {
-          distance: `${dist}m`,
+          distance: `${dist} m`,
         },
         geometry: {
           type: 'Point' as const,
@@ -73,7 +72,7 @@ const LineMarker = (props: Props) => {
         type: 'FeatureCollection',
         features: features,
       }}>
-      <MapLibreGL.LineLayer id="poly_line_marker" style={{lineWidth: 4,lineColor:props.isSatellite?"#fff": Colors.PRIMARY_DARK}} />
+      <MapLibreGL.LineLayer id="poly_line_marker" style={{ lineWidth: 4, lineColor: props.isSatellite ? "#fff" : Colors.PRIMARY_DARK }} />
       <MapLibreGL.SymbolLayer
         id="distance_labels"
         style={styles.distanceLabel}
