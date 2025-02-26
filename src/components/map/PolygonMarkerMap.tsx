@@ -357,7 +357,7 @@ const PolygonMarkerMap = (props: Props) => {
             labelStyle={styles.highlightLabel}
           />
           <CustomButton
-            label={`${i18next.t('label.select_location_continue')}`}
+            label={`Mark Point`}
             containerStyle={styles.btnWrapper}
             pressHandler={onSelectLocation}
             disable={loading || lineError}
@@ -449,7 +449,7 @@ const styles = StyleSheet.create({
 
   btnFooter: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 20,
     width: '100%',
     height: scaleSize(70),
     flexDirection: 'row',
@@ -459,7 +459,7 @@ const styles = StyleSheet.create({
 
   btnFooterTwo: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 20,
     width: '100%',
     height: scaleSize(70),
     flexDirection: 'row',

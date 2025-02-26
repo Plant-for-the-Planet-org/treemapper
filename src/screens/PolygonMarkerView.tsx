@@ -40,7 +40,7 @@ const PolygonMarker = () => {
   const { species_required, location_title } = setUpIntervention(interventionData.intervention_key)
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar style='dark' />
       <Header label={location_title}
         rightComponent={<GpsAccuracyTile showModalInfo={setShowInfoModal} />} />
