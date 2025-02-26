@@ -4,6 +4,7 @@ import { Button, H1, Spinner, Text, YStack } from 'tamagui'
 import { ApiClient } from '../../../api/index'
 import ProjectDetails from '../../components/projects/projects'
 import { OverviewCardList } from '../../components/overview/OverviewCardList'
+import RecentAdditions from '../../components/overview/RecentAdditions'
 
 interface HealthCheckResponse {
   status: string
@@ -39,8 +40,9 @@ export default function OverviewScreen() {
     }
   }
   return (
-    <YStack >
+    <YStack width={"100%"}>
       <OverviewCardList />
+      <RecentAdditions/>
     </YStack>
   )
 }
