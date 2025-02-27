@@ -58,6 +58,7 @@ export default PolygonMarker
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.WHITE,
+    paddingBottom:20
   },
 })
