@@ -2,7 +2,7 @@ import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
 import DashboardIndexScreen from './screen'
 import OverviewScreen from '../overview/screen'
-import SettingNavigation from '../settings/screen'
+import ProfileSettings from '../settings/screen'
 import MembersScreen from '../teams/members/screen'
 import SingleMemberScreen from '../teams/members/single.screen'
 
@@ -46,7 +46,7 @@ export default function DashboardNavigation() {
       {/* This above route might come handly while introducing workspace & make sense */}
       <DashboardNavigationStack.Screen
         name="/dashboard/settings"
-        component={SettingNavigation}
+        component={ProfileSettings}
       />
     </DashboardNavigationStack.Navigator>
   )
