@@ -24,7 +24,7 @@ export function HeaderSkeleton({ headerText }: HeaderSkeletonProps) {
       >
         <Image src={BackIcon} />
       </Button>
-      <H3>{headerText}</H3>
+      <H3  fontSize={20} fontWeight="bold">{headerText}</H3>
     </XStack>
   )
 }

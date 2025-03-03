@@ -1,6 +1,7 @@
 import React from 'react';
 import { Bell } from '@tamagui/lucide-icons';
 import { XStack, YStack, Text, Stack } from 'tamagui';
+import { useRouter } from 'solito/router';
 
 /**
  * Enhanced NotificationIcon component with customizable badge
@@ -30,18 +31,22 @@ const NotificationIcon = ({
   icon,
   ...props
 }) => {
+  const router = useRouter()
+  const handleNav = () => {
+    router.push('/dashboard/notification')
+  }
   // Only show badge if count is greater than 0
   const showBadge = count > 0;
-  
+
   // Format the count for display
   const displayCount = count > maxCount ? `${maxCount}+` : count.toString();
-  
+
   // Calculate badge size based on icon size
   const badgeSize = Math.max(size * 0.5, 16);
-  
+
   // Calculate text size based on badge size
   const textSize = badgeSize * 0.6;
-  
+
   // Determine badge position based on badgePosition prop
   const getBadgePosition = () => {
     switch (badgePosition) {
@@ -56,16 +61,16 @@ const NotificationIcon = ({
         return { top: -badgeSize / 3, right: -badgeSize / 3 };
     }
   };
-  
+
   // Get the icon to display
   const IconComponent = icon || <Bell size={size} color={color} />;
-  
+
   return (
-    <XStack onPress={onPress} {...props} width="$2" style={{position: 'absolute', right:25, top:54}}>
-      {typeof IconComponent === 'function' 
+    <XStack onPress={onPress} {...props} width="$2" style={{ position: 'absolute', right: 25, top: 54 }} onPressIn={handleNav}>
+      {typeof IconComponent === 'function'
         ? <IconComponent size={size} color={color} />
         : IconComponent}
-      
+
       {showBadge && (
         <Stack
           position="absolute"

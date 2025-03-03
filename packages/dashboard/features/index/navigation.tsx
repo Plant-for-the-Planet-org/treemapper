@@ -4,6 +4,7 @@ import DashboardIndexScreen from './screen'
 import MyProfile from '../profile/screen'
 import CreateProject from '../projectCreation/screen'
 import CreateSite from '../siteCreation/screen'
+import NotificationPanel from '../notificationPannel/screen'
 
 
 // Create a stack for all dashboard screens
@@ -12,6 +13,7 @@ const DashboardStack = createNativeStackNavigator<{
   me: undefined,
   createproject: undefined,
   createsite: undefined,
+  notification: undefined,
   // Add other screens as needed
 }>()
 
@@ -32,9 +34,13 @@ export default function DashboardNavigation() {
         name="createproject"
         component={CreateProject}
       />
-            <DashboardStack.Screen
+      <DashboardStack.Screen
         name="createsite"
         component={CreateSite}
+      />
+      <DashboardStack.Screen
+        name="notification"
+        component={NotificationPanel}
       />
       {/* Add other screens as needed */}
     </DashboardStack.Navigator>
