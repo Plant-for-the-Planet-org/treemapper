@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import type { SelectProps } from 'tamagui'
-import { Adapt, Label, Select, Sheet, XStack, YStack, Image } from 'tamagui'
+import { Adapt, Label, Select, Sheet, XStack, YStack, Image, Separator, View } from 'tamagui'
 import { LinearGradient } from 'tamagui/linear-gradient'
 import { styled } from 'tamagui'
 import CreateNewProject from './CreateNewProject'
@@ -14,12 +14,11 @@ const StyledTrigger = styled(Select.Trigger, {
   backgroundColor: '$background',
   borderWidth: 1,
   borderColor: '$borderColor',
-  borderRadius: '$4',
-  paddingVertical: '$2',
-  paddingHorizontal: '$3',
+  borderRadius: '$8',
+  paddingVertical: '$3',
+  paddingHorizontal: '$4',
   shadowColor: '$shadowColor',
   shadowOffset: { width: 0, height: 2 },
-  // shadowOpacity: 0.1,
   shadowRadius: 4,
   hoverStyle: {
     backgroundColor: '$backgroundHover',
@@ -28,10 +27,10 @@ const StyledTrigger = styled(Select.Trigger, {
 })
 
 const StyledItem = styled(Select.Item, {
-  paddingVertical: '$2',
-  paddingHorizontal: '$3',
+  paddingVertical: '$3',
+  paddingHorizontal: '$4',
   marginVertical: '$1',
-  borderRadius: '$2',
+  borderRadius: '$4',
   backgroundColor: 'transparent',
   hoverStyle: {
     backgroundColor: '$backgroundHover',
@@ -65,15 +64,15 @@ export function SelectDemo() {
 }
 
 export function ProjectDropDown(props: SelectProps) {
-  const [val, setVal] = React.useState('apple')
+  const [val, setVal] = React.useState('yucatan-restoration')
+  
   useEffect(() => {
     fetchData()
   }, [])
 
-  const fetchData=async()=>{
-
+  const fetchData = async () => {
+    // Your data fetching logic here
   }
-  
   
   return (
     <Select 
@@ -89,15 +88,15 @@ export function ProjectDropDown(props: SelectProps) {
           <Image 
             src={ChevronDown} 
             size={16} 
-            // opacity={0.6}
-            // enterStyle={{ rotate: '0deg' }}
-            // exitStyle={{ rotate: '180deg' }}
+            opacity={0.6}
+            enterStyle={{ rotate: '0deg' }}
+            exitStyle={{ rotate: '180deg' }}
           />
         )}
       >
         <Select.Value 
-          placeholder="Select a fruit" 
-          fontSize="$3"
+          placeholder="Select a project" 
+          fontSize="$4"
           color="$text"
         />
       </StyledTrigger>
@@ -110,18 +109,29 @@ export function ProjectDropDown(props: SelectProps) {
           animation="quick"
           zIndex={200000}
           handlePosition="inside"
+          snapPoints={[40]} // 40% of the screen height
         >
-          <Sheet.Frame padding="$4">
-            <Sheet.ScrollView>
-              <Adapt.Contents />
-            </Sheet.ScrollView>
+          <Sheet.Frame>
+            <YStack height="100%" padding="$0">
+              {/* Project list in ScrollView */}
+              <Sheet.ScrollView>
+                <YStack padding="$3">
+                  <Adapt.Contents />
+                </YStack>
+              </Sheet.ScrollView>
+              
+              {/* Button fixed at bottom */}
+              <YStack padding="$3" marginBottom="$5">
+                <CreateNewProject />
+              </YStack>
+            </YStack>
           </Sheet.Frame>
           <Sheet.Overlay 
             backgroundColor="$shadowColor" 
-            // opacity={0.5}
+            opacity={0.5}
             animation="quick"
-            // enterStyle={{ opacity: 0 }}
-            // exitStyle={{ opacity: 0 }}
+            enterStyle={{ opacity: 0 }}
+            exitStyle={{ opacity: 0 }}
           />
         </Sheet>
       </Adapt>
@@ -133,6 +143,7 @@ export function ProjectDropDown(props: SelectProps) {
         elevation={6}
         bordered
         animation="quick"
+        maxHeight="40vh"
       >
         <Select.ScrollUpButton
           alignItems="center"
@@ -140,13 +151,12 @@ export function ProjectDropDown(props: SelectProps) {
           position="relative"
           width="100%"
           height="$3"
-          // opacity={0.8}
         >
           <YStack zIndex={10}>
             <Image 
               src={ChevronUp} 
               size={16}
-              // opacity={0.6} 
+              opacity={0.6} 
             />
           </YStack>
           <LinearGradient
@@ -161,25 +171,24 @@ export function ProjectDropDown(props: SelectProps) {
         <Select.Viewport
           animation="quick"
           animateOnly={['transform', 'opacity']}
-          // enterStyle={{ opacity: 0, y: -10 }}
-          // exitStyle={{ opacity: 0, y: 10 }}
+          enterStyle={{ opacity: 0, y: -10 }}
+          exitStyle={{ opacity: 0, y: 10 }}
         >
+          {/* Regular items first */}
           <Select.Group>
-          <CreateNewProject/>
             {React.useMemo(
               () =>
                 items.map((item, i) => (
                   <StyledItem
                     index={i}
                     key={item.name}
-                    value={item.name.toLowerCase()}
+                    value={item.value}
                   >
                     <Select.ItemText>{item.name}</Select.ItemText>
                     <Select.ItemIndicator marginLeft="auto">
                       <Image 
                         src={Check} 
                         size={16}
-                        // opacity={0.8}
                       />
                     </Select.ItemIndicator>
                   </StyledItem>
@@ -188,6 +197,9 @@ export function ProjectDropDown(props: SelectProps) {
             )}
           </Select.Group>
           
+          <Separator marginVertical="$3" />
+          
+
           {props.native && (
             <YStack
               position="absolute"
@@ -202,7 +214,7 @@ export function ProjectDropDown(props: SelectProps) {
               <Image 
                 src={ChevronDown} 
                 size={16}
-                // opacity={0.6}
+                opacity={0.6}
               />
             </YStack>
           )}
@@ -214,13 +226,13 @@ export function ProjectDropDown(props: SelectProps) {
           position="relative"
           width="100%"
           height="$3"
-          // opacity={0.8}
+          opacity={0.8}
         >
           <YStack zIndex={10}>
             <Image 
               src={ChevronDown} 
               size={16}
-              // opacity={0.6}
+              opacity={0.6}
             />
           </YStack>
           <LinearGradient
@@ -236,6 +248,11 @@ export function ProjectDropDown(props: SelectProps) {
   )
 }
 
+// Updated sample items
 const items = [
-  { name: 'Apple' },
+  { name: 'Yucatan Restoration', value: 'yucatan-restoration' },
+  { name: 'Amazon Rainforest', value: 'amazon-rainforest' },
+  { name: 'Congo Basin', value: 'congo-basin' },
+  { name: 'Great Bear Rainforest', value: 'great-bear-rainforest' },
+  { name: 'Borneo Rainforest', value: 'borneo-rainforest' },
 ]

@@ -20,14 +20,12 @@ function CreateNewProject() {
       fontSize="$6"
       fontWeight="bold"
       paddingHorizontal="$6"
-      shadowColor="$blue10"
-      shadowRadius="$4"
       width={'100%'}
       hoverStyle={{ backgroundColor: "#E1EDE8" }}
       pressStyle={{ backgroundColor: "#E1EDE8" }}
       onPress={() => console.log("Button Pressed")}
     >
-      Create new project
+      Create New Project
     </Button>
   )
 }

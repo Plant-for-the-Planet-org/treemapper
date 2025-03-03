@@ -30,9 +30,6 @@ export const OverviewCardItem = ({
       borderRadius={borderRadius}
       backgroundColor={backgroundColor}
       padding={padding}
-      shadowColor="rgba(0, 0, 0, 0.1)"
-      shadowRadius={10}
-      shadowOffset={{ width: 2, height: 4 }}
     >
       <XStack justifyContent="space-between" alignItems="center">
         <YStack space="$2">
