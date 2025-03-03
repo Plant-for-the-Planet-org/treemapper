@@ -98,7 +98,7 @@ const UserItem = ({ name, subtitle, value, useTrash = false, userId }) => {
       
       <XStack space="$2" alignItems="center">
         <Text fontWeight="bold" fontSize="$6" color="$gray12">{value}</Text>
-        {useTrash && renderIcon(randomIconName)}
+        {/* {useTrash && renderIcon(randomIconName)} */}
       </XStack>
     </XStack>
   );

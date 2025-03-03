@@ -13,8 +13,9 @@ import {
   Adapt,
   Sheet,
   ScrollView,
+  Separator,
 } from 'tamagui'
-import { Users, Mail, UserPlus } from '@tamagui/lucide-icons'
+import { Users, Mail, UserPlus, Check, ChevronDown, ChevronUp } from '@tamagui/lucide-icons'
 
 interface InviteMemberProps {
   onInvite?: (email: string, role: string) => void
@@ -23,13 +24,34 @@ interface InviteMemberProps {
 export default function InviteMember({ onInvite }: InviteMemberProps) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('member')
-  
+  const [sheetOpen, setSheetOpen] = useState(false)
+
   const handleInvite = () => {
     if (email && role) {
       onInvite?.(email, role)
       setEmail('')
     }
   }
+
+  const roleOptions = [
+    {
+      value: 'admin',
+      label: 'Admin',
+      description: 'Can edit projects and manage team members'
+    },
+    {
+      value: 'member',
+      label: 'Member',
+      description: 'Can edit projects but not manage the team'
+    },
+    {
+      value: 'viewer',
+      label: 'Viewer',
+      description: 'View-only access to projects'
+    },
+  ]
+
+  const selectedRole = roleOptions.find(r => r.value === role) || roleOptions[1]
 
   return (
     <Card size="$4" bordered>
@@ -67,19 +89,88 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
           <Text color="$gray11" fontSize="$3">
             Role
           </Text>
-          <Select id="role" value={role} onValueChange={setRole}>
-            <Select.Trigger width="100%" size="$4" iconAfter={Users}>
-              <Select.Value placeholder="Select a role" />
+          <Select
+            id="role"
+            value={role}
+            onValueChange={setRole}
+            onOpenChange={(open) => {
+              setSheetOpen(open)
+            }}
+          >
+            {/* Display selected role value in trigger */}
+            <Select.Trigger width="100%" size="$4" iconAfter={ChevronDown}>
+              <Select.Value>
+                <Text>{selectedRole.label}</Text>
+              </Select.Value>
             </Select.Trigger>
 
             <Adapt when="sm" platform="touch">
-              <Sheet modal dismissOnSnapToBottom>
-                <Sheet.Frame>
-                  <Sheet.ScrollView>
-                    <Adapt.Contents />
+              <Sheet
+                modal
+                open={sheetOpen}
+                dismissOnSnapToBottom
+                snapPoints={[45]}
+                animation={{ type: 'timing', duration: 300 }}
+                zIndex={200000}
+                handlePosition="inside"
+                onOpenChange={setSheetOpen}
+              >
+                <Sheet.Frame padding="$0">
+                  <YStack padding="$4" paddingBottom="$2">
+                    <H6>Select Role</H6>
+                    <Paragraph size="$2" color="$gray11" marginTop="$1" marginBottom="$3">
+                      Choose the appropriate access level
+                    </Paragraph>
+                    <Separator marginVertical="$2" />
+                  </YStack>
+
+                  <Sheet.ScrollView
+                    showsVerticalScrollIndicator={false}
+                    bounces={false}
+                    contentContainerStyle={{ padding: 16 }}
+                  >
+                    <YStack gap="$3">
+                      {roleOptions.map((option, i) => (
+                        <Button
+                          key={option.value}
+                          size="$4"
+                          theme={role === option.value ? 'green' : undefined}
+                          backgroundColor={role === option.value ? '#E8F5F0' : 'transparent'}
+                          borderColor={role === option.value ? '#007A49' : '$gray5'}
+                          borderWidth={1}
+                          borderRadius="$3"
+                          pressStyle={{ scale: 0.98 }}
+                          onPress={() => {
+                            setSheetOpen(() => false)
+                            setRole(option.value)
+                            // Close the sheet after selection
+                          }}
+                        >
+                          <XStack flex={1} alignItems="center" justifyContent="space-between">
+                            <YStack>
+                              <Text fontWeight={role === option.value ? '600' : '400'} color={role === option.value ? '#007A49' : '$gray12'}>
+                                {option.label}
+                              </Text>
+                              <Text fontSize="$2" color={role === option.value ? '#007A49' : '$gray10'} opacity={0.9}>
+                                {option.description}
+                              </Text>
+                            </YStack>
+                            {role === option.value && (
+                              <Check size={18} color="#007A49" />
+                            )}
+                          </XStack>
+                        </Button>
+                      ))}
+                    </YStack>
                   </Sheet.ScrollView>
                 </Sheet.Frame>
-                <Sheet.Overlay />
+                <Sheet.Overlay
+                  backgroundColor="$shadowColor"
+                  opacity={0.6}
+                  animation="medium"
+                  enterStyle={{ opacity: 0 }}
+                  exitStyle={{ opacity: 0 }}
+                />
               </Sheet>
             </Adapt>
 
@@ -87,15 +178,14 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
               <Select.ScrollUpButton />
               <Select.Viewport minWidth={200}>
                 <Select.Group>
-                  <Select.Item index={0} value="admin">
-                    <Select.ItemText>Admin</Select.ItemText>
-                  </Select.Item>
-                  <Select.Item index={1} value="member">
-                    <Select.ItemText>Member</Select.ItemText>
-                  </Select.Item>
-                  <Select.Item index={2} value="viewer">
-                    <Select.ItemText>Viewer</Select.ItemText>
-                  </Select.Item>
+                  {roleOptions.map((option, i) => (
+                    <Select.Item index={i} key={option.value} value={option.value}>
+                      <Select.ItemText>{option.label}</Select.ItemText>
+                      <Select.ItemIndicator>
+                        <Check size={16} />
+                      </Select.ItemIndicator>
+                    </Select.Item>
+                  ))}
                 </Select.Group>
               </Select.Viewport>
               <Select.ScrollDownButton />
