@@ -31,7 +31,7 @@ const ProfileSettings = () => {
     email: 'john.doe@example.com',
     phone: '+1 (555) 123-4567',
     bio: 'Software developer with a passion for mobile apps',
-    profileImage: 'https://via.placeholder.com/150',
+    profileImage: 'https://avatar.iran.liara.run/public/3',
   });
 
   // Preferences state
