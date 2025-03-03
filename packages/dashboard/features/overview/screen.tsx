@@ -5,6 +5,7 @@ import { ApiClient } from '../../../api/index'
 import ProjectDetails from '../../components/projects/projects'
 import { OverviewCardList } from '../../components/overview/OverviewCardList'
 import RecentAdditions from '../../components/overview/RecentAdditions'
+import TreesPlantedChart from '../../components/overview/BarGraph'
 
 interface HealthCheckResponse {
   status: string
@@ -41,6 +42,7 @@ export default function OverviewScreen() {
   }
   return (
     <YStack width={"100%"}>
+      <TreesPlantedChart/>
       <OverviewCardList />
       <RecentAdditions/>
     </YStack>

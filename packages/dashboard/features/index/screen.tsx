@@ -6,6 +6,7 @@ import { HeaderSkeleton } from '../../components/skeleton/header';
 import ProjectDetails from '../../components/projects/projects';
 import { ApiClient } from '../../../api/client';
 import UserAvatar from '../../components/profile/ProfileAvatar';
+import NotificationIcon from '../../components/overview/NotificationDashboard';
 
 export default function DashboardIndexScreen() {
   ApiClient.initialize({
@@ -18,16 +19,16 @@ export default function DashboardIndexScreen() {
   return (
     <YStack flex={1} backgroundColor="$background" paddingTop="$5" flexGrow={1}>
       <HeaderSkeleton headerText="Dashboard" />
+      <NotificationIcon count={4} size={28} onPress={undefined} badgeStyle={undefined} icon={undefined} />
       <XStack
         justifyContent="space-between"
         alignItems="center"
         width="100%"
-        padding="$4" 
+        padding="$4"
       >
         <ProjectDetails />
         <UserAvatar />
       </XStack>
-
       <ContentSkeleton>
         <DashboardTabs />
       </ContentSkeleton>
