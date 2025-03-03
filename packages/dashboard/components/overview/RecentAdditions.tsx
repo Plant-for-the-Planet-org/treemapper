@@ -117,7 +117,7 @@ const RecentAdditions = () => {
       <YStack >
         <XStack justifyContent="space-between" alignItems="center">
           <Text fontWeight="bold" fontSize="$8" color="$gray12">Recent Additions</Text>
-          <Button size="$3" chromeless>
+          <Button size="$3" chromeless style={{ right: -10 }}>
             <Text color="$gray10" fontWeight="normal">View All</Text>
           </Button>
         </XStack>

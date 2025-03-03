@@ -92,7 +92,7 @@ const HorizontalTabs = () => {
             disablePassBorderRadius
             flexDirection="row"
             paddingHorizontal="$4"
-            paddingVertical="$3"
+            paddingBottom="$2"
             gap="$2"
           >
             {TabsData.map((tab, index) => (
