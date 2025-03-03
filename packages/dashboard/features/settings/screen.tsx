@@ -248,8 +248,8 @@ const ProjectSettings = () => {
   };
 
   return (
-    <ScrollView>
-      <YStack padding="$4" space="$4">
+    <ScrollView showVerticalScrollIndicator={false}>
+      <YStack padding="$2" space="$4">
         <XStack justifyContent="space-between" alignItems="center">
           <H2>{formData.name}</H2>
           <XStack space="$2">

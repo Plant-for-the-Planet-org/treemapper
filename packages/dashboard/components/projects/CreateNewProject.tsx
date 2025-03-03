@@ -1,10 +1,15 @@
 import React from 'react';
+import { useRouter } from 'solito/router';
 import { Button, Image } from 'tamagui'
 
 const Plus = require('../../../public/images/plus.png')
 
 
 function CreateNewProject() {
+  const router = useRouter()
+  const handleNav = () => {
+    router.push('/dashboard/createproject')
+  }
   return (
     <Button
       icon={() => (<Image
@@ -23,7 +28,7 @@ function CreateNewProject() {
       width={'100%'}
       hoverStyle={{ backgroundColor: "#E1EDE8" }}
       pressStyle={{ backgroundColor: "#E1EDE8" }}
-      onPress={() => console.log("Button Pressed")}
+      onPress={handleNav}
     >
       Create New Project
     </Button>
