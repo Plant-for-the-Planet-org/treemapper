@@ -1,9 +1,14 @@
 import React from 'react'
 import { Avatar, XStack } from 'tamagui'
+import { useRouter } from 'solito/router'
 
 function UserAvatar() {
+  const router = useRouter()
+  const handleNav = () => {
+    router.push('/dashboard/me')
+  }
   return (
-    <Avatar circular size="$5">
+    <Avatar circular size="$5" onPress={handleNav}>
       <Avatar.Image
         accessibilityLabel="Nate Wienert"
         src="https://avatar.iran.liara.run/public/3"

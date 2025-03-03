@@ -55,7 +55,7 @@ const SideBarList = (props: Props) => {
     },
     {
       label: i18next.t('label.data_explorer'),
-      screen: 'DataExplorer',
+      screen: 'dashboard',
       icon: <DataExplorerIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
       key: 'data_explorer'

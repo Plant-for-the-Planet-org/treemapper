@@ -126,7 +126,8 @@ const sampleProject=    {
 }
 
 // This component will display and let users edit project settings
-const ProjectSettings = ({ onSave, onDelete }) => {
+const ProjectSettings = () => {
+
   // Initialize state with project data, ignoring the sites array as specified
   const project = sampleProject;
   const [formData, setFormData] = useState({
@@ -151,6 +152,9 @@ const ProjectSettings = ({ onSave, onDelete }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  const onSave=()=>{}
+
+  const onDelete=()=>{}
   // Handle input changes
   const handleChange = (name, value) => {
     setFormData(prev => ({ ...prev, [name]: value }));

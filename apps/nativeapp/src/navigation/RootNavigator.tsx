@@ -27,7 +27,7 @@ const RootNavigator = () => {
       <Stack.Screen name="AddMeasurement" component={Screens.AddMeasurement} />
       <Stack.Screen name="TotalTrees" component={Screens.TotalTrees} />
       <Stack.Screen name="ManageProjects" component={Screens.ManageProjects} />
-      <Stack.Screen name="DataExplorer" component={Screens.DataExplore} />
+      <Stack.Screen name="dashboard" component={Screens.DataExplore} />
       <Stack.Screen
         name="InterventionPreview"
         component={Screens.InterventionPreview}

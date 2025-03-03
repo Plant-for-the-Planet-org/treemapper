@@ -37,7 +37,6 @@ const TabsData: TabItem[] = [
   {
     label: 'Teams',
     value: 'teams',
-    route: '/dashboard/teams/members',
     component: MembersScreen,
   },
   {
@@ -48,13 +47,11 @@ const TabsData: TabItem[] = [
   {
     label: 'Species',
     value: 'species',
-    route: '/dashboard/species',
     component: SpeciesScreen,
   },
   {
     label: 'Settings',
     value: 'settings',
-    route: '/dashboard/settings',
     component: SettingsIndexScreen,
   },
 ]

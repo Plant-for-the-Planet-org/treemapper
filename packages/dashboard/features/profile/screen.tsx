@@ -1,17 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { View, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import { 
-  Text, 
-  TextInput, 
-  Button, 
-  Switch, 
-  Avatar, 
-  Divider,
-  IconButton
-} from 'tamagui';``
-import { Camera, Edit2, Moon, Bell, Lock, Globe, ChevronRight, LogOut } from '@tamagui/lucide-icons';
+import {
+  Button,
+  Text,
+  Switch,
+  TextInput,
+  Avatar,
+  YStack,
+  XStack,
+  Separator
+} from 'tamagui';
+// Import icons individually to avoid potential undefined issues
+import { Camera } from '@tamagui/lucide-icons';
+import { Moon } from '@tamagui/lucide-icons';
+import { Bell } from '@tamagui/lucide-icons';
+import { Lock } from '@tamagui/lucide-icons';
+import { Globe } from '@tamagui/lucide-icons';
+import { ChevronRight } from '@tamagui/lucide-icons';
+import { LogOut } from '@tamagui/lucide-icons';
 // import * as ImagePicker from 'expo-image-picker';
-import { YStack, XStack, Separator } from 'tamagui';
 
 const ProfileSettings = () => {
   // User data state
@@ -76,14 +83,19 @@ const ProfileSettings = () => {
     });
   };
 
+  // Custom divider component to avoid using Tamagui Divider which might be undefined
+  const CustomDivider = () => (
+    <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 16 }} />
+  );
+
   return (
     <ScrollView style={styles.container}>
       {/* Profile Header */}
       <YStack space="$4" paddingVertical="$6" alignItems="center">
         <TouchableOpacity onPress={pickImage}>
-          <Avatar circular size="$12" bordered>
+          <Avatar circular size="$12">
             <Avatar.Image src={isEditing ? tempUserData.profileImage : userData.profileImage} />
-            <Avatar.Fallback bc="$gray5" />
+            <Avatar.Fallback backgroundColor="$gray5" />
           </Avatar>
           <View style={styles.cameraIconContainer}>
             <Camera size={20} color="#fff" />
@@ -96,7 +108,6 @@ const ProfileSettings = () => {
         </YStack>
 
         <Button 
-          icon={isEditing ? undefined : Edit2} 
           onPress={toggleEditMode} 
           size="$3"
           theme={isEditing ? "active" : "gray"}
@@ -105,7 +116,7 @@ const ProfileSettings = () => {
         </Button>
       </YStack>
 
-      <Divider />
+      <CustomDivider />
 
       {/* Personal Information */}
       <YStack space="$4" padding="$4">
@@ -168,7 +179,7 @@ const ProfileSettings = () => {
         )}
       </YStack>
 
-      <Divider />
+      <CustomDivider />
 
       {/* Preferences */}
       <YStack space="$4" padding="$4">
@@ -211,20 +222,20 @@ const ProfileSettings = () => {
         </YStack>
       </YStack>
 
-      <Divider />
+      <CustomDivider />
 
       {/* Account Actions */}
       <YStack space="$4" padding="$4">
         <Text fontSize="$5" fontWeight="bold" paddingBottom="$2">Account</Text>
         
         <Button 
-          icon={LogOut} 
           variant="outlined" 
           theme="red" 
           onPress={() => Alert.alert('Logout', 'Are you sure you want to logout?')}
           size="$4"
         >
-          Logout
+          <LogOut size={18} color="$red10" />
+          <Text>Logout</Text>
         </Button>
       </YStack>
     </ScrollView>
