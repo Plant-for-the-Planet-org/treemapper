@@ -14,7 +14,7 @@ const StyledTrigger = styled(Select.Trigger, {
   backgroundColor: '$background',
   borderWidth: 1,
   borderColor: '$borderColor',
-  borderRadius: '$8',
+  borderRadius: '$6',
   paddingVertical: '$3',
   paddingHorizontal: '$4',
   shadowColor: '$shadowColor',

@@ -18,8 +18,16 @@ export default function DashboardIndexScreen() {
   return (
     <YStack flex={1} backgroundColor="$background" paddingTop="$5" flexGrow={1}>
       <HeaderSkeleton headerText="Dashboard" />
-      <ProjectDetails />
-      <UserAvatar />
+      <XStack
+        justifyContent="space-between"
+        alignItems="center"
+        width="100%"
+        padding="$4" 
+      >
+        <ProjectDetails />
+        <UserAvatar />
+      </XStack>
+
       <ContentSkeleton>
         <DashboardTabs />
       </ContentSkeleton>
