@@ -1,305 +1,430 @@
 import React, { useState } from 'react';
-import { View, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
 import {
-  Button,
-  Text,
-  Switch,
-  TextInput,
-  Avatar,
   YStack,
   XStack,
-  Separator
+  Text,
+  Input,
+  Button,
+  Separator,
+  Card,
+  Switch,
+  ScrollView,
+  Label,
+  Select,
+  Tag,
+  Avatar,
+  H2,
+  H4,
+  Paragraph,
+  Dialog,
+  Adapt,
+  Sheet
 } from 'tamagui';
-// Import icons individually to avoid potential undefined issues
-import { Camera } from '@tamagui/lucide-icons';
-import { Edit2 } from '@tamagui/lucide-icons';
-import { Moon } from '@tamagui/lucide-icons';
-import { Bell } from '@tamagui/lucide-icons';
-import { Lock } from '@tamagui/lucide-icons';
-import { Globe } from '@tamagui/lucide-icons';
-import { ChevronRight } from '@tamagui/lucide-icons';
-import { LogOut } from '@tamagui/lucide-icons';
-// import * as ImagePicker from 'expo-image-picker';
+import { 
+  ChevronDown, 
+  Edit3, 
+  Save, 
+  Trash2, 
+  AlertTriangle,
+  Image as ImageIcon,
+  Check,
+  X
+} from '@tamagui/lucide-icons';
 
-const ProfileSettings = () => {
-  // User data state
-  const [userData, setUserData] = useState({
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    phone: '+1 (555) 123-4567',
-    bio: 'Software developer with a passion for mobile apps',
-    profileImage: 'https://via.placeholder.com/150',
+const sampleProject=    {
+  "type": "Feature",
+  "geometry": {
+      "type": "Point",
+      "coordinates": [
+          -90.117655,
+          18.639256
+      ]
+  },
+  "properties": {
+      "purpose": "trees",
+      "id": "proj_k7iTUgJJ6tlA3XVVb0v4GEVP",
+      "slug": "science-forest-planbe",
+      "name": "Yucatan",
+      "allowDonations": false,
+      "country": "MX",
+      "currency": "EUR",
+      "image": "5ea184ca77735426645370.jpg",
+      "unitCost": 9.0,
+      "unit": "tree",
+      "unitType": "tree",
+      "unitsContributed": {
+          "tree": 1804
+      },
+      "unitsTargeted": {
+          "tree": 100000
+      },
+      "taxDeductionCountries": [
+          "DE",
+          "ES",
+          "US"
+      ],
+      "isApproved": false,
+      "isTopProject": false,
+      "isFeatured": false,
+      "metadata": {
+          "acquisitionYear": 2020,
+          "degradationCause": "Cattle grazing",
+          "degradationYear": 0,
+          "ecosystem": null,
+          "employeesCount": 15,
+          "enableInterventions": true,
+          "firstTreePlanted": "2020-01-15 00:00:00",
+          "location": "Yucatán, Mexico",
+          "longTermPlan": null,
+          "mainChallenge": "Survival of the tree, due to grazing of cows and sheep",
+          "mainInterventions": null,
+          "maxPlantingDensity": null,
+          "motivation": "This ecosystem was chosen because of its high degradation conditions. It used to be grazing land with barely any trees. We wanted to establish a long-term experiment in order to test different methods to evaluate our restoration efforts.",
+          "plantingDensity": null,
+          "plantingSeasons": [
+              6,
+              7,
+              8,
+              9,
+              10
+          ],
+          "siteOwnerName": "Ejido land of Constitucion",
+          "siteOwnerType": [],
+          "visitorAssistance": false,
+          "yearAbandoned": 0
+      },
+      "tpo": {
+          "id": "tpo_gEZeQNxNhxZZ54zvYzCofsCr",
+          "name": "Plant-for-the-Planet",
+          "email": "info@plant-for-the-planet.org",
+          "address": {
+              "address": "24658 Constitución",
+              "city": "Campeche",
+              "zipCode": "82449",
+              "country": "MX"
+          },
+          "slug": "plant-for-the-planet"
+      },
+      "countTarget": 100000,
+      "classification": "natural-regeneration",
+      "countPlanted": 1804,
+      "minTreeCount": 1,
+      "location": "Yucatán, Mexico",
+      "treeCost": 9.0,
+      "paymentDefaults": {
+          "fixedDefaultTreeCount": 1,
+          "fixedTreeCountOptions": [
+              1,
+              1,
+              1,
+              1
+          ]
+      },
+      "intensity": null,
+      "revisionPeriodicityLevel": null
+  }
+}
+
+// This component will display and let users edit project settings
+const ProjectSettings = ({ onSave, onDelete }) => {
+  // Initialize state with project data, ignoring the sites array as specified
+  const project = sampleProject;
+  const [formData, setFormData] = useState({
+    name: project.properties.name,
+    purpose: project.properties.purpose,
+    country: project.properties.country,
+    currency: project.properties.currency,
+    unitCost: project.properties.unitCost,
+    unit: project.properties.unit,
+    unitType: project.properties.unitType,
+    countTarget: project.properties.countTarget,
+    countPlanted: project.properties.countPlanted,
+    minTreeCount: project.properties.minTreeCount,
+    location: project.properties.location,
+    allowDonations: project.properties.allowDonations,
+    classification: project.properties.classification,
+    isApproved: project.properties.isApproved,
+    isTopProject: project.properties.isTopProject,
+    isFeatured: project.properties.isFeatured,
   });
 
-  // Preferences state
-  const [preferences, setPreferences] = useState({
-    darkMode: false,
-    notifications: true,
-    emailUpdates: false,
-    dataUsage: 'Wifi Only',
-    language: 'English',
-    privacy: 'Public',
-  });
-
-  // Edit mode state
   const [isEditing, setIsEditing] = useState(false);
-  const [tempUserData, setTempUserData] = useState({ ...userData });
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
-  // Toggle edit mode
-  const toggleEditMode = () => {
-    if (isEditing) {
-      // Save changes
-      setUserData({ ...tempUserData });
-      Alert.alert('Success', 'Profile updated successfully!');
-    } else {
-      // Enter edit mode
-      setTempUserData({ ...userData });
+  // Handle input changes
+  const handleChange = (name, value) => {
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  // Handle form submission
+  const handleSubmit = () => {
+    // Create updated project data
+    const updatedProject = {
+      ...project,
+      properties: {
+        ...project.properties,
+        ...formData,
+      }
+    };
+    
+    onSave(updatedProject);
+    setIsEditing(false);
+  };
+
+  // Handle delete confirmation
+  const handleDelete = () => {
+    setShowDeleteConfirm(false);
+    if (onDelete) {
+      onDelete(project.properties.id);
     }
-    setIsEditing(!isEditing);
   };
 
-  // Handle profile image selection
-  const pickImage = async () => {
-    // const result = await ImagePicker.launchImageLibraryAsync({
-    //   mediaTypes: ImagePicker.MediaTypeOptions.Images,
-    //   allowsEditing: true,
-    //   aspect: [1, 1],
-    //   quality: 0.8,
-    // });
-
-    // if (!result.canceled && result.assets && result.assets.length > 0) {
-    //   const newUserData = isEditing ? 
-    //     { ...tempUserData, profileImage: result.assets[0].uri } : 
-    //     { ...userData, profileImage: result.assets[0].uri };
-      
-    //   isEditing ? setTempUserData(newUserData) : setUserData(newUserData);
-    // }
-  };
-
-  // Handle preference toggle
-  const togglePreference = (key) => {
-    setPreferences({
-      ...preferences,
-      [key]: !preferences[key],
-    });
-  };
-
-  // Custom divider component to avoid using Tamagui Divider which might be undefined
-  const CustomDivider = () => (
-    <View style={{ height: 1, backgroundColor: '#e0e0e0', marginVertical: 16 }} />
-  );
-
-  return (
-    <ScrollView style={styles.container}>
-      {/* Profile Header */}
-      <YStack space="$4" paddingVertical="$6" alignItems="center">
-        <TouchableOpacity onPress={pickImage}>
-          <Avatar circular size="$12">
-            <Avatar.Image src={isEditing ? tempUserData.profileImage : userData.profileImage} />
-            <Avatar.Fallback backgroundColor="$gray5" />
-          </Avatar>
-          <View style={styles.cameraIconContainer}>
-            <Camera size={20} color="#fff" />
-          </View>
-        </TouchableOpacity>
-
-        <YStack alignItems="center" space="$2">
-          <Text fontSize="$6" fontWeight="bold">{isEditing ? tempUserData.name : userData.name}</Text>
-          <Text fontSize="$3" color="$gray10">{isEditing ? tempUserData.email : userData.email}</Text>
-        </YStack>
-
-        <Button 
-          onPress={toggleEditMode} 
-          size="$3"
-          theme={isEditing ? "active" : "gray"}
-        >
-          {isEditing ? 'Save Changes' : 'Edit Profile'}
-        </Button>
-      </YStack>
-
-      <CustomDivider />
-
-      {/* Personal Information */}
-      <YStack space="$4" padding="$4">
-        <Text fontSize="$5" fontWeight="bold" paddingBottom="$2">Personal Information</Text>
-        
+  // Helper function to render read-only or editable field
+  const renderField = (label, name, type = 'text', options = null) => {
+    const value = formData[name];
+    
+    return (
+      <YStack space="$2" marginBottom="$3">
+        <Label htmlFor={name}>{label}</Label>
         {isEditing ? (
-          // Edit mode form
-          <YStack space="$4">
-            <TextInput 
-              placeholder="Full Name"
-              value={tempUserData.name}
-              onChangeText={(text) => setTempUserData({ ...tempUserData, name: text })}
-              size="$4"
+          type === 'switch' ? (
+            <XStack alignItems="center" space="$2">
+              <Switch
+                id={name}
+                checked={value}
+                onCheckedChange={(checked) => handleChange(name, checked)}
+                size="$4"
+              >
+                <Switch.Thumb animation="quick">
+                  {value ? <Check size={16} color="white" /> : <X size={16} color="white" />}
+                </Switch.Thumb>
+              </Switch>
+              <Text>{value ? 'Yes' : 'No'}</Text>
+            </XStack>
+          ) : type === 'select' && options ? (
+            <Select
+              id={name}
+              value={value}
+              onValueChange={(value) => handleChange(name, value)}
+            >
+              <Select.Trigger iconAfter={ChevronDown}>
+                <Select.Value placeholder="Select option" />
+              </Select.Trigger>
+              <Select.Content>
+                <Select.ScrollUpButton />
+                <Select.Viewport>
+                  {options.map((option) => (
+                    <Select.Item key={option} value={option}>
+                      <Select.ItemText>{option}</Select.ItemText>
+                    </Select.Item>
+                  ))}
+                </Select.Viewport>
+                <Select.ScrollDownButton />
+              </Select.Content>
+            </Select>
+          ) : type === 'number' ? (
+            <Input
+              id={name}
+              value={value?.toString() || ''}
+              keyboardType="numeric"
+              onChangeText={(text) => handleChange(name, Number(text))}
             />
-            <TextInput 
-              placeholder="Email"
-              value={tempUserData.email}
-              onChangeText={(text) => setTempUserData({ ...tempUserData, email: text })}
-              size="$4"
-              keyboardType="email-address"
+          ) : (
+            <Input
+              id={name}
+              value={value?.toString() || ''}
+              onChangeText={(text) => handleChange(name, text)}
             />
-            <TextInput 
-              placeholder="Phone Number"
-              value={tempUserData.phone}
-              onChangeText={(text) => setTempUserData({ ...tempUserData, phone: text })}
-              size="$4"
-              keyboardType="phone-pad"
-            />
-            <TextInput 
-              placeholder="Bio"
-              value={tempUserData.bio}
-              onChangeText={(text) => setTempUserData({ ...tempUserData, bio: text })}
-              size="$4"
-              multiline
-              numberOfLines={4}
-              textAlignVertical="top"
-            />
-          </YStack>
+          )
         ) : (
-          // Display mode
-          <YStack space="$4">
-            <PreferenceItem 
-              label="Full Name" 
-              value={userData.name} 
-            />
-            <PreferenceItem 
-              label="Email" 
-              value={userData.email} 
-            />
-            <PreferenceItem 
-              label="Phone" 
-              value={userData.phone} 
-            />
-            <PreferenceItem 
-              label="Bio" 
-              value={userData.bio} 
-              multiline
-            />
-          </YStack>
+          <Text>{type === 'switch' ? (value ? 'Yes' : 'No') : (value?.toString() || 'N/A')}</Text>
         )}
       </YStack>
+    );
+  };
 
-      <CustomDivider />
+  return (
+    <ScrollView>
+      <YStack padding="$4" space="$4">
+        <XStack justifyContent="space-between" alignItems="center">
+          <H2>{formData.name}</H2>
+          <XStack space="$2">
+            <Button
+              icon={isEditing ? Save : Edit3}
+              onPress={isEditing ? handleSubmit : () => setIsEditing(true)}
+              theme={isEditing ? "green" : "blue"}
+            >
+              {isEditing ? 'Save' : 'Edit'}
+            </Button>
+          </XStack>
+        </XStack>
 
-      {/* Preferences */}
-      <YStack space="$4" padding="$4">
-        <Text fontSize="$5" fontWeight="bold" paddingBottom="$2">Preferences</Text>
-        
-        <YStack space="$4">
-          <SwitchPreferenceItem 
-            icon={Moon} 
-            label="Dark Mode" 
-            value={preferences.darkMode}
-            onToggle={() => togglePreference('darkMode')}
-          />
-          
-          <SwitchPreferenceItem 
-            icon={Bell} 
-            label="Push Notifications" 
-            value={preferences.notifications}
-            onToggle={() => togglePreference('notifications')}
-          />
-          
-          <SwitchPreferenceItem 
-            label="Email Updates" 
-            value={preferences.emailUpdates}
-            onToggle={() => togglePreference('emailUpdates')}
-          />
-          
-          <OptionPreferenceItem 
-            icon={Globe} 
-            label="Language" 
-            value={preferences.language}
-            onPress={() => Alert.alert('Change Language', 'This would open a language selector')}
-          />
-          
-          <OptionPreferenceItem 
-            icon={Lock} 
-            label="Privacy" 
-            value={preferences.privacy}
-            onPress={() => Alert.alert('Privacy Settings', 'This would open privacy options')}
-          />
+        <YStack alignItems="center" marginVertical="$4">
+          {true ? (
+            <Avatar circular size="$12">
+              <Avatar.Image src={'https://cdn.plant-for-the-planet.org/media/cache/project/medium/62e8de02a5211241832960.jpg'} />
+              <Avatar.Fallback backgroundColor="$green8">
+                <ImageIcon size={32} color="white" />
+              </Avatar.Fallback>
+            </Avatar>
+          ) : (
+            <Avatar circular size="$12" backgroundColor="$green8">
+              <ImageIcon size={32} color="white" />
+            </Avatar>
+          )}
         </YStack>
+
+        <Card>
+          <Card.Header>
+            <H4>Basic Information</H4>
+          </Card.Header>
+          <Card.Footer padding="$4">
+            <YStack space="$4" width="100%">
+              {renderField('Project Name', 'name')}
+              {renderField('Purpose', 'purpose')}
+              {renderField('Location', 'location')}
+              {renderField('Country', 'country')}
+              {renderField('Classification', 'classification')}
+            </YStack>
+          </Card.Footer>
+        </Card>
+
+        <Card>
+          <Card.Header>
+            <H4>Progress</H4>
+          </Card.Header>
+          <Card.Footer padding="$4">
+            <YStack space="$4" width="100%">
+              {renderField('Target Count', 'countTarget', 'number')}
+              {renderField('Planted Count', 'countPlanted', 'number')}
+              
+              <YStack marginTop="$2">
+                <Paragraph>Progress</Paragraph>
+                <XStack height="$3" width="100%" backgroundColor="$gray5" borderRadius="$2">
+                  <XStack 
+                    height="100%" 
+                    width={`${Math.min(100, (formData.countPlanted / formData.countTarget) * 100)}%`}
+                    backgroundColor="$green9" 
+                    borderRadius="$2"
+                  />
+                </XStack>
+                <Text marginTop="$1" fontSize="$2">
+                  {Math.round((formData.countPlanted / formData.countTarget) * 100)}% Complete
+                </Text>
+              </YStack>
+            </YStack>
+          </Card.Footer>
+        </Card>
+
+        <Card>
+          <Card.Header>
+            <H4>Location</H4>
+          </Card.Header>
+          <Card.Footer padding="$4">
+            <YStack space="$2">
+              <Paragraph>Coordinates:</Paragraph>
+              <Text>Latitude: {project.geometry.coordinates[1]}</Text>
+              <Text>Longitude: {project.geometry.coordinates[0]}</Text>
+            </YStack>
+          </Card.Footer>
+        </Card>
+
+        <Card theme="red">
+          <Card.Header>
+            <H4>Danger Zone</H4>
+          </Card.Header>
+          <Card.Footer padding="$4">
+            <YStack space="$4" width="100%">
+              <Paragraph>Permanently delete this project and all associated data. This action cannot be undone.</Paragraph>
+              <Button 
+                icon={Trash2} 
+                theme="red" 
+                onPress={() => setShowDeleteConfirm(true)}
+              >
+                Delete Project
+              </Button>
+            </YStack>
+          </Card.Footer>
+        </Card>
       </YStack>
 
-      <CustomDivider />
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+        <Adapt when="sm" platform="touch">
+          <Sheet animation="quick" zIndex={200000} modal dismissOnSnapToBottom>
+            <Sheet.Frame padding="$4">
+              <Sheet.Handle />
+              <Dialog.Title>
+                <XStack alignItems="center" space="$2">
+                  <AlertTriangle color="$red10" />
+                  <Text fontSize="$6" fontWeight="bold">Delete Project</Text>
+                </XStack>
+              </Dialog.Title>
+              <Dialog.Description>
+                <Text>
+                  Are you sure you want to delete "{project.properties.name}"? This action cannot be undone and all associated data will be permanently lost.
+                </Text>
+              </Dialog.Description>
+              <XStack marginTop="$4" space="$3" justifyContent="flex-end">
+                <Dialog.Close asChild>
+                  <Button>Cancel</Button>
+                </Dialog.Close>
+                <Button theme="red" onPress={handleDelete}>
+                  Delete
+                </Button>
+              </XStack>
+            </Sheet.Frame>
+            <Sheet.Overlay animation="quick" />
+          </Sheet>
+        </Adapt>
 
-      {/* Account Actions */}
-      <YStack space="$4" padding="$4">
-        <Text fontSize="$5" fontWeight="bold" paddingBottom="$2">Account</Text>
-        
-        <Button 
-          variant="outlined" 
-          theme="red" 
-          onPress={() => Alert.alert('Logout', 'Are you sure you want to logout?')}
-          size="$4"
-        >
-          <LogOut size={18} color="$red10" />
-          <Text>Logout</Text>
-        </Button>
-      </YStack>
+        <Dialog.Portal>
+          <Dialog.Overlay
+            key="overlay"
+            animation="quick"
+            opacity={0.5}
+            backgroundColor="black"
+          />
+          <Dialog.Content
+            bordered
+            elevate
+            key="content"
+            animation={[
+              'quick',
+              {
+                opacity: {
+                  overshootClamping: true,
+                },
+              },
+            ]}
+            enterStyle={{ x: 0, y: -20, opacity: 0 }}
+            exitStyle={{ x: 0, y: 10, opacity: 0 }}
+            space
+          >
+            <Dialog.Title>
+              <XStack alignItems="center" space="$2">
+                <AlertTriangle color="$red10" />
+                <Text fontSize="$6" fontWeight="bold">Delete Project</Text>
+              </XStack>
+            </Dialog.Title>
+            <Dialog.Description>
+              <Text>
+                Are you sure you want to delete "{project.properties.name}"? This action cannot be undone and all associated data will be permanently lost.
+              </Text>
+            </Dialog.Description>
+            <XStack marginTop="$4" space="$3" justifyContent="flex-end">
+              <Dialog.Close asChild>
+                <Button>Cancel</Button>
+              </Dialog.Close>
+              <Button theme="red" onPress={handleDelete}>
+                Delete
+              </Button>
+            </XStack>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </ScrollView>
   );
 };
 
-// Component for preference item (with value display)
-const PreferenceItem = ({ label, value, multiline = false }) => (
-  <YStack space="$1">
-    <Text color="$gray11" fontSize="$3">{label}</Text>
-    <Text 
-      fontSize="$4" 
-      numberOfLines={multiline ? 0 : 1} 
-      style={multiline && { minHeight: 60 }}
-    >
-      {value}
-    </Text>
-  </YStack>
-);
-
-// Component for toggle preference items
-const SwitchPreferenceItem = ({ icon: Icon, label, value, onToggle }) => (
-  <XStack justifyContent="space-between" alignItems="center">
-    <XStack space="$3" alignItems="center">
-      {Icon && <Icon size={20} color="$gray10" />}
-      <Text fontSize="$4">{label}</Text>
-    </XStack>
-    <Switch checked={value} onCheckedChange={onToggle} />
-  </XStack>
-);
-
-// Component for option preference items
-const OptionPreferenceItem = ({ icon: Icon, label, value, onPress }) => (
-  <TouchableOpacity onPress={onPress}>
-    <XStack justifyContent="space-between" alignItems="center">
-      <XStack space="$3" alignItems="center">
-        {Icon && <Icon size={20} color="$gray10" />}
-        <Text fontSize="$4">{label}</Text>
-      </XStack>
-      <XStack space="$2" alignItems="center">
-        <Text fontSize="$3" color="$gray10">{value}</Text>
-        <ChevronRight size={16} color="$gray10" />
-      </XStack>
-    </XStack>
-  </TouchableOpacity>
-);
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-  },
-  cameraIconContainer: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-    backgroundColor: '#007bff',
-    borderRadius: 12,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-});
-
-export default ProfileSettings;
+export default ProjectSettings;

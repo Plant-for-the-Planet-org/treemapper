@@ -5,6 +5,7 @@ import OverviewScreen from '../overview/screen'
 import ProfileSettings from '../settings/screen'
 import MembersScreen from '../teams/members/screen'
 import SingleMemberScreen from '../teams/members/single.screen'
+import SpeciesScreen from '../species/screen'
 
 const DashboardNavigationStack = createNativeStackNavigator<{
   dashboard: undefined
@@ -31,10 +32,6 @@ export default function DashboardNavigation() {
         name="/dashboard/overview"
         component={OverviewScreen}
       />
-      {/* <DashboardNavigationStack.Screen
-        name="/dashboard/teams"
-        component={TeamsScreen}
-      /> */}
       <DashboardNavigationStack.Screen
         name="/dashboard/teams/members"
         component={MembersScreen}

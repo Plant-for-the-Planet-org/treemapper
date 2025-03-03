@@ -4,6 +4,7 @@ import OverviewScreen from '../../features/overview/screen'
 import MembersScreen from '../../features/teams/members/screen'
 import SettingsIndexScreen from '../../features/settings/screen'
 import SiteScreen from '../../features/sites/screen'
+import SpeciesScreen from '../../features/species/screen'
 
 import React, { useState } from 'react'
 import {
@@ -48,7 +49,7 @@ const TabsData: TabItem[] = [
     label: 'Species',
     value: 'species',
     route: '/dashboard/species',
-    component: null,
+    component: SpeciesScreen,
   },
   {
     label: 'Settings',
