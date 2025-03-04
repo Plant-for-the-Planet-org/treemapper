@@ -14,25 +14,24 @@ import {
   Sheet,
   ScrollView,
   Separator,
+  Dialog,
+  Spinner,
 } from 'tamagui'
-import { Users, Mail, UserPlus, Check, ChevronDown, ChevronUp } from '@tamagui/lucide-icons'
+import { Users, Mail, UserPlus, Check, ChevronDown, AlertCircle, AlertTriangle, CheckCircle } from '@tamagui/lucide-icons'
 
 interface InviteMemberProps {
-  onInvite?: (email: string, role: string) => void
+  onInvite?: (email: string, role: string) => Promise<boolean> | boolean
 }
 
 export default function InviteMember({ onInvite }: InviteMemberProps) {
   const [email, setEmail] = useState('')
   const [role, setRole] = useState('member')
   const [sheetOpen, setSheetOpen] = useState(false)
-
-  const handleInvite = () => {
-    if (email && role) {
-      onInvite?.(email, role)
-      setEmail('')
-    }
-  }
-
+  const [confirmationOpen, setConfirmationOpen] = useState(false)
+  const [statusDialogOpen, setStatusDialogOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [inviteStatus, setInviteStatus] = useState<'success' | 'error' | null>(null)
+  
   const roleOptions = [
     {
       value: 'admin',
@@ -52,6 +51,34 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
   ]
 
   const selectedRole = roleOptions.find(r => r.value === role) || roleOptions[1]
+
+  const handleConfirmInvite = async () => {
+    if (email && role) {
+      setConfirmationOpen(false)
+      setIsLoading(true)
+      setStatusDialogOpen(true)
+      
+      try {
+        // Call the onInvite function from props and wait for the response
+        const success = await onInvite?.(email, role)
+        setIsLoading(false)
+        setInviteStatus(success ? 'success' : 'error')
+        
+        // Reset form if successful
+        if (success) {
+          setEmail('')
+        }
+      } catch (error) {
+        setIsLoading(false)
+        setInviteStatus('error')
+      }
+    }
+  }
+
+  const handleStatusDialogClose = () => {
+    setStatusDialogOpen(false)
+    setInviteStatus(null)
+  }
 
   return (
     <Card size="$4" bordered>
@@ -196,8 +223,8 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
         <Button
           size="$4"
           color={"#fff"}
-          backgroundColor={"#007A49"}
-          onPress={handleInvite}
+          backgroundColor={email.length===0 ? "$gray5" : "#007A49"}
+          onPress={() => setConfirmationOpen(true)}
           disabled={!email}
           pressStyle={{ scale: 0.97 }}
           icon={UserPlus}
@@ -205,6 +232,166 @@ export default function InviteMember({ onInvite }: InviteMemberProps) {
           Send Invitation
         </Button>
       </YStack>
+
+      {/* Confirmation Dialog */}
+      <Dialog modal open={confirmationOpen} onOpenChange={setConfirmationOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay
+            key="overlay"
+            animation="quick"
+            opacity={0.5}
+            enterStyle={{ opacity: 0 }}
+            exitStyle={{ opacity: 0 }}
+          />
+          <Dialog.Content
+            bordered
+            elevate
+            key="content"
+            animateOnly={['transform', 'opacity']}
+            animation={[
+              'quick',
+              {
+                opacity: {
+                  overshootClamping: true,
+                },
+              },
+            ]}
+            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+            gap="$4"
+          >
+            <Dialog.Title>
+              <XStack space="$2" alignItems="center">
+                <AlertCircle size={20} color="#007A49" />
+                <Text fontWeight="600">Confirm Invitation</Text>
+              </XStack>
+            </Dialog.Title>
+            <Dialog.Description>
+              <Paragraph size="$3">
+                Are you sure you want to send an invitation to <Text fontWeight="600">{email}</Text> as a <Text fontWeight="600">{selectedRole.label}</Text>?
+              </Paragraph>
+            </Dialog.Description>
+
+            <YStack gap="$2" marginTop="$2">
+              <Separator />
+            </YStack>
+
+            <XStack space="$3" justifyContent="flex-end">
+              <Button
+                size="$3"
+                backgroundColor="transparent"
+                borderColor="$gray5"
+                borderWidth={1}
+                color="$gray11"
+                onPress={() => setConfirmationOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                size="$3"
+                backgroundColor="#007A49"
+                color="#fff"
+                onPress={handleConfirmInvite}
+              >
+                Confirm
+              </Button>
+            </XStack>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
+
+      {/* Status Dialog (Success/Failure) */}
+      <Dialog modal open={statusDialogOpen} onOpenChange={handleStatusDialogClose}>
+        <Dialog.Portal>
+          <Dialog.Overlay
+            key="overlay"
+            animation="quick"
+            opacity={0.5}
+            enterStyle={{ opacity: 0 }}
+            exitStyle={{ opacity: 0 }}
+          />
+          <Dialog.Content
+            bordered
+            elevate
+            key="content"
+            animateOnly={['transform', 'opacity']}
+            animation={[
+              'quick',
+              {
+                opacity: {
+                  overshootClamping: true,
+                },
+              },
+            ]}
+            enterStyle={{ x: 0, y: -20, opacity: 0, scale: 0.9 }}
+            exitStyle={{ x: 0, y: 10, opacity: 0, scale: 0.95 }}
+            gap="$4"
+          >
+            {isLoading ? (
+              <YStack alignItems="center" padding="$4" space="$4">
+                <Spinner size="large" color="#007A49" />
+                <Text fontSize="$4" fontWeight="500">
+                  Sending invitation...
+                </Text>
+              </YStack>
+            ) : inviteStatus === 'success' ? (
+              <>
+                <Dialog.Title>
+                  <XStack space="$2" alignItems="center">
+                    <CheckCircle size={20} color="#007A49" />
+                    <Text fontWeight="600" color="#007A49">Invitation Sent Successfully</Text>
+                  </XStack>
+                </Dialog.Title>
+                <Dialog.Description>
+                  <Paragraph size="$3">
+                    An invitation has been sent to <Text fontWeight="600">{email}</Text>. They will receive an email with instructions to join the project.
+                  </Paragraph>
+                </Dialog.Description>
+                <YStack gap="$2" marginTop="$2">
+                  <Separator />
+                </YStack>
+                <XStack justifyContent="center">
+                  <Button
+                    size="$3"
+                    backgroundColor="#007A49"
+                    color="#fff"
+                    onPress={handleStatusDialogClose}
+                  >
+                    Done
+                  </Button>
+                </XStack>
+              </>
+            ) : (
+              <>
+                <Dialog.Title>
+                  <XStack space="$2" alignItems="center">
+                    <AlertTriangle size={20} color="#E53935" />
+                    <Text fontWeight="600" color="#E53935">Failed to Send Invitation</Text>
+                  </XStack>
+                </Dialog.Title>
+                <Dialog.Description>
+                  <Paragraph size="$3">
+                    We couldn't send an invitation to <Text fontWeight="600">{email}</Text>. Please check the email address and try again.
+                  </Paragraph>
+                </Dialog.Description>
+                <YStack gap="$2" marginTop="$2">
+                  <Separator />
+                </YStack>
+                <XStack justifyContent="center">
+                  <Button
+                    size="$3"
+                    backgroundColor="#E53935"
+                    color="#fff"
+                    onPress={handleStatusDialogClose}
+                  >
+                    Try Again
+                  </Button>
+                </XStack>
+              </>
+            )}
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog>
     </Card>
   )
 }

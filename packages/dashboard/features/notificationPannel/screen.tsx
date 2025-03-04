@@ -194,7 +194,6 @@ const NotificationPanel = ({ onBack }) => {
   return (
     <Card
       width="100%"
-      height="100vh"
       borderRadius="$3"
       borderWidth={1}
       borderColor="$gray4"

@@ -15,7 +15,6 @@ const Eye = require('../../../public/images/eye.png')
 const ChevronUp = require('../../../public/images/chevron-up.png')
 const ChevronDown = require('../../../public/images/chevron-down.png')
 
-
 interface User {
   id: string
   name: string
@@ -49,27 +48,37 @@ export function MembersTable({ users, onViewUser }: UserTableProps) {
     }
   }
 
+  // Define fixed column widths
+  const columnWidths = {
+    name: 220,    // Width for name column
+    role: 100,    // Width for role column
+    status: 120,  // Width for status column
+    actions: 100  // Width for actions column
+  }
+
   const TableHeader = ({ field, label }: { field: keyof User; label: string }) => (
     <XStack
-      flex={1}
+      width={field === 'name' ? columnWidths.name : 
+             field === 'role' ? columnWidths.role : 
+             field === 'status' ? columnWidths.status : undefined}
       padding="$3"
       backgroundColor="$gray2"
       borderBottomWidth={1}
       borderColor="$gray5"
       pressStyle={{ backgroundColor: '$gray3' }}
       onPress={() => handleSort(field)}
+      justifyContent="space-between"
+      alignItems="center"
     >
-      <Text flex={1} fontWeight="600" color="$gray11">
+      <Text fontWeight="600" color="$gray11">
         {label}
       </Text>
-      {sortField === field && sortDirection === 'asc' ? <Image
-        src={ChevronUp}
-        size={16}
-      /> : <Image
-        src={ChevronDown}
-        size={16}
-      />
-      }
+      {sortField === field && (
+        <Image
+          src={sortDirection === 'asc' ? ChevronUp : ChevronDown}
+          size={16}
+        />
+      )}
     </XStack>
   )
 
@@ -94,20 +103,27 @@ export function MembersTable({ users, onViewUser }: UserTableProps) {
     <YStack flex={1}>
       <Text
         color="$gray12"
-        fontSize="$8"        // Larger font size
-        fontWeight="700"     // Bold weight
-        letterSpacing={1}   // Tighter letter spacing for headings
-        padding="$4"         // Add some padding
+        fontSize="$8"
+        fontWeight="700"
+        letterSpacing={1}
+        padding="$4"
       >
         Members
       </Text>
       <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-        <YStack minWidth={500}>
+        <YStack minWidth={columnWidths.name + columnWidths.role + columnWidths.status + columnWidths.actions}>
           <XStack borderTopWidth={1} borderColor="$gray5">
             <TableHeader field="name" label="Name" />
             <TableHeader field="role" label="Role" />
             <TableHeader field="status" label="Status" />
-            <XStack width={100} padding="$3" backgroundColor="$gray2" borderBottomWidth={1} borderColor="$gray5">
+            <XStack 
+              width={columnWidths.actions} 
+              padding="$3" 
+              backgroundColor="$gray2" 
+              borderBottomWidth={1} 
+              borderColor="$gray5"
+              alignItems="center"
+            >
               <Text fontWeight="600" color="$gray11">Actions</Text>
             </XStack>
           </XStack>
@@ -122,7 +138,7 @@ export function MembersTable({ users, onViewUser }: UserTableProps) {
               hoverStyle={{ backgroundColor: '$gray2' }}
             >
               {/* Name Column */}
-              <XStack flex={1} padding="$3" alignItems="center" gap="$2">
+              <XStack width={columnWidths.name} padding="$3" alignItems="center" gap="$2">
                 <Avatar circular size="$4" backgroundColor="$blue5">
                   {user.avatar ? (
                     <Avatar.Image src={user.avatar} />
@@ -132,21 +148,25 @@ export function MembersTable({ users, onViewUser }: UserTableProps) {
                     </Avatar.Fallback>
                   )}
                 </Avatar>
-                <Text color="$gray12">{user.name}</Text>
+                <Text color="$gray12" numberOfLines={1} ellipsizeMode="tail">
+                  {user.name}
+                </Text>
               </XStack>
 
               {/* Role Column */}
-              <XStack flex={1} padding="$3" alignItems="center">
-                <Text color="$gray11">{user.role}</Text>
+              <XStack width={columnWidths.role} padding="$3" alignItems="center">
+                <Text color="$gray11" numberOfLines={1} ellipsizeMode="tail">
+                  {user.role}
+                </Text>
               </XStack>
 
               {/* Status Column */}
-              <XStack flex={1} padding="$3" alignItems="center">
+              <XStack width={columnWidths.status} padding="$3" alignItems="center">
                 <StatusBadge status={user.status} />
               </XStack>
 
               {/* Actions Column */}
-              <XStack width={100} padding="$3" alignItems="center">
+              <XStack width={columnWidths.actions} padding="$3" alignItems="center" justifyContent="center">
                 <Button
                   size="$3"
                   variant="ghost"

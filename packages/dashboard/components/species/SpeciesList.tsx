@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { View, StyleSheet, TouchableOpacity, Dimensions } from "react-native";
-import { 
-  Text, 
-  YStack, 
-  XStack, 
-  ScrollView, 
+import {
+  Text,
+  YStack,
+  XStack,
+  ScrollView,
   Button,
   Image as TamaguiImage,
   Theme
@@ -25,7 +25,6 @@ type Species = {
   description?: string | null;
 };
 
-// Sample data
 const speciesData: Species[] = [{
   "id": "spec_85e7wrxpacKX",
   "scientificName": "Leucaena leucocephala",
@@ -350,136 +349,133 @@ const speciesData: Species[] = [{
 
 function SpeciesGridList() {
   const [viewMode, setViewMode] = React.useState<'grid' | 'list'>('grid');
-  
+
   return (
-    <Theme name="light">
-      <YStack f={1}>
-        {/* View toggle buttons at the top */}
-        <XStack justifyContent="flex-end" marginBottom="$4" space="$2">
-          <Button
-            size="$2"
-            variant="outlined"
-            borderColor="$gray6"
-            backgroundColor={viewMode === 'grid' ? '$gray1' : 'transparent'}
-            icon={<Grid size={16} color={viewMode === 'grid' ? '$green9' : '$gray10'} />}
-            onPress={() => setViewMode('grid')}
-            pressStyle={{ backgroundColor: '$gray2' }}
-          />
-          
-          <Button
-            size="$2"
-            variant="outlined"
-            borderColor="$gray6"
-            backgroundColor={viewMode === 'list' ? '$gray1' : 'transparent'}
-            icon={<List size={16} color={viewMode === 'list' ? '$green9' : '$gray10'} />}
-            onPress={() => setViewMode('list')}
-            pressStyle={{ backgroundColor: '$gray2' }}
-          />
-        </XStack>
-        
-        <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
-          {viewMode === 'grid' ? (
-            // Grid View
-            <View style={styles.gridContainer}>
-              {speciesData.map((species) => (
-                <TouchableOpacity
-                  key={species.id}
-                  style={styles.gridCard}
-                  activeOpacity={0.7}
-                >
-                  <View style={styles.gridImageContainer}>
-                    {species.image ? (
-                      <TamaguiImage
-                        source={{ uri: species.image }}
-                        width="100%"
-                        height={110}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View style={styles.gridPlaceholder}>
-                        <Leaf size={32} color="#006838" />
-                      </View>
-                    )}
-                  </View>
-                  
-                  <YStack padding="$3" space="$1">
-                    <Text 
-                      fontSize="$3" 
-                      fontWeight="bold" 
-                      color="$gray12"
+    <YStack f={1}>
+      {/* View toggle buttons at the top */}
+      <XStack justifyContent="flex-end" marginBottom="$4" space="$2">
+        <Button
+          size="$2"
+          variant="outlined"
+          borderColor="$gray6"
+          backgroundColor={viewMode === 'grid' ? '$gray1' : 'transparent'}
+          icon={<Grid size={16} color={viewMode === 'grid' ? '$green9' : '$gray10'} />}
+          onPress={() => setViewMode('grid')}
+          pressStyle={{ backgroundColor: '$gray2' }}
+        />
+
+        <Button
+          size="$2"
+          variant="outlined"
+          borderColor="$gray6"
+          backgroundColor={viewMode === 'list' ? '$gray1' : 'transparent'}
+          icon={<List size={16} color={viewMode === 'list' ? '$green9' : '$gray10'} />}
+          onPress={() => setViewMode('list')}
+          pressStyle={{ backgroundColor: '$gray2' }}
+        />
+      </XStack>
+
+      <ScrollView showsVerticalScrollIndicator={false} bounces={false}>
+        {viewMode === 'grid' ? (
+          // Grid View
+          <View style={styles.gridContainer}>
+            {speciesData.map((species) => (
+              <TouchableOpacity
+                key={species.id}
+                style={styles.gridCard}
+                activeOpacity={0.7}
+              >
+                <View style={styles.gridImageContainer}>
+                  {species.image ? (
+                    <TamaguiImage
+                      source={{ uri: species.image }}
+                      width="100%"
+                      height={110}
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View style={styles.gridPlaceholder}>
+                      <Leaf size={32} color="#006838" />
+                    </View>
+                  )}
+                </View>
+
+                <YStack padding="$3" space="$1">
+                  <Text
+                    fontSize="$3"
+                    fontWeight="bold"
+                    color="$gray12"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {species.scientificName}
+                  </Text>
+
+                  {species.aliases && (
+                    <Text
+                      fontSize="$2"
+                      color="$gray11"
                       numberOfLines={1}
                       ellipsizeMode="tail"
                     >
+                      {species.aliases}
+                    </Text>
+                  )}
+                </YStack>
+              </TouchableOpacity>
+            ))}
+
+            {/* If odd number of items, add an empty view to maintain grid layout */}
+            {speciesData.length % 2 !== 0 && (
+              <View style={[styles.gridCard, { backgroundColor: 'transparent', shadowOpacity: 0, elevation: 0 }]} />
+            )}
+          </View>
+        ) : (
+          // List View
+          <YStack space="$3" pb="$6">
+            {speciesData.map((species) => (
+              <TouchableOpacity
+                key={species.id}
+                style={styles.listCard}
+                activeOpacity={0.7}
+              >
+                <XStack alignItems="center" space="$3">
+                  <View style={styles.listImageContainer}>
+                    {species.image ? (
+                      <TamaguiImage
+                        source={{ uri: species.image }}
+                        width={50}
+                        height={50}
+                        borderRadius={25}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.listPlaceholder}>
+                        <Leaf size={20} color="#006838" />
+                      </View>
+                    )}
+                  </View>
+
+                  <YStack flex={1}>
+                    <Text fontSize="$4" fontWeight="bold" color="$gray12">
                       {species.scientificName}
                     </Text>
-                    
+
                     {species.aliases && (
-                      <Text 
-                        fontSize="$2" 
-                        color="$gray11"
-                        numberOfLines={1}
-                        ellipsizeMode="tail"
-                      >
+                      <Text fontSize="$2" color="$gray11">
                         {species.aliases}
                       </Text>
                     )}
                   </YStack>
-                </TouchableOpacity>
-              ))}
-              
-              {/* If odd number of items, add an empty view to maintain grid layout */}
-              {speciesData.length % 2 !== 0 && (
-                <View style={[styles.gridCard, { backgroundColor: 'transparent', shadowOpacity: 0, elevation: 0 }]} />
-              )}
-            </View>
-          ) : (
-            // List View
-            <YStack space="$3" pb="$6">
-              {speciesData.map((species) => (
-                <TouchableOpacity
-                  key={species.id}
-                  style={styles.listCard}
-                  activeOpacity={0.7}
-                >
-                  <XStack alignItems="center" space="$3">
-                    <View style={styles.listImageContainer}>
-                      {species.image ? (
-                        <TamaguiImage
-                          source={{ uri: species.image }}
-                          width={50}
-                          height={50}
-                          borderRadius={25}
-                          resizeMode="cover"
-                        />
-                      ) : (
-                        <View style={styles.listPlaceholder}>
-                          <Leaf size={20} color="#006838" />
-                        </View>
-                      )}
-                    </View>
-                    
-                    <YStack flex={1}>
-                      <Text fontSize="$4" fontWeight="bold" color="$gray12">
-                        {species.scientificName}
-                      </Text>
-                      
-                      {species.aliases && (
-                        <Text fontSize="$2" color="$gray11">
-                          {species.aliases}
-                        </Text>
-                      )}
-                    </YStack>
-                  </XStack>
-                </TouchableOpacity>
-              ))}
-            </YStack>
-          )}
-          
-          <View style={{ height: 80 }} />
-        </ScrollView>
-        
-        {/* Floating action button for adding new species */}
-        <View style={styles.fabContainer}>
+                </XStack>
+              </TouchableOpacity>
+            ))}
+          </YStack>
+        )}
+
+        <View style={{ height: 80 }} />
+      </ScrollView>
+      <View style={styles.fabContainer}>
           <TouchableOpacity 
             style={styles.fab}
             activeOpacity={0.8}
@@ -487,8 +483,7 @@ function SpeciesGridList() {
             <Plus size={24} color="white" />
           </TouchableOpacity>
         </View>
-      </YStack>
-    </Theme>
+    </YStack>
   );
 }
 
@@ -549,8 +544,8 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    right: 24,
-    bottom: 24,
+    right: 50,
+    top: '12%',
   },
   fab: {
     position: 'absolute',
@@ -565,8 +560,6 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
     elevation: 5,
-    right: 0,
-    bottom: 24,
     zIndex: 999,
   }
 });
