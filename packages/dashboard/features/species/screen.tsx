@@ -7,7 +7,7 @@ import SpeciesList from "../../components/species/SpeciesList";
 export default function SpeciesScreen() {
   return (
     <YStack f={1}>
-      <SpeciesList />
+        <SpeciesList />
     </YStack>
   );
 }

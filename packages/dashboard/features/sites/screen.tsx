@@ -6,7 +6,9 @@ import SiteCardList from "../../components/sites/SiteCard";
 export default function SettingsIndexScreen() {
   return (
     <YStack>
-      <SiteCardList />
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+        <SiteCardList />
+      </ScrollView>
       <CreateNewSiteButton />
     </YStack>
   );

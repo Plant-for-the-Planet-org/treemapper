@@ -1,6 +1,6 @@
 // packages/dashboard/features/overview/screen.tsx
 import React, { useEffect, useState } from 'react'
-import { Button, H1, Spinner, Text, YStack } from 'tamagui'
+import { Button, H1, ScrollView, Spinner, Text, YStack } from 'tamagui'
 import { ApiClient } from '../../../api/index'
 import ProjectDetails from '../../components/projects/projects'
 import { OverviewCardList } from '../../components/overview/OverviewCardList'
@@ -42,9 +42,11 @@ export default function OverviewScreen() {
   }
   return (
     <YStack width={"100%"}>
-      <TreesPlantedChart/>
-      <OverviewCardList />
-      <RecentAdditions/>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
+        <TreesPlantedChart />
+        <OverviewCardList />
+        <RecentAdditions />
+      </ScrollView>
     </YStack>
   )
 }

@@ -480,7 +480,7 @@ function SpeciesGridList() {
             style={styles.fab}
             activeOpacity={0.8}
           >
-            <Plus size={24} color="white" />
+            <Plus size={35} color="white" />
           </TouchableOpacity>
         </View>
     </YStack>
@@ -544,14 +544,14 @@ const styles = StyleSheet.create({
   },
   fabContainer: {
     position: 'absolute',
-    right: 50,
-    top: '12%',
+    right: 70,
+    bottom: 100,
   },
   fab: {
     position: 'absolute',
-    width: 56,
-    height: 56,
-    borderRadius: 28,
+    width: 70,
+    height: 70,
+    borderRadius: 70,
     backgroundColor: '#007A49',
     justifyContent: 'center',
     alignItems: 'center',

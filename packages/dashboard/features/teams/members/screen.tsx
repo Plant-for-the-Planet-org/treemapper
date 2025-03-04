@@ -1,6 +1,6 @@
 import React from 'react'
 import { useRouter } from 'solito/router'
-import { H2, Text, View, YStack } from 'tamagui'
+import { H2, ScrollView, Text, View, YStack } from 'tamagui'
 import { ContentSkeleton } from '../../../components/skeleton/content'
 import { HeaderSkeleton } from '../../../components/skeleton/header'
 import MembersList from './members-list'
@@ -11,11 +11,11 @@ export default function MembersScreen() {
 
   return (
     <YStack>
-      <ContentSkeleton>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }} showsVerticalScrollIndicator={false}>
         <InviteMember />
-        <View paddingBottom="$5"/>
+        <View paddingBottom="$5" />
         <MembersList />
-      </ContentSkeleton>
+      </ScrollView>
     </YStack>
   )
 }
