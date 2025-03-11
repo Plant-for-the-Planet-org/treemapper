@@ -95,7 +95,7 @@
     "react-native-toast-notifications": "^3.4.0",
     "react-native-version-check-expo": "^3.4.7",
     "react-native-web": "~0.19.10",
-    "react-native-webview": "13.8.6",
+    "react-native-webview": "13.13.2",
     "react-native-youtube-iframe": "^2.3.0",
     "react-native-zip-archive": "7.0.1",
     "react-redux": "^9.1.0",
