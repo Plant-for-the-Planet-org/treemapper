@@ -1,17 +1,21 @@
-import type { AppProps } from 'next/app'
-import { DashboardProvider } from 'dashboard/provider/index'
-import Head from 'next/head'
-import 'raf/polyfill'
+// pages/_app.tsx
+import { AppProps } from 'next/app';
+import { SessionProvider } from 'next-auth/react';
+import { TamaguiProvider } from 'tamagui';
+import tamaguiConfig from '../tamagui.config'; // Adjust path if needed
 
-export default function App({ Component, pageProps }: AppProps) {
+// Import global styles if you have any
+// import '../styles/globals.css';
+
+export default function App({ 
+  Component, 
+  pageProps: { session, ...pageProps } 
+}: AppProps) {
   return (
-    <>
-      <Head>
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-      </Head>
-      <DashboardProvider>
+    <SessionProvider session={session}>
+      <TamaguiProvider config={tamaguiConfig}>
         <Component {...pageProps} />
-      </DashboardProvider>
-    </>
-  )
+      </TamaguiProvider>
+    </SessionProvider>
+  );
 }
