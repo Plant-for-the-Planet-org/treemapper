@@ -12,8 +12,8 @@ const PlotView = () => {
       <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} />
       <View style={styles.wrapper}>
         <ComingSoon />
-        <Text style={styles.mainLabel}>Monitoring Plots Coming Soon</Text>
-        <Text style={styles.secondaryLabel}>You'll soon be able to monitor and {'\n'}manage your plots with detailed insights.{'\n'}Stay tuned!</Text>
+        <Text style={styles.mainLabel}>{i18next.t('label.plot_coming_soon')}</Text>
+        <Text style={styles.secondaryLabel}>{i18next.t('label.plot_coming_soon_note')}</Text>
       </View>
     </SafeAreaView>
   )

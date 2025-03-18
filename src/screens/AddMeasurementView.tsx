@@ -66,7 +66,8 @@ const AddMeasurement = () => {
   const handleHeightChange = (text: string) => {
     setHeightErrorMessage('');
     const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-    const isValid = regex.test(text)
+    const finalText = text.replace(/,/g, '.');
+    const isValid = regex.test(finalText)
     // Ensure there is at most one decimal point
     if (isValid) {
       setHeight(text);
@@ -84,7 +85,8 @@ const AddMeasurement = () => {
   const handleDiameterChange = (text: string) => {
     setWidthErrorMessage('');
     const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-    const isValid = regex.test(text)
+    const finalText = text.replace(/,/g, '.');
+    const isValid = regex.test(finalText)
     if (isValid) {
       setWidth(text);
     } else {
@@ -97,7 +99,9 @@ const AddMeasurement = () => {
 
 
   const onSubmit = () => {
-    const validationObject = measurementValidation(height, width, isNonISUCountry);
+    const updatedHeight = height.replace(/,/g, '.');
+    const updatedWidth = width.replace(/,/g, '.');
+    const validationObject = measurementValidation(updatedHeight, updatedWidth, isNonISUCountry);
     const { diameterErrorMessage, heightErrorMessage, isRatioCorrect } = validationObject;
     setHeightErrorMessage(heightErrorMessage)
     setWidthErrorMessage(diameterErrorMessage)
@@ -141,6 +145,8 @@ const AddMeasurement = () => {
   }
 
   const submitDetails = async () => {
+    const updatedHeight = height.replace(/,/g, '.');
+    const updatedWidth = width.replace(/,/g, '.');
     const { lat, long, accuracy } = getUserLocation()
     const treeDetails: SampleTree = {
       tree_id: id,
@@ -156,11 +162,11 @@ const AddMeasurement = () => {
       cdn_image_url: '',
       specie_name: SampleTreeData.current_species.scientificName,
       specie_diameter: getConvertedDiameter(
-        width,
+        updatedWidth,
         isNonISUCountry
       ),
       specie_height: getConvertedHeight(
-        height,
+        updatedHeight,
         isNonISUCountry
       ),
       tag_id: tagId,

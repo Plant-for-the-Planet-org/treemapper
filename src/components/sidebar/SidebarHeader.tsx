@@ -1,4 +1,4 @@
-import { Image, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -9,11 +9,12 @@ import { Skeleton } from 'moti/skeleton'
 import ProfileEditIcon from 'assets/images/svg/ProfileEdit.svg'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import Popover from 'react-native-popover-view'
+import * as ExpoImage from 'expo-image';
 
 
 
 const SidebarHeader = () => {
-  const { image, displayName, email, type } = useSelector(
+  const { image, displayName, email } = useSelector(
     (state: RootState) => state.userState,
   )
   const [popupVisible, setPopupVisible] = useState(false)
@@ -24,10 +25,6 @@ const SidebarHeader = () => {
 
   const editHandler = () => {
     openWebView(`https://web.plant-for-the-planet.org/en/profile/edit`);
-  }
-
-  const deleteHandler = () => {
-    openWebView(`https://web.plant-for-the-planet.org/en/profile/delete-account`);
   }
 
 
@@ -41,7 +38,7 @@ const SidebarHeader = () => {
       isVisible={popupVisible}
       backgroundStyle={{ opacity: 0 }}
       popoverStyle={{
-
+        backgroundColor:Colors.LIGHT_PRIMARY,
       }}
       onRequestClose={togglePopup}
       from={(
@@ -53,8 +50,6 @@ const SidebarHeader = () => {
         <Pressable
           style={styles.lgtBtn}
           onPress={editHandler}><Text style={styles.menuLabel}>Edit</Text></Pressable>
-        {type !== 'tpo' && <><View style={{ width: '90%', backgroundColor: 'lightgray', height: 1 }} />
-          <Pressable onPress={deleteHandler} style={styles.lgtBtn}><Text style={styles.deleteLable}>Delete</Text></Pressable></>}
       </View>
     </Popover>
   }
@@ -65,7 +60,7 @@ const SidebarHeader = () => {
       <View style={styles.avatarWrapper}>
         <Skeleton show={webAuthLoading} colorMode="light" radius={12}>
           {image ? (
-            <Image source={{ uri: avatar }} style={styles.imageWrapper} />
+            <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: avatar }} style={styles.imageWrapper} />
           ) : (
             <SingleTreeImage style={styles.imageWrapper} />
           )}
@@ -105,7 +100,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 0.5,
     borderColor: Colors.PALE_WHITE,
-    backgroundColor: Colors.WHITE,
+    backgroundColor: Colors.LIGHT_PRIMARY,
     shadowColor: Colors.PALE_WHITE,
     shadowOffset: { width: 2, height: 2 },
     shadowOpacity: 0.6,

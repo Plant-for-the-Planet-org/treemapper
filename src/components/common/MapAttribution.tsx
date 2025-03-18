@@ -4,6 +4,7 @@ import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
 import CustomButton from './CustomButton'
+import i18next from 'src/locales/index'
 
 
 
@@ -23,7 +24,7 @@ const MapAttribution = () => {
                 onBackdropPress={toggleInfo}>
                 <View style={styles.sectionWrapper}>
                     <Text style={styles.header}>
-                        Map credits:
+                    {i18next.t('label.map_credits')}
                     </Text>
                     <Text style={styles.mapLabels}>
                         Maplibre SDK
@@ -32,7 +33,7 @@ const MapAttribution = () => {
                         ESRI
                     </Text>
                     <Text style={styles.mapLabels}>
-                        OpenStreetMap Contributors
+                    {i18next.t('label.openstreet_contributors')}
                     </Text>
                     <CustomButton label={'Close'} pressHandler={toggleInfo} 
                     containerStyle={{width:'100%',height:70, marginTop:'5%'}}    

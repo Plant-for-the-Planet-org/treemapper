@@ -1,4 +1,4 @@
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View , TouchableOpacity} from 'react-native'
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -17,6 +17,7 @@ import {
 } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { Colors, Typography } from 'src/utils/constants'
+import PenIcon from 'assets/images/svg/PenIcon.svg'
 import SampleTreePreviewList from 'src/components/previewIntervention/SampleTreePreviewList'
 import bbox from '@turf/bbox'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
@@ -35,6 +36,7 @@ import i18next from 'i18next'
 import { useToast } from 'react-native-toast-notifications'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
+import DeleteModal from 'src/components/common/DeleteModal'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -45,6 +47,7 @@ const InterventionPreviewView = () => {
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
   const interventionID = route.params?.interventionId ?? "";
+  const [editModal, setEditModal] = useState(null)
 
   const [highlightedTree, setHighlightedTree] = useState('')
 
@@ -52,11 +55,27 @@ const InterventionPreviewView = () => {
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
   )
-  const { saveIntervention, updateInterventionMetaData } = useInterventionManagement()
+  const { saveIntervention, updateInterventionMetaData, resetIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
   const scrollViewRef = useRef(null); // Reference for the ScrollView
   const childRefs = useRef([]);
+
+  const handleEdit = async (item: InterventionData) => {
+    setEditModal(null)
+    await resetIntervention(item.intervention_id)
+    dispatch(updateNewIntervention())
+  }
+
+  const closeAllModals = () => {
+    setEditModal(null)
+  }
+
+
+  const openEditModal = (item: InterventionData) => {
+    const obj = JSON.parse(JSON.stringify(item))
+    setEditModal(obj)
+  }
 
   useEffect(() => {
     setLoading(false)
@@ -73,6 +92,9 @@ const InterventionPreviewView = () => {
       toast.show("Project not assign")
     }
   }
+  function formatString(str) {
+    return str.toLowerCase().replace(/\s+/g, '-');
+  }
 
   const setupMetaData = async () => {
     const localMeta = realm.objects<Metadata>(RealmSchema.Metadata)
@@ -81,10 +103,36 @@ const InterventionPreviewView = () => {
     if (localMeta?.length) {
       localMeta.forEach(el => {
         if (el.accessType === 'private') {
-          updatedMetadata.private = { ...updatedMetadata.private, [el.key]: el.value }
+          const privateKey = formatString(el.key)
+          updatedMetadata.private = {
+            ...updatedMetadata.private, [privateKey]: {
+              "key":privateKey,
+              "originalKey": privateKey,
+              "value": el.value,
+              "label": el.key,
+              "type": "input",
+              "unit": "",
+              "visibility": "private",
+              "dataType": "string",
+              "elementType": "metaData"
+            }
+          }
         }
         if (el.accessType === 'public') {
-          updatedMetadata.public = { ...updatedMetadata.public, [el.key]: el.value }
+          const publicKey = formatString(el.key)
+          updatedMetadata.public = {
+            ...updatedMetadata.public, [publicKey]: {
+              "key": publicKey,
+              "originalKey": publicKey,
+              "value": el.value,
+              "label": el.key,
+              "type": "input",
+              "unit": "",
+              "visibility": "public",
+              "dataType": "string",
+              "elementType": "metaData"
+            }
+          }
         }
       })
     }
@@ -187,12 +235,24 @@ const InterventionPreviewView = () => {
 
 
   const renderRightContainer = () => {
+    if (InterventionData.is_complete && InterventionData.status === 'PENDING_DATA_UPLOAD') {
+      return (
+        <View style={styles.rightWrapper}>
+          <TouchableOpacity style={styles.editWrapper} onPress={() => { openEditModal(InterventionData) }}>
+            <Text style={styles.editText}>Edit</Text>
+            <PenIcon width={30} height={30} />
+          </TouchableOpacity>
+        </View>
+      )
+    }
+
     if (InterventionData.is_complete && InterventionData.status !== 'SYNCED') {
       return <TouchableOpacity style={[styles.syncContainer]} onPress={moveToHome}>
         <UnsyncIcon width={20} height={20} />
         <Text style={styles.label}>Sync Now</Text>
       </TouchableOpacity>
     }
+
     if (InterventionData.status === 'SYNCED') {
       return <View style={styles.syncContainer}>
         <SyncIcon width={20} height={20} />
@@ -205,6 +265,7 @@ const InterventionPreviewView = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
+      <DeleteModal isVisible={editModal !== null} toggleModal={setEditModal} removeFavSpecie={handleEdit} headerLabel={'Edit Intervention'} noteLabel={'Do you want to edit intervention.'} primeLabel={'Edit'} secondaryLabel={'Cancel'} extra={editModal} secondaryHandler={closeAllModals} />
       <ScrollView
         decelerationRate='normal'
         style={styles.scrollWrapper} bounces={false} showsVerticalScrollIndicator={false} ref={scrollViewRef}>
@@ -224,7 +285,7 @@ const InterventionPreviewView = () => {
             passRefs={(ref, index) => (childRefs.current[index] = ref)}
           />
         )}
-        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data}/>}
+        {InterventionData.meta_data !== '{}' && <InterventionMetaData data={InterventionData.meta_data} />}
         <InterventionAdditionalData data={[...InterventionData.form_data, ...InterventionData.additional_data]} id={InterventionData.intervention_id} canEdit={InterventionData.status === 'INITIALIZED'} />
         <ExportGeoJSONButton details={InterventionData} type='intervention' />
         {InterventionData.status !== 'SYNCED' && <Text style={styles.versionNote}>{i18next.t("label.collected_using")}{InterventionData.is_legacy ? '1.0.8' : Application.nativeApplicationVersion}</Text>}
@@ -286,8 +347,25 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
-    backgroundColor: Colors.NEW_PRIMARY + '1A',
-    marginRight: '5%',
-    borderRadius: 10
+    borderRadius: 10,
+    marginRight: '5%'
   },
+  editWrapper: {
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    borderRadius: 10,
+    paddingLeft: 20,
+    backgroundColor: Colors.BACKDROP_COLOR
+  },
+  editText: {
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: 20,
+    color: Colors.TEXT_COLOR
+  },
+  rightWrapper: {
+    flexDirection: 'row',
+    marginRight: '5%'
+  }
 })

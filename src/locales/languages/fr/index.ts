@@ -19,9 +19,9 @@ import SpeciesSyncError from './user/speciesSyncError.json';
 import AdditionalData from './user/additionalData.json';
 import Projects from './user/projects.json';
 import Intervention from './user/intervention.json'
-import MonitoringPlot from './user/monitoringPlot.json'
 import CommonStrings from './user/commonData.json'
-
+import Plots from './monitoringPlots/plots.json'
+import Other from './user/other.json'
 export default {
   ...WelcomeScreen,
   ...SignUp,
@@ -44,6 +44,7 @@ export default {
   ...AdditionalData,
   ...Projects,
   ...Intervention,
-  ...MonitoringPlot,
-  ...CommonStrings
+  ...CommonStrings,
+  ...Plots,
+  ...Other
 };

@@ -162,11 +162,12 @@ const ReviewTreeDetails = () => {
         let hasError = false;
 
         const handleHeightValidation = () => {
+            const updatedHeight = openEditModal.value.replace(/,/g, '.');
             const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-            const isValid = regex.test(openEditModal.value)
+            const isValid = regex.test(updatedHeight)
             if (isValid) {
                 const validationObject = measurementValidation(
-                    openEditModal.value,
+                    updatedHeight,
                     treeDetails.specie_diameter,
                     isNonISUCountry,
                 );
@@ -179,7 +180,7 @@ const ReviewTreeDetails = () => {
                         hasError = true
                     } else {
                         finalDetails.specie_height = getConvertedHeight(
-                            Number(openEditModal.value),
+                            Number(updatedHeight),
                             isNonISUCountry
                         )
                     }
@@ -192,12 +193,13 @@ const ReviewTreeDetails = () => {
         };
 
         const handleDiameterValidation = () => {
+            const updatedWidth = openEditModal.value.replace(/,/g, '.');
             const regex = /^(?!0*(\.0+)?$)(\d+(\.\d+)?|\.\d+)$/;
-            const isValid = regex.test(openEditModal.value)
+            const isValid = regex.test(updatedWidth)
             if (isValid) {
                 const validationObject = measurementValidation(
                     treeDetails.specie_height,
-                    openEditModal.value,
+                    updatedWidth,
                     isNonISUCountry,
                 );
                 setInputErrorMessage(validationObject.diameterErrorMessage);
@@ -209,7 +211,7 @@ const ReviewTreeDetails = () => {
                         hasError = true
                     } else {
                         finalDetails.specie_diameter = getConvertedDiameter(
-                            Number(openEditModal.value),
+                            Number(updatedWidth),
                             isNonISUCountry
                         )
                     }

@@ -2,7 +2,6 @@ import i18next from 'src/locales/index'
 import React from 'react'
 import {
   FlatList,
-  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -10,12 +9,12 @@ import {
 } from 'react-native'
 import PlantProjectBackdrop from 'assets/images/svg/PlantProjectIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
-
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import LargeButton from 'src/components/common/LargeButton'
 import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { handleFilter } from 'src/utils/constants/CountryDataFilter'
+import * as ExpoImage from 'expo-image';
 
 interface ProjectListProps {
   isSelectable?: boolean;
@@ -95,11 +94,12 @@ const ProjectItem = ({
         isProjectSelected ? { borderColor: Colors.NEW_PRIMARY } : {},
       ]}>
       {item.image && process.env.EXPO_PUBLIC_CDN_URL ? (
-        <Image
+        <ExpoImage.Image
           source={{
             uri: `${process.env.EXPO_PUBLIC_API_PROTOCOL}://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/project/medium/${item.image}`,
           }}
           style={styles.image}
+          cachePolicy='memory-disk'
         />
       ) : (
         <View style={[styles.image, { paddingBottom: 10 }]}>

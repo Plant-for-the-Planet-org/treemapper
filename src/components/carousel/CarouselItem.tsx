@@ -1,4 +1,5 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import * as ExpoImage from 'expo-image';
 import React from 'react'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Colors, Typography } from 'src/utils/constants'
@@ -24,7 +25,7 @@ const CarouselItem = (props: Props) => {
       onPress(data.intervention_id, data.tree_id)
     }}>
       <View style={styles.imageWrapper}>
-        {hasImage ? <Image style={styles.imageContainer} source={{ uri: uri }} /> : <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
+        {hasImage ? <ExpoImage.Image cachePolicy='memory-disk' style={styles.imageContainer} source={{ uri: uri }} /> : <SingleTreeIcon width={SCALE_36} height={SCALE_36} />
         }
       </View>
       <View style={styles.sectionWrapper}>

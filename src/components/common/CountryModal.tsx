@@ -6,7 +6,6 @@ import {
     StyleSheet,
     FlatList,
     TouchableOpacity,
-    Image,
     Platform,
 } from 'react-native';
 
@@ -15,6 +14,7 @@ import { Typography, Colors } from 'src/utils/constants'
 import CountryData from 'src/utils/constants/countryData.json';
 import i18next from 'i18next';
 import { CountryCode } from 'src/types/interface/slice.interface';
+import * as ExpoImage from 'expo-image';
 
 
 const cdnUrl = process.env.EXPO_PUBLIC_CDN_URL
@@ -31,12 +31,13 @@ interface Props {
 const Item = ({ title, onPress }: { title: CountryCode, onPress: () => void }) => (
     <TouchableOpacity style={styles.item} onPress={onPress}>
         <View style={{ flexDirection: 'row' }}>
-            <Image
+            <ExpoImage.Image
+                cachePolicy='memory-disk'
                 source={{
                     uri: cdnUrl ? `${protocol}://${cdnUrl}/media/images/flags/png/256/${title.countryCode}.png` : null,
                 }}
                 style={styles.countryFlag}
-                resizeMode="contain"
+                contentFit="contain"
             />
             <View style={{ paddingLeft: 20 }}>
                 <Text style={{ color: 'black', paddingTop: 12 }}>{title.countryName}</Text>
@@ -56,7 +57,7 @@ export default function CountryModal(props: Props) {
     const selectCountry = (data: CountryCode) => {
         userCountry(data);
     };
- 
+
     const sort = () => {
         CountryData.sort((a, b) => {
             if (a.countryName > b.countryName) {

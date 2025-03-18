@@ -133,7 +133,7 @@ const InterventionFormView = () => {
         const site = ProjectData.sites.find(el => el.id === sid);
         if (!site?.geometry) return; // Using optional chaining here
         const parsedGeometry = JSON.parse(site.geometry);
-        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1);
+        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0]);
         updateBounds(newCoords);
       }
     } catch (error) {
@@ -273,7 +273,7 @@ const InterventionFormView = () => {
       el => el.id === registerForm.site_id,
     )
     const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0], 1)
+    const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
     return [newCoords]
   }
 
@@ -314,10 +314,30 @@ const InterventionFormView = () => {
   const constructMetaData = (locationName: string, furtherInfo: string) => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
-      metaData["Location Name"] = locationName;
+      metaData["location-name"] = {
+          "key": "location-name",
+          "originalKey":"location-name",
+          "value":locationName,
+          "label":"Location Name",
+          "type":"input",
+          "unit":"",
+          "visibility":"public",
+          "dataType":"string",
+          "elementType":"metaData"
+      };
     }
     if (furtherInfo && furtherInfo.length > 0) {
-      metaData["Info"] = furtherInfo
+      metaData["more-info"] = {
+        "key": "more-info",
+        "originalKey":"more-info",
+        "value":furtherInfo,
+        "label":"More Info",
+        "type":"input",
+        "unit":"",
+        "visibility":"public",
+        "dataType":"string",
+        "elementType":"metaData"
+    };
     }
     return metaData;
   };

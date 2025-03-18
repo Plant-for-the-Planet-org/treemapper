@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleSize } from 'src/utils/constants/mixins'
@@ -22,6 +22,7 @@ import { nonISUCountries } from 'src/utils/constants/appConstant'
 import { INTERVENTION_STATUS } from 'src/types/type/app.type'
 import { convertMeasurements } from 'src/utils/constants/measurements'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
+import * as ExpoImage from 'expo-image';
 
 interface Props {
   sampleTress: SampleTree[]
@@ -109,7 +110,7 @@ const SampleTreePreviewList = (props: Props) => {
             </Text>
           </View>
           <View style={styles.imageSectionWrapper}>
-            {uri !== '' && <Image source={{ uri: uri }} style={styles.imageWrapper} />}
+            {uri !== '' && <ExpoImage.Image cachePolicy='memory-disk' source={{ uri: uri }} style={styles.imageWrapper} />}
             <View style={styles.mainMetaWrapperContent}>
               {!!details.specie_name && <View style={styles.metaWrapperContent}>
                 <Text style={styles.title}>{i18next.t("label.species")}</Text>

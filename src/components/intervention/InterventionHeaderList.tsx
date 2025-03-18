@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     borderColor: Colors.GRAY_LIGHT,
     borderRadius: 20,
     borderWidth: 0.5,
-    marginRight:'1%'
+    marginRight:10
   }
 })

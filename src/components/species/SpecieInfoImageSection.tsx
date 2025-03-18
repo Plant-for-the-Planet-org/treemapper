@@ -1,4 +1,4 @@
-import {Image, StyleSheet, TouchableOpacity, View} from 'react-native'
+import { StyleSheet, TouchableOpacity, View} from 'react-native'
 import React, {useEffect, useState} from 'react'
 import {Colors} from 'src/utils/constants'
 import UploadSpecieIcon from 'assets/images/svg/UploadSpecieIcon.svg'
@@ -14,6 +14,7 @@ import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpeci
 import {updateImageDetails} from 'src/store/slice/takePictureSlice'
 import { SCALE_36, SCALE_26} from 'src/utils/constants/spacing'
 import {scaleSize} from 'src/utils/constants/mixins'
+import * as ExpoImage from 'expo-image';
 
 interface Props {
   item: IScientificSpecies
@@ -59,12 +60,12 @@ const SpecieInfoImageSection = (props: Props) => {
         </TouchableOpacity>
       ) : (
         <View style={styles.imageContainer}>
-          <Image
+          <ExpoImage.Image
             source={{
               uri: image,
             }}
             style={styles.imageView}
-            resizeMode="cover" 
+            contentFit="cover" 
           />
           <View style={styles.imageControls}>
             <TouchableOpacity onPress={takePicture}>
