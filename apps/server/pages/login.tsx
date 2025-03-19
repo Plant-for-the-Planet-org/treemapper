@@ -41,8 +41,8 @@ const Apple= require('../public/apple.png')
     try {
       const result = await signIn('credentials', {
         redirect: false,
-        email,
-        password,
+        email:'user@example.com',
+        password:'password'
       });
 
       if (result?.error) {

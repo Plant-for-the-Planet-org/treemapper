@@ -13,6 +13,7 @@
     "react-hook-form": "^7.54.2",
     "react-native-circular-progress": "^1.4.1",
     "react-native-svg": "^15.11.2",
+    "react-native-svg-web": "^1.0.9",
     "solito": "4.3.0",
     "victory": "^37.3.6",
     "victory-native": "^41.16.1",

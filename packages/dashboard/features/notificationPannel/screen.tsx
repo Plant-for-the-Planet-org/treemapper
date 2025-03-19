@@ -144,7 +144,7 @@ const NotificationItem = ({ notification, onMarkAsRead }) => {
 };
 
 // Main notification panel component as a regular component instead of a modal
-const NotificationPanel = ({ onBack }) => {
+const NotificationPanel = ({ }) => {
   const [notifications, setNotifications] = useState(DUMMY_NOTIFICATIONS);
   const [screenHeight, setScreenHeight] = useState(0);
   
