@@ -92,7 +92,7 @@ To ensure the integrity and authenticity of the APK, you can verify its signatur
 2. Use the following command to verify the certificate fingerprint:
 
    ```sh
-apksigner verify --print-certs --verbose TreeMapper.apk
+      apksigner verify --print-certs --verbose TreeMapper.apk
    ```
 
 3. Compare the output with the official fingerprints below.
@@ -106,20 +106,7 @@ These fingerprints belong to the official signing key used by Google Play to sig
 - **SHA-256:** `33:F3:D2:3E:5D:82:AF:5D:4B:26:51:68:94:31:C4:DC:46:AB:7B:19:E3:13:E4:7E:F6:E7:2D:70:D9:D9:CA:6E`
 
 If the output of `apksigner` matches these fingerprints, you can be sure that the APK is authentic and has not been tampered with.
-
 ---
-
-## Supporters
-The deployment and production of this app is also possible due to support from open-source software contributors.
-<a href="https://www.browserstack.com">
-<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcTPH0TU07S98aX7O5PbjVtOwLz5Q-8IAnaRWn6tv_qkxKaAedd9" height="24"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="https://www.bugsnag.com">
-<img src="https://global-uploads.webflow.com/5c741219fd0819540590e785/5c741219fd0819856890e790_asset%2039.svg" height="24"></a>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-<a href="https://lingohub.com">
-<img src="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcQqJ0vVrXzxzszvleoGhXuxpMFlGueY5UfBEP-HPtTVTH2j29hv" height="30"></a>
-
-
-
 
 ## Supporters
 The deployment and production of this app is also possible due to support from open-source software contributors.
