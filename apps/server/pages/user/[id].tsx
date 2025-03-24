@@ -1,3 +1,7 @@
-import { UserDetailScreen } from 'app/features/user/detail-screen'
+import React from "react";
 
-export default UserDetailScreen
+const ABC=()=>{
+    return null
+}
+
+export default ABC

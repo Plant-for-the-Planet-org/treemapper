@@ -47165,7 +47165,7 @@ var import_react_native_media_driver = __toESM(require_cjs29());
 var headingFont = (0, import_font_inter.createInterFont)();
 var config = createTamagui({
   defaultTheme: "light",
-  shouldAddPrefersColorThemes: true,
+  shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: true,
   shorthands,
   fonts: {

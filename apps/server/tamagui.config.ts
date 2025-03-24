@@ -9,7 +9,7 @@ const headingFont = createInterFont()
 
 export const config = createTamagui({
   defaultTheme: 'light',
-  shouldAddPrefersColorThemes: true,
+  shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: true,
   shorthands,
   fonts: {

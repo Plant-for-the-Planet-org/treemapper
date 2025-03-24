@@ -22711,7 +22711,7 @@
       }
     },
     "defaultTheme": "light",
-    "shouldAddPrefersColorThemes": true,
+    "shouldAddPrefersColorThemes": false,
     "themeClassNameOnRoot": true,
     "shorthands": {
       "ussel": "userSelect",
