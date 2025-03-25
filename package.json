@@ -74,7 +74,7 @@
     "react-native-dropdown-picker": "^5.4.6",
     "react-native-element-dropdown": "^2.10.4",
     "react-native-fs": "^2.20.0",
-    "react-native-gesture-handler": "~2.16.1",
+    "react-native-gesture-handler": "~2.24.0",
     "react-native-get-random-values": "^1.11.0",
     "react-native-input-outline": "^1.5.2",
     "react-native-material-menu": "^2.0.0",
