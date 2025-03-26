@@ -7,8 +7,15 @@ import { themes } from '@tamagui/themes'
 
 const headingFont = createInterFont()
 
+// Create a themes object with only the light theme
+const lightOnlyThemes = {
+  light: themes.light
+}
+
 export const config = createTamagui({
+  // Set default theme to light
   defaultTheme: 'light',
+  // Disable color scheme preference detection
   shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: true,
   shorthands,
@@ -16,7 +23,8 @@ export const config = createTamagui({
     heading: headingFont,
     body: headingFont,
   },
-  themes,
+  // Only include the light theme
+  themes: lightOnlyThemes,
   tokens,
   media: createMedia({
     xs: { maxWidth: 660 },

@@ -47163,8 +47163,13 @@ var tokens = (0, import_web14.createTokens)({
 // ../../packages/ui/tamagui.config.ts
 var import_react_native_media_driver = __toESM(require_cjs29());
 var headingFont = (0, import_font_inter.createInterFont)();
+var lightOnlyThemes = {
+  light: generated_new_exports.light
+};
 var config = createTamagui({
+  // Set default theme to light
   defaultTheme: "light",
+  // Disable color scheme preference detection
   shouldAddPrefersColorThemes: false,
   themeClassNameOnRoot: true,
   shorthands,
@@ -47172,7 +47177,8 @@ var config = createTamagui({
     heading: headingFont,
     body: headingFont
   },
-  themes: generated_new_exports,
+  // Only include the light theme
+  themes: lightOnlyThemes,
   tokens,
   media: (0, import_react_native_media_driver.createMedia)({
     xs: { maxWidth: 660 },
