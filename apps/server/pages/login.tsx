@@ -45,11 +45,11 @@ export default function Login() {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       setWindowWidth(window.innerWidth);
-      
+
       const handleResize = () => {
         setWindowWidth(window.innerWidth);
       };
-      
+
       window.addEventListener('resize', handleResize);
       return () => window.removeEventListener('resize', handleResize);
     }
@@ -101,15 +101,14 @@ export default function Login() {
               The free monitoring tool for forest restoration programs
             </Text>
           </YStack>
-          
+
           <YStack space="$2" marginBottom="$2" alignItems="center">
             <H3 color="$gray10" textAlign="center">Sign in to continue</H3>
           </YStack>
 
           <Card padding="$4" bordered marginBottom="$4">
             <Paragraph color="$gray10" textAlign="center">
-              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam scelerisque est vel
-              feugiat eleifend.
+              The TreeMapper Admin Dashboard gives you full access to monitor, manage, and verify restoration data collected from the field — enabling transparency, accountability, and smarter reforestation, all in one place.
             </Paragraph>
           </Card>
 
@@ -124,7 +123,7 @@ export default function Login() {
               <Button
                 backgroundColor="$blue10"
                 color="white"
-                onPress={() => {}}
+                onPress={() => { }}
                 disabled={isLoading}
                 width="100%"
               >
@@ -133,7 +132,7 @@ export default function Login() {
 
               <XStack justifyContent="center" marginTop="$2">
                 <Text color="$gray10">Having Trouble? </Text>
-                <Text color="$blue10" fontWeight="bold" onPress={() => {}}>
+                <Text color="$blue10" fontWeight="bold" onPress={() => { }}>
                   &nbsp;Contact Us
                 </Text>
               </XStack>
@@ -146,14 +145,15 @@ export default function Login() {
           <Text fontWeight="500" textAlign="center">
             Download our mobile app
           </Text>
-          
+
           <XStack space="$4" justifyContent="center" flexWrap="wrap">
-            <Button 
-              width="auto" 
-              borderRadius="$4" 
-              borderWidth={1} 
+            <Button
+              width="auto"
+              borderRadius="$4"
+              borderWidth={1}
               pressStyle={{ opacity: 0.8 }}
               marginBottom="$2"
+              backgroundColor={'white'}
             >
               <XStack space="$2" alignItems="center">
                 <ImageNext src={GoogleImage} width={24} height={24} alt="Google Play" />
@@ -161,11 +161,12 @@ export default function Login() {
               </XStack>
             </Button>
 
-            <Button 
-              width="auto" 
-              borderRadius="$4" 
-              borderWidth={1} 
+            <Button
+              width="auto"
+              borderRadius="$4"
+              borderWidth={1}
               pressStyle={{ opacity: 0.8 }}
+              backgroundColor={'white'}
             >
               <XStack space="$2" alignItems="center">
                 <ImageNext src={Apple} width={24} height={24} alt="App Store" />
@@ -191,12 +192,13 @@ export default function Login() {
                 The free monitoring tool for forest restoration programs
               </Text>
               <XStack space="$4" marginTop="$5" flexWrap="wrap">
-                <Button 
-                  width="auto" 
-                  borderRadius="$4" 
-                  borderWidth={1} 
+                <Button
+                  width="auto"
+                  borderRadius="$4"
+                  borderWidth={1}
                   pressStyle={{ opacity: 0.8 }}
                   marginBottom="$2"
+                  backgroundColor={"white"}
                 >
                   <XStack space="$2" alignItems="center">
                     <ImageNext src={GoogleImage} width={24} height={24} alt="Google Play" />
@@ -204,10 +206,11 @@ export default function Login() {
                   </XStack>
                 </Button>
 
-                <Button 
-                  width="auto" 
-                  borderRadius="$4" 
-                  borderWidth={1} 
+                <Button
+                  width="auto"
+                  borderRadius="$4"
+                  borderWidth={1}
+                  backgroundColor={'white'}
                   pressStyle={{ opacity: 0.8 }}
                 >
                   <XStack space="$2" alignItems="center">
@@ -234,8 +237,7 @@ export default function Login() {
 
             <Card padding="$4" bordered marginBottom="$4">
               <Paragraph color="$gray10">
-                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam scelerisque est vel
-                feugiat eleifend. Nulla facilisi.
+              The TreeMapper Admin Dashboard gives you full access to monitor, manage, and verify restoration data collected from the field — enabling transparency, accountability, and smarter reforestation, all in one place.
               </Paragraph>
             </Card>
 
@@ -250,7 +252,7 @@ export default function Login() {
                 <Button
                   backgroundColor="$blue10"
                   color="white"
-                  onPress={() => {}}
+                  onPress={() => { }}
                   disabled={isLoading}
                   width="100%"
                 >
@@ -259,7 +261,7 @@ export default function Login() {
 
                 <XStack justifyContent="center" marginTop="$2">
                   <Text color="$gray10">Having Trouble? </Text>
-                  <Text color="$blue10" fontWeight="bold" onPress={() => {}}>
+                  <Text color="$blue10" fontWeight="bold" onPress={() => { }}>
                     &nbsp;Contact Us
                   </Text>
                 </XStack>
@@ -287,14 +289,14 @@ export default function Login() {
               The free monitoring tool for forest restoration programs
             </Text>
             <XStack space="$4" marginTop="$5">
-              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }}>
-                <XStack space="$2" alignItems="center">
+              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }} backgroundColor={'white'}>
+                <XStack space="$2" alignItems="center" >
                   <ImageNext src={GoogleImage} width={24} height={24} alt="Google Play" />
                   <Text fontWeight="bold">Google Play</Text>
                 </XStack>
               </Button>
 
-              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }}>
+              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }} backgroundColor={'white'}>
                 <XStack space="$2" alignItems="center">
                   <ImageNext src={Apple} width={24} height={24} alt="App Store" />
                   <Text fontWeight="bold">App Store</Text>
@@ -327,15 +329,7 @@ export default function Login() {
 
         <Card padding="$4" bordered marginBottom="$4">
           <Paragraph color="$gray10">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nullam scelerisque est vel
-            feugiat eleifend. Nulla facilisi. Sed in libero vel ex faucibus cursus.
-          </Paragraph>
-
-          <Separator marginVertical="$2" />
-
-          <Paragraph size="$2" color="$gray9">
-            Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia curae;
-            Integer id efficitur eros.
+          The TreeMapper Admin Dashboard gives you full access to monitor, manage, and verify restoration data collected from the field — enabling transparency, accountability, and smarter reforestation, all in one place.
           </Paragraph>
         </Card>
 
@@ -352,7 +346,7 @@ export default function Login() {
             <Button
               backgroundColor="$blue10"
               color="white"
-              onPress={() => {}}
+              onPress={() => { }}
               disabled={isLoading}
               width="100%"
             >
@@ -361,7 +355,7 @@ export default function Login() {
 
             <XStack justifyContent="center" marginTop="$2">
               <Text color="$gray10">Having Trouble? </Text>
-              <Text color="$blue10" fontWeight="bold" onPress={() => {}}>
+              <Text color="$blue10" fontWeight="bold" onPress={() => { }}>
                 &nbsp;Contact Us
               </Text>
             </XStack>
