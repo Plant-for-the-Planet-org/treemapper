@@ -1,17 +1,17 @@
 {
-  "login": "Log in / Sign Up",
+  "login": "Entrar / Cadastrar-se",
   "fetch_all_items": "Fetch all Items",
-  "fetch_necessary_items": "Fetch Necessary Items",
+  "fetch_necessary_items": "Buscar itens necessários",
   "tree_mapper": "TreeMapper",
-  "tree_inventory": "Tree Inventory",
-  "tree_inventory_sub_header": "of draft and pending registrations",
-  "download_maps": "Offline Maps",
-  "download_maps_sub_header": "for offline use",
-  "register_tree": "Register Trees",
-  "loading_content": "Loading content ...",
-  "add": "Add",
+  "tree_inventory": "Inventário de árvores",
+  "tree_inventory_sub_header": "de rascunhos e registros pendentes",
+  "download_maps": "Mapas offline",
+  "download_maps_sub_header": "para uso offline",
+  "register_tree": "Registrar Árvores",
+  "loading_content": "Carregando conteúdo...",
+  "add": "Parcelas",
   "plots": "Plots",
-  "map": "Map",
-  "interventions":"Interventions"
+  "map": "Mapa",
+  "interventions":"Intervenções"
 
 }

@@ -1,12 +1,12 @@
 {
-  "add_new_project": "Add new project",
-  "add_new_project_desc": "Add projects to showcase your past progress or to receive donations to plant more.",
-  "select_project": "Select Project",
-  "select_project_desc": "Trees you register can be associated to a specific project.",
-  "continue_without_project": "Continue without a Project",
-  "continue_without_project_desc": "Trees wont be associated with a project.",
-  "dropdownpicker_placeholder": "Select an item",
-  "dropdownpicker_search_placeholder": "Search for ...",
-  "dropdownpicker_selected_items_count": "{count} items have been selected",
-  "dropdownpicker_nothing_to_show": "No items found!"
+  "add_new_project": "Adicionar novo projeto",
+  "add_new_project_desc": "Adicione projetos para mostrar seu progresso anterior ou para receber doações para plantar mais.",
+  "select_project": "Selecionar Projeto",
+  "select_project_desc": "As árvores que você registrar podem ser associadas a um projeto específico.",
+  "continue_without_project": "Continuar sem um Projeto",
+  "continue_without_project_desc": "As árvores não serão associadas a um projeto.",
+  "dropdownpicker_placeholder": "Selecionar um item",
+  "dropdownpicker_search_placeholder": "Procurar por...",
+  "dropdownpicker_selected_items_count": "{count} itens foram selecionados",
+  "dropdownpicker_nothing_to_show": "Nenhum item encontrado!"
 }
