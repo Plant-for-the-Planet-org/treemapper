@@ -25477,25 +25477,30 @@
   "tamaguiConfig": {
     "fonts": {
       "heading": {
-        "family": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "family": "Open Sans",
+        "size": {
+          "1": 12,
+          "2": 14,
+          "3": 16,
+          "4": 18,
+          "5": 20,
+          "6": 24,
+          "7": 28,
+          "8": 32,
+          "9": 36,
+          "10": 40
+        },
         "lineHeight": {
-          "1": 22,
-          "2": 23,
+          "1": 16,
+          "2": 20,
           "3": 24,
-          "4": 25,
-          "5": 24,
-          "6": 27,
-          "7": 32,
-          "8": 35,
-          "9": 40,
-          "10": 53,
-          "11": 66,
-          "12": 73,
-          "13": 84,
-          "14": 106,
-          "15": 130,
-          "16": 152,
-          "true": 25
+          "4": 28,
+          "5": 30,
+          "6": 36,
+          "7": 40,
+          "8": 44,
+          "9": 48,
+          "10": 52
         },
         "weight": {
           "1": "400",
@@ -25503,145 +25508,85 @@
           "3": "400",
           "4": "400",
           "5": "400",
-          "6": "400",
+          "6": "600",
           "7": "700",
-          "8": "700",
-          "9": "700",
-          "10": "700",
-          "11": "700",
-          "12": "700",
-          "13": "700",
-          "14": "700",
-          "15": "700",
-          "16": "700",
-          "true": "700"
+          "8": "800",
+          "9": "800",
+          "10": "800"
         },
         "letterSpacing": {
-          "1": 2,
-          "2": 2,
-          "3": 2,
-          "4": 2,
-          "5": 2,
-          "6": 1,
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
           "7": 0,
-          "8": 0,
+          "8": -1,
           "9": -1,
-          "10": -1.5,
-          "11": -1.5,
-          "12": -2,
-          "13": -2,
-          "14": -3,
-          "15": -4,
-          "16": -4,
-          "true": -4
-        },
-        "size": {
-          "1": 11,
-          "2": 12,
-          "3": 13,
-          "4": 14,
-          "5": 13,
-          "6": 15,
-          "7": 20,
-          "8": 23,
-          "9": 32,
-          "10": 44,
-          "11": 55,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 134,
-          "true": 14
-        },
-        "transform": {
-          "1": "uppercase",
-          "2": "uppercase",
-          "3": "uppercase",
-          "4": "uppercase",
-          "5": "uppercase",
-          "6": "uppercase",
-          "7": "none",
-          "8": "none",
-          "9": "none",
-          "10": "none",
-          "11": "none",
-          "12": "none",
-          "13": "none",
-          "14": "none",
-          "15": "none",
-          "16": "none",
-          "true": "none"
-        },
-        "color": {
-          "1": "$colorFocus",
-          "2": "$colorFocus",
-          "3": "$colorFocus",
-          "4": "$colorFocus",
-          "5": "$colorFocus",
-          "6": "$colorFocus",
-          "7": "$color",
-          "8": "$color",
-          "9": "$color",
-          "10": "$color",
-          "11": "$color",
-          "12": "$color",
-          "13": "$color",
-          "14": "$color",
-          "15": "$color",
-          "16": "$color",
-          "true": "$color"
+          "10": -1
         },
         "face": {
           "100": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans"
           },
           "200": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans"
           },
           "300": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans"
           },
           "400": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           },
           "500": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           },
           "600": {
-            "normal": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           },
           "700": {
-            "normal": "InterBold"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           },
           "800": {
-            "normal": "InterBold"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           },
           "900": {
-            "normal": "InterBold"
+            "normal": "Open Sans",
+            "italic": "Open Sans"
           }
         }
       },
       "body": {
-        "family": "Inter, -apple-system, system-ui, BlinkMacSystemFont, \"Segoe UI\", Roboto, Helvetica, Arial, sans-serif",
+        "family": "Open Sans",
+        "size": {
+          "1": 12,
+          "2": 14,
+          "3": 16,
+          "4": 18,
+          "5": 20,
+          "6": 24,
+          "7": 28,
+          "8": 32,
+          "9": 36,
+          "10": 40
+        },
         "lineHeight": {
           "1": 16,
-          "2": 21,
-          "3": 22,
-          "4": 23,
-          "5": 26,
-          "6": 28,
-          "7": 30,
-          "8": 33,
-          "9": 41,
-          "10": 59,
-          "11": 69,
-          "12": 76,
-          "13": 87,
-          "14": 109,
-          "15": 133,
-          "16": 155,
-          "true": 23
+          "2": 20,
+          "3": 24,
+          "4": 28,
+          "5": 30,
+          "6": 36,
+          "7": 40,
+          "8": 44,
+          "9": 48,
+          "10": 52
         },
         "weight": {
           "1": "400",
@@ -25649,18 +25594,11 @@
           "3": "400",
           "4": "400",
           "5": "400",
-          "6": "400",
-          "7": "600",
-          "8": "600",
-          "9": "600",
-          "10": "600",
-          "11": "600",
-          "12": "600",
-          "13": "600",
-          "14": "600",
-          "15": "600",
-          "16": "600",
-          "true": "600"
+          "6": "600",
+          "7": "700",
+          "8": "800",
+          "9": "800",
+          "10": "800"
         },
         "letterSpacing": {
           "1": 0,
@@ -25670,185 +25608,130 @@
           "5": 0,
           "6": 0,
           "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0,
-          "13": 0,
-          "14": 0,
-          "15": 0,
-          "16": 0,
-          "true": 0
+          "8": -1,
+          "9": -1,
+          "10": -1
         },
-        "size": {
-          "1": 11,
-          "2": 12,
-          "3": 13,
-          "4": 14,
-          "5": 16,
-          "6": 18,
-          "7": 20,
-          "8": 23,
-          "9": 30,
-          "10": 46,
-          "11": 55,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 134,
-          "true": 14
+        "face": {
+          "100": {
+            "normal": "Open Sans"
+          },
+          "200": {
+            "normal": "Open Sans"
+          },
+          "300": {
+            "normal": "Open Sans"
+          },
+          "400": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "500": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "600": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "700": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "800": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "900": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          }
         }
       },
-      "mono": {
-        "family": "\"ui-monospace\", \"SFMono-Regular\", \"SF Mono\", Menlo, Consolas, \"Liberation Mono\", monospace",
+      "default": {
+        "family": "Open Sans",
         "size": {
-          "1": 11,
-          "2": 12,
-          "3": 13,
-          "4": 14,
-          "5": 16,
-          "6": 18,
-          "7": 20,
-          "8": 22,
-          "9": 30,
-          "10": 42,
-          "11": 52,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 124
-        },
-        "lineHeight": {
-          "1": 16.5,
-          "2": 18,
-          "3": 19.5,
-          "4": 21,
-          "5": 24,
-          "6": 27,
-          "7": 30,
-          "8": 33,
-          "9": 45,
-          "10": 63,
-          "11": 78,
-          "12": 93,
-          "13": 108,
-          "14": 138,
-          "15": 171,
-          "16": 186
-        },
-        "weight": {
-          "1": "500",
-          "2": "500",
-          "3": "500",
-          "4": "500",
-          "5": "500",
-          "6": "500",
-          "7": "500",
-          "8": "500",
-          "9": "500",
-          "10": "500",
-          "11": "500",
-          "12": "500",
-          "13": "500",
-          "14": "500",
-          "15": "500",
-          "16": "500"
-        },
-        "letterSpacing": {
-          "1": 0,
-          "2": 0,
-          "3": 0,
-          "4": 0,
-          "5": 0,
-          "6": 0,
-          "7": 0,
-          "8": 0,
-          "9": 0,
-          "10": 0,
-          "11": 0,
-          "12": 0,
-          "13": 0,
-          "14": 0,
-          "15": 0,
-          "16": 0
-        }
-      },
-      "silkscreen": {
-        "family": "Silkscreen, Fira Code, Monaco, Consolas, Ubuntu Mono, monospace",
-        "size": {
-          "1": 11,
-          "2": 12,
-          "3": 13,
-          "4": 14,
-          "5": 15,
-          "6": 16,
-          "7": 18,
-          "8": 21,
-          "9": 28,
-          "10": 42,
-          "11": 52,
-          "12": 62,
-          "13": 72,
-          "14": 92,
-          "15": 114,
-          "16": 124
-        },
-        "lineHeight": {
-          "1": 19,
-          "2": 20,
-          "3": 22,
-          "4": 23,
-          "5": 24,
-          "6": 25,
+          "1": 12,
+          "2": 14,
+          "3": 16,
+          "4": 18,
+          "5": 20,
+          "6": 24,
           "7": 28,
-          "8": 31,
-          "9": 40,
-          "10": 56,
-          "11": 68,
-          "12": 80,
-          "13": 92,
-          "14": 116,
-          "15": 143,
-          "16": 155
+          "8": 32,
+          "9": 36,
+          "10": 40
+        },
+        "lineHeight": {
+          "1": 16,
+          "2": 20,
+          "3": 24,
+          "4": 28,
+          "5": 30,
+          "6": 36,
+          "7": 40,
+          "8": 44,
+          "9": 48,
+          "10": 52
         },
         "weight": {
-          "1": "300",
-          "2": "300",
-          "3": "300",
-          "4": "300",
-          "5": "300",
-          "6": "300",
-          "7": "300",
-          "8": "300",
-          "9": "300",
-          "10": "300",
-          "11": "300",
-          "12": "300",
-          "13": "300",
-          "14": "300",
-          "15": "300",
-          "16": "300"
+          "1": "400",
+          "2": "400",
+          "3": "400",
+          "4": "400",
+          "5": "400",
+          "6": "600",
+          "7": "700",
+          "8": "800",
+          "9": "800",
+          "10": "800"
         },
         "letterSpacing": {
-          "1": 1,
-          "2": 1,
-          "3": 1,
-          "4": 1,
-          "5": 3,
-          "6": 3,
-          "7": 3,
-          "8": 3,
-          "9": -2,
-          "10": -3,
-          "11": -3,
-          "12": -4,
-          "13": -4,
-          "14": -4,
-          "15": -4,
-          "16": -4
+          "1": 0,
+          "2": 0,
+          "3": 0,
+          "4": 0,
+          "5": 0,
+          "6": 0,
+          "7": 0,
+          "8": -1,
+          "9": -1,
+          "10": -1
+        },
+        "face": {
+          "100": {
+            "normal": "Open Sans"
+          },
+          "200": {
+            "normal": "Open Sans"
+          },
+          "300": {
+            "normal": "Open Sans"
+          },
+          "400": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "500": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "600": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "700": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "800": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          },
+          "900": {
+            "normal": "Open Sans",
+            "italic": "Open Sans"
+          }
         }
       }
     },

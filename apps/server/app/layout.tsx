@@ -1,3 +1,4 @@
+// app/layout.tsx
 import { ReactNode } from 'react';
 import './global.css';
 import AuthProvider from '../components/AuthProvider';

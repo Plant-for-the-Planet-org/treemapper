@@ -1,4 +1,61 @@
 /* app/globals.css */
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-Italic.ttf') format('truetype');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-BoldItalic.ttf') format('truetype');
+  font-weight: 700;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Open Sans';
+  src: url('/fonts/OpenSans-SemiBoldItalic.ttf') format('truetype');
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+
 * {
     box-sizing: border-box;
     padding: 0;
@@ -63,3 +120,26 @@
   .nav-links a:hover {
     background-color: #e0e0e0;
   }
+
+  
+
+  body, h1, h2, h3, h4, h5, h6, p, span, div, button, input, textarea, select, a, li, ul, ol, table, 
+[data-tamagui-font-family], 
+.tamagui-Text, 
+.tamagui-Paragraph, 
+.tamagui-Heading, 
+.tamagui-Button-text,
+.tamagui-H1, .tamagui-H2, .tamagui-H3, .tamagui-H4, .tamagui-H5, .tamagui-H6 {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Ensure Tamagui components use the correct font */
+[data-is-tamagui-component] {
+  font-family: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif !important;
+}
+
+/* Target the specific h3 that contains your dashboard title */
+h3:contains("TreeMapper Dashboard") {
+  font-family: 'Open Sans', sans-serif !important;
+  font-weight: bold !important;
+}

@@ -29,7 +29,6 @@
     "app-env.d.ts",
     "**/*.ts",
     "**/*.tsx",
-    "tamagui.config.ts",
     ".next/types/**/*.ts"
   ],
   "exclude": [
