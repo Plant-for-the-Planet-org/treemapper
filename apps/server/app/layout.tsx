@@ -1,6 +1,8 @@
 // app/layout.tsx
 import { ReactNode } from 'react';
 import './global.css';
+import AuthProvider from '../components/AuthProvider';
+import {DashboardProvider} from 'dashboard/provider/TamaguiProviderWeb'
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -12,7 +14,11 @@ export default function RootLayout({ children }: RootLayoutProps) {
       <body>
         <div className="app-container">
           <div className="app-content">
-            {children}
+            <AuthProvider>
+              <DashboardProvider>
+                {children}
+              </DashboardProvider>
+            </AuthProvider>
           </div>
         </div>
       </body>

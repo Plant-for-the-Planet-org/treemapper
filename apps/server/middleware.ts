@@ -1,40 +1,33 @@
-// middleware.ts
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+import { NextRequestWithAuth, withAuth } from 'next-auth/middleware'
+import { type NextFetchEvent, NextRequest, NextResponse } from 'next/server'
+import { NextMiddlewareResult } from 'next/dist/server/web/types'
 
-// List of paths that don't require authentication
-const publicPaths = ['/login', '/register', '/api/auth'];
+export default async function middleware(request: NextRequest, event: NextFetchEvent) {
+  const headers = { 'accept-language': request.headers.get('accept-language') ?? '' }
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
-  
-  // Check if the path is public
-  if (publicPaths.some(path => pathname.startsWith(path))) {
-    return NextResponse.next();
+  const response = NextResponse.next()
+
+  /*
+   * Match all request paths except for the ones starting with:
+   * - login
+   * - register
+   */
+  if (![
+    '/login',
+    '/register',
+  ].includes(request.nextUrl.pathname)) {
+    const res: NextMiddlewareResult = await withAuth(
+      // Response with local cookies
+      () => response,
+      {
+      // Matches the pages config in `[...nextauth]`
+        pages: {
+          signIn: '/login',
+        },
+      },
+    )(request as NextRequestWithAuth, event)
+    return res
   }
-  
-  // Check for the token
-  const token = await getToken({
-    req: request,
-    secret: process.env.NEXTAUTH_SECRET,
-  });
-  
-  // Redirect to login if not authenticated
-  if (!token) {
-    const url = new URL('/login', request.url);
-    // Add the current path as a callback URL to redirect after login
-    url.searchParams.set('callbackUrl', encodeURI(pathname));
-    return NextResponse.redirect(url);
-  }
-  
-  return NextResponse.next();
+
+  return response
 }
-
-// Configure which paths the middleware should run on
-export const config = {
-  matcher: [
-    // Apply to all paths except public ones and static files
-    '/((?!_next/static|_next/image|favicon.ico).*)',
-  ],
-};

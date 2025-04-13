@@ -36,7 +36,6 @@
     "@turf/helpers": "^6.5.0",
     "@turf/turf": "^7.0.0",
     "d3-shape": "^3.2.0",
-    "@treemapper/api": "*",
     "dashboard": "*",
     "expo": "51.0.21",
     "expo-application": "~5.9.1",
