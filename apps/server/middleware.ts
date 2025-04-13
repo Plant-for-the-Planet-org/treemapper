@@ -1,50 +1,47 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getToken } from 'next-auth/jwt';
 
-// Define routes that don't require authentication
-const publicRoutes = ['/login', '/auth/error'];
-
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
-  // Check if the route is public
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname.startsWith(route) || pathname === '/'
-  );
-  
-  // Get the authentication token
+  // Get the session token
   const token = await getToken({ 
-    req: request,
+    req: request, 
     secret: process.env.NEXTAUTH_SECRET 
   });
   
-  const isAuthenticated = !!token;
+  // Define public routes that don't require authentication
+  const publicRoutes = ['/login', '/api/auth'];
+  const isPublicRoute = publicRoutes.some(route => 
+    pathname.startsWith(route) || pathname === route
+  );
   
-  // User is trying to access a protected route while not authenticated
-  if (!isPublicRoute && !isAuthenticated) {
-    // Store the original URL to redirect back after login
-    const url = new URL('/login', request.url);
-    url.searchParams.set('callbackUrl', encodeURI(request.url));
-    return NextResponse.redirect(url);
-  }
+  // Check if the user is on the root path
+  const isRootPath = pathname === '/';
   
-  // User is authenticated but trying to access login page
-  if (isAuthenticated && pathname.startsWith('/login')) {
-    // Redirect to dashboard
+  // If the user is authenticated and trying to access the root path,
+  // redirect them to the dashboard
+  if (token && isRootPath) {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
   
-  return NextResponse.next();
+  // If the user is authenticated or trying to access a public route, allow access
+  if (token || isPublicRoute) {
+    return NextResponse.next();
+  }
+  
+  // If the user is not authenticated and trying to access a protected route,
+  // redirect them to the login page with the callbackUrl
+  const callbackUrl = encodeURIComponent(pathname);
+  return NextResponse.redirect(
+    new URL(`/login?callbackUrl=${callbackUrl}`, request.url)
+  );
 }
 
-// Configure which routes this middleware will run on
+// Configure which routes the middleware should run on
 export const config = {
   matcher: [
-    // Match all paths except for:
-    // - API routes (/api/*)
-    // - Static files (/_next/*)
-    // - Public files (/public/*)
-    // - favicon.ico
-    '/((?!api|_next/static|_next/image|public|favicon.ico).*)',
+    // Apply to all routes except for next internal routes and API routes that don't need auth
+    '/((?!_next/static|_next/image|favicon.ico|api/auth/otp|api/auth/otp/verify).*)',
   ],
 };

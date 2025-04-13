@@ -1,100 +1,79 @@
-// src/app/api/auth/options.ts
 import type { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import GoogleProvider from "next-auth/providers/google";
 
-export const authOptions: NextAuthOptions = {
+export const options: NextAuthOptions = {
   providers: [
-    // Test-only credentials provider - automatically signs in
+    // Development Bypass Provider - remove in production
     CredentialsProvider({
-      id: "test-credentials",
-      name: "Test Login",
+      id: "dev-bypass",
+      name: "Development Bypass",
       credentials: {
-        username: { label: "Username", type: "text", placeholder: "Any username for testing" },
-        password: { label: "Password", type: "password", placeholder: "Any password for testing" },
+        devUsername: { 
+          label: "Development Username", 
+          type: "text", 
+          placeholder: "Enter any name for development" 
+        },
       },
-      async authorize(credentials) {
-        // For testing, always return a mock user without verification
-        return {
-          id: "test-user-123",
-          name: "Test Admin User",
-          email: "testadmin@example.com",
-          username: credentials?.username || "testuser",
-          avatar: "",
-          access_token: "mock-access-token-for-testing",
-          refresh_token: "mock-refresh-token-for-testing",
-          roles: ["Admin"],
-          userStatus: "Active",
-          phoneNo: "1234567890",
-        };
+      async authorize() {
+        // Only enable this in development environment
+        if (process.env.NODE_ENV !== "production") {
+          return {
+            id: "dev-user-1",
+            name: "Development User",
+            email: "dev@example.com",
+            image: "https://via.placeholder.com/150"
+          };
+        }
+        return null;
       },
     }),
-
-    // You can keep the regular providers commented out for now
-    /* 
-    // Regular credentials provider (username/password)
-    CredentialsProvider({
-      id: "credentials",
-      name: "Credentials",
-      credentials: {
-        username: { label: "Username", type: "text" },
-        password: { label: "Password", type: "password" },
-      },
-      async authorize(credentials) {
-        // Original authorization code here
-      },
+    
+    // Google Provider - add your keys when ready
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "placeholder-client-id",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "placeholder-client-secret",
+      // Skip Google auth flow if keys not provided
+      authorization: {
+        params: {
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
-
-    // OTP-based provider
-    CredentialsProvider({
-      id: "otp",
-      name: "OTP Login",
-      credentials: {
-        phoneNumber: { label: "Phone Number", type: "text" },
-        otp: { label: "OTP", type: "text" },
-        key: { label: "Key", type: "text" },
-        otpType: { label: "OTP Type", type: "text" },
-      },
-      async authorize(credentials) {
-        // Original OTP authorization code here
-      },
-    }),
-    */
   ],
+  session: {
+    strategy: "jwt",
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+  },
   callbacks: {
-    async jwt({ token, user }) {
+    async jwt({ token, user, account }) {
       if (user) {
-        // Include all user data in the token
-        token.user = user;
-        token.access_token = user.access_token;
-        token.refresh_token = user.refresh_token;
-        token.roles = user.roles;
-        token.userStatus = user.userStatus;
-        token.phoneNo = user.phoneNo;
+        token.id = user.id;
+        // Add provider info to token
+        if (account) {
+          token.provider = account.provider;
+        }
       }
       return token;
     },
     async session({ session, token }) {
-      // Include all token data in the session
-      session.user = {
-        ...session.user,
-        id: token.user?.id || "test-user-id",
-        roles: token.user?.roles || ["Admin"],
-        userStatus: token.user?.userStatus || "Active",
-        phoneNo: token.user?.phoneNo || "1234567890",
-      };
-      session.access_token = token.access_token || "mock-access-token";
-      session.refresh_token = token.refresh_token || "mock-refresh-token";
+      if (session.user) {
+        session.user.id = token.id as string;
+        // Add provider info to session
+        (session as any).provider = token.provider;
+        // For development purposes, add a flag to indicate if this is a bypass session
+        if (token.provider === "dev-bypass") {
+          (session as any).isDevelopmentBypass = true;
+        }
+      }
       return session;
     },
   },
   pages: {
     signIn: "/login",
-    error: "/auth/error", // Custom error page
+    error: "/auth/error",
   },
-  debug: process.env.NODE_ENV === "development",
-  session: {
-    strategy: "jwt",
-    maxAge: 30 * 24 * 60 * 60, // 30 days
-  },
-  secret: process.env.NEXTAUTH_SECRET || "test-secret-please-change-in-production",
+  secret: process.env.NEXTAUTH_SECRET,
 };

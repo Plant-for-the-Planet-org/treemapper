@@ -17,10 +17,11 @@ export default function DashboardLayout({
 
   // Redirect to login if not authenticated
   useEffect(() => {
-    if (status === 'unauthenticated') {
-      router.push('/login');
+    // This is a safety check in case the middleware doesn't catch the redirection
+    if (status === "unauthenticated") {
+      router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
     }
-  }, [status, router, pathname]);
+  }, [status, router]);
 
   // Show loading state while checking authentication
   if (status == 'loading') {

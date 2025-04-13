@@ -1,327 +1,141 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { signIn } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
-import {
-  YStack,
-  XStack,
-  Button,
-  Input,
-  Text,
-  H1,
-  H3,
-  Image,
-  Card,
-  Paragraph,
-  Separator,
-  createMedia
-} from 'tamagui';
-import ImageNext from 'next/image';
+import { useState } from "react";
+import { signIn } from "next-auth/react";
+import { useRouter, useSearchParams } from "next/navigation";
+import Image from "next/image";
 
-// Create custom media query breakpoints
-const media = createMedia({
-  xs: { maxWidth: 660 },
-  sm: { maxWidth: 800 },
-  md: { maxWidth: 1020 },
-  lg: { maxWidth: 1280 },
-  xl: { minWidth: 1281 },
-});
-
-const { useMedia } = media;
-
-export default function Login() {
+export default function LoginPage() {
   const router = useRouter();
-  const [email, setEmail] = useState('user@example.com'); // Pre-filled for demo
-  const [password, setPassword] = useState('password');   // Pre-filled for demo
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [windowWidth, setWindowWidth] = useState(0);
+  const searchParams = useSearchParams();
+  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
+  
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [devUserMode, setDevUserMode] = useState(false);
+  const [devUsername, setDevUsername] = useState("");
 
-  // Use dynamic imports for images
-  const [googleImage, setGoogleImage] = useState(null);
-  const [appleImage, setAppleImage] = useState(null);
+  // Google sign in handler
+  const handleGoogleSignIn = () => {
+    setLoading(true);
+    signIn("google", { callbackUrl });
+  };
 
-  // Set up images and window resize listener
-  useEffect(() => {
-    // Dynamic import for images
-    import('../../../public/googleplay.png').then(image => setGoogleImage(image.default));
-    import('../../../public/apple.png').then(image => setAppleImage(image.default));
-
-    if (typeof window !== 'undefined') {
-      setWindowWidth(window.innerWidth);
-
-      const handleResize = () => {
-        setWindowWidth(window.innerWidth);
-      };
-
-      window.addEventListener('resize', handleResize);
-      return () => window.removeEventListener('resize', handleResize);
-    }
-  }, []);
-
-  // Determine screen size
-  const isMobile = windowWidth < 768;
-  const isTablet = windowWidth >= 768 && windowWidth < 1024;
-
-  const handleSubmit = async (e) => {
+  // Development bypass handler
+  const handleDevBypass = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
-    setError('');
+    setLoading(true);
+    setError("");
 
     try {
-      console.log("Attempting to sign in with:", { email, password });
-      
-      const result = await signIn('credentials', {
-        redirect: true,
-        Username:'Test-user-123',
-        Password:'est-user-123'
+      const result = await signIn("dev-bypass", {
+        redirect: false,
+        devUsername,
       });
 
-      console.log("Sign in result:", result);
-
       if (result?.error) {
-        setError('Invalid email or password');
+        setError(result.error);
       } else {
-        router.push('/dashboard');
+        // Redirect to the callback URL or dashboard if successful
+        router.push(callbackUrl);
       }
-    } catch (err) {
-      console.error("Sign in error:", err);
-      setError('An error occurred. Please try again.');
+    } catch (error) {
+      setError("An unexpected error occurred. Please try again.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
-  // If no images yet
-  if (!googleImage || !appleImage) {
-    return (
-      <YStack width="100%" height="100vh" justifyContent="center" alignItems="center">
-        <Text>Loading...</Text>
-      </YStack>
-    );
-  }
-
-  // Mobile layout
-  if (isMobile) {
-    return (
-      <YStack width="100%" minHeight="100vh" backgroundColor="$background">
-        {/* Header / Login Section */}
-        <YStack padding="$4" space="$4" flex={1} justifyContent="center">
-          <YStack alignItems="center" space="$4" marginBottom="$4">
-            <H1 fontWeight="bold" textAlign="center">TreeMapper</H1>
-            <Text fontSize="$4" textAlign="center" fontWeight="500">
-              The free monitoring tool for forest restoration programs
-            </Text>
-          </YStack>
-
-          <YStack space="$2" marginBottom="$2" alignItems="center">
-            <H3 color="$gray10" textAlign="center">Sign in to continue</H3>
-          </YStack>
-
-          <Card padding="$4" bordered marginBottom="$4">
-            <Paragraph color="$gray10" textAlign="center">
-              The TreeMapper Admin Dashboard gives you full access to monitor, manage, and verify restoration data collected from the field — enabling transparency, accountability, and smarter reforestation, all in one place.
-            </Paragraph>
-          </Card>
-
-          {error && (
-            <Text color="$red10" marginVertical="$2" textAlign="center">
-              {error}
-            </Text>
+  return (
+    <div className="flex min-h-screen items-center justify-center bg-gray-50">
+      <div className="w-full max-w-md p-8 space-y-8 bg-white rounded-lg shadow-lg">
+        <div className="text-center">
+          <h1 className="text-3xl font-bold text-gray-900">Welcome</h1>
+          <p className="mt-2 text-gray-600">Sign in to continue to your account</p>
+        </div>
+        
+        {error && (
+          <div className="p-4 text-sm text-red-700 bg-red-100 rounded-lg">
+            {error}
+          </div>
+        )}
+        
+        <div className="mt-8 space-y-6">
+          {/* Google Sign In Button */}
+          <button
+            onClick={handleGoogleSignIn}
+            disabled={loading}
+            className="w-full flex items-center justify-center gap-3 py-3 px-4 border border-gray-300 rounded-md shadow-sm bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"></circle>
+              <path d="M8 12h8"></path>
+              <path d="M12 8v8"></path>
+            </svg>
+            Sign in with Google
+          </button>
+          
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-2 bg-white text-gray-500">Development Options</span>
+            </div>
+          </div>
+          
+          {!devUserMode ? (
+            <button
+              onClick={() => setDevUserMode(true)}
+              className="w-full flex justify-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-gray-50 hover:bg-gray-100"
+            >
+              Use Development Bypass
+            </button>
+          ) : (
+            <form onSubmit={handleDevBypass} className="space-y-4">
+              <div>
+                <label htmlFor="devUsername" className="block text-sm font-medium text-gray-700">
+                  Development Username
+                </label>
+                <input
+                  id="devUsername"
+                  name="devUsername"
+                  type="text"
+                  placeholder="Enter any name (for development only)"
+                  className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                  value={devUsername}
+                  onChange={(e) => setDevUsername(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-gray-500">
+                  This bypass is for development purposes only and will be removed in production.
+                </p>
+              </div>
+              
+              <div className="flex space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setDevUserMode(false)}
+                  className="flex-1 py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="flex-1 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50"
+                >
+                  {loading ? "Signing in..." : "Continue"}
+                </button>
+              </div>
+            </form>
           )}
 
-          <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-            <YStack space="$4" width="100%">
-              <Input
-                placeholder="Email"
-                value={email}
-                onChange={(e) => setEmail(e.nativeEvent.text)}
-                autoCapitalize="none"
-                autoComplete="email"
-                marginBottom="$2"
-              />
-              
-              <Input
-                placeholder="Password"
-                value={password}
-                onChange={(e) => setPassword(e.nativeEvent.text)}
-                secureTextEntry
-                autoCapitalize="none"
-                autoComplete="current-password"
-                marginBottom="$4"
-              />
-              
-              <Button
-                backgroundColor="$blue10"
-                color="white"
-                onPress={handleSubmit}
-                disabled={isLoading}
-                width="100%"
-              >
-                {isLoading ? 'Authenticating...' : 'Login'}
-              </Button>
-
-              <XStack justifyContent="center" marginTop="$2">
-                <Text color="$gray10">Having Trouble? </Text>
-                <Text color="$blue10" fontWeight="bold" onPress={() => { }}>
-                  &nbsp;Contact Us
-                </Text>
-              </XStack>
-            </YStack>
-          </form>
-        </YStack>
-
-        {/* Footer / App Download Section */}
-        <YStack padding="$4" backgroundColor="$backgroundStrong" alignItems="center" space="$4">
-          <Text fontWeight="500" textAlign="center">
-            Download our mobile app
-          </Text>
-
-          <XStack space="$4" justifyContent="center" flexWrap="wrap">
-            <Button
-              width="auto"
-              borderRadius="$4"
-              borderWidth={1}
-              pressStyle={{ opacity: 0.8 }}
-              marginBottom="$2"
-              backgroundColor="white"
-            >
-              <XStack space="$2" alignItems="center">
-                <ImageNext src={googleImage} width={24} height={24} alt="Google Play" />
-                <Text fontWeight="bold">Google Play</Text>
-              </XStack>
-            </Button>
-
-            <Button
-              width="auto"
-              borderRadius="$4"
-              borderWidth={1}
-              pressStyle={{ opacity: 0.8 }}
-              backgroundColor="white"
-            >
-              <XStack space="$2" alignItems="center">
-                <ImageNext src={appleImage} width={24} height={24} alt="App Store" />
-                <Text fontWeight="bold">App Store</Text>
-              </XStack>
-            </Button>
-          </XStack>
-        </YStack>
-      </YStack>
-    );
-  }
-
-  // For tablet and desktop layouts, follow the same pattern but include the input fields
-  // I'm showing just one case for brevity - apply the same pattern to your tablet and desktop layouts
-  
-  // Desktop layout
-  return (
-    <XStack width="100%" height="100vh" overflow="hidden">
-      {/* Left Side - Improved UI */}
-      <YStack width="60%" height="100%" padding="$6" justifyContent="center"
-        backgroundColor="$background">
-        <XStack alignItems="center" space="$6" justifyContent="center">
-          {/* TreeMapper Logo & Text */}
-          <YStack marginRight="$15">
-            <XStack alignItems="center" space="$2">
-              <H1 fontWeight="bold">TreeMapper</H1>
-            </XStack>
-            <Text fontSize="$6" fontWeight="500" marginTop="$2">
-              The free monitoring tool for forest restoration programs
-            </Text>
-            <XStack space="$4" marginTop="$5">
-              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }} backgroundColor="white">
-                <XStack space="$2" alignItems="center" >
-                  <ImageNext src={googleImage} width={24} height={24} alt="Google Play" />
-                  <Text fontWeight="bold">Google Play</Text>
-                </XStack>
-              </Button>
-
-              <Button width="auto" borderRadius="$4" borderWidth={1} pressStyle={{ opacity: 0.8 }} backgroundColor="white">
-                <XStack space="$2" alignItems="center">
-                  <ImageNext src={appleImage} width={24} height={24} alt="App Store" />
-                  <Text fontWeight="bold">App Store</Text>
-                </XStack>
-              </Button>
-            </XStack>
-          </YStack>
-          <Image
-            source={{ uri: 'https://www.plant-for-the-planet.org/wp-content/uploads/2024/05/TreeMapper-intro.png?x95944' }}
-            resizeMode="contain"
-            alt="TreeMapper App Preview"
-            style={{ width: '25%', height: '70vh', position: 'absolute', right: '15%' }}
-          />
-        </XStack>
-      </YStack>
-
-      {/* Right Side - Login Form */}
-      <YStack
-        width="40%"
-        height="100%"
-        padding="$6"
-        space="$4"
-        justifyContent="center"
-        backgroundColor="$backgroundStrong"
-      >
-        <YStack space="$2" marginBottom="$2">
-          <H1 fontWeight="bold">Welcome Back</H1>
-          <H3 color="$gray10">Sign in to continue</H3>
-        </YStack>
-
-        <Card padding="$4" bordered marginBottom="$4">
-          <Paragraph color="$gray10">
-            The TreeMapper Admin Dashboard gives you full access to monitor, manage, and verify restoration data collected from the field — enabling transparency, accountability, and smarter reforestation, all in one place.
-          </Paragraph>
-        </Card>
-
-        {error && (
-          <Text color="$red10" marginVertical="$2">
-            {error}
-          </Text>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ width: '100%' }}>
-          <YStack space="$4" width="100%">
-            <Input
-              placeholder="Email"
-              value={email}
-              onChange={(e) => setEmail(e.nativeEvent.text)}
-              autoCapitalize="none"
-              autoComplete="email"
-              marginBottom="$2"
-            />
-            
-            <Input
-              placeholder="Password"
-              value={password}
-              onChange={(e) => setPassword(e.nativeEvent.text)}
-              secureTextEntry
-              autoCapitalize="none"
-              autoComplete="current-password"
-              marginBottom="$4"
-            />
-
-            <Separator marginVertical="$2" />
-
-            <Button
-              backgroundColor="$blue10"
-              color="white"
-              onPress={handleSubmit}
-              disabled={isLoading}
-              width="100%"
-            >
-              {isLoading ? 'Authenticating...' : 'Login'}
-            </Button>
-
-            <XStack justifyContent="center" marginTop="$2">
-              <Text color="$gray10">Having Trouble? </Text>
-              <Text color="$blue10" fontWeight="bold" onPress={() => { }}>
-                &nbsp;Contact Us
-              </Text>
-            </XStack>
-          </YStack>
-        </form>
-      </YStack>
-    </XStack>
+          <div className="text-xs text-center text-gray-500 mt-4">
+            <p>This is a development environment.</p>
+            <p>In production, only Google authentication will be available.</p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
