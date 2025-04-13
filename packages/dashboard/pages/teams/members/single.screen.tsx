@@ -1,6 +1,6 @@
 import React from 'react'
 import { createParam } from 'solito'
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 import { YStack } from 'tamagui'
 import { ContentSkeleton } from '../../../components/skeleton/content'
 import { HeaderSkeleton } from '../../../components/skeleton/header'

@@ -1,6 +1,6 @@
 import type { TabsContentProps } from 'tamagui'
 
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 import React from 'react'
 import { isWeb, Stack, Tabs, Text, YStack } from 'tamagui'
 import NotificationsScreen from '../../features/settings/notifications/screen'

@@ -1,5 +1,5 @@
 import type { TabsContentProps } from 'tamagui'
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 import OverviewScreen from '../../pages/overview/screen'
 import MembersScreen from '../../pages/teams/members/screen'
 import SettingsIndexScreen from '../../pages/settings/screen'

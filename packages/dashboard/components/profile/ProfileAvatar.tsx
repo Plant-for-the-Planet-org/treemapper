@@ -1,6 +1,6 @@
 import React from 'react'
 import { Avatar, XStack } from 'tamagui'
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 
 function UserAvatar() {
   const router = useRouter()

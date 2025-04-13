@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { StyleSheet, Alert, TouchableOpacity, Platform, useWindowDimensions } from 'react-native';
-import { useRouter } from 'solito/router';
+import { useRouter } from 'solito/navigation';
 import {
   Button,
   Text,

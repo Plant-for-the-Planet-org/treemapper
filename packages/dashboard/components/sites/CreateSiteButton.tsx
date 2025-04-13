@@ -1,4 +1,4 @@
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 import { Button, Image } from 'tamagui'
 
 const Plus = require('../../../public/images/plus.png')

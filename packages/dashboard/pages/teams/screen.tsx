@@ -1,5 +1,5 @@
 import React from 'react'
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
 import { H1, YStack } from 'tamagui'
 import { ContentSkeleton } from '../../components/skeleton/content'
 

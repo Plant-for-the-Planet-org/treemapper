@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { YStack, XStack, Text, Avatar, ScrollView, Button, Card } from 'tamagui';
 import { Check, ArrowLeft } from '@tamagui/lucide-icons';
-import { useRouter } from 'solito/router';
+import { useRouter } from 'solito/navigation';
 
 // Sample notification data
 const DUMMY_NOTIFICATIONS = [

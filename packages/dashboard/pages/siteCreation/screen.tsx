@@ -11,7 +11,7 @@ import {
   SizableText
 } from 'tamagui';
 import { ArrowLeft, ChevronDown, Trash2, Edit3, Plus, Minus } from '@tamagui/lucide-icons';
-import { useRouter } from 'solito/router';
+import { useRouter } from 'solito/navigation';
 
 const ProjectSiteForm = () => {
   const router = useRouter();

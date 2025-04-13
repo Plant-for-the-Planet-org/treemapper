@@ -1,7 +1,7 @@
 import React from 'react';
 import { Bell } from '@tamagui/lucide-icons';
 import { XStack, YStack, Text, Stack } from 'tamagui';
-import { useRouter } from 'solito/router';
+import { useRouter } from 'solito/navigation';
 
 /**
  * Enhanced NotificationIcon component with customizable badge

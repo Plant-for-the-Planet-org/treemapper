@@ -1,6 +1,7 @@
 import React from 'react'
 import { Button, H3, XStack, Image } from 'tamagui'
-import { useRouter } from 'solito/router'
+import { useRouter } from 'solito/navigation'
+
 
 const BackIcon = require('../../../public/images/back.png')
 
