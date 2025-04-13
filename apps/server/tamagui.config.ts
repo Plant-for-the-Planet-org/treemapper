@@ -24,7 +24,7 @@ export const config = createTamagui({
     body: headingFont,
   },
   // Only include the light theme
-  themes: lightOnlyThemes,
+  themes,
   tokens,
   media: createMedia({
     xs: { maxWidth: 660 },

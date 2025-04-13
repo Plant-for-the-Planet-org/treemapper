@@ -5,7 +5,7 @@ module.exports = {
         '@tamagui/babel-plugin',
         {
           components: ['tamagui'],
-          config: '../../packages/ui/tamagui.config.ts',
+          config: '../../packages/dashboard/provider/tamagui.config.ts',
           importsWhitelist: ['constants.js', 'colors.js']
         }
       ]

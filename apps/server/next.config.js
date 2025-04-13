@@ -43,7 +43,7 @@ const nextConfig = {
 
 const plugins = [
   withTamagui({
-    config: '../../packages/ui/tamagui.config.ts',
+    config: '../../packages/dashboard/provider/tamagui.config.ts',
     components: ['tamagui'],
     importsWhitelist: ['constants.js', 'colors.js'],
     logTimings: true,
