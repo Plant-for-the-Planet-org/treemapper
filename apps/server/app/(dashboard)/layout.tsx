@@ -3,6 +3,7 @@
 import { usePathname, useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
+import GoogleSpinner from '../../components/Spinner';
 
 // Protected layout for dashboard and other authenticated pages
 export default function DashboardLayout({
@@ -22,10 +23,10 @@ export default function DashboardLayout({
   }, [status, router, pathname]);
 
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (status == 'loading') {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        Loading...
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <GoogleSpinner />
       </div>
     );
   }
