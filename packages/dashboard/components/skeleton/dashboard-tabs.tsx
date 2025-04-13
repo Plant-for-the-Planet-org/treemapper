@@ -1,10 +1,10 @@
 import type { TabsContentProps } from 'tamagui'
 import { useRouter } from 'solito/router'
-import OverviewScreen from '../../features/overview/screen'
-import MembersScreen from '../../features/teams/members/screen'
-import SettingsIndexScreen from '../../features/settings/screen'
-import SiteScreen from '../../features/sites/screen'
-import SpeciesScreen from '../../features/species/screen'
+import OverviewScreen from '../../pages/overview/screen'
+import MembersScreen from '../../pages/teams/members/screen'
+import SettingsIndexScreen from '../../pages/settings/screen'
+import SiteScreen from '../../pages/sites/screen'
+import SpeciesScreen from '../../pages/species/screen'
 
 import React, { useState } from 'react'
 import {

@@ -48,7 +48,7 @@ import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
-import DashboardNavigation from 'dashboard/features/index/navigation'
+import DashboardNavigation from 'dashboard/navigation/index'
 
 export default {
   HomeMapView: HomeMapView,

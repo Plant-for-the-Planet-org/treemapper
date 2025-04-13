@@ -1,10 +1,10 @@
 import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import DashboardIndexScreen from './screen'
-import MyProfile from '../profile/screen'
-import CreateProject from '../projectCreation/screen'
-import CreateSite from '../siteCreation/screen'
-import NotificationPanel from '../notificationPannel/screen'
+import DashboardIndexScreen from '../pages/home/screen'
+import MyProfile from '../pages/profile/screen'
+import CreateProject from '../pages/projectCreation/screen'
+import CreateSite from '../pages/siteCreation/screen'
+import NotificationPanel from '../pages/notificationPannel/screen'
 
 
 // Create a stack for all dashboard screens
