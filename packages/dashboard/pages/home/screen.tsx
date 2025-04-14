@@ -1,10 +1,13 @@
-import { currentPlatform } from '@tamagui/core';
 import MobileHome from './MobileHome';
 import WebHome from './WebHome'
 import React from 'react'
+import { usePlatform } from '../../utils/platformUtil';
+
 
 const HomeScreen = () => {
-  return currentPlatform === 'web' ? <WebHome /> : <MobileHome />
+  const { isWeb, isNative, isIOS, isAndroid, platform } = usePlatform();
+
+  return isWeb? <WebHome /> : <MobileHome />
 }
 
 export default HomeScreen

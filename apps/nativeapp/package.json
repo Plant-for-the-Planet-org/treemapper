@@ -26,7 +26,6 @@
     "@realm/react": "^0.8.0",
     "@reduxjs/toolkit": "^2.2.1",
     "@shopify/flash-list": "1.6.4",
-    "@tamagui/babel-plugin": "^1.123.3",
     "@turf/area": "^6.5.0",
     "@turf/bbox": "^6.5.0",
     "@turf/boolean-point-in-polygon": "^6.5.0",

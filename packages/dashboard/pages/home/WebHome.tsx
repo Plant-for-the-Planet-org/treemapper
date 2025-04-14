@@ -1,14 +1,14 @@
 import React from 'react';
-import { YStack, H3 } from 'tamagui'; // Import XStack for row layout
 
 
 export default function WebHomeScreen() {
 
 
     return (
-        <YStack flex={1} backgroundColor="$background" paddingTop="$5" flexGrow={1}>
-            <H3 fontSize={20} fontWeight={'600'}>TreeMapper Dashboard</H3>
-        </YStack>
+        <div style={{ backgroundColor: '#f5f5f5', height: '100vh', padding: '20px' }}>
+            <h1 style={{ color: '#333' }}>Welcome to TreeMapper Dashboard</h1>
+            <p style={{ color: '#666' }}>This is the web version of the TreeMapper Dashboard.</p>
+            <p style={{ color: '#666' }}>You can manage your projects and sites here.</p>
+        </div>
     );
 }
- 

@@ -1,37 +1,44 @@
 {
   "name": "treemapper",
+  "version": "0.0.1",
   "private": true,
   "scripts": {
     "build": "turbo build",
     "dev": "turbo dev",
     "lint": "turbo lint",
-    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "test": "turbo test",
     "postinstall": "patch-package",
-    "heroku-postbuild": "cd apps/server && yarn install && yarn run build",
-    "start": "cd apps/server && yarn start",
-    "clean": "rm -rf node_modules && rm -rf yarn.lock && rm -rf package-lock.json && rm -rf bun.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +"
+    "clean": "turbo clean && rm -rf node_modules",
+    "clean:deep": "rm -rf node_modules && rm -rf yarn.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
+    "heroku-postbuild": "turbo build --filter=server",
+    "start": "turbo start --filter=server",
+    "type-check": "turbo type-check",
+    
+    "// Workspace-specific scripts": "",
+    "native:dev": "turbo dev --filter=nativeapp",
+    "native:build": "turbo build --filter=nativeapp",
+    "native:start": "turbo start --filter=nativeapp",
+    "web:dev": "turbo dev --filter=server",
+    "web:build": "turbo build --filter=server",
+    "web:start": "turbo start --filter=server"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
     "turbo": "^2.2.3",
     "typescript": "5.5.4",
     "patch-package": "^8.0.0",
-    "@tamagui/babel-plugin": "1.91.1",
-    "@tamagui/next-plugin": "1.91.1",
-    "babel-plugin-transform-inline-environment-variables": "^6.8.0"
+    "@typescript-eslint/eslint-plugin": "^6.15.0",
+    "@typescript-eslint/parser": "^6.15.0",
+    "eslint": "^8.56.0",
+    "eslint-config-prettier": "^9.1.0"
   },
   "dependencies": {
-    "dotenv-cli": "^7.1.0",
+    "dotenv-cli": "^7.1.0"
+  },
+  "peerDependencies": {
     "react": "18.2.0",
-    "react-dom": "18.2.0",
-    "@tamagui/config": "1.91.1",
-    "@tamagui/core": "1.91.1",
-    "@tamagui/font-inter": "1.91.1",
-    "@tamagui/react-native-media-driver": "1.91.1",
-    "@tamagui/shorthands": "1.91.1",
-    "@tamagui/themes": "1.91.1",
-    "@tamagui/theme-base": "1.91.1",
-    "tamagui": "1.91.1"
+    "react-dom": "18.2.0"
   },
   "resolutions": {
     "react": "18.2.0",
@@ -40,7 +47,8 @@
     "@types/react": "18.2.6"
   },
   "engines": {
-    "node": "18.x"
+    "node": ">=18.x",
+    "yarn": ">=1.22.19"
   },
   "packageManager": "yarn@1.22.19",
   "workspaces": [

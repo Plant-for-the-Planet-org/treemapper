@@ -1,15 +1,9 @@
-'use client';
+import React from "react";
 
-
-import React from 'react'
-import { TamaguiProvider } from './tamagui'
-
-export function Wrapper({ children }: { children: React.ReactNode }) {
+export function DashboardProvider({ children }: { children: React.ReactNode }) {
   return (
-      <TamaguiProvider>
-        <>{children}</>
-      </TamaguiProvider>
-  )
+    <>
+      {children}
+    </>
+  );
 }
-
-export { Wrapper as DashboardProvider }

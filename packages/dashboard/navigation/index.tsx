@@ -1,11 +1,9 @@
 import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import DashboardIndexScreen from '../pages/home/screen'
-import MyProfile from '../pages/profile/screen'
-import CreateProject from '../pages/projectCreation/screen'
-import CreateSite from '../pages/siteCreation/screen'
-import NotificationPanel from '../pages/notificationPannel/screen'
 
+const ABC=()=>{
+  return null
+}
 
 // Create a stack for all dashboard screens
 const DashboardStack = createNativeStackNavigator<{
@@ -24,23 +22,23 @@ export default function DashboardNavigation() {
       screenOptions={{ headerShown: false }}>
       <DashboardStack.Screen
         name="index"
-        component={DashboardIndexScreen}
+        component={ABC}
       />
       <DashboardStack.Screen
         name="me"
-        component={MyProfile}
+        component={ABC}
       />
       <DashboardStack.Screen
         name="createproject"
-        component={CreateProject}
+        component={ABC}
       />
       <DashboardStack.Screen
         name="createsite"
-        component={CreateSite}
+        component={ABC}
       />
       <DashboardStack.Screen
         name="notification"
-        component={NotificationPanel}
+        component={ABC}
       />
       {/* Add other screens as needed */}
     </DashboardStack.Navigator>
