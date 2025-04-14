@@ -1,6 +1,6 @@
 import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-
+import HomeScreen from '../pages/home/MobileHome'
 const ABC=()=>{
   return null
 }
@@ -22,7 +22,7 @@ export default function DashboardNavigation() {
       screenOptions={{ headerShown: false }}>
       <DashboardStack.Screen
         name="index"
-        component={ABC}
+        component={HomeScreen}
       />
       <DashboardStack.Screen
         name="me"
