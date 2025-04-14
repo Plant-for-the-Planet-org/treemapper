@@ -1,3 +1,8 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+
 /* app/globals.css */
 @font-face {
   font-family: 'Open Sans';
