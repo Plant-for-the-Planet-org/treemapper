@@ -11,7 +11,6 @@ import brLabels from './languages/pt-BR'
 let userLang = undefined
 const lang = getLocales()[0]
 userLang = lang?.languageCode
-
 i18next.use(initReactI18next).init({
   compatibilityJSON: 'v3',
   interpolation: {
@@ -28,7 +27,7 @@ i18next.use(initReactI18next).init({
     de: {translation: {label: delabels}},
     en: {translation: {label: enlabels}},
     es: {translation: {label: eslabels}},
-    ptBR: {translation: {label: brLabels}},
+    pt: {translation: {label: brLabels}},
   },
 })
 
