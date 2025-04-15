@@ -15,12 +15,12 @@ import { CountryCode } from 'src/types/interface/slice.interface'
 import SignUpOutline from 'src/components/common/SignUpOutline'
 import * as Localization from 'expo-localization';
 import { getLocales } from 'expo-localization'
-import { createUserProfile, getUserDetails } from 'src/api/api.fetch'
+import { createUserProfile } from 'src/api/api.fetch'
 import { useDispatch, useSelector } from 'react-redux'
 import Bugsnag from '@bugsnag/expo'
 import { logoutAppUser, updateUserLogin } from 'src/store/slice/appStateSlice'
 import { updateWebAuthLoading } from 'src/store/slice/tempStateSlice'
-import { resetUserDetails, updateUserDetails } from 'src/store/slice/userStateSlice'
+import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { useToast } from 'react-native-toast-notifications'
@@ -127,13 +127,6 @@ const SignUpView = () => {
     useEffect(() => {
         checkValidation(accountType);
     }, [accountType, lastName, firstName, nameOfOrg, address, city, zipCode, country])
-
-    const loginAndUpdateDetails = async data => {
-        const finalDetails = { ...data }
-        dispatch(updateUserDetails(finalDetails))
-        dispatch(updateUserLogin(true))
-        dispatch(updateWebAuthLoading(false))
-    }
 
 
     const SelectType = (type) => {
@@ -262,30 +255,42 @@ const SignUpView = () => {
         const userData = buildUserData();
         setLoading(true);
 
-        const { success } = await createUserProfile(userData);
+        const { success, status } = await createUserProfile(userData);
 
-        if (success) {
-            const { response, success: detailsSuccess } = await getUserDetails();
-            if (detailsSuccess && response) {
-                loginAndUpdateDetails(response);
-                navigation.goBack();
-            } else {
-                Bugsnag.notify("/app/profile failed to fetch user details");
-                addNewLog({
-                    logType: 'USER',
-                    message: "User details api failed to fetch data",
-                    logLevel: 'error',
-                    statusCode: '',
-                });
-                dispatch(updateWebAuthLoading(false));
-                handleLogout();
-            }
+        if(status===200){
+            toast.show("Profile Created, Please login again")
+        }else{
+            toast.show("Profile Creation failed, try again")
+        }
+
+        if(!success){
+            Bugsnag.notify("/app/profile failed to fetch user details");
+            addNewLog({
+                logType: 'USER',
+                message: "User details api failed to fetch data",
+                logLevel: 'error',
+                statusCode: '',
+            });
+            dispatch(updateWebAuthLoading(false));
+            handleLogout();
+            return
+        }
+
+        if(success){
+            addNewLog({
+                logType: 'USER',
+                message: "User profile created",
+                logLevel: 'info',
+                statusCode: '',
+            });
+            dispatch(updateWebAuthLoading(false));
+            handleLogout();
+            return
         }
     };
 
     const handleLogout = async () => {
         try {
-            toast.show("Profile Creation failed")
             await logoutUser()
             dispatch(updateUserLogin(false))
             dispatch(resetUserDetails())
