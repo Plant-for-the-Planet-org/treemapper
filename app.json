@@ -17,12 +17,7 @@
     "plugins": [
       "@maplibre/maplibre-react-native",
       [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.5"
-          }
-        }
+        "expo-build-properties"
       ],
       [
         "expo-location",
