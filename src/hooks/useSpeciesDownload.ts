@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import * as FileSystem from 'expo-file-system'
-import { unzip } from 'react-native-zip-archive'
 import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
+import JSZip from 'jszip';
 import useLogManagement from './realm/useLogManagement'
 import { getUrlApi } from 'src/api/api.url'
 import Bugsnag from '@bugsnag/expo'
@@ -67,7 +67,7 @@ const useDownloadFile = () => {
         logLevel: 'info',
         statusCode: '000',
       })
-      await unzip(zipFilePath, targetFilePath)
+      await unzipActualFile(zipFilePath, targetFilePath)
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Species data unzipped successfully",
@@ -95,6 +95,50 @@ const useDownloadFile = () => {
       setCurrentState(SPECIES_SYNC_STATE.ERROR_OCCURRED)
     }
   }
+
+  const unzipActualFile = async (zipFilePath, targetPath) => {
+    try {
+      // Read the zip file
+      const zipData = await FileSystem.readAsStringAsync(zipFilePath, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      
+      // Load the zip
+      const zip = await JSZip.loadAsync(zipData, { base64: true });
+      
+      // Extract all files
+      const promises = [];
+      
+      zip.forEach((relativePath, zipEntry) => {
+        if (!zipEntry.dir) {
+          const promise = zipEntry.async('base64').then(async (content) => {
+            const filePath = `${targetPath}/${relativePath}`;
+            const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
+            
+            // Create directory if it doesn't exist
+            try {
+              await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
+            } catch (err) {
+              // Directory might already exist
+            }
+            
+            // Write the file
+            return FileSystem.writeAsStringAsync(filePath, content, {
+              encoding: FileSystem.EncodingType.Base64,
+            });
+          });
+          promises.push(promise);
+        }
+      });
+      
+      await Promise.all(promises);
+      console.log('Unzip completed successfully');
+      return true;
+    } catch (error) {
+      console.error('Error unzipping file:', error);
+      throw error;
+    }
+  };
 
   const checkDownloadFolder = async () => {
     try {
