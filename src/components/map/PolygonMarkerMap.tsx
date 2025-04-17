@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import MapLibreGL, { Location, UserTrackingMode } from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
@@ -22,6 +22,10 @@ import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import UserlocationMarker from './UserlocationMarker'
 import i18next from 'i18next'
+import AlertModal from '../common/AlertModal'
+import PolygonTracker from './PolygonTracker'
+import { Feature } from '@turf/helpers'
+import bbox from '@turf/bbox'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -40,8 +44,12 @@ const PolygonMarkerMap = (props: Props) => {
     index: 0,
   })
   const [loading, setLoading] = useState(true)
+  const [trackerModal, setTrackerModal] = useState(false)
   const [lineError, setLineError] = useState(false)
   const [coordinates, setCoordinates] = useState([])
+  const [trackingState, setTrackingState] = useState('')
+  const [trackingGeoJSON, setTrackingGeoJSON] = useState<number[][]>([])
+  const [latestCoords, setLatestCoords] = useState<Location>(null)
   const [polygonComplete, setPolygonComplete] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -57,7 +65,6 @@ const PolygonMarkerMap = (props: Props) => {
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const [mapRender, setMapRender] = useState(false)
-
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
   )
@@ -123,14 +130,14 @@ const PolygonMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    if(!centerCoordinates){
+    if (!centerCoordinates) {
       return
     }
-    if(centerCoordinates && centerCoordinates[0]===0){
+    if (centerCoordinates && centerCoordinates[0] === 0) {
       toast.show("Please click on location")
       return
     }
-    if(currentUserLocation && currentUserLocation[0]===0){
+    if (currentUserLocation && currentUserLocation[0] === 0) {
       toast.show("Please click on location")
       return
     }
@@ -145,6 +152,7 @@ const PolygonMarkerMap = (props: Props) => {
         id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
         index: prevState.index++,
       }))
+      toast.show("Point marked, move to other location", { placement: 'top' })
       if (coordinates.length >= 2) {
         setPolygonComplete(true)
       }
@@ -193,16 +201,48 @@ const PolygonMarkerMap = (props: Props) => {
     }
   }
 
-  const makePointLocation = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
-    if(!centerCoordinates){
+  const proceedTrackComplete = async () => {
+    // setCoordinates([...finalCoordinates])
+    console.log("SDsd",trackingGeoJSON)
+    const data = makeInterventionGeoJson('Point', trackingGeoJSON[0], form_id)
+    const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
+    if (!result) {
+      errorHaptic()
+      toast.show('Error occurred while updating location')
       return
     }
-    if(centerCoordinates && centerCoordinates[0]===0){
+    if (species_required) {
+      navigation.navigate('ManageSpecies', { manageSpecies: false, id: form_id })
+    } else {
+      navigation.navigate('LocalForm', { id: form_id })
+    }
+  }
+
+
+  const showTrackerModal = () => {
+    setTrackerModal(true)
+  }
+
+  const updateTrackState = () => {
+    if (trackingState === 'start') {
+      toast.show("Tracking Paused", { placement: 'center', duration: 1000 })
+      setTrackingState("pause")
+    } else {
+      toast.show("Tracking Resumed", { placement: 'center', duration: 1000 })
+      setTrackingState("start")
+    }
+  }
+
+  const makePointLocation = async () => {
+    const centerCoordinates = await mapRef.current.getCenter()
+    if (!centerCoordinates) {
+      return
+    }
+    if (centerCoordinates && centerCoordinates[0] === 0) {
       toast.show("Please click on your location")
       return
     }
-    if(currentUserLocation && currentUserLocation[0]===0){
+    if (currentUserLocation && currentUserLocation[0] === 0) {
       toast.show("Please click on your location")
       return
     }
@@ -227,13 +267,38 @@ const PolygonMarkerMap = (props: Props) => {
     setLineError(false)
   }
 
+  const handleDisplacement = (e: Location) => {
+    setLatestCoords(e)
+  }
 
+  const handleTrackComplete = (e: Feature) => {
+    const bounds = bbox(e)
+    {
+      cameraRef.current.fitBounds(
+        [bounds[0], bounds[1]],
+        [bounds[2], bounds[3]],
+        40,
+        1000,
+      )
+    }
+    setTrackingState('complete')
+    setTrackingGeoJSON(e.geometry.coordinates)
+  }
+
+  const handleInvalidArea = () => {
+    setTrackingState('start')
+  }
+
+  const isTracking = trackingState !== ''
   return (
     <View style={styles.container}>
-      {coordinates.length !== 0 && <DisplayCurrentPolygonMarker
+      {coordinates.length !== 0 && trackingState !== 'complete' ? <DisplayCurrentPolygonMarker
         id={currentCoordinate.id}
         undo={handlePreviousPoint}
-      />}
+        isTracking={isTracking}
+        trackingPaused={trackingState === 'pause'}
+
+      /> : null}
       <MapLibreGL.MapView
         style={styles.map}
         ref={mapRef}
@@ -245,16 +310,25 @@ const PolygonMarkerMap = (props: Props) => {
         }}
         attributionEnabled={false}
         styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
-        <MapLibreGL.Camera ref={cameraRef} />
+        <MapLibreGL.Camera ref={cameraRef} followUserLocation={trackingState === 'start'} followUserMode={UserTrackingMode.FollowWithCourse} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
           androidRenderMode="gps"
           minDisplacement={1}
+          onUpdate={handleDisplacement}
         />
-        <LineMarker coordinates={coordinates} />
-        <AlphabetMarkers coordinates={coordinates} />
+        {!isTracking && <>
+          <LineMarker coordinates={coordinates} isSatellite={mainMapView === 'SATELLITE'} />
+          <AlphabetMarkers coordinates={coordinates} />
+        </>}
+        {isTracking && <PolygonTracker
+          handleTrackComplete={handleTrackComplete}
+          isSatellite={mainMapView === 'SATELLITE'}
+          handleInvalidArea={handleInvalidArea}
+          handleCompletePress={trackingState === 'complete'}
+          latestCoords={latestCoords} startCoord={coordinates.length > 0 ? coordinates[0] : null} isPaused={trackingState === 'pause'} />}
       </MapLibreGL.MapView>
-      <SatelliteIconWrapper />
+      <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
       {polygonComplete && (
         <View style={styles.btnFooter}>
           <CustomButton
@@ -273,7 +347,27 @@ const PolygonMarkerMap = (props: Props) => {
           />
         </View>
       )}
-      {!polygonComplete && (
+      {!polygonComplete && coordinates.length === 1 && !isTracking ? (
+        <View style={styles.btnFooterTwo}>
+          <CustomButton
+            label="Track"
+            containerStyle={styles.btnWrapper}
+            pressHandler={showTrackerModal}
+            wrapperStyle={styles.borderWrapper}
+            labelStyle={styles.highlightLabel}
+          />
+          <CustomButton
+            label={`Mark Point`}
+            containerStyle={styles.btnWrapper}
+            pressHandler={onSelectLocation}
+            disable={loading || lineError}
+            loading={loading}
+            wrapperStyle={styles.opaqueWrapper}
+            labelStyle={styles.normalLabel}
+          />
+        </View>
+      ) : null}
+      {!polygonComplete && coordinates.length < 3 && coordinates.length !== 1 ? (
         <CustomButton
           label={`${i18next.t('label.select_location_continue')}`}
           containerStyle={styles.btnContainer}
@@ -281,7 +375,32 @@ const PolygonMarkerMap = (props: Props) => {
           disable={loading || lineError}
           loading={loading}
         />
-      )}
+      ) : null}
+      {!polygonComplete && trackingState !== '' ? (
+        <View style={styles.btnFooterTwo}>
+          <CustomButton
+            label={trackingState === 'start' ? "Pause" : trackingState === 'complete' ? 'Back' : "Resume"}
+            containerStyle={styles.btnWrapper}
+            pressHandler={updateTrackState}
+            wrapperStyle={styles.borderWrapper}
+            labelStyle={styles.highlightLabel}
+          />
+          <CustomButton
+            label={trackingState === 'complete' ? "Continue" : "Complete"}
+            containerStyle={styles.btnWrapper}
+            pressHandler={() => {
+              if(trackingState!=='complete'){
+                setTrackingState('complete')
+              }
+              if(trackingState==='complete' && trackingGeoJSON){
+                proceedTrackComplete()
+              }
+            }}
+            wrapperStyle={styles.opaqueWrapper}
+            labelStyle={styles.normalLabel}
+          />
+        </View>
+      ) : null}
       {!loading && !polygonComplete && coordinates.length === 0 && intervention_key === 'multi-tree-registration' ?
         <CustomButton
           label={`${i18next.t('label.use_point_location')}`}
@@ -292,8 +411,25 @@ const PolygonMarkerMap = (props: Props) => {
           hideFadeIn
         /> : null
       }
-      <ActiveMarkerIcon />
-      <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo'} />
+      {!isTracking && <ActiveMarkerIcon />}
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo'} />
+      }
+      <AlertModal
+        visible={trackerModal}
+        heading={"Track your route"}
+        message={"With this feature, you can automatically track records without manually setting markers. You can pause tracking anytime if you notice fluctuations in GPS accuracy. Once finished, simply click 'Complete' to stop tracking."}
+        primaryBtnText={"Start Tracking"}
+        secondaryBtnText={"Cancel"}
+        onPressPrimaryBtn={() => {
+          setTrackerModal(false)
+          setTrackingState('start')
+        }}
+        onPressSecondaryBtn={() => {
+          toast.show("Tracking Started")
+          setTrackerModal(false)
+        }}
+        showSecondaryButton={true}
+      />
     </View>
   )
 }
@@ -313,13 +449,24 @@ const styles = StyleSheet.create({
 
   btnFooter: {
     position: 'absolute',
-    bottom: 10,
+    bottom: 20,
     width: '100%',
     height: scaleSize(70),
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
   },
+
+  btnFooterTwo: {
+    position: 'absolute',
+    bottom: 20,
+    width: '100%',
+    height: scaleSize(70),
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
 
   btnContainer: {
     position: 'absolute',
