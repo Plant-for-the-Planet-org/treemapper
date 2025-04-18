@@ -1,6 +1,6 @@
 import React from 'react'
 import { createNativeStackNavigator } from '@react-navigation/native-stack'
-import HomeScreen from '../pages/home/components'
+import HomeScreen from '../pages/home/Home'
 const ABC=()=>{
   return null
 }

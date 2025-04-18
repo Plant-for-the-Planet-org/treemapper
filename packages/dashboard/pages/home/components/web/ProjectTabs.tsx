@@ -1,8 +1,16 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import React from 'react';
+import { ProjectsI } from '../../../../types/app.interface';
 
-const ProjectDropdown = ({ projects = [] }) => {
+
+interface Props {
+  projects: ProjectsI[]
+  activeProject: string
+  onSelectProject: (i: string) => void
+}
+
+const ProjectDropdown = ({ projects }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -39,7 +47,7 @@ const ProjectDropdown = ({ projects = [] }) => {
                   key={index}
                   className="w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0"
                 >
-                  {project.name}
+                  {project.name} 
                 </button>
               ))
             ) : (

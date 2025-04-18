@@ -1,19 +1,18 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import ProjectTabs from './native/ProjectTabs';
-import type { Project } from '../Home';
+import { ProjectsI } from '../../../types/app.interface';
 
 interface HomeUIProps {
-  projects: Project[];
-  activeProject: string | null;
+  projects: ProjectsI[];
+  activeProject: string;
   onSelectProject: (id: string) => void;
 }
 
 export function HomeUI({ projects, activeProject, onSelectProject }: HomeUIProps) {
   // Native-specific UI rendering only, no logic
   return (
-    <View>
-      <Text>Projects Dashboard</Text>
+    <View style={{paddingTop:100}}>
       <ProjectTabs 
         projects={projects} 
         activeProject={activeProject}

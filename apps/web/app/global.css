@@ -84,13 +84,14 @@
   
   .app-content {
     width: 95%;
-    height: 90%;
+    height: 85%;
     border: 0.5px solid lightgray;
     border-radius: 12px;
     overflow: auto;
     background-color: #f5f5f5;
     box-shadow: 0 0px 0.5px rgb(236, 236, 236);
     position: relative;
+    margin-top:1%;
   }
   
   /* Page content styling */
@@ -127,3 +128,11 @@
   }
 
   
+
+
+  .treemapper-logo{
+    position: absolute;
+    top: 1.3rem;
+    font-weight: 600;
+    left: 2.5%;
+  }

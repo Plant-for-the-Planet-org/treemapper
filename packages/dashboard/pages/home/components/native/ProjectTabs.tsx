@@ -1,28 +1,34 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  TouchableOpacity, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
   ScrollView,
   Animated,
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo - if not, import your preferred icon library
+import { ProjectsI } from '../../../../types/app.interface';
+interface Props {
+  projects: ProjectsI[]
+  activeProject: string
+  onSelectProject: (i: string) => void
+}
 
-const ProjectDropdown = ({ projects = [] }) => {
+const ProjectDropdown = ({ projects }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const [animation] = useState(new Animated.Value(0));
 
   const toggleDropdown = () => {
     const toValue = isOpen ? 0 : 1;
-    
+
     Animated.timing(animation, {
       toValue,
       duration: 300,
       useNativeDriver: false,
     }).start();
-    
+
     setIsOpen(!isOpen);
   };
 
@@ -34,16 +40,16 @@ const ProjectDropdown = ({ projects = [] }) => {
   return (
     <View style={styles.container}>
       {/* Dropdown Button */}
-      <TouchableOpacity 
-        style={styles.dropdownButton} 
+      <TouchableOpacity
+        style={styles.dropdownButton}
         onPress={toggleDropdown}
         activeOpacity={0.7}
       >
         <Text style={styles.dropdownButtonText}>Projects</Text>
-        <Ionicons 
-          name={isOpen ? "chevron-up" : "chevron-down"} 
-          size={20} 
-          color="#333" 
+        <Ionicons
+          name={isOpen ? "chevron-up" : "chevron-down"}
+          size={20}
+          color="#333"
         />
       </TouchableOpacity>
 

@@ -1,31 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import HomeUI from './components'; // This imports the platform-specific UI
+import useProjectStore from '../../store/useProjectStore';
 
-export interface Project {
-  name: string;
-  id: string;
-}
 
-interface HomeProps {
-  initialProjects: Project[];
-}
-
-function Home({ initialProjects }: HomeProps) {
-  // Shared logic and state management here
-  const [projects, setProjects] = useState(initialProjects);
-  const [activeProject, setActiveProject] = useState<string | null>(null);
-  
-  // Example of shared business logic
+function Home() {
+  const projects = useProjectStore((state) => state.projects);
+  const selectedProject = useProjectStore((state) => state.selectedProject);
+  const selectProject = useProjectStore((state) => state.selectProject);  
   const handleSelectProject = (id: string) => {
-    setActiveProject(id);
-    // Other logic...
+    selectProject(id)
   };
-  
-  // Pass state and handlers to the UI component
   return (
     <HomeUI 
       projects={projects}
-      activeProject={activeProject}
+      activeProject={selectedProject}
       onSelectProject={handleSelectProject}
     />
   );

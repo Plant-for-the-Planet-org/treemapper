@@ -1,27 +1,32 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
+import { ProjectsI } from '../types/app.interface'
 
-
-interface Projects{
-    id: number;
-    name: string;
-    description: string;
-    status: string;
-}
-
-// Define the store state and actions interface
 interface ProjectStore {
-  projects: Projects[] ;
-  increase: () => void;
-  decrease: () => void;
-  reset: () => void;
+  projects: ProjectsI[]
+  selectedProject: string
+  addProjects: (p: ProjectsI[]) => void
+  selectProject: (p: string) => void
 }
 
 // Create the typed store
-const useStore = create<ProjectStore>((set) => ({
-  projects: [],
-  increase: () => set((state) => ({ count: state.count + 1 })),
-  decrease: () => set((state) => ({ count: state.count - 1 })),
-  reset: () => set({ count: 0 })
-}));
+const useStore = create<ProjectStore>(set => ({
+  projects: [
+    {
+      name: 'Shyam',
+      id: '123',
+      description: 'kldj',
+      status: 'acrive',
+    },
+    {
+      name: 'Ram',
+      id: '243',
+      description: 'kldj',
+      status: 'acrive',
+    },
+  ],
+  selectedProject: '',
+  addProjects: p => set(state => ({ ...state, projects: p })),
+  selectProject: p => set(state => ({ ...state, selectedProject: p })),
+}))
 
-export default useStore;
+export default useStore
