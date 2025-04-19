@@ -22,6 +22,17 @@ const nextConfig = {
     };
     return config;
   },
+  images: {
+    domains: ['images.unsplash.com'],
+    // Alternatively, you can use remotePatterns for more granular control
+    // remotePatterns: [
+    //   {
+    //     protocol: 'https',
+    //     hostname: 'images.unsplash.com',
+    //     pathname: '**',
+    //   },
+    // ],
+  },
   transpilePackages: [
     'react-native',
     'react-native-web',
