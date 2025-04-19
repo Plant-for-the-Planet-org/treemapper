@@ -1,3 +1,4 @@
+// app/dashboard/layout.tsx
 "use client";
 
 import { usePathname, useRouter } from 'next/navigation';
@@ -5,7 +6,6 @@ import { useEffect } from 'react';
 import { useSession } from 'next-auth/react';
 import GoogleSpinner from '../../components/Spinner';
 
-// Protected layout for dashboard and other authenticated pages
 export default function DashboardLayout({
   children,
 }: {
@@ -13,18 +13,16 @@ export default function DashboardLayout({
 }) {
   const { data: session, status } = useSession();
   const router = useRouter();
-  const pathname = usePathname();
-
+  
   // Redirect to login if not authenticated
   useEffect(() => {
-    // This is a safety check in case the middleware doesn't catch the redirection
     if (status === "unauthenticated") {
       router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
     }
   }, [status, router]);
 
   // Show loading state while checking authentication
-  if (status == 'loading') {
+  if (status === 'loading') {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <GoogleSpinner />
@@ -34,7 +32,16 @@ export default function DashboardLayout({
 
   // Only render protected content if authenticated
   if (status === 'authenticated') {
-    return children;
+    return (
+      <>
+        <span className='treemapper-logo'>TreeMapper Dashboard</span>
+        <div className="app-container">
+          <div className="app-content">
+            {children}
+          </div>
+        </div>
+      </>
+    );
   }
 
   // Fallback while redirecting
