@@ -1,28 +1,22 @@
 import React from 'react';
-import HomeUI from './components'; // This imports the platform-specific UI
+import CreateProjectUI from './components'; // This imports the platform-specific UI
 import useProjectStore from '../../store/useProjectStore';
-import {useRouter} from 'solito/navigation'
 
 
-function Home() {
+function CreateProject() {
   const projects = useProjectStore((state) => state.projects);
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const selectProject = useProjectStore((state) => state.selectProject);  
   const handleSelectProject = (id: string) => {
     selectProject(id)
   };
-  const {push}= useRouter()
-  const createNewProject=()=>{
-    push('/createproject')
-  }
   return (
-    <HomeUI 
+    <CreateProjectUI 
       projects={projects}
       activeProject={selectedProject}
       onSelectProject={handleSelectProject}
-      createNewProject={createNewProject}
     />
   );
 }
 
-export default Home;
+export default CreateProject;

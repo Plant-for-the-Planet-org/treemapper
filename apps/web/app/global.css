@@ -140,4 +140,24 @@
     top: 1.3rem;
     font-weight: 600;
     left: 2.5%;
+    color: #262626;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px; /* thin width */
+    height: 6px;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background-color: #E1EDE8; /* red color */
+    border-radius: 4px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background-color: transparent; /* optional: makes track invisible */
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: #E1EDE8 transparent;
   }

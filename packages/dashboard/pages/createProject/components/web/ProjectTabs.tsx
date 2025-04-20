@@ -8,10 +8,9 @@ interface Props {
   projects: ProjectsI[]
   activeProject: string
   onSelectProject: (i: string) => void
-  createNewProject: () => void
 }
 
-const ProjectDropdown = ({ projects, createNewProject }: Props) => {
+const ProjectDropdown = ({ projects }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
 
   const toggleDropdown = () => {
@@ -19,12 +18,11 @@ const ProjectDropdown = ({ projects, createNewProject }: Props) => {
   };
 
   return (
-    <div className="relative w-64" style={{ marginTop: '1rem', marginLeft: '1rem', backgroundColor: "#f5f5f5" }}>
+    <div className="relative w-64">
       {/* Dropdown Button */}
       <button
         onClick={toggleDropdown}
-        style={{ backgroundColor: "#f5f5f5" }}
-        className="w-full flex items-center justify-between bg-white border border-gray-300 rounded-md p-2 hover:bg-gray-50 transition-colors"
+        className="w-full flex items-center justify-between bg-white border border-gray-300 rounded-md p-2 shadow-sm hover:bg-gray-50 transition-colors"
       >
         <span className="font-medium">Projects</span>
         {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -32,15 +30,12 @@ const ProjectDropdown = ({ projects, createNewProject }: Props) => {
 
       {/* Dropdown Content */}
       {isOpen && (
-        <div className="absolute mt-1 w-full z-10 bg-white border border-gray-100 rounded-md shadow-lg">
+        <div className="absolute mt-1 w-full z-10 bg-white border border-gray-300 rounded-md shadow-lg">
           {/* Create New Project Button */}
           <div className="p-2 border-b border-gray-200">
-            <button
-              onClick={createNewProject}
-              style={{ backgroundColor: "#E1EDE8", color: "#262626" }}
-              className="w-full flex items-center justify-between p-2 rounded-md">
+            <button className="w-full flex items-center justify-between bg-blue-50 hover:bg-blue-100 text-blue-600 p-2 rounded-md transition-colors">
               <span>Create New Project</span>
-              <Plus size={20} />
+              <Plus size={18} />
             </button>
           </div>
 
@@ -52,7 +47,7 @@ const ProjectDropdown = ({ projects, createNewProject }: Props) => {
                   key={index}
                   className="w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0"
                 >
-                  {project.name}
+                  {project.name} 
                 </button>
               ))
             ) : (

@@ -6,16 +6,18 @@ interface HomeUIProps {
   projects: ProjectsI[];
   activeProject: string;
   onSelectProject: (id: string) => void;
+  createNewProject:()=>void
 }
 
-export function HomeUI({ projects, activeProject, onSelectProject }: HomeUIProps) {
+export function HomeUI({ projects, activeProject, onSelectProject, createNewProject }: HomeUIProps) {
   // Web-specific UI rendering only, no logic
   return (
-    <div className="home-container">
+    <div className="w-full h-full">
       <ProjectTabs 
         projects={projects} 
         activeProject={activeProject}
         onSelectProject={onSelectProject}
+        createNewProject={createNewProject}
       />
     </div>
   );
