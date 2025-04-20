@@ -1,6 +1,9 @@
+'use client'
+
 import React, { useState, useRef } from 'react';
 import BackButton from '../../../components/backButton/BackButton';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload } from 'lucide-react';
+import ProjectSelectMap from './web/ProjectSelectMap'
 
 export function CreateProjectUI() {
   // State for form fields
@@ -269,7 +272,7 @@ export function CreateProjectUI() {
               
               {/* Map Placeholder */}
               <div className="w-full h-64 md:h-80 lg:h-96 bg-green-100 rounded-lg flex items-center justify-center">
-                <p className="text-green-800 font-medium">Map will be loaded here</p>
+                <ProjectSelectMap/>
               </div>
               
               {/* File Upload Option */}
