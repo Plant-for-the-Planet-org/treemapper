@@ -3,6 +3,7 @@ import { CalendarDays } from 'lucide-react';
 import useMediaQuery from './useMediaQuery';
 import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
+import TreePlantingChart from './TreePlantingChart\'';
 
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
@@ -232,6 +233,7 @@ const Overview = () => {
             </div>
             <ChildTabs/>
             <StatCardsContainer/>
+            <TreePlantingChart/>
         </div>
     );
 };
