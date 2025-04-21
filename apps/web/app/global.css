@@ -137,9 +137,10 @@
 
   .treemapper-logo{
     position: absolute;
-    top: 1.3rem;
+    top: 2%;
     font-weight: 600;
-    left: 2.5%;
+    left: 3%;
+    font-size: 3vh;
     color: #262626;
   }
 
