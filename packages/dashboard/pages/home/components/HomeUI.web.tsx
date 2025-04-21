@@ -6,6 +6,7 @@ import Overview from './web/Overview';
 import Teams from './web/Teams';
 import TeamsDashboard from './web/TeamDashboard';
 import SpeciesManagementPage from './web/SpeciesDashboard';
+import ProjectSettings from './web/ProjectSetting';
 
 
 interface HomeUIProps {
@@ -38,6 +39,7 @@ export function HomeUI({ projects, activeProject, onSelectProject, createNewProj
         {parentTab === 'overview' && <Overview />}
         {parentTab === 'team' && <TeamsDashboard />}
         {parentTab === 'species' && <SpeciesManagementPage />}
+        {parentTab === 'settings' && <ProjectSettings />}
 
         
       </div>

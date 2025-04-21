@@ -1,1 +1,1 @@
-export type HomeParentTabT = 'overview' | 'team' | 'species' | 'setting'
+export type HomeParentTabT = 'overview' | 'team' | 'species' | 'settings'
