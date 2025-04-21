@@ -46,7 +46,7 @@ const TreePlantingChart = () => {
   };
 
   return (
-    <div className="bg-white rounded-lg shadow p-6 w-full">
+    <div className="bg-white rounded-2xl shadow p-6 w-full">
       <div className="flex justify-between items-center mb-6">
         <h2 className="text-2xl font-semibold text-gray-800">Overview of Trees Planted</h2>
         <div className="relative">

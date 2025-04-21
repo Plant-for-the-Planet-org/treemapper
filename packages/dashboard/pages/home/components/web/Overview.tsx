@@ -4,6 +4,7 @@ import useMediaQuery from './useMediaQuery';
 import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
 import TreePlantingChart from './TreePlantingChart\'';
+import RecentAdditionsComponent from './RecentAdditionsComponent';
 
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
@@ -142,7 +143,7 @@ const Overview = () => {
     ];
 
     return (
-        <div className='w-full h-full'>
+        <div className='w-full h-full pt-4'>
             <div className="flex justify-between items-center w-full mb-1 pl-5  pr-5">
                 <h1 className="text-3xl font-bold" style={{ letterSpacing: 1 }}>Dashboard</h1>
                 <div className="flex items-center gap-3">
@@ -231,9 +232,19 @@ const Overview = () => {
                     </button>
                 </div>
             </div>
-            <ChildTabs/>
-            <StatCardsContainer/>
-            <TreePlantingChart/>
+            <ChildTabs />
+            <StatCardsContainer />
+            <div className="px-4 py-6">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div className="h-full flex">
+                        <TreePlantingChart />
+                    </div>
+                    <div className="h-full flex">
+                        <RecentAdditionsComponent />
+                    </div>
+                </div>
+            </div>
+
         </div>
     );
 };
