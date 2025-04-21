@@ -11,7 +11,7 @@ interface RootLayoutProps {
 export default function RootLayout({ children }: RootLayoutProps) {
   return (
     <html lang="en">
-      <body style={{backgroundColor:'#f5f5f5'}}>
+      <body style={{backgroundColor:'#f5f5f5'}} className='w-full h-full'>
         <AuthProvider>
           <DashboardProvider>
             {children}
