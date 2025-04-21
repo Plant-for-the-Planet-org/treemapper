@@ -1,6 +1,9 @@
 import React from 'react';
 import ProjectTabs from './web/ProjectTabs';
 import {ProjectsI} from '../../../types/app.interface'
+import useHomeStore from '../../../store/useHomeStore';
+import Overview from './web/Overview';
+import Teams from './web/Teams';
 
 
 interface HomeUIProps {
@@ -12,6 +15,8 @@ interface HomeUIProps {
 
 export function HomeUI({ projects, activeProject, onSelectProject, createNewProject }: HomeUIProps) {
   // Web-specific UI rendering only, no logic
+  const parentTab = useHomeStore((state) => state.parentTab);  
+
   return (
     <div className="w-full h-full">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
@@ -28,7 +33,9 @@ export function HomeUI({ projects, activeProject, onSelectProject, createNewProj
       
       {/* Main content area below the header */}
       <div className="mt-4">
-        {/* Your main content goes here */}
+        {parentTab==='overview' && <Overview/>}
+        {parentTab==='team' && <Teams/>}
+
       </div>
     </div>
   );

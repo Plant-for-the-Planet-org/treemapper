@@ -1,15 +1,17 @@
 import React from 'react';
 import { useState } from 'react';
+import useHomeStore from '../../../../store/useHomeStore';
 
 const LabelTabs = () => {
-  const [activeItem, setActiveItem] = useState(0);
-
+  const setParentTab = useHomeStore((state) => state.setParentTab);  
+  const parentTab = useHomeStore((state) => state.parentTab);  
+  console.log("OL",parentTab)
   // Sample data - replace with your own items
   const items = [
-    { id: 0, label: 'Overview' },
-    { id: 1, label: 'Species' },
-    { id: 2, label: 'Team' },
-    { id: 3, label: 'Settings' },
+    { id: 'overview', label: 'Overview' },
+    { id: 'species', label: 'Species' },
+    { id: 'team', label: 'Team' },
+    { id: 'settings', label: 'Settings' },
   ];
 
   return (
@@ -17,11 +19,11 @@ const LabelTabs = () => {
       {items.map((item) => (
         <div
           key={item.id}
-          className={`cursor-pointer px-2 py-1 whitespace-nowrap transition-all duration-200 ${activeItem === item.id
+          className={`cursor-pointer px-2 py-1 whitespace-nowrap transition-all duration-200 ${parentTab === item.id
               ? 'text-gray-800 font-semibold'
               : 'text-gray-500 hover:text-gray-600'
             }`}
-          onClick={() => setActiveItem(item.id)}
+          onClick={() => setParentTab(item.id)}
         >
           {item.label}
         </div>
