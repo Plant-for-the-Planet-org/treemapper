@@ -1,18 +1,18 @@
 import { create } from 'zustand'
+import { HomeParentTabT } from '../types/app.type'
 
 interface ProjectStore {
-  parentTab:string
+  parentTab: HomeParentTabT
   childTab: string
-  setParentTab: (p: string) => void
+  setParentTab: (p: HomeParentTabT) => void
   setChildTab: (p: string) => void
 }
 
-
 // Create the typed store
 const useStore = create<ProjectStore>(set => ({
-  parentTab: '',
+  parentTab: 'overview',
   childTab: '',
-  setParentTab: p => set(state => ({ ...state, parentTab: p })),
+  setParentTab: (p) => set(state => ({ ...state, parentTab: p })),
   setChildTab: p => set(state => ({ ...state, childTab: p })),
 }))
 
