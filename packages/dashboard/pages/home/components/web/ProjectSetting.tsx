@@ -616,12 +616,12 @@ const ProjectSettings: React.FC = () => {
   );
 
   return (
-    <div className="w-full h-full">
+    <div className="w-full h-full pb-4">
       <div className="flex items-center mb-6">
         <h1 className="text-2xl font-bold ml-4 mt-4" style={{color:"#262626"}}>Project Settings</h1>
       </div>
       
-      <div className="flex flex-col md:flex-row w-full h-full gap-6">
+      <div className="flex flex-col md:flex-row w-full h-full gap-6" >
         {/* Sidebar */}
         <div className="w-full md:w-64 shrink-0 ml-3">
           <div className="bg-white rounded-lg shadow-md p-4">
@@ -635,12 +635,13 @@ const ProjectSettings: React.FC = () => {
         </div>
         
         {/* Main Content */}
-        <div className="flex-grow">
+        <div className="flex-grow mr-2">
           <div className="bg-white rounded-lg shadow-md p-6">
             {renderTabContent()}
           </div>
         </div>
       </div>
+      {/* <div style={{width:'100%',height:100}}/> */}
     </div>
   );
 };
