@@ -25,7 +25,7 @@ const ProfileSettings = () => {
     jobTitle: 'Product Manager',
     company: 'Acme Inc.',
     bio: 'Passionate about building great products and leading teams.',
-    avatar: '/api/placeholder/150/150'
+    avatar: 'https://avatar.iran.liara.run/public'
   });
 
   // State for notification settings

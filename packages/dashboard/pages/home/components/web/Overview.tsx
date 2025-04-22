@@ -5,6 +5,9 @@ import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
 import TreePlantingChart from './TreePlantingChart\'';
 import RecentAdditionsComponent from './RecentAdditionsComponent';
+import ProjectSummaryKPIs from './ProjectKPI';
+import SpeciesAnalytics from './SpeciesAnalyst';
+import GeographicalInterventionAnalytics from './GeolocationKPI';
 
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
@@ -12,6 +15,7 @@ const Overview = () => {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
     const isLargeScreen = useMediaQuery('(min-width: 768px)');
+    const [selectTab, setSelectedTab] = useState('overview')
 
     const getMonthRange = () => {
         const now = new Date();
@@ -46,71 +50,71 @@ const Overview = () => {
     const downloadJsonAsCsv = (jsonData, filename, includeHeaders = true) => {
         // Return early if no data
         if (!jsonData || !jsonData.length) {
-          console.error('No data provided for CSV download');
-          return;
+            console.error('No data provided for CSV download');
+            return;
         }
-      
+
         try {
-          // Get headers from the first object in the array
-          const headers = Object.keys(jsonData[0]);
-          
-          // Create CSV rows from the JSON data
-          let csvRows = [];
-          
-          // Add headers row if requested
-          if (includeHeaders) {
-            csvRows.push(headers.join(','));
-          }
-          
-          // Add data rows
-          jsonData.forEach(item => {
-            const values = headers.map(header => {
-              // Handle special cases (commas, quotes, undefined, null)
-              const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
-              const escapedValue = String(cellValue)
-                .replace(/"/g, '""') // Escape double quotes with double quotes
-                .replace(/\n/g, ' '); // Replace newlines with spaces
-                
-              // Wrap with quotes if contains comma, quote or newline
-              return /[,"\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
+            // Get headers from the first object in the array
+            const headers = Object.keys(jsonData[0]);
+
+            // Create CSV rows from the JSON data
+            let csvRows = [];
+
+            // Add headers row if requested
+            if (includeHeaders) {
+                csvRows.push(headers.join(','));
+            }
+
+            // Add data rows
+            jsonData.forEach(item => {
+                const values = headers.map(header => {
+                    // Handle special cases (commas, quotes, undefined, null)
+                    const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
+                    const escapedValue = String(cellValue)
+                        .replace(/"/g, '""') // Escape double quotes with double quotes
+                        .replace(/\n/g, ' '); // Replace newlines with spaces
+
+                    // Wrap with quotes if contains comma, quote or newline
+                    return /[,"\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
+                });
+
+                csvRows.push(values.join(','));
             });
-            
-            csvRows.push(values.join(','));
-          });
-          
-          // Combine rows into a CSV string
-          const csvString = csvRows.join('\n');
-          
-          // Create a Blob containing the CSV data
-          const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-          
-          // Create a link element to trigger the download
-          const link = document.createElement('a');
-          
-          // Create a URL for the blob
-          const url = URL.createObjectURL(blob);
-          
-          // Set link properties
-          link.setAttribute('href', url);
-          link.setAttribute('download', `${filename}.csv`);
-          link.style.visibility = 'hidden';
-          
-          // Add link to the document, trigger click, and remove it
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          
-          // Release the blob URL
-          URL.revokeObjectURL(url);
+
+            // Combine rows into a CSV string
+            const csvString = csvRows.join('\n');
+
+            // Create a Blob containing the CSV data
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+
+            // Create a URL for the blob
+            const url = URL.createObjectURL(blob);
+
+            // Set link properties
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${filename}.csv`);
+            link.style.visibility = 'hidden';
+
+            // Add link to the document, trigger click, and remove it
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Release the blob URL
+            URL.revokeObjectURL(url);
         } catch (error) {
-          console.error('Error generating CSV download:', error);
+            console.error('Error generating CSV download:', error);
         }
-      };
-      
+    };
+
 
     const handleDownload = () => {
         console.log('Downloading data for range:', startDate, 'to', endDate);
-        downloadJsonAsCsv([{name:"TreeMapperTest"}],'interventionReport')
+        downloadJsonAsCsv([{ name: "TreeMapperTest" }], 'interventionReport')
     };
 
     // Format dates for display
@@ -297,18 +301,22 @@ const Overview = () => {
                     </button>
                 </div>
             </div>
-            <ChildTabs />
-            <StatCardsContainer />
-            <div className="px-4 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="h-full flex">
-                        <TreePlantingChart />
+            <ChildTabs selectedTab={selectTab} setSelectedTab={setSelectedTab} />
+            {selectTab == 'overview' && <><StatCardsContainer />
+                <div className="px-4 py-6">
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div className="h-full flex">
+                            <TreePlantingChart />
+                        </div>
+                        <div className="h-full flex">
+                            <RecentAdditionsComponent />
+                        </div>
                     </div>
-                    <div className="h-full flex">
-                        <RecentAdditionsComponent />
-                    </div>
-                </div>
-            </div>
+                </div></>}
+            {selectTab == 'projectKPI' && <ProjectSummaryKPIs />}
+            {selectTab == 'species' && <SpeciesAnalytics />}
+            {selectTab == 'geo' && <GeographicalInterventionAnalytics/>}
+
 
         </div>
     );

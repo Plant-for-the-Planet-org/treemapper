@@ -12,12 +12,14 @@ import {
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './InviteUserModal';
+import UserDetailsModal from './UserDetailsModal';
 
 
 const TeamsDashboard = () => {
     // Sample data - replace with your actual data fetching logic
     const [isModalOpen, setIsModalOpen] = useState(false);
-
+    const [selectedUser, setSelectedUser] = useState(null);
+    const [isModalUserOpen, setIsModalUserOpen] = useState(false);
     const [users, setUsers] = useState([
         {
             id: 1,
@@ -237,9 +239,10 @@ const TeamsDashboard = () => {
         setIsModalOpen(true)
     };
 
-    const handleViewUser = (userId) => {
-        console.log(`Viewing user with ID: ${userId}`);
-        // Implement view user logic
+    const handleViewUser = (userD) => {
+        setSelectedUser(userD);
+        setIsModalUserOpen(true);
+
     };
 
     const handleRemoveUser = (userId) => {
@@ -392,19 +395,13 @@ const TeamsDashboard = () => {
                                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                     {user.invitedBy}
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                    <div className="flex justify-end space-x-2">
+                                <td className="whitespace-nowrap text-right text-sm font-medium">
+                                    <div className="flex justify-center">
                                         <button
-                                            onClick={() => handleViewUser(user.id)}
-                                            className="text-indigo-600 hover:text-indigo-900"
+                                            onClick={() => handleViewUser(user)}
+                                            className="text-indigo-600 hover:text-indigo-900 ml-5"
                                         >
                                             <Eye size={18} />
-                                        </button>
-                                        <button
-                                            onClick={() => handleRemoveUser(user.id)}
-                                            className="text-red-600 hover:text-red-900"
-                                        >
-                                            <UserX size={18} />
                                         </button>
                                     </div>
                                 </td>
@@ -422,6 +419,13 @@ const TeamsDashboard = () => {
             </div>
             <AnimatePresence>
                 <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            </AnimatePresence>
+            <AnimatePresence>
+                <UserDetailsModal
+                    isOpen={isModalUserOpen}
+                    onClose={() => setIsModalUserOpen(false)}
+                    user={selectedUser}
+                />
             </AnimatePresence>
         </div>
     );

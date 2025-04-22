@@ -1,14 +1,14 @@
 import React from 'react';
 import { useState } from 'react';
 
-const ChildTabs = () => {
-    const [activeTab, setActiveTab] = useState('overview');
+const ChildTabs = ({selectedTab,setSelectedTab}) => {
 
     const tabs = [
         { id: 'overview', label: 'Overview' },
-        { id: 'analytics', label: 'Analytics' },
-        { id: 'reports', label: 'Reports' },
-        { id: 'notifications', label: 'Notifications' }
+        { id: 'projectKPI', label: 'Project KPI' },
+        { id: 'species', label: 'Species' },
+        { id: 'geo', label: 'Geolocation' },
+
     ];
 
     return (
@@ -17,8 +17,8 @@ const ChildTabs = () => {
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`px-3 py-1 rounded-md text-sm font-small transition-colors duration-200 ${activeTab === tab.id
+                        onClick={() => setSelectedTab(tab.id)}
+                        className={`px-3 py-1 rounded-md text-sm font-small transition-colors duration-200 ${selectedTab === tab.id
                                 ? 'bg-white text-black shadow-md'
                                 : 'text-gray-400 hover:text-gray-600'
                             }`}
