@@ -141,24 +141,27 @@
     font-weight: 600;
     left: 3%;
     font-size: 3vh;
+    display: flex;
+    align-items: center;
     color: #262626;
   }
 
-  ::-webkit-scrollbar {
-    width: 6px; /* thin width */
-    height: 6px;
+  .poweredBy{
+    position: absolute;
+    bottom: 1%;
+    right: 3%;
+    display: flex;
+    align-items: center;
   }
   
-  ::-webkit-scrollbar-thumb {
-    background-color: #E1EDE8; /* red color */
-    border-radius: 4px;
-  }
-  
-  ::-webkit-scrollbar-track {
-    background-color: transparent; /* optional: makes track invisible */
-  }
 
-  * {
-    scrollbar-width: thin;
-    scrollbar-color: #E1EDE8 transparent;
-  }
+/* For Chrome, Edge, Safari */
+::-webkit-scrollbar {
+  display: none;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: none; /* Hide scrollbar */
+  -ms-overflow-style: none;  /* IE 10+ */
+}

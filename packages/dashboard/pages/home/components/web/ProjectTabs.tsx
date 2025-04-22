@@ -6,6 +6,7 @@ import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from './useMediaQuery';
+
 interface Props {
   projects: ProjectsI[];
   activeProject: string;
@@ -66,12 +67,11 @@ const ProjectDropdown = ({
                     setIsOpen(false);
                   }}
                   style={{ backgroundColor: "#E1EDE8", color: "#262626" }}
-                  className="w-full flex items-center justify-between p-2 rounded-md">
+                  className="w-full flex items-center justify-between p-2 rounded-md font-medium">
                   <span>Create New Project</span>
                   <Plus size={20} />
                 </button>
               </div>
-
               {/* Project List */}
               <div className="max-h-60 overflow-y-auto">
                 {projects.length > 0 ? (
@@ -103,7 +103,7 @@ const ProjectDropdown = ({
             count={notificationCount}
             onClick={onNotificationClick}
           />
-          <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public/3' />
+          <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public' />
         </div>
       </div>
 

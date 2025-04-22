@@ -12,19 +12,31 @@ interface ProjectStore {
 const useStore = create<ProjectStore>(set => ({
   projects: [
     {
-      name: 'Shyam',
-      id: '123',
+      name: 'Yucatán Restoration',
+      id: '1',
       description: 'kldj',
       status: 'acrive',
     },
     {
-      name: 'Ram',
-      id: '243',
+      name: 'PlanBe Forest',
+      id: '2',
+      description: 'kldj',
+      status: 'acrive',
+    },
+    {
+      name: 'Reforest Toluca',
+      id: '3',
+      description: 'kldj',
+      status: 'acrive',
+    },
+    {
+      name: 'Volcano Valley Reforestation',
+      id: '4',
       description: 'kldj',
       status: 'acrive',
     },
   ],
-  selectedProject: '',
+  selectedProject: '1',
   addProjects: p => set(state => ({ ...state, projects: p })),
   selectProject: p => set(state => ({ ...state, selectedProject: p })),
 }))
