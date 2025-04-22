@@ -9,6 +9,7 @@ import {
     Heart,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import SpeciesModal from './AddNewSpecies'; // Import the new modal component
 
 const SpeciesManagementPage = () => {
     const [speciesList, setSpeciesList] = useState([
@@ -63,6 +64,8 @@ const SpeciesManagementPage = () => {
     ]);
 
     const [searchTerm, setSearchTerm] = useState('');
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [editingSpecies, setEditingSpecies] = useState(null);
 
     const filteredSpecies = speciesList.filter((species) =>
         species.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -144,18 +147,53 @@ const SpeciesManagementPage = () => {
         } catch (error) {
           console.error('Error generating CSV download:', error);
         }
-      };
-      
-
+    };
 
     const handleExport = () => {
-        downloadJsonAsCsv([{name:"TreeMapperTest"}],'speciesList')
-    }
-    const handleAddSpecies = () => alert("Open add species form");
-    const handleEditSpecies = (id) => alert(`Edit species with ID: ${id}`);
+        // Export all species data instead of just a test entry
+        downloadJsonAsCsv(speciesList, 'speciesList');
+    };
+
+    const handleAddSpecies = () => {
+        setEditingSpecies(null); // Clear any editing state
+        setIsModalOpen(true);
+    };
+
+    const handleEditSpecies = (id) => {
+        const speciesToEdit = speciesList.find((s) => s.id === id);
+        if (speciesToEdit) {
+            setEditingSpecies(speciesToEdit);
+            setIsModalOpen(true);
+        }
+    };
+
     const handleDeleteSpecies = (id) => {
         if (window.confirm("Are you sure you want to delete this species?")) {
             setSpeciesList(speciesList.filter((s) => s.id !== id));
+        }
+    };
+
+    const handleToggleFavorite = (id) => {
+        setSpeciesList(
+            speciesList.map((species) =>
+                species.id === id
+                    ? { ...species, favorite: !species.favorite, lastUpdated: new Date().toISOString() }
+                    : species
+            )
+        );
+    };
+
+    const handleSaveSpecies = (speciesData) => {
+        if (speciesData.id && speciesList.some(s => s.id === speciesData.id)) {
+            // Update existing species
+            setSpeciesList(
+                speciesList.map((species) =>
+                    species.id === speciesData.id ? speciesData : species
+                )
+            );
+        } else {
+            // Add new species
+            setSpeciesList([...speciesList, speciesData]);
         }
     };
 
@@ -223,16 +261,16 @@ const SpeciesManagementPage = () => {
                                 ) : (
                                     <Leaf size={56} className="text-green-500" />
                                 )}
-                                {species.favorite && (
-                                    <div className="absolute top-2 right-2">
+                                <button 
+                                    className="absolute top-2 right-2"
+                                    onClick={() => handleToggleFavorite(species.id)}
+                                >
+                                    {species.favorite ? (
                                         <Heart size={22} fill="#ef4444" className="text-red-500" />
-                                    </div>
-                                )}
-                                {!species.favorite && (
-                                    <div className="absolute top-2 right-2">
-                                        <Heart size={22}  className="text-white shadow-sm"/>
-                                    </div>
-                                )}
+                                    ) : (
+                                        <Heart size={22} className="text-white shadow-sm" />
+                                    )}
+                                </button>
                             </div>
                             <div className="p-4 space-y-2">
                                 <h3 className="text-lg font-semibold italic text-gray-800">
@@ -276,6 +314,14 @@ const SpeciesManagementPage = () => {
                     </div>
                 )}
             </div>
+
+            {/* Species Modal */}
+            <SpeciesModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onSave={handleSaveSpecies}
+                editingSpecies={editingSpecies}
+            />
         </div>
     );
 };
