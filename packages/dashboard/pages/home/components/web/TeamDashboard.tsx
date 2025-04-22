@@ -10,9 +10,14 @@ import {
     ChevronDown,
     Filter
 } from 'lucide-react';
+import { AnimatePresence } from 'framer-motion';
+import InviteUserModal from './InviteUserModal';
+
 
 const TeamsDashboard = () => {
     // Sample data - replace with your actual data fetching logic
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
     const [users, setUsers] = useState([
         {
             id: 1,
@@ -153,15 +158,83 @@ const TeamsDashboard = () => {
         }
     };
 
+
+    const downloadJsonAsCsv = (jsonData, filename, includeHeaders = true) => {
+        // Return early if no data
+        if (!jsonData || !jsonData.length) {
+            console.error('No data provided for CSV download');
+            return;
+        }
+
+        try {
+            // Get headers from the first object in the array
+            const headers = Object.keys(jsonData[0]);
+
+            // Create CSV rows from the JSON data
+            let csvRows = [];
+
+            // Add headers row if requested
+            if (includeHeaders) {
+                csvRows.push(headers.join(','));
+            }
+
+            // Add data rows
+            jsonData.forEach(item => {
+                const values = headers.map(header => {
+                    // Handle special cases (commas, quotes, undefined, null)
+                    const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
+                    const escapedValue = String(cellValue)
+                        .replace(/"/g, '""') // Escape double quotes with double quotes
+                        .replace(/\n/g, ' '); // Replace newlines with spaces
+
+                    // Wrap with quotes if contains comma, quote or newline
+                    return /[,"\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
+                });
+
+                csvRows.push(values.join(','));
+            });
+
+            // Combine rows into a CSV string
+            const csvString = csvRows.join('\n');
+
+            // Create a Blob containing the CSV data
+            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+
+            // Create a link element to trigger the download
+            const link = document.createElement('a');
+
+            // Create a URL for the blob
+            const url = URL.createObjectURL(blob);
+
+            // Set link properties
+            link.setAttribute('href', url);
+            link.setAttribute('download', `${filename}.csv`);
+            link.style.visibility = 'hidden';
+
+            // Add link to the document, trigger click, and remove it
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            // Release the blob URL
+            URL.revokeObjectURL(url);
+        } catch (error) {
+            console.error('Error generating CSV download:', error);
+        }
+    };
+
     // Handlers for button actions (placeholders)
     const handleExportUsers = () => {
         console.log('Exporting users...');
         // Implement export logic
+        downloadJsonAsCsv([{ name: "TreeMapperTest" }], 'userList')
+
     };
 
     const handleInviteUser = () => {
         console.log('Inviting user...');
         // Implement invite logic
+        setIsModalOpen(true)
     };
 
     const handleViewUser = (userId) => {
@@ -185,6 +258,7 @@ const TeamsDashboard = () => {
 
     return (
         <div className="p-6 bg-white">
+            <InviteUserModal />
             <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Team Members</h1>
 
@@ -346,6 +420,9 @@ const TeamsDashboard = () => {
                     </div>
                 )}
             </div>
+            <AnimatePresence>
+                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+            </AnimatePresence>
         </div>
     );
 };

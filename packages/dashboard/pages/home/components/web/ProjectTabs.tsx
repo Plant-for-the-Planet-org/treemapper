@@ -14,6 +14,8 @@ interface Props {
   createNewProject: () => void;
   notificationCount?: number;
   onNotificationClick?: () => void;
+  openProfileSetting: () => void
+
 }
 
 const ProjectDropdown = ({
@@ -22,7 +24,8 @@ const ProjectDropdown = ({
   onSelectProject,
   createNewProject,
   notificationCount = 0,
-  onNotificationClick = () => { }
+  onNotificationClick = () => { },
+  openProfileSetting,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
@@ -103,7 +106,7 @@ const ProjectDropdown = ({
             count={notificationCount}
             onClick={onNotificationClick}
           />
-          <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public' />
+          <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public' openProfileSetting={openProfileSetting} />
         </div>
       </div>
 

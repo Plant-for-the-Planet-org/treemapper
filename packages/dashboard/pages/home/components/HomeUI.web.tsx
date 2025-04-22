@@ -14,9 +14,10 @@ interface HomeUIProps {
   activeProject: string;
   onSelectProject: (id: string) => void;
   createNewProject: () => void
+  openProfileSetting: () => void
 }
 
-export function HomeUI({ projects, activeProject, onSelectProject, createNewProject }: HomeUIProps) {
+export function HomeUI({ projects, activeProject, onSelectProject, createNewProject, openProfileSetting }: HomeUIProps) {
   // Web-specific UI rendering only, no logic
   const parentTab = useHomeStore((state) => state.parentTab);
 
@@ -30,6 +31,7 @@ export function HomeUI({ projects, activeProject, onSelectProject, createNewProj
             onSelectProject={onSelectProject}
             createNewProject={createNewProject}
             notificationCount={6}
+            openProfileSetting={openProfileSetting}
           />
         </div>
       </div>

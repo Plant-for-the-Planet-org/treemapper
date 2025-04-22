@@ -15,12 +15,16 @@ function Home() {
   const createNewProject=()=>{
     push('/createproject')
   }
+  const openProfileSetting=()=>{
+    push('/profile')
+  }
   return (
     <HomeUI 
       projects={projects}
       activeProject={selectedProject}
       onSelectProject={handleSelectProject}
       createNewProject={createNewProject}
+      openProfileSetting={openProfileSetting}
     />
   );
 }

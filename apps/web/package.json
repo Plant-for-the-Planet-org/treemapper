@@ -12,6 +12,7 @@
   "dependencies": {
     "@expo/next-adapter": "5.0.2",
     "dashboard": "*",
+    "framer-motion": "^12.7.4",
     "next": "^14.2.11",
     "next-auth": "^4.24.11",
     "raf": "^3.4.1",
