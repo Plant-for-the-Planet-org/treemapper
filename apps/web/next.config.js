@@ -23,7 +23,7 @@ const nextConfig = {
     return config;
   },
   images: {
-    domains: ['images.unsplash.com'],
+    domains: ['images.unsplash.com','pftp.eu.auth0.com'],
     // Alternatively, you can use remotePatterns for more granular control
     // remotePatterns: [
     //   {

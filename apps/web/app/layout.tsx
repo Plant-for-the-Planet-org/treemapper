@@ -1,22 +1,21 @@
 // app/layout.tsx
-import { ReactNode } from 'react';
 import './global.css';
-import AuthProvider from '../components/AuthProvider';
-import { DashboardProvider } from 'dashboard/provider/TamaguiProviderWeb'
+import { Auth0Provider } from './providers/Auth0Provider';
 
-interface RootLayoutProps {
-  children: ReactNode;
-}
+export const metadata = {
+  title: 'Admin Dashboard',
+  description: 'Admin Dashboard with Auth0 Authentication',
+};
 
-export default function RootLayout({ children }: RootLayoutProps) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
     <html lang="en">
-      <body style={{backgroundColor:'#f5f5f5'}} className='w-full h-full'>
-        <AuthProvider>
-          <DashboardProvider>
-            {children}
-          </DashboardProvider>
-        </AuthProvider>
+      <body>
+        <Auth0Provider>{children}</Auth0Provider>
       </body>
     </html>
   );

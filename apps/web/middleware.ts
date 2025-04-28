@@ -1,47 +1,57 @@
-import { NextRequest, NextResponse } from 'next/server';
-import { getToken } from 'next-auth/jwt';
+// middleware.ts
+import { NextResponse } from 'next/server';
+import { getSession } from '@auth0/nextjs-auth0/edge';
+import type { NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
-  const { pathname } = request.nextUrl;
+export async function middleware(req: NextRequest) {
+  const res = NextResponse.next();
+  const path = req.nextUrl.pathname;
   
-  // Get the session token
-  const token = await getToken({ 
-    req: request, 
-    secret: process.env.NEXTAUTH_SECRET 
-  });
+  // Get the user session
+  const session = await getSession(req, res);
+  const isAuthenticated = !!session?.user;
   
-  // Define public routes that don't require authentication
-  const publicRoutes = ['/login', '/api/auth'];
-  const isPublicRoute = publicRoutes.some(route => 
-    pathname.startsWith(route) || pathname === route
-  );
+  // Public routes that don't require authentication
+  const publicRoutes = ['/login', '/api/auth/login', '/api/auth/callback', '/api/auth/logout'];
+  const isPublicRoute = publicRoutes.some(route => path.startsWith(route));
   
-  // Check if the user is on the root path
-  const isRootPath = pathname === '/';
-  
-  // If the user is authenticated and trying to access the root path,
-  // redirect them to the dashboard
-  if (token && isRootPath) {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+  // Handle login page redirection
+  if (path === '/login') {
+    if (isAuthenticated) {
+      // If authenticated and on login page, redirect to dashboard
+      return NextResponse.redirect(new URL('/dashboard', req.url));
+    }
+    return res; // Allow access to login page if not authenticated
   }
   
-  // If the user is authenticated or trying to access a public route, allow access
-  if (token || isPublicRoute) {
-    return NextResponse.next();
+  // For API routes and public routes, continue
+  if (path.startsWith('/api') || isPublicRoute) {
+    return res;
   }
   
-  // If the user is not authenticated and trying to access a protected route,
-  // redirect them to the login page with the callbackUrl
-  const callbackUrl = encodeURIComponent(pathname);
-  return NextResponse.redirect(
-    new URL(`/login?callbackUrl=${callbackUrl}`, request.url)
-  );
+  // Redirect unauthenticated users to login
+  if (!isAuthenticated && !isPublicRoute) {
+    const returnTo = encodeURIComponent(path);
+    return NextResponse.redirect(new URL(`/login?returnTo=${returnTo}`, req.url));
+  }
+  
+  // Redirect root to dashboard for authenticated users
+  if (isAuthenticated && path === '/') {
+    return NextResponse.redirect(new URL('/dashboard', req.url));
+  }
+  
+  return res;
 }
 
-// Configure which routes the middleware should run on
 export const config = {
   matcher: [
-    // Apply to all routes except for next internal routes and API routes that don't need auth
-    '/((?!_next/static|_next/image|favicon.ico|api/auth/otp|api/auth/otp/verify).*)',
+    /*
+     * Match all request paths except:
+     * - _next (Next.js internals)
+     * - public (static files)
+     * - favicon.ico (browser icon)
+     * - images (static images)
+     */
+    '/((?!_next/static|_next/image|fonts|images|favicon.ico|vercel.svg|apple.png|googleplay.png|treemapperLogo.png).*)',
   ],
 };

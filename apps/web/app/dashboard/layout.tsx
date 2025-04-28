@@ -1,9 +1,9 @@
 // app/dashboard/layout.tsx
 "use client";
 
-import { usePathname, useRouter } from 'next/navigation';
-import { useEffect } from 'react';
-import { useSession } from 'next-auth/react';
+import { useUser } from '@auth0/nextjs-auth0/client';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import GoogleSpinner from '../../components/Spinner';
 import Image from 'next/image';
 
@@ -14,18 +14,26 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { data: session, status } = useSession();
+  const { user, error, isLoading } = useUser();
   const router = useRouter();
 
   // Redirect to login if not authenticated
-  useEffect(() => {
-    if (status === "unauthenticated") {
-      router.push(`/login?callbackUrl=${encodeURIComponent(window.location.pathname)}`);
-    }
-  }, [status, router]);
+
+  // Handle logout
+  const handleLogout = () => {
+    window.location.href = '/api/auth/logout';
+  };
+
+  if (error) return <div className="p-8 text-center text-red-500">Error: {error.message}</div>;
+  
+  // This should not happen due to middleware, but just in case
+  if (!user) {
+    router.push('/login');
+    return null;
+  }
 
   // Show loading state while checking authentication
-  if (status === 'loading') {
+  if (isLoading) {
     return (
       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
         <GoogleSpinner />
@@ -33,8 +41,6 @@ export default function DashboardLayout({
     );
   }
 
-  // Only render protected content if authenticated
-  if (status === 'authenticated') {
     return (
       <>
         <span className='treemapper-logo'>
@@ -64,7 +70,3 @@ export default function DashboardLayout({
       </>
     );
   }
-
-  // Fallback while redirecting
-  return null;
-}

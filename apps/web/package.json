@@ -10,8 +10,10 @@
     "build:dev": "next build --no-lint"
   },
   "dependencies": {
+    "@auth0/nextjs-auth0": "3.7.0",
     "@expo/next-adapter": "5.0.2",
     "dashboard": "*",
+    "dotenv": "^16.5.0",
     "framer-motion": "^12.7.4",
     "maplibre-gl": "^5.4.0",
     "next": "^14.2.11",
