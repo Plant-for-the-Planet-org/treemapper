@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { CalendarDays } from 'lucide-react';
-import useMediaQuery from './useMediaQuery';
+import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
 import TreePlantingChart from './TreePlantingChart\'';

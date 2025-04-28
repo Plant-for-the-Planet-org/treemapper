@@ -1,5 +1,4 @@
 import React from 'react';
-import { useState } from 'react';
 import useHomeStore from '../../../../store/useHomeStore';
 
 interface LabelTabsProps {

@@ -4,7 +4,7 @@ import React from 'react';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
-import useMediaQuery from './useMediaQuery';
+import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
 
 interface Props {
