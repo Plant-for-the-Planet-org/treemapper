@@ -1,43 +1,38 @@
 import { useState } from 'react';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
 import React from 'react';
-import { ProjectsI } from '../../../../types/app.interface';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from './useMediaQuery';
+import useProjectStore from '../../../../store/useProjectStore';
 
 interface Props {
-  projects: ProjectsI[];
-  activeProject: string;
-  onSelectProject: (i: string) => void;
   createNewProject: () => void;
-  notificationCount?: number;
-  onNotificationClick?: () => void;
   openProfileSetting: () => void;
   updateRoute: (newRoute: string) => void;
 }
 
 const ProjectDropdown = ({
-  projects,
-  activeProject,
-  onSelectProject,
   createNewProject,
-  notificationCount = 0,
-  onNotificationClick = () => { },
   openProfileSetting,
   updateRoute
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
 
+  const projects = useProjectStore((state) => state.projects);
+  const selectedProject = useProjectStore((state) => state.selectedProject);
+  const selectProject = useProjectStore((state) => state.selectProject);
+
+
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
 
   const handleProjectSelect = (projectId: string) => {
-    onSelectProject(projectId);
     setIsOpen(false);
+    selectProject(projectId)
   };
 
   return (
@@ -53,8 +48,8 @@ const ProjectDropdown = ({
             className="flex items-center justify-between w-full bg-white border border-gray-300 rounded-md p-2 hover:bg-gray-50 transition-colors"
           >
             <span className="font-medium truncate">
-              {activeProject ?
-                projects.find(p => p.id === activeProject)?.name || 'Projects' :
+              {selectedProject ?
+                projects.find(p => p.id === selectedProject)?.name || 'Projects' :
                 'Projects'}
             </span>
             {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -83,7 +78,7 @@ const ProjectDropdown = ({
                     <button
                       key={project.id}
                       onClick={() => handleProjectSelect(project.id)}
-                      className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.id === activeProject ? 'bg-gray-100 font-medium' : ''
+                      className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.id === selectedProject ? 'bg-gray-100 font-medium' : ''
                         }`}
                     >
                       {project.name}
@@ -99,20 +94,20 @@ const ProjectDropdown = ({
           )}
         </div>
         {isLargeScreen && <div className="w-full overflow-x-auto px-4 py-2">
-          <LabelTabs updateRoute={updateRoute}/>
+          <LabelTabs updateRoute={updateRoute} />
         </div>}
         {/* Right-side components */}
         <div className="flex items-center space-x-4 sm:space-x-6 flex-shrink-0">
           <NotificationBell
-            count={notificationCount}
-            onClick={onNotificationClick}
           />
           <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public' openProfileSetting={openProfileSetting} />
         </div>
       </div>
 
       {!isLargeScreen && <div className="w-full overflow-x-auto px-4 py-2">
-        <LabelTabs />
+        <LabelTabs updateRoute={function (newRoute: string): void {
+          throw new Error('Function not implemented.');
+        }} />
       </div>}
     </div>
   );
