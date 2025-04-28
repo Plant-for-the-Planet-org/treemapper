@@ -1,6 +1,6 @@
 // app/layout.tsx
 import './global.css';
-import { Auth0Provider } from './providers/Auth0Provider';
+import Auth0Provider  from './providers/Auth0Provider';
 
 export const metadata = {
   title: 'Admin Dashboard',
