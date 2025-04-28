@@ -1,20 +1,16 @@
 "use client";
 
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
 
 export default function LoginPage() {
-  const searchParams = useSearchParams();
-  const callbackUrl = searchParams.get("callbackUrl") || "/dashboard";
-  
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [devUserMode, setDevUserMode] = useState(false);
-  const [devUsername, setDevUsername] = useState("");
+  const searchParams = useSearchParams();  
   const returnTo = searchParams.get('returnTo');
-
+  const [loading, setLoading] = useState(false)
+  
   const handleLogin = () => {
+    setLoading(true);
     // Redirect to Auth0 login with returnTo parameter if it exists
     window.location.href = returnTo 
       ? `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`
@@ -65,11 +61,11 @@ export default function LoginPage() {
               <p className="mt-2 text-gray-600">Helping conserve forests through technology and community engagement</p>
             </div>
             
-            {error && (
+            {/* {error && (
               <div className="p-4 mb-6 text-sm text-red-700 bg-red-100 rounded-lg">
                 {error}
               </div>
-            )}
+            )} */}
             
             {/* Google Sign In Button */}
             <button
