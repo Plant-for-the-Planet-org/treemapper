@@ -83,6 +83,7 @@ export interface BodyPayload<T = null> {
   fixRequired: FIX_REQUIRED;
   pData: T;
   historyID?: string
+  treeID?: string
 }
 
 export interface CountryCode {
