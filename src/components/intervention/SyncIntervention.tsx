@@ -189,11 +189,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleRemeasurement = async (el) => {
         try {
-            const { pData, historyID } = await getRemeasurementBody(el);
+            const { pData, historyID, treeID } = await getRemeasurementBody(el);
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { success } = await remeasurement(el.p2Id, pData);
+            const { success } = await remeasurement(treeID, pData);
             if (success) {
                 await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
             } else {
@@ -217,7 +217,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleSkipRemeasurement = async (el) => {
         try {
-            const { success } = await skipRemeasurement(el.p2Id, {
+            const dData = await getRemeasurementBody(el);
+            if (!dData) {
+                throw new Error("Not able to convert body");
+            }
+            const { success } = await skipRemeasurement(dData.treeID, {
                 "type": "skip-measurement"
             });
             if (success) {

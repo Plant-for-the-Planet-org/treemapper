@@ -12,10 +12,11 @@ import { Colors } from 'src/utils/constants'
 
 interface Props {
     low?: boolean
+    bottom?: number
 }
 
 const SatelliteIconWrapper = (props: Props) => {
-    const { low } = props
+    const { low, bottom } = props
     const viewState = useSelector(
         (state: RootState) => state.displayMapState.mainMapView,
     )
@@ -27,7 +28,7 @@ const SatelliteIconWrapper = (props: Props) => {
     }
 
     return (
-        <TouchableOpacity style={[styles.container, { bottom: low ? scaleSize(190) : scaleSize(220) }]} onPress={handlePress}>
+        <TouchableOpacity style={[styles.container, { bottom: bottom ? bottom : low ? scaleSize(190) : scaleSize(220) }]} onPress={handlePress}>
             {viewState === 'SATELLITE' ? <SatelliteIconOn width={25} height={25} /> : <SatelliteIcon width={25} height={25} />}
         </TouchableOpacity>
     )
@@ -45,6 +46,6 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: Colors.WHITE,
-        borderRadius:12
+        borderRadius: 12
     },
 })

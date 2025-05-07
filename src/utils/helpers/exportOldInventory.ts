@@ -1,30 +1,57 @@
 import RNFS from 'react-native-fs';
 import { Alert } from 'react-native';
-import { zip } from 'react-native-zip-archive';
+import JSZip from 'jszip';
+import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share';
 
 const sharedData = async (filePath: string, id: string) => {
-  const filePaths = `${RNFS.DocumentDirectoryPath}/${id}.zip`;
-    zip(filePath, filePaths)
-      .then(path => {
-        console.log(`zip completed at ${path}`);
-        const options = {
-          url: 'file://' +path,
-          type: 'application/pdf'
-        };
-        Share.open(options)
-          .then(() => {
-            console.log('done');
-          })
-          .catch(err => {
-            console.log('err',err);
-          });
+  try {
+    const zip = new JSZip();
+    const outputPath = `${FileSystem.documentDirectory}${id}.zip`;
+    
+    // Read the file content
+    const fileContent = await FileSystem.readAsStringAsync(filePath, {
+      encoding: FileSystem.EncodingType.Base64
+    });
+    
+    // Get the filename from the path
+    const fileName = filePath.split('/').pop();
+    
+    // Add the file to the zip
+    zip.file(fileName, fileContent, { base64: true });
+    
+    // Generate the zip file content
+    const zipContent = await zip.generateAsync({
+      type: 'base64',
+      compression: 'DEFLATE',
+      compressionOptions: { level: 9 }
+    });
+    
+    // Write the zip file
+    await FileSystem.writeAsStringAsync(outputPath, zipContent, {
+      encoding: FileSystem.EncodingType.Base64
+    });
+    
+    console.log(`Zip completed at ${outputPath}`);
+    
+    // Keep the same Share logic
+    const options = {
+      url: 'file://' + outputPath,
+      type: 'application/pdf'
+    };
+    
+    Share.open(options)
+      .then(() => {
+        console.log('done');
       })
-      .catch(error => {
-        console.error(error);
+      .catch(err => {
+        console.log('err', err);
       });
+      
+  } catch (error) {
+    console.error('Error in sharedData:', error);
+  }
 };
-
 const writeJSON = async (data: any, filePath: string) => {
   try {
     await RNFS.writeFile(filePath, JSON.stringify(data, null, 2), 'utf8');

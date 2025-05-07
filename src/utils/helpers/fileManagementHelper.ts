@@ -1,6 +1,7 @@
 import RNFS from 'react-native-fs';
 import { InterventionData } from 'src/types/interface/slice.interface';
-import { zip } from 'react-native-zip-archive';
+import JSZip from 'jszip';
+import * as FileSystem from 'expo-file-system';
 import Share from 'react-native-share';
 import Bugsnag from '@bugsnag/expo';
 
@@ -78,8 +79,56 @@ export const exportAllInterventionData = async (data: InterventionData) => {
 
 const zipAndShareFolder = async (id: string) => {
     try {
-        const zipFilePath = `${RNFS.CachesDirectoryPath}/Intervention-${id}.zip`;
-        await zip(`${basePath}/${id}`, zipFilePath);
+        const zipFilePath = `${FileSystem.cacheDirectory}Intervention-${id}.zip`;
+        const folderPath = `${basePath}/${id}`;
+        
+        // Create a new JSZip instance
+        const zip = new JSZip();
+        
+        // Get the list of files in the folder
+        const files = await FileSystem.readDirectoryAsync(folderPath);
+        
+        // Add each file to the zip
+        for (const file of files) {
+            const fullPath = `${folderPath}/${file}`;
+            const fileInfo = await FileSystem.getInfoAsync(fullPath);
+            
+            if (fileInfo.isDirectory) {
+                // Handle subfolders recursively if needed
+                // This is a simplified version - you may need to expand this
+                // to handle nested directories
+                const subFiles = await FileSystem.readDirectoryAsync(fullPath);
+                for (const subFile of subFiles) {
+                    const subFilePath = `${fullPath}/${subFile}`;
+                    const content = await FileSystem.readAsStringAsync(subFilePath, {
+                        encoding: FileSystem.EncodingType.Base64
+                    });
+                    zip.file(`${file}/${subFile}`, content, { base64: true });
+                }
+            } else {
+                // Read and add file to zip
+                const content = await FileSystem.readAsStringAsync(fullPath, {
+                    encoding: FileSystem.EncodingType.Base64
+                });
+                zip.file(file, content, { base64: true });
+            }
+        }
+        
+        // Generate the zip content
+        const zipContent = await zip.generateAsync({
+            type: 'base64',
+            compression: 'DEFLATE',
+            compressionOptions: { level: 9 }
+        });
+        
+        // Write the zip file
+        await FileSystem.writeAsStringAsync(zipFilePath, zipContent, {
+            encoding: FileSystem.EncodingType.Base64
+        });
+        
+        console.log(`Zip completed at ${zipFilePath}`);
+        
+        // Keep the same Share logic
         const shareOptions = {
             title: `Intervention data-${id}`,
             url: `file://${zipFilePath}`,
@@ -88,6 +137,6 @@ const zipAndShareFolder = async (id: string) => {
 
         await Share.open(shareOptions);
     } catch (error) {
-        //console.log(error)
+        console.log('Error in zipAndShareFolder:', error);
     }
 };

@@ -1,6 +1,7 @@
 const SatelliteLayer = {
     "version": 8,
     "metadata": "PFTP",
+    "glyphs": "https://basemaps.arcgis.com/arcgis/rest/services/World_Basemap_v2/VectorTileServer/resources/fonts/{fontstack}/{range}.pbf",
     "name": "",
     "bearing": 0,
     "pitch": 0,

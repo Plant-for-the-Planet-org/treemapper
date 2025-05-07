@@ -1,4 +1,4 @@
-import { FIX_REQUIRED, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
+import { FIX_REQUIRED, HISTORY_STATUS, INTERVENTION_FILTER, INTERVENTION_STATUS, INTERVENTION_TYPE, LAST_SCREEN, LOG_LEVELS, LOG_TYPES, MAP_BOUNDS, MAP_VIEW, OBSERVATION_TYPE, PLOT_COMPLEXITY, PLOT_PLANT, PLOT_PLANT_STATUS, PLOT_SHAPE, PLOT_TYPE } from '../type/app.type'
 import { IScientificSpecies } from './app.interface'
 import { FormElement, MainForm } from './form.interface'
 
@@ -83,6 +83,7 @@ export interface BodyPayload<T = null> {
   fixRequired: FIX_REQUIRED;
   pData: T;
   historyID?: string
+  treeID?: string
 }
 
 export interface CountryCode {
@@ -353,7 +354,7 @@ export interface History {
   appMetadata: string
   status: string
   statusReason: string
-  dataStatus: 'SYNCED' |  "REMEASUREMENT_DATA_UPLOAD" | "REMEASUREMENT_EVENT_UPDATE" | "SKIP_REMEASUREMENT"
+  dataStatus: HISTORY_STATUS
   parentId: string
   samplePlantLocationIndex: number
   lastScreen: string

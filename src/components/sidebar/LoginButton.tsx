@@ -40,14 +40,14 @@ const LoginButton = () => {
     const lastName = nameParts.length > 1 ? nameParts[nameParts.length - 1] : '';
 
     return { firstName, lastName };
-}
+  }
 
   useEffect(() => {
     if (error) {
-      if (error.code === "unauthorized") {
+      if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
           toast.show("Please confirm your email \nusing the link sent to your inbox.", {
-            duration: 8000,
+            duration: 10000,
             textStyle: { textAlign: 'center' },
             placement: 'center'
           })
@@ -66,8 +66,8 @@ const LoginButton = () => {
 
   const getDetails = async () => {
     const credentials = await getUserCredentials()
-    if(credentials){
-      const {firstName, lastName} = getFirstAndLastName(user.name)
+    if (credentials) {
+      const { firstName, lastName } = getFirstAndLastName(user.name)
       dispatch(
         updateUserToken({
           idToken: credentials.idToken,
@@ -76,7 +76,7 @@ const LoginButton = () => {
           refreshToken: credentials.refreshToken
         }),
       )
-      dispatch(updateName({firstName, lastName}))
+      dispatch(updateName({ firstName, lastName }))
     }
     if (!credentials?.accessToken) {
       handleLogout()
@@ -110,6 +110,7 @@ const LoginButton = () => {
     try {
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
+      console.log("OPIPOIP,", JSON.stringify(result, null, 2))
       if (!result.success) {
         dispatch(updateWebAuthLoading(false))
         Snackbar.show({
@@ -127,6 +128,7 @@ const LoginButton = () => {
         await handleLogout()
       }
     } catch (err) {
+      console.log("OPIPOIP, err", JSON.stringify(err, null, 2))
       dispatch(updateWebAuthLoading(false))
       addNewLog({
         logType: 'USER',

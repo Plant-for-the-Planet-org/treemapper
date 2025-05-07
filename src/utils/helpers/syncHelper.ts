@@ -157,6 +157,10 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
         return convertRemeasurementStatus(TreeDetails)
     }
+    if (r.type === 'skipRemeasurement') {
+        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+        return TreeDetails && TreeDetails.sloc_id !== '' ? { pData: null, message: "", fixRequired: 'NO', error: "", historyID: '', treeID: TreeDetails.sloc_id } : null
+    }
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
@@ -271,7 +275,7 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
             postData.plantProject = i.project_id
         }
 
-        if (uType === 'tpo'  && i.site_id && i.site_id !== 'other') {
+        if (uType === 'tpo' && i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {
@@ -300,27 +304,27 @@ const handleAdditionalData = (aData: FormElement[]) => {
         if (el.visibility === 'private') {
             privateAdd[el.key] = {
                 "key": el.key,
-                "originalKey":el.element_id,
-                "value":el.value,
-                "label":el.label,
-                "type":el.type,
-                "unit":el.unit,
-                "visibility":"private",
-                "dataType":el.data_type,
-                "elementType":"additionalData"
+                "originalKey": el.element_id,
+                "value": el.value,
+                "label": el.label,
+                "type": el.type,
+                "unit": el.unit,
+                "visibility": "private",
+                "dataType": el.data_type,
+                "elementType": "additionalData"
             };
         }
         if (el.visibility === 'public') {
             publicAdd[el.key] = {
                 "key": el.key,
-                "originalKey":el.element_id,
-                "value":el.value,
-                "label":el.label,
-                "type":el.type,
-                "unit":el.unit,
-                "visibility":"public",
-                "dataType":el.data_type,
-                "elementType":"additionalData"
+                "originalKey": el.element_id,
+                "value": el.value,
+                "label": el.label,
+                "type": el.type,
+                "unit": el.unit,
+                "visibility": "public",
+                "dataType": el.data_type,
+                "elementType": "additionalData"
             };
         }
     })
@@ -351,7 +355,7 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 }
             } : {}
         }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id, treeID: d.sloc_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
@@ -378,7 +382,7 @@ export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPay
                 }
             } : {}
         }
-        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id, treeID: d.sloc_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
