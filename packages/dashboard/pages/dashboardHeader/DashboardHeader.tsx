@@ -1,9 +1,22 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import DashboardHeaderUI from './components';
 import { useRouter } from 'solito/navigation'
+import { getUserDetails } from '../../api/api.fetch';
 
+interface DashboardHeaderProps {
+  token: string;
+}
 
-function DashboardHeader() {
+function DashboardHeader({ token }: DashboardHeaderProps) {
+  useEffect(() => {
+    fetchUser()
+  }, [])
+
+  const fetchUser = async () => {
+    console.log('Fetching user details...', token)
+    const response = await getUserDetails(token)
+    console.log('Fetching user response...', response)
+  }
 
   const { push } = useRouter()
   const createNewProject = () => {

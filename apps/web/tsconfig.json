@@ -30,7 +30,7 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts"
-, "components/ProtectedRoute.tss"  ],
+, "components/ProtectedRoute.tss", "app/contexts/TokenContext.tsx"  ],
   "exclude": [
     "node_modules"
   ]

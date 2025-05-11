@@ -1,4 +1,4 @@
-const baseUrl = 'http://192.168.1.33:3001/api'
+const baseUrl = 'http://192.168.0.103:3001'
 
 export const postUrlApi = {
     health: `${baseUrl}/health`,
@@ -16,5 +16,5 @@ export const postUrlApi = {
 
 export const getUrlApi = {
     health: `${baseUrl}/health`,
-
+    me: `${baseUrl}/users/me`,
 }

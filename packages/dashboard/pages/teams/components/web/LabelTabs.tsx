@@ -8,8 +8,7 @@ interface LabelTabsProps {
 const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   const setParentTab = useHomeStore((state) => state.setParentTab);
   const parentTab = useHomeStore((state) => state.parentTab);
-  console.log("OL", parentTab)
-  // Sample data - replace with your own items
+// Sample data - replace with your own items
   const items = [
     { id: 'overview', label: 'Overview' },
     { id: 'species', label: 'Species' },

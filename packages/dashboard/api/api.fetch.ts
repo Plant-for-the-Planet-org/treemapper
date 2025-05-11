@@ -8,6 +8,12 @@ import {
 
 export const healthCheck = async () => {
   const uri = `${getUrlApi.health}`
-  const result = await fetchGetCall(uri, false)
+  const result = await fetchGetCall(uri)
+  return result
+}
+
+export const getUserDetails = async (token: string) => {
+  const uri = `${getUrlApi.me}`
+  const result = await fetchGetCall(uri,token)
   return result
 }

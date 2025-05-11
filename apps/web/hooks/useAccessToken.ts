@@ -58,8 +58,8 @@ export function useAccessToken() {
 
   return { 
     accessToken, 
-    isLoading: isLoading || userLoading, 
-    error: error || userError,
+    tokenLoading: isLoading || userLoading, 
+    tokenError: error || userError,
     user 
   };
 }
