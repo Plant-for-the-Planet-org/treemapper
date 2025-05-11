@@ -48,6 +48,10 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
     if (response.status === 303) {
       return { response: { signUpRequire: true }, success: true, status: response.status, extra: {} }
     }
+
+    if (response.status === 204) {
+      return { response: { signUpRequire: false }, success: true, status: response.status, extra: {} }
+    }
     if (!response.ok) {
       return { response: null, success: false, status: response.status, extra: {} }
     }
