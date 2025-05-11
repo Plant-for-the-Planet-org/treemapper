@@ -1,4 +1,4 @@
-import {Pressable, StyleSheet, Text, View } from 'react-native'
+import { Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
 import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import Modal from 'react-native-modal'
@@ -10,13 +10,13 @@ import i18next from 'src/locales/index'
 
 const MapAttribution = () => {
     const [showInfo, setShowInfo] = useState(false)
-    const toggleInfo=()=>{
-        setShowInfo(prev=>!prev)
+    const toggleInfo = () => {
+        setShowInfo(prev => !prev)
     }
     return (
         <View style={styles.container}>
             <Pressable style={{ opacity: 0.5 }} onPress={toggleInfo}>
-                <InfoIcon/>
+                <InfoIcon />
             </Pressable>
             <Modal
                 style={styles.mainContainer}
@@ -24,7 +24,7 @@ const MapAttribution = () => {
                 onBackdropPress={toggleInfo}>
                 <View style={styles.sectionWrapper}>
                     <Text style={styles.header}>
-                    {i18next.t('label.map_credits')}
+                        Map Credits
                     </Text>
                     <Text style={styles.mapLabels}>
                         Maplibre SDK
@@ -33,12 +33,12 @@ const MapAttribution = () => {
                         ESRI
                     </Text>
                     <Text style={styles.mapLabels}>
-                    {i18next.t('label.openstreet_contributors')}
+                        {i18next.t('label.openstreet_contributors')}
                     </Text>
-                    <CustomButton label={'Close'} pressHandler={toggleInfo} 
-                    containerStyle={{width:'100%',height:70, marginTop:'5%'}}    
-                    hideFadeIn
-                />
+                    <CustomButton label={'Close'} pressHandler={toggleInfo}
+                        containerStyle={{ width: '100%', height: 70, marginTop: '5%' }}
+                        hideFadeIn
+                    />
                 </View>
 
             </Modal>
@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
         marginLeft: '5%',
         marginTop: '5%'
     },
-    mapLabels:{
+    mapLabels: {
         fontSize: 18,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.TEXT_COLOR,
