@@ -68,6 +68,8 @@ export default function DashboardLayout({
     switch (currentSection) {
       case 'profile':
         return null
+      case 'project':
+        return null
       default:
         return <DashboardHeader token={accessToken || ''} />;
     }

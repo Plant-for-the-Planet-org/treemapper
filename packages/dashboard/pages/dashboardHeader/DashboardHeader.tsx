@@ -20,7 +20,7 @@ function DashboardHeader({ token }: DashboardHeaderProps) {
 
   const { push } = useRouter()
   const createNewProject = () => {
-    push(`/dashboard/project}`)
+    push(`/dashboard/project`)
 
   }
   const openProfileSetting = () => {
