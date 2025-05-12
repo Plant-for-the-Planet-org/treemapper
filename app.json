@@ -2,7 +2,7 @@
   "expo": {
     "name": "TreeMapper",
     "slug": "treemapper",
-    "version": "2.0.5",
+    "version": "2.0.6",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
@@ -17,12 +17,7 @@
     "plugins": [
       "@maplibre/maplibre-react-native",
       [
-        "expo-build-properties",
-        {
-          "ios": {
-            "deploymentTarget": "15.5"
-          }
-        }
+        "expo-build-properties"
       ],
       [
         "expo-location",
@@ -58,7 +53,8 @@
       ],
       "expo-localization",
       "expo-secure-store",
-      "expo-build-properties"
+      "expo-build-properties",
+      "expo-router"
     ],
     "ios": {
       "supportsTablet": true,

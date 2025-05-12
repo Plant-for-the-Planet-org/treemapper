@@ -1,6 +1,6 @@
 import moment from "moment"
 import { History, InterventionData, PlantedSpecies, SampleTree } from "src/types/interface/slice.interface"
-import { INTERVENTION_TYPE } from "src/types/type/app.type"
+import { HISTORY_STATUS, INTERVENTION_TYPE } from "src/types/type/app.type"
 import { v4 as uuid } from 'uuid'
 import { convertDateToTimestamp } from "../appHelper/dataAndTimeHelper"
 
@@ -76,8 +76,9 @@ const setPlantedSpecies = (s: any) => {
 }
 
 
-const handlePlantHistory = (h: any, treeId: string) => {
+const handlePlantHistory = (h: any, treeId: string, treeData: any) => {
     const finalHistory: History[] = []
+    const status: HISTORY_STATUS = 'SYNCED'
     if (h) {
         h.forEach(element => {
             if (element.eventName == 'measurement') {
@@ -93,13 +94,32 @@ const handlePlantHistory = (h: any, treeId: string) => {
                     appMetadata: "",
                     status: "",
                     statusReason: "",
-                    dataStatus: "SYNCED",
+                    dataStatus: status,
                     parentId: treeId,
                     samplePlantLocationIndex: 0,
                     lastScreen: ""
                 })
             }
         });
+    }
+    if (treeData && treeData.status === 'dead') {
+        finalHistory.push({
+            history_id: uuid(),
+            eventName: "status",
+            eventDate: convertDateToTimestamp(treeData.lastMeasurementDate || new Date()),
+            imageUrl: '',
+            cdnImageUrl: '',
+            diameter: treeData.measurements.width || 0,
+            height: treeData.measurements.height || 0,
+            additionalDetails: undefined,
+            appMetadata: "",
+            status: "dead",
+            statusReason: treeData.statusReason,
+            dataStatus: status,
+            parentId: treeId,
+            samplePlantLocationIndex: 0,
+            lastScreen: ""
+        })
     }
     return finalHistory
 }
@@ -162,7 +182,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         status: "SYNCED",
         hid: d.hid,
         device_latitude: d.deviceLocation.coordinates[1],
-        history: d.type === 'sample-tree-registration' ? handlePlantHistory(d.history, d.id) : [],
+        history: d.type === 'sample-tree-registration' ? handlePlantHistory(d.history, d.id, d) : [],
         remeasurement_requires: d.type === 'sample-tree-registration' ? rData.requireRemeasurement : false,
         is_alive: !d.status,
         remeasurement_dates: {

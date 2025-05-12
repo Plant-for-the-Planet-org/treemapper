@@ -78,12 +78,24 @@ const DropDownFieldElement = (props: Props) => {
                 <Text style={styles.header}>{i18next.t('label.add_dropdown_options')}</Text>
                 <CustomTextInput
                     label={i18next.t('label.field_key')}
-                    onChangeHandler={setInputKey}
+                    onChangeHandler={(e) => {
+                        if (e.length > 30) {
+                            toast.show("Key should be less than 20 characters", { placement: 'top' })
+                            return
+                        }
+                        setInputKey(e)
+                    }}
                     value={inputKey}
                 />
                 <CustomTextInput
                     label={i18next.t('label.field_value')}
-                    onChangeHandler={setInputValue}
+                    onChangeHandler={(e) => {
+                        if (e.length > 30) {
+                            toast.show("Key should be less than 20 characters", { placement: 'top' })
+                            return
+                        }
+                        setInputValue(e)
+                    }}
                     value={inputValue}
                 />
                 <CustomButton

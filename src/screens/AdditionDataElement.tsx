@@ -111,6 +111,9 @@ const AdditionDataElement = () => {
   }
 
   const handleInputName = (t: string) => {
+    if (t.length > 30) {
+      return
+    }
     setInputKey(t)
     setFieldKey(`${convertToSlug(t)}-${Date.now().toString().slice(0, 5)}`)
   }
@@ -349,7 +352,12 @@ const AdditionDataElement = () => {
         {advanceMode && (
           <CustomTextInput
             label="Field key"
-            onChangeHandler={setFieldKey}
+            onChangeHandler={(e) => {
+              if (e.length > 30) {
+                return
+              }
+              setFieldKey(e)
+            }}
             value={fieldKey}
           />
         )}
