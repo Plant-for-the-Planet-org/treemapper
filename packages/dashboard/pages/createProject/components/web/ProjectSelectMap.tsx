@@ -37,6 +37,11 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     longitude: ''
   });
 
+  useEffect(() => {
+    updateGeoJSON(geoJSON)
+  }, [geoJSON])
+  
+
   // Polygon data as GeoJSON
   const polygonGeoJSON = {
     type: 'Feature',
@@ -80,7 +85,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       };
 
       setGeoJSON(pointGeoJSON);
-      updateGeoJSON(pointGeoJSON)
     } else if (selectionMode === 'polygon') {
       // Polygon mode: add point to polygon
       if (!drawingPolygon) {
@@ -99,7 +103,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     if (polygonPoints.length >= 3) {
       setDrawingPolygon(false);
       setGeoJSON(polygonGeoJSON);
-      updateGeoJSON(polygonGeoJSON)
 
     } else {
       alert('A polygon needs at least 3 points');
@@ -111,8 +114,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     setDrawingPolygon(false);
     setPolygonPoints([]);
     setGeoJSON(null);
-    updateGeoJSON(null)
-
   };
 
   // Handle selection mode toggle
@@ -126,8 +127,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       resetPolygon();
     }
     setGeoJSON(null);
-    updateGeoJSON(null)
-
   };
 
   // Handle manual coordinate input
@@ -174,8 +173,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       };
 
       setGeoJSON(pointGeoJSON);
-      updateGeoJSON(pointGeoJSON)
-
     }
   };
 
@@ -229,8 +226,6 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
               };
 
               setGeoJSON(pointGeoJSON);
-              updateGeoJSON(pointGeoJSON)
-
             }}
           >
             <MapPin color="#FF0000" size={24} />

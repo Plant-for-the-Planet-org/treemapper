@@ -13,7 +13,6 @@ function DashboardHeader({ token }: DashboardHeaderProps) {
   }, [])
 
   const fetchUser = async () => {
-    console.log('Fetching user details...', token)
     const response = await getUserDetails(token)
     console.log('Fetching user response...', response)
   }

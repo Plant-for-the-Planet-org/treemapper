@@ -1,6 +1,7 @@
 // app/layout.tsx
 import './global.css';
-import Auth0Provider  from './providers/Auth0Provider';
+import Auth0Provider from './providers/Auth0Provider';
+import { ToastContainer } from 'react-toastify';
 
 export const metadata = {
   title: 'Admin Dashboard',
@@ -15,6 +16,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <ToastContainer />
         <Auth0Provider>{children}</Auth0Provider>
       </body>
     </html>

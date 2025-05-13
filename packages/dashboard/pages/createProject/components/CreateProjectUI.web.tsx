@@ -4,8 +4,15 @@ import React, { useState, useRef } from 'react';
 import BackButton from '../../../components/backButton/BackButton';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload } from 'lucide-react';
 import ProjectSelectMap from './web/ProjectSelectMap'
+import { createNewProject } from '../../../api/api.fetch';
+import { toast } from 'react-toastify';
 
-export function CreateProjectUI() {
+interface Props {
+  token: string
+  goBack: () => void
+}
+
+export function CreateProjectUI({ token, goBack }: Props) {
   // State for form fields
   const [formData, setFormData] = useState({
     projectName: '',
@@ -47,9 +54,24 @@ export function CreateProjectUI() {
   };
 
   // Handle form submission
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log('Form submitted:', formData);
+    const payLoad = {
+      "projectName": formData.projectName,
+      "projectType": formData.projectType,
+      "ecosystem": formData.ecosystem,
+      "projectScale": formData.projectScale,
+      "target": Number(formData.target),
+      "projectWebsite": formData.projectWebsite,
+      "description": formData.aboutProject,
+      "location": formData.geoJSON,
+    }
+    const response = await createNewProject(token, payLoad)
+    console.log("SDC",response)
+    toast(String(response.message));
+    if (response.statusCode == 200) {
+      goBack()
+    }
   };
 
   return (

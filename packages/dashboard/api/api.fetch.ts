@@ -14,6 +14,14 @@ export const healthCheck = async () => {
 
 export const getUserDetails = async (token: string) => {
   const uri = `${getUrlApi.me}`
-  const result = await fetchGetCall(uri,token)
+  const result = await fetchGetCall(uri, token)
   return result
 }
+
+
+export const createNewProject = async (token: string, params: any) => {
+  const uri = `${postUrlApi.createProject}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
