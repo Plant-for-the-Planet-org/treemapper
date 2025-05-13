@@ -1,11 +1,9 @@
 "use client";
-import Home from 'dashboard/pages/home/components/web/Overview'
-import { useAccessToken } from '../../../hooks/useAccessToken';
-
+import Settings from 'dashboard/pages/settings/SettingsHome'
 export default function Dashboard() {
     return (
         <div className='w-full h-full'>
-           Setting
+            <Settings />
         </div>
     );
 }

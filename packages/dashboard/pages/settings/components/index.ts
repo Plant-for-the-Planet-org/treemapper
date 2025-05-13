@@ -1,2 +1,2 @@
-export * from './HomeUI';
-export { default } from './HomeUI';
+export * from './SettingUI';
+export { default } from './SettingUI';

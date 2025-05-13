@@ -1,22 +1,23 @@
-import React from 'react';
+import React, { useState } from 'react';
 import useHomeStore from '../../../../store/useHomeStore';
 
 interface LabelTabsProps {
   updateRoute: (newRoute: string) => void;
 }
 const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
-  const setParentTab = useHomeStore((state) => state.setParentTab);
-  const parentTab = useHomeStore((state) => state.parentTab);
+  const [parentTab, setParentTab] = useState('')
   // Sample data - replace with your own items
   const items = [
     { id: '', label: 'Overview' },
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
-    { id: 'settings', label: 'Settings' },
+    { id: 'intervention', label: 'Interventions' },
+    { id: 'settings', label: 'Settings' }
   ];
 
   const handleTabClick = (id: string) => {
     updateRoute(id);
+    setParentTab(id)
   }
 
   return (
