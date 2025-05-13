@@ -1,11 +1,10 @@
 "use client";
-import Home from 'dashboard/pages/home/components/web/Overview'
-import { useAccessToken } from '../../../hooks/useAccessToken';
+import SpeciesHome from 'dashboard/pages/species/SpeciesHome'
 
 export default function Dashboard() {
     return (
         <div className='w-full h-full'>
-           Species
+            <SpeciesHome />
         </div>
     );
 }

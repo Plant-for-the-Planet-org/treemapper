@@ -8,6 +8,7 @@ interface DashboardHeaderProps {
 function DashboardHeader({ token }: DashboardHeaderProps) {
 
   const { push } = useRouter()
+  
   const createNewProject = () => {
     push(`/dashboard/project`)
 

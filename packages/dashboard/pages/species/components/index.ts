@@ -1,2 +1,2 @@
-export * from './HomeUI';
-export { default } from './HomeUI';
+export * from './SpeciesHomeUI.native';
+export { default } from './SpeciesHomeUI.native';

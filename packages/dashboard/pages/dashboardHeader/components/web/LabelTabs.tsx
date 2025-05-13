@@ -9,7 +9,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   const parentTab = useHomeStore((state) => state.parentTab);
   // Sample data - replace with your own items
   const items = [
-    { id: 'overview', label: 'Overview' },
+    { id: '', label: 'Overview' },
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
     { id: 'settings', label: 'Settings' },
