@@ -31,3 +31,11 @@ export const getUserProjects = async (token: string) => {
   const result = await fetchGetCall(uri, token)
   return result
 }
+
+
+export const createProjectInvite = async (token: string, project_id: string, params: any) => {
+  console.log("SDcs", token)
+  const uri = `${postUrlApi.createProjectinvite}/${project_id}/invites`
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};

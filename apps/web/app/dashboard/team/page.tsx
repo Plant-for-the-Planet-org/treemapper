@@ -1,11 +1,11 @@
 "use client";
-import Home from 'dashboard/pages/home/components/web/Overview'
-import { useAccessToken } from '../../../hooks/useAccessToken';
+import TeamHomeUI from 'dashboard/pages/teams/TeamHome'
 
-export default function Dashboard() {
+export default function TeamHome() {
+
     return (
         <div className='w-full h-full'>
-           Team
+            <TeamHomeUI />
         </div>
     );
 }

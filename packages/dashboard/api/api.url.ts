@@ -2,6 +2,8 @@ const baseUrl = 'http://192.168.0.103:3001'
 
 export const postUrlApi = {
     createProject: `${baseUrl}/projects`,
+    createProjectinvite: `${baseUrl}/projects`,
+
 }
 
 export const getUrlApi = {

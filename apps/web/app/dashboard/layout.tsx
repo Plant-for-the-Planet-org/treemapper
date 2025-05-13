@@ -8,7 +8,7 @@ import GoogleSpinner from '../../components/Spinner';
 import { useEffect, useState } from 'react';
 import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeader';
 import { useAccessToken } from '../../hooks/useAccessToken';
-import { TokenProvider } from '../contexts/TokenContext';
+import { TokenProvider } from 'dashboard/context/TokenContext';
 
 
 // const TreeMapperLogo = require('../../public/treemapperLogo.png')

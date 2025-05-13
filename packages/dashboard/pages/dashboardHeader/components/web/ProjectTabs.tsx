@@ -30,9 +30,9 @@ const ProjectDropdown = ({
 
   const fetchUserProjects = async () => {
     const response = await getUserProjects(token)
-    console.log('Fetching user response...', response)
     if (response && response.statusCode == 200) {
       addProjects(response.data)
+      selectProject(response.data[0].id)
     }
   }
 

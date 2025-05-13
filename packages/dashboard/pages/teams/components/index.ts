@@ -1,2 +1,2 @@
-export * from './HomeUI';
-export { default } from './HomeUI';
+export * from './TeamHomeUI';
+export { default } from './TeamHomeUI';

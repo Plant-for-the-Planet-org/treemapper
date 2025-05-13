@@ -13,6 +13,9 @@ import {
 import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './InviteUserModal';
 import UserDetailsModal from './UserDetailsModal';
+import { useToken } from '../../../../context/TokenContext';
+
+
 
 
 const TeamsDashboard = () => {
@@ -20,6 +23,8 @@ const TeamsDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalUserOpen, setIsModalUserOpen] = useState(false);
+
+    const { accessToken } = useToken()
     const [users, setUsers] = useState([
         {
             id: 1,
@@ -261,7 +266,6 @@ const TeamsDashboard = () => {
 
     return (
         <div className="p-6 bg-white">
-            <InviteUserModal />
             <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Team Members</h1>
 
@@ -418,7 +422,7 @@ const TeamsDashboard = () => {
                 )}
             </div>
             <AnimatePresence>
-                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} />
             </AnimatePresence>
             <AnimatePresence>
                 <UserDetailsModal

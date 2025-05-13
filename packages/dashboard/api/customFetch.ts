@@ -4,6 +4,7 @@ const fetchCall = async (
   payload: any = null,
   token?: string,
 ) => {
+  console.log("Making API call", uri, payload, token)
   try {
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -44,8 +45,8 @@ export const fetchPostCall = (
 export const fetchGetCall = (uri: string, token?: string) =>
   fetchCall('GET', uri, null, token)
 
-export const fetchPutCall = (uri: string, payload: any, token?:string) =>
+export const fetchPutCall = (uri: string, payload: any, token?: string) =>
   fetchCall('PUT', uri, payload, token)
 
-export const fetchDeleteCall = (uri: string, token?:string) =>
+export const fetchDeleteCall = (uri: string, token?: string) =>
   fetchCall('DELETE', uri, {}, token)
