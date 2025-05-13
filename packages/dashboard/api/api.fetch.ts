@@ -25,3 +25,9 @@ export const createNewProject = async (token: string, params: any) => {
   return result;
 };
 
+
+export const getUserProjects = async (token: string) => {
+  const uri = `${getUrlApi.projects}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}

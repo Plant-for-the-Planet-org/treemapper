@@ -1,29 +1,40 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
-import React from 'react';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
+import { getUserProjects } from '../../../../api/api.fetch'
 
 interface Props {
   createNewProject: () => void;
   openProfileSetting: () => void;
   updateRoute: (newRoute: string) => void;
+  token: string
 }
 
 const ProjectDropdown = ({
   createNewProject,
   openProfileSetting,
-  updateRoute
+  updateRoute,
+  token
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
+  const { projects, selectProject, selectedProject, addProjects } = useProjectStore((state) => state);
 
-  const projects = useProjectStore((state) => state.projects);
-  const selectedProject = useProjectStore((state) => state.selectedProject);
-  const selectProject = useProjectStore((state) => state.selectProject);
+  useEffect(() => {
+    fetchUserProjects()
+  }, [])
+
+  const fetchUserProjects = async () => {
+    const response = await getUserProjects(token)
+    console.log('Fetching user response...', response)
+    if (response && response.statusCode == 200) {
+      addProjects(response.data)
+    }
+  }
 
 
   const toggleDropdown = () => {
@@ -49,7 +60,7 @@ const ProjectDropdown = ({
           >
             <span className="font-medium truncate">
               {selectedProject ?
-                projects.find(p => p.id === selectedProject)?.name || 'Projects' :
+                projects.find(p => p.id === selectedProject)?.projectName || 'Projects' :
                 'Projects'}
             </span>
             {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -81,7 +92,7 @@ const ProjectDropdown = ({
                       className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.id === selectedProject ? 'bg-gray-100 font-medium' : ''
                         }`}
                     >
-                      {project.name}
+                      {project.projectName}
                     </button>
                   ))
                 ) : (
