@@ -18,7 +18,6 @@ export default function Dashboard() {
         const projectInviteId = searchParams.get('project-invite');
         const projectID = searchParams.get('projectId');
 
-        console.log("SDc", projectInviteId)
         if (projectInviteId) {
             setLoading(true);
             // Fetch project details

@@ -9,5 +9,8 @@
     "solito": "4.3.0",
     "zustand": "^5.0.3"
   },
-  "sideEffects": false
+  "sideEffects": false,
+  "devDependencies": {
+    "@types/react-beautiful-dnd": "^13.1.8"
+  }
 }

@@ -51,11 +51,11 @@ const ProjectDropdown = ({
       {/* Top row with project dropdown and notification/profile */}
       <div className="flex items-center justify-between w-full px-4 py-2">
         {/* Project Dropdown */}
-        <div className="relative w-64 max-w-[60%] flex-shrink-0" style={{ backgroundColor: "#f5f5f5" }}>
+        <div className="relative w-64 max-w-[60%] flex-shrink-0" style={{ backgroundColor: "#fff" }}>
           {/* Dropdown Button */}
           <button
             onClick={toggleDropdown}
-            style={{ backgroundColor: "#f5f5f5" }}
+            style={{ backgroundColor: "#fff" }}
             className="flex items-center justify-between w-full bg-white border border-gray-300 rounded-md p-2 hover:bg-gray-50 transition-colors"
           >
             <span className="font-medium truncate">

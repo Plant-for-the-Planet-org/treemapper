@@ -10,9 +10,8 @@ interface HomeUIProps {
 }
 
 export function HomeUI({ createNewProject, openProfileSetting, updateRoute, token }: HomeUIProps) {
-  console.log("SDc",token)
   return (
-    <div className="flex-grow w-full md:w-auto sticky top-0 z-10" style={{ backgroundColor: "#f5f5f5" }}>
+    <div className="flex-grow w-full md:w-auto sticky top-0 z-10" style={{ backgroundColor: "#fff" }}>
       <ProjectTabs
         createNewProject={createNewProject}
         openProfileSetting={openProfileSetting}

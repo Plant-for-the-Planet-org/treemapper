@@ -88,15 +88,14 @@
   }
   
   .app-content {
-    width: 95%;
-    height: 90%;
+    width: 98%;
+    height: 95%;
     border: 0.5px solid lightgray;
     border-radius: 12px;
     overflow: auto;
-    background-color: #f5f5f5;
+    background-color: #fff;
     box-shadow: 0 0px 0.5px rgb(236, 236, 236);
     position: relative;
-    margin-top:1%;
   }
   
   /* Page content styling */
