@@ -51,25 +51,25 @@ const TreeMetaData = ({ tree }) => {
 
   return (
     <div className="h-full flex flex-col">
-      <h3 className="text-lg font-semibold mb-3 border-b pb-2">Tree Metadata</h3>
+      <h3 className="text-lg font-semibold mb-2 border-b pb-1">Tree Metadata</h3>
       
       <div className="flex-grow">
-        <ul className="space-y-3">
+        <ul className="space-y-2">
           {metadataItems.map((item, index) => (
             <li key={index} className="flex items-center">
-              <div className="mr-3 bg-gray-100 p-2 rounded-full">{item.icon}</div>
+              <div className="mr-2 bg-gray-100 p-1 rounded-full">{item.icon}</div>
               <div>
                 <div className="text-xs text-gray-500">{item.label}</div>
-                <div className="font-medium">{item.value}</div>
+                <div className="font-medium text-sm">{item.value}</div>
               </div>
             </li>
           ))}
         </ul>
 
         {/* Health status indicator */}
-        <div className="mt-4">
+        <div className="mt-2">
           <div className="text-xs text-gray-500 mb-1">Health Status</div>
-          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+          <div className="h-1 w-full bg-gray-200 rounded-full overflow-hidden">
             <div 
               className={`h-full ${healthIndicator.color}`} 
               style={{ width: healthIndicator.percentage }}
@@ -78,17 +78,13 @@ const TreeMetaData = ({ tree }) => {
         </div>
       </div>
       
-      {/* Action buttons */}
-      <div className="mt-4 pt-2 border-t flex space-x-2">
-        <button
-          className="text-sm bg-green-50 hover:bg-green-100 text-green-700 py-1 px-3 rounded-full transition-colors flex-1 text-center"
-        >
-          Update Status
+      {/* Action buttons in a more compact form */}
+      <div className="mt-2 pt-1 border-t flex space-x-2">
+        <button className="text-xs bg-green-50 hover:bg-green-100 text-green-700 py-1 px-2 rounded-full transition-colors flex-1 text-center">
+          Update
         </button>
-        <button
-          className="text-sm bg-blue-50 hover:bg-blue-100 text-blue-700 py-1 px-3 rounded-full transition-colors flex-1 text-center"
-        >
-          Download Data
+        <button className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 py-1 px-2 rounded-full transition-colors flex-1 text-center">
+          Download
         </button>
       </div>
     </div>

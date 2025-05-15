@@ -67,10 +67,12 @@ export function CreateProjectUI({ token, goBack }: Props) {
       "location": formData.geoJSON,
     }
     const response = await createNewProject(token, payLoad)
-    console.log("SDC",response)
-    toast(String(response.message));
+    console.log("SDC", response)
     if (response.statusCode == 200) {
       goBack()
+      toast.success(String(response.message));
+    } else {
+      toast.error(String(response.message));
     }
   };
 

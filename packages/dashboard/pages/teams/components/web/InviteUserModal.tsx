@@ -3,6 +3,7 @@ import { X, CheckCircle, Mail, UserPlus } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { createProjectInvite } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
+import { toast } from 'react-toastify';
 
 const InviteUserModal = ({ isOpen, onClose, token }) => {
   const [email, setEmail] = useState('');
@@ -52,9 +53,11 @@ const InviteUserModal = ({ isOpen, onClose, token }) => {
           setRole('Contributor');
           onClose();
         }, 2000);
+      } else {
+        toast.error(String(response.message));
       }
-      console.log("LSD", response)
     }
+
   };
 
   if (!isOpen) return null;

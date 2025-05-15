@@ -12,6 +12,7 @@
   "dependencies": {
     "@auth0/nextjs-auth0": "3.7.0",
     "@expo/next-adapter": "5.0.2",
+    "@svgr/webpack": "^8.1.0",
     "dashboard": "*",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.7.4",

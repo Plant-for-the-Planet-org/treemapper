@@ -1,4 +1,5 @@
 // app/layout.tsx
+import MigrationModal from '../components/MigrationModal';
 import './global.css';
 import Auth0Provider from './providers/Auth0Provider';
 import { ToastContainer } from 'react-toastify';
@@ -18,6 +19,10 @@ export default function RootLayout({
       <body>
         <ToastContainer />
         <Auth0Provider>{children}</Auth0Provider>
+        <MigrationModal
+          // onLogout={()=>{}}
+          // onProceed={()=>{}}
+        />
       </body>
     </html>
   );

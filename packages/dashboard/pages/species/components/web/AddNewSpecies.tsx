@@ -86,23 +86,33 @@ const SpeciesModal = ({ isOpen, onClose, onSave, editingSpecies = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 z-50">
+      {/* Backdrop - only visible on smaller screens */}
+      <div 
+        className="absolute inset-0 bg-black bg-opacity-50 md:bg-opacity-30 transition-opacity duration-300"
+        onClick={onClose}
+      />
+      
+      {/* Side panel */}
       <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4"
+        initial={{ x: '100%' }}
+        animate={{ x: 0 }}
+        exit={{ x: '100%' }}
+        transition={{ type: 'tween', duration: 0.3 }}
+        className="absolute top-0 right-0 bottom-0 w-full md:w-2/3 lg:w-1/2 xl:w-1/3 bg-white shadow-xl overflow-auto"
       >
-        <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
-          <h2 className="text-xl font-semibold text-gray-800">
-            {isEditing ? 'Edit Species' : 'Add New Species'}
-          </h2>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full hover:bg-gray-100 transition-colors"
-          >
-            <X size={20} className="text-gray-500" />
-          </button>
+        <div className="sticky top-0 bg-white z-10">
+          <div className="flex justify-between items-center px-6 py-4 border-b border-gray-100">
+            <h2 className="text-xl font-semibold text-gray-800">
+              {isEditing ? 'Edit Species' : 'Add New Species'}
+            </h2>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full hover:bg-gray-100 transition-colors"
+            >
+              <X size={20} className="text-gray-500" />
+            </button>
+          </div>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">

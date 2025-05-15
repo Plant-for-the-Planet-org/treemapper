@@ -3,15 +3,7 @@ import TreeList from './TreeList';
 import MapComponent from './MapComponent';
 import TreeData from './TreeData';
 import TreeMetaData from './TreeMetaData';
-
-// Sample data - replace with your actual data source
-const sampleTrees = [
-  { id: 'TREE-001', location: { lat: 19.111, lng: 74.747 }, intervention: 'Planting', date: '2025-01-15', species: 'Neem', height: '2.3m', health: 'Good' },
-  { id: 'TREE-002', location: { lat: 19.115, lng: 74.750 }, intervention: 'Watering', date: '2025-02-20', species: 'Banyan', height: '3.1m', health: 'Excellent' },
-  { id: 'TREE-003', location: { lat: 19.105, lng: 74.738 }, intervention: 'Fertilizing', date: '2025-03-10', species: 'Peepal', height: '1.8m', health: 'Fair' },
-  { id: 'TREE-004', location: { lat: 19.120, lng: 74.742 }, intervention: 'Pruning', date: '2025-04-05', species: 'Mango', height: '4.2m', health: 'Good' },
-  { id: 'TREE-005', location: { lat: 19.118, lng: 74.735 }, intervention: 'Planting', date: '2025-05-01', species: 'Gulmohar', height: '1.5m', health: 'Good' },
-];
+import sampleTrees from './SampleIntervention';
 
 const TreeManagement = () => {
   const [selectedTree, setSelectedTree] = useState(null);
@@ -40,13 +32,13 @@ const TreeManagement = () => {
   });
 
   return (
-    <div className="flex flex-col md:flex-row h-screen bg-gray-100 p-4 gap-4">
+    <div className="flex flex-col md:flex-row h-full w-full p-4 gap-4">
       {/* Left panel - Tree List */}
       <div className="w-full md:w-1/3 bg-white rounded-lg shadow-md overflow-hidden">
         <TreeList 
-          trees={sortedTrees}
-          onSelectTree={handleTreeSelect}
-          selectedTree={selectedTree}
+          interventions={sortedTrees}
+          onSelectIntervention={handleTreeSelect}
+          selectedIntervention={selectedTree}
           sortOption={sortOption}
           onSortChange={setSortOption}
           filterOption={filterOption}
@@ -57,19 +49,42 @@ const TreeManagement = () => {
       </div>
 
       {/* Right panel - Map and Tree Details */}
-      <div className="w-full md:w-2/3 flex flex-col gap-4">
-        {/* Map component */}
-        <div className="bg-white rounded-lg shadow-md h-1/2 overflow-hidden">
+      <div className="w-full md:w-2/3 flex flex-col gap-4 h-full">
+        {/* {selectedTree && (
+          <div className="bg-white rounded-lg shadow-md p-3 flex items-center">
+            <div className="flex-1">
+              <h3 className="font-semibold text-lg">{selectedTree.species || "Tree"} #{selectedTree.id}</h3>
+              <p className="text-sm text-gray-600">
+                {selectedTree.intervention} | {new Date(selectedTree.date).toLocaleDateString()} | 
+                Health: {selectedTree.health || "Unknown"}
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <button className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm">
+                Update
+              </button>
+              <button className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm">
+                History
+              </button>
+            </div>
+          </div>
+        )} */}
+        
+        {/* Map component with dynamic height */}
+        <div 
+          className="bg-white rounded-lg shadow-md w-full overflow-hidden"
+          style={{ height: selectedTree ? '70%' : '100%' }}
+        >
           <MapComponent selectedTree={selectedTree} allTrees={sampleTrees} />
         </div>
 
-        {/* Tree data and metadata cards */}
+        {/* Tree data and metadata cards - only shown when tree is selected */}
         {selectedTree && (
           <div className="flex gap-4 h-1/3">
-            <div className="w-1/2 bg-white rounded-lg shadow-md p-4">
+            <div className="w-1/2 bg-white rounded-lg shadow-md p-4 overflow-auto">
               <TreeData tree={selectedTree} />
             </div>
-            <div className="w-1/2 bg-white rounded-lg shadow-md p-4">
+            <div className="w-1/2 bg-white rounded-lg shadow-md p-4 overflow-auto">
               <TreeMetaData tree={selectedTree} />
             </div>
           </div>
