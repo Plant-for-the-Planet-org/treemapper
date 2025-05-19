@@ -9,7 +9,7 @@ const MigrationModal = () => {
     const [isMigrating, setIsMigrating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([]);
-    const isExistingUser = false;
+    const isExistingUser = true;
 
     const onLogout = () => { };
     const onProceed = () => { };

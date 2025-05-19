@@ -1094,7 +1094,7 @@ const PlantableAreasMap = () => {
     });
   };
   return (
-    <div className="w-full h-full bg-gray-50 relative">
+    <div className="w-full h-full bg-gray-50 relative " style={{zIndex:0, paddingBottom:60}}>
       {/* Header */}
 
 
@@ -1143,7 +1143,7 @@ const PlantableAreasMap = () => {
             <Layer {...outlineLayer} />
           </Source>
 
-          <NavigationControl position="bottom-right" />
+          <NavigationControl position="bottom-right"  />
 
           {/* Search Bar */}
           <div className="absolute top-4 left-4 z-10 bg-white p-2 rounded-md shadow-md w-64">

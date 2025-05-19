@@ -5,7 +5,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import maplibregl from 'maplibre-gl';
 
-// Sample data for tree planting requests
 const initialData = {
   requests: {
     'request-1': {
@@ -28,15 +27,7 @@ const initialData = {
             properties: {},
             geometry: {
               type: 'Polygon',
-              coordinates: [
-                [
-                  [-74.006, 40.7128],
-                  [-74.004, 40.7128],
-                  [-74.004, 40.7138],
-                  [-74.006, 40.7138],
-                  [-74.006, 40.7128]
-                ]
-              ]
+              coordinates: [[[-74.006, 40.7128], [-74.004, 40.7128], [-74.004, 40.7138], [-74.006, 40.7138], [-74.006, 40.7128]]]
             }
           }
         ]
@@ -63,53 +54,185 @@ const initialData = {
             properties: {},
             geometry: {
               type: 'Polygon',
-              coordinates: [
-                [
-                  [-74.0101, 40.7158],
-                  [-74.0091, 40.7158],
-                  [-74.0091, 40.7168],
-                  [-74.0101, 40.7168],
-                  [-74.0101, 40.7158]
-                ]
-              ]
+              coordinates: [[[-74.0101, 40.7158], [-74.0091, 40.7158], [-74.0091, 40.7168], [-74.0101, 40.7168], [-74.0101, 40.7158]]]
             }
           }
         ]
       }
-    }
+    },
+    'request-3': {
+      id: 'request-3',
+      title: 'Old Mill Grove',
+      submittedBy: 'Lena Walker',
+      submittedOn: '2025-05-12',
+      address: '98 Mill Rd, Oakton',
+      status: 'Board Review',
+      image: '/api/placeholder/400/300',
+      description: 'Previously deforested plot now under consideration for rewilding.',
+      comments: [{ user: 'Reviewer', text: 'Needs environmental assessment', timestamp: '2025-05-13T08:00:00' }],
+      geoJSON: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[[-74.100, 40.700], [-74.095, 40.700], [-74.095, 40.705], [-74.100, 40.705], [-74.100, 40.700]]]
+            }
+          }
+        ]
+      }
+    },
+    'request-4': {
+      id: 'request-4',
+      title: 'Sunrise Elementary Garden',
+      submittedBy: 'Karen Yu',
+      submittedOn: '2025-04-28',
+      address: '205 Pine St, Eastfield',
+      status: 'New Request',
+      image: '/api/placeholder/400/300',
+      description: 'School wants to create a green buffer with native trees.',
+      comments: [],
+      geoJSON: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Point',
+              coordinates: [-73.985, 40.7306]
+            }
+          }
+        ]
+      }
+    },
+    'request-5': {
+      id: 'request-5',
+      title: 'Lakeside Picnic Zone',
+      submittedBy: 'Tom Riley',
+      submittedOn: '2025-05-05',
+      address: 'Lakeview Park, Parkville',
+      status: 'On Hold',
+      image: '/api/placeholder/400/300',
+      description: 'Review paused pending water runoff analysis.',
+      comments: [{ user: 'Planner', text: 'Waiting for hydrology report', timestamp: '2025-05-06T16:10:00' }],
+      geoJSON: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[[-74.020, 40.720], [-74.017, 40.720], [-74.017, 40.722], [-74.020, 40.722], [-74.020, 40.720]]]
+            }
+          }
+        ]
+      }
+    },
+    'request-6': {
+      id: 'request-6',
+      title: 'Community Center Verge',
+      submittedBy: 'Aliya Bashir',
+      submittedOn: '2025-04-30',
+      address: '77 Hope Blvd, Newtown',
+      status: 'Approved',
+      image: '/api/placeholder/400/300',
+      description: 'Approved for planting fruit-bearing trees along pedestrian path.',
+      comments: [{ user: 'Admin', text: 'Planting begins June 1', timestamp: '2025-05-02T11:00:00' }],
+      geoJSON: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Point',
+              coordinates: [-74.001, 40.725]
+            }
+          }
+        ]
+      }
+    },
+    'request-7': {
+      id: 'request-7',
+      title: 'Green Belt Connector',
+      submittedBy: 'Diego Santos',
+      submittedOn: '2025-04-15',
+      address: 'North Trail, Oakton',
+      status: 'Cancelled',
+      image: '/api/placeholder/400/300',
+      description: 'Proposal withdrawn due to local ordinance restrictions.',
+      comments: [{ user: 'Council', text: 'No permit possible under current zoning', timestamp: '2025-04-20T09:00:00' }],
+      geoJSON: {
+        type: 'FeatureCollection',
+        features: [
+          {
+            type: 'Feature',
+            properties: {},
+            geometry: {
+              type: 'Polygon',
+              coordinates: [[[-74.050, 40.740], [-74.047, 40.740], [-74.047, 40.742], [-74.050, 40.742], [-74.050, 40.740]]]
+            }
+          }
+        ]
+      }
+    },
+
+    // Additional requests (request-8 to request-15)
+    ...Object.fromEntries(
+      Array.from({ length: 8 }, (_, i) => {
+        const id = `request-${i + 8}`;
+        return [
+          id,
+          {
+            id,
+            title: `Tree Zone Plot #${i + 8}`,
+            submittedBy: ['Alex Kim', 'Priya Das', 'Liam Morgan', 'Chen Wei', 'Nora Silva', 'David Lee', 'Fatima Noor', 'Hassan Omar'][i],
+            submittedOn: `2025-04-${10 + i}`,
+            address: `${100 + i} Forest Ave, Greendale`,
+            status: ['New Request', 'Survey Scheduled', 'Board Review', 'On Hold', 'Approved', 'Cancelled'][i % 6],
+            image: '/api/placeholder/400/300',
+            description: `Proposed tree planting site with potential for biodiversity boost. Plot #${i + 8}.`,
+            comments: [],
+            geoJSON: {
+              type: 'FeatureCollection',
+              features: [
+                {
+                  type: 'Feature',
+                  properties: {},
+                  geometry: {
+                    type: 'Polygon',
+                    coordinates: [
+                      [
+                        [-74.100 + i * 0.001, 40.700 + i * 0.001],
+                        [-74.098 + i * 0.001, 40.700 + i * 0.001],
+                        [-74.098 + i * 0.001, 40.702 + i * 0.001],
+                        [-74.100 + i * 0.001, 40.702 + i * 0.001],
+                        [-74.100 + i * 0.001, 40.700 + i * 0.001]
+                      ]
+                    ]
+                  }
+                }
+              ]
+            }
+          }
+        ];
+      })
+    )
   },
+
   columns: {
-    'column-1': {
-      id: 'column-1',
-      title: 'Request',
-      requestIds: ['request-1']
-    },
-    'column-2': {
-      id: 'column-2',
-      title: 'Survey',
-      requestIds: ['request-2']
-    },
-    'column-3': {
-      id: 'column-3',
-      title: 'Board Review',
-      requestIds: []
-    },
-    'column-4': {
-      id: 'column-4',
-      title: 'On Hold',
-      requestIds: []
-    },
-    'column-5': {
-      id: 'column-5',
-      title: 'Approved',
-      requestIds: []
-    },
-    'column-6': {
-      id: 'column-6',
-      title: 'Cancelled',
-      requestIds: []
-    }
+    'column-1': { id: 'column-1', title: 'Request', requestIds: ['request-1', 'request-4', 'request-8', 'request-14'] },
+    'column-2': { id: 'column-2', title: 'Survey', requestIds: ['request-2', 'request-9', 'request-15'] },
+    'column-3': { id: 'column-3', title: 'Board Review', requestIds: ['request-3', 'request-10'] },
+    'column-4': { id: 'column-4', title: 'On Hold', requestIds: ['request-5', 'request-11'] },
+    'column-5': { id: 'column-5', title: 'Approved', requestIds: ['request-6', 'request-12'] },
+    'column-6': { id: 'column-6', title: 'Cancelled', requestIds: ['request-7', 'request-13'] }
   },
+
   columnOrder: ['column-1', 'column-2', 'column-3', 'column-4', 'column-5', 'column-6']
 };
 

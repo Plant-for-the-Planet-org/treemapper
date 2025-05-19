@@ -1,10 +1,10 @@
 "use client";
-import ProfileSetting from 'dashboard/pages/profileSetting/ProfileSetting'
+import ProfileSetting from 'dashboard/pages/profile/Home'
 
 export default function Dashboard() {
   return (
     <div className='w-full h-full'>
-       Profile
+       <ProfileSetting/>
     </div>
 );
 }

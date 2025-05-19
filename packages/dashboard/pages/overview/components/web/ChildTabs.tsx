@@ -12,8 +12,8 @@ const ChildTabs = ({selectedTab,setSelectedTab}) => {
     ];
 
     return (
-        <div className="bg-gray-100 p-3 rounded-lg w-fit sm:w-full lg:w-fit md:w-fit">
-            <div className="flex space-x-2 bg-gray-200 rounded-md p-1.5">
+        <div className="p-3 rounded-lg w-fit sm:w-full lg:w-fit md:w-fit" style={{marginLeft:20}}>
+            <div className="flex space-x-2 bg-gray-100 rounded-md p-1.5">
                 {tabs.map(tab => (
                     <button
                         key={tab.id}
