@@ -52,7 +52,10 @@ export default function DashboardLayout({
     window.location.href = '/api/auth/logout';
   };
 
-  if (tokenError) return <div className="p-8 text-center text-red-500">Error: {String(tokenError)}</div>;
+  if (tokenError) {
+    handleLogout()
+    return <div className="p-8 text-center text-red-500">Error: {String(tokenError)}</div>;
+  }
 
   // Show loading state while checking authentication
   if (tokenLoading || !user) {
