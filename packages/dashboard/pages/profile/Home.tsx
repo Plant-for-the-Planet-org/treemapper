@@ -4,7 +4,7 @@ import {
   Bell,
   Lock,
   Shield,
-  Trash2,
+  LogOutIcon,
   LogOut,
   Save,
   Users,
@@ -44,9 +44,13 @@ const ProfileSettings = () => {
     { id: 2, name: 'Sales Analytics', owner: 'Robert Johnson', role: 'Viewer', active: true },
     { id: 3, name: 'Product Roadmap', owner: 'Emily Chen', role: 'Contributor', active: false }
   ]);
-  
+
   // State for active tab
   const [activeTab, setActiveTab] = useState('profile');
+
+  const handleLogout = () => {
+    window.location.href = '/api/auth/logout';
+  }
 
   // Handle profile form changes
   const handleProfileChange = (e) => {
@@ -61,8 +65,8 @@ const ProfileSettings = () => {
 
   // Handle project role changes
   const handleProjectRoleChange = (id, role) => {
-    setCollaborativeProjects(prev => 
-      prev.map(project => 
+    setCollaborativeProjects(prev =>
+      prev.map(project =>
         project.id === id ? { ...project, role } : project
       )
     );
@@ -70,8 +74,8 @@ const ProfileSettings = () => {
 
   // Handle project active status changes
   const handleProjectActiveChange = (id) => {
-    setCollaborativeProjects(prev => 
-      prev.map(project => 
+    setCollaborativeProjects(prev =>
+      prev.map(project =>
         project.id === id ? { ...project, active: !project.active } : project
       )
     );
@@ -90,7 +94,7 @@ const ProfileSettings = () => {
   return (
     <div className="bg-white rounded-lg shadow-md overflow-hidden">
       {/* Settings Header */}
-      <BackButton label='Profile Setting'/>
+      <BackButton label='Profile Setting' />
       <div className="border-b border-gray-200 p-6">
         <p className="text-sm text-gray-500 mt-1">
           Manage your profile, notification preferences, and account settings
@@ -101,64 +105,69 @@ const ProfileSettings = () => {
       <div className="grid grid-cols-12 min-h-screen">
         <div className="col-span-3 border-r border-gray-200">
           <nav className="p-4 space-y-1">
-            <button 
+            <button
               onClick={() => setActiveTab('profile')}
-              className={`flex items-center px-4 py-3 w-full rounded-md ${
-                activeTab === 'profile' 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'profile'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               <User size={18} className="mr-3" />
               <span>Profile Information</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setActiveTab('notifications')}
-              className={`flex items-center px-4 py-3 w-full rounded-md ${
-                activeTab === 'notifications' 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'notifications'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               <Bell size={18} className="mr-3" />
               <span>Notifications</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setActiveTab('projects')}
-              className={`flex items-center px-4 py-3 w-full rounded-md ${
-                activeTab === 'projects' 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'projects'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               <Users size={18} className="mr-3" />
               <span>Collaborative Projects</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setActiveTab('security')}
-              className={`flex items-center px-4 py-3 w-full rounded-md ${
-                activeTab === 'security' 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'security'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               <Lock size={18} className="mr-3" />
               <span>Security</span>
             </button>
-            
-            <button 
+
+            <button
               onClick={() => setActiveTab('privacy')}
-              className={`flex items-center px-4 py-3 w-full rounded-md ${
-                activeTab === 'privacy' 
-                  ? 'bg-blue-50 text-blue-700' 
-                  : 'text-gray-700 hover:bg-gray-100'
-              }`}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'privacy'
+                ? 'bg-blue-50 text-blue-700'
+                : 'text-gray-700 hover:bg-gray-100'
+                }`}
             >
               <Shield size={18} className="mr-3" />
               <span>Privacy & Data</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('logout')}
+              className={`flex items-center px-4 py-3 w-full rounded-md ${activeTab === 'logout'
+                ? 'bg-red-50 text-red-700'
+                : 'text-red-700 hover:bg-red-100'
+                }`}
+            >
+              <Shield size={18} className="mr-3" />
+              <span>Logout</span>
             </button>
           </nav>
         </div>
@@ -169,25 +178,25 @@ const ProfileSettings = () => {
           {activeTab === 'profile' && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Profile Information</h2>
-              
+
               <div className="flex flex-col md:flex-row gap-6">
                 <div className="flex flex-col items-center space-y-4">
                   <div className="relative">
-                    <img 
-                      src={profile.avatar || '/api/placeholder/150/150'} 
-                      alt="Profile" 
+                    <img
+                      src={profile.avatar || '/api/placeholder/150/150'}
+                      alt="Profile"
                       className="w-32 h-32 rounded-full object-cover border-2 border-gray-200"
                     />
-                    <label 
-                      htmlFor="avatar-upload" 
+                    <label
+                      htmlFor="avatar-upload"
                       className="absolute bottom-0 right-0 bg-blue-600 p-2 rounded-full cursor-pointer hover:bg-blue-700 text-white"
                     >
                       <Upload size={16} />
-                      <input 
-                        id="avatar-upload" 
-                        type="file" 
-                        className="hidden" 
-                        accept="image/*" 
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        className="hidden"
+                        accept="image/*"
                         onChange={handleAvatarChange}
                       />
                     </label>
@@ -207,7 +216,7 @@ const ProfileSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
                       <input
@@ -218,7 +227,7 @@ const ProfileSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
                       <input
@@ -229,7 +238,7 @@ const ProfileSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Job Title</label>
                       <input
@@ -240,7 +249,7 @@ const ProfileSettings = () => {
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Company</label>
                       <input
@@ -252,7 +261,7 @@ const ProfileSettings = () => {
                       />
                     </div>
                   </div>
-                  
+
                   <div className="mt-4">
                     <label className="block text-sm font-medium text-gray-700 mb-1">Bio</label>
                     <textarea
@@ -265,7 +274,7 @@ const ProfileSettings = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
                   <Save size={16} className="mr-2" />
@@ -279,7 +288,7 @@ const ProfileSettings = () => {
           {activeTab === 'notifications' && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Notification Preferences</h2>
-              
+
               <div className="space-y-6">
                 <div>
                   <h3 className="text-lg font-medium text-gray-700 mb-3">Communication Channels</h3>
@@ -290,41 +299,41 @@ const ProfileSettings = () => {
                         <p className="text-sm text-gray-500">Receive updates via email</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.email}
                           onChange={() => handleNotificationChange('email')}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Push Notifications</p>
                         <p className="text-sm text-gray-500">Receive alerts on your device</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.push}
                           onChange={() => handleNotificationChange('push')}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">SMS Notifications</p>
                         <p className="text-sm text-gray-500">Receive text messages for important updates</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.sms}
                           onChange={() => handleNotificationChange('sms')}
                         />
@@ -333,7 +342,7 @@ const ProfileSettings = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div>
                   <h3 className="text-lg font-medium text-gray-700 mb-3">Notification Types</h3>
                   <div className="space-y-3">
@@ -343,41 +352,41 @@ const ProfileSettings = () => {
                         <p className="text-sm text-gray-500">Changes to your projects and collaborations</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.projectUpdates}
                           onChange={() => handleNotificationChange('projectUpdates')}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Security Alerts</p>
                         <p className="text-sm text-gray-500">Important security-related notifications</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.securityAlerts}
                           onChange={() => handleNotificationChange('securityAlerts')}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-                    
+
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Marketing & Updates</p>
                         <p className="text-sm text-gray-500">New features, tips, and promotional content</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={notifications.marketing}
                           onChange={() => handleNotificationChange('marketing')}
                         />
@@ -387,7 +396,7 @@ const ProfileSettings = () => {
                   </div>
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end">
                 <button className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 flex items-center">
                   <Save size={16} className="mr-2" />
@@ -401,14 +410,14 @@ const ProfileSettings = () => {
           {activeTab === 'projects' && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Collaborative Projects</h2>
-              
+
               <div className="bg-blue-50 border border-blue-200 rounded-md p-4 mb-6">
                 <p className="text-sm text-blue-800">
-                  You are participating in {collaborativeProjects.filter(p => p.active).length} active projects. 
+                  You are participating in {collaborativeProjects.filter(p => p.active).length} active projects.
                   Manage your roles and access below.
                 </p>
               </div>
-              
+
               <div className="space-y-4">
                 {collaborativeProjects.map(project => (
                   <div key={project.id} className={`border rounded-md p-4 ${project.active ? 'border-gray-200' : 'border-gray-200 bg-gray-50'}`}>
@@ -418,21 +427,21 @@ const ProfileSettings = () => {
                         <p className="text-sm text-gray-500">Owned by {project.owner}</p>
                       </div>
                       <label className="relative inline-flex items-center cursor-pointer">
-                        <input 
-                          type="checkbox" 
-                          className="sr-only peer" 
+                        <input
+                          type="checkbox"
+                          className="sr-only peer"
                           checked={project.active}
                           onChange={() => handleProjectActiveChange(project.id)}
                         />
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
                       </label>
                     </div>
-                    
+
                     <div className={`mt-4 ${!project.active && 'opacity-50'}`}>
                       <div className="flex items-center">
                         <span className="text-sm font-medium mr-3">Your Role:</span>
-                        <select 
-                          value={project.role} 
+                        <select
+                          value={project.role}
                           onChange={(e) => handleProjectRoleChange(project.id, e.target.value)}
                           disabled={!project.active}
                           className="bg-white border border-gray-300 text-gray-700 text-sm rounded-md focus:ring-blue-500 focus:border-blue-500 p-2"
@@ -443,16 +452,16 @@ const ProfileSettings = () => {
                           <option value="Admin">Admin</option>
                         </select>
                       </div>
-                      
+
                       <div className="mt-4 grid grid-cols-2 gap-2">
-                        <button 
+                        <button
                           className="px-3 py-2 border border-gray-300 rounded-md text-sm flex items-center justify-center hover:bg-gray-50 disabled:opacity-50"
                           disabled={!project.active}
                         >
                           <FileText size={16} className="mr-2" />
                           View Project Details
                         </button>
-                        <button 
+                        <button
                           className="px-3 py-2 border border-gray-300 rounded-md text-sm flex items-center justify-center text-red-600 hover:bg-red-50 hover:border-red-200 disabled:opacity-50"
                           disabled={!project.active}
                         >
@@ -471,33 +480,33 @@ const ProfileSettings = () => {
           {activeTab === 'security' && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Security Settings</h2>
-              
+
               <div className="space-y-6">
                 <div className="border border-gray-200 rounded-md p-5">
                   <h3 className="text-lg font-medium mb-4">Password</h3>
                   <div className="space-y-3">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="Enter your current password" 
+                        placeholder="Enter your current password"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="Enter new password" 
+                        placeholder="Enter new password"
                       />
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
-                      <input 
-                        type="password" 
+                      <input
+                        type="password"
                         className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        placeholder="Confirm new password" 
+                        placeholder="Confirm new password"
                       />
                     </div>
                     <div className="pt-2">
@@ -507,7 +516,7 @@ const ProfileSettings = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="border border-gray-200 rounded-md p-5">
                   <h3 className="text-lg font-medium mb-4">Two-Factor Authentication</h3>
                   <p className="text-sm text-gray-600 mb-4">
@@ -517,13 +526,13 @@ const ProfileSettings = () => {
                     Enable 2FA
                   </button>
                 </div>
-                
+
                 <div className="border border-gray-200 rounded-md p-5">
                   <h3 className="text-lg font-medium mb-4">Active Sessions</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     Devices and locations where you're currently logged in.
                   </p>
-                  
+
                   <div className="space-y-3">
                     <div className="border-b border-gray-200 pb-3">
                       <div className="flex justify-between items-start">
@@ -534,7 +543,7 @@ const ProfileSettings = () => {
                         <span className="text-xs font-medium px-2 py-1 bg-green-100 text-green-700 rounded-full">Active</span>
                       </div>
                     </div>
-                    
+
                     <div className="border-b border-gray-200 pb-3">
                       <div className="flex justify-between items-start">
                         <div>
@@ -545,7 +554,7 @@ const ProfileSettings = () => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4">
                     <button className="text-sm text-red-600 font-medium hover:text-red-800">
                       Sign Out From All Devices
@@ -560,14 +569,14 @@ const ProfileSettings = () => {
           {activeTab === 'privacy' && (
             <div>
               <h2 className="text-xl font-semibold text-gray-800 mb-6">Privacy & Data Settings</h2>
-              
+
               <div className="space-y-6">
                 <div className="border border-gray-200 rounded-md p-5">
                   <h3 className="text-lg font-medium mb-2">Data Privacy</h3>
                   <p className="text-sm text-gray-600 mb-4">
                     Control how your data is used and shared across the platform.
                   </p>
-                  
+
                   <div className="space-y-4">
                     <div className="flex items-center">
                       <input id="privacy-profile" type="checkbox" className="w-4 h-4 text-blue-600 rounded border-gray-300 focus:ring-blue-500" />
@@ -589,7 +598,7 @@ const ProfileSettings = () => {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="border border-gray-200 rounded-md p-5">
                   <h3 className="text-lg font-medium mb-2">Data Export</h3>
                   <p className="text-sm text-gray-600 mb-4">
@@ -600,7 +609,7 @@ const ProfileSettings = () => {
                     Request Data Export
                   </button>
                 </div>
-                
+
                 <div className="border border-red-100 rounded-md p-5 bg-red-50">
                   <h3 className="text-lg font-medium text-red-800 mb-2">Account Deletion</h3>
                   <p className="text-sm text-red-700 mb-4">
@@ -609,6 +618,26 @@ const ProfileSettings = () => {
                   <button className="px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-50 flex items-center">
                     <Trash2 size={16} className="mr-2" />
                     Request Account Deletion
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Privacy & Data Tab */}
+          {activeTab === 'logout' && (
+            <div>
+              <h2 className="text-xl font-semibold text-gray-800 mb-6">Logout</h2>
+
+              <div className="space-y-6">
+                <div className="border border-red-100 rounded-md p-5 bg-red-50">
+                  <h3 className="text-lg font-medium text-red-800 mb-2"></h3>
+                  <p className="text-sm text-red-700 mb-4">
+                    All Data is saved. You can procceed with logout.
+                  </p>
+                  <button className="px-4 py-2 bg-white border border-red-600 text-red-600 rounded-md hover:bg-red-50 flex items-center" onClick={handleLogout}>
+                    <LogOutIcon size={16} className="mr-2" />
+                    Proceed to Logout
                   </button>
                 </div>
               </div>

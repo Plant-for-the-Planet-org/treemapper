@@ -1,9 +1,9 @@
 'use client'
 
 import React, { useState } from 'react';
-import { 
-  Settings, Users, MapPin, Bell, Shield, 
-  Trash2, Save, ArrowLeft, Leaf, Tractor, 
+import {
+  Settings, Users, MapPin, Bell, Shield,
+  Trash2, Save, ArrowLeft, Leaf, Tractor,
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock
 } from 'lucide-react';
@@ -64,17 +64,17 @@ const ProjectSettings: React.FC = () => {
 
   // State for active tab
   const [activeTab, setActiveTab] = useState<string>('general');
-  
+
   // State for file upload
   const [fileName, setFileName] = useState<string>('No file selected');
-  
+
   // State for delete confirmation
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<boolean>(false);
-  
+
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value, type, checked, files } = e.target as HTMLInputElement;
-    
+
     if (type === 'file' && files?.length > 0) {
       setProjectData(prev => ({
         ...prev,
@@ -116,12 +116,12 @@ const ProjectSettings: React.FC = () => {
   };
 
   // Handle adding a new collaborator
-  const [newCollaborator, setNewCollaborator] = useState<NewCollaborator>({ 
-    name: '', 
-    email: '', 
-    role: 'Viewer' 
+  const [newCollaborator, setNewCollaborator] = useState<NewCollaborator>({
+    name: '',
+    email: '',
+    role: 'Viewer'
   });
-  
+
   const handleAddCollaborator = (e: React.FormEvent) => {
     e.preventDefault();
     const id = Date.now(); // Simple ID generation
@@ -163,7 +163,7 @@ const ProjectSettings: React.FC = () => {
           />
         </div>
       </div>
-      
+
       {/* Project Type (Radio) */}
       <div className="space-y-2">
         <label className="block text-sm font-medium text-gray-700">
@@ -200,7 +200,7 @@ const ProjectSettings: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Two column layout for dropdowns */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Ecosystem Dropdown */}
@@ -230,7 +230,7 @@ const ProjectSettings: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Project Scale Dropdown */}
         <div className="space-y-2">
           <label htmlFor="projectScale" className="block text-sm font-medium text-gray-700">
@@ -257,7 +257,7 @@ const ProjectSettings: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Unity Type Dropdown */}
         <div className="space-y-2">
           <label htmlFor="unityType" className="block text-sm font-medium text-gray-700">
@@ -284,7 +284,7 @@ const ProjectSettings: React.FC = () => {
             </div>
           </div>
         </div>
-        
+
         {/* Target */}
         <div className="space-y-2">
           <label htmlFor="target" className="block text-sm font-medium text-gray-700">
@@ -300,7 +300,7 @@ const ProjectSettings: React.FC = () => {
           />
         </div>
       </div>
-      
+
       {/* Project Website */}
       <div className="space-y-2">
         <label htmlFor="projectWebsite" className="block text-sm font-medium text-gray-700">
@@ -320,7 +320,7 @@ const ProjectSettings: React.FC = () => {
           />
         </div>
       </div>
-      
+
       {/* About Project - Text Area */}
       <div className="space-y-2">
         <label htmlFor="aboutProject" className="block text-sm font-medium text-gray-700">
@@ -341,7 +341,7 @@ const ProjectSettings: React.FC = () => {
           />
         </div>
       </div>
-      
+
       {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
@@ -361,12 +361,12 @@ const ProjectSettings: React.FC = () => {
       <p className="text-sm text-gray-600">
         Update the location of your project by using the map below or by uploading a new file.
       </p>
-      
+
       {/* Map Component */}
       <div className="w-full h-64 md:h-80 lg:h-96 bg-green-100 rounded-lg flex items-center justify-center border border-gray-200">
         {/* <ProjectSelectMap /> */}
       </div>
-      
+
       {/* File Upload */}
       <div className="mt-6">
         <p className="text-sm font-medium text-gray-700 mb-2">Upload a KML/GeoJSON file:</p>
@@ -374,13 +374,13 @@ const ProjectSettings: React.FC = () => {
           <label htmlFor="locationFile" className="cursor-pointer bg-white py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none">
             Choose File
           </label>
-          <input 
-            id="locationFile" 
-            name="locationFile" 
-            type="file" 
-            accept=".kml,.geojson,.json" 
+          <input
+            id="locationFile"
+            name="locationFile"
+            type="file"
+            accept=".kml,.geojson,.json"
             className="sr-only"
-            onChange={handleInputChange} 
+            onChange={handleInputChange}
           />
           <span className="ml-3 text-sm text-gray-500">
             {fileName}
@@ -390,7 +390,7 @@ const ProjectSettings: React.FC = () => {
           Accepted formats: KML, GeoJSON
         </p>
       </div>
-      
+
       {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
@@ -412,7 +412,7 @@ const ProjectSettings: React.FC = () => {
       <p className="text-sm text-gray-600">
         Configure which notifications you receive for this project.
       </p>
-      
+
       <div className="bg-white shadow overflow-hidden sm:rounded-md">
         <ul className="divide-y divide-gray-200">
           <li className="px-4 py-4 sm:px-6">
@@ -471,7 +471,7 @@ const ProjectSettings: React.FC = () => {
           </li>
         </ul>
       </div>
-      
+
       {/* Save Button */}
       <div className="flex justify-end pt-4">
         <button
@@ -492,7 +492,7 @@ const ProjectSettings: React.FC = () => {
       <p className="text-sm text-gray-600">
         Critical actions that cannot be undone.
       </p>
-      
+
       <div className="bg-red-50 border border-red-200 rounded-md p-4">
         <div className="flex items-start">
           <div className="flex-shrink-0">
@@ -502,7 +502,7 @@ const ProjectSettings: React.FC = () => {
             <h3 className="text-sm font-medium text-red-800">Delete Project</h3>
             <div className="mt-2 text-sm text-red-700">
               <p>
-                Once you delete a project, there is no going back. This action permanently removes all data, 
+                Once you delete a project, there is no going back. This action permanently removes all data,
                 trees, locations, and collaborator assignments associated with this project.
               </p>
             </div>
@@ -543,7 +543,7 @@ const ProjectSettings: React.FC = () => {
           </div>
         </div>
       </div>
-      
+
       {/* Archive Project Option */}
       <div className="bg-yellow-50 border border-yellow-200 rounded-md p-4 mt-6">
         <div className="flex items-start">
@@ -575,7 +575,7 @@ const ProjectSettings: React.FC = () => {
 
   // Render the active tab content
   const renderTabContent = () => {
-    switch(activeTab) {
+    switch (activeTab) {
       case 'general':
         return <GeneralSettings />;
       case 'location':
@@ -602,12 +602,12 @@ const ProjectSettings: React.FC = () => {
     <button
       onClick={() => setActiveTab(id)}
       className={`flex items-center px-3 py-2 text-sm font-medium rounded-md w-full text-left mb-1
-        ${activeTab === id 
-          ? danger 
-            ? 'bg-red-100 text-red-900' 
-            : 'bg-gray-100 text-gray-900' 
-          : danger 
-            ? 'text-red-600 hover:bg-red-50' 
+        ${activeTab === id
+          ? danger
+            ? 'bg-red-100 text-red-900'
+            : 'bg-gray-100 text-gray-900'
+          : danger
+            ? 'text-red-600 hover:bg-red-50'
             : 'text-gray-600 hover:bg-gray-50'
         }`}
     >
@@ -618,9 +618,9 @@ const ProjectSettings: React.FC = () => {
   return (
     <div className="w-full h-full pb-4">
       <div className="flex items-center mb-6">
-        <h1 className="text-2xl font-bold ml-4 mt-4" style={{color:"#262626"}}>Project Settings</h1>
+        <h1 className="text-2xl font-bold ml-4 mt-4" style={{ color: "#262626" }}>Project Settings</h1>
       </div>
-      
+
       <div className="flex flex-col md:flex-row w-full h-full gap-6" >
         {/* Sidebar */}
         <div className="w-full md:w-64 shrink-0 ml-3">
@@ -633,7 +633,7 @@ const ProjectSettings: React.FC = () => {
             </nav>
           </div>
         </div>
-        
+
         {/* Main Content */}
         <div className="flex-grow mr-2">
           <div className="bg-white rounded-lg shadow-md p-6">

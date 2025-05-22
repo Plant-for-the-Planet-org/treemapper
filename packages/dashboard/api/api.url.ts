@@ -1,4 +1,4 @@
-const baseUrl = 'http://192.168.0.103:3001'
+const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL
 
 export const postUrlApi = {
     createProject: `${baseUrl}/projects`,

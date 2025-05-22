@@ -22,6 +22,7 @@ export const getUserDetails = async (token: string) => {
 export const createNewProject = async (token: string, params: any) => {
   const uri = `${postUrlApi.createProject}`;
   const result = await fetchPostCall(uri, params, token);
+  console.log("KLSJd", result, uri, params, token)
   return result;
 };
 

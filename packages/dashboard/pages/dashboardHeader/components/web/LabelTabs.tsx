@@ -8,9 +8,10 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   const [parentTab, setParentTab] = useState('')
   // Sample data - replace with your own items
   const items = [
-    { id: 'plantable', label: 'Plantable' },
+    // { id: 'plantable', label: 'Plantable' },
     { id: '', label: 'Overview' },
-    { id: 'board', label: 'Request' },
+    // { id: 'board', label: 'Request' },
+    { id: 'sites', label: 'Sites' },
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
     { id: 'intervention', label: 'Interventions' },
