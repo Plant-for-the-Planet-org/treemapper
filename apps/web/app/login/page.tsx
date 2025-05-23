@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { useSearchParams } from "next/navigation";
 import Image from "next/image";
+import EmailVerificationModal from '../../components/EmailVerificationModal';
 
 export default function LoginPage() {
   const searchParams = useSearchParams();
@@ -20,6 +21,7 @@ export default function LoginPage() {
 
   return (
     <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden">
+      <EmailVerificationModal/>
       {/* Left section with background image - 70% on desktop, full width on mobile */}
       <div className="hidden md:block md:w-[70%] h-full relative">
         <Image
