@@ -7,6 +7,20 @@ export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
   const path = req.nextUrl.pathname;
   
+  // Handle Auth0 callback error for unverified email
+  if (path === '/api/auth/callback') {
+    const error = req.nextUrl.searchParams.get('error');
+    const errorDescription = req.nextUrl.searchParams.get('error_description');
+    
+    if (error === 'access_denied' && errorDescription === '401') {
+      // Redirect to login with verification required param
+      return NextResponse.redirect(new URL('/login?verification=required', req.url));
+    }
+    
+    // Continue with normal callback processing for other cases
+    return res;
+  }
+  
   // Get the user session
   const session = await getSession(req, res);
   const isAuthenticated = !!session?.user;
