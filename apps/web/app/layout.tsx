@@ -19,10 +19,6 @@ export default function RootLayout({
       <body>
         <ToastContainer />
         <Auth0Provider>{children}</Auth0Provider>
-        <MigrationModal
-          // onLogout={()=>{}}
-          // onProceed={()=>{}}
-        />
       </body>
     </html>
   );

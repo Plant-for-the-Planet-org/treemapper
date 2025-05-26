@@ -37,7 +37,6 @@ const EmailVerificationModal = () => {
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
                         className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-                        onClick={handleClose} // Allow closing by clicking backdrop
                     />
 
                     {/* Modal */}
@@ -50,14 +49,6 @@ const EmailVerificationModal = () => {
                     >
                         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 relative">
                             {/* Close button */}
-                            <button
-                                onClick={handleClose}
-                                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
-                            >
-                                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                                </svg>
-                            </button>
 
                             {/* Icon */}
                             <motion.div
@@ -114,7 +105,7 @@ const EmailVerificationModal = () => {
                                         onClick={handleClose}
                                         className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                                     >
-                                        I'll verify my email
+                                       I have verified my email
                                     </button>
                                 </motion.div>
                             </motion.div>
