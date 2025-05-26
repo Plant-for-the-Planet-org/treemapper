@@ -3,15 +3,16 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, AlertCircle } from 'lucide-react';
 import { useSearchParams } from 'next/navigation';
+import { useUser } from '@auth0/nextjs-auth0/client';
 
 const EmailVerificationModal = () => {
     const [isOpen, setIsOpen] = useState(false);
     const searchParams = useSearchParams();
-
+    const { log } = useUser()
     useEffect(() => {
         // Check if verification=required parameter exists in URL
         const verificationRequired = searchParams.get('verification') === 'required';
-        
+
         if (verificationRequired) {
             setIsOpen(true);
         }
@@ -23,7 +24,8 @@ const EmailVerificationModal = () => {
         if (searchParams.get('verification') === 'required') {
             const url = new URL(window.location.href);
             url.searchParams.delete('verification');
-            window.history.replaceState({}, '', url.toString());
+            const returnTo = encodeURIComponent(window.location.origin);
+            window.location.href = `/api/auth/logout?returnTo=${returnTo}&federated`;
         }
     };
 
@@ -105,7 +107,7 @@ const EmailVerificationModal = () => {
                                         onClick={handleClose}
                                         className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
                                     >
-                                       I have verified my email
+                                        Login with other account
                                     </button>
                                 </motion.div>
                             </motion.div>

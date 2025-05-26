@@ -13,29 +13,32 @@ export async function middleware(req: NextRequest) {
     const errorDescription = req.nextUrl.searchParams.get('error_description');
     
     if (error === 'access_denied' && errorDescription === '401') {
-      // Redirect to login with verification required param
       return NextResponse.redirect(new URL('/login?verification=required', req.url));
     }
     
-    // Continue with normal callback processing for other cases
     return res;
   }
   
-  // Get the user session
+  if (path.startsWith('/api/auth/logout')) {
+    return res;
+  }
+  
   const session = await getSession(req, res);
   const isAuthenticated = !!session?.user;
   
   // Public routes that don't require authentication
-  const publicRoutes = ['/login', '/api/auth/login', '/api/auth/callback', '/api/auth/logout'];
+  const publicRoutes = ['/login', '/api/auth/login', '/api/auth/callback'];
   const isPublicRoute = publicRoutes.some(route => path.startsWith(route));
   
   // Handle login page redirection
   if (path === '/login') {
-    if (isAuthenticated) {
-      // If authenticated and on login page, redirect to dashboard
+    // CHECK: If coming from logout with federated param, don't redirect
+    const fromLogout = req.nextUrl.searchParams.get('federated') !== null;
+    
+    if (isAuthenticated && !fromLogout) {
       return NextResponse.redirect(new URL('/dashboard', req.url));
     }
-    return res; // Allow access to login page if not authenticated
+    return res;
   }
   
   // For API routes and public routes, continue
@@ -59,13 +62,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    /*
-     * Match all request paths except:
-     * - _next (Next.js internals)
-     * - public (static files)
-     * - favicon.ico (browser icon)
-     * - images (static images)
-     */
     '/((?!_next/static|_next/image|fonts|images|favicon.ico|vercel.svg|apple.png|googleplay.png|treemapperLogo.png).*)',
   ],
 };
