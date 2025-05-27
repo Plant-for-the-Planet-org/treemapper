@@ -1,16 +1,15 @@
 import { useState, useCallback, useEffect } from 'react';
-// Import all components from the maplibre-specific path
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import { MapPin, Square } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
-
-
+import * as turf from '@turf/turf';
 
 interface Props {
   updateGeoJSON: (geoJSON: any) => void;
+  uploadedGeoJSON: any; // GeoJSON from file upload
 }
 
-const MapComponent = ({ updateGeoJSON }: Props) => {
+const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -37,18 +36,43 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     longitude: ''
   });
 
-  useEffect(() => {
-    updateGeoJSON(geoJSON)
-  }, [geoJSON])
-  
+  // State to track if we're displaying uploaded GeoJSON
+  const [displayingUploadedGeoJSON, setDisplayingUploadedGeoJSON] = useState(false);
 
-  // Polygon data as GeoJSON
-  const polygonGeoJSON = {
+  // Effect to handle uploaded GeoJSON
+  useEffect(() => {
+    if (uploadedGeoJSON && uploadedGeoJSON !== geoJSON) {
+      setGeoJSON(uploadedGeoJSON);
+      setDisplayingUploadedGeoJSON(true);
+
+      // Clear any existing manual selections
+      setMarker(null);
+      setPolygonPoints([]);
+      setDrawingPolygon(false);
+
+      // Center map on uploaded GeoJSON
+      try {
+        const centroid = turf.centroid(uploadedGeoJSON);
+        const [longitude, latitude] = centroid.geometry.coordinates;
+        setViewState(prev => ({
+          ...prev,
+          longitude,
+          latitude,
+          zoom: 12
+        }));
+      } catch (error) {
+        console.error('Error getting centroid:', error);
+      }
+    }
+  }, [uploadedGeoJSON]);
+
+
+  // Polygon data as GeoJSON for drawing mode
+  const drawingPolygonGeoJSON = {
     type: 'Feature',
     geometry: {
       type: 'Polygon',
       coordinates: [
-        // Add closing point automatically if there are at least 3 points
         polygonPoints.length >= 3
           ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
           : polygonPoints.map(p => [p.longitude, p.latitude])
@@ -56,11 +80,14 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     }
   };
 
-
-
   // Handle map click based on current mode
   const handleMapClick = useCallback(event => {
     const { lngLat } = event;
+
+    // Clear uploaded GeoJSON display when user starts manual selection
+    if (displayingUploadedGeoJSON) {
+      setDisplayingUploadedGeoJSON(false);
+    }
 
     if (selectionMode === 'point') {
       // Point mode: set a single marker
@@ -85,6 +112,7 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       };
 
       setGeoJSON(pointGeoJSON);
+      updateGeoJSON(pointGeoJSON);
     } else if (selectionMode === 'polygon') {
       // Polygon mode: add point to polygon
       if (!drawingPolygon) {
@@ -96,13 +124,23 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
         setPolygonPoints(prev => [...prev, { longitude: lngLat.lng, latitude: lngLat.lat }]);
       }
     }
-  }, [selectionMode, drawingPolygon]);
+  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON]);
 
   // Complete polygon drawing
   const completePolygon = () => {
     if (polygonPoints.length >= 3) {
       setDrawingPolygon(false);
-      setGeoJSON(polygonGeoJSON);
+      const completedPolygonGeoJSON = {
+        type: 'Feature',
+        geometry: {
+          type: 'Polygon',
+          coordinates: [
+            [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+          ]
+        }
+      };
+      setGeoJSON(completedPolygonGeoJSON);
+                updateGeoJSON(completedPolygonGeoJSON);
 
     } else {
       alert('A polygon needs at least 3 points');
@@ -114,10 +152,16 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     setDrawingPolygon(false);
     setPolygonPoints([]);
     setGeoJSON(null);
+    updateGeoJSON(null);
   };
 
   // Handle selection mode toggle
   const toggleSelectionMode = () => {
+    // Clear uploaded GeoJSON display when switching modes
+    if (displayingUploadedGeoJSON) {
+      setDisplayingUploadedGeoJSON(false);
+    }
+
     // Reset current selection when changing modes
     if (selectionMode === 'point') {
       setSelectionMode('polygon');
@@ -127,6 +171,7 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       resetPolygon();
     }
     setGeoJSON(null);
+    updateGeoJSON(null);
   };
 
   // Handle manual coordinate input
@@ -149,6 +194,11 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     const lat = parseFloat(manualCoords.latitude);
 
     if (!isNaN(lng) && !isNaN(lat)) {
+      // Clear uploaded GeoJSON display when using manual coordinates
+      if (displayingUploadedGeoJSON) {
+        setDisplayingUploadedGeoJSON(false);
+      }
+
       const point = {
         longitude: lng,
         latitude: lat
@@ -173,10 +223,50 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
       };
 
       setGeoJSON(pointGeoJSON);
+      updateGeoJSON(pointGeoJSON);
     }
   };
 
+  // Function to render uploaded GeoJSON
+  const renderUploadedGeoJSON = () => {
+    if (!displayingUploadedGeoJSON || !geoJSON) return null;
 
+    const firstFeature = geoJSON.features ? geoJSON.features[0] : geoJSON;
+
+    if (firstFeature.geometry.type === 'Point') {
+      const [longitude, latitude] = firstFeature.geometry.coordinates;
+      return (
+        <Marker
+          longitude={longitude}
+          latitude={latitude}
+          anchor="bottom"
+        >
+          <MapPin color="#00AA00" size={24} />
+        </Marker>
+      );
+    } else if (firstFeature.geometry.type === 'Polygon') {
+      return (
+        <Source id="uploaded-polygon" type="geojson" data={firstFeature}>
+          <Layer
+            id="uploaded-polygon-fill"
+            type="fill"
+            paint={{
+              'fill-color': '#00AA00',
+              'fill-opacity': 0.3
+            }}
+          />
+          <Layer
+            id="uploaded-polygon-outline"
+            type="line"
+            paint={{
+              'line-color': '#00AA00',
+              'line-width': 2
+            }}
+          />
+        </Source>
+      );
+    }
+  };
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -187,18 +277,19 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
         onClick={handleMapClick}
         style={{ width: '100%', height: '100%' }}
       >
-        {/* Default navigation controls (zoom, compass, etc.) */}
+        {/* Default navigation controls */}
         <NavigationControl position="bottom-right" />
-
-        {/* GeolocateControl - adds the find my location button */}
         <GeolocateControl
           position="bottom-right"
           positionOptions={{ enableHighAccuracy: true }}
           trackUserLocation={true}
         />
 
-        {/* Display marker if in point mode and marker exists */}
-        {selectionMode === 'point' && marker && (
+        {/* Render uploaded GeoJSON */}
+        {renderUploadedGeoJSON()}
+
+        {/* Display marker if in point mode and marker exists (and not displaying uploaded) */}
+        {selectionMode === 'point' && marker && !displayingUploadedGeoJSON && (
           <Marker
             longitude={marker.longitude}
             latitude={marker.latitude}
@@ -232,13 +323,13 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
           </Marker>
         )}
 
-        {/* Display polygon if in polygon mode and there are points */}
-        {selectionMode === 'polygon' && polygonPoints.length > 0 && (
+        {/* Display polygon if in polygon mode and there are points (and not displaying uploaded) */}
+        {selectionMode === 'polygon' && polygonPoints.length > 0 && !displayingUploadedGeoJSON && (
           <>
             {/* Render the polygon */}
-            <Source id="polygon" type="geojson" data={polygonGeoJSON}>
+            <Source id="drawing-polygon" type="geojson" data={drawingPolygonGeoJSON}>
               <Layer
-                id="polygon-fill"
+                id="drawing-polygon-fill"
                 type="fill"
                 paint={{
                   'fill-color': '#0080ff',
@@ -246,7 +337,7 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
                 }}
               />
               <Layer
-                id="polygon-outline"
+                id="drawing-polygon-outline"
                 type="line"
                 paint={{
                   'line-color': '#0080ff',
@@ -326,9 +417,10 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
           </div>
 
           {/* Show polygon controls only in polygon mode */}
-          {selectionMode === 'polygon' && (
+          {selectionMode === 'polygon' && !displayingUploadedGeoJSON && (
             <div className="flex gap-2">
               <button
+                type="button"
                 onClick={completePolygon}
                 disabled={polygonPoints.length < 3}
                 className={`bg-green-800 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
@@ -337,6 +429,7 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
                 Complete Polygon
               </button>
               <button
+                type="button"
                 onClick={resetPolygon}
                 disabled={polygonPoints.length === 0}
                 className={`bg-red-700 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
@@ -346,11 +439,18 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
               </button>
             </div>
           )}
+
+          {/* Show status when displaying uploaded GeoJSON */}
+          {/* {displayingUploadedGeoJSON && (
+            <div className="text-sm text-green-600 font-medium">
+              📁 Displaying uploaded file
+            </div>
+          )} */}
         </div>
       </div>
 
-      {/* Coordinate input form - only show in point mode */}
-      {selectionMode === 'point' && (
+      {/* Coordinate input form - only show in point mode and not displaying uploaded */}
+      {selectionMode === 'point' && !displayingUploadedGeoJSON && (
         <div style={{
           position: 'absolute',
           bottom: '20px',
@@ -391,6 +491,7 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
             <div className="w-full sm:w-auto self-end mt-4 sm:mt-0">
               <button
                 onClick={handleSetCoordinates}
+                type="button"
                 className="w-full sm:w-auto bg-blue-500 text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors"
               >
                 Set Location
@@ -400,11 +501,11 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
         </div>
       )}
 
-      {/* GeoJSON Output Display (useful for debugging) */}
+      {/* GeoJSON Output Display */}
       {geoJSON && (
         <div style={{
           position: 'absolute',
-          bottom: selectionMode === 'point' ? '100px' : '20px',
+          bottom: (selectionMode === 'point' && !displayingUploadedGeoJSON) ? '100px' : '20px',
           left: '20px',
           background: 'white',
           padding: '10px',
@@ -412,11 +513,13 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
           zIndex: 1,
           maxWidth: '300px',
-          maxHeight: '150px',
+          maxHeight: '200px',
           overflow: 'auto'
         }}>
           <div className="text-xs font-mono">
-            <div className="font-bold mb-1">GeoJSON:</div>
+            <div className="font-bold mb-1">
+              {displayingUploadedGeoJSON ? 'Uploaded GeoJSON:' : 'Selected GeoJSON:'}
+            </div>
             <pre>{JSON.stringify(geoJSON, null, 2)}</pre>
           </div>
         </div>
@@ -425,4 +528,4 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
   );
 };
 
-export default MapComponent;
+export default UnifiedMapComponent;

@@ -28,12 +28,11 @@ export const checkForMigration = async (token: string) => {
 export const createNewProject = async (token: string, params: any) => {
   const uri = `${postUrlApi.createProject}`;
   const result = await fetchPostCall(uri, params, token);
-  console.log("KLSJd", result, uri, params, token)
   return result;
 };
 
 
-export const getUserProjects = async (token: string) => {
+export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
   const result = await fetchGetCall(uri, token)
   return result
@@ -51,6 +50,5 @@ export const createProjectInvite = async (token: string, project_id: string, par
 export const updateUserMigrate = async (token: string, params: any) => {
   const uri = `${patchUrlApi.userMigrated}`;
   const result = await fetchPutCall(uri, params, token);
-  console.log("KLSJd", result, uri, params, token)
   return result;
 };

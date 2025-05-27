@@ -9,6 +9,7 @@ import { useEffect, useState } from 'react';
 import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeader';
 import { useAccessToken } from '../../hooks/useAccessToken';
 import { TokenProvider } from 'dashboard/context/TokenContext';
+import MigrationModal from '../../components/MigrationModal';
 
 
 // const TreeMapperLogo = require('../../public/treemapperLogo.png')
@@ -18,10 +19,12 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { accessToken, user, tokenError, tokenLoading } = useAccessToken()
+  const { user, tokenError, tokenLoading } = useAccessToken()
+
+  const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
+
   const router = useRouter();
   const pathname = usePathname(); // Get the current pathname
-
   // State to track which content to render based on current route
   const [currentSection, setCurrentSection] = useState<string>('default');
 
@@ -82,6 +85,7 @@ export default function DashboardLayout({
     <>
       <TokenProvider accessToken={accessToken}>
         <div className="app-container">
+          <MigrationModal />
           {/* Display section-specific content if any */}
           <div className="app-content">
             {renderSectionSpecificContent()}

@@ -5,7 +5,7 @@ import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
-import { getUserProjects } from '../../../../api/api.fetch'
+import { getMyProjects } from '../../../../api/api.fetch'
 
 interface Props {
   createNewProject: () => void;
@@ -29,7 +29,7 @@ const ProjectDropdown = ({
   }, [])
 
   const fetchUserProjects = async () => {
-    const response = await getUserProjects(token)
+    const response = await getMyProjects(token)
     if (response && response.statusCode == 200) {
       addProjects(response.data)
       selectProject(response.data[0].id)
