@@ -45,12 +45,12 @@ const InviteUserModal = ({ isOpen, onClose, token }) => {
         role
       })
       setIsSubmitting(false);
-      if (response.statusCode === 200) {
+      if (response.statusCode === 200 || response.statusCode === 201) {
         setIsSuccess(true);
         setTimeout(() => {
           setEmail('');
           setMessage('');
-          setRole('Contributor');
+          setRole('contributor');
           onClose();
         }, 2000);
       } else {
@@ -136,8 +136,10 @@ const InviteUserModal = ({ isOpen, onClose, token }) => {
                   className="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="admin">Admin</option>
+                  <option value="manager">Manager</option>
                   <option value="contributor">Contributor</option>
-                  <option value="reviewer">Reviewer</option>
+                  <option value="observer">Observer</option>
+                  <option value="researcher">Researcher</option>
                 </select>
               </div>
 

@@ -23,7 +23,6 @@ const TeamsDashboard = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalUserOpen, setIsModalUserOpen] = useState(false);
-
     const { accessToken } = useToken()
     const [users, setUsers] = useState([
         {

@@ -2,7 +2,9 @@ const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL
 
 export const postUrlApi = {
     createProject: `${baseUrl}/api/projects`,
-    createProjectinvite: `${baseUrl}/projects`,
+    createProjectinvite: `${baseUrl}/api/projects`,
+    acceptInvite: `${baseUrl}/api/projects/invites/accept`,
+    declineInvite: `${baseUrl}/api/inivtes/decline`,
 }
 
 export const getUrlApi = {
@@ -10,6 +12,8 @@ export const getUrlApi = {
     me: `${baseUrl}/api/users/me`,
     checkMigration: `${baseUrl}/api/migrate/check`,
     projects: `${baseUrl}/api/projects`,
+    inviteStatus: `${baseUrl}/api/projects/invites`,
+
 }
 
 export const patchUrlApi = {

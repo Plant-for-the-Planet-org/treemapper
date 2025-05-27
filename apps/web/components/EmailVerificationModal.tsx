@@ -8,7 +8,6 @@ import { useUser } from '@auth0/nextjs-auth0/client';
 const EmailVerificationModal = () => {
     const [isOpen, setIsOpen] = useState(false);
     const searchParams = useSearchParams();
-    const { log } = useUser()
     useEffect(() => {
         // Check if verification=required parameter exists in URL
         const verificationRequired = searchParams.get('verification') === 'required';

@@ -5,89 +5,120 @@ import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import ProjectInviteModal from '../../components/ProjectInviteModal';
 import OverViewUI from 'dashboard/pages/overview/OverView';
+import { acceptProjectInvite, declineProjectInvite, getInviteStatus } from 'dashboard/api/api.fetch';
+import { useToken } from 'dashboard/context/TokenContext';
+import { toast } from 'react-toastify';
 
 export default function Dashboard() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const [showInviteModal, setShowInviteModal] = useState(false);
-    const [projectData, setProjectData] = useState(null);
+    const [inviteData, setInviteData] = useState(null);
     const [loading, setLoading] = useState(false);
+    const { accessToken } = useToken()
 
     useEffect(() => {
-        // Check if project-invite parameter exists
-        const projectInviteId = searchParams.get('project-invite');
-        const projectID = searchParams.get('projectId');
-
-        if (projectInviteId) {
-            setLoading(true);
-            // Fetch project details
-            fetch(`http://192.168.0.103:3001/projects/${projectID}`)
-                .then(res => res.json())
-                .then(resp => {
-                    setProjectData(resp.data);
-                    setShowInviteModal(true);
-                    setLoading(false);
-                })
-                .catch(err => {
-                    console.error('Error fetching project details:', err);
-                    setLoading(false);
-                });
-        }
+        checkInviteStatus()
     }, [searchParams]);
+
+    const checkInviteStatus = async () => {
+        try {
+            const projectInviteId = searchParams.get('project-invite');
+            if (!projectInviteId || !accessToken) {
+                setLoading(false);
+                return
+            }
+            setLoading(true);
+            const response = await getInviteStatus(accessToken || '', projectInviteId || '')
+            if (response.statusCode === 200) {
+                setInviteData(response.data);
+                setLoading(false);
+                return
+            }
+            toast.error('Failed to fetch invite status. Please try again later.');
+            setLoading(false);
+        } catch (error) {
+            setLoading(false);
+
+        }
+    }
 
     const handleAccept = async () => {
         try {
-            const projectInviteId = searchParams.get('project-invite');
-            const res = await fetch(`/api/projects/invite/accept`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inviteId: projectInviteId
-                }),
-            });
 
-            if (res.ok) {
-                setShowInviteModal(false);
-                // Refresh dashboard or redirect to the project
-                router.push(`/project/${projectData.id}`);
+            setLoading(true);
+            const projectInviteId = searchParams.get('project-invite');
+            const response = await acceptProjectInvite(accessToken || '', {
+                token: projectInviteId
+            });
+            setLoading(false);
+            if (response && response.statusCode === 200) {
+                setInviteData(null);
+                const url = new URL(window.location.href);
+                url.searchParams.delete('project-invite');
+                toast.success('Project invite accepted successfully. Redirecting to project dashboard...');
+                window.location.href = url.toString();
+                return
             }
+            if (response && response.message) {
+                toast.error(String(response.message));
+                return
+            }
+
         } catch (error) {
+            setLoading(false);
             console.error('Error accepting invitation:', error);
+            toast.error('Error accepting invitation:');
         }
     };
 
+
     const handleDecline = async () => {
         try {
+            setLoading(true);
             const projectInviteId = searchParams.get('project-invite');
-            await fetch(`/api/projects/invite/decline`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    inviteId: projectInviteId
-                }),
+            const response = await declineProjectInvite(accessToken || '', {
+                token: projectInviteId
             });
+            setLoading(false);
+            if (response && response.statusCode === 200) {
+                setInviteData(null);
+                const url = new URL(window.location.href);
+                url.searchParams.delete('project-invite');
+                toast.warning('Project invite declined successfully');
+                window.location.href = url.toString();
+                return
+            }
+            if (response && response.message) {
+                toast.error(String(response.message));
+                return
+            }
 
-            setShowInviteModal(false);
-            // Stay on dashboard
         } catch (error) {
+            setLoading(false);
             console.error('Error declining invitation:', error);
+            toast.error('Error declining invitation:');
         }
+    };
+
+    const handleClose = async () => {
+        const url = new URL(window.location.href);
+        url.searchParams.delete('project-invite');
+        toast.warning('Project invite declined successfully');
+        window.location.href = url.toString();
+        setInviteData(null)
     };
 
     return (
         <div className='w-full h-full'>
             <OverViewUI />
             {/* Project Invite Modal */}
-            {showInviteModal && projectData && (
+            {inviteData && (
                 <ProjectInviteModal
-                    project={projectData}
+                    loading={loading}
+                    invitation={inviteData}
                     onAccept={handleAccept}
                     onDecline={handleDecline}
-                    onClose={() => setShowInviteModal(false)}
+                    onClose={handleClose}
                 />
             )}
         </div>
