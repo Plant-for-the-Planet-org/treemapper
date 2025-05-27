@@ -4,7 +4,7 @@ export const postUrlApi = {
     createProject: `${baseUrl}/api/projects`,
     createProjectinvite: `${baseUrl}/api/projects`,
     acceptInvite: `${baseUrl}/api/projects/invites/accept`,
-    declineInvite: `${baseUrl}/api/inivtes/decline`,
+    declineInvite: `${baseUrl}/api/projects/invites/decline`,
 }
 
 export const getUrlApi = {

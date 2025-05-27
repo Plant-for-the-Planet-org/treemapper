@@ -36,7 +36,10 @@ export async function middleware(req: NextRequest) {
     const fromLogout = req.nextUrl.searchParams.get('federated') !== null;
     
     if (isAuthenticated && !fromLogout) {
-      return NextResponse.redirect(new URL('/dashboard', req.url));
+      // Check if there's a returnTo parameter to redirect back to
+      const returnTo = req.nextUrl.searchParams.get('returnTo');
+      const redirectUrl = returnTo ? decodeURIComponent(returnTo) : '/dashboard';
+      return NextResponse.redirect(new URL(redirectUrl, req.url));
     }
     return res;
   }
@@ -48,7 +51,9 @@ export async function middleware(req: NextRequest) {
   
   // Redirect unauthenticated users to login
   if (!isAuthenticated && !isPublicRoute) {
-    const returnTo = encodeURIComponent(path);
+    // Preserve both pathname and search parameters
+    const fullPath = req.nextUrl.pathname + req.nextUrl.search;
+    const returnTo = encodeURIComponent(fullPath);
     return NextResponse.redirect(new URL(`/login?returnTo=${returnTo}`, req.url));
   }
   

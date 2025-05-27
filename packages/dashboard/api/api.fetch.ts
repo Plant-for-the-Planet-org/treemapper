@@ -25,6 +25,12 @@ export const checkForMigration = async (token: string) => {
   return result
 }
 
+export const createNewProject = async (token: string, params: any) => {
+  const uri = `${postUrlApi.createProject}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 export const acceptProjectInvite = async (token: string, params: any) => {
   const uri = `${postUrlApi.acceptInvite}`;
   const result = await fetchPostCall(uri, params, token);

@@ -44,7 +44,6 @@ export default function Dashboard() {
 
     const handleAccept = async () => {
         try {
-
             setLoading(true);
             const projectInviteId = searchParams.get('project-invite');
             const response = await acceptProjectInvite(accessToken || '', {
@@ -52,11 +51,11 @@ export default function Dashboard() {
             });
             setLoading(false);
             if (response && response.statusCode === 200) {
-                setInviteData(null);
                 const url = new URL(window.location.href);
                 url.searchParams.delete('project-invite');
                 toast.success('Project invite accepted successfully. Redirecting to project dashboard...');
                 window.location.href = url.toString();
+                setInviteData(null);
                 return
             }
             if (response && response.message) {
@@ -81,11 +80,11 @@ export default function Dashboard() {
             });
             setLoading(false);
             if (response && response.statusCode === 200) {
-                setInviteData(null);
                 const url = new URL(window.location.href);
                 url.searchParams.delete('project-invite');
                 toast.warning('Project invite declined successfully');
                 window.location.href = url.toString();
+                setInviteData(null);
                 return
             }
             if (response && response.message) {
