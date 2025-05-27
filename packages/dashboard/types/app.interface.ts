@@ -13,23 +13,7 @@ interface GeoJSONPolygon {
 type GeoJSONGeometryI = GeoJSONPoint | GeoJSONPolygon;
 
 // Project response interface
-export interface ProjectWithUserRoleI {
-  id: string;
-  projectName: string;
-  projectType: string;
-  ecosystem: string;
-  projectScale: string;
-  target: number;
-  projectWebsite: string;
-  description: string;
-  isPublic: boolean;
-  createdById: string;
-  createdAt: string; // ISO date string
-  updatedAt: string; // ISO date string
-  metadata: Record<string, any>; // Empty object or with custom properties
-  location: GeoJSONGeometryI;
-  userRole: 'owner' | 'admin' | 'contributor' | 'viewer'; // Based on your projectRoleEnum
-}
+
 
 // Array of projects response
 type ProjectsResponseI = ProjectWithUserRoleI[];
@@ -43,7 +27,7 @@ export interface UserInterface {
   displayName?: string;
   avatar?: string;
   slug?: string;
-  type: 'individual' | 'organization' | 'education' |'tpo' | 'student'
+  type: 'individual' | 'organization' | 'education' | 'tpo' | 'student'
   country?: string;
   url?: string;
   isPrivate: boolean;
@@ -52,4 +36,38 @@ export interface UserInterface {
   isActive: boolean;
   createdAt: string;
   migratedAt?: string;
+}
+
+export interface ProjectWithUserRoleI {
+  guid: string;
+  discr: string;
+  createdById: number;
+  slug: string;
+  purpose: string | null;
+  projectName: string;
+  projectType: string | null;
+  ecosystem: string | null;
+  projectScale: string | null;
+  target: number | null;
+  projectWebsite: string | null;
+  description: string | null;
+  classification: string | null;
+  image: string | null;
+  videoUrl: string | null;
+  country: string | null; // 2-character country code
+  location: unknown | null; // PostGIS geometry - typically handled as GeoJSON on frontend
+  originalGeometry: string | null;
+  geoLatitude: number | null;
+  geoLongitude: number | null;
+  url: string | null;
+  linkText: string | null;
+  isActive: boolean;
+  isPublic: boolean;
+  intensity: string | null;
+  revisionPeriodicityLevel: string | null;
+  metadata: any | null;
+  createdAt: Date;
+  updatedAt: Date;
+  deletedAt: Date | null;
+  "userRole": string
 }

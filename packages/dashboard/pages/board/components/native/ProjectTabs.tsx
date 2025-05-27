@@ -9,9 +9,9 @@ import {
   Platform
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Assuming you're using Expo - if not, import your preferred icon library
-import { ProjectsI } from '../../../../types/app.interface';
+import { ProjectWithUserRoleI } from '../../../../types/app.interface';
 interface Props {
-  projects: ProjectsI[]
+  projects: ProjectWithUserRoleI[]
   activeProject: string
   onSelectProject: (i: string) => void
 }
@@ -74,7 +74,7 @@ const ProjectDropdown = ({ projects }: Props) => {
                       index === projects.length - 1 && styles.lastProjectItem
                     ]}
                   >
-                    <Text style={styles.projectItemText}>{project.name}</Text>
+                    <Text style={styles.projectItemText}>{project.projectName}</Text>
                   </TouchableOpacity>
                 ))
               ) : (

@@ -6,6 +6,7 @@ import LabelTabs from './LabelTabs';
 import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
 import { getMyProjects } from '../../../../api/api.fetch'
+import { sortProjects } from '../../../../utils/commonHelper';
 
 interface Props {
   createNewProject: () => void;
@@ -28,13 +29,28 @@ const ProjectDropdown = ({
     fetchUserProjects()
   }, [])
 
+
+
   const fetchUserProjects = async () => {
     const response = await getMyProjects(token)
     if (response && response.statusCode == 200) {
-      addProjects(response.data)
-      selectProject(response.data[0].id)
+      if (response.data && response.data.length > 0) {
+        const sortedResponse = sortProjects(response.data);
+        addProjects(sortedResponse)
+        selectProject(response.data[0].guid)
+      }
     }
   }
+
+  const rolePriority = {
+    'owner': 1,
+    'admin': 2,
+    'contributor': 3,
+    'viewer': 4,
+    'member': 5
+  };
+
+
 
 
   const toggleDropdown = () => {
@@ -60,7 +76,7 @@ const ProjectDropdown = ({
           >
             <span className="font-medium truncate">
               {selectedProject ?
-                projects.find(p => p.id === selectedProject)?.projectName || 'Projects' :
+                projects.find(p => p.guid === selectedProject)?.projectName || 'Projects' :
                 'Projects'}
             </span>
             {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -87,8 +103,8 @@ const ProjectDropdown = ({
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <button
-                      key={project.id}
-                      onClick={() => handleProjectSelect(project.id)}
+                      key={project.guid}
+                      onClick={() => handleProjectSelect(project.guid)}
                       className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.id === selectedProject ? 'bg-gray-100 font-medium' : ''
                         }`}
                     >
