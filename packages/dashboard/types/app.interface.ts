@@ -33,3 +33,23 @@ export interface ProjectWithUserRoleI {
 
 // Array of projects response
 type ProjectsResponseI = ProjectWithUserRoleI[];
+export interface UserInterface {
+  guid: string;
+  email: string;
+  authName: string;
+  name?: string;
+  firstname?: string;
+  lastname?: string;
+  displayName?: string;
+  avatar?: string;
+  slug?: string;
+  type: 'individual' | 'organization' | 'education' |'tpo' | 'student'
+  country?: string;
+  url?: string;
+  isPrivate: boolean;
+  bio?: string;
+  locale: string;
+  isActive: boolean;
+  createdAt: string;
+  migratedAt?: string;
+}

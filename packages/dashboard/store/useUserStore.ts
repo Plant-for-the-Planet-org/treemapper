@@ -1,19 +1,17 @@
-import { create } from 'zustand';
+import { create } from 'zustand'
+import { UserInterface } from '../types/app.interface'
 
-// Define the store state and actions interface
-interface CounterState {
-  count: number;
-  increase: () => void;
-  decrease: () => void;
-  reset: () => void;
+interface UserStore {
+  user: UserInterface | null
+  setUser: (user: UserInterface) => void
+  clearUser: () => void
+  updateUser: (updates: Partial<UserInterface>) => void
 }
 
-// Create the typed store
-const useStore = create<CounterState>((set) => ({
-  count: 0,
-  increase: () => set((state) => ({ count: state.count + 1 })),
-  decrease: () => set((state) => ({ count: state.count - 1 })),
-  reset: () => set({ count: 0 })
-}));
-
-export default useStore;
+export const useUserStore = create<UserStore>((set) => ({
+  user: null,
+  setUser: (user) => set({ user }),
+  clearUser: () => set({ user: null }),
+  updateUser: (updates) =>
+    set((state) => state.user ? { user: { ...state.user, ...updates } } : {}),
+}))

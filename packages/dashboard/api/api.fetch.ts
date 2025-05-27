@@ -1,4 +1,4 @@
-import { getUrlApi, postUrlApi } from './api.url'
+import { getUrlApi, postUrlApi, patchUrlApi } from './api.url'
 import {
   fetchDeleteCall,
   fetchGetCall,
@@ -12,12 +12,18 @@ export const healthCheck = async () => {
   return result
 }
 
-export const getUserDetails = async (token: string) => {
+export const getMyDetails = async (token: string) => {
   const uri = `${getUrlApi.me}`
   const result = await fetchGetCall(uri, token)
   return result
 }
 
+
+export const checkForMigration = async (token: string) => {
+  const uri = `${getUrlApi.checkMigration}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
 
 export const createNewProject = async (token: string, params: any) => {
   const uri = `${postUrlApi.createProject}`;
@@ -38,5 +44,13 @@ export const createProjectInvite = async (token: string, project_id: string, par
   console.log("SDcs", token)
   const uri = `${postUrlApi.createProjectinvite}/${project_id}/invites`
   const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+
+export const updateUserMigrate = async (token: string, params: any) => {
+  const uri = `${patchUrlApi.userMigrated}`;
+  const result = await fetchPutCall(uri, params, token);
+  console.log("KLSJd", result, uri, params, token)
   return result;
 };

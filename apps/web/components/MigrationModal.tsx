@@ -3,14 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Loader, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useUserStore } from 'dashboard/store/useUserStore';
+import {checkForMigration, updateUserMigrate} from 'dashboard/api/api.fetch'
+import { useToken } from 'dashboard/context/TokenContext';
 
 const MigrationModal = () => {
     const [showModal, setShowModal] = useState(false);
     const [isMigrating, setIsMigrating] = useState(false);
     const [progress, setProgress] = useState(0);
     const [completedSteps, setCompletedSteps] = useState([]);
-    const isExistingUser = false;
-
+    const UserDetails = useUserStore(state => state.user);
+    const {accessToken}= useToken()
+    const updateUser = useUserStore(state => state.updateUser);
     const onLogout = () => { };
     const onProceed = () => { };
 
@@ -23,10 +27,33 @@ const MigrationModal = () => {
     ];
 
     useEffect(() => {
-        if (isExistingUser) {
-            setShowModal(true);
+        if (UserDetails && UserDetails.migratedAt === null && accessToken) {
+            checkMigrationNeeded()
         }
-    }, []);
+    }, [UserDetails]);
+
+    const checkMigrationNeeded = async () => {
+        const response = await checkForMigration(accessToken || '');
+        if(response && response.data){
+            if (response.data.migrationNeeded) {
+                setShowModal(true);
+            } else {
+                await migrateUserData();
+            }
+        }
+    }
+
+    const migrateUserData = async () => {
+        const response = await updateUserMigrate(accessToken || '',{})
+        console.log("Migration response:", response);
+        if (response && response.data) {
+            console.log("Migration successful:", response.data);
+            updateUser({migratedAt: new Date().toISOString()});
+            setShowModal(false);
+        } else {
+            console.error("Migration failed:", response);
+        }
+    }
 
     const handleProceed = () => {
         setIsMigrating(true);
@@ -41,8 +68,8 @@ const MigrationModal = () => {
                 currentProgress = 100;
                 clearInterval(interval);
                 setTimeout(() => {
-                    setShowModal(false);
-        }, 1500);
+                    migrateUserData()
+                }, 1500);
             }
 
             setProgress(Math.min(Math.round(currentProgress), 100));
@@ -186,7 +213,7 @@ const MigrationModal = () => {
                             </div>
 
                             <p className="text-center text-sm text-green-700">
-                               You're all set! Your TreeManager data is being migrated. Feel free to close this page; we’ll handle the rest and notify you when it's ready. 🌿
+                                You're all set! Your TreeManager data is being migrated. Feel free to close this page; we’ll handle the rest and notify you when it's ready. 🌿
                             </p>
                         </motion.div>
                     )}
