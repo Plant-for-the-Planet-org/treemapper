@@ -5,10 +5,10 @@ import { createProjectInvite } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
 import { toast } from 'react-toastify';
 
-const InviteUserModal = ({ isOpen, onClose, token }) => {
+const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
-  const [role, setRole] = useState('Contributor');
+  const [role, setRole] = useState('contributor');
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
@@ -39,6 +39,7 @@ const InviteUserModal = ({ isOpen, onClose, token }) => {
 
     if (validateForm()) {
       setIsSubmitting(true);
+      console.log('Submitting invite for:', email, 'with role:', role, 'and message:', message,"selectedProjectL",selectedProject);
       const response = await createProjectInvite(token, selectedProject, {
         email,
         message,
@@ -52,6 +53,7 @@ const InviteUserModal = ({ isOpen, onClose, token }) => {
           setMessage('');
           setRole('contributor');
           onClose();
+          handleRefresh()
         }, 2000);
       } else {
         toast.error(String(response.message));

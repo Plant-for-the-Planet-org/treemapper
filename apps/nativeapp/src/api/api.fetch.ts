@@ -32,7 +32,8 @@ export const skipRemeasurement = async (tree_id: string, params: any) => {
   return result;
 };
 
-export const getUserDetails = async () => {
+export const 
+getUserDetails = async () => {
   const uri = `${getUrlApi.getUserDetails}`;
   const result = await fetchGetCall(uri, true);
   return result;

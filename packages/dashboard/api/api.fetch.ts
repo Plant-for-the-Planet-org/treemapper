@@ -1,4 +1,4 @@
-import { getUrlApi, postUrlApi, patchUrlApi } from './api.url'
+import { getUrlApi, postUrlApi, patchUrlApi, deleteUrlApi } from './api.url'
 import {
   fetchDeleteCall,
   fetchGetCall,
@@ -14,6 +14,12 @@ export const healthCheck = async () => {
 
 export const getMyDetails = async (token: string) => {
   const uri = `${getUrlApi.me}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const getTeamMemebers = async (token: string, id: string) => {
+  const uri = `${getUrlApi.teamMembers}/${id}/allmembers`
   const result = await fetchGetCall(uri, token)
   return result
 }
@@ -43,6 +49,13 @@ export const declineProjectInvite = async (token: string, params: any) => {
   return result;
 };
 
+export const expireInvite = async (token: string, params: any, pid: string) => {
+  const uri = `${postUrlApi.expireInvite}/${pid}/invites/expire`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+
 
 
 export const getMyProjects = async (token: string) => {
@@ -69,5 +82,12 @@ export const createProjectInvite = async (token: string, project_id: string, par
 export const updateUserMigrate = async (token: string, params: any) => {
   const uri = `${patchUrlApi.userMigrated}`;
   const result = await fetchPutCall(uri, params, token);
+  return result;
+};
+
+
+export const removeProjectMember = async (token: string, projectGuiD: string, memberGuid: string) => {
+  const uri = `${deleteUrlApi.removeUser}/${projectGuiD}/members/${memberGuid}`;
+  const result = await fetchDeleteCall(uri, token);
   return result;
 };

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     Search,
     Download,
@@ -14,8 +14,44 @@ import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './InviteUserModal';
 import UserDetailsModal from './UserDetailsModal';
 import { useToken } from '../../../../context/TokenContext';
+import { getTeamMemebers } from '../../../../api/api.fetch';
+import useProjectStore from '../../../../store/useProjectStore';
+import Spinner from '../../../../components/spinner/Spinner';
 
+function transformData(data) {
+    const members = data.members.map(member => ({
+        id: member.user.id,
+        name: member.user.displayName || member.user.name,
+        username: member.user.name,
+        email: member.user.email,
+        role: capitalize(member.role),
+        lastActive: member.user.isActive ? member.joinedAt : null,
+        joinedDate: member.joinedAt,
+        status: member.user.isActive ? 'Active' : 'Inactive',
+        invitedBy: null, // No invitedBy info for members
+        type: 'member'
+    }));
 
+    const invitations = data.invitations.map((invite, index) => ({
+        id: invite.id, // Generate unique ID offset from members
+        name: invite.email.split('@')[0],
+        username: invite.email.split('@')[0],
+        email: invite.email,
+        role: capitalize(invite.role),
+        lastActive: null,
+        joinedDate: invite.createdAt,
+        status: capitalize(invite.status), // e.g., Pending, Accepted
+        invitedBy: invite.invitedBy?.displayName || invite.invitedBy?.name || 'Unknown',
+        type: 'invitation',
+        token: invite.token
+    }));
+
+    return [...members, ...invitations];
+}
+
+function capitalize(str) {
+    return str.charAt(0).toUpperCase() + str.slice(1);
+}
 
 
 const TeamsDashboard = () => {
@@ -24,70 +60,35 @@ const TeamsDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalUserOpen, setIsModalUserOpen] = useState(false);
     const { accessToken } = useToken()
-    const [users, setUsers] = useState([
-        {
-            id: 1,
-            name: 'John Doe',
-            username: 'johndoe',
-            email: 'john.doe@example.com',
-            role: 'Admin',
-            lastActive: '2025-04-20T10:30:00',
-            joinedDate: '2024-01-15T09:00:00',
-            status: 'Active',
-            invitedBy: 'Sarah Williams'
-        },
-        {
-            id: 2,
-            name: 'Jane Smith',
-            username: 'janesmith',
-            email: 'jane.smith@example.com',
-            role: 'Editor',
-            lastActive: '2025-04-19T14:45:00',
-            joinedDate: '2024-02-22T11:30:00',
-            status: 'Active',
-            invitedBy: 'John Doe'
-        },
-        {
-            id: 3,
-            name: 'Robert Johnson',
-            username: 'robertj',
-            email: 'robert.j@example.com',
-            role: 'Viewer',
-            lastActive: '2025-04-10T09:15:00',
-            joinedDate: '2024-03-05T13:20:00',
-            status: 'Suspended',
-            invitedBy: 'Sarah Williams'
-        },
-        {
-            id: 4,
-            name: 'Emily Wilson',
-            username: 'emilyw',
-            email: 'emily.w@example.com',
-            role: 'Editor',
-            lastActive: null,
-            joinedDate: '2025-04-18T16:45:00',
-            status: 'Pending Invitation',
-            invitedBy: 'John Doe'
-        },
-        {
-            id: 5,
-            name: 'Michael Brown',
-            username: 'michaelb',
-            email: 'michael.b@example.com',
-            role: 'Viewer',
-            lastActive: '2025-04-21T08:30:00',
-            joinedDate: '2024-01-30T10:15:00',
-            status: 'Active',
-            invitedBy: 'Sarah Williams'
-        }
-    ]);
-
+    const [users, setUsers] = useState<any>([]);
+    const [loading, setLoading] = useState(false)
     // State for search and sorting
     const [searchTerm, setSearchTerm] = useState('');
     const [sortConfig, setSortConfig] = useState({
         key: 'joinedDate',
         direction: 'desc'
     });
+
+    const SelectedProject = useProjectStore((state) => state.selectedProject);
+
+    useEffect(() => {
+        fetchTeamMembers()
+    }, [])
+
+    const fetchTeamMembers = async () => {
+        setLoading(true)
+        try {
+            const response = await getTeamMemebers(accessToken || '', SelectedProject)
+            if (response && response.statusCode === 200) {
+                const transformedData = transformData(response.data);
+                setUsers(transformedData)
+            }
+            setLoading(false)
+        } catch (error) {
+            setLoading(false)
+        }
+    }
+
 
     // Handle sorting
     const requestSort = (key) => {
@@ -233,7 +234,7 @@ const TeamsDashboard = () => {
     const handleExportUsers = () => {
         console.log('Exporting users...');
         // Implement export logic
-        downloadJsonAsCsv([{ name: "TreeMapperTest" }], 'userList')
+        downloadJsonAsCsv(users, 'userList')
 
     };
 
@@ -307,7 +308,7 @@ const TeamsDashboard = () => {
             </div>
 
             {/* Table section */}
-            <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            {loading ? <Spinner /> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -349,9 +350,6 @@ const TeamsDashboard = () => {
                                     Status
                                     {renderSortIndicator('status')}
                                 </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Invited By
                             </th>
                             <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
                                 Actions
@@ -395,14 +393,11 @@ const TeamsDashboard = () => {
                                         {user.status}
                                     </span>
                                 </td>
-                                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                    {user.invitedBy}
-                                </td>
-                                <td className="whitespace-nowrap text-right text-sm font-medium">
+                                <td className="whitespace-nowrap text-right text-sm font-medium" style={{ width: '120px' }}>
                                     <div className="flex justify-center">
                                         <button
                                             onClick={() => handleViewUser(user)}
-                                            className="text-indigo-600 hover:text-indigo-900 ml-5"
+                                            className="text-indigo-600 hover:text-indigo-900"
                                         >
                                             <Eye size={18} />
                                         </button>
@@ -419,16 +414,16 @@ const TeamsDashboard = () => {
                         <p className="text-gray-500">No users found matching your search criteria.</p>
                     </div>
                 )}
-            </div>
+            </div>}
             <AnimatePresence>
-                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} />
+                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers}/>
             </AnimatePresence>
             <AnimatePresence>
                 <UserDetailsModal
                     isOpen={isModalUserOpen}
                     onClose={() => setIsModalUserOpen(false)}
                     user={selectedUser}
-                />
+                    handleRefresh={fetchTeamMembers}/>
             </AnimatePresence>
         </div>
     );
