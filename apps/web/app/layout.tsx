@@ -1,6 +1,7 @@
 // app/layout.tsx
 import './global.css';
 import Auth0Provider from './providers/Auth0Provider';
+import ResponsiveDashboardWrapper from '../components/ResponsiveDashboardWrapper';
 import { ToastContainer } from 'react-toastify';
 
 export const metadata = {
@@ -17,7 +18,11 @@ export default function RootLayout({
     <html lang="en">
       <body>
         <ToastContainer />
-        <Auth0Provider>{children}</Auth0Provider>
+        <Auth0Provider>
+          <ResponsiveDashboardWrapper>
+            {children}
+          </ResponsiveDashboardWrapper>
+        </Auth0Provider>
       </body>
     </html>
   );

@@ -19,9 +19,9 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, tokenError, tokenLoading } = useAccessToken()
+  const { user, tokenError, tokenLoading , accessToken} = useAccessToken()
 
-  const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
+  // const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
 
   const router = useRouter();
   const pathname = usePathname(); // Get the current pathname
