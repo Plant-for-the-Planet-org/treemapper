@@ -34,7 +34,7 @@
     "react-map-gl": "^8.0.4",
     "react-native-gesture-handler": "2.16.1",
     "react-native-reanimated": "3.10.1",
-    "react-native-web": "~0.19.10",
+    "react-native-web": "^0.20.0",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.3",
     "setimmediate": "^1.0.5"
