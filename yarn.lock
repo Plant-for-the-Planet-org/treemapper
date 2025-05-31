@@ -6091,6 +6091,11 @@ ajv@^8.0.0, ajv@^8.11.0, ajv@^8.9.0:
     json-schema-traverse "^1.0.0"
     require-from-string "^2.0.2"
 
+animal-avatar-generator@^1.2.0:
+  version "1.2.0"
+  resolved "https://registry.yarnpkg.com/animal-avatar-generator/-/animal-avatar-generator-1.2.0.tgz#298677c81d6e164cae949aabba03e2ff76d82481"
+  integrity sha512-C9fExOFmO5jz2KcaDLSn8IhyRayy63M7E/hf3pTIe2GvbVWFqTIZFMSTH41VGRJD+zNWQLmQwcDaA42slEz3lA==
+
 anser@^1.4.9:
   version "1.4.10"
   resolved "https://registry.npmjs.org/anser/-/anser-1.4.10.tgz"

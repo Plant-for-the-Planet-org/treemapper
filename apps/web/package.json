@@ -18,6 +18,7 @@
     "@expo/next-adapter": "^6.0.0",
     "@mapbox/togeojson": "^0.16.2",
     "@svgr/webpack": "^8.1.0",
+    "animal-avatar-generator": "^1.2.0",
     "dashboard": "*",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.7.4",

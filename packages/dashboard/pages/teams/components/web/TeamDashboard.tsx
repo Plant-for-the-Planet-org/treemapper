@@ -17,19 +17,22 @@ import { useToken } from '../../../../context/TokenContext';
 import { getTeamMemebers } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
 import Spinner from '../../../../components/spinner/Spinner';
+import avatar from 'animal-avatar-generator'
+
 
 function transformData(data) {
     const members = data.members.map(member => ({
         id: member.user.id,
-        name: member.user.displayName || member.user.name,
-        username: member.user.name,
+        name: member.user.name || member.user.authName,
+        username: member.user.name || member.user.authName,
         email: member.user.email,
         role: capitalize(member.role),
         lastActive: member.user.isActive ? member.joinedAt : null,
         joinedDate: member.joinedAt,
         status: member.user.isActive ? 'Active' : 'Inactive',
         invitedBy: null, // No invitedBy info for members
-        type: 'member'
+        type: 'member',
+        avatar: member.user.avatar,
     }));
 
     const invitations = data.invitations.map((invite, index) => ({
@@ -43,7 +46,7 @@ function transformData(data) {
         status: capitalize(invite.status), // e.g., Pending, Accepted
         invitedBy: invite.invitedBy?.displayName || invite.invitedBy?.name || 'Unknown',
         type: 'invitation',
-        token: invite.token
+        token: invite.token,
     }));
 
     return [...members, ...invitations];
@@ -53,6 +56,13 @@ function capitalize(str) {
     return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+const customImageGenerator = (id) => {
+    const svg = avatar(id, { size: 40 })
+    return <div
+        className="h-10 w-10 rounded-full overflow-hidden"
+        dangerouslySetInnerHTML={{ __html: svg }}
+    />
+}
 
 const TeamsDashboard = () => {
     // Sample data - replace with your actual data fetching logic
@@ -72,13 +82,15 @@ const TeamsDashboard = () => {
     const SelectedProject = useProjectStore((state) => state.selectedProject);
 
     useEffect(() => {
-        fetchTeamMembers()
-    }, [])
+        if (SelectedProject) {
+            fetchTeamMembers();
+        }
+    }, [SelectedProject])
 
     const fetchTeamMembers = async () => {
         setLoading(true)
         try {
-            const response = await getTeamMemebers(accessToken || '', SelectedProject?.uid || '');
+            const response = await getTeamMemebers(accessToken || '', SelectedProject?.uid)
             if (response && response.statusCode === 200) {
                 const transformedData = transformData(response.data);
                 setUsers(transformedData)
@@ -362,11 +374,11 @@ const TeamsDashboard = () => {
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
-                                            <img
+                                            {user.avatar ? <img
                                                 className="h-10 w-10 rounded-full"
                                                 src={`https://avatar.iran.liara.run/public/${user.id}`}
                                                 alt={user.name}
-                                            />
+                                            /> : customImageGenerator('user.id')}
                                         </div>
                                         <div className="ml-4">
                                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
@@ -408,7 +420,6 @@ const TeamsDashboard = () => {
                     </tbody>
                 </table>
 
-                {/* Empty state */}
                 {sortedUsers.length === 0 && (
                     <div className="text-center py-12">
                         <p className="text-gray-500">No users found matching your search criteria.</p>
@@ -416,14 +427,14 @@ const TeamsDashboard = () => {
                 )}
             </div>}
             <AnimatePresence>
-                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers}/>
+                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers} />
             </AnimatePresence>
             <AnimatePresence>
                 <UserDetailsModal
                     isOpen={isModalUserOpen}
                     onClose={() => setIsModalUserOpen(false)}
                     user={selectedUser}
-                    handleRefresh={fetchTeamMembers}/>
+                    handleRefresh={fetchTeamMembers} />
             </AnimatePresence>
         </div>
     );

@@ -193,7 +193,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
             {/* Top section: Avatar + Name */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center overflow-hidden shadow-lg">
+                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center overflow-hidden shadow-lg">
                   {user.id ? (
                     <img
                       src={`https://avatar.iran.liara.run/public/${user.id}`}

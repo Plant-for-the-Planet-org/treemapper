@@ -93,7 +93,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
           <>
             <div className="flex justify-between items-center border-b border-gray-200 p-4">
               <div className="flex items-center">
-                <UserPlus className="w-5 h-5 text-blue-600 mr-2" />
+                <UserPlus className="w-5 h-5 text-green-600 mr-2" />
                 <h3 className="text-lg font-semibold text-gray-800">Invite member to the Project</h3>
               </div>
               <button
@@ -180,8 +180,8 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
                   disabled={isSubmitting}
                   className={`px-4 py-2 rounded-md text-sm font-medium text-white 
                     ${isSubmitting
-                      ? 'bg-blue-400 cursor-not-allowed'
-                      : 'bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500'
+                      ? 'bg-green-400 cursor-not-allowed'
+                      : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
                     } flex items-center`}
                 >
                   {isSubmitting ? 'Sending...' : 'Send invitation'}
