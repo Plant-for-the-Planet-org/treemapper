@@ -241,7 +241,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
           latitude={latitude}
           anchor="bottom"
         >
-          <MapPin color="#00AA00" size={24} />
+          <MapPin color="#007A49" size={24} />
         </Marker>
       );
     } else if (firstFeature.geometry.type === 'Polygon') {
@@ -251,7 +251,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
             id="uploaded-polygon-fill"
             type="fill"
             paint={{
-              'fill-color': '#00AA00',
+              'fill-color': '#007A49',
               'fill-opacity': 0.3
             }}
           />
@@ -259,7 +259,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
             id="uploaded-polygon-outline"
             type="line"
             paint={{
-              'line-color': '#00AA00',
+              'line-color': '#007A49',
               'line-width': 2
             }}
           />
@@ -319,7 +319,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
               setGeoJSON(pointGeoJSON);
             }}
           >
-            <MapPin color="#FF0000" size={24} />
+            <MapPin color="#007A49" size={24} />
           </Marker>
         )}
 
@@ -332,7 +332,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
                 id="drawing-polygon-fill"
                 type="fill"
                 paint={{
-                  'fill-color': '#0080ff',
+                  'fill-color': '#007A49',
                   'fill-opacity': 0.3
                 }}
               />
@@ -340,7 +340,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
                 id="drawing-polygon-outline"
                 type="line"
                 paint={{
-                  'line-color': '#0080ff',
+                  'line-color': '#007A49',
                   'line-width': 2
                 }}
               />
@@ -357,7 +357,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
                 <div style={{
                   width: '12px',
                   height: '12px',
-                  backgroundColor: index === 0 ? '#00FF00' : '#0080ff',
+                  backgroundColor: index === 0 ? '#007A49' : '#007A49',
                   borderRadius: '50%',
                   border: '2px solid white'
                 }} />
@@ -423,8 +423,8 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
                 type="button"
                 onClick={completePolygon}
                 disabled={polygonPoints.length < 3}
-                className={`bg-green-800 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
-                  ${polygonPoints.length < 3 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
+                className={`bg-green-700 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
+                  ${polygonPoints.length < 3 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-800'}`}
               >
                 Complete Polygon
               </button>
@@ -432,8 +432,8 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
                 type="button"
                 onClick={resetPolygon}
                 disabled={polygonPoints.length === 0}
-                className={`bg-red-700 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
-                  ${polygonPoints.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
+                className={`text-gray-500 border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
+                  ${polygonPoints.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-300'}`}
               >
                 Reset
               </button>

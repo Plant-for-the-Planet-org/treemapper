@@ -13,9 +13,6 @@ function CreateProject() {
   const projects = useProjectStore((state) => state.projects);
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const selectProject = useProjectStore((state) => state.selectProject);
-  const handleSelectProject = (id: string) => {
-    selectProject(id)
-  };
   const goBack = (newRoute: string) => {
     back()
   }
@@ -23,7 +20,6 @@ function CreateProject() {
     <CreateProjectUI
       projects={projects}
       activeProject={selectedProject}
-      onSelectProject={handleSelectProject}
       token={accessToken}
       goBack={goBack}
     />

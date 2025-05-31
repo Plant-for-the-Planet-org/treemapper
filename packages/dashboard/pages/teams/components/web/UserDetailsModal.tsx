@@ -69,7 +69,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
       return
     }
     try {
-      const response = await removeProjectMember(accessToken || '', selectedProject, user.id)
+      const response = await removeProjectMember(accessToken || '', selectedProject?.uid || '', user.id)
       if (response && response.statusCode == 200) {
         setShowConfirmModal(false);
         onClose();
@@ -94,7 +94,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
     try {
       const response = await expireInvite(accessToken || '', {
         token: user.token
-      }, selectedProject)
+      }, selectedProject?.uid || '')
       setShowConfirmModal(false);
       onClose();
       if (response && response.statusCode == 200) {

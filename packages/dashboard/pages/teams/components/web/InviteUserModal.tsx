@@ -39,8 +39,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
 
     if (validateForm()) {
       setIsSubmitting(true);
-      console.log('Submitting invite for:', email, 'with role:', role, 'and message:', message,"selectedProjectL",selectedProject);
-      const response = await createProjectInvite(token, selectedProject, {
+      const response = await createProjectInvite(token, selectedProject?.uid || '', {
         email,
         message,
         role

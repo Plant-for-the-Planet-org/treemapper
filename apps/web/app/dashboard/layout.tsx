@@ -10,6 +10,8 @@ import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeader';
 import { useAccessToken } from '../../hooks/useAccessToken';
 import { TokenProvider } from 'dashboard/context/TokenContext';
 import MigrationModal from '../../components/MigrationModal';
+import useProjectStore from 'dashboard/store/useProjectStore'
+import NoProjectSelected from '../../components/NoProjectPlaceHolde';
 
 
 // const TreeMapperLogo = require('../../public/treemapperLogo.png')
@@ -19,8 +21,8 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const { user, tokenError, tokenLoading , accessToken} = useAccessToken()
-
+  const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
+  const { selectedProject, loading } = useProjectStore(state => state)
   // const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
 
   const router = useRouter();
@@ -48,6 +50,9 @@ export default function DashboardLayout({
     }
   }, [user, tokenLoading, router]);
 
+  const handleCreateProject = () => {
+    router.push('/dashboard/project');
+  };
 
 
   // Handle logout
@@ -81,6 +86,18 @@ export default function DashboardLayout({
     }
   };
 
+  const renderNoPlaceHolderCondition = () => {
+    switch (currentSection) {
+      case 'profile':
+        return children
+      case 'project':
+        return children
+      default:
+        return selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;
+    }
+  };
+
+
   return (
     <>
       <TokenProvider accessToken={accessToken}>
@@ -89,7 +106,9 @@ export default function DashboardLayout({
           {/* Display section-specific content if any */}
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {children}
+            {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <GoogleSpinner />
+            </div> : renderNoPlaceHolderCondition()}
           </div>
         </div>
       </TokenProvider>

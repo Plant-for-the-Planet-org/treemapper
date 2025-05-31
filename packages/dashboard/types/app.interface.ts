@@ -18,7 +18,7 @@ type GeoJSONGeometryI = GeoJSONPoint | GeoJSONPolygon;
 // Array of projects response
 type ProjectsResponseI = ProjectWithUserRoleI[];
 export interface UserInterface {
-  guid: string;
+  uid: string;
   email: string;
   authName: string;
   name?: string;
@@ -39,8 +39,7 @@ export interface UserInterface {
 }
 
 export interface ProjectWithUserRoleI {
-  guid: string;
-  discr: string;
+  uid: string;
   createdById: number;
   slug: string;
   purpose: string | null;

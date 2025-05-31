@@ -78,7 +78,7 @@ const TeamsDashboard = () => {
     const fetchTeamMembers = async () => {
         setLoading(true)
         try {
-            const response = await getTeamMemebers(accessToken || '', SelectedProject)
+            const response = await getTeamMemebers(accessToken || '', SelectedProject?.uid || '');
             if (response && response.statusCode === 200) {
                 const transformedData = transformData(response.data);
                 setUsers(transformedData)

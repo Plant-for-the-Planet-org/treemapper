@@ -7,6 +7,7 @@ import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
 import { getMyProjects } from '../../../../api/api.fetch'
 import { sortProjects } from '../../../../utils/commonHelper';
+import { ProjectWithUserRoleI } from '../../../../types/app.interface';
 
 interface Props {
   createNewProject: () => void;
@@ -34,10 +35,12 @@ const ProjectDropdown = ({
   const fetchUserProjects = async () => {
     const response = await getMyProjects(token)
     if (response && response.statusCode == 200) {
-      if (response.data && response.data.length > 0) {
+      if (response.data) {
         const sortedResponse = sortProjects(response.data);
         addProjects(sortedResponse)
-        selectProject(response.data[0].guid)
+        if(sortedResponse.length > 0) {
+            selectProject(sortedResponse[0]);
+        }
       }
     }
   }
@@ -57,7 +60,7 @@ const ProjectDropdown = ({
     setIsOpen(!isOpen);
   };
 
-  const handleProjectSelect = (projectId: string) => {
+  const handleProjectSelect = (projectId: ProjectWithUserRoleI) => {
     setIsOpen(false);
     selectProject(projectId)
   };
@@ -76,7 +79,7 @@ const ProjectDropdown = ({
           >
             <span className="font-medium truncate">
               {selectedProject ?
-                projects.find(p => p.guid === selectedProject)?.projectName || 'Projects' :
+                selectedProject.projectName || 'Projects' :
                 'Projects'}
             </span>
             {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
@@ -103,9 +106,9 @@ const ProjectDropdown = ({
                 {projects.length > 0 ? (
                   projects.map((project) => (
                     <button
-                      key={project.guid}
-                      onClick={() => handleProjectSelect(project.guid)}
-                      className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.id === selectedProject ? 'bg-gray-100 font-medium' : ''
+                      key={project.uid}
+                      onClick={() => handleProjectSelect(project)}
+                      className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.uid === selectedProject?.uid ? 'bg-gray-100 font-medium' : ''
                         }`}
                     >
                       {project.projectName}

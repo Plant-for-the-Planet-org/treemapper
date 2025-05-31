@@ -62,7 +62,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
     const payLoad = {
       "projectName": formData.projectName,
       "projectType": formData.projectType,
-      "discr": formData.aboutProject,
+      "description": formData.aboutProject,
       "location": finalGeoJSON,
     };
     if (formData.target !== '') {
@@ -186,6 +186,20 @@ export function CreateProjectUI({ token, goBack }: Props) {
                 />
                 <label htmlFor="conservation" className="ml-2 block text-sm text-gray-700">
                   Conservation
+                </label>
+              </div>
+                            <div className="flex items-center">
+                <input
+                  id="other"
+                  name="projectType"
+                  type="radio"
+                  value="other"
+                  checked={formData.projectType === 'other'}
+                  onChange={handleInputChange}
+                  className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300"
+                />
+                <label htmlFor="conservation" className="ml-2 block text-sm text-gray-700">
+                  Other
                 </label>
               </div>
             </div>
