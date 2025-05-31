@@ -24,7 +24,7 @@ const ProjectDropdown = ({
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
-  const { projects, selectProject, selectedProject, addProjects } = useProjectStore((state) => state);
+  const { projects, selectProject, selectedProject, addProjects, updatePrjError } = useProjectStore((state) => state);
 
   useEffect(() => {
     fetchUserProjects()
@@ -42,7 +42,10 @@ const ProjectDropdown = ({
             selectProject(sortedResponse[0]);
         }
       }
+      return
     }
+
+    updatePrjError(response?.message || 'Failed to fetch projects');
   }
 
   const rolePriority = {

@@ -12,6 +12,7 @@ import { TokenProvider } from 'dashboard/context/TokenContext';
 import MigrationModal from '../../components/MigrationModal';
 import useProjectStore from 'dashboard/store/useProjectStore'
 import NoProjectSelected from '../../components/NoProjectPlaceHolde';
+import ErrorLoadingProject from '../../components/ProjectErrorPlaceholder';
 
 
 // const TreeMapperLogo = require('../../public/treemapperLogo.png')
@@ -22,13 +23,18 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
-  const { selectedProject, loading } = useProjectStore(state => state)
+  const { selectedProject, loading , error, clearPrjError} = useProjectStore(state => state)
   // const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
 
   const router = useRouter();
   const pathname = usePathname(); // Get the current pathname
   // State to track which content to render based on current route
   const [currentSection, setCurrentSection] = useState<string>('default');
+
+  const handleRefresh = () => {
+  window.location.reload();
+  clearPrjError();
+};
 
   // Listen for URL changes and update the section state
   useEffect(() => {
@@ -93,7 +99,7 @@ export default function DashboardLayout({
       case 'project':
         return children
       default:
-        return selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;
+        return error?<ErrorLoadingProject onRefresh={handleRefresh}/>:selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;
     }
   };
 
