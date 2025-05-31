@@ -48,6 +48,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
       if (response.statusCode === 200 || response.statusCode === 201) {
         setIsSuccess(true);
         setTimeout(() => {
+          setIsSuccess(false);
           setEmail('');
           setMessage('');
           setRole('contributor');

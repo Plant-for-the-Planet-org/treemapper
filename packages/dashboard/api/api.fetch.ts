@@ -2,6 +2,7 @@ import { getUrlApi, postUrlApi, patchUrlApi, deleteUrlApi } from './api.url'
 import {
   fetchDeleteCall,
   fetchGetCall,
+  fetchPatchCall,
   fetchPostCall,
   fetchPutCall,
 } from './customFetch'
@@ -89,5 +90,12 @@ export const updateUserMigrate = async (token: string, params: any) => {
 export const removeProjectMember = async (token: string, projectGuiD: string, memberGuid: string) => {
   const uri = `${deleteUrlApi.removeUser}/${projectGuiD}/members/${memberGuid}`;
   const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
+
+export const updateUserRole = async (token: string, prjId: string, memberId: string, params: any) => {
+  const uri = `${patchUrlApi.updateMemeberRole}/${prjId}/members/${memberId}/role`;
+  const result = await fetchPatchCall(uri, params, token);
   return result;
 };

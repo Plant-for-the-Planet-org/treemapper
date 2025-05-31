@@ -6,7 +6,6 @@ export const postUrlApi = {
     acceptInvite: `${baseUrl}/api/projects/invites/accept`,
     declineInvite: `${baseUrl}/api/projects/invites/decline`,
     expireInvite: `${baseUrl}/api/projects`,
-
 }
 
 export const getUrlApi = {
@@ -20,7 +19,7 @@ export const getUrlApi = {
 
 export const patchUrlApi = {
     userMigrated: `${baseUrl}/api/users/migrated`,
-    // createProjectinvite: `${baseUrl}/projects`,
+    updateMemeberRole: `${baseUrl}/api/projects`,
 }
 
 

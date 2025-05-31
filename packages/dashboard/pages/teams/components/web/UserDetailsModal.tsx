@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { X, Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle } from 'lucide-react';
-import { expireInvite, removeProjectMember } from '../../../../api/api.fetch';
+import { expireInvite, removeProjectMember, updateUserRole } from '../../../../api/api.fetch';
 import { useToken } from '../../../../context/TokenContext';
 import useProjectStore from '../../../../store/useProjectStore';
 import { toast } from 'react-toastify';
 
 const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
-  const [currentRole, setCurrentRole] = useState(user?.role || '');
+  const [currentRole, setCurrentRole] = useState('');
   const [isEdited, setIsEdited] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -15,16 +15,38 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
   const { accessToken } = useToken()
   const selectedProject = useProjectStore((state) => state.selectedProject);
 
+  function capitalize(str) {
+    return str.charAt(0).toLowerCase() + str.slice(1);
+  }
+
   // Reset state when user changes or modal opens
   useEffect(() => {
     if (user && isOpen) {
-      setCurrentRole(user.role || '');
+      setCurrentRole(user.role ? capitalize(user?.role) : '');
       setIsEdited(false);
       setSaveSuccess(false);
     }
   }, [user, isOpen]);
 
   if (!isOpen || !user) return null;
+
+  const generateRandomGradientStyle = (userId) => {
+    const seed = userId.toString().split('').reduce((a, b) => {
+      a = ((a << 5) - a) + b.charCodeAt(0);
+      return a & a;
+    }, 0);
+
+    const hue1 = Math.abs(seed) % 360;
+    const hue2 = Math.abs(seed * 2) % 360;
+    const saturation = 20 + (Math.abs(seed * 3) % 30); // 20-50% (much lower)
+    const lightness = 85 + (Math.abs(seed * 4) % 10);  // 85-95% (much higher)
+
+    return {
+      background: `linear-gradient(135deg, 
+      hsl(${hue1}, ${saturation}%, ${lightness}%), 
+      hsl(${hue2}, ${saturation}%, ${Math.min(lightness + 5, 95)}%))`
+    };
+  };
 
   const formatDate = (dateString) => {
     const date = new Date(dateString);
@@ -46,16 +68,25 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
     setIsSaving(true);
     try {
       // Call the parent function to handle the API call
-      // await onUpdateUser(user.id, { role: currentRole });
-      setSaveSuccess(true);
-      setIsEdited(false);
+      const response = await updateUserRole(accessToken || '', selectedProject?.uid || '', user.uid, {
+        role: currentRole
+      })
+      if (response && response.statusCode == 200) {
+        toast.success("Role updated successfully");
+        setSaveSuccess(true);
+        setIsEdited(false);
+        setTimeout(() => {
+          setSaveSuccess(false);
+          handleRefresh();
+        }, 2000);
+        return
+      }
+      toast.error("Failed to update user: " + String(response.message));
 
-      // Hide success message after 2 seconds
-      setTimeout(() => {
-        setSaveSuccess(false);
-      }, 2000);
     } catch (error) {
       console.error('Failed to update user:', error);
+      toast.error("Role updation failed");
+
       // You can add error handling here
     } finally {
       setIsSaving(false);
@@ -69,43 +100,44 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
       return
     }
     try {
-      const response = await removeProjectMember(accessToken || '', selectedProject?.uid || '', user.id)
+      const response = await removeProjectMember(accessToken || '', selectedProject?.uid || '', user.uid)
       if (response && response.statusCode == 200) {
         setShowConfirmModal(false);
-        onClose();
-        toast.success("User removed successfully")
-        handleRefresh()
+        toast.success("Member removed from the project successfully")
+        setTimeout(() => {
+          handleRefresh()
+          onClose();
+          setIsRemoving(false);
+        }, 2000);
         return
       }
       toast.error(String(response.message))
-
     } catch (error) {
-      console.error('Failed to remove user:', error);
+      toast.error('Failed to remove user')
       // You can add error handling here
-      toast.error(String('Failed to remove user:'))
-
     } finally {
       setIsRemoving(false);
     }
   };
 
   const handleRemoveInvitation = async () => {
+    setShowConfirmModal(false);
     setIsRemoving(true);
     try {
       const response = await expireInvite(accessToken || '', {
         token: user.token
       }, selectedProject?.uid || '')
-      setShowConfirmModal(false);
-      onClose();
       if (response && response.statusCode == 200) {
-        setShowConfirmModal(false);
-        onClose();
         toast.success("Invitation removed successfully")
-        handleRefresh()
+        setTimeout(() => {
+          handleRefresh()
+          onClose();
+        }, 2000);
         return
       }
+      toast.error(String(response.message))
     } catch (error) {
-      console.error('Failed to remove user:', error);
+      toast.error('Failed to remove user')
       // You can add error handling here
     } finally {
       setIsRemoving(false);
@@ -128,6 +160,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
         return 'text-gray-700 bg-gray-100';
     }
   };
+  const gradientStyle = generateRandomGradientStyle(user.uid);
 
   return (
     <>
@@ -193,10 +226,11 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
             {/* Top section: Avatar + Name */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full bg-gradient-to-br from-green-400 to-green-600 flex items-center justify-center overflow-hidden shadow-lg">
-                  {user.id ? (
+                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-lg" style={gradientStyle}
+                >
+                  {user.avatar ? (
                     <img
-                      src={`https://avatar.iran.liara.run/public/${user.id}`}
+                      src={user.avatar}
                       alt={user.name}
                       className="w-full h-full object-cover"
                     />
@@ -251,7 +285,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                     className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
                   >
                     <option value="admin">Admin - Full access and management</option>
-                    <option value="manger">Manager - Can manage project and members</option>
+                    <option value="manager">Manager - Can manage project and members</option>
                     <option value="contributor">Contributor - Can edit and create</option>
                     <option value="observer">Observre - Can review the project</option>
                     <option value="researcher">Researcher - Has access to reports</option>
@@ -291,11 +325,11 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                     <div className="flex items-center gap-3">
                       <button
                         disabled={isRemoving}
-                        onClick={handleRemoveInvitation}
+                        onClick={confirmRemove}
                         className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
                       >
                         <X className="w-4 h-4 mr-2" />
-                        Discard Invitation
+                        {isRemoving ? 'Removing user' : ' Discard Invitation'}
                       </button>
                     </div>
                   </div>

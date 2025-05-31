@@ -1,9 +1,113 @@
 import React from 'react';
 import { X, CheckCircle, XCircle, Users, Info, User, Clock, AlertTriangle, Loader } from 'lucide-react';
 import Spinner from './Spinner';
+import { acceptProjectInvite, declineProjectInvite, getInviteStatus } from 'dashboard/api/api.fetch';
+import { useToken } from 'dashboard/context/TokenContext';
+import { toast } from 'react-toastify';
+import { useEffect, useState } from 'react';
+import { useSearchParams } from 'next/navigation';
+import { r } from 'framer-motion/dist/types.d-CQt5spQA';
 
-export default function ProjectInviteModal({ invitation, onAccept, onDecline, onClose, loading }) {
-  const { project, invitedBy, status, expiresAt, isExpired, message } = invitation;
+export default function ProjectInviteModal() {
+  const searchParams = useSearchParams();
+  const [inviteData, setInviteData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const { accessToken } = useToken()
+  console.log('Project Invite ID:', "I am mounted");
+  useEffect(() => {
+    checkInviteStatus()
+  }, [searchParams]);
+
+  const checkInviteStatus = async () => {
+    try {
+      const projectInviteId = searchParams.get('project-invite');
+      console.log('Project Invite ID:', projectInviteId);
+      if (!projectInviteId || !accessToken) {
+        setLoading(false);
+        return
+      }
+      setLoading(true);
+      const response = await getInviteStatus(accessToken || '', projectInviteId || '')
+      if (response.statusCode === 200) {
+        setInviteData(response.data);
+        setLoading(false);
+        return
+      }
+      toast.error('Failed to fetch invite status. Please try again later.');
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+
+    }
+  }
+
+  const handleAccept = async () => {
+    try {
+      setLoading(true);
+      const projectInviteId = searchParams.get('project-invite');
+      const response = await acceptProjectInvite(accessToken || '', {
+        token: projectInviteId
+      });
+      if (response && response.statusCode === 200) {
+        toast.success('Project invite accepted successfully. Redirecting to project dashboard...');
+        setTimeout(() => {
+          setLoading(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('project-invite');
+          window.location.href = url.toString();
+          setInviteData(null);
+        }, 2000);
+        return
+      }
+      if (response && response.message) {
+        toast.error(String(response.message));
+        return
+      }
+
+    } catch (error) {
+      setLoading(false);
+      console.error('Error accepting invitation:', error);
+      toast.error('Error accepting invitation:');
+    }
+  };
+
+
+  const handleDecline = async () => {
+    try {
+      setLoading(true);
+      const projectInviteId = searchParams.get('project-invite');
+      const response = await declineProjectInvite(accessToken || '', {
+        token: projectInviteId
+      });
+      if (response && response.statusCode === 200) {
+        toast.warning('Project invite declined successfully');
+        setTimeout(() => {
+          setLoading(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('project-invite');
+          window.location.href = url.toString();
+          setInviteData(null);
+        }, 2000);
+        return
+      }
+      if (response && response.message) {
+        toast.error(String(response.message));
+        return
+      }
+    } catch (error) {
+      setLoading(false);
+      console.error('Error declining invitation:', error);
+      toast.error('Error declining invitation:');
+    }
+  };
+
+  const handleClose = async () => {
+    const url = new URL(window.location.href);
+    url.searchParams.delete('project-invite');
+    toast.warning('Project invite declined successfully');
+    window.location.href = url.toString();
+    setInviteData(null)
+  };
 
   // Format expiry date
   const formatExpiryDate = (dateString) => {
@@ -46,10 +150,12 @@ export default function ProjectInviteModal({ invitation, onAccept, onDecline, on
         };
     }
   };
-
+  if (!inviteData) {
+    return null;
+  }
+  const { project, invitedBy, status, expiresAt, isExpired, message } = inviteData;
   const statusDisplay = getStatusDisplay();
   const canInteract = status === 'pending' && !isExpired;
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
       {
@@ -62,7 +168,7 @@ export default function ProjectInviteModal({ invitation, onAccept, onDecline, on
             <div className="flex items-center justify-between border-b border-gray-200 px-6 py-4">
               <h3 className="text-lg font-semibold text-gray-900">Project Invitation</h3>
               <button
-                onClick={onClose}
+                onClick={handleClose}
                 className="text-gray-400 hover:text-gray-500 transition-colors"
                 aria-label="Close modal"
               >
@@ -154,14 +260,14 @@ export default function ProjectInviteModal({ invitation, onAccept, onDecline, on
               {canInteract ? (
                 <>
                   <button
-                    onClick={onDecline}
+                    onClick={handleDecline}
                     className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                   >
                     <XCircle size={18} className="mr-2 text-red-500" />
                     Decline
                   </button>
                   <button
-                    onClick={onAccept}
+                    onClick={handleAccept}
                     className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                   >
                     <CheckCircle size={18} className="mr-2" />
@@ -170,7 +276,7 @@ export default function ProjectInviteModal({ invitation, onAccept, onDecline, on
                 </>
               ) : (
                 <button
-                  onClick={onClose}
+                  onClick={handleClose}
                   className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                 >
                   Close

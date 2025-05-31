@@ -22,7 +22,7 @@ import avatar from 'animal-avatar-generator'
 
 function transformData(data) {
     const members = data.members.map(member => ({
-        id: member.user.id,
+        uid: member.user.uid,
         name: member.user.name || member.user.authName,
         username: member.user.name || member.user.authName,
         email: member.user.email,
@@ -36,7 +36,7 @@ function transformData(data) {
     }));
 
     const invitations = data.invitations.map((invite, index) => ({
-        id: invite.id, // Generate unique ID offset from members
+        uid: invite.uid, // Generate unique ID offset from members
         name: invite.email.split('@')[0],
         username: invite.email.split('@')[0],
         email: invite.email,
@@ -370,23 +370,20 @@ const TeamsDashboard = () => {
                     </thead>
                     <tbody className="bg-white divide-y divide-gray-200">
                         {sortedUsers.map((user) => (
-                            <tr key={user.id} className="hover:bg-gray-50">
+                            <tr key={user.uid} className="hover:bg-gray-50">
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <div className="flex items-center">
                                         <div className="flex-shrink-0 h-10 w-10">
                                             {user.avatar ? <img
                                                 className="h-10 w-10 rounded-full"
-                                                src={`https://avatar.iran.liara.run/public/${user.id}`}
+                                                src={`https://avatar.iran.liara.run/public/${user.uid}`}
                                                 alt={user.name}
-                                            /> : customImageGenerator('user.id')}
+                                            /> : customImageGenerator(user.uid)}
                                         </div>
                                         <div className="ml-4">
                                             <div className="text-sm font-medium text-gray-900">{user.name}</div>
                                             <div className="text-sm text-gray-500">
                                                 {user.email}
-                                            </div>
-                                            <div className="text-xs text-gray-400">
-                                                @{user.username}
                                             </div>
                                         </div>
                                     </div>

@@ -1,12 +1,14 @@
 'use client'
 
 import { Trees, Sparkles, ArrowRight } from 'lucide-react';
+import ProjectInviteModal from './ProjectInviteModal';
 
-export default function NoProjectSelected({handleCreateProject}:{handleCreateProject: () => void}) {
+export default function NoProjectSelected({ handleCreateProject }: { handleCreateProject: () => void }) {
 
 
     return (
         <div className="flex flex-col items-center justify-center h-full min-h-[300px] p-8">
+            <ProjectInviteModal />
             {/* Icon Container with Animation */}
             <div className="relative mb-6">
                 <div className="w-24 h-24 rounded-2xl flex items-center justify-center mb-3 animate-pulse">
@@ -30,8 +32,8 @@ export default function NoProjectSelected({handleCreateProject}:{handleCreatePro
 
                 {/* Call to Action Button (Optional) */}
                 <button
-                onClick={handleCreateProject}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
+                    onClick={handleCreateProject}
+                    className="inline-flex items-center gap-2 px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
                     Create New Project
                     <ArrowRight className="w-4 h-4" />
                 </button>
