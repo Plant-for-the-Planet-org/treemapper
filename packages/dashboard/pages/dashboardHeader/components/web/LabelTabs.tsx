@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import useHomeStore from '../../../../store/useHomeStore';
+import { usePathname } from 'next/navigation';
 
 interface LabelTabsProps {
   updateRoute: (newRoute: string) => void;
 }
 const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
-  const [parentTab, setParentTab] = useState('')
-  // Sample data - replace with your own items
+  const [parentTab, setParentTab] = useState('');
+    const pathname = usePathname();
+
   const items = [
     // { id: 'plantable', label: 'Plantable' },
     { id: '', label: 'Overview' },
@@ -17,6 +19,28 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     { id: 'intervention', label: 'Interventions' },
     { id: 'settings', label: 'Settings' }
   ];
+
+  useEffect(() => {
+    if (pathname) {
+      const section = getSectionFromUrl(pathname);
+      setParentTab(section);
+    }
+  }, [pathname]);
+
+
+// Helper function to extract section from URL
+function getSectionFromUrl(pathname) {
+  const urlToStateMap = {
+    '/dashboard/overview': '',
+    '/dashboard/sites': 'sites',
+    '/dashboard/species': 'species',
+    '/dashboard/team': 'team',
+    '/dashboard/intervention': 'intervention',
+    '/dashboard/settings': 'settings'
+  };
+
+  return urlToStateMap[pathname] || '';
+}
 
   const handleTabClick = (id: string) => {
     updateRoute(id);
