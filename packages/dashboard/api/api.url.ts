@@ -6,6 +6,8 @@ export const postUrlApi = {
     acceptInvite: `${baseUrl}/api/projects/invites/accept`,
     declineInvite: `${baseUrl}/api/projects/invites/decline`,
     expireInvite: `${baseUrl}/api/projects`,
+    createProjectSpecies: `${baseUrl}/api/project-species`,
+
 }
 
 export const getUrlApi = {
@@ -15,6 +17,8 @@ export const getUrlApi = {
     projects: `${baseUrl}/api/projects`,
     inviteStatus: `${baseUrl}/api/projects/invites`,
     teamMembers: `${baseUrl}/api/projects`,
+    searchSpeciesSci: `${baseUrl}/api/scientific-species/search`,
+    projectSpecies: `${baseUrl}/api/project-species`,
 }
 
 export const patchUrlApi = {
@@ -25,5 +29,9 @@ export const patchUrlApi = {
 
 export const deleteUrlApi = {
     removeUser: `${baseUrl}/api/projects`,
-    // createProjectinvite: `${baseUrl}/projects`,
+    deletePrjSpecies: `${baseUrl}/api/project-species`,
+}
+
+export const putUrlApi = {
+    updatePrjSpecies: `${baseUrl}/api/project-species`,
 }

@@ -1,4 +1,4 @@
-import { getUrlApi, postUrlApi, patchUrlApi, deleteUrlApi } from './api.url'
+import { getUrlApi, postUrlApi, patchUrlApi, deleteUrlApi, putUrlApi } from './api.url'
 import {
   fetchDeleteCall,
   fetchGetCall,
@@ -19,6 +19,20 @@ export const getMyDetails = async (token: string) => {
   return result
 }
 
+export const getSciencetificSpecies = async (token: string, search: string) => {
+  const uri = `${getUrlApi.searchSpeciesSci}?name=${search}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const getProjectSpecies = async (token: string, prjId: string) => {
+  const uri = `${getUrlApi.projectSpecies}/${prjId}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
+
 export const getTeamMemebers = async (token: string, id: string) => {
   const uri = `${getUrlApi.teamMembers}/${id}/allmembers`
   const result = await fetchGetCall(uri, token)
@@ -37,6 +51,13 @@ export const createNewProject = async (token: string, params: any) => {
   const result = await fetchPostCall(uri, params, token);
   return result;
 };
+
+export const createNewProjectSpecies = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createProjectSpecies}/${prjId}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 export const acceptProjectInvite = async (token: string, params: any) => {
   const uri = `${postUrlApi.acceptInvite}`;
@@ -97,5 +118,20 @@ export const removeProjectMember = async (token: string, projectGuiD: string, me
 export const updateUserRole = async (token: string, prjId: string, memberId: string, params: any) => {
   const uri = `${patchUrlApi.updateMemeberRole}/${prjId}/members/${memberId}/role`;
   const result = await fetchPatchCall(uri, params, token);
+  return result;
+};
+
+
+export const updateProjectSpecies = async (token: string, params: any, prjId:string, species:string) => {
+  const uri = `${putUrlApi.updatePrjSpecies}/${prjId}/species/${species}`;
+  const result = await fetchPutCall(uri, params, token);
+  return result;
+};
+
+
+
+export const removePrjSpecies = async (token: string, projectGuiD: string, speciesId: string) => {
+  const uri = `${deleteUrlApi.deletePrjSpecies}/${projectGuiD}/species/${speciesId}`;
+  const result = await fetchDeleteCall(uri, token);
   return result;
 };
