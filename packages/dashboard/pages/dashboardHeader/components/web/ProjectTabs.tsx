@@ -5,7 +5,9 @@ import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
 import useProjectStore from '../../../../store/useProjectStore';
-import { getMyProjects } from '../../../../api/api.fetch'
+import { useUserStore } from '../../../../store/useUserStore';
+
+import { createNewPersonalProject, getMyProjects } from '../../../../api/api.fetch'
 import { sortProjects } from '../../../../utils/commonHelper';
 import { ProjectWithUserRoleI } from '../../../../types/app.interface';
 
@@ -25,11 +27,19 @@ const ProjectDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
   const { projects, selectProject, selectedProject, addProjects, updatePrjError } = useProjectStore((state) => state);
+  const { user } = useUserStore((state) => state);
 
   useEffect(() => {
-    fetchUserProjects()
-  }, [])
+    if (user) {
+      fetchUserProjects()
+    }
+  }, [user])
 
+  function createProjectTitle(name) {
+    // Capitalize the first letter and make the rest lowercase
+    const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    return `${formattedName}'s personal project`;
+  }
 
 
   const fetchUserProjects = async () => {
@@ -38,15 +48,33 @@ const ProjectDropdown = ({
       if (response.data) {
         const sortedResponse = sortProjects(response.data);
         addProjects(sortedResponse)
-        if(sortedResponse.length > 0) {
-            selectProject(sortedResponse[0]);
+        if (sortedResponse.length > 0) {
+          selectProject(sortedResponse[0]);
+        } else {
+          const payLoad = {
+            "projectName": createProjectTitle(user?.displayName || user?.authName),
+            "projectType": 'personal',
+            "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
+          };
+          const resp = await createNewPersonalProject(token, payLoad)
+          if (resp && resp.statusCode === 201) {
+            const newProject = {
+              ...resp.data,
+              userRole: 'owner',
+            } as ProjectWithUserRoleI;
+            addProjects([newProject]);
+            selectProject(newProject);
+          } else {
+            updatePrjError(resp?.message || 'Failed to create personal project');
+          }
         }
       }
       return
     }
-
     updatePrjError(response?.message || 'Failed to fetch projects');
   }
+
+
 
   const rolePriority = {
     'owner': 1,

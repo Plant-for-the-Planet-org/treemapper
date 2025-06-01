@@ -7,31 +7,43 @@ import {
   fetchPutCall,
 } from './customFetch'
 
+
+//app
 export const healthCheck = async () => {
   const uri = `${getUrlApi.health}`
   const result = await fetchGetCall(uri)
   return result
 }
 
+
+//user
 export const getMyDetails = async (token: string) => {
   const uri = `${getUrlApi.me}`
   const result = await fetchGetCall(uri, token)
   return result
 }
 
-export const getSciencetificSpecies = async (token: string, search: string) => {
-  const uri = `${getUrlApi.searchSpeciesSci}?name=${search}`
+
+//migrate
+
+export const checkForMigration = async (token: string) => {
+  const uri = `${getUrlApi.checkMigration}`
   const result = await fetchGetCall(uri, token)
   return result
 }
 
-export const getProjectSpecies = async (token: string, prjId: string) => {
-  const uri = `${getUrlApi.projectSpecies}/${prjId}`
-  const result = await fetchGetCall(uri, token)
-  return result
-}
+//Project
+export const createNewProject = async (token: string, params: any) => {
+  const uri = `${postUrlApi.createProject}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
 
-
+export const createNewPersonalProject = async (token: string, params: any, ) => {
+  const uri = `${postUrlApi.createPersonalProject}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
 
 export const getTeamMemebers = async (token: string, id: string) => {
   const uri = `${getUrlApi.teamMembers}/${id}/allmembers`
@@ -40,25 +52,13 @@ export const getTeamMemebers = async (token: string, id: string) => {
 }
 
 
-export const checkForMigration = async (token: string) => {
-  const uri = `${getUrlApi.checkMigration}`
+export const getMyProjects = async (token: string) => {
+  const uri = `${getUrlApi.projects}`
   const result = await fetchGetCall(uri, token)
   return result
 }
 
-export const createNewProject = async (token: string, params: any) => {
-  const uri = `${postUrlApi.createProject}`;
-  const result = await fetchPostCall(uri, params, token);
-  return result;
-};
-
-export const createNewProjectSpecies = async (token: string, params: any, prjId: string) => {
-  const uri = `${postUrlApi.createProjectSpecies}/${prjId}`;
-  const result = await fetchPostCall(uri, params, token);
-  return result;
-};
-
-
+//inivte
 export const acceptProjectInvite = async (token: string, params: any) => {
   const uri = `${postUrlApi.acceptInvite}`;
   const result = await fetchPostCall(uri, params, token);
@@ -80,11 +80,53 @@ export const expireInvite = async (token: string, params: any, pid: string) => {
 
 
 
-export const getMyProjects = async (token: string) => {
-  const uri = `${getUrlApi.projects}`
+//species
+export const getSciencetificSpecies = async (token: string, search: string) => {
+  const uri = `${getUrlApi.searchSpeciesSci}?name=${search}`
   const result = await fetchGetCall(uri, token)
   return result
 }
+
+export const getProjectSpecies = async (token: string, prjId: string) => {
+  const uri = `${getUrlApi.projectSpecies}/${prjId}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const createNewProjectSpecies = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createProjectSpecies}/${prjId}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+
+
+//sites
+
+
+//intervention
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 export const getInviteStatus = async (token: string, uuid: string) => {
   const uri = `${getUrlApi.inviteStatus}/${uuid}/status`

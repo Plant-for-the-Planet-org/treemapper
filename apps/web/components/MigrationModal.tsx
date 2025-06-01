@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { AlertCircle, CheckCircle, Loader, LogOut } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useUserStore } from 'dashboard/store/useUserStore';
+import useProject from 'dashboard/store/useProjectStore';
+
 import {checkForMigration, updateUserMigrate} from 'dashboard/api/api.fetch'
 import { useToken } from 'dashboard/context/TokenContext';
 
@@ -26,11 +28,13 @@ const MigrationModal = () => {
         "🌿 Transferring plant species data"
     ];
 
+    const { selectedProject } = useProject();
+
     useEffect(() => {
-        if (UserDetails && UserDetails.migratedAt === null && accessToken) {
+        if (UserDetails && UserDetails.migratedAt === null && accessToken && selectedProject) {
             checkMigrationNeeded()
         }
-    }, [UserDetails]);
+    }, [UserDetails,selectedProject]);
 
     const checkMigrationNeeded = async () => {
         const response = await checkForMigration(accessToken || '');

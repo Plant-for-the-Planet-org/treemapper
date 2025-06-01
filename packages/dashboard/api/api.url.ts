@@ -7,7 +7,7 @@ export const postUrlApi = {
     declineInvite: `${baseUrl}/api/projects/invites/decline`,
     expireInvite: `${baseUrl}/api/projects`,
     createProjectSpecies: `${baseUrl}/api/project-species`,
-
+    createPersonalProject: `${baseUrl}/api/projects/personal`,
 }
 
 export const getUrlApi = {

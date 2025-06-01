@@ -34,7 +34,7 @@ export default function ErrorLoadingProject({ onRefresh }) {
         </button>
 
         {/* Contact Support Message */}
-        <div className="text-sm text-gray-500 border-t pt-6 mt-6">
+        <div className="text-sm text-gray-500 border-t pt-6 mt-6">``
           <div className="flex items-center justify-center gap-2 mb-2">
             <Mail className="w-4 h-4" />
             <span className="font-medium">Still having issues?</span>
@@ -42,7 +42,7 @@ export default function ErrorLoadingProject({ onRefresh }) {
           <p>
             If this problem persists, please{' '}
             <a 
-              href="mailto:support@yourapp.com" 
+              href="https://www.plant-for-the-planet.org/contact/" 
               className="text-blue-600 hover:text-blue-800 underline font-medium"
             >
               contact us

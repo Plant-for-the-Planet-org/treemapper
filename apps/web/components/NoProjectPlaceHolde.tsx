@@ -23,20 +23,20 @@ export default function NoProjectSelected({ handleCreateProject }: { handleCreat
             {/* Main Message */}
             <div className="text-center max-w-md">
                 <h3 className="text-2xl font-semibold text-gray-800 mb-3">
-                    No project selected
+                    No project found
                 </h3>
 
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                    Start creating a new project to begin.
+                   Creating new personal project....
                 </p>
 
                 {/* Call to Action Button (Optional) */}
-                <button
+                {/* <button
                     onClick={handleCreateProject}
                     className="inline-flex items-center gap-2 px-6 py-3 bg-green-800 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 font-medium">
                     Create New Project
                     <ArrowRight className="w-4 h-4" />
-                </button>
+                </button> */}
             </div>
 
             {/* Background decoration */}
