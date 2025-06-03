@@ -64,9 +64,6 @@ const RecentAdditionsComponent = () => {
     <div className="bg-white rounded-2xl shadow p-6 max-w-3xl w-full">
       <div className="flex justify-between items-center mb-1">
         <h2 className="text-2xl font-bold text-gray-900">Recent Additions</h2>
-        <button className="text-gray-600 font-medium hover:text-gray-900">
-          View All
-        </button>
       </div>
       
       <p className="text-gray-500 mb-8">

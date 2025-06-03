@@ -9,7 +9,6 @@ const fetchCall = async (
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
-
     const options: RequestInit = {
       method,
       headers,

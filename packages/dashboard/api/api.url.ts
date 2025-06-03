@@ -13,7 +13,7 @@ export const postUrlApi = {
 export const getUrlApi = {
     health: `${baseUrl}/health`,
     me: `${baseUrl}/api/users/me`,
-    checkMigration: `${baseUrl}/api/migrate/check`,
+    checkMigration: `${baseUrl}/api/migration/check`,
     projects: `${baseUrl}/api/projects`,
     inviteStatus: `${baseUrl}/api/projects/invites`,
     teamMembers: `${baseUrl}/api/projects`,
