@@ -1,20 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import { 
-  Plus, 
-  Edit3, 
-  Trash2, 
-  Save, 
-  X, 
-  MapPin, 
-  Calendar, 
-  User, 
+import {
+  Plus,
+  Edit3,
+  Trash2,
+  Save,
+  X,
+  MapPin,
+  Calendar,
+  User,
   FileText,
   Camera,
   AlertTriangle,
   Search,
-  Filter
+  Filter,
+  TreePine,
+  AreaChart,
+  Clock,
+  Map
 } from 'lucide-react';
-import AddNewSite from './AddNewSite'; // Import your AddNewSite component
+import AddNewSite from './AddNewSite';
 
 // Mock data based on your example
 const mockSites = [
@@ -101,8 +105,8 @@ const SiteManagementPage = () => {
 
   const handleSave = () => {
     if (editedSite) {
-      const updatedSites = sites.map(site => 
-        site.id === editedSite.id 
+      const updatedSites = sites.map(site =>
+        site.id === editedSite.id
           ? { ...editedSite, lastUpdate: new Date().toISOString().split('T')[0] }
           : site
       );
@@ -125,61 +129,101 @@ const SiteManagementPage = () => {
     setShowDeleteModal(false);
   };
 
-  const getStatusColor = (status) => {
+  const getStatusConfig = (status) => {
     switch (status) {
-      case 'planting': return 'bg-green-100 text-green-800 border-green-200';
-      case 'planning': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'completed': return 'bg-gray-100 text-gray-800 border-gray-200';
-      default: return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'planting':
+        return {
+          bg: 'bg-gradient-to-r from-green-50 to-emerald-50',
+          text: 'text-green-700',
+          border: 'border-green-200',
+          dot: 'bg-green-500'
+        };
+      case 'planning':
+        return {
+          bg: 'bg-gradient-to-r from-blue-50 to-indigo-50',
+          text: 'text-blue-700',
+          border: 'border-blue-200',
+          dot: 'bg-blue-500'
+        };
+      case 'completed':
+        return {
+          bg: 'bg-gradient-to-r from-gray-50 to-slate-50',
+          text: 'text-gray-700',
+          border: 'border-gray-200',
+          dot: 'bg-gray-500'
+        };
+      default:
+        return {
+          bg: 'bg-gradient-to-r from-yellow-50 to-orange-50',
+          text: 'text-yellow-700',
+          border: 'border-yellow-200',
+          dot: 'bg-yellow-500'
+        };
     }
   };
 
   const renderMap = () => {
     if (!selectedSite?.geometry) {
       return (
-        <div className="h-64 bg-gray-100 rounded-lg flex items-center justify-center">
+        <div className="h-80 bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl flex items-center justify-center border border-gray-200">
           <div className="text-center text-gray-500">
-            <MapPin className="w-12 h-12 mx-auto mb-2" />
-            <p>No location data available</p>
+            <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center mx-auto mb-4">
+              <MapPin className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="font-medium text-gray-600">No location data available</p>
+            <p className="text-sm text-gray-500 mt-1">Add coordinates to display map</p>
           </div>
         </div>
       );
     }
 
-    // Simple map placeholder - you'll replace this with actual map implementation
     return (
-      <div className="h-64 bg-gradient-to-br from-green-100 to-blue-100 rounded-lg flex items-center justify-center relative overflow-hidden">
-        <div className="absolute inset-0 bg-green-200 opacity-30 rounded-lg transform rotate-12"></div>
+      <div className="h-80 bg-gradient-to-br from-green-100 via-emerald-50 to-blue-100 rounded-xl flex items-center justify-center relative overflow-hidden border border-green-200 shadow-inner">
+        <div className="absolute inset-0 bg-gradient-to-br from-green-200/30 to-blue-200/30 rounded-xl"></div>
+        <div className="absolute top-4 left-4 right-4">
+          <div className="flex items-center gap-2 bg-white/90 backdrop-blur-sm px-3 py-2 rounded-lg shadow-sm w-fit">
+            <Map className="w-4 h-4 text-green-600" />
+            <span className="text-sm font-medium text-gray-700">Interactive Map</span>
+          </div>
+        </div>
         <div className="text-center text-green-700 z-10">
-          <MapPin className="w-12 h-12 mx-auto mb-2" />
-          <p className="font-medium">{selectedSite.name}</p>
-          <p className="text-sm">Coordinates: {selectedSite.geometry.coordinates[0][0].join(', ')}</p>
+          <div className="w-16 h-16 rounded-full bg-green-500 flex items-center justify-center mx-auto mb-4 shadow-lg">
+            <MapPin className="w-8 h-8 text-white" />
+          </div>
+          <p className="font-semibold text-lg text-gray-800">{selectedSite.name}</p>
+          <p className="text-sm text-gray-600 mt-1 bg-white/80 px-3 py-1 rounded-full">
+            Lat: {selectedSite.geometry.coordinates[0][0][1].toFixed(4)},
+            Lng: {selectedSite.geometry.coordinates[0][0][0].toFixed(4)}
+          </p>
         </div>
       </div>
     );
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <div className="w-full mx-auto">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-4">
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Site Management</h1>
-              <p className="text-gray-600 mt-1">Manage planting sites for your project</p>
+    <div className='w-full f-full'>
+      {/* Modern Sticky Header */}
+      <div className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm ">
+        <div className="w-full f-full px-4 py-3 h-full flex flex-col justify-between">
+          <div className="flex justify-between items-center">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br mb-1 from-green-500 to-emerald-600 flex items-center justify-center shadow-lg">
+                <TreePine className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900 leading-tight" style={{margin:0}}>Site Management</h1>
+              </div>
             </div>
             <button
               onClick={() => setShowAddModal(true)}
-              className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors"
+              className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
             >
-              <Plus className="w-5 h-5" />
-              Add New Site
+              <Plus className="w-4 h-4" />
+              Add Site
             </button>
           </div>
 
-          {/* Search and Filter */}
-          <div className="flex gap-4 mb-4">
+          <div className="flex gap-3 mt-2">
             <div className="relative flex-1 max-w-md">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -187,7 +231,7 @@ const SiteManagementPage = () => {
                 placeholder="Search sites..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent w-full"
+                className="pl-10 pr-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none w-full bg-white shadow-sm"
               />
             </div>
             <div className="relative">
@@ -195,9 +239,9 @@ const SiteManagementPage = () => {
               <select
                 value={statusFilter}
                 onChange={(e) => setStatusFilter(e.target.value)}
-                className="pl-10 pr-8 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent appearance-none bg-white"
+                className="pl-10 pr-6 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none appearance-none bg-white shadow-sm min-w-[120px]"
               >
-                <option value="all">All Status</option>
+                <option value="all">All</option>
                 <option value="planning">Planning</option>
                 <option value="planting">Planting</option>
                 <option value="completed">Completed</option>
@@ -205,235 +249,341 @@ const SiteManagementPage = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Left Side - Site List */}
-          <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-              <div className="p-4 border-b border-gray-200">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  Sites ({filteredSites.length})
-                </h2>
+
+      <div className="w-full h-full px-6 py-6">
+        <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
+          {/* Enhanced Site List - Card Style */}
+          <div className="xl:col-span-2">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-gray-900">
+                    Sites Overview
+                  </h2>
+                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                    {filteredSites.length} sites
+                  </span>
+                </div>
               </div>
-              <div className="max-h-96 overflow-y-auto">
-                {filteredSites.map((site) => (
-                  <div
-                    key={site.id}
-                    onClick={() => setSelectedSite(site)}
-                    className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-gray-50 transition-colors ${
-                      selectedSite?.id === site.id ? 'bg-green-50 border-green-200' : ''
-                    }`}
-                  >
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="font-medium text-gray-900 text-sm leading-tight">
-                        {site.name}
-                      </h3>
-                      <span className={`px-2 py-1 text-xs rounded-full border ${getStatusColor(site.status)}`}>
-                        {site.status}
-                      </span>
-                    </div>
-                    <p className="text-xs text-gray-600 mb-2 line-clamp-2">
-                      {site.description}
-                    </p>
-                    <div className="flex items-center text-xs text-gray-500 gap-4">
-                      <span className="flex items-center gap-1">
-                        <User className="w-3 h-3" />
-                        {site.createdBy}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3 h-3" />
-                        {site.createdAt}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+
+              <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
+                <div className="p-4 space-y-3">
+                  {filteredSites.map((site) => {
+                    const statusConfig = getStatusConfig(site.status);
+                    const isSelected = selectedSite?.id === site.id;
+
+                    return (
+                      <div
+                        key={site.id}
+                        onClick={() => setSelectedSite(site)}
+                        className={`group relative cursor-pointer transition-all duration-200 ${isSelected
+                            ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-md'
+                            : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
+                          } border rounded-xl p-5 hover:shadow-lg`}
+                      >
+                        {/* Card Header */}
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex-1 min-w-0">
+                            <h3 className="font-semibold text-gray-900 text-base leading-tight mb-1 truncate">
+                              {site.name}
+                            </h3>
+                            <p className="text-xs text-gray-500 font-medium">ID: {site.id}</p>
+                          </div>
+                          <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                            <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
+                            {site.status}
+                          </div>
+                        </div>
+
+                        {/* Description */}
+                        <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                          {site.description}
+                        </p>
+
+                        {/* Stats Grid */}
+                        <div className="grid grid-cols-2 gap-3 mb-4">
+                          <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                            <div className="flex items-center gap-2 mb-1">
+                              <AreaChart className="w-3 h-3 text-blue-600" />
+                              <span className="text-xs font-medium text-blue-700">Area</span>
+                            </div>
+                            <p className="text-sm font-semibold text-blue-800">{site.area}</p>
+                          </div>
+                          <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                            <div className="flex items-center gap-2 mb-1">
+                              <TreePine className="w-3 h-3 text-green-600" />
+                              <span className="text-xs font-medium text-green-700">Capacity</span>
+                            </div>
+                            <p className="text-sm font-semibold text-green-800">{site.treeCapacity}</p>
+                          </div>
+                        </div>
+
+                        {/* Card Footer */}
+                        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                          <div className="flex items-center gap-1">
+                            <User className="w-3 h-3" />
+                            <span>{site.createdBy}</span>
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="w-3 h-3" />
+                            <span>{site.createdAt}</span>
+                          </div>
+                        </div>
+
+                        {/* Selection Indicator */}
+                        {isSelected && (
+                          <div className="absolute inset-0 border-2 border-green-400 rounded-xl pointer-events-none"></div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+
                 {filteredSites.length === 0 && (
-                  <div className="p-8 text-center text-gray-500">
-                    <Search className="w-12 h-12 mx-auto mb-3 text-gray-300" />
-                    <p>No sites found matching your criteria</p>
+                  <div className="p-12 text-center text-gray-500">
+                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                      <Search className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <h3 className="font-medium text-gray-700 mb-2">No sites found</h3>
+                    <p className="text-sm">Try adjusting your search criteria</p>
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Right Side - Site Details */}
-          <div className="lg:col-span-2">
+          {/* Enhanced Site Details */}
+          <div className="xl:col-span-3">
             {selectedSite ? (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                {/* Site Header */}
-                <div className="p-6 border-b border-gray-200">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                {/* Modern Site Header */}
+                <div className="relative bg-gradient-to-r from-green-500 to-emerald-600 text-white p-6">
                   <div className="flex justify-between items-start">
                     <div className="flex-1">
                       {isEditing ? (
                         <input
                           type="text"
                           value={editedSite?.name || ''}
-                          onChange={(e) => setEditedSite({...editedSite, name: e.target.value})}
-                          className="text-2xl font-bold text-gray-900 border-b-2 border-green-500 bg-transparent focus:outline-none w-full"
+                          onChange={(e) => setEditedSite({ ...editedSite, name: e.target.value })}
+                          className="text-2xl font-bold bg-transparent border-b-2 border-white/50 focus:border-white outline-none w-full text-white placeholder-white/70"
+                          placeholder="Site name..."
                         />
                       ) : (
-                        <h2 className="text-2xl font-bold text-gray-900">{selectedSite.name}</h2>
+                        <h2 className="text-3xl font-bold mb-2">{selectedSite.name}</h2>
                       )}
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className={`px-3 py-1 text-sm rounded-full border ${getStatusColor(selectedSite.status)}`}>
-                          {selectedSite.status}
-                        </span>
-                        <span className="text-sm text-gray-600">ID: {selectedSite.id}</span>
+
+                      <div className="flex items-center gap-4 mt-3">
+                        <div className="flex items-center gap-2 bg-white/20 backdrop-blur-sm px-3 py-1 rounded-full">
+                          <div className={`w-2 h-2 rounded-full ${getStatusConfig(selectedSite.status).dot}`}></div>
+                          <span className="text-sm font-medium capitalize">{selectedSite.status}</span>
+                        </div>
+                        <span className="text-sm opacity-80">ID: {selectedSite.id}</span>
                       </div>
                     </div>
+
                     <div className="flex gap-2">
                       {isEditing ? (
                         <>
                           <button
                             onClick={handleSave}
-                            className="bg-green-600 hover:bg-green-700 text-white p-2 rounded-lg transition-colors"
+                            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-3 rounded-xl transition-all duration-200"
                           >
-                            <Save className="w-4 h-4" />
+                            <Save className="w-5 h-5" />
                           </button>
                           <button
                             onClick={handleCancel}
-                            className="bg-gray-600 hover:bg-gray-700 text-white p-2 rounded-lg transition-colors"
+                            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-3 rounded-xl transition-all duration-200"
                           >
-                            <X className="w-4 h-4" />
+                            <X className="w-5 h-5" />
                           </button>
                         </>
                       ) : (
                         <>
                           <button
                             onClick={handleEdit}
-                            className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg transition-colors"
+                            className="bg-white/20 hover:bg-white/30 backdrop-blur-sm p-3 rounded-xl transition-all duration-200"
                           >
-                            <Edit3 className="w-4 h-4" />
+                            <Edit3 className="w-5 h-5" />
                           </button>
                           <button
                             onClick={() => setShowDeleteModal(true)}
-                            className="bg-red-600 hover:bg-red-700 text-white p-2 rounded-lg transition-colors"
+                            className="bg-red-500/80 hover:bg-red-600 backdrop-blur-sm p-3 rounded-xl transition-all duration-200"
                           >
-                            <Trash2 className="w-4 h-4" />
+                            <Trash2 className="w-5 h-5" />
                           </button>
                         </>
                       )}
                     </div>
                   </div>
+
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-12 -translate-x-12"></div>
                 </div>
 
                 {/* Site Content */}
                 <div className="p-6">
-                  {/* Map */}
-                  <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">Location</h3>
+                  {/* Enhanced Map Section */}
+                  <div className="mb-8">
+                    <div className="flex items-center gap-2 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-green-100 flex items-center justify-center">
+                        <MapPin className="w-4 h-4 text-green-600" />
+                      </div>
+                      <h3 className="text-xl font-bold text-gray-900">Location & Mapping</h3>
+                    </div>
                     {renderMap()}
                   </div>
 
-                  {/* Site Details Grid */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <User className="w-4 h-4 inline mr-1" />
-                          Created By
-                        </label>
-                        <p className="text-gray-900">{selectedSite.createdBy}</p>
+                  {/* Enhanced Details Grid */}
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    {/* Left Column */}
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-5 rounded-xl border border-blue-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                            <User className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-blue-900">Created By</h4>
+                        </div>
+                        <p className="text-blue-800 font-medium">{selectedSite.createdBy}</p>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <Calendar className="w-4 h-4 inline mr-1" />
-                          Created Date
-                        </label>
-                        <p className="text-gray-900">{selectedSite.createdAt}</p>
+
+                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-5 rounded-xl border border-purple-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-purple-500 flex items-center justify-center">
+                            <Calendar className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-purple-900">Created Date</h4>
+                        </div>
+                        <p className="text-purple-800 font-medium">{selectedSite.createdAt}</p>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <Calendar className="w-4 h-4 inline mr-1" />
-                          Last Updated
-                        </label>
-                        <p className="text-gray-900">{selectedSite.lastUpdate}</p>
+
+                      <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-5 rounded-xl border border-orange-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center">
+                            <Clock className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-orange-900">Last Updated</h4>
+                        </div>
+                        <p className="text-orange-800 font-medium">{selectedSite.lastUpdate}</p>
                       </div>
                     </div>
-                    <div className="space-y-4">
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Area Size
-                        </label>
-                        <p className="text-gray-900">{selectedSite.area}</p>
+
+                    {/* Right Column */}
+                    <div className="space-y-6">
+                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-5 rounded-xl border border-green-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-green-500 flex items-center justify-center">
+                            <AreaChart className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-green-900">Area Size</h4>
+                        </div>
+                        <p className="text-green-800 font-medium text-xl">{selectedSite.area}</p>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          Tree Capacity
-                        </label>
-                        <p className="text-gray-900">{selectedSite.treeCapacity}</p>
+
+                      <div className="bg-gradient-to-br from-emerald-50 to-teal-50 p-5 rounded-xl border border-emerald-100">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-emerald-500 flex items-center justify-center">
+                            <TreePine className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-emerald-900">Tree Capacity</h4>
+                        </div>
+                        <p className="text-emerald-800 font-medium text-xl">{selectedSite.treeCapacity}</p>
                       </div>
-                      <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                          <Camera className="w-4 h-4 inline mr-1" />
-                          Site Image
-                        </label>
+
+                      <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-5 rounded-xl border border-gray-200">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-8 h-8 rounded-lg bg-gray-500 flex items-center justify-center">
+                            <Camera className="w-4 h-4 text-white" />
+                          </div>
+                          <h4 className="font-semibold text-gray-900">Site Image</h4>
+                        </div>
                         {selectedSite.image ? (
-                          <img src={selectedSite.image} alt="Site" className="w-20 h-20 object-cover rounded" />
+                          <div className="relative">
+                            <img src={selectedSite.image} alt="Site" className="w-full h-24 object-cover rounded-lg" />
+                          </div>
                         ) : (
-                          <p className="text-gray-500 text-sm">No image uploaded</p>
+                          <div className="w-full h-24 bg-gray-100 rounded-lg flex items-center justify-center">
+                            <p className="text-gray-500 text-sm">No image uploaded</p>
+                          </div>
                         )}
                       </div>
                     </div>
                   </div>
 
-                  {/* Description */}
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      <FileText className="w-4 h-4 inline mr-1" />
-                      Description
-                    </label>
+                  {/* Enhanced Description */}
+                  <div className="bg-gradient-to-br from-indigo-50 to-purple-50 p-6 rounded-xl border border-indigo-100">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-8 h-8 rounded-lg bg-indigo-500 flex items-center justify-center">
+                        <FileText className="w-4 h-4 text-white" />
+                      </div>
+                      <h3 className="text-xl font-bold text-indigo-900">Site Description</h3>
+                    </div>
                     {isEditing ? (
                       <textarea
                         value={editedSite?.description || ''}
-                        onChange={(e) => setEditedSite({...editedSite, description: e.target.value})}
+                        onChange={(e) => setEditedSite({ ...editedSite, description: e.target.value })}
                         rows={6}
-                        className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                        className="w-full p-4 border border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none bg-white"
+                        placeholder="Enter detailed site description..."
                       />
                     ) : (
-                      <p className="text-gray-700 leading-relaxed whitespace-pre-wrap">
-                        {selectedSite.description}
-                      </p>
+                      <div className="prose prose-indigo max-w-none">
+                        <p className="text-indigo-800 leading-relaxed whitespace-pre-wrap">
+                          {selectedSite.description}
+                        </p>
+                      </div>
                     )}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-12 text-center">
-                <MapPin className="w-16 h-16 mx-auto mb-4 text-gray-300" />
-                <h3 className="text-xl font-medium text-gray-900 mb-2">Select a Site</h3>
-                <p className="text-gray-600">Choose a site from the list to view its details</p>
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-12 text-center h-full flex items-center justify-center">
+                <div className="max-w-md">
+                  <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-6">
+                    <MapPin className="w-12 h-12 text-gray-400" />
+                  </div>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Select a Site</h3>
+                  <p className="text-gray-600 leading-relaxed">Choose a site from the list to view its detailed information, location, and management options.</p>
+                </div>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Delete Confirmation Modal */}
+      {/* Enhanced Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4">
-            <div className="flex items-center mb-4">
-              <AlertTriangle className="w-6 h-6 text-red-600 mr-3" />
-              <h3 className="text-lg font-semibold text-gray-900">Delete Site</h3>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div className="bg-gradient-to-r from-red-500 to-rose-600 p-6 text-white">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
+                  <AlertTriangle className="w-5 h-5" />
+                </div>
+                <h3 className="text-xl font-bold">Delete Site</h3>
+              </div>
             </div>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete "{selectedSite?.name}"? This action cannot be undone.
-            </p>
-            <div className="flex gap-3 justify-end">
-              <button
-                onClick={() => setShowDeleteModal(false)}
-                className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={handleDelete}
-                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-colors"
-              >
-                Delete
-              </button>
+            <div className="p-6">
+              <p className="text-gray-600 mb-6 leading-relaxed">
+                Are you sure you want to delete <span className="font-semibold text-gray-900">"{selectedSite?.name}"</span>? This action cannot be undone and will permanently remove all associated data.
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowDeleteModal(false)}
+                  className="flex-1 px-4 py-3 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-xl transition-colors font-medium"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDelete}
+                  className="flex-1 px-4 py-3 bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white rounded-xl transition-all duration-200 font-medium shadow-lg"
+                >
+                  Delete Site
+                </button>
+              </div>
             </div>
           </div>
         </div>

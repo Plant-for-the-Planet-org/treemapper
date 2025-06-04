@@ -363,7 +363,7 @@ const SpeciesManagementDashboard = () => {
     return (
         <div className="bg-gray-50 flex flex-col h-full w-full">
             {/* Sticky Header */}
-            <div className="sticky  z-40 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
+            <div className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm py-4 px-4">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                     <div className="flex items-center gap-6" style={{alignItems:'center',justifyContent:'center'}}>
                         <h1 className="text-2xl font-bold text-gray-900" style={{margin:0}}>Species Management</h1>
@@ -550,7 +550,7 @@ const SpeciesManagementDashboard = () => {
                     {selectedSpecies ? (
                         <div className="w-full p-6">
                             {/* Modern Action Bar with Glass Effect */}
-                            <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border border-white/20 rounded-2xl  mb-8 p-6 shadow-sm">
+                            <div className="sticky top-1 z-20 backdrop-blur-md bg-white/80 border border-white/20 rounded-2xl  mb-8 p-6 shadow-sm">
                                 <div className="flex justify-between items-center">
                                     <div className="flex items-center gap-3">
                                         <div>
