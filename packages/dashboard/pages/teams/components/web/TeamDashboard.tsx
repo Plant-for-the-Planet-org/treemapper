@@ -184,10 +184,15 @@ const TeamsDashboard = () => {
             console.error('No data provided for CSV download');
             return;
         }
-
+        const finalList = [...jsonData]
+        finalList.map(el => {
+            delete el.uid;
+            return el
+        })
         try {
+
             // Get headers from the first object in the array
-            const headers = Object.keys(jsonData[0]);
+            const headers = Object.keys(finalList[0]);
 
             // Create CSV rows from the JSON data
             let csvRows = [];
@@ -196,9 +201,8 @@ const TeamsDashboard = () => {
             if (includeHeaders) {
                 csvRows.push(headers.join(','));
             }
-
             // Add data rows
-            jsonData.forEach(item => {
+            finalList.forEach(item => {
                 const values = headers.map(header => {
                     // Handle special cases (commas, quotes, undefined, null)
                     const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
@@ -395,7 +399,7 @@ const TeamsDashboard = () => {
                                     <span className="text-sm text-gray-500">{getTimeSince(user.lastActive)}</span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="text-sm text-gray-500">{formatDate(user.joinedDate)}</span>
+                                    <span className="text-sm text-gray-500">{user.status === 'Pending' ? "------------" : formatDate(user.joinedDate)}</span>
                                 </td>
                                 <td className="px-6 py-4 whitespace-nowrap">
                                     <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>

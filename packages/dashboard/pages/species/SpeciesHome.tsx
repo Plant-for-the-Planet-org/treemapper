@@ -24,6 +24,7 @@ import { useToken } from '../../context/TokenContext';
 import useProjectStore from '../../store/useProjectStore';
 import { createNewProjectSpecies, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, updateProjectSpecies } from '../../api/api.fetch';
 import { toast } from 'react-toastify';
+import Spinner from '../../../../apps/web/components/Spinner';
 
 const SpeciesManagementDashboard = () => {
     const [speciesList, setSpeciesList] = useState([
@@ -44,6 +45,7 @@ const SpeciesManagementDashboard = () => {
     const [selectedFromSearch, setSelectedFromSearch] = useState(false);
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
+    const [loading, setLoading] = useState(false)
     const [requestForm, setRequestForm] = useState({
         scientificName: '',
         commonName: '',
@@ -95,11 +97,16 @@ const SpeciesManagementDashboard = () => {
     }, [])
 
     const fetchProjectSpecies = async () => {
+        setLoading(true)
         if (!selectedProject?.uid) return;
         const response = await getProjectSpecies(accessToken || '', selectedProject?.uid);
+        setLoading(false)
         if (response.statusCode !== 200) {
             toast.error(response.message || 'An error occurred while fetching species data.');
             return;
+        }
+        if (response.data.length === 0) {
+            handleStartAdd()
         }
         setSpeciesList(response.data || []);
     }
@@ -354,23 +361,23 @@ const SpeciesManagementDashboard = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
-            {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-gray-50 flex flex-col h-full w-full">
+            {/* Sticky Header */}
+            <div className="sticky  z-40 bg-white border-b border-gray-200 px-6 py-4 shadow-sm">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex items-center gap-6">
-                        <h1 className="text-2xl font-bold text-gray-900">Species Management</h1>
+                    <div className="flex items-center gap-6" style={{alignItems:'center',justifyContent:'center'}}>
+                        <h1 className="text-2xl font-bold text-gray-900" style={{margin:0}}>Species Management</h1>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                             <span className="flex items-center gap-1">
                                 <Hash size={16} />
                                 Total: {speciesList.length}
                             </span>
                             <span className="flex items-center gap-1">
-                                <Eye size={16} className="text-green-500" />
+                                <Eye size={16} className="text-green-800" />
                                 Active: {activeCount}
                             </span>
                             <span className="flex items-center gap-1">
-                                <Heart size={16} className="text-red-500" />
+                                <Heart size={16} className="text-red-500" fill="#ef4444" />
                                 Favorites: {favoriteCount}
                             </span>
                         </div>
@@ -418,14 +425,20 @@ const SpeciesManagementDashboard = () => {
                 </div>
             </div>
 
-            <div className="flex h-[calc(100vh-80px)]">
+            <div className="flex" style={{width:'100%',height:'100%'}}>
                 {/* Left Panel - Species List */}
                 <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
                     <div className="p-4">
                         {filteredSpecies.length === 0 ? (
                             <div className="text-center py-12">
-                                <Leaf size={48} className="mx-auto text-gray-400 mb-4" />
-                                <p className="text-gray-500">No species found</p>
+                                {loading ? <div className='w-full h-full' style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                    <Spinner />
+                                </div> :
+                                    <>
+                                        <Leaf size={48} className="mx-auto text-gray-400 mb-4" />
+                                        <p className="text-gray-500">No species found</p>
+                                        <p className="text-gray-400">Start adding species to this project. </p>
+                                    </>}
                             </div>
                         ) : (
                             <div className="space-y-2">
@@ -433,71 +446,98 @@ const SpeciesManagementDashboard = () => {
                                     <div
                                         key={species.uid}
                                         onClick={() => handleSelectSpecies(species)}
-                                        className={`p-4 rounded-lg cursor-pointer transition-all ${selectedSpecies?.uid === species.uid
-                                            ? 'bg-green-50 border-2 border-green-200'
-                                            : 'bg-gray-50 hover:bg-gray-100 border-2 border-transparent'
+                                        className={`group relative bg-white rounded-xl shadow-sm border transition-all duration-200 cursor-pointer hover:shadow-md hover:-translate-y-0.5 ${selectedSpecies?.uid === species.uid
+                                            ? 'ring-2 ring-green-500 border-green-200 shadow-green-100'
+                                            : 'border-gray-200 hover:border-gray-300'
                                             } ${species.disabled ? 'opacity-60' : ''}`}
                                     >
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-12 h-12 rounded-lg overflow-hidden bg-gray-200 flex-shrink-0">
-                                                {species.image ? (
-                                                    <img
-                                                        src={species.image}
-                                                        alt={species.scientificName}
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center">
-                                                        <Leaf size={20} className="text-green-500" />
-                                                    </div>
-                                                )}
+                                        {/* Favorite indicator - top right */}
+                                        {species.favourite && (
+                                            <div className="absolute top-3 right-3 z-10">
+                                                <Heart size={16} fill="#ef4444" className="text-red-500 drop-shadow-sm" />
                                             </div>
+                                        )}
 
-                                            <div className="flex-1 min-w-0">
-                                                <h3 className="font-medium text-gray-900 italic truncate">
-                                                    {species.scientificName}
-                                                </h3>
-                                                <p className="text-sm text-gray-600 truncate">
-                                                    {species.commonName}
-                                                </p>
-                                                <div className="flex items-center gap-2 mt-1">
-                                                    {species.isNativeSpecies && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
-                                                            <MapPin size={10} />
-                                                            Native
-                                                        </span>
-                                                    )}
-                                                    {species.disabled && (
-                                                        <span className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs bg-red-100 text-red-700">
-                                                            <EyeOff size={10} />
-                                                            Disabled
-                                                        </span>
+                                        <div className="p-5">
+                                            {/* Header with image and main info */}
+                                            <div className="flex items-start gap-4 mb-4">
+                                                {/* Species Image */}
+                                                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 shadow-inner">
+                                                    {species.image ? (
+                                                        <img
+                                                            src={species.image}
+                                                            alt={species.scientificName || 'Species image'}
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-full h-full flex items-center justify-center">
+                                                            <Leaf size={24} className="text-green-500" />
+                                                        </div>
                                                     )}
                                                 </div>
-                                                <p className="text-xs text-gray-400 mt-1">
-                                                    {formatDate(species.updatedAt)}
-                                                </p>
+
+                                                {/* Species Names */}
+                                                <div className="flex-1 min-w-0">
+                                                    <h3 className="font-semibold text-gray-900 italic text-lg leading-tight mb-1">
+                                                        {species.scientificName || 'Unknown Species'}
+                                                    </h3>
+                                                    {species.commonName && (
+                                                        <p className="text-gray-600 font-medium mb-2 leading-tight">
+                                                            {species.commonName}
+                                                        </p>
+                                                    )}
+
+                                                    {/* Status badges */}
+                                                    <div className="flex flex-wrap items-center gap-2">
+                                                        {species.isNativeSpecies && (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200">
+                                                                <MapPin size={12} />
+                                                                Native
+                                                            </span>
+                                                        )}
+                                                        {species.disabled && (
+                                                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">
+                                                                <EyeOff size={12} />
+                                                                Disabled
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                </div>
                                             </div>
 
-                                            <div className="flex flex-col items-center gap-2">
-                                                {species.favourite && (
-                                                    <Heart size={16} fill="#ef4444" className="text-red-500" />
-                                                )}
+                                            {/* Footer with date and actions */}
+                                            <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                                                {/* Last updated */}
+                                                <div className="flex items-center gap-1.5 text-xs text-gray-500">
+                                                    <div className="w-1.5 h-1.5 rounded-full bg-gray-300"></div>
+                                                    <span>Updated {formatDate(species.updatedAt)}</span>
+                                                </div>
+
+                                                {/* Toggle visibility button */}
                                                 <button
                                                     onClick={(e) => {
                                                         e.stopPropagation();
                                                         handleToggleDisabled(species.uid);
                                                     }}
-                                                    className="p-1 rounded-full hover:bg-gray-200 transition-colors"
+                                                    className={`p-2 rounded-lg transition-all duration-200 ${species.disabled
+                                                        ? 'bg-red-50 hover:bg-red-100 text-red-600'
+                                                        : 'bg-green-50 hover:bg-green-100 text-green-600'
+                                                        } group-hover:scale-105`}
+                                                    title={species.disabled ? 'Enable species' : 'Disable species'}
                                                 >
                                                     {species.disabled ? (
-                                                        <EyeOff size={14} className="text-red-500" />
+                                                        <EyeOff size={16} />
                                                     ) : (
-                                                        <Eye size={14} className="text-green-500" />
+                                                        <Eye size={16} />
                                                     )}
                                                 </button>
                                             </div>
                                         </div>
+
+                                        {/* Selected indicator */}
+                                        {selectedSpecies?.uid === species.uid && (
+                                            <div className="absolute inset-0 rounded-xl bg-green-500/5 pointer-events-none"></div>
+                                        )}
                                     </div>
                                 ))}
                             </div>
@@ -506,78 +546,88 @@ const SpeciesManagementDashboard = () => {
                 </div>
 
                 {/* Right Panel - Species Details */}
-                <div className="flex-1 bg-white overflow-y-auto">
+                <div className="flex-1 h-full w-full bg-gradient-to-br from-gray-50 to-white overflow-y-auto" style={{paddingBottom:'500px'}}>
                     {selectedSpecies ? (
-                        <div className="p-6">
-                            {/* Action Bar */}
-                            <div className="flex justify-between items-center mb-6">
-                                <div className="flex items-center gap-2">
-                                    <h2 className="text-xl font-semibold text-gray-900">
-                                        {isAddingNew ? 'Add new species to project' : 'Species Details'}
-                                    </h2>
-                                    {!isAddingNew && (
-                                        <button
-                                            onClick={() => handleToggleFavorite(selectedSpecies.uid)}
-                                            className="p-1 rounded-full hover:bg-gray-100"
-                                        >
-                                            {selectedSpecies.favourite ? (
-                                                <Heart size={20} fill="#ef4444" className="text-red-500" />
-                                            ) : (
-                                                <Heart size={20} className="text-gray-400" />
-                                            )}
-                                        </button>
-                                    )}
-                                </div>
+                        <div className="w-full p-6">
+                            {/* Modern Action Bar with Glass Effect */}
+                            <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border border-white/20 rounded-2xl  mb-8 p-6 shadow-sm">
+                                <div className="flex justify-between items-center">
+                                    <div className="flex items-center gap-3">
+                                        <div>
+                                            <h2 className="text-2xl font-bold text-gray-900">
+                                                {isAddingNew ? 'Add New Species' : 'Species Details'}
+                                            </h2>
+                                        </div>
+                                        {!isAddingNew && (
+                                            <button
+                                                onClick={() => handleToggleFavorite(selectedSpecies.uid)}
+                                                className="ml-4 p-2 rounded-xl hover:bg-gray-100 transition-all duration-200 hover:scale-110"
+                                            >
+                                                {selectedSpecies.favourite ? (
+                                                    <Heart size={24} fill="#ef4444" className="text-red-500" />
+                                                ) : (
+                                                    <Heart size={24} className="text-gray-400" />
+                                                )}
+                                            </button>
+                                        )}
+                                    </div>
 
-                                <div className="flex items-center gap-2">
-                                    {isEditing ? (
-                                        <>
-                                            <button
-                                                onClick={handleCancel}
-                                                className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
-                                            >
-                                                <X size={16} />
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={handleSave}
-                                                className="flex items-center gap-2 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
-                                            >
-                                                <Save size={16} />
-                                                Save
-                                            </button>
-                                        </>
-                                    ) : (
-                                        <>
-                                            <button
-                                                onClick={handleStartEdit}
-                                                className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-                                            >
-                                                <Edit2 size={16} />
-                                                Edit
-                                            </button>
-                                            {!isAddingNew && (
+                                    <div className="flex items-center gap-3">
+                                        {isEditing ? (
+                                            <>
                                                 <button
-                                                    onClick={handleDelete}
-                                                    className="flex items-center gap-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+                                                    onClick={handleCancel}
+                                                    className="flex items-center gap-2 px-6 py-3 text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 transition-all duration-200 font-medium"
                                                 >
-                                                    <Trash2 size={16} />
-                                                    Delete
+                                                    <X size={18} />
+                                                    Cancel
                                                 </button>
-                                            )}
-                                        </>
-                                    )}
+                                                <button
+                                                    onClick={handleSave}
+                                                    className="flex items-center gap-2 px-6 py-3 bg-green-700 text-white rounded-xl hover:from-green-700 hover:to-emerald-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                                                >
+                                                    <Save size={18} />
+                                                    Save Changes
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    onClick={handleStartEdit}
+                                                    className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                                                >
+                                                    <Edit2 size={18} />
+                                                    Edit
+                                                </button>
+                                                {!isAddingNew && (
+                                                    <button
+                                                        onClick={handleDelete}
+                                                        className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-red-600 to-rose-600 text-white rounded-xl hover:from-red-700 hover:to-rose-700 transition-all duration-200 font-medium shadow-lg hover:shadow-xl"
+                                                    >
+                                                        <Trash2 size={18} />
+                                                        Delete
+                                                    </button>
+                                                )}
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
 
                             {/* Content */}
                             {isEditing ? (
-                                /* Edit Form */
-                                <div className="space-y-6">
+                                /* Modern Edit Form */
+                                <div className="space-y-8">
                                     {/* Species Search Section (only when adding new) */}
                                     {isAddingNew && (
-                                        <div className="bg-green-50 p-4 rounded-lg border border-green-200">
-                                            <h3 className="font-medium text-green-900 mb-3">Add from Existing Species</h3>
+                                        <div className="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-2xl border border-blue-100">
+                                            <div className="flex items-center gap-3 mb-4">
+                                                <div className="w-8 h-8 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                    <Plus size={16} className="text-white" />
+                                                </div>
+                                                <h3 className="text-lg font-semibold text-gray-800">Add from Existing Species</h3>
+                                            </div>
+
                                             <div className="relative">
                                                 <div className="flex gap-3">
                                                     <div className="flex-1 relative">
@@ -586,31 +636,31 @@ const SpeciesManagementDashboard = () => {
                                                             value={speciesSearchTerm}
                                                             onChange={(e) => handleSearchInputChange(e.target.value)}
                                                             placeholder="Start typing species name (min 3 characters)..."
-                                                            className="w-full px-4 py-2 border border-green-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                                                            className="w-full px-4 py-3 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none bg-white shadow-sm"
                                                         />
                                                         {isSearchingSpecies && (
                                                             <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                                                                <Loader size={16} className="animate-spin text-blue-500" />
+                                                                <Loader size={20} className="animate-spin text-blue-500" />
                                                             </div>
                                                         )}
 
-                                                        {/* Search Results Dropdown */}
+                                                        {/* Modern Search Results Dropdown */}
                                                         {showDropdown && searchResults.length > 0 && (
-                                                            <div className="absolute top-full left-0 right-0 mt-1 bg-white border border-gray-300 rounded-lg shadow-lg z-10 max-h-60 overflow-y-auto">
+                                                            <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-200 rounded-xl shadow-xl z-30 max-h-80 overflow-y-auto">
                                                                 {searchResults.map((species, index) => (
                                                                     <button
                                                                         key={index}
                                                                         onClick={() => handleSelectSpeciesFromSearch(species)}
-                                                                        className="w-full text-left px-4 py-3 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none"
+                                                                        className="w-full text-left px-4 py-4 hover:bg-gray-50 border-b border-gray-100 last:border-b-0 focus:bg-blue-50 focus:outline-none transition-colors"
                                                                     >
-                                                                        <div className="font-medium text-gray-900 italic">
+                                                                        <div className="font-semibold text-gray-900 italic text-lg">
                                                                             {species.scientificName}
                                                                         </div>
-                                                                        <div className="text-sm text-gray-600">
+                                                                        <div className="text-gray-600 font-medium">
                                                                             {species.commonName}
                                                                         </div>
                                                                         {species.description && (
-                                                                            <div className="text-xs text-gray-500 mt-1 line-clamp-2">
+                                                                            <div className="text-sm text-gray-500 mt-1 line-clamp-2">
                                                                                 {species.description.substring(0, 100)}...
                                                                             </div>
                                                                         )}
@@ -621,19 +671,21 @@ const SpeciesManagementDashboard = () => {
                                                     </div>
                                                 </div>
 
-                                                {/* No results found - show after search is complete and no results */}
+                                                {/* Enhanced No Results Found */}
                                                 {speciesNotFound && speciesSearchTerm.length >= 3 && !isSearchingSpecies && (
-                                                    <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                                                    <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-xl">
                                                         <div className="flex items-start gap-3">
-                                                            <AlertCircle size={20} className="text-yellow-600 mt-0.5" />
+                                                            <div className="w-8 h-8 rounded-lg bg-yellow-500 flex items-center justify-center flex-shrink-0">
+                                                                <AlertCircle size={16} className="text-white" />
+                                                            </div>
                                                             <div className="flex-1">
-                                                                <h4 className="font-medium text-yellow-800 mb-2">No Species Found</h4>
+                                                                <h4 className="font-semibold text-yellow-800 mb-2">No Species Found</h4>
                                                                 <p className="text-yellow-700 text-sm mb-3">
                                                                     No species found matching "{speciesSearchTerm}". Would you like to request adding this species to our database?
                                                                 </p>
                                                                 <button
                                                                     onClick={handleRequestNewSpecies}
-                                                                    className="flex items-center gap-2 bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 transition-colors text-sm"
+                                                                    className="flex items-center gap-2 bg-gradient-to-r from-yellow-600 to-orange-600 text-white px-4 py-2 rounded-lg hover:from-yellow-700 hover:to-orange-700 transition-all duration-200 text-sm font-medium shadow-md"
                                                                 >
                                                                     <Plus size={16} />
                                                                     Request New Species
@@ -643,19 +695,22 @@ const SpeciesManagementDashboard = () => {
                                                     </div>
                                                 )}
 
-                                                {/* Search instructions */}
+                                                {/* Search Status Messages */}
                                                 {speciesSearchTerm.length > 0 && speciesSearchTerm.length < 3 && (
-                                                    <div className="mt-2 text-sm text-gray-600">
+                                                    <div className="mt-3 flex items-center gap-2 text-sm text-gray-600">
+                                                        <div className="w-1 h-1 bg-gray-400 rounded-full"></div>
                                                         Type at least 3 characters to start searching...
                                                     </div>
                                                 )}
 
-                                                {/* Selected species confirmation */}
+                                                {/* Success Confirmation */}
                                                 {selectedFromSearch && (
-                                                    <div className="mt-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-                                                        <div className="flex items-center gap-2 text-green-700">
-                                                            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                                                            <span className="text-sm font-medium">Species selected and details populated</span>
+                                                    <div className="mt-4 p-4 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                                                        <div className="flex items-center gap-3 text-green-700">
+                                                            <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                                                <div className="w-2 h-2 bg-white rounded-full"></div>
+                                                            </div>
+                                                            <span className="font-medium">Species selected and details populated</span>
                                                         </div>
                                                     </div>
                                                 )}
@@ -663,291 +718,359 @@ const SpeciesManagementDashboard = () => {
                                         </div>
                                     )}
 
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Scientific Name
-                                                <span className="text-red-500"> *</span>
-                                            </label>
-                                            <input
-                                                type="text"
-                                                disabled
-                                                value={editForm.scientificName || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, scientificName: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none italic"
-                                                placeholder="e.g. Quercus robur"
-                                                readOnly={isAddingNew}
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Common Name
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.commonName || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, commonName: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                                placeholder="e.g. English Oak"
-                                            />
-                                        </div>
-                                    </div>
-
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Image
-                                        </label>
-                                        <div className="flex items-center gap-4">
-                                            <div className="w-32 h-32 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                                {editForm.image ? (
-                                                    <img
-                                                        src={editForm.image}
-                                                        alt="Preview"
-                                                        className="w-full h-full object-cover"
-                                                    />
-                                                ) : (
-                                                    <Leaf size={32} className="text-green-500" />
-                                                )}
+                                    {/* Form Fields in Modern Cards */}
+                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-green-500 flex items-center justify-center">
+                                                <Edit2 size={12} className="text-white" />
                                             </div>
-                                            <label className="cursor-pointer bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors">
-                                                <Upload size={16} />
-                                                Choose Image
+                                            Basic Information
+                                        </h3>
+
+                                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Scientific Name
+                                                    <span className="text-red-500 ml-1">*</span>
+                                                </label>
                                                 <input
-                                                    type="file"
-                                                    accept="image/*"
-                                                    onChange={handleImageUpload}
-                                                    className="hidden"
+                                                    type="text"
+                                                    disabled
+                                                    value={editForm.scientificName || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, scientificName: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none italic bg-gray-50"
+                                                    placeholder="e.g. Quercus robur"
+                                                    readOnly={isAddingNew}
                                                 />
-                                            </label>
-                                        </div>
-                                    </div>
+                                            </div>
 
-                                    <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Description
-                                        </label>
-                                        <textarea
-                                            value={editForm.description || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
-                                            rows={4}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                            placeholder="Describe the species characteristics, origin, and notable features..."
-                                        />
-                                    </div>
-
-                                    <div className="grid md:grid-cols-2 gap-6">
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Habitat
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.habitat || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, habitat: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                                placeholder="e.g. Mixed forests"
-                                            />
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Common Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.commonName || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, commonName: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                                    placeholder="e.g. English Oak"
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Height
+                                        {/* Image Upload Section */}
+                                        <div className="mb-6">
+                                            <label className="block text-sm font-semibold text-gray-700 mb-3">
+                                                Species Image
                                             </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.height || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                                placeholder="e.g. 20-40 meters"
-                                            />
+                                            <div className="flex items-start gap-6">
+                                                <div className="w-40 h-40 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-inner">
+                                                    {editForm.image ? (
+                                                        <img
+                                                            src={editForm.image}
+                                                            alt="Preview"
+                                                            className="w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <Leaf size={40} className="text-green-500" />
+                                                    )}
+                                                </div>
+                                                <div className="flex-1">
+                                                    <label className="cursor-pointer group">
+                                                        <div className="flex items-center gap-3 bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 px-6 py-4 rounded-xl transition-all duration-200 border-2 border-dashed border-gray-300 hover:border-gray-400">
+                                                            <Upload size={20} className="text-gray-600 group-hover:text-gray-700" />
+                                                            <div>
+                                                                <div className="font-medium text-gray-700">Choose Image</div>
+                                                                <div className="text-sm text-gray-500">PNG, JPG up to 10MB</div>
+                                                            </div>
+                                                        </div>
+                                                        <input
+                                                            type="file"
+                                                            accept="image/*"
+                                                            onChange={handleImageUpload}
+                                                            className="hidden"
+                                                        />
+                                                    </label>
+                                                </div>
+                                            </div>
                                         </div>
-                                    </div>
 
-                                    <div className="grid md:grid-cols-2 gap-6">
+                                        {/* Description */}
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Flowers/Fruits
+                                            <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                Description
                                             </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.hasFlowersOrFruits || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, hasFlowersOrFruits: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                                placeholder="e.g. Produces acorns and small flowers"
-                                            />
-                                        </div>
-
-                                        <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">
-                                                Blooming Season
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={editForm.bloomingSeason || ''}
-                                                onChange={(e) => setEditForm({ ...editForm, bloomingSeason: e.target.value })}
-                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                                placeholder="e.g. April-May"
+                                            <textarea
+                                                value={editForm.description || ''}
+                                                onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
+                                                rows={4}
+                                                className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none resize-none"
+                                                placeholder="Describe the species characteristics, origin, and notable features..."
                                             />
                                         </div>
                                     </div>
 
-                                    {/* <div>
-                                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                                            Conservation Status
-                                        </label>
-                                        <select
-                                            value={editForm.conservationStatus || ''}
-                                            onChange={(e) => setEditForm({ ...editForm, conservationStatus: e.target.value })}
-                                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
-                                        >
-                                            <option value="">Select conservation status</option>
-                                            <option value="Least Concern">Least Concern</option>
-                                            <option value="Near Threatened">Near Threatened</option>
-                                            <option value="Vulnerable">Vulnerable</option>
-                                            <option value="Endangered">Endangered</option>
-                                            <option value="Critically Endangered">Critically Endangered</option>
-                                            <option value="Extinct in the Wild">Extinct in the Wild</option>
-                                            <option value="Extinct">Extinct</option>
-                                        </select>
-                                    </div> */}
+                                    {/* Additional Details Card */}
+                                    <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+                                        <h3 className="text-lg font-semibold text-gray-800 mb-6 flex items-center gap-2">
+                                            <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                <Flower size={12} className="text-white" />
+                                            </div>
+                                            Additional Details
+                                        </h3>
 
-                                    <div className="flex flex-wrap items-center gap-6">
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.favourite || false}
-                                                onChange={(e) => setEditForm({ ...editForm, favourite: e.target.checked })}
-                                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
-                                            />
-                                            <label className="ml-2 text-sm text-gray-700">
-                                                Mark as favourite
-                                            </label>
+                                        <div className="grid md:grid-cols-2 gap-6 mb-6">
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Habitat
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.habitat || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, habitat: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                                    placeholder="e.g. Mixed forests"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Height
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.height || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                                    placeholder="e.g. 20-40 meters"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Flowers/Fruits
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.hasFlowersOrFruits || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, hasFlowersOrFruits: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                                    placeholder="e.g. Produces acorns and small flowers"
+                                                />
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                                    Blooming Season
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={editForm.bloomingSeason || ''}
+                                                    onChange={(e) => setEditForm({ ...editForm, bloomingSeason: e.target.value })}
+                                                    className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                                                    placeholder="e.g. April-May"
+                                                />
+                                            </div>
                                         </div>
 
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.isNativeSpecies || false}
-                                                onChange={(e) => setEditForm({ ...editForm, isNativeSpecies: e.target.checked })}
-                                                className="w-4 h-4 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
-                                            />
-                                            <label className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                                                <MapPin size={14} />
-                                                Is native species
+                                        {/* Settings Checkboxes */}
+                                        <div className="grid md:grid-cols-3 gap-6">
+                                            <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.favourite || false}
+                                                    onChange={(e) => setEditForm({ ...editForm, favourite: e.target.checked })}
+                                                    className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <Heart size={16} className="text-red-500" />
+                                                    <span className="font-medium text-gray-700">Mark as favourite</span>
+                                                </div>
                                             </label>
-                                        </div>
 
-                                        <div className="flex items-center">
-                                            <input
-                                                type="checkbox"
-                                                checked={editForm.disabled || false}
-                                                onChange={(e) => setEditForm({ ...editForm, disabled: e.target.checked })}
-                                                className="w-4 h-4 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
-                                            />
-                                            <label className="ml-2 text-sm text-gray-700 flex items-center gap-1">
-                                                <EyeOff size={14} />
-                                                Disable species
+                                            <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.isNativeSpecies || false}
+                                                    onChange={(e) => setEditForm({ ...editForm, isNativeSpecies: e.target.checked })}
+                                                    className="w-5 h-5 text-green-600 bg-gray-100 border-gray-300 rounded focus:ring-green-500"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <MapPin size={16} className="text-green-500" />
+                                                    <span className="font-medium text-gray-700">Is native species</span>
+                                                </div>
+                                            </label>
+
+                                            <label className="flex items-center gap-3 p-4 rounded-xl border border-gray-200 hover:bg-gray-50 cursor-pointer transition-colors">
+                                                <input
+                                                    type="checkbox"
+                                                    checked={editForm.disabled || false}
+                                                    onChange={(e) => setEditForm({ ...editForm, disabled: e.target.checked })}
+                                                    className="w-5 h-5 text-red-600 bg-gray-100 border-gray-300 rounded focus:ring-red-500"
+                                                />
+                                                <div className="flex items-center gap-2">
+                                                    <EyeOff size={16} className="text-red-500" />
+                                                    <span className="font-medium text-gray-700">Disable species</span>
+                                                </div>
                                             </label>
                                         </div>
                                     </div>
                                 </div>
                             ) : (
-                                /* View Mode */
-                                <div className="space-y-6">
-                                    <div className="flex flex-col md:flex-row gap-6">
-                                        <div className="w-full md:w-80 h-64 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                                            {selectedSpecies.image ? (
-                                                <img
-                                                    src={selectedSpecies.image}
-                                                    alt={selectedSpecies.scientificName}
-                                                    className="w-full h-full object-cover"
-                                                />
-                                            ) : (
-                                                <Leaf size={64} className="text-green-500" />
-                                            )}
-                                        </div>
+                                /* Modern View Mode */
+                                <div className="space-y-8">
+                                    {/* Hero Section */}
+                                    <div className="bg-white rounded-2xl shadow-sm border border-gray-200 overflow-hidden">
+                                        <div className="flex flex-col lg:flex-row">
+                                            {/* Image Section */}
+                                            <div className="bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative" style={{ width: '30%' }}>
+                                                {selectedSpecies.image ? (
+                                                    <img
+                                                        src={selectedSpecies.image}
+                                                        alt={selectedSpecies.scientificName}
+                                                        className="w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="text-center">
+                                                        <Leaf size={80} className="text-green-500 mx-auto mb-4" />
+                                                        <p className="text-gray-500 font-medium">No image available</p>
+                                                    </div>
+                                                )}
 
-                                        <div className="flex-1 space-y-4">
-                                            <div>
-                                                <h3 className="text-2xl font-bold text-gray-900 italic">
-                                                    {selectedSpecies.scientificName}
-                                                </h3>
-                                                <p className="text-xl text-gray-600 mt-1">
-                                                    {selectedSpecies.commonName}
-                                                </p>
-
-                                                <div className="flex items-center gap-2 mt-3">
-                                                    {selectedSpecies.isNativeSpecies && (
-                                                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-green-100 text-green-700">
-                                                            <MapPin size={14} />
-                                                            Native Species
-                                                        </span>
-                                                    )}
-                                                    {selectedSpecies.disabled && (
-                                                        <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-red-100 text-red-700">
-                                                            <EyeOff size={14} />
-                                                            Disabled
-                                                        </span>
-                                                    )}
-
-                                                </div>
+                                                {/* Overlay gradient for better text readability */}
+                                                <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
                                             </div>
 
-                                            <div className="flex items-center gap-2 text-sm text-gray-500">
-                                                <Calendar size={16} />
-                                                Last updated: {formatDate(selectedSpecies.updatedAt)}
-                                            </div>
+                                            {/* Info Section */}
+                                            <div className="flex-1 p-8">
+                                                <div className="space-y-6">
+                                                    <div>
+                                                        <h1 className="text-4xl font-bold text-gray-900 italic mb-2">
+                                                            {selectedSpecies.scientificName}
+                                                        </h1>
+                                                        {selectedSpecies.commonName && (
+                                                            <h2 className="text-2xl text-gray-600 font-medium mb-4">
+                                                                {selectedSpecies.commonName}
+                                                            </h2>
+                                                        )}
 
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4">
-                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                    <h4 className="font-semibold text-gray-700 mb-1">Habitat</h4>
-                                                    <p className="text-sm text-gray-600">{selectedSpecies.habitat || 'Not specified'}</p>
-                                                </div>
-                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                    <h4 className="font-semibold text-gray-700 mb-1">Height</h4>
-                                                    <p className="text-sm text-gray-600">{selectedSpecies.height || 'Not specified'}</p>
-                                                </div>
-                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                    <h4 className="font-semibold text-gray-700 mb-1 flex items-center gap-1">
-                                                        <Flower size={16} />
-                                                        Flowers/Fruits
-                                                    </h4>
-                                                    <p className="text-sm text-gray-600">{selectedSpecies.hasFlowersOrFruits || 'Not specified'}</p>
-                                                </div>
-                                                <div className="bg-gray-50 p-4 rounded-lg">
-                                                    <h4 className="font-semibold text-gray-700 mb-1">Blooming Season</h4>
-                                                    <p className="text-sm text-gray-600">{selectedSpecies.bloomingSeason || 'Not specified'}</p>
+                                                        {/* Status Badges */}
+                                                        <div className="flex flex-wrap items-center gap-3 mb-6">
+                                                            {selectedSpecies.isNativeSpecies && (
+                                                                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-green-50 to-emerald-50 text-green-700 border border-green-200">
+                                                                    <MapPin size={16} />
+                                                                    Native Species
+                                                                </span>
+                                                            )}
+                                                            {selectedSpecies.disabled && (
+                                                                <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium bg-gradient-to-r from-red-50 to-rose-50 text-red-700 border border-red-200">
+                                                                    <EyeOff size={16} />
+                                                                    Disabled
+                                                                </span>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Last Updated */}
+                                                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
+                                                            <Calendar size={16} />
+                                                            <span>Last updated: {formatDate(selectedSpecies.updatedAt)}</span>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Quick Stats Grid */}
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 p-4 rounded-xl border border-blue-100">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
+                                                                    <MapPin size={12} className="text-white" />
+                                                                </div>
+                                                                <h4 className="font-semibold text-blue-900">Habitat</h4>
+                                                            </div>
+                                                            <p className="text-sm text-blue-800">{selectedSpecies.habitat || 'Not specified'}</p>
+                                                        </div>
+
+                                                        <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <div className="w-6 h-6 rounded-lg bg-purple-500 flex items-center justify-center">
+                                                                    <div className="w-2 h-4 bg-white rounded-sm"></div>
+                                                                </div>
+                                                                <h4 className="font-semibold text-purple-900">Height</h4>
+                                                            </div>
+                                                            <p className="text-sm text-purple-800">{selectedSpecies.height || 'Not specified'}</p>
+                                                        </div>
+
+                                                        <div className="bg-gradient-to-br from-green-50 to-emerald-50 p-4 rounded-xl border border-green-100">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <div className="w-6 h-6 rounded-lg bg-green-500 flex items-center justify-center">
+                                                                    <Flower size={12} className="text-white" />
+                                                                </div>
+                                                                <h4 className="font-semibold text-green-900">Flowers/Fruits</h4>
+                                                            </div>
+                                                            <p className="text-sm text-green-800">{selectedSpecies.hasFlowersOrFruits || 'Not specified'}</p>
+                                                        </div>
+
+                                                        <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-4 rounded-xl border border-orange-100">
+                                                            <div className="flex items-center gap-2 mb-2">
+                                                                <div className="w-6 h-6 rounded-lg bg-orange-500 flex items-center justify-center">
+                                                                    <Calendar size={12} className="text-white" />
+                                                                </div>
+                                                                <h4 className="font-semibold text-orange-900">Blooming Season</h4>
+                                                            </div>
+                                                            <p className="text-sm text-orange-800">{selectedSpecies.bloomingSeason || 'Not specified'}</p>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
 
+                                    {/* Description Section */}
                                     {selectedSpecies.description && (
-                                        <div>
-                                            <h4 className="font-semibold text-gray-700 mb-3">Description</h4>
-                                            <p className="text-gray-600 leading-relaxed">
-                                                {selectedSpecies.description}
-                                            </p>
+                                        <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
+                                            <div className="flex items-center gap-3 mb-6">
+                                                {/* <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                                    <div className="w-4 h-3 border-2 border-white rounded-sm"></div>
+                                                </div> */}
+                                                <h3 className="text-xl font-bold text-gray-800">Description</h3>
+                                            </div>
+                                            <div className="prose prose-gray max-w-none">
+                                                <p className="text-gray-600 leading-relaxed text-lg">
+                                                    {selectedSpecies.description}
+                                                </p>
+                                            </div>
                                         </div>
                                     )}
                                 </div>
                             )}
                         </div>
                     ) : (
-                        <div className="flex items-center justify-center h-full">
+                        /* Empty State */
+                        <div className="flex items-center justify-center h-full" style={{marginTop:'20vh'}}>
                             <div className="text-center">
-                                <Leaf size={64} className="mx-auto text-gray-400 mb-4" />
-                                <p className="text-gray-500">Select a species to view details</p>
+                                {loading ? (
+                                    <div className="w-full h-full flex justify-center items-center">
+                                        <div className="relative">
+                                            <div className="w-16 h-16 rounded-full border-4 border-green-200 border-t-green-600 animate-spin"></div>
+                                            <Leaf size={24} className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-green-600" />
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div className="max-w-md mx-auto">
+                                        <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-6">
+                                            <Leaf size={40} className="text-gray-400" />
+                                        </div>
+                                        <h3 className="text-xl font-semibold text-gray-700 mb-2">No Species Selected</h3>
+                                        <p className="text-gray-500">Select a species from the list to view and manage its details</p>
+                                    </div>
+                                )}
                             </div>
                         </div>
                     )}
                 </div>
             </div>
-
-            {/* Request New Species Modal */}
+             {/* Request New Species Modal */}
             {showRequestModal && (
-                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="h-full w-full inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
                     <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Request New Species</h3>
 
@@ -1014,7 +1137,7 @@ const SpeciesManagementDashboard = () => {
                             </button>
                             <button
                                 onClick={handleSubmitRequest}
-                                className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                                className="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition-colors"
                             >
                                 Submit Request
                             </button>

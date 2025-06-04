@@ -181,8 +181,8 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
                   disabled={isSubmitting}
                   className={`px-4 py-2 rounded-md text-sm font-medium text-white 
                     ${isSubmitting
-                      ? 'bg-green-400 cursor-not-allowed'
-                      : 'bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+                      ? 'bg-green-700 cursor-not-allowed'
+                      : 'bg-green-700 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
                     } flex items-center`}
                 >
                   {isSubmitting ? 'Sending...' : 'Send invitation'}

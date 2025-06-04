@@ -10,9 +10,9 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     const pathname = usePathname();
 
   const items = [
-    { id: 'plantable', label: 'Plantable' },
+    // { id: 'plantable', label: 'Plantable' },
     { id: '', label: 'Overview' },
-    { id: 'board', label: 'Approvals' },
+    // { id: 'board', label: 'Approvals' },
     { id: 'sites', label: 'Sites' },
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
@@ -38,7 +38,6 @@ function getSectionFromUrl(pathname) {
     '/dashboard/intervention': 'intervention',
     '/dashboard/settings': 'settings'
   };
-
   return urlToStateMap[pathname] || '';
 }
 
