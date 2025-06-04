@@ -8,6 +8,7 @@ export const postUrlApi = {
     expireInvite: `${baseUrl}/api/projects`,
     createProjectSpecies: `${baseUrl}/api/project-species`,
     createPersonalProject: `${baseUrl}/api/projects/personal`,
+    startMigration: `${baseUrl}/api/migration/start`,
 }
 
 export const getUrlApi = {
@@ -19,6 +20,7 @@ export const getUrlApi = {
     teamMembers: `${baseUrl}/api/projects`,
     searchSpeciesSci: `${baseUrl}/api/scientific-species/search`,
     projectSpecies: `${baseUrl}/api/project-species`,
+    migrationStatus: `${baseUrl}/api/migration/status`,
 }
 
 export const patchUrlApi = {

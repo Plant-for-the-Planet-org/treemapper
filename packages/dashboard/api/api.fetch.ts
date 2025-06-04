@@ -32,6 +32,20 @@ export const checkForMigration = async (token: string) => {
   return result
 }
 
+export const checkMigrationStatusBackend = async (token: string) => {
+  const uri = `${getUrlApi.migrationStatus}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const startMigrationBackend = async (token: string, params: any) => {
+  const uri = `${postUrlApi.startMigration}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+}
+
+
+
 //Project
 export const createNewProject = async (token: string, params: any) => {
   const uri = `${postUrlApi.createProject}`;
@@ -39,7 +53,7 @@ export const createNewProject = async (token: string, params: any) => {
   return result;
 };
 
-export const createNewPersonalProject = async (token: string, params: any, ) => {
+export const createNewPersonalProject = async (token: string, params: any,) => {
   const uri = `${postUrlApi.createPersonalProject}`;
   const result = await fetchPostCall(uri, params, token);
   return result;
@@ -164,7 +178,7 @@ export const updateUserRole = async (token: string, prjId: string, memberId: str
 };
 
 
-export const updateProjectSpecies = async (token: string, params: any, prjId:string, species:string) => {
+export const updateProjectSpecies = async (token: string, params: any, prjId: string, species: string) => {
   const uri = `${putUrlApi.updatePrjSpecies}/${prjId}/species/${species}`;
   const result = await fetchPutCall(uri, params, token);
   return result;
