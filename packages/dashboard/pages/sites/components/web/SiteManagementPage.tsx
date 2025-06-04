@@ -268,7 +268,7 @@ const SiteManagementPage = () => {
                 </div>
               </div>
 
-              <div className="max-h-[calc(100vh-300px)] overflow-y-auto">
+              <div className="h-full overflow-y-auto">
                 <div className="p-4 space-y-3">
                   {filteredSites.map((site) => {
                     const statusConfig = getStatusConfig(site.status);

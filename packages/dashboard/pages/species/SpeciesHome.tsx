@@ -1146,7 +1146,7 @@ const SpeciesManagementDashboard = () => {
                 </div>
             )}
             {showConfirmModal && (
-                <div className="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4" style={{ zIndex: 20 }}>
+                <div className="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4" style={{ zIndex: 100 }}>
                     <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
                         <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
                             <AlertCircle className="w-8 h-8 text-red-600" />
