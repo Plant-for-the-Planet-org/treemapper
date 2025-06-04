@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Plus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Folder, Crown, Shield, Users, Eye, User } from 'lucide-react';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
@@ -41,7 +41,6 @@ const ProjectDropdown = ({
     return `${formattedName}'s personal project`;
   }
 
-
   const fetchUserProjects = async () => {
     const response = await getMyProjects(token)
     if (response && response.statusCode == 200) {
@@ -74,8 +73,6 @@ const ProjectDropdown = ({
     updatePrjError(response?.message || 'Failed to fetch projects');
   }
 
-
-
   const rolePriority = {
     'owner': 1,
     'admin': 2,
@@ -84,8 +81,25 @@ const ProjectDropdown = ({
     'member': 5
   };
 
+  const getRoleIcon = (role: string) => {
+    switch (role) {
+      case 'owner': return <Crown className="w-3 h-3 text-yellow-600" />;
+      case 'admin': return <Shield className="w-3 h-3 text-blue-600" />;
+      case 'contributor': return <Users className="w-3 h-3 text-green-600" />;
+      case 'viewer': return <Eye className="w-3 h-3 text-gray-600" />;
+      default: return <User className="w-3 h-3 text-gray-600" />;
+    }
+  };
 
-
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case 'owner': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
+      case 'admin': return 'bg-blue-50 text-blue-700 border-blue-200';
+      case 'contributor': return 'bg-green-50 text-green-700 border-green-200';
+      case 'viewer': return 'bg-gray-50 text-gray-700 border-gray-200';
+      default: return 'bg-gray-50 text-gray-700 border-gray-200';
+    }
+  };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
@@ -97,79 +111,147 @@ const ProjectDropdown = ({
   };
 
   return (
-    <div className="flex flex-col w-full shadow-sm border-b border-gray-100">
+    <div className="flex flex-col w-full bg-white shadow-sm border-b border-gray-200">
       {/* Top row with project dropdown and notification/profile */}
-      <div className="flex items-center justify-between w-full px-4 py-2">
-        {/* Project Dropdown */}
-        <div className="relative w-64 max-w-[60%] flex-shrink-0" style={{ backgroundColor: "#fff" }}>
+      <div className="flex items-center w-full px-3 py-2">
+        {/* Enhanced Project Dropdown */}
+        <div className="relative min-w-1 flex-1 max-w-sm" style={{ marginRight: 20 }} >
           {/* Dropdown Button */}
           <button
             onClick={toggleDropdown}
-            style={{ backgroundColor: "#fff" }}
-            className="flex items-center justify-between w-full bg-white border border-gray-300 rounded-md p-2 hover:bg-gray-50 transition-colors"
+            className="flex items-center justify-between w-full bg-white border border-gray-300 hover:border-gray-400 rounded-lg px-3 py-1 hover:bg-gray-50 transition-all duration-200 shadow-sm group"
           >
-            <span className="font-medium truncate">
-              {selectedProject ?
-                selectedProject.projectName || 'Projects' :
-                'Projects'}
-            </span>
-            {isOpen ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            <div className="flex items-center  min-w-0 flex-1">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <span className="font-semibold text-gray-900 truncate text-sm">
+                  {selectedProject?.projectName || 'Select Project'}
+                </span>
+                {selectedProject && (
+                  <div className="flex items-center gap-1">
+                    {getRoleIcon(selectedProject.userRole)}
+                    <span className="text-xs text-gray-500 capitalize">
+                      {selectedProject.userRole}
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+            <div className="flex-shrink-0 ml-2">
+              {isOpen ?
+                <ChevronUp className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" /> :
+                <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              }
+            </div>
           </button>
 
-          {/* Dropdown Content */}
+          {/* Enhanced Dropdown Content */}
           {isOpen && (
-            <div className="absolute mt-1 w-full z-10 bg-white border border-gray-100 rounded-md shadow-lg">
+            <div className="absolute mt-2 w-full z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
               {/* Create New Project Button */}
-              <div className="p-2 border-b border-gray-200">
+              <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <button
                   onClick={() => {
                     createNewProject();
                     setIsOpen(false);
                   }}
-                  style={{ backgroundColor: "#E1EDE8", color: "#262626" }}
-                  className="w-full flex items-center justify-between p-2 rounded-md font-medium">
-                  <span>Create New Project</span>
-                  <Plus size={20} />
+                  className="w-full flex items-center justify-between p-3 rounded-lg font-medium bg-green-700 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg"
+                >
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                      <Plus className="w-4 h-4" />
+                    </div>
+                    <span>Create New Project</span>
+                  </div>
                 </button>
               </div>
+
               {/* Project List */}
-              <div className="max-h-60 overflow-y-auto">
+              <div className="max-h-72 overflow-y-auto">
                 {projects.length > 0 ? (
-                  projects.map((project) => (
-                    <button
-                      key={project.uid}
-                      onClick={() => handleProjectSelect(project)}
-                      className={`w-full text-left p-3 hover:bg-gray-100 transition-colors border-b border-gray-100 last:border-b-0 ${project.uid === selectedProject?.uid ? 'bg-gray-100 font-medium' : ''
-                        }`}
-                    >
-                      {project.projectName}
-                    </button>
-                  ))
+                  <div className="p-2">
+                    {projects.map((project, index) => (
+                      <button
+                        key={project.uid}
+                        onClick={() => handleProjectSelect(project)}
+                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group ${project.uid === selectedProject?.uid
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
+                            : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                          }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3 min-w-0 flex-1">
+                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
+                              }`}>
+                              <Folder className="w-4 h-4 text-white" />
+                            </div>
+                            <div className="flex flex-col min-w-0 flex-1">
+                              <span className={`font-medium truncate text-sm ${project.uid === selectedProject?.uid ? 'text-blue-900' : 'text-gray-900'
+                                }`}>
+                                {project.projectName}
+                              </span>
+                              <div className="flex items-center gap-1 mt-1">
+                                {getRoleIcon(project.userRole)}
+                                <span className="text-xs text-gray-500 capitalize">
+                                  {project.userRole}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Role Badge */}
+
+                        </div>
+                      </button>
+                    ))}
+                  </div>
                 ) : (
-                  <div className="p-3 text-gray-500 text-center">
-                    No projects to display
+                  <div className="p-6 text-center">
+                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <Folder className="w-6 h-6 text-gray-400" />
+                    </div>
+                    <p className="text-gray-500 font-medium">No projects available</p>
+                    <p className="text-gray-400 text-sm mt-1">Create your first project to get started</p>
                   </div>
                 )}
               </div>
             </div>
           )}
         </div>
-        {isLargeScreen && <div className="w-full overflow-x-auto px-4 py-2">
-          <LabelTabs updateRoute={updateRoute} />
-        </div>}
-        {/* Right-side components */}
-        <div className="flex items-center space-x-4 sm:space-x-6 flex-shrink-0">
-          <NotificationBell
-          />
-          <ProfileAvatar imageUrl='https://avatar.iran.liara.run/public' openProfileSetting={openProfileSetting} />
+
+        {/* Enhanced Tabs for Large Screen */}
+        {isLargeScreen && (
+          <div>
+            <div>
+              <LabelTabs updateRoute={updateRoute} />
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Right-side components */}
+        <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
+          <div className="flex items-center gap-4 flex-shrink-0">
+            <div className="relative">
+              <NotificationBell />
+            </div>
+            <div className="h-8 w-px bg-gray-300"></div>
+            <ProfileAvatar
+              imageUrl='https://avatar.iran.liara.run/public'
+              openProfileSetting={openProfileSetting}
+            />
+          </div>
         </div>
       </div>
 
-      {!isLargeScreen && <div className="w-full overflow-x-auto px-4 py-2">
-        <LabelTabs updateRoute={function (newRoute: string): void {
-          throw new Error('Function not implemented.');
-        }} />
-      </div>}
+      {/* Enhanced Mobile Tabs */}
+      {!isLargeScreen && (
+        <div className="px-4 pb-3">
+          <div className="bg-gray-50 rounded-xl p-1 border border-gray-200">
+            <LabelTabs updateRoute={updateRoute} />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
