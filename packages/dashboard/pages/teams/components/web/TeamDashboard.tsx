@@ -324,7 +324,7 @@ const TeamsDashboard = () => {
             </div>
 
             {/* Table section */}
-            {loading ? <Spinner /> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            {loading ? <div style={{marginTop:'30vh'}}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>

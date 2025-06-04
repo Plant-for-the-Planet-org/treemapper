@@ -121,7 +121,7 @@ const ProjectDropdown = ({
             onClick={toggleDropdown}
             className="flex items-center justify-between w-full bg-white border border-gray-300 hover:border-gray-400 rounded-lg px-3 py-1 hover:bg-gray-50 transition-all duration-200 shadow-sm group"
           >
-            <div className="flex items-center  min-w-0 flex-1">
+            {selectedProject && <div className="flex items-center  min-w-0 flex-1">
               <div className="flex flex-col items-start min-w-0 flex-1">
                 <span className="font-semibold text-gray-900 truncate text-sm">
                   {selectedProject?.projectName || 'Select Project'}
@@ -135,7 +135,14 @@ const ProjectDropdown = ({
                   </div>
                 )}
               </div>
-            </div>
+            </div>}
+             {!selectedProject && <div className="flex items-center  min-w-0 flex-1 py-2">
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <span className="font-semibold text-gray-900 truncate text-sm">
+                  Select Project
+                </span>
+              </div>
+            </div>}
             <div className="flex-shrink-0 ml-2">
               {isOpen ?
                 <ChevronUp className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" /> :
