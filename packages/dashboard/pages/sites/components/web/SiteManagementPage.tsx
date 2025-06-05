@@ -293,9 +293,8 @@ const SiteManagementPage = () => {
                   <Spinner h={'1vh'} />
                 </div>
               </div>
-
             </div>
-            : <div className="xl:col-span-2 overflow-y-auto max-h-full">
+            : <div className="xl:col-span-2 overflow-y-auto">
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                   <div className="flex items-center justify-between">
@@ -397,7 +396,7 @@ const SiteManagementPage = () => {
             </div>}
 
           {/* Enhanced Site Details */}
-          <div className="xl:col-span-3 sticky top-0">
+          <div className="xl:col-span-3 overflow-y-auto top-0 h-full">
             {selectedSite ? (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Modern Site Header */}
@@ -587,8 +586,10 @@ const SiteManagementPage = () => {
                   <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center mx-auto mb-6">
                     <MapPin className="w-12 h-12 text-gray-400" />
                   </div>
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">Select a Site</h3>
-                  <p className="text-gray-600 leading-relaxed">Choose a site from the list to view its detailed information, location, and management options.</p>
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">{loading ? "Loading sites..." : "Select a Site"}</h3>
+                  {loading ?
+                    <p className="text-gray-600 leading-relaxed"></p>
+                    : <p className="text-gray-600 leading-relaxed">Choose a site from the list to view its detailed information, location, and management options.</p>}
                 </div>
               </div>
             )}

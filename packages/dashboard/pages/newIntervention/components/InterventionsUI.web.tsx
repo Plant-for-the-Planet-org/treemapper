@@ -16,22 +16,28 @@ import {
   ArrowLeft,
   Sparkles,
   Shield,
-  Target
+  Target,
+  Ban,
+  CloudRain,
+  Dog,
+  Eye,
+  Flame,
+  Grid3X3,
+  MoreHorizontal,
+  Mountain,
+  MousePointer,
+  Scissors,
+  Trash2,
+  Unlock,
+  Wrench,
+  Zap
 } from 'lucide-react';
+import useProjectStore from '../../../store/useProjectStore';
+import { getUserProjectSites } from '../../../api/api.fetch';
+import { useToken } from '../../../context/TokenContext';
+import { toast } from 'react-toastify'
 
-// Mock data and API functions
-const mockProjects = [
-  { id: 1, name: "Amazon Reforestation Project" },
-  { id: 2, name: "Congo Basin Conservation" },
-  { id: 3, name: "Pacific Northwest Recovery" }
-];
 
-const mockSites = [
-  { id: 1, name: "Site Alpha", projectId: 1 },
-  { id: 2, name: "Site Beta", projectId: 1 },
-  { id: 3, name: "Site Gamma", projectId: 2 },
-  { id: 4, name: "Site Delta", projectId: 3 }
-];
 
 const mockSpecies = [
   { uid: "sp1", name: "Quercus alba (White Oak)" },
@@ -62,6 +68,9 @@ const interventionConfigurations = {
     requiresSpecies: true,
     allowsTreeRegistration: false,
     requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    allowEntireSite: true,
+    geometryType: ['point', 'polygon'],
     description: 'Direct seeding intervention allows multiple species but no tree registration',
     icon: <Sparkles className="w-5 h-5" />,
     color: 'emerald'
@@ -72,20 +81,25 @@ const interventionConfigurations = {
     requiresSpecies: true,
     allowsTreeRegistration: true,
     requiresTreeRegistration: true,
+    allowsSampleTrees: true,
+    allowEntireSite: true,
+    geometryType: ['point', 'polygon'],
     description: 'Enrichment planting allows multiple species and requires tree registration',
     icon: <TreePine className="w-5 h-5" />,
     color: 'green'
   },
-  'single-tree-registration': {
+  'removal-invasive-species': {
     allowsSpecies: true,
-    allowsMultipleSpecies: false,
-    requiresSpecies: true,
-    allowsTreeRegistration: true,
-    requiresTreeRegistration: true,
-    geoJSONType: 'Point',
-    description: 'Single tree registration allows single species and requires tree registration',
-    icon: <Target className="w-5 h-5" />,
-    color: 'blue'
+    allowsMultipleSpecies: true,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    allowEntireSite: true,
+    geometryType: ['point', 'polygon'],
+    description: 'Removal of invasive species can track multiple species being removed',
+    icon: <Trash2 className="w-5 h-5" />,
+    color: 'red'
   },
   'multi-tree-registration': {
     allowsSpecies: true,
@@ -93,10 +107,37 @@ const interventionConfigurations = {
     requiresSpecies: true,
     allowsTreeRegistration: true,
     requiresTreeRegistration: true,
+    allowsSampleTrees: true,
+    allowEntireSite: true,
+    geometryType: ['point', 'polygon'],
     geoJSONType: 'Polygon',
     description: 'Multi-tree registration allows multiple species and requires tree registration',
     icon: <TreePine className="w-5 h-5" />,
     color: 'teal'
+  },
+  'sample-tree-registration': {
+    allowsSpecies: true,
+    allowsMultipleSpecies: false,
+    requiresSpecies: true,
+    allowsTreeRegistration: true,
+    requiresTreeRegistration: true,
+    allowsSampleTrees: true,
+    geoJSONType: 'Point',
+    description: 'Sample tree registration allows single species and requires tree registration',
+    icon: <MousePointer className="w-5 h-5" />,
+    color: 'indigo'
+  },
+  'single-tree-registration': {
+    allowsSpecies: true,
+    allowsMultipleSpecies: false,
+    requiresSpecies: true,
+    allowsTreeRegistration: true,
+    requiresTreeRegistration: true,
+    allowsSampleTrees: false,
+    geoJSONType: 'Point',
+    description: 'Single tree registration allows single species and requires tree registration',
+    icon: <Target className="w-5 h-5" />,
+    color: 'blue'
   },
   'fencing': {
     allowsSpecies: false,
@@ -104,9 +145,76 @@ const interventionConfigurations = {
     requiresSpecies: false,
     allowsTreeRegistration: false,
     requiresTreeRegistration: false,
+    allowsSampleTrees: false,
     description: 'Fencing intervention for site protection',
     icon: <Shield className="w-5 h-5" />,
     color: 'amber'
+  },
+  'fire-patrol': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Fire patrol and prevention activities',
+    icon: <Eye className="w-5 h-5" />,
+    color: 'orange'
+  },
+  'fire-suppression': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Fire suppression activities',
+    icon: <Flame className="w-5 h-5" />,
+    color: 'red'
+  },
+  'firebreaks': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Creating firebreaks for fire prevention',
+    icon: <Zap className="w-5 h-5" />,
+    color: 'yellow'
+  },
+  'generic-tree-registration': {
+    allowsSpecies: true,
+    allowsMultipleSpecies: true,
+    requiresSpecies: false,
+    allowsTreeRegistration: true,
+    requiresTreeRegistration: true,
+    allowsSampleTrees: false,
+    description: 'Generic tree registration for existing trees',
+    icon: <FileText className="w-5 h-5" />,
+    color: 'gray'
+  },
+  'grass-suppression': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Grass suppression activities',
+    icon: <Scissors className="w-5 h-5" />,
+    color: 'lime'
+  },
+  'liberating-regenerant': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Liberating natural regenerants',
+    icon: <Unlock className="w-5 h-5" />,
+    color: 'cyan'
   },
   'maintenance': {
     allowsSpecies: false,
@@ -114,9 +222,87 @@ const interventionConfigurations = {
     requiresSpecies: false,
     allowsTreeRegistration: false,
     requiresTreeRegistration: false,
+    allowsSampleTrees: false,
     description: 'General maintenance activities',
-    icon: <Plus className="w-5 h-5" />,
+    icon: <Wrench className="w-5 h-5" />,
     color: 'purple'
+  },
+  'marking-regenerant': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Marking natural regenerants',
+    icon: <MapPin className="w-5 h-5" />,
+    color: 'pink'
+  },
+  'other-intervention': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Other types of interventions',
+    icon: <MoreHorizontal className="w-5 h-5" />,
+    color: 'slate'
+  },
+  'plot-plant-registration': {
+    allowsSpecies: true,
+    allowsMultipleSpecies: true,
+    requiresSpecies: false,
+    allowsTreeRegistration: true,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Plot-based plant registration',
+    icon: <Grid3X3 className="w-5 h-5" />,
+    color: 'violet'
+  },
+  'soil-improvement': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Soil improvement activities',
+    icon: <Mountain className="w-5 h-5" />,
+    color: 'stone'
+  },
+  'stop-tree-harvesting': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Stopping tree harvesting activities',
+    icon: <Ban className="w-5 h-5" />,
+    color: 'red'
+  },
+  'assisting-seed-rain': {
+    allowsSpecies: true,
+    allowsMultipleSpecies: true,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Assisting natural seed rain processes',
+    icon: <CloudRain className="w-5 h-5" />,
+    color: 'sky'
+  },
+  'control-livestock': {
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
+    requiresSpecies: false,
+    allowsTreeRegistration: false,
+    requiresTreeRegistration: false,
+    allowsSampleTrees: false,
+    description: 'Livestock control measures',
+    icon: <Dog className="w-5 h-5" />,
+    color: 'brown'
   }
 };
 
@@ -162,12 +348,16 @@ const InterventionCreator = () => {
   const [unknownSpeciesName, setUnknownSpeciesName] = useState('');
   const [errors, setErrors] = useState({});
   const [isDragOver, setIsDragOver] = useState(false);
+  const { selectedProject, projects } = useProjectStore(state => state)
+  const [availableSites, setAvailablesites] = useState([])
+  const { accessToken } = useToken()
+
+  const [fetchingSites, setFetchingSites] = useState(false)
 
   // Get current intervention config
   const currentConfig = interventionConfigurations[formData.interventionType];
 
   // Get available sites for selected project
-  const availableSites = mockSites.filter(site => site.projectId === formData.projectId);
 
   // Debounced species search
   const debounceSearch = useCallback(
@@ -192,6 +382,30 @@ const InterventionCreator = () => {
   useEffect(() => {
     debounceSearch(speciesSearch);
   }, [speciesSearch, debounceSearch]);
+
+  useEffect(() => {
+    if (selectedProject) {
+      setFormData(prev => ({
+        ...prev,
+        projectId: selectedProject.uid,
+        siteId: null
+      }))
+      fetchProjectSites()
+    }
+  }, [])
+
+  const fetchProjectSites = async () => {
+    setFetchingSites(true)
+    const response = await getUserProjectSites(accessToken || '', selectedProject?.uid)
+    if (!response || response === null) {
+      setFetchingSites(false)
+      toast.error("Error fetching project sites")
+      return
+    }
+    const mappedResponse = response.data.map(el => ({ name: el.name, id: el.uid, projectId: selectedProject?.uid }))
+    setAvailablesites(mappedResponse)
+    setFetchingSites(false)
+  }
 
   // Validation functions
   const validateForm = () => {
@@ -363,11 +577,15 @@ const InterventionCreator = () => {
     // Here you would make the API call to create the intervention
   };
 
+  if (!selectedProject) {
+    return null
+  }
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50">
+    <div className="w-full h-full bg-gradient-to-br from-slate-50 via-green-50 to-emerald-50">
       {/* Header with back button */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 sticky top-0 z-40">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+        <div className="w-full mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <button
               type="button"
@@ -379,14 +597,16 @@ const InterventionCreator = () => {
             </button>
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
+              <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg mb-3">
                 <TreePine className="w-6 h-6 text-white" />
               </div>
               <div>
-                <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
+                <h1
+                  style={{ margin: 0 }}
+                  className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
                   Create New Intervention
                 </h1>
-                <p className="text-slate-600">Add a new forest management intervention to your project</p>
+                <p className="text-slate-600">Add a new intervention to your project</p>
               </div>
             </div>
           </div>
@@ -395,7 +615,7 @@ const InterventionCreator = () => {
             <div className="mt-4 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200/60">
               <Info className="w-4 h-4" />
               <span>
-                Adding intervention to: <strong>{mockProjects.find(p => p.id === formData.projectId)?.name}</strong>
+                Adding intervention to: <strong>{selectedProject?.projectName}</strong>
               </span>
             </div>
           )}
@@ -403,7 +623,7 @@ const InterventionCreator = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
+      <div className="w-full mx-auto px-6 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
           {/* Project and Site Selection */}
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
@@ -413,33 +633,22 @@ const InterventionCreator = () => {
               </div>
               Project Selection
             </h2>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 ">
               <div>
                 <label className="block text-sm font-semibold text-slate-700 mb-3">
                   Project <span className="text-red-500">*</span>
                 </label>
                 <select
-                  value={formData.projectId || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    projectId: parseInt(e.target.value) || null,
-                    siteId: null
-                  }))}
-                  className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 bg-white/50 ${errors.projectId ? 'border-red-300' : 'border-slate-200'
+                  value={selectedProject.uid}
+                  disabled
+                  className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 bg-slate-100/50 ${errors.projectId ? 'border-red-300' : 'border-slate-200'
                     }`}
                 >
-                  <option value="">Select a project</option>
-                  {mockProjects.map(project => (
-                    <option key={project.id} value={project.id}>{project.name}</option>
+                  {projects.map(project => (
+                    <option key={project.uid} value={project.uid}>{project.projectName}</option>
                   ))}
                 </select>
-                {errors.projectId && (
-                  <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-4 h-4" />
-                    {errors.projectId}
-                  </p>
-                )}
               </div>
 
               <div>
@@ -448,11 +657,13 @@ const InterventionCreator = () => {
                 </label>
                 <select
                   value={formData.siteId || ''}
-                  onChange={(e) => setFormData(prev => ({
-                    ...prev,
-                    siteId: parseInt(e.target.value) || null
-                  }))}
-                  disabled={!formData.projectId}
+                  onChange={(e) => {
+                    setFormData(prev => ({
+                      ...prev,
+                      siteId: e.target.value || null
+                    }))
+                  }}
+                  disabled={availableSites.length === 0}
                   className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 ${!formData.projectId ? 'bg-slate-100/50' : 'bg-white/50'
                     } ${errors.siteId ? 'border-red-300' : 'border-slate-200'}`}
                 >
@@ -507,11 +718,10 @@ const InterventionCreator = () => {
               {Object.entries(interventionConfigurations).map(([key, config]) => (
                 <label
                   key={key}
-                  className={`relative cursor-pointer group transition-all duration-200 ${
-                    formData.interventionType === key 
-                      ? 'scale-105' 
-                      : 'hover:scale-102'
-                  }`}
+                  className={`relative cursor-pointer group transition-all duration-200 ${formData.interventionType === key
+                    ? 'scale-105'
+                    : 'hover:scale-102'
+                    }`}
                 >
                   <input
                     type="radio"
@@ -528,17 +738,15 @@ const InterventionCreator = () => {
                     }))}
                     className="sr-only"
                   />
-                  <div className={`p-4 rounded-xl border-2 transition-all duration-200 ${
-                    formData.interventionType === key
-                      ? `border-${config.color}-500 bg-${config.color}-50 shadow-lg shadow-${config.color}-500/20`
-                      : 'border-slate-200 bg-white/50 hover:border-slate-300 hover:shadow-md'
-                  }`}>
+                  <div className={`p-4 rounded-xl border-2 transition-all duration-200 ${formData.interventionType === key
+                    ? `border-${config.color}-500 bg-${config.color}-50 shadow-lg shadow-${config.color}-500/20`
+                    : 'border-slate-200 bg-white/50 hover:border-slate-300 hover:shadow-md'
+                    }`}>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className={`p-2 rounded-lg ${
-                        formData.interventionType === key
-                          ? `bg-${config.color}-100 text-${config.color}-600`
-                          : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <div className={`p-2 rounded-lg ${formData.interventionType === key
+                        ? `bg-${config.color}-100 text-${config.color}-600`
+                        : 'bg-slate-100 text-slate-600'
+                        }`}>
                         {config.icon}
                       </div>
                       <span className="font-medium text-slate-900">
@@ -636,41 +844,7 @@ const InterventionCreator = () => {
               </div>
 
               {/* Unknown Species Modal */}
-              {showUnknownSpecies && (
-                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50">
-                  <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl border border-slate-200">
-                    <h3 className="text-xl font-semibold mb-6 text-slate-900">Add Unknown Species</h3>
-                    <input
-                      type="text"
-                      value={unknownSpeciesName}
-                      onChange={(e) => setUnknownSpeciesName(e.target.value)}
-                      placeholder="Enter species name"
-                      className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl mb-6 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200"
-                      maxLength={VALIDATION_CONFIG.customSpeciesName.maxLength}
-                    />
-                    <div className="flex gap-3">
-                      <button
-                        type="button"
-                        onClick={handleAddUnknownSpecies}
-                        disabled={!unknownSpeciesName.trim()}
-                        className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 disabled:from-slate-300 disabled:to-slate-400 transition-all duration-200 font-medium"
-                      >
-                        Add Species
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setShowUnknownSpecies(false);
-                          setUnknownSpeciesName('');
-                        }}
-                        className="flex-1 px-4 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-200 font-medium"
-                      >
-                        Cancel
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
+
 
               {/* Selected Species */}
               {(formData.species.length > 0 || formData.unknownSpecies.length > 0) && (
@@ -752,11 +926,10 @@ const InterventionCreator = () => {
 
                 {/* File Upload */}
                 <div
-                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${
-                    isDragOver 
-                      ? 'border-emerald-400 bg-emerald-50 scale-102' 
-                      : 'border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100'
-                  } ${errors.geoJSONFile ? 'border-red-300' : ''}`}
+                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${isDragOver
+                    ? 'border-emerald-400 bg-emerald-50 scale-102'
+                    : 'border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100'
+                    } ${errors.geoJSONFile ? 'border-red-300' : ''}`}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragOver(true);
@@ -851,9 +1024,8 @@ const InterventionCreator = () => {
                       }))}
                       placeholder="Enter tree identifier"
                       maxLength={VALIDATION_CONFIG.treeTag.maxLength}
-                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200 bg-white/60 ${
-                        errors.treeTag ? 'border-red-300' : 'border-amber-200'
-                      }`}
+                      className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200 bg-white/60 ${errors.treeTag ? 'border-red-300' : 'border-amber-200'
+                        }`}
                     />
                     {errors.treeTag && (
                       <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
@@ -969,9 +1141,8 @@ const InterventionCreator = () => {
               placeholder="Describe the intervention activities, goals, and any relevant details..."
               maxLength={VALIDATION_CONFIG.description.maxLength}
               rows={5}
-              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 resize-none bg-white/50 ${
-                errors.description ? 'border-red-300' : 'border-slate-200'
-              }`}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 resize-none bg-white/50 ${errors.description ? 'border-red-300' : 'border-slate-200'
+                }`}
             />
             <div className="flex justify-between mt-3">
               <div>
@@ -1081,6 +1252,41 @@ const InterventionCreator = () => {
           </div>
         </form>
       </div>
+      {showUnknownSpecies && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50" style={{ zIndex: 1000 }}>
+          <div className="bg-white rounded-2xl p-8 w-96 shadow-2xl border border-slate-200">
+            <h3 className="text-xl font-semibold mb-6 text-slate-900">Add Unknown Species</h3>
+            <input
+              type="text"
+              value={unknownSpeciesName}
+              onChange={(e) => setUnknownSpeciesName(e.target.value)}
+              placeholder="Enter species name"
+              className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl mb-6 focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200"
+              maxLength={VALIDATION_CONFIG.customSpeciesName.maxLength}
+            />
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={handleAddUnknownSpecies}
+                disabled={!unknownSpeciesName.trim()}
+                className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 disabled:from-slate-300 disabled:to-slate-400 transition-all duration-200 font-medium"
+              >
+                Add Species
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowUnknownSpecies(false);
+                  setUnknownSpeciesName('');
+                }}
+                className="flex-1 px-4 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-200 font-medium"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

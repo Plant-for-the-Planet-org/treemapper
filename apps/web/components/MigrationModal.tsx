@@ -72,9 +72,6 @@ const MigrationModal = () => {
             setMigrationState('starting');
             setError(null);
             const responseCheck = await checkMigrationStatusBackend(accessToken || '')
-            if (responseCheck && !responseCheck.data) {
-                throw ''
-            }
             if (responseCheck.data && responseCheck.data !== null) {
                 setMigrationData(responseCheck.data);
                 setMigrationState('in_progress');
@@ -188,7 +185,7 @@ const MigrationModal = () => {
     if (!showModal) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{zIndex:1000}}>
             {/* Backdrop */}
             <motion.div
                 initial={{ opacity: 0 }}

@@ -119,7 +119,7 @@ export default function DashboardLayout({
           <MigrationModal />
           {/* Display section-specific content if any */}
           <div className="app-content">
-            {children}
+            {renderSectionSpecificContent()}
             {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
             </div> : renderNoPlaceHolderCondition()}

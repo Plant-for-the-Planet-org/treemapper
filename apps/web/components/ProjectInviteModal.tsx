@@ -201,12 +201,12 @@ export default function ProjectInviteModal() {
               </div>
 
               <div className="bg-gray-50 rounded-lg p-4 space-y-3 mb-6">
-                {project.description && (
+                {/* {project.description && (
                   <div className="flex items-start">
                     <Info size={18} className="text-blue-500 mt-0.5 mr-3 flex-shrink-0" />
                     <p className="text-gray-700">{project.description}</p>
                   </div>
-                )}
+                )} */}
 
                 <div className="flex items-center">
                   <User size={18} className="text-blue-500 mr-3 flex-shrink-0" />

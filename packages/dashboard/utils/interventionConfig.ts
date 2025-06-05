@@ -9,7 +9,7 @@ export const interventionConfigurationSeedData = [
         allowsSampleTrees: false,
         allowEntireSite: true,
         geometryType: ['point', 'polygon'],
-        description: 'Direct seeding intervention allows multiple species but no tree registration'
+        description: 'Direct seeding intervention allows multiple species but no tree registration',
     },
     {
         interventionType: 'enrichment-planting' as const,
