@@ -9,7 +9,6 @@ import {
   ChevronUp,
   Building
 } from 'lucide-react';
-import { useRouter } from 'solito/navigation'
 
 // Import intervention icons
 import {
@@ -117,19 +116,15 @@ const InterventionList = ({
   sites = ['Site A', 'Site B', 'Site C', 'Site D'], // Default site list
   selectedSite = 'Site A',
   onSiteChange = () => { },
+  onCreateIntervention = () => { }
 }) => {
   // State for showing/hiding filters
   const [showFilters, setShowFilters] = useState(false);
-  const { push } = useRouter()
 
   // Get all intervention types for filtering
   const interventionTypes = ['all', ...Object.keys(interventionTypeMap).map(key =>
     interventionTypeMap[key].name
   )];
-  const onCreateIntervention = () => {
-  push(`/dashboard/new-intervention`)
-  }
-
 
   const renderInterventionIcon = (interventionType) => {
     const interventionInfo = Object.entries(interventionTypeMap).find(([key, value]) => key === interventionType);
@@ -289,8 +284,8 @@ const InterventionList = ({
                 key={intervention.id}
                 onClick={() => onSelectIntervention(intervention)}
                 className={`p-3 rounded-lg cursor-pointer transition-all transform hover:translate-y-[-2px] ${selectedIntervention?.id === intervention.id
-                  ? 'bg-emerald-50 border-emerald-500 border shadow-md'
-                  : 'bg-white hover:bg-gray-50 border border-gray-200 hover:shadow-sm'
+                    ? 'bg-emerald-50 border-emerald-500 border shadow-md'
+                    : 'bg-white hover:bg-gray-50 border border-gray-200 hover:shadow-sm'
                   }`}
               >
                 <div className="flex justify-between items-center">
@@ -317,8 +312,8 @@ const InterventionList = ({
                 key={intervention.id}
                 onClick={() => onSelectIntervention(intervention)}
                 className={`p-4 rounded-lg cursor-pointer transition-all transform hover:translate-y-[-2px] flex flex-col items-center justify-center ${selectedIntervention?.id === intervention.id
-                  ? 'bg-emerald-50 border-emerald-500 border shadow-md'
-                  : 'bg-white hover:bg-gray-50 border border-gray-200 hover:shadow-sm'
+                    ? 'bg-emerald-50 border-emerald-500 border shadow-md'
+                    : 'bg-white hover:bg-gray-50 border border-gray-200 hover:shadow-sm'
                   }`}
               >
                 <div className={`p-3 mb-3 rounded-full ${selectedIntervention?.id === intervention.id ? 'bg-emerald-100' : 'bg-gray-100'}`}>

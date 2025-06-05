@@ -45,6 +45,8 @@ export default function DashboardLayout({
         setCurrentSection('project');
       } else if (pathname.includes('/dashboard/newsite')) {
         setCurrentSection('newsite');
+      } else if (pathname.includes('/dashboard/new-intervention')) {
+        setCurrentSection('newintervention');
       } else {
         setCurrentSection('default');
       }
@@ -91,6 +93,8 @@ export default function DashboardLayout({
         return null
       case 'newsite':
         return null
+      case 'newintervention':
+        return null
       default:
         return <DashboardHeader token={accessToken || ''} />;
     }
@@ -115,7 +119,7 @@ export default function DashboardLayout({
           <MigrationModal />
           {/* Display section-specific content if any */}
           <div className="app-content">
-            {renderSectionSpecificContent()}
+            {children}
             {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
             </div> : renderNoPlaceHolderCondition()}
