@@ -94,7 +94,7 @@ const SpeciesManagementDashboard = () => {
 
     useEffect(() => {
         fetchProjectSpecies();
-    }, [])
+    }, [selectedProject])
 
     const fetchProjectSpecies = async () => {
         setLoading(true)
@@ -1070,7 +1070,7 @@ const SpeciesManagementDashboard = () => {
             </div>
              {/* Request New Species Modal */}
             {showRequestModal && (
-                <div className="h-full w-full inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4" style={{ zIndex: 100 }}>
                     <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
                         <h3 className="text-lg font-semibold text-gray-900 mb-4">Request New Species</h3>
 
@@ -1153,7 +1153,7 @@ const SpeciesManagementDashboard = () => {
                         </div>
 
                         <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                            Remove User
+                            Remove Species
                         </h3>
 
                         <p className="text-gray-600 text-center mb-6">

@@ -23,7 +23,7 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
-  const { selectedProject, loading , error, clearPrjError} = useProjectStore(state => state)
+  const { selectedProject, loading, error, clearPrjError } = useProjectStore(state => state)
   // const accessToken = process.env.NEXT_PUBLIC_TEST_TOKEN || '';
 
   const router = useRouter();
@@ -32,9 +32,9 @@ export default function DashboardLayout({
   const [currentSection, setCurrentSection] = useState<string>('default');
 
   const handleRefresh = () => {
-  window.location.reload();
-  clearPrjError();
-};
+    window.location.reload();
+    clearPrjError();
+  };
 
   // Listen for URL changes and update the section state
   useEffect(() => {
@@ -43,6 +43,8 @@ export default function DashboardLayout({
         setCurrentSection('profile');
       } else if (pathname.includes('/dashboard/project')) {
         setCurrentSection('project');
+      } else if (pathname.includes('/dashboard/newsite')) {
+        setCurrentSection('newsite');
       } else {
         setCurrentSection('default');
       }
@@ -87,6 +89,8 @@ export default function DashboardLayout({
         return null
       case 'project':
         return null
+      case 'newsite':
+        return null
       default:
         return <DashboardHeader token={accessToken || ''} />;
     }
@@ -99,7 +103,7 @@ export default function DashboardLayout({
       case 'project':
         return children
       default:
-        return error?<ErrorLoadingProject onRefresh={handleRefresh}/>:selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;
+        return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;
     }
   };
 

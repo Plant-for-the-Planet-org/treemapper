@@ -26,6 +26,7 @@ import { toast } from 'react-toastify'
 import Spinner from '../../../../components/spinner/Spinner'
 import { findAreaInHa } from '../../../../utils/geoJSON.helper';
 import SiteViewer from './MapComponent';
+import { useRouter } from 'solito/navigation'
 
 
 const SiteManagementPage = () => {
@@ -40,6 +41,8 @@ const SiteManagementPage = () => {
   const [loading, setLoading] = useState(false)
   const selectedProject = useProjectStore(state => state.selectedProject)
   const { accessToken } = useToken()
+  const { push } = useRouter()
+
   useEffect(() => {
     if (isEditing && selectedSite) {
       setEditedSite({ ...selectedSite });
@@ -68,6 +71,11 @@ const SiteManagementPage = () => {
       setSelectedSite(mappedResponse[0])
     }
     setLoading(false)
+  }
+
+  const handleCreateNewSite = () => {
+    push(`/dashboard/newsite`)
+
   }
 
 
@@ -238,7 +246,7 @@ const SiteManagementPage = () => {
               </div>
             </div>
             <button
-              onClick={() => setShowAddModal(true)}
+              onClick={handleCreateNewSite}
               className="bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-all duration-200 shadow-md hover:shadow-lg text-sm font-medium"
             >
               <Plus className="w-4 h-4" />
@@ -282,7 +290,7 @@ const SiteManagementPage = () => {
             <div className="xl:col-span-2 overflow-y-auto max-h-full">
               <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center justify-between">
-                  <Spinner h={'1vh'}/>
+                  <Spinner h={'1vh'} />
                 </div>
               </div>
 
@@ -467,7 +475,7 @@ const SiteManagementPage = () => {
                       </div>
                       <h3 className="text-xl font-bold text-gray-900">Location & Mapping</h3>
                     </div>
-                    <SiteViewer geoJsonData={selectedSite.geometry}/>
+                    <SiteViewer geoJsonData={selectedSite.geometry} />
                   </div>
 
                   {/* Enhanced Details Grid */}
