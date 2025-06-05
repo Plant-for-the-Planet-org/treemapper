@@ -157,7 +157,7 @@ export default function ProjectInviteModal() {
   const statusDisplay = getStatusDisplay();
   const canInteract = status === 'pending' && !isExpired;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" style={{zIndex:1000}}>
       {
         loading ?
           <div className="flex items-center justify-center h-full">
