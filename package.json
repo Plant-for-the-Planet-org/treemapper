@@ -11,7 +11,7 @@
     "postinstall": "patch-package",
     "clean": "turbo clean && rm -rf node_modules",
     "clean:deep": "rm -rf node_modules && rm -rf yarn.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
-    "heroku-postbuild": "turbo build --filter=web",
+    "heroku-postbuild": "cd apps/web && npm run build",
     "start": "turbo start --filter=web",
     "type-check": "turbo type-check",
     
