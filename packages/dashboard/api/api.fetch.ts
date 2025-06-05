@@ -117,6 +117,13 @@ export const createNewProjectSpecies = async (token: string, params: any, prjId:
 
 //sites
 
+export const getUserProjectSites = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getProjectSites}/${id}/sites`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
 
 //intervention
 

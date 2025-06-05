@@ -1,9 +1,9 @@
 // components/Spinner.tsx
 import React from 'react'
 
-const Spinner = () => {
+const Spinner = ({h}) => {
   return (
-    <div className='w-full h-full flex items-center justify-center' style={{marginTop:'10vh'}}>
+    <div className='w-full h-full flex items-center justify-center' style={{marginTop:h || '10vh'}}>
       {/* Spinner Component */}
       <div className="spinner" />
       <style jsx>{`

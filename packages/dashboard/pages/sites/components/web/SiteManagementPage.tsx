@@ -19,79 +19,97 @@ import {
   Map
 } from 'lucide-react';
 import AddNewSite from './AddNewSite';
+import useProjectStore from '../../../../store/useProjectStore';
+import { useToken } from '../../../../context/TokenContext'
+import { getUserProjectSites } from '../../../../api/api.fetch';
+import { toast } from 'react-toastify'
+import Spinner from '../../../../components/spinner/Spinner'
+import { findAreaInHa } from '../../../../utils/geoJSON.helper';
+import SiteViewer from './MapComponent';
 
-// Mock data based on your example
-const mockSites = [
-  {
-    name: "PlanBe Forest - Las Américas 6",
-    id: "site_7KD2pj7hX40Ainz",
-    description: "Purchased with funds of a private endowment the area of 1,1000 square meters offers space for around 1,2 million trees. The area degraded by deforestation, which Plant-for-the-Planet has acquired for the purpose of reforestation, encloses a natural lagoon with high biodiversity.",
-    status: "planting",
-    createdBy: "John Doe",
-    createdAt: "2024-03-15",
-    lastUpdate: "2024-05-20",
-    area: "1,100 sqm",
-    treeCapacity: "1,200,000",
-    image: null,
-    geometry: {
-      type: "Polygon",
-      coordinates: [[
-        [-90.118056, 18.79946],
-        [-90.119887, 18.789936],
-        [-90.108557, 18.787775],
-        [-90.097295, 18.785587],
-        [-90.100086, 18.771527],
-        [-90.111266, 18.773497],
-        [-90.113837, 18.759985],
-        [-90.097743, 18.757785],
-        [-90.080874, 18.759879],
-        [-90.083156, 18.765539],
-        [-90.078443, 18.783288],
-        [-90.087653, 18.785156],
-        [-90.086167, 18.792744],
-        [-90.118056, 18.79946]
-      ]]
-    }
-  },
-  {
-    name: "Reforestation Site Alpha",
-    id: "site_ABC123",
-    description: "Primary reforestation site focusing on native species restoration in degraded agricultural land.",
-    status: "planning",
-    createdBy: "Jane Smith",
-    createdAt: "2024-04-01",
-    lastUpdate: "2024-05-25",
-    area: "850 sqm",
-    treeCapacity: "950,000",
-    image: null,
-    geometry: {
-      type: "Polygon",
-      coordinates: [[
-        [-90.120000, 18.800000],
-        [-90.125000, 18.795000],
-        [-90.115000, 18.790000],
-        [-90.110000, 18.795000],
-        [-90.120000, 18.800000]
-      ]]
-    }
-  }
-];
 
 const SiteManagementPage = () => {
-  const [sites, setSites] = useState(mockSites);
-  const [selectedSite, setSelectedSite] = useState(sites[0]);
+  const [sites, setSites] = useState([]);
+  const [selectedSite, setSelectedSite] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedSite, setEditedSite] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
-
+  const [loading, setLoading] = useState(false)
+  const selectedProject = useProjectStore(state => state.selectedProject)
+  const { accessToken } = useToken()
   useEffect(() => {
     if (isEditing && selectedSite) {
       setEditedSite({ ...selectedSite });
     }
   }, [isEditing, selectedSite]);
+
+
+  useEffect(() => {
+    if (selectedProject) {
+      fetchProjectSites()
+    }
+  }, [selectedProject]);
+
+  const fetchProjectSites = async () => {
+    setLoading(true)
+    setSelectedSite(null)
+    const response = await getUserProjectSites(accessToken || '', selectedProject?.uid)
+    if (!response || response === null) {
+      setLoading(false)
+      toast.error("Error fetching project sites")
+      return
+    }
+    const mappedResponse = transformResponseData(response.data)
+    setSites(mappedResponse)
+    if (mappedResponse.length > 0) {
+      setSelectedSite(mappedResponse[0])
+    }
+    setLoading(false)
+  }
+
+
+  function transformResponseData(responseArray) {
+    return responseArray.map(item => {
+
+
+
+
+      // Format dates
+      const formatDate = (dateString) => {
+        if (!dateString) return null;
+        const date = new Date(dateString);
+        return date.toISOString().split('T')[0]; // Returns YYYY-MM-DD format
+      };
+
+      // Truncate description to first two sentences for cleaner display
+      const truncateDescription = (desc) => {
+        if (!desc) {
+          return ''
+        }
+        const sentences = desc.split(/[.!?]+/);
+        return sentences.length > 2
+          ? sentences.slice(0, 2).join('. ').trim() + '.'
+          : desc;
+      };
+
+      return {
+        name: item.name,
+        id: item.uid,
+        description: truncateDescription(item.description),
+        status: item.status,
+        createdBy: item.createdBy?.displayName || item.createdBy?.name || null,
+        createdAt: formatDate(item.createdAt),
+        lastUpdate: formatDate(item.updatedAt),
+        area: areaLabel(item.originalGeometry),
+        treeCapacity: null,
+        image: null, // Not present in source data
+        geometry: item.originalGeometry || null
+      };
+    });
+  }
 
   const filteredSites = sites.filter(site => {
     const matchesSearch = site.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -191,19 +209,24 @@ const SiteManagementPage = () => {
             <MapPin className="w-8 h-8 text-white" />
           </div>
           <p className="font-semibold text-lg text-gray-800">{selectedSite.name}</p>
-          <p className="text-sm text-gray-600 mt-1 bg-white/80 px-3 py-1 rounded-full">
+          {/* <p className="text-sm text-gray-600 mt-1 bg-white/80 px-3 py-1 rounded-full">
             Lat: {selectedSite.geometry.coordinates[0][0][1].toFixed(4)},
             Lng: {selectedSite.geometry.coordinates[0][0][0].toFixed(4)}
-          </p>
+          </p> */}
         </div>
       </div>
     );
   };
 
+  const areaLabel = (geometry) => {
+    const d = findAreaInHa(geometry)
+    return d ? `${d} ha` : "Not available"
+  }
+
   return (
     <div className='w-full f-full'>
       {/* Modern Sticky Header */}
-      <div className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm ">
+      <div className="sticky top-0 z-20 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm ">
         <div className="w-full f-full px-4 py-3 h-full flex flex-col justify-between">
           <div className="flex justify-between items-center">
             <div className="flex items-center gap-3">
@@ -211,7 +234,7 @@ const SiteManagementPage = () => {
                 <TreePine className="w-5 h-5 text-white" />
               </div>
               <div>
-                <h1 className="text-xl font-semibold text-gray-900 leading-tight" style={{margin:0}}>Site Management</h1>
+                <h1 className="text-xl font-semibold text-gray-900 leading-tight" style={{ margin: 0 }}>Site Management</h1>
               </div>
             </div>
             <button
@@ -255,107 +278,118 @@ const SiteManagementPage = () => {
       <div className="w-full h-full px-6 py-6">
         <div className="grid grid-cols-1 xl:grid-cols-5 gap-8">
           {/* Enhanced Site List - Card Style */}
-          <div className="xl:col-span-2">
-            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+          {loading ?
+            <div className="xl:col-span-2 overflow-y-auto max-h-full">
               <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Sites Overview
-                  </h2>
-                  <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
-                    {filteredSites.length} sites
-                  </span>
+                  <Spinner h={'1vh'}/>
                 </div>
               </div>
 
-              <div className="h-full overflow-y-auto">
-                <div className="p-4 space-y-3">
-                  {filteredSites.map((site) => {
-                    const statusConfig = getStatusConfig(site.status);
-                    const isSelected = selectedSite?.id === site.id;
+            </div>
+            : <div className="xl:col-span-2 overflow-y-auto max-h-full">
+              <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
+                <div className="p-6 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-bold text-gray-900">
+                      Sites Overview
+                    </h2>
+                    <span className="bg-green-100 text-green-700 px-3 py-1 rounded-full text-sm font-medium">
+                      {filteredSites.length} sites
+                    </span>
+                  </div>
+                </div>
 
-                    return (
-                      <div
-                        key={site.id}
-                        onClick={() => setSelectedSite(site)}
-                        className={`group relative cursor-pointer transition-all duration-200 ${isSelected
+                <div className="h-full overflow-y-auto">
+                  <div className="p-4 space-y-3">
+                    {filteredSites.map((site) => {
+                      const statusConfig = getStatusConfig(site.status);
+                      const isSelected = selectedSite?.id === site.id;
+
+                      return (
+                        <div
+                          key={site.id}
+                          onClick={() => setSelectedSite(site)}
+                          className={`group relative cursor-pointer transition-all duration-200 ${isSelected
                             ? 'bg-gradient-to-r from-green-50 to-emerald-50 border-green-200 shadow-md'
                             : 'bg-white hover:bg-gray-50 border-gray-200 hover:border-gray-300'
-                          } border rounded-xl p-5 hover:shadow-lg`}
-                      >
-                        {/* Card Header */}
-                        <div className="flex items-start justify-between mb-3">
-                          <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-900 text-base leading-tight mb-1 truncate">
-                              {site.name}
-                            </h3>
-                            <p className="text-xs text-gray-500 font-medium">ID: {site.id}</p>
-                          </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
-                            <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
-                            {site.status}
-                          </div>
-                        </div>
-
-                        {/* Description */}
-                        <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">
-                          {site.description}
-                        </p>
-
-                        {/* Stats Grid */}
-                        <div className="grid grid-cols-2 gap-3 mb-4">
-                          <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
-                            <div className="flex items-center gap-2 mb-1">
-                              <AreaChart className="w-3 h-3 text-blue-600" />
-                              <span className="text-xs font-medium text-blue-700">Area</span>
+                            } border rounded-xl p-5 hover:shadow-lg`}
+                        >
+                          {/* Card Header */}
+                          <div className="flex items-start justify-between mb-3">
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-gray-900 text-base leading-tight mb-1 truncate">
+                                {site.name}
+                              </h3>
+                              <p className="text-xs text-gray-500 font-medium">ID: {site.id}</p>
                             </div>
-                            <p className="text-sm font-semibold text-blue-800">{site.area}</p>
-                          </div>
-                          <div className="bg-green-50 rounded-lg p-3 border border-green-100">
-                            <div className="flex items-center gap-2 mb-1">
-                              <TreePine className="w-3 h-3 text-green-600" />
-                              <span className="text-xs font-medium text-green-700">Capacity</span>
+                            <div className={`px-3 py-1 rounded-full text-xs font-medium border flex items-center gap-1 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
+                              <div className={`w-2 h-2 rounded-full ${statusConfig.dot}`}></div>
+                              {site.status}
                             </div>
-                            <p className="text-sm font-semibold text-green-800">{site.treeCapacity}</p>
                           </div>
+
+                          {/* Description */}
+                          <p className="text-sm text-gray-600 leading-relaxed mb-4 line-clamp-2">
+                            {site.description}
+                          </p>
+
+                          {/* Stats Grid */}
+                          <div className="grid grid-cols-2 gap-3 mb-4">
+                            <div className="bg-blue-50 rounded-lg p-3 border border-blue-100">
+                              <div className="flex items-center gap-2 mb-1">
+                                <AreaChart className="w-3 h-3 text-blue-600" />
+                                <span className="text-xs font-medium text-blue-700">Area</span>
+                              </div>
+                              <p className="text-sm font-semibold text-blue-800">{site.area}</p>
+                            </div>
+                            <div className="bg-green-50 rounded-lg p-3 border border-green-100">
+                              <div className="flex items-center gap-2 mb-1">
+                                <User className="w-3 h-3 text-green-600" />
+                                <span className="text-xs font-medium text-green-700">Created By</span>
+                              </div>
+                              <p className="text-sm font-semibold text-green-800">{site.createdBy}</p>
+                            </div>
+                          </div>
+
+                          {/* Card Footer */}
+                          <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
+                            <div className="flex items-center gap-1">
+                              <User className="w-3 h-3" />
+                              <span>{site.createdBy}</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Calendar className="w-3 h-3" />
+                              <span>{site.createdAt}</span>
+                            </div>
+                          </div>
+
+                          {/* Selection Indicator */}
+                          {isSelected && (
+                            <div className="absolute inset-0 border-2 border-green-400 rounded-xl pointer-events-none"></div>
+                          )}
                         </div>
-
-                        {/* Card Footer */}
-                        <div className="flex items-center justify-between text-xs text-gray-500 pt-3 border-t border-gray-100">
-                          <div className="flex items-center gap-1">
-                            <User className="w-3 h-3" />
-                            <span>{site.createdBy}</span>
-                          </div>
-                          <div className="flex items-center gap-1">
-                            <Calendar className="w-3 h-3" />
-                            <span>{site.createdAt}</span>
-                          </div>
-                        </div>
-
-                        {/* Selection Indicator */}
-                        {isSelected && (
-                          <div className="absolute inset-0 border-2 border-green-400 rounded-xl pointer-events-none"></div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-
-                {filteredSites.length === 0 && (
-                  <div className="p-12 text-center text-gray-500">
-                    <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
-                      <Search className="w-8 h-8 text-gray-400" />
-                    </div>
-                    <h3 className="font-medium text-gray-700 mb-2">No sites found</h3>
-                    <p className="text-sm">Try adjusting your search criteria</p>
+                      );
+                    })}
                   </div>
-                )}
+                  {loading && <div style={{ paddingBottom: 100 }}>
+                    <Spinner /></div>}
+
+                  {!loading && filteredSites.length === 0 ? (
+                    <div className="p-12 text-center text-gray-500">
+                      <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-4">
+                        <Search className="w-8 h-8 text-gray-400" />
+                      </div>
+                      <h3 className="font-medium text-gray-700 mb-2">No sites found</h3>
+                      <p className="text-sm">Try adjusting your search criteria</p>
+                    </div>
+                  ) : null}
+                </div>
               </div>
-            </div>
-          </div>
+            </div>}
 
           {/* Enhanced Site Details */}
-          <div className="xl:col-span-3">
+          <div className="xl:col-span-3 sticky top-0">
             {selectedSite ? (
               <div className="bg-white rounded-2xl shadow-lg border border-gray-200 overflow-hidden">
                 {/* Modern Site Header */}
@@ -433,7 +467,7 @@ const SiteManagementPage = () => {
                       </div>
                       <h3 className="text-xl font-bold text-gray-900">Location & Mapping</h3>
                     </div>
-                    {renderMap()}
+                    <SiteViewer geoJsonData={selectedSite.geometry}/>
                   </div>
 
                   {/* Enhanced Details Grid */}
@@ -490,7 +524,7 @@ const SiteManagementPage = () => {
                           </div>
                           <h4 className="font-semibold text-emerald-900">Tree Capacity</h4>
                         </div>
-                        <p className="text-emerald-800 font-medium text-xl">{selectedSite.treeCapacity}</p>
+                        <p className="text-emerald-800 font-medium text-xl">{selectedSite.treeCapacity || 'Not available'}</p>
                       </div>
 
                       <div className="bg-gradient-to-br from-gray-50 to-slate-50 p-5 rounded-xl border border-gray-200">
@@ -593,3 +627,5 @@ const SiteManagementPage = () => {
 };
 
 export default SiteManagementPage;
+
+

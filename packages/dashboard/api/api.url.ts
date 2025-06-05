@@ -21,6 +21,7 @@ export const getUrlApi = {
     searchSpeciesSci: `${baseUrl}/api/scientific-species/search`,
     projectSpecies: `${baseUrl}/api/project-species`,
     migrationStatus: `${baseUrl}/api/migration/status`,
+    getProjectSites: `${baseUrl}/api/projects`,
 }
 
 export const patchUrlApi = {

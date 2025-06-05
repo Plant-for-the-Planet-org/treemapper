@@ -6,7 +6,7 @@ interface Props {
   label?: string
 }
 
-function Spinner({ label }: Props) {
+function Spinner({ label, h }: Props) {
   const { back } = useRouter()
   const navigateBack = () => {
     back()
@@ -15,6 +15,7 @@ function Spinner({ label }: Props) {
     <BackButtonUI
       navigateBack={navigateBack}
       label={label}
+      h={h}
     />
   );
 }
