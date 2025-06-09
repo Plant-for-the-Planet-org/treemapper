@@ -101,10 +101,13 @@ export default function DashboardLayout({
   };
 
   const renderNoPlaceHolderCondition = () => {
+    console.log("sssss")
     switch (currentSection) {
       case 'profile':
         return children
       case 'project':
+        return children
+      case 'newsite':
         return children
       default:
         return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : <NoProjectSelected handleCreateProject={handleCreateProject} />;

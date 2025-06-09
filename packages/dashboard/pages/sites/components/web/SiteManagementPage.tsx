@@ -149,6 +149,9 @@ const SiteManagementPage = () => {
   };
 
   const handleDelete = () => {
+
+   
+
     const updatedSites = sites.filter(site => site.id !== selectedSite.id);
     setSites(updatedSites);
     setSelectedSite(updatedSites[0] || null);
@@ -275,7 +278,8 @@ const SiteManagementPage = () => {
                 <option value="all">All</option>
                 <option value="planning">Planning</option>
                 <option value="planting">Planting</option>
-                <option value="completed">Completed</option>
+                <option value="barren">Barren</option>
+                <option value="reforestation">Reforestation</option>
               </select>
             </div>
           </div>
@@ -599,7 +603,7 @@ const SiteManagementPage = () => {
 
       {/* Enhanced Delete Modal */}
       {showDeleteModal && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4" style={{zIndex:100}}>
           <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden">
             <div className="bg-gradient-to-r from-red-500 to-rose-600 p-6 text-white">
               <div className="flex items-center gap-3">
@@ -611,7 +615,7 @@ const SiteManagementPage = () => {
             </div>
             <div className="p-6">
               <p className="text-gray-600 mb-6 leading-relaxed">
-                Are you sure you want to delete <span className="font-semibold text-gray-900">"{selectedSite?.name}"</span>? This action cannot be undone and will permanently remove all associated data.
+                Are you sure you want to delete site <span className="font-semibold text-gray-900">"{selectedSite?.name}"</span>? This action cannot be undone and will permanently remove all associated data.
               </p>
               <div className="flex gap-3">
                 <button

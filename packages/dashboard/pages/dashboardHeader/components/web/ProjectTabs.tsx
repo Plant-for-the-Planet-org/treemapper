@@ -26,7 +26,7 @@ const ProjectDropdown = ({
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
-  const { projects, selectProject, selectedProject, addProjects, updatePrjError } = useProjectStore((state) => state);
+  const { projects, selectProject, selectedProject, addProjects, updatePrjError, updateProjectLoading } = useProjectStore((state) => state);
   const { user } = useUserStore((state) => state);
 
   useEffect(() => {
@@ -42,6 +42,7 @@ const ProjectDropdown = ({
   }
 
   const fetchUserProjects = async () => {
+    updateProjectLoading(true)
     const response = await getMyProjects(token)
     if (response && response.statusCode == 200) {
       if (response.data) {
@@ -136,7 +137,7 @@ const ProjectDropdown = ({
                 )}
               </div>
             </div>}
-             {!selectedProject && <div className="flex items-center  min-w-0 flex-1 py-2">
+            {!selectedProject && <div className="flex items-center  min-w-0 flex-1 py-2">
               <div className="flex flex-col items-start min-w-0 flex-1">
                 <span className="font-semibold text-gray-900 truncate text-sm">
                   Select Project
@@ -181,15 +182,15 @@ const ProjectDropdown = ({
                         key={project.uid}
                         onClick={() => handleProjectSelect(project)}
                         className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group ${project.uid === selectedProject?.uid
-                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                            : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
+                          : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
                           }`}
                       >
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3 min-w-0 flex-1">
                             <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
-                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                                : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
+                              ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                              : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
                               }`}>
                               <Folder className="w-4 h-4 text-white" />
                             </div>

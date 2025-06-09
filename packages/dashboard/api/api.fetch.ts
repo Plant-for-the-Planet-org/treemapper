@@ -113,6 +113,12 @@ export const createNewProjectSpecies = async (token: string, params: any, prjId:
   return result;
 };
 
+export const requestNewSpecies = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.requestNewSpecies}/${prjId}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 //sites
@@ -122,6 +128,13 @@ export const getUserProjectSites = async (token: string, id: string) => {
   const result = await fetchGetCall(uri, token)
   return result
 }
+
+export const createNewDashboardSite = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewDashboardSite}/${prjId}/sites`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 

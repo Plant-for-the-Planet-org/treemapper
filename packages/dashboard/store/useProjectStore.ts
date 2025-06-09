@@ -7,6 +7,7 @@ interface ProjectStore {
   addProjects: (p: ProjectWithUserRoleI[]) => void
   selectProject: (p: ProjectWithUserRoleI) => void
   updatePrjError: (error: string) => void
+  updateProjectLoading: (b: boolean) => void,
   clearPrjError: () => void
   loading?: boolean
   error?: string
@@ -18,7 +19,8 @@ const useStore = create<ProjectStore>(set => ({
   selectedProject: null,
   addProjects: p => set(state => ({ ...state, projects: p, loading: false })),
   selectProject: p => set(state => ({ ...state, selectedProject: p })),
-  loading: true,
+  updateProjectLoading:b => set(state => ({ ...state, loading: b })),
+  loading: false,
   error: '',
   updatePrjError: (error: string) => set(state => ({ ...state, error, loading: false })),
   clearPrjError: () => set(state => ({ ...state, error: '', loading: true}))

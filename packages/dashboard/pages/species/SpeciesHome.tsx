@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { useToken } from '../../context/TokenContext';
 import useProjectStore from '../../store/useProjectStore';
-import { createNewProjectSpecies, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, updateProjectSpecies } from '../../api/api.fetch';
+import { createNewProjectSpecies, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateProjectSpecies } from '../../api/api.fetch';
 import { toast } from 'react-toastify';
 import Spinner from '../../../../apps/web/components/Spinner';
 
@@ -46,6 +46,7 @@ const SpeciesManagementDashboard = () => {
     const [showConfirmModal, setShowConfirmModal] = useState(false);
     const [isRemoving, setIsRemoving] = useState(false);
     const [loading, setLoading] = useState(false)
+    const [requestLoading, setRequestLoading] = useState(false)
     const [requestForm, setRequestForm] = useState({
         scientificName: '',
         commonName: '',
@@ -219,10 +220,22 @@ const SpeciesManagementDashboard = () => {
         setShowRequestModal(true);
     };
 
-    const handleSubmitRequest = () => {
+    const handleSubmitRequest = async () => {
+        setRequestLoading(true)
         // In real implementation, this would send the request to your backend
-        console.log('New species request:', requestForm);
-        alert('Request submitted successfully! We will review your request and add the species to our database.');
+        const payload = {
+            commonName: requestForm.commonName,
+            description: requestForm.description,
+            requestReason: requestForm.requestReason,
+            scientificName: requestForm.scientificName
+        }
+
+        const response = await requestNewSpecies(accessToken || '', payload, selectedProject?.uid || '')
+        if (response.statusCode === 200 || response.statusCode === 201) {
+            toast.success("Request sent. You will be notified once approved")
+        } else {
+            toast.error(response.message || "Something went wrong")
+        }
         setShowRequestModal(false);
         setRequestForm({
             scientificName: '',
@@ -230,13 +243,21 @@ const SpeciesManagementDashboard = () => {
             description: '',
             requestReason: ''
         });
+        setRequestLoading(false)
+
     };
 
     const handleSave = async () => {
         let payLoad = {
-
+            isDisbaledSpecies: editForm.disabled,
             isNativeSpecies: editForm.isNativeSpecies,
             favourite: editForm.favourite,
+            metadata: {
+                habitat: editForm.habitat,
+                height: editForm.height,
+                flowers: editForm.hasFlowersOrFruits,
+                bloomingSeason: editForm.bloomingSeason
+            }
         }
         if (editForm.commonName) {
             payLoad['commonName'] = editForm.commonName;
@@ -245,8 +266,10 @@ const SpeciesManagementDashboard = () => {
             payLoad['description'] = editForm.description;
         }
 
+
         if (isAddingNew) {
-            payLoad['scientificSpeciesId'] = parseInt(editForm.uid)
+            payLoad['scientificSpeciesId'] = editForm.id
+            console.log("SDC", payLoad)
             const response = await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
             if (response.statusCode !== 200) {
                 toast.error(response.message || 'An error occurred while adding the species.')
@@ -365,8 +388,8 @@ const SpeciesManagementDashboard = () => {
             {/* Sticky Header */}
             <div className="sticky top-0 z-40 backdrop-blur-md bg-white/80 border-b border-white/20 shadow-sm py-4 px-4">
                 <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                    <div className="flex items-center gap-6" style={{alignItems:'center',justifyContent:'center'}}>
-                        <h1 className="text-2xl font-bold text-gray-900" style={{margin:0}}>Species Management</h1>
+                    <div className="flex items-center gap-6" style={{ alignItems: 'center', justifyContent: 'center' }}>
+                        <h1 className="text-2xl font-bold text-gray-900" style={{ margin: 0 }}>Species Management</h1>
                         <div className="flex items-center gap-4 text-sm text-gray-600">
                             <span className="flex items-center gap-1">
                                 <Hash size={16} />
@@ -425,7 +448,7 @@ const SpeciesManagementDashboard = () => {
                 </div>
             </div>
 
-            <div className="flex" style={{width:'100%',height:'100%'}}>
+            <div className="flex" style={{ width: '100%', height: '100%' }}>
                 {/* Left Panel - Species List */}
                 <div className="w-1/3 bg-white border-r border-gray-200 overflow-y-auto">
                     <div className="p-4">
@@ -546,7 +569,7 @@ const SpeciesManagementDashboard = () => {
                 </div>
 
                 {/* Right Panel - Species Details */}
-                <div className="flex-1 h-full w-full bg-gradient-to-br from-gray-50 to-white overflow-y-auto" style={{paddingBottom:'500px'}}>
+                <div className="flex-1 h-full w-full bg-gradient-to-br from-gray-50 to-white overflow-y-auto" style={{ paddingBottom: '500px' }}>
                     {selectedSpecies ? (
                         <div className="w-full p-6">
                             {/* Modern Action Bar with Glass Effect */}
@@ -816,7 +839,7 @@ const SpeciesManagementDashboard = () => {
                                             <div className="w-6 h-6 rounded-lg bg-blue-500 flex items-center justify-center">
                                                 <Flower size={12} className="text-white" />
                                             </div>
-                                            Additional Details
+                                            Additional Meta Details
                                         </h3>
 
                                         <div className="grid md:grid-cols-2 gap-6 mb-6">
@@ -1045,7 +1068,7 @@ const SpeciesManagementDashboard = () => {
                         </div>
                     ) : (
                         /* Empty State */
-                        <div className="flex items-center justify-center h-full" style={{marginTop:'20vh'}}>
+                        <div className="flex items-center justify-center h-full" style={{ marginTop: '20vh' }}>
                             <div className="text-center">
                                 {loading ? (
                                     <div className="w-full h-full flex justify-center items-center">
@@ -1068,7 +1091,7 @@ const SpeciesManagementDashboard = () => {
                     )}
                 </div>
             </div>
-             {/* Request New Species Modal */}
+            {/* Request New Species Modal */}
             {showRequestModal && (
                 <div className="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4" style={{ zIndex: 100 }}>
                     <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
@@ -1137,9 +1160,10 @@ const SpeciesManagementDashboard = () => {
                             </button>
                             <button
                                 onClick={handleSubmitRequest}
+                                disabled={requestLoading}
                                 className="flex-1 px-4 py-2 bg-green-700 text-white rounded-lg hover:bg-green-600 transition-colors"
                             >
-                                Submit Request
+                               {requestLoading?"Submitting...":" Submit Request"}
                             </button>
                         </div>
                     </div>

@@ -21,7 +21,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
   const [marker, setMarker] = useState(null);
 
   // Selection mode: 'point' or 'polygon'
-  const [selectionMode, setSelectionMode] = useState('point');
+  const [selectionMode, setSelectionMode] = useState('polygon');
 
   // State for polygon drawing
   const [drawingPolygon, setDrawingPolygon] = useState(false);
@@ -379,43 +379,6 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
         zIndex: 1
       }}>
         <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Selection Mode:</label>
-            <div className="relative inline-block w-12 align-middle select-none">
-              <input
-                type="checkbox"
-                name="toggle"
-                id="toggle"
-                checked={selectionMode === 'polygon'}
-                onChange={toggleSelectionMode}
-                className="hidden"
-              />
-              <label
-                htmlFor="toggle"
-                className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer 
-                  ${selectionMode === 'polygon' ? 'bg-blue-500' : ''}`}
-                style={{ width: '3rem' }}
-              >
-                <span
-                  className={`bg-white block h-5 w-5 rounded-full transform transition-transform duration-200 ease-in 
-                    ${selectionMode === 'polygon' ? 'translate-x-6' : 'translate-x-0'}`}
-                  style={{ margin: '0.125rem' }}
-                ></span>
-              </label>
-            </div>
-            <div className="ml-2 text-sm">
-              {selectionMode === 'point' ? (
-                <div className="flex items-center">
-                  <MapPin size={16} className="mr-1" /> Point
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Square size={16} className="mr-1" /> Polygon
-                </div>
-              )}
-            </div>
-          </div>
-
           {/* Show polygon controls only in polygon mode */}
           {selectionMode === 'polygon' && !displayingUploadedGeoJSON && (
             <div className="flex gap-2">

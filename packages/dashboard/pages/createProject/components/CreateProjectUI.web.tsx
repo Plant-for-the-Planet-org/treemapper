@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus } from 'lucide-react';
 import ProjectMap from './web/ProjectSelectMap';
 import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './web/GeoJSONfileupload';
-
+import {toast} from 'react-toastify'
 // Mock components - replace with your actual imports
 
 
@@ -50,7 +50,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!finalGeoJSON) {
-      // toast.warning('Please select a location on the map or upload a location file.');
+      toast.warning('Please select a location on the map or upload a location file.');
       return;
     }
 
@@ -58,7 +58,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
-      // toast.success('Project created successfully!');
+      toast.success('Project created successfully!');
       goBack();
     }, 2000);
   };

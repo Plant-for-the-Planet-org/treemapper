@@ -5,6 +5,10 @@ import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, U
 import ProjectMap from './web/ProjectSelectMap';
 import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './web/GeoJSONfileupload';
 import useProjectStore from '../../../store/useProjectStore'
+import { toast } from 'react-toastify'
+import { createNewDashboardSite } from '../../../api/api.fetch'
+import { useToken } from '../../../context/TokenContext'
+
 // Mock components - replace with your actual imports
 
 
@@ -26,7 +30,9 @@ export function CreateProjectUI({ token, goBack }: Props) {
   const [agreeTerms, setAgreeTerms] = useState(false);
   const [finalGeoJSON, setFinalGeoJSON] = useState(null)
   const [loading, setLoading] = useState(false)
-  const SelectedProject = useProjectStore(state=>state.selectedProject)
+  const SelectedProject = useProjectStore(state => state.selectedProject)
+
+  const { accessToken } = useToken()
 
   const updateGeoJSON = (geoJSONData) => {
     setFinalGeoJSON(geoJSONData);
@@ -51,17 +57,38 @@ export function CreateProjectUI({ token, goBack }: Props) {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!finalGeoJSON) {
-      // toast.warning('Please select a location on the map or upload a location file.');
+      toast.warning('Please select a location on the map or upload a location file.');
       return;
     }
 
+    if (!formData.projectName) {
+      toast.warning('Please provide site name.');
+      return;
+    }
+
+    if (!formData.projectName) {
+      toast.warning('Please add site description.');
+      return;
+    }
+
+    const payload = {
+      name: formData.projectName,
+      description: formData.aboutProject,
+      location: finalGeoJSON,
+      status: formData.projectType
+    }
+
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    // Simulate API call\\\\
+    const response = await createNewDashboardSite(accessToken || '', payload, SelectedProject?.uid || '')
+    if (response.statusCode === 200 || response.statusCode === 201) {
       setLoading(false);
-      // toast.success('Project created successfully!');
+      toast.success('Project created successfully!');
       goBack();
-    }, 2000);
+    } else {
+      toast.error(response.message || 'Something went wrong')
+      setLoading(false);
+    }
   };
 
   const projectTypes = [
@@ -205,7 +232,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
                 </div>
 
                 {/* Target and Website Row */}
-               
+
 
                 {/* About Project */}
                 <div className="space-y-2">

@@ -367,8 +367,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
         )}
       </Map>
 
-      {/* Mode selection toggle and controls */}
-      <div style={{
+      {/* <div style={{
         position: 'absolute',
         top: '20px',
         left: '20px',
@@ -416,7 +415,6 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
             </div>
           </div>
 
-          {/* Show polygon controls only in polygon mode */}
           {selectionMode === 'polygon' && !displayingUploadedGeoJSON && (
             <div className="flex gap-2">
               <button
@@ -440,14 +438,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON }: Props) => {
             </div>
           )}
 
-          {/* Show status when displaying uploaded GeoJSON */}
           {/* {displayingUploadedGeoJSON && (
             <div className="text-sm text-green-600 font-medium">
               📁 Displaying uploaded file
             </div>
-          )} */}
+          )}
         </div>
-      </div>
+      </div> */}
 
       {/* Coordinate input form - only show in point mode and not displaying uploaded */}
       {selectionMode === 'point' && !displayingUploadedGeoJSON && (
