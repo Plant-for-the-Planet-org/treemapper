@@ -1,16 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
-// Import all components from the maplibre-specific path
+import { useState, useEffect, useRef } from 'react';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
-import { MapPin, Square } from 'lucide-react';
+import { MapPin } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 
-
-
 interface Props {
-  updateGeoJSON: (geoJSON: any) => void;
+  geoJSON: any; // GeoJSON data from parent
 }
 
-const MapComponent = ({ updateGeoJSON }: Props) => {
+const MapDisplayComponent = ({ geoJSON }: Props) => {
+  const mapRef = useRef();
+  console.log("IUIUIUL",geoJSON)
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -18,406 +17,219 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
     zoom: 3.5
   });
 
-  // State for selected marker
-  const [marker, setMarker] = useState(null);
+  // Function to calculate bounds from GeoJSON
+  const calculateBounds = (geoJSON) => {
+    if (!geoJSON || !geoJSON.geometry) return null;
 
-  // Selection mode: 'point' or 'polygon'
-  const [selectionMode, setSelectionMode] = useState('point');
+    const { geometry } = geoJSON;
+    let coordinates = [];
 
-  // State for polygon drawing
-  const [drawingPolygon, setDrawingPolygon] = useState(false);
-  const [polygonPoints, setPolygonPoints] = useState([]);
+    if (geometry.type === 'Point') {
+      coordinates = [geometry.coordinates];
+    } else if (geometry.type === 'Polygon') {
+      // Flatten the polygon coordinates
+      coordinates = geometry.coordinates[0];
+    } else if (geometry.type === 'MultiPolygon') {
+      // Flatten all polygon coordinates
+      coordinates = geometry.coordinates.flat(2);
+    } else if (geometry.type === 'LineString') {
+      coordinates = geometry.coordinates;
+    } else if (geometry.type === 'MultiLineString') {
+      coordinates = geometry.coordinates.flat();
+    }
 
-  // GeoJSON state for storing the final data
-  const [geoJSON, setGeoJSON] = useState(null);
+    if (coordinates.length === 0) return null;
 
-  // State for manual coordinates input
-  const [manualCoords, setManualCoords] = useState({
-    latitude: '',
-    longitude: ''
-  });
+    // Calculate min/max bounds
+    let minLng = coordinates[0][0];
+    let maxLng = coordinates[0][0];
+    let minLat = coordinates[0][1];
+    let maxLat = coordinates[0][1];
 
-  useEffect(() => {
-    updateGeoJSON(geoJSON)
-  }, [geoJSON])
-  
+    coordinates.forEach(([lng, lat]) => {
+      minLng = Math.min(minLng, lng);
+      maxLng = Math.max(maxLng, lng);
+      minLat = Math.min(minLat, lat);
+      maxLat = Math.max(maxLat, lat);
+    });
 
-  // Polygon data as GeoJSON
-  const polygonGeoJSON = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [
-        // Add closing point automatically if there are at least 3 points
-        polygonPoints.length >= 3
-          ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-          : polygonPoints.map(p => [p.longitude, p.latitude])
-      ]
+    return {
+      southwest: [minLng, minLat],
+      northeast: [maxLng, maxLat]
+    };
+  };
+
+  // Function to fit map to bounds
+  const fitMapToBounds = (bounds) => {
+    if (!bounds || !mapRef.current) return;
+
+    const map = mapRef.current.getMap();
+    
+    if (bounds.southwest[0] === bounds.northeast[0] && bounds.southwest[1] === bounds.northeast[1]) {
+      // Single point - center on it with appropriate zoom
+      setViewState({
+        longitude: bounds.southwest[0],
+        latitude: bounds.southwest[1],
+        zoom: 10
+      });
+    } else {
+      // Multiple points - fit to bounds
+      map.fitBounds([bounds.southwest, bounds.northeast], {
+        padding: 50,
+        maxZoom: 15,
+        duration: 1000
+      });
     }
   };
 
-
-
-  // Handle map click based on current mode
-  const handleMapClick = useCallback(event => {
-    const { lngLat } = event;
-
-    if (selectionMode === 'point') {
-      // Point mode: set a single marker
-      const point = {
-        longitude: lngLat.lng,
-        latitude: lngLat.lat
-      };
-
-      setMarker(point);
-      setManualCoords({
-        longitude: lngLat.lng.toFixed(6),
-        latitude: lngLat.lat.toFixed(6)
-      });
-
-      // Create and store Point GeoJSON
-      const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [lngLat.lng, lngLat.lat]
-        }
-      };
-
-      setGeoJSON(pointGeoJSON);
-    } else if (selectionMode === 'polygon') {
-      // Polygon mode: add point to polygon
-      if (!drawingPolygon) {
-        // Start drawing polygon
-        setDrawingPolygon(true);
-        setPolygonPoints([{ longitude: lngLat.lng, latitude: lngLat.lat }]);
-      } else {
-        // Continue adding points to polygon
-        setPolygonPoints(prev => [...prev, { longitude: lngLat.lng, latitude: lngLat.lat }]);
+  // Effect to handle geoJSON changes and camera updates
+  useEffect(() => {
+    if (geoJSON) {
+      const bounds = calculateBounds(geoJSON);
+      if (bounds) {
+        // Small delay to ensure map is ready
+        setTimeout(() => {
+          fitMapToBounds(bounds);
+        }, 100);
       }
     }
-  }, [selectionMode, drawingPolygon]);
+  }, [geoJSON]);
 
-  // Complete polygon drawing
-  const completePolygon = () => {
-    if (polygonPoints.length >= 3) {
-      setDrawingPolygon(false);
-      setGeoJSON(polygonGeoJSON);
+  // Render point marker
+  const renderPointMarker = (coordinates) => (
+    <Marker
+      longitude={coordinates[0]}
+      latitude={coordinates[1]}
+      anchor="bottom"
+    >
+      <MapPin color="#FF0000" size={24} />
+    </Marker>
+  );
 
-    } else {
-      alert('A polygon needs at least 3 points');
+  // Render polygon/line layers
+  const renderGeometryLayers = () => {
+    if (!geoJSON || !geoJSON.geometry) return null;
+
+    const { geometry } = geoJSON;
+
+    if (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon') {
+      return (
+        <Source id="geojson-source" type="geojson" data={geoJSON}>
+          <Layer
+            id="geojson-fill"
+            type="fill"
+            paint={{
+              'fill-color': '#0080ff',
+              'fill-opacity': 0.3
+            }}
+          />
+          <Layer
+            id="geojson-outline"
+            type="line"
+            paint={{
+              'line-color': '#0080ff',
+              'line-width': 2
+            }}
+          />
+        </Source>
+      );
+    } else if (geometry.type === 'LineString' || geometry.type === 'MultiLineString') {
+      return (
+        <Source id="geojson-source" type="geojson" data={geoJSON}>
+          <Layer
+            id="geojson-line"
+            type="line"
+            paint={{
+              'line-color': '#0080ff',
+              'line-width': 3
+            }}
+          />
+        </Source>
+      );
     }
+
+    return null;
   };
-
-  // Reset polygon drawing
-  const resetPolygon = () => {
-    setDrawingPolygon(false);
-    setPolygonPoints([]);
-    setGeoJSON(null);
-  };
-
-  // Handle selection mode toggle
-  const toggleSelectionMode = () => {
-    // Reset current selection when changing modes
-    if (selectionMode === 'point') {
-      setSelectionMode('polygon');
-      setMarker(null);
-    } else {
-      setSelectionMode('point');
-      resetPolygon();
-    }
-    setGeoJSON(null);
-  };
-
-  // Handle manual coordinate input
-  const handleCoordChange = (e) => {
-    const { name, value } = e.target;
-    setManualCoords({
-      ...manualCoords,
-      [name]: value
-    });
-  };
-
-  // Set marker from manual coordinates
-  const handleSetCoordinates = () => {
-    if (selectionMode !== 'point') {
-      alert('Manual coordinates are only available in point selection mode');
-      return;
-    }
-
-    const lng = parseFloat(manualCoords.longitude);
-    const lat = parseFloat(manualCoords.latitude);
-
-    if (!isNaN(lng) && !isNaN(lat)) {
-      const point = {
-        longitude: lng,
-        latitude: lat
-      };
-
-      setMarker(point);
-
-      // Update viewport to center on the new marker
-      setViewState({
-        ...viewState,
-        longitude: lng,
-        latitude: lat
-      });
-
-      // Create and store Point GeoJSON
-      const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [lng, lat]
-        }
-      };
-
-      setGeoJSON(pointGeoJSON);
-    }
-  };
-
-
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <Map
+        ref={mapRef}
         {...viewState}
         onMove={evt => setViewState(evt.viewState)}
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-        onClick={handleMapClick}
         style={{ width: '100%', height: '100%' }}
       >
-        {/* Default navigation controls (zoom, compass, etc.) */}
+        {/* Default navigation controls */}
         <NavigationControl position="bottom-right" />
 
-        {/* GeolocateControl - adds the find my location button */}
+        {/* GeolocateControl */}
         <GeolocateControl
           position="bottom-right"
           positionOptions={{ enableHighAccuracy: true }}
           trackUserLocation={true}
         />
 
-        {/* Display marker if in point mode and marker exists */}
-        {selectionMode === 'point' && marker && (
-          <Marker
-            longitude={marker.longitude}
-            latitude={marker.latitude}
-            anchor="bottom"
-            draggable
-            onDragEnd={(event) => {
-              const point = {
-                longitude: event.lngLat.lng,
-                latitude: event.lngLat.lat
-              };
-
-              setMarker(point);
-              setManualCoords({
-                longitude: event.lngLat.lng.toFixed(6),
-                latitude: event.lngLat.lat.toFixed(6)
-              });
-
-              // Update GeoJSON for the dragged point
-              const pointGeoJSON = {
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [event.lngLat.lng, event.lngLat.lat]
-                }
-              };
-
-              setGeoJSON(pointGeoJSON);
-            }}
-          >
-            <MapPin color="#FF0000" size={24} />
-          </Marker>
-        )}
-
-        {/* Display polygon if in polygon mode and there are points */}
-        {selectionMode === 'polygon' && polygonPoints.length > 0 && (
+        {/* Render GeoJSON data */}
+        {geoJSON && geoJSON.geometry && (
           <>
-            {/* Render the polygon */}
-            <Source id="polygon" type="geojson" data={polygonGeoJSON}>
-              <Layer
-                id="polygon-fill"
-                type="fill"
-                paint={{
-                  'fill-color': '#0080ff',
-                  'fill-opacity': 0.3
-                }}
-              />
-              <Layer
-                id="polygon-outline"
-                type="line"
-                paint={{
-                  'line-color': '#0080ff',
-                  'line-width': 2
-                }}
-              />
-            </Source>
-
-            {/* Render markers for each vertex */}
-            {polygonPoints.map((point, index) => (
-              <Marker
-                key={index}
-                longitude={point.longitude}
-                latitude={point.latitude}
-                anchor="center"
-              >
-                <div style={{
-                  width: '12px',
-                  height: '12px',
-                  backgroundColor: index === 0 ? '#00FF00' : '#0080ff',
-                  borderRadius: '50%',
-                  border: '2px solid white'
-                }} />
-              </Marker>
-            ))}
+            {/* Render point markers */}
+            {geoJSON.geometry.type === 'Point' && renderPointMarker(geoJSON.geometry.coordinates)}
+            
+            {/* Render polygon/line layers */}
+            {renderGeometryLayers()}
           </>
         )}
       </Map>
 
-      {/* Mode selection toggle and controls */}
-      <div style={{
-        position: 'absolute',
-        top: '20px',
-        left: '20px',
-        background: 'white',
-        padding: '10px',
-        borderRadius: '4px',
-        boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-        zIndex: 1
-      }}>
-        <div className="flex flex-col gap-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Selection Mode:</label>
-            <div className="relative inline-block w-12 align-middle select-none">
-              <input
-                type="checkbox"
-                name="toggle"
-                id="toggle"
-                checked={selectionMode === 'polygon'}
-                onChange={toggleSelectionMode}
-                className="hidden"
-              />
-              <label
-                htmlFor="toggle"
-                className={`block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer 
-                  ${selectionMode === 'polygon' ? 'bg-blue-500' : ''}`}
-                style={{ width: '3rem' }}
-              >
-                <span
-                  className={`bg-white block h-5 w-5 rounded-full transform transition-transform duration-200 ease-in 
-                    ${selectionMode === 'polygon' ? 'translate-x-6' : 'translate-x-0'}`}
-                  style={{ margin: '0.125rem' }}
-                ></span>
-              </label>
-            </div>
-            <div className="ml-2 text-sm">
-              {selectionMode === 'point' ? (
-                <div className="flex items-center">
-                  <MapPin size={16} className="mr-1" /> Point
-                </div>
-              ) : (
-                <div className="flex items-center">
-                  <Square size={16} className="mr-1" /> Polygon
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Show polygon controls only in polygon mode */}
-          {selectionMode === 'polygon' && (
-            <div className="flex gap-2">
-              <button
-                onClick={completePolygon}
-                disabled={polygonPoints.length < 3}
-                className={`bg-green-800 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
-                  ${polygonPoints.length < 3 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-green-700'}`}
-              >
-                Complete Polygon
-              </button>
-              <button
-                onClick={resetPolygon}
-                disabled={polygonPoints.length === 0}
-                className={`bg-red-700 text-white border-none py-1 px-3 rounded text-sm cursor-pointer transition-colors
-                  ${polygonPoints.length === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-600'}`}
-              >
-                Reset
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Coordinate input form - only show in point mode */}
-      {selectionMode === 'point' && (
-        <div style={{
-          position: 'absolute',
-          bottom: '20px',
-          left: '20px',
-          background: 'white',
-          padding: '10px',
-          borderRadius: '4px',
-          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-          zIndex: 1
-        }}>
-          <div className="flex flex-col sm:flex-row items-start gap-3">
-            <div className="w-full sm:w-auto">
-              <label className="block text-xs mb-1">
-                Latitude:
-              </label>
-              <input
-                type="text"
-                name="latitude"
-                value={manualCoords.latitude}
-                onChange={handleCoordChange}
-                className="w-full sm:w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="w-full sm:w-auto">
-              <label className="block text-xs mb-1">
-                Longitude:
-              </label>
-              <input
-                type="text"
-                name="longitude"
-                value={manualCoords.longitude}
-                onChange={handleCoordChange}
-                className="w-full sm:w-32 px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
-
-            <div className="w-full sm:w-auto self-end mt-4 sm:mt-0">
-              <button
-                onClick={handleSetCoordinates}
-                className="w-full sm:w-auto bg-blue-500 text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors"
-              >
-                Set Location
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* GeoJSON Output Display (useful for debugging) */}
+      {/* GeoJSON Info Display */}
       {geoJSON && (
         <div style={{
           position: 'absolute',
-          bottom: selectionMode === 'point' ? '100px' : '20px',
+          top: '20px',
           left: '20px',
           background: 'white',
           padding: '10px',
           borderRadius: '4px',
           boxShadow: '0 0 10px rgba(0,0,0,0.1)',
           zIndex: 1,
-          maxWidth: '300px',
-          maxHeight: '150px',
-          overflow: 'auto'
+          maxWidth: '300px'
         }}>
-          <div className="text-xs font-mono">
-            <div className="font-bold mb-1">GeoJSON:</div>
-            <pre>{JSON.stringify(geoJSON, null, 2)}</pre>
+          <div className="text-sm">
+            <div className="font-bold mb-2">GeoJSON Type: {geoJSON.geometry?.type}</div>
+            {geoJSON.geometry?.type === 'Point' && (
+              <div className="text-xs">
+                <div>Lat: {geoJSON.geometry.coordinates[1].toFixed(6)}</div>
+                <div>Lng: {geoJSON.geometry.coordinates[0].toFixed(6)}</div>
+              </div>
+            )}
+            {(geoJSON.geometry?.type === 'Polygon' || geoJSON.geometry?.type === 'MultiPolygon') && (
+              <div className="text-xs">
+                Polygon with {geoJSON.geometry.type === 'Polygon' 
+                  ? geoJSON.geometry.coordinates[0].length - 1 
+                  : 'multiple'} vertices
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* No data message */}
+      {!geoJSON && (
+        <div style={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          background: 'white',
+          padding: '20px',
+          borderRadius: '4px',
+          boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+          zIndex: 1,
+          textAlign: 'center'
+        }}>
+          <div className="text-gray-500">
+            No GeoJSON data to display
           </div>
         </div>
       )}
@@ -425,4 +237,4 @@ const MapComponent = ({ updateGeoJSON }: Props) => {
   );
 };
 
-export default MapComponent;
+export default MapDisplayComponent;

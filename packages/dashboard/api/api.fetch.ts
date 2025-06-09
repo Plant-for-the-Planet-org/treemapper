@@ -148,6 +148,12 @@ export const createNewIntervention = async (token: string, params: any, prjId: s
   return result;
 };
 
+export const getProjectIntervention = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getProjectIntervnetion}/${id}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 
 
 
