@@ -33,19 +33,12 @@ import {
   Zap
 } from 'lucide-react';
 import useProjectStore from '../../../store/useProjectStore';
-import { getUserProjectSites } from '../../../api/api.fetch';
+import { createNewIntervention, getUserProjectSites } from '../../../api/api.fetch';
 import { useToken } from '../../../context/TokenContext';
 import { toast } from 'react-toastify'
-
-
-
-const mockSpecies = [
-  { uid: "sp1", name: "Quercus alba (White Oak)" },
-  { uid: "sp2", name: "Pinus strobus (Eastern White Pine)" },
-  { uid: "sp3", name: "Acer saccharum (Sugar Maple)" },
-  { uid: "sp4", name: "Fagus grandifolia (American Beech)" },
-  { uid: "sp5", name: "Tsuga canadensis (Eastern Hemlock)" }
-];
+import { getSciencetificSpecies } from '../../../api/api.fetch'
+import ProjectMap from './web/ProjectSelectMap copy'
+import GeoJSONFileUpload from './web/GeoJSONfileupload'
 
 // Validation configuration - centralized for easy modification
 const VALIDATION_CONFIG = {
@@ -115,18 +108,6 @@ const interventionConfigurations = {
     icon: <TreePine className="w-5 h-5" />,
     color: 'teal'
   },
-  'sample-tree-registration': {
-    allowsSpecies: true,
-    allowsMultipleSpecies: false,
-    requiresSpecies: true,
-    allowsTreeRegistration: true,
-    requiresTreeRegistration: true,
-    allowsSampleTrees: true,
-    geoJSONType: 'Point',
-    description: 'Sample tree registration allows single species and requires tree registration',
-    icon: <MousePointer className="w-5 h-5" />,
-    color: 'indigo'
-  },
   'single-tree-registration': {
     allowsSpecies: true,
     allowsMultipleSpecies: false,
@@ -183,17 +164,6 @@ const interventionConfigurations = {
     icon: <Zap className="w-5 h-5" />,
     color: 'yellow'
   },
-  'generic-tree-registration': {
-    allowsSpecies: true,
-    allowsMultipleSpecies: true,
-    requiresSpecies: false,
-    allowsTreeRegistration: true,
-    requiresTreeRegistration: true,
-    allowsSampleTrees: false,
-    description: 'Generic tree registration for existing trees',
-    icon: <FileText className="w-5 h-5" />,
-    color: 'gray'
-  },
   'grass-suppression': {
     allowsSpecies: false,
     allowsMultipleSpecies: false,
@@ -249,17 +219,6 @@ const interventionConfigurations = {
     icon: <MoreHorizontal className="w-5 h-5" />,
     color: 'slate'
   },
-  'plot-plant-registration': {
-    allowsSpecies: true,
-    allowsMultipleSpecies: true,
-    requiresSpecies: false,
-    allowsTreeRegistration: true,
-    requiresTreeRegistration: false,
-    allowsSampleTrees: false,
-    description: 'Plot-based plant registration',
-    icon: <Grid3X3 className="w-5 h-5" />,
-    color: 'violet'
-  },
   'soil-improvement': {
     allowsSpecies: false,
     allowsMultipleSpecies: false,
@@ -283,8 +242,8 @@ const interventionConfigurations = {
     color: 'red'
   },
   'assisting-seed-rain': {
-    allowsSpecies: true,
-    allowsMultipleSpecies: true,
+    allowsSpecies: false,
+    allowsMultipleSpecies: false,
     requiresSpecies: false,
     allowsTreeRegistration: false,
     requiresTreeRegistration: false,
@@ -307,16 +266,7 @@ const interventionConfigurations = {
 };
 
 // Mock API functions
-const searchSpecies = async (query) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const filtered = mockSpecies.filter(species =>
-        species.name.toLowerCase().includes(query.toLowerCase())
-      );
-      resolve(filtered);
-    }, 300);
-  });
-};
+
 
 const InterventionCreator = () => {
   // Form state
@@ -351,13 +301,14 @@ const InterventionCreator = () => {
   const { selectedProject, projects } = useProjectStore(state => state)
   const [availableSites, setAvailablesites] = useState([])
   const { accessToken } = useToken()
-
+  const [finalGeoJSON, setFinalGeoJSON] = useState(null)
   const [fetchingSites, setFetchingSites] = useState(false)
 
   // Get current intervention config
   const currentConfig = interventionConfigurations[formData.interventionType];
 
   // Get available sites for selected project
+
 
   // Debounced species search
   const debounceSearch = useCallback(
@@ -394,6 +345,18 @@ const InterventionCreator = () => {
     }
   }, [])
 
+  const updateGeoJSON = (geoJSONData) => {
+    setFinalGeoJSON(geoJSONData);
+  };
+
+  const handleGeoJSONChange = (geoJson) => {
+    if (geoJson) {
+      setFinalGeoJSON(geoJson);
+    } else {
+      setFinalGeoJSON(null);
+    }
+  };
+
   const fetchProjectSites = async () => {
     setFetchingSites(true)
     const response = await getUserProjectSites(accessToken || '', selectedProject?.uid)
@@ -406,6 +369,19 @@ const InterventionCreator = () => {
     setAvailablesites(mappedResponse)
     setFetchingSites(false)
   }
+
+  const searchSpecies = async (query) => {
+    const response = await getSciencetificSpecies(accessToken || '', query);
+    if (response.statusCode !== 200) {
+      if (response.message) {
+        toast.error(String(response.message));
+      } else {
+        toast.error('An unexpected error occurred. Please try again later.');
+      }
+      return [];
+    }
+    return response.data
+  };
 
   // Validation functions
   const validateForm = () => {
@@ -422,7 +398,7 @@ const InterventionCreator = () => {
     }
 
     // GeoJSON validation
-    if (!formData.applyToEntireSite && !formData.geoJSON && !formData.geoJSONFile) {
+    if (!formData.applyToEntireSite && !finalGeoJSON) {
       newErrors.location = 'Location must be defined (map selection or file upload)';
     }
 
@@ -433,12 +409,16 @@ const InterventionCreator = () => {
 
     // Tree registration validation
     if (currentConfig.allowsTreeRegistration && formData.interventionType === 'single-tree-registration') {
-      if (!formData.treeDetails.tag.trim()) {
-        newErrors.treeTag = 'Tree tag is required for single tree registration';
-      }
+
       if (formData.treeDetails.tag.length > VALIDATION_CONFIG.treeTag.maxLength) {
         newErrors.treeTag = `Tree tag must not exceed ${VALIDATION_CONFIG.treeTag.maxLength} characters`;
       }
+      // if (formData.treeDetails.height !== '0' || formData.treeDetails.height.trim().length > 0) {
+      //   newErrors. = `Tree height validation error`;
+      // }
+      // if (formData.treeDetails.width !== '0' || formData.treeDetails.width.trim().length > 0) {
+      //   newErrors.treeTag = `Tree tag must not exceed ${VALIDATION_CONFIG.treeTag.maxLength} characters`;
+      // }
     }
 
     // Description validation
@@ -450,16 +430,19 @@ const InterventionCreator = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // Event handlers
+
   const handleSpeciesSelect = (species) => {
+    // Add default tree count when selecting a species
+    const speciesWithCount = { ...species, treeCount: 1 };
+
     if (!currentConfig.allowsMultipleSpecies && formData.species.length > 0) {
-      setFormData(prev => ({ ...prev, species: [species] }));
+      setFormData(prev => ({ ...prev, species: [speciesWithCount] }));
     } else {
       const exists = formData.species.find(s => s.uid === species.uid);
       if (!exists) {
         setFormData(prev => ({
           ...prev,
-          species: [...prev.species, species]
+          species: [...prev.species, speciesWithCount]
         }));
       }
     }
@@ -473,6 +456,48 @@ const InterventionCreator = () => {
       species: prev.species.filter(s => s.uid !== speciesUid)
     }));
   };
+
+  // New handler for updating tree count for regular species
+  const handleUpdateTreeCount = (speciesUid, c) => {
+    let newCount = c;
+    if (formData.interventionType === 'single-tree-registration') {
+      newCount = 1
+      toast.warning("To add more trees change to  Multi Tree Registration")
+    }
+    setFormData(prev => ({
+      ...prev,
+      species: prev.species.map(species =>
+        species.uid === speciesUid
+          ? { ...species, treeCount: Math.max(1, newCount) }
+          : species
+      )
+    }));
+  };
+
+  // New handler for updating tree count for unknown species
+  const handleUpdateUnknownTreeCount = (speciesUid, newCount) => {
+    setFormData(prev => ({
+      ...prev,
+      unknownSpecies: prev.unknownSpecies.map(species =>
+        species.uid === speciesUid
+          ? { ...species, treeCount: Math.max(1, newCount) }
+          : species
+      )
+    }));
+  };
+
+  // Updated handler for unknown species to include default tree count
+  const handleUnknownSpeciesSubmit = (unknownSpeciesData) => {
+    const speciesWithCount = { ...unknownSpeciesData, treeCount: 1 };
+
+    setFormData(prev => ({
+      ...prev,
+      unknownSpecies: [...prev.unknownSpecies, speciesWithCount]
+    }));
+    setShowUnknownSpecies(false);
+  };
+
+  // Event handlers
 
   const handleAddUnknownSpecies = () => {
     if (unknownSpeciesName.trim()) {
@@ -545,36 +570,128 @@ const InterventionCreator = () => {
     setErrors(newErrors);
   };
 
-  // Mock function to simulate map component data
-  const updateGeoJSON = (geoJSONData) => {
-    setFormData(prev => ({ ...prev, geoJSON: geoJSONData }));
-  };
 
-  const handleSubmit = (event) => {
+  function validateTreeHeight(height, label) {
+    // Convert to number and check if it's a valid number
+    const numHeight = parseFloat(height);
+
+    // Check if it's not a number or is NaN
+    if (isNaN(numHeight)) {
+      return {
+        isValid: false,
+        error: label + " must be a valid number"
+      };
+    }
+
+    // Check if it has more than 2 decimal places
+    const decimalPlaces = (height.toString().split('.')[1] || '').length;
+    if (decimalPlaces > 2) {
+      return {
+        isValid: false,
+        error: label + " can have maximum 2 decimal places"
+      };
+    }
+
+    // Check if height is 0 or negative
+    if (numHeight <= 0) {
+      return {
+        isValid: false,
+        error: label + " must be greater than 0"
+      };
+    }
+
+    // Check maximum height (assuming 200m is reasonable max for trees)
+    if (numHeight > 200) {
+      return {
+        isValid: false,
+        error: label + " cannot exceed 200 meters"
+      };
+    }
+
+    // If all validations pass
+    return {
+      isValid: true,
+      value: numHeight
+    };
+  }
+
+
+
+
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (!validateForm()) {
       return;
     }
 
-    // Prepare submission data
-    const submissionData = {
-      projectId: formData.projectId,
-      siteId: formData.siteId,
-      interventionType: formData.interventionType,
-      species: [...formData.species, ...formData.unknownSpecies],
-      description: formData.description,
-      geoJSON: formData.applyToEntireSite ? null : (formData.geoJSON || formData.geoJSONFile),
-      applyToEntireSite: formData.applyToEntireSite,
-      treeDetails: currentConfig.allowsTreeRegistration ? formData.treeDetails : null,
-      image: formData.image,
-      registrationDate: new Date().toISOString(),
-      captureMode: 'off_site',
-      captureStatus: 'complete'
-    };
+    let validatedHeight = validateTreeHeight(formData.treeDetails.height, 'Height');
+    let validatedWidth = validateTreeHeight(formData.treeDetails.width, 'Width');
 
-    console.log('Intervention submission data:', submissionData);
+    if (formData.interventionType === 'single-tree-registration' && validatedHeight.error) {
+      toast.error(validatedHeight.error)
+      return
+    }
+    if (formData.interventionType === 'single-tree-registration' && validatedWidth.error) {
+      toast.error(validatedWidth.error)
+      return
+    }
+
+    let payload = {
+      type: formData.interventionType,
+      captureMode: 'off-site',
+      deviceLocation: {},
+      geometry: finalGeoJSON,
+      registrationDate: new Date(),
+      metadata: { app: {}, public: {}, private: {} },
+      plantProject: selectedProject?.uid,
+      interventionStartDate: formData.treeDetails.plantingDate,
+      interventionEndDate: formData.treeDetails.plantingDate,
+    }
+
+
+    if (formData.siteId) {
+      payload["plantProjectSite"] = formData.siteId
+    }
+
+    const knownSpecies = [...formData.species, ...formData.unknownSpecies]
+    console.log("SDC", knownSpecies)
+    if (formData.interventionType === 'single-tree-registration' && knownSpecies[0].id) {
+      payload["scientificSpecies"] = knownSpecies[0].id
+    }
+
+    if (formData.interventionType === 'single-tree-registration' && !knownSpecies[0].id) {
+      payload["otherSpecies"] = knownSpecies[0].name
+    }
+
+
+
+    if (formData.interventionType === 'multi-tree-registration' || formData.interventionType === 'enrichement-planting') {
+      payload["plantedSpecies"] = knownSpecies.map(el => {
+        let miniPayload = {}
+        if (el.id) {
+          miniPayload['scientificSpeciesId'] = el.id
+        }
+        if (!el.id) {
+          miniPayload['isUnknown'] = true
+          miniPayload["customSpeciesName"] = el.name
+        }
+        return ({
+          plantedCount: el.treeCount || 1,
+          ...miniPayload
+        })
+      })
+    }
+
+
+    console.log('Intervention submission data:', payload);
     // Here you would make the API call to create the intervention
+    const response = await createNewIntervention(accessToken || '', payload, selectedProject?.uid)
+    if (response.statusCode === 200 || response.statusCode === 201) {
+      toast.success("New Intervention added")
+    } else {
+      toast.error(String(response.message) || 'Something went wrong')
+    }
   };
 
   if (!selectedProject) {
@@ -667,7 +784,7 @@ const InterventionCreator = () => {
                   className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 ${!formData.projectId ? 'bg-slate-100/50' : 'bg-white/50'
                     } ${errors.siteId ? 'border-red-300' : 'border-slate-200'}`}
                 >
-                  <option value="">Select a site</option>
+                  <option value="">{fetchingSites ? "Loading sites..." : availableSites.length === 0 ? "No sites found" : "Select site"}</option>
                   {availableSites.map(site => (
                     <option key={site.id} value={site.id}>{site.name}</option>
                   ))}
@@ -728,14 +845,17 @@ const InterventionCreator = () => {
                     name="interventionType"
                     value={key}
                     checked={formData.interventionType === key}
-                    onChange={(e) => setFormData(prev => ({
-                      ...prev,
-                      interventionType: e.target.value,
-                      species: [],
-                      unknownSpecies: [],
-                      geoJSON: null,
-                      geoJSONFile: null
-                    }))}
+                    onChange={(e) => {
+                      setFinalGeoJSON(null)
+                      setFormData(prev => ({
+                        ...prev,
+                        interventionType: e.target.value,
+                        species: [],
+                        unknownSpecies: [],
+                        geoJSON: null,
+                        geoJSONFile: null
+                      }))
+                    }}
                     className="sr-only"
                   />
                   <div className={`p-4 rounded-xl border-2 transition-all duration-200 ${formData.interventionType === key
@@ -782,7 +902,6 @@ const InterventionCreator = () => {
             )}
           </div>
 
-          {/* Species Selection */}
           {currentConfig.allowsSpecies && (
             <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
               <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
@@ -820,22 +939,6 @@ const InterventionCreator = () => {
                 </div>
 
                 {/* Search Results */}
-                {speciesResults.length > 0 && (
-                  <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
-                    {speciesResults.map(species => (
-                      <button
-                        key={species.uid}
-                        type="button"
-                        onClick={() => handleSpeciesSelect(species)}
-                        className="w-full px-4 py-3 text-left hover:bg-emerald-50 flex items-center gap-3 transition-colors duration-150"
-                      >
-                        <Leaf className="w-4 h-4 text-emerald-500" />
-                        <span className="text-slate-700">{species.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
-
                 {speciesSearch.length > 0 && speciesResults.length === 0 && !isSearching && (
                   <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-xl p-4">
                     <p className="text-slate-500 text-sm">No species found. Try using the "Unknown Species" option.</p>
@@ -845,38 +948,112 @@ const InterventionCreator = () => {
 
               {/* Unknown Species Modal */}
 
-
-              {/* Selected Species */}
+              {/* Selected Species Table */}
               {(formData.species.length > 0 || formData.unknownSpecies.length > 0) && (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <p className="text-sm font-semibold text-slate-700">Selected Species:</p>
-                  <div className="flex flex-wrap gap-2">
-                    {formData.species.map(species => (
-                      <div key={species.uid} className="flex items-center gap-2 bg-gradient-to-r from-emerald-100 to-green-100 text-emerald-800 px-4 py-2 rounded-full border border-emerald-200">
-                        <Leaf className="w-3 h-3" />
-                        <span className="text-sm font-medium">{species.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveSpecies(species.uid)}
-                          className="hover:text-emerald-600 transition-colors duration-150"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl border border-slate-200/60 overflow-hidden">
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead className="bg-slate-50/80">
+                          <tr>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Species</th>
+                            <th className="px-6 py-4 text-left text-xs font-semibold text-slate-600 uppercase tracking-wider">Trees Planted</th>
+                            <th className="px-6 py-4 text-center text-xs font-semibold text-slate-600 uppercase tracking-wider">Action</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200/60">
+                          {formData.species.map((species, index) => (
+                            <tr key={species.uid} className="hover:bg-emerald-50/50 transition-colors duration-150">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-emerald-100 rounded-full flex items-center justify-center">
+                                    <Leaf className="w-4 h-4 text-emerald-600" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-900">{species.scientificName}</p>
+                                    {species.commonName && (
+                                      <p className="text-xs text-slate-500">{species.commonName}</p>
+                                    )}
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="w-24">
+                                  <input
+                                    type="number"
+                                    value={species.treeCount}
+                                    onChange={(e) => handleUpdateTreeCount(species.uid, parseInt(e.target.value))}
+                                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200"
+                                  />
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveSpecies(species.uid)}
+                                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                                  title="Remove species"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                          {formData.unknownSpecies.map((species, index) => (
+                            <tr key={species.uid} className="hover:bg-amber-50/50 transition-colors duration-150">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-amber-100 rounded-full flex items-center justify-center">
+                                    <AlertTriangle className="w-4 h-4 text-amber-600" />
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-medium text-slate-900">{species.name}</p>
+                                    <p className="text-xs text-amber-600">Unknown species</p>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="w-24">
+                                  <input
+                                    type="number"
+                                    min="1"
+                                    value={species.treeCount || 1}
+                                    onChange={(e) => handleUpdateUnknownTreeCount(species.uid, parseInt(e.target.value) || 1)}
+                                    className="w-full px-3 py-2 text-sm border border-slate-200 rounded-lg focus:ring-2 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200"
+                                  />
+                                </div>
+                              </td>
+                              <td className="px-6 py-4 text-center">
+                                <button
+                                  type="button"
+                                  onClick={() => handleRemoveUnknownSpecies(species.uid)}
+                                  className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all duration-150"
+                                  title="Remove species"
+                                >
+                                  <X className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Summary */}
+                    <div className="px-6 py-4 bg-slate-50/50 border-t border-slate-200/60">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-slate-600">
+                          Total Species: {formData.species.length + formData.unknownSpecies.length}
+                        </span>
+                        <span className="font-semibold text-slate-900">
+                          Total Trees: {
+                            [...formData.species, ...formData.unknownSpecies]
+                              .reduce((sum, species) => sum + (species.treeCount || 1), 0)
+                          }
+                        </span>
                       </div>
-                    ))}
-                    {formData.unknownSpecies.map(species => (
-                      <div key={species.uid} className="flex items-center gap-2 bg-gradient-to-r from-amber-100 to-orange-100 text-amber-800 px-4 py-2 rounded-full border border-amber-200">
-                        <AlertTriangle className="w-3 h-3" />
-                        <span className="text-sm font-medium">{species.name}</span>
-                        <button
-                          type="button"
-                          onClick={() => handleRemoveUnknownSpecies(species.uid)}
-                          className="hover:text-amber-600 transition-colors duration-150"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
+                    </div>
                   </div>
                 </div>
               )}
@@ -887,6 +1064,22 @@ const InterventionCreator = () => {
                   {errors.species}
                 </p>
               )}
+            </div>
+          )}
+
+          {speciesResults.length > 0 && (
+            <div className="absolute z-20 w-full mt-2 bg-white/95 backdrop-blur-sm border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto transform -translate-y-full transition-transform duration-300" style={{ marginTop: 100 }}>
+              {speciesResults.map(species => (
+                <button
+                  key={species.uid}
+                  type="button"
+                  onClick={() => handleSpeciesSelect(species)}
+                  className="w-full px-4 py-3 text-left hover:bg-emerald-50 flex items-center gap-3 transition-colors duration-150"
+                >
+                  <Leaf className="w-4 h-4 text-emerald-500" />
+                  <span className="text-slate-700">{species.scientificName}</span>
+                </button>
+              ))}
             </div>
           )}
 
@@ -903,17 +1096,12 @@ const InterventionCreator = () => {
               <div className="space-y-6">
                 {/* Map Component Placeholder */}
                 <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
-                  <MapPin className="w-12 h-12 text-slate-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-semibold text-slate-900 mb-2">Interactive Map</h3>
-                  <p className="text-slate-600 mb-6">
-                    {currentConfig.geoJSONType === 'Point'
-                      ? 'Click on the map to set a point location'
-                      : 'Draw a polygon on the map to define the intervention area'
-                    }
-                  </p>
-                  {/* Your map component will replace this div */}
-                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-64 rounded-xl flex items-center justify-center border border-blue-200">
-                    <p className="text-slate-600 font-medium">Map Component Goes Here</p>
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-80 rounded-xl flex items-center justify-center border border-blue-200">
+                    <ProjectMap
+                      updateGeoJSON={updateGeoJSON}
+                      uploadedGeoJSON={finalGeoJSON}
+                      interventionType={formData.interventionType}
+                    />
                   </div>
                 </div>
 
@@ -926,10 +1114,7 @@ const InterventionCreator = () => {
 
                 {/* File Upload */}
                 <div
-                  className={`border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200 ${isDragOver
-                    ? 'border-emerald-400 bg-emerald-50 scale-102'
-                    : 'border-slate-300 bg-gradient-to-br from-slate-50 to-slate-100'
-                    } ${errors.geoJSONFile ? 'border-red-300' : ''}`}
+                  className={'border-2 border-dashed rounded-2xl p-8 text-center transition-all duration-200'}
                   onDragOver={(e) => {
                     e.preventDefault();
                     setIsDragOver(true);
@@ -937,28 +1122,11 @@ const InterventionCreator = () => {
                   onDragLeave={() => setIsDragOver(false)}
                   onDrop={handleFileDrop}
                 >
-                  <Upload className="w-10 h-10 text-slate-400 mx-auto mb-4" />
-                  <p className="text-slate-700 font-semibold mb-2">Upload GeoJSON file</p>
-                  <p className="text-sm text-slate-500 mb-6">
-                    Drag and drop your file here, or click to browse
-                  </p>
-                  <input
-                    type="file"
-                    accept=".geojson,.json"
-                    onChange={handleFileUpload}
-                    className="hidden"
-                    id="geojson-upload"
+                  <GeoJSONFileUpload
+                    onGeoJSONChange={handleGeoJSONChange}
+                    maxAreaHa={500}
+                    className=""
                   />
-                  <label
-                    htmlFor="geojson-upload"
-                    className="inline-flex items-center px-6 py-3 bg-white border-2 border-slate-200 rounded-xl text-sm font-semibold text-slate-700 hover:bg-slate-50 hover:border-slate-300 cursor-pointer transition-all duration-200 shadow-sm hover:shadow-md"
-                  >
-                    <FileText className="w-4 h-4 mr-2" />
-                    Choose File
-                  </label>
-                  <p className="text-xs text-slate-500 mt-3">
-                    Maximum file size: {VALIDATION_CONFIG.fileSize.maxMB}MB
-                  </p>
                 </div>
 
                 {/* File Preview */}
@@ -1013,7 +1181,7 @@ const InterventionCreator = () => {
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-3">
-                      Tree Tag <span className="text-red-500">*</span>
+                      Tree Tag
                     </label>
                     <input
                       type="text"
@@ -1053,7 +1221,7 @@ const InterventionCreator = () => {
 
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-3">
-                      Height (cm)
+                      Height (m)
                     </label>
                     <input
                       type="number"
@@ -1095,14 +1263,10 @@ const InterventionCreator = () => {
                       Number of Trees Planted <span className="text-red-500">*</span>
                     </label>
                     <input
-                      type="number"
-                      value={formData.treeDetails.count}
-                      onChange={(e) => setFormData(prev => ({
-                        ...prev,
-                        treeDetails: { ...prev.treeDetails, count: parseInt(e.target.value) || 0 }
-                      }))}
+                      value={[...formData.species, ...formData.unknownSpecies]
+                        .reduce((sum, species) => sum + (species.treeCount || 1), 0)}
+                      disabled
                       placeholder="Enter number of trees"
-                      min="1"
                       className="w-full px-4 py-3 border-2 border-amber-200 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200 bg-white/60"
                     />
                   </div>
@@ -1133,12 +1297,12 @@ const InterventionCreator = () => {
               <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
                 <FileText className="w-4 h-4 text-indigo-600" />
               </div>
-              Description
+              Details (Optional)
             </h2>
             <textarea
               value={formData.description}
               onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="Describe the intervention activities, goals, and any relevant details..."
+              placeholder="Describe the intervention or any relevant details..."
               maxLength={VALIDATION_CONFIG.description.maxLength}
               rows={5}
               className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 resize-none bg-white/50 ${errors.description ? 'border-red-300' : 'border-slate-200'
@@ -1216,7 +1380,7 @@ const InterventionCreator = () => {
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
               <button
                 type="button"
-                className="w-full sm:w-auto px-8 py-3 border-2 border-slate-300 rounded-xl text-slate-700 font-semibold hover:bg-slate-50 hover:border-slate-400 transition-all duration-200"
+                className="w-full sm:w-auto px-8 py-3  rounded-xl text-slate-700 font-semibold "
                 onClick={() => {
                   // Reset form or navigate back
                   if (window.confirm('Are you sure you want to cancel? All changes will be lost.')) {
@@ -1225,19 +1389,18 @@ const InterventionCreator = () => {
                   }
                 }}
               >
-                Cancel
               </button>
 
               <div className="flex flex-col sm:flex-row items-center gap-4">
                 <button
                   type="button"
-                  className="w-full sm:w-auto px-8 py-3 border-2 border-emerald-600 text-emerald-600 rounded-xl font-semibold hover:bg-emerald-50 hover:border-emerald-700 transition-all duration-200"
+                  className="w-full sm:w-auto px-8 py-3 border-2 border-slate-300 text-slate-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-emerald-700 transition-all duration-200"
                   onClick={() => {
                     // Save as draft functionality
                     console.log('Saving as draft...');
                   }}
                 >
-                  Save as Draft
+                  Cancel
                 </button>
 
                 <button

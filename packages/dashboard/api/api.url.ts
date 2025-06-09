@@ -11,6 +11,7 @@ export const postUrlApi = {
     createPersonalProject: `${baseUrl}/api/projects/personal`,
     startMigration: `${baseUrl}/api/migration/start`,
     createNewDashboardSite: `${baseUrl}/api/projects`,
+    createNewIntervention:`${baseUrl}/api/interventions/projects`,
 }
 
 export const getUrlApi = {

@@ -142,6 +142,11 @@ export const createNewDashboardSite = async (token: string, params: any, prjId: 
 
 
 
+export const createNewIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
 
 
 
