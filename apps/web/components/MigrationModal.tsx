@@ -58,11 +58,10 @@ const MigrationModal = () => {
                     setShowModal(true);
                     setPlanetId(response.data.planetId)
                 } else {
-                    await finalizeMigration();
+                    updateUser({ migratedAt: new Date().toISOString() });
                 }
             }
         } catch (error) {
-            console.error('Error checking migration:', error);
             setError('Failed to check migration status');
         }
     };
@@ -72,7 +71,7 @@ const MigrationModal = () => {
             setMigrationState('starting');
             setError(null);
             const responseCheck = await checkMigrationStatusBackend(accessToken || '')
-            if (responseCheck.data && responseCheck.data !== null) {
+            if (responseCheck && responseCheck.data && responseCheck.data.migrationFound) {
                 setMigrationData(responseCheck.data);
                 setMigrationState('in_progress');
                 startStatusPolling();
@@ -85,8 +84,6 @@ const MigrationModal = () => {
 
             setMigrationData(response.data);
             setMigrationState('in_progress');
-
-            // Start polling for status updates
             startStatusPolling();
 
         } catch (error) {
@@ -107,9 +104,9 @@ const MigrationModal = () => {
             if (data.currentStep === 'completed') {
                 setMigrationState('completed');
                 stopStatusPolling();
-                await finalizeMigration();
-            } else if (data.currentStep === 'stopped') {
-                setMigrationState('stopped');
+                updateUser({ migratedAt: new Date().toISOString() });
+            } else if (data.currentStep === 'failed') {
+                setMigrationState('failed');
                 setStoppedCount(prev => prev + 1);
 
                 if (stoppedCount >= 2) { // Will be 3 after increment
@@ -140,16 +137,6 @@ const MigrationModal = () => {
         }
     };
 
-    const finalizeMigration = async () => {
-        try {
-            const response = await updateUserMigrate(accessToken || '', {});
-            if (response && response.data) {
-                updateUser({ migratedAt: new Date().toISOString() });
-            }
-        } catch (error) {
-            console.error("Failed to finalize migration:", error);
-        }
-    };
 
     const handleRetryMigration = () => {
         setMigrationState('idle');
@@ -185,7 +172,7 @@ const MigrationModal = () => {
     if (!showModal) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{zIndex:1000}}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
             {/* Backdrop */}
             <motion.div
                 initial={{ opacity: 0 }}
@@ -390,9 +377,9 @@ const MigrationModal = () => {
                     )}
 
                     {/* Migration Stopped */}
-                    {migrationState === 'stopped' && (
+                    {migrationState === 'failed' && (
                         <motion.div
-                            key="stopped"
+                            key="failed"
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: -20 }}
@@ -415,7 +402,7 @@ const MigrationModal = () => {
                             {stoppedCount >= 3 ? (
                                 <div className="space-y-4">
                                     <p className="text-red-600 font-medium">
-                                        Migration has been stopped multiple times. Please contact our support team for assistance.
+                                        Migration has been failed multiple times. Please contact our support team for assistance.
                                     </p>
                                     <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                                         <Mail size={16} />
