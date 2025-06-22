@@ -1,10 +1,10 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Map, { Source, Layer } from 'react-map-gl/maplibre';
 import { AlertTriangle, MapPin } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
-import * as turf from '@turf/turf'
+import * as turf from '@turf/turf';
 
 const MapComponent = ({
   geoJsonData,
@@ -18,21 +18,22 @@ const MapComponent = ({
 }) => {
   const [mapError, setMapError] = useState(null);
   const [isValidGeoJson, setIsValidGeoJson] = useState(true);
-
-  // Validate GeoJSON data
-
+  const mapRef = useRef();
+  const prevGeoJsonRef = useRef();
 
   // Calculate bounds for the polygon to fit the view
-  const calculateBounds = useMemo(() => {
+  const calculateBounds = useCallback((geoJson) => {
     try {
-      const turf = require('@turf/turf');
+      if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        return initialViewState;
+      }
 
       // Get the bounding box of the feature collection
-      const bbox = turf.bbox(geoJsonData);
+      const bbox = turf.bbox(geoJson);
       const [minLng, minLat, maxLng, maxLat] = bbox;
 
       // Calculate center point
-      const center = turf.center(geoJsonData);
+      const center = turf.center(geoJson);
       const [longitude, latitude] = center.geometry.coordinates;
 
       // Calculate appropriate zoom level based on bounding box size
@@ -58,7 +59,48 @@ const MapComponent = ({
       console.error('Error calculating bounds with Turf:', error);
       return initialViewState;
     }
-  }, [geoJsonData, initialViewState]);
+  }, [initialViewState]);
+
+  // Update map view when geoJSON changes
+  useEffect(() => {
+    // Only update if geoJsonData actually changed
+    if (geoJsonData && 
+        mapRef.current && 
+        JSON.stringify(geoJsonData) !== JSON.stringify(prevGeoJsonRef.current)) {
+      
+      const newViewState = calculateBounds(geoJsonData);
+      
+      // Animate to new bounds
+      mapRef.current.flyTo({
+        center: [newViewState.longitude, newViewState.latitude],
+        zoom: newViewState.zoom,
+        duration: 1500,
+        essential: true
+      });
+
+      // Update the ref to track the current geoJSON
+      prevGeoJsonRef.current = geoJsonData;
+    }
+  }, [geoJsonData, calculateBounds]);
+
+  // Validate GeoJSON data
+  useEffect(() => {
+    if (geoJsonData) {
+      try {
+        // Basic validation - check if it's a valid GeoJSON structure
+        if (geoJsonData.type && (geoJsonData.type === 'FeatureCollection' || geoJsonData.type === 'Feature')) {
+          setIsValidGeoJson(true);
+        } else {
+          setIsValidGeoJson(false);
+        }
+      } catch (error) {
+        console.error('Invalid GeoJSON:', error);
+        setIsValidGeoJson(false);
+      }
+    } else {
+      setIsValidGeoJson(true); // Allow null/undefined geoJSON
+    }
+  }, [geoJsonData]);
 
   // Layer styles
   const polygonLayer = {
@@ -79,10 +121,10 @@ const MapComponent = ({
     }
   };
 
-  const handleMapError = (error) => {
+  const handleMapError = useCallback((error) => {
     console.error('Map error:', error);
     setMapError(error.message || 'Failed to load map');
-  };
+  }, []);
 
   // Error placeholder component
   const ErrorPlaceholder = ({ message }) => (
@@ -110,7 +152,7 @@ const MapComponent = ({
   );
 
   // Show error placeholder if GeoJSON is invalid
-  if (!isValidGeoJson) {
+  if (!isValidGeoJson && geoJsonData) {
     return <ErrorPlaceholder message="Invalid GeoJSON data provided" />;
   }
 
@@ -119,20 +161,25 @@ const MapComponent = ({
     return <ErrorPlaceholder message={mapError} />;
   }
 
+  // Calculate initial view state only if geoJSON exists
+  const currentViewState = geoJsonData ? calculateBounds(geoJsonData) : initialViewState;
+
   return (
     <div className="relative rounded-lg overflow-hidden border border-gray-200" style={{ width: '100%', height: '100%' }}>
       <Map
+        ref={mapRef}
         style={{ width: '100%', height: '40vh' }}
-        initialViewState={calculateBounds || initialViewState}
+        initialViewState={currentViewState}
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
-        onError={handleMapError}
         attributionControl={false}
+        reuseMaps
       >
-
-        <Source id="polygon-source" type="geojson" data={geoJsonData}>
-          <Layer {...polygonLayer} />
-          <Layer {...polygonOutlineLayer} />
-        </Source>
+        {geoJsonData && (
+          <Source id="polygon-source" type="geojson" data={geoJsonData}>
+            <Layer {...polygonLayer} />
+            <Layer {...polygonOutlineLayer} />
+          </Source>
+        )}
       </Map>
 
       {/* Attribution */}

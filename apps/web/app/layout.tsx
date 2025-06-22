@@ -4,17 +4,6 @@ import ResponsiveDashboardWrapper from '../components/ResponsiveDashboardWrapper
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
 
-export const metadata = {
-  title: {
-    default: 'TreeMapper Dashboard',
-    template: '%s | TreeMapper'
-  },
-  description: 'The free monitoring tool for forest restoration programs',
-  keywords: ['forest restoration', 'tree mapping', 'environmental monitoring'],
-  authors: [{ name: 'Plant for the Planet' }],
-  viewport: 'width=device-width, initial-scale=1',
-  themeColor: '#007A49',
-};
 
 export default function RootLayout({
   children,
@@ -49,7 +38,6 @@ export default function RootLayout({
           draggable
           pauseOnHover
           theme="light"
-          className="mt-16"
         />
         <Auth0Provider>
           <ResponsiveDashboardWrapper>

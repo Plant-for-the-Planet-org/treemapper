@@ -156,6 +156,20 @@ export const getProjectIntervention = async (token: string, id: string) => {
 
 
 
+//notification
+
+export const getMyNotification = async (token: string, page: number, limit: number) => {
+  const uri = `${getUrlApi.getMyNotification}?page=${page}&limit=${limit}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
+export const markNotificationRead = async (token: string) => {
+  const uri = `${patchUrlApi.markAllRead}`;
+  const result = await fetchPatchCall(uri, {}, token);
+  return result;
+};
 
 
 

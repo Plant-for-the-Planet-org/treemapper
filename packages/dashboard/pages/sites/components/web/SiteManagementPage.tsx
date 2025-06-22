@@ -136,6 +136,7 @@ const SiteManagementPage = () => {
           ? { ...editedSite, lastUpdate: new Date().toISOString().split('T')[0] }
           : site
       );
+      
       setSites(updatedSites);
       setSelectedSite(editedSite);
       setIsEditing(false);

@@ -4,7 +4,8 @@ import React, { useState, useRef } from 'react';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus } from 'lucide-react';
 import ProjectMap from './web/ProjectSelectMap';
 import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './web/GeoJSONfileupload';
-import {toast} from 'react-toastify'
+import { toast } from 'react-toastify'
+import { createNewProject } from '../../../api/api.fetch';
 // Mock components - replace with your actual imports
 
 
@@ -49,18 +50,49 @@ export function CreateProjectUI({ token, goBack }: Props) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
     if (!finalGeoJSON) {
       toast.warning('Please select a location on the map or upload a location file.');
       return;
     }
 
-    setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
+    const payLoad = {
+      "projectName": formData.projectName,
+      "projectType": formData.projectType,
+      "description": formData.aboutProject,
+      "location": finalGeoJSON,
+    };
+    if (formData.target !== '') {
+      payLoad["target"] = Number(formData.target)
+    }
+
+    if (formData.projectWebsite !== '') {
+      payLoad["projectWebsite"] = formData.projectWebsite
+    }
+
+    console.log('Payload to submit:', payLoad);
+    try {
+      // Replace with your actual API call
+      console.log('Submitting project:', payLoad);
+      setLoading(true);
+      const response = await createNewProject(token, payLoad);
+      console.log('Response from project creation:', response);
+      if (response && response.statusCode === 200 || response.statusCode === 201) {
+        toast.success('Project created successfully!');
+        goBack();
+        return
+      }
+
+      if (response && response.statusCode !== 200) {
+        toast.error(String(response.message));
+      }
       setLoading(false);
-      toast.success('Project created successfully!');
-      goBack();
-    }, 2000);
+      // Placeholder success
+    } catch (error) {
+      setLoading(false);
+      console.error('Error creating project:', error);
+      toast.error('Error creating project. Please try again.');
+    }
   };
 
   const projectTypes = [

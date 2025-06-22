@@ -151,6 +151,7 @@ export default function GeoJSONUpload({
     });
 
     const normalizeGeoJson = (geoJson: any, fileName: string) => {
+        console.log("SDc",geoJson)
         if (gjv.isGeoJSONObject(geoJson) && geoJson.features?.length > 0) {
             try {
                 // Convert LineString to Polygon

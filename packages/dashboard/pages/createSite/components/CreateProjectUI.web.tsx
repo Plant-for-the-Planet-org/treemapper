@@ -83,7 +83,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
     const response = await createNewDashboardSite(accessToken || '', payload, SelectedProject?.uid || '')
     if (response.statusCode === 200 || response.statusCode === 201) {
       setLoading(false);
-      toast.success('Project created successfully!');
+      toast.success('Site created successfully!');
       goBack();
     } else {
       toast.error(response.message || 'Something went wrong')

@@ -26,12 +26,14 @@ export const getUrlApi = {
     migrationStatus: `${baseUrl}/api/migration/status`,
     getProjectSites: `${baseUrl}/api/projects`,
     getProjectIntervnetion: `${baseUrl}/api/interventions/projects`,
-
+    getMyNotification: `${baseUrl}/api/notifications`,
 }
 
 export const patchUrlApi = {
     userMigrated: `${baseUrl}/api/users/migrated`,
     updateMemeberRole: `${baseUrl}/api/projects`,
+    markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
+
 }
 
 
