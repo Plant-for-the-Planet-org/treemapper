@@ -284,7 +284,6 @@ const TeamsDashboard = () => {
         <div className="p-6 bg-white">
             <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center">
                 <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Team Members</h1>
-
                 <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
                     <button
                         onClick={handleInviteUser}

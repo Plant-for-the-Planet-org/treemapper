@@ -33,7 +33,6 @@ export const patchUrlApi = {
     userMigrated: `${baseUrl}/api/users/migrated`,
     updateMemeberRole: `${baseUrl}/api/projects`,
     markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
-
 }
 
 
