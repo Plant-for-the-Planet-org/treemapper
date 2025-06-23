@@ -39,154 +39,7 @@ import MapDisplayComponent from './ProjectSelectMap';
 
 import { useToken } from '../../../../context/TokenContext';
 import { getProjectIntervention } from '../../../../api/api.fetch';
-
-
-
-// Mock API Response Data (using your provided data structure)
-const mockApiData = {
-  "statusCode": 200,
-  "message": "Success",
-  "data": {
-    "data": [
-      {
-        "id": 684,
-        "uid": "ivn_e6V0lCE3l6Ty2IPxzL76uZJb",
-        "hid": "9BMB47",
-        "type": "multi-tree-registration",
-        "interventionStatus": "active",
-        "treeCount": 756,
-        "registrationDate": "2024-12-04T18:30:00.000Z",
-        "interventionStartDate": "2024-12-04T18:30:00.000Z",
-        "interventionEndDate": "2024-12-04T18:30:00.000Z",
-        "description": null,
-        "projectSiteId": 773,
-        "captureMode": "on_site",
-        "captureStatus": "complete",
-        "isPrivate": false,
-        "createdAt": "2025-06-23T02:59:46.053Z",
-        "updatedAt": "2025-06-23T02:59:46.053Z",
-        "user": {
-          "uid": "tpo_gEZeQNxNhxZZ54zvYzCofsCr",
-          "displayName": "Plant-for-the-Planet",
-          "firstname": "Felix",
-          "lastname": "Finkbeiner",
-          "image": "5bbdbc54c3d71816012600.png"
-        },
-        "site": {
-          "uid": "site_ybVo0Vn007jQl56",
-          "name": "Las Américas 7a",
-          "status": "barren"
-        },
-        "species": [
-          {
-            "interventionId": 684,
-            "uid": "invspc_38013867cc5a534256ac75c8",
-            "scientificSpeciesId": 19229,
-            "scientificSpeciesUid": "sspec_3lK3GNaIbWrBpdlTzZ",
-            "speciesName": "Enterolobium cyclocarpum",
-            "isUnknown": false,
-            "otherSpeciesName": null,
-            "count": 1160,
-            "scientificSpecies": {
-              "uid": "sspec_3lK3GNaIbWrBpdlTzZ",
-              "scientificName": "Enterolobium cyclocarpum",
-              "commonName": null,
-              "family": null,
-              "genus": null
-            }
-          },
-          {
-            "interventionId": 684,
-            "uid": "invspc_bc4246eee3164d973ee9bc01",
-            "scientificSpeciesId": 31615,
-            "scientificSpeciesUid": "sspec_Qtuc2SkVJ2XKImsflA",
-            "speciesName": "Lonchocarpus longistylus",
-            "isUnknown": false,
-            "otherSpeciesName": null,
-            "count": 504,
-            "scientificSpecies": {
-              "uid": "sspec_Qtuc2SkVJ2XKImsflA",
-              "scientificName": "Lonchocarpus longistylus",
-              "commonName": null,
-              "family": null,
-              "genus": null
-            }
-          }
-        ],
-        "trees": []
-      },
-      {
-        "id": 685,
-        "uid": "ivn_XLttx2Z5LccViiQDmas05rTQ",
-        "hid": "FAMPVH",
-        "type": "multi-tree-registration",
-        "interventionStatus": "active",
-        "treeCount": 3236,
-        "registrationDate": "2024-12-04T18:30:00.000Z",
-        "trees": [
-          {
-            "id": 1141,
-            "uid": "sivn_7cbelB68Jld8lEanz1RPEClN",
-            "hid": "YFEEYT",
-            "tag": "29379",
-            "treeType": "sample",
-            "latitude": null,
-            "longitude": null,
-            "status": "alive",
-            "statusReason": null,
-            "plantingDate": "2024-12-05",
-            "lastMeasuredHeight": 0.2,
-            "lastMeasuredWidth": null,
-            "records": [
-              {
-                "uid": "record_123",
-                "recordType": "measurement",
-                "recordedAt": "2024-12-10T10:00:00.000Z",
-                "height": 0.25,
-                "width": null,
-                "healthScore": 85,
-                "vitalityScore": 90,
-                "structuralIntegrity": "good",
-                "findings": "Healthy growth, good root development",
-                "findingsSeverity": "low",
-                "notes": "Tree showing excellent progress",
-                "recordedBy": {
-                  "uid": "user_456",
-                  "displayName": "Maria Rodriguez",
-                  "firstname": "Maria",
-                  "lastname": "Rodriguez"
-                }
-              }
-            ]
-          }
-        ],
-        "species": [
-          {
-            "speciesName": "Enterolobium cyclocarpum",
-            "count": 720,
-            "scientificSpecies": {
-              "scientificName": "Enterolobium cyclocarpum",
-              "commonName": "Ear Tree",
-              "family": "Fabaceae",
-              "genus": "Enterolobium"
-            }
-          }
-        ],
-        "user": { "displayName": "Felix Finkbeiner" },
-        "site": { "name": "Las Américas 7a" }
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 752,
-      "totalPages": 38,
-      "hasNext": true,
-      "hasPrev": false
-    }
-  }
-};
-
+import useProjectStore from '../../../../store/useProjectStore'
 const interventionTypeIcons = {
   'enrichment-planting': Trees,
   'direct-seeding': Sprout,
@@ -444,14 +297,15 @@ const TreeMapperUI = () => {
     return () => scrollContainer?.removeEventListener('scroll', handleScroll);
   }, [loadMoreInterventions]);
   const { accessToken } = useToken();
+    const selectedProject = useProjectStore(state => state.selectedProject)
 
 
   useEffect(() => {
-fetchInterventionData()
-  }, [])
+    fetchInterventionData()
+  }, [selectedProject])
 
   const fetchInterventionData = async () => {
-    const response = await getProjectIntervention(accessToken || '', '5')
+    const response = await getProjectIntervention(accessToken || '', selectedProject?.uid)
     if (response && response.statusCode == 200) {
       setInterventions(response.data.data)
       setPagination(response.data.pagination)
@@ -535,11 +389,11 @@ fetchInterventionData()
   const availableTypes = [...new Set(interventions.map(i => i.type))];
 
   return (
-        <div className="bg-gray-50 flex flex-col h-screen w-full">
+    <div className="bg-gray-50 flex flex-col h-screen w-full">
       {/* Header */}
       <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 px-4 sm:px-6 py-3 shadow-sm mt-4">
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
-          <div className="flex items-center justify-between lg:justify-start" style={{paddingTop:20}}>
+          <div className="flex items-center justify-between lg:justify-start" style={{ paddingTop: 20 }}>
             <div className="flex items-center space-x-4">
               <button
                 onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
@@ -547,7 +401,7 @@ fetchInterventionData()
               >
                 <Menu className="h-5 w-5 text-slate-600" />
               </button>
-                   <div>
+              <div>
                 <h1 className="text-xl sm:text-2xl xl:text-3xl font-bold text-slate-800 tracking-tight">
                   Project Interventions
                 </h1>
@@ -770,7 +624,7 @@ fetchInterventionData()
 
 
                 <div className="absolute inset-0 flex items-center justify-center p-4">
-                 <MapDisplayComponent geoJSON={selectedIntervention.originalGeometry}/>
+                  <MapDisplayComponent geoJSON={selectedIntervention.originalGeometry} />
                 </div>
               </div>
 

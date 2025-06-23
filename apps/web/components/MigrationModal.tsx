@@ -71,7 +71,7 @@ const MigrationModal = () => {
             setMigrationState('starting');
             setError(null);
             const responseCheck = await checkMigrationStatusBackend(accessToken || '')
-            if (responseCheck && responseCheck.data && responseCheck.data.migrationFound) {
+            if (responseCheck && responseCheck.data && responseCheck.data.migrationFound && responseCheck.data.currentStep !== 'failed') {
                 setMigrationData(responseCheck.data);
                 setMigrationState('in_progress');
                 startStatusPolling();
