@@ -116,9 +116,10 @@ export default function DashboardLayout({
           <MigrationModal />
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            {/* {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
-            </div> : renderNoPlaceHolderCondition()}
+            </div> : renderNoPlaceHolderCondition()} */}
+            {children}
           </div>
         </div>
       </TokenProvider>
