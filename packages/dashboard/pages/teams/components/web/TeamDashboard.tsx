@@ -8,7 +8,8 @@ import {
     UserX,
     ChevronUp,
     ChevronDown,
-    Filter
+    Filter,
+    Link
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './InviteUserModal';
@@ -18,6 +19,7 @@ import { getTeamMemebers } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
 import Spinner from '../../../../components/spinner/Spinner';
 import avatar from 'animal-avatar-generator'
+import BulkInvitationModal from './BulkInviteModal';
 
 
 function transformData(data) {
@@ -70,6 +72,8 @@ const TeamsDashboard = () => {
     const [selectedUser, setSelectedUser] = useState(null);
     const [isModalUserOpen, setIsModalUserOpen] = useState(false);
     const { accessToken } = useToken()
+    const [bulkInviteModal, setBulkInviteModal] = useState(false);
+
     const [users, setUsers] = useState<any>([]);
     const [loading, setLoading] = useState(false)
     // State for search and sorting
@@ -286,6 +290,13 @@ const TeamsDashboard = () => {
                 <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Team Members</h1>
                 <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
                     <button
+                        onClick={() => { setBulkInviteModal(true) }}
+                        className="flex items-center justify-center px-4 py-2 text-white rounded-md bg-blue-600 hover:bg-blue-800 transition-colors"
+                    >
+                        <Link size={18} className="mr-2" />
+                        Invite Link
+                    </button>
+                    <button
                         onClick={handleInviteUser}
                         className="flex items-center justify-center px-4 py-2 text-white rounded-md bg-[#007A49] hover:bg-green-800 transition-colors"
                     >
@@ -323,7 +334,7 @@ const TeamsDashboard = () => {
             </div>
 
             {/* Table section */}
-            {loading ? <div style={{marginTop:'30vh'}}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+            {loading ? <div style={{ marginTop: '30vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                 <table className="min-w-full divide-y divide-gray-200">
                     <thead className="bg-gray-50">
                         <tr>
@@ -426,6 +437,12 @@ const TeamsDashboard = () => {
                     </div>
                 )}
             </div>}
+            <AnimatePresence>
+                <BulkInvitationModal
+                    isOpen={bulkInviteModal}
+                    onClose={() => setBulkInviteModal(false)}
+                />
+            </AnimatePresence>
             <AnimatePresence>
                 <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers} />
             </AnimatePresence>
