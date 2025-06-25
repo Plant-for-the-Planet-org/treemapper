@@ -4,6 +4,7 @@ export const postUrlApi = {
     createProject: `${baseUrl}/api/projects`,
     createProjectinvite: `${baseUrl}/api/projects`,
     acceptInvite: `${baseUrl}/api/projects/invites/accept`,
+    acceptlinkInvite: `${baseUrl}/api/projects/invites/accept/link`,
     declineInvite: `${baseUrl}/api/projects/invites/decline`,
     expireInvite: `${baseUrl}/api/projects`,
     createProjectSpecies: `${baseUrl}/api/project-species`,
@@ -12,6 +13,7 @@ export const postUrlApi = {
     startMigration: `${baseUrl}/api/migration/start`,
     createNewDashboardSite: `${baseUrl}/api/projects`,
     createNewIntervention: `${baseUrl}/api/interventions/projects`,
+    createInvtiationLink: `${baseUrl}/api/projects`,
 }
 
 export const getUrlApi = {
@@ -27,12 +29,15 @@ export const getUrlApi = {
     getProjectSites: `${baseUrl}/api/projects`,
     getProjectIntervnetion: `${baseUrl}/api/interventions/projects`,
     getMyNotification: `${baseUrl}/api/notifications`,
+    getAllInviteLinks: `${baseUrl}/api/projects`,
 }
 
 export const patchUrlApi = {
     userMigrated: `${baseUrl}/api/users/migrated`,
     updateMemeberRole: `${baseUrl}/api/projects`,
     markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
+    deleteLink: `${baseUrl}/api/projects`,
+
 }
 
 

@@ -1,12 +1,11 @@
 import React from 'react';
 import { X, CheckCircle, XCircle, Users, Info, User, Clock, AlertTriangle, Loader } from 'lucide-react';
 import Spinner from './Spinner';
-import { acceptProjectInvite, declineProjectInvite, getInviteStatus } from 'dashboard/api/api.fetch';
+import { acceptLinkProjectInvite, acceptProjectInvite, declineProjectInvite, getInviteStatus, getLinkInviteStatus } from 'dashboard/api/api.fetch';
 import { useToken } from 'dashboard/context/TokenContext';
 import { toast } from 'react-toastify';
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { r } from 'framer-motion/dist/types.d-CQt5spQA';
 
 export default function ProjectInviteModal() {
   const searchParams = useSearchParams();
@@ -21,19 +20,29 @@ export default function ProjectInviteModal() {
   const checkInviteStatus = async () => {
     try {
       const projectInviteId = searchParams.get('project-invite');
-      console.log('Project Invite ID:', projectInviteId);
-      if (!projectInviteId || !accessToken) {
-        setLoading(false);
-        return
+      const projectLinkInviteId = searchParams.get('project-link');
+      if (projectInviteId) {
+        setLoading(true);
+        const response = await getInviteStatus(accessToken || '', projectInviteId || '')
+        if (response.statusCode === 200) {
+          setInviteData(response.data);
+          setLoading(false);
+          return
+        }
+        toast.error('Failed to fetch invite status. Please try again later.');
       }
-      setLoading(true);
-      const response = await getInviteStatus(accessToken || '', projectInviteId || '')
-      if (response.statusCode === 200) {
-        setInviteData(response.data);
-        setLoading(false);
-        return
+
+      if (projectLinkInviteId) {
+        setLoading(true);
+        const response = await getLinkInviteStatus(accessToken || '', projectLinkInviteId || '')
+        if (response.statusCode === 200) {
+          setInviteData(response.data);
+          setLoading(false);
+          return
+        }
+        toast.error('Failed to fetch invite status. Please try again later.');
       }
-      toast.error('Failed to fetch invite status. Please try again later.');
+
       setLoading(false);
     } catch (error) {
       setLoading(false);
@@ -42,6 +51,11 @@ export default function ProjectInviteModal() {
   }
 
   const handleAccept = async () => {
+    const isLink = searchParams.get('project-link');
+    if (isLink) {
+      handleLinkAccept()
+      return
+    }
     try {
       setLoading(true);
       const projectInviteId = searchParams.get('project-invite');
@@ -59,6 +73,38 @@ export default function ProjectInviteModal() {
         }, 2000);
         return
       }
+      setLoading(false);
+      if (response && response.message) {
+        toast.error(String(response.message));
+        return
+      }
+
+    } catch (error) {
+      setLoading(false);
+      console.error('Error accepting invitation:', error);
+      toast.error('Error accepting invitation:');
+    }
+  };
+
+  const handleLinkAccept = async () => {
+    try {
+      setLoading(true);
+      const projectInviteId = searchParams.get('project-link');
+      const response = await acceptLinkProjectInvite(accessToken || '', {
+        token: projectInviteId
+      });
+      if (response && response.statusCode === 200) {
+        toast.success('Project invite accepted successfully. Redirecting to project dashboard...');
+        setTimeout(() => {
+          setLoading(false);
+          const url = new URL(window.location.href);
+          url.searchParams.delete('project-link');
+          window.location.href = url.toString();
+          setInviteData(null);
+        }, 2000);
+        return
+      }
+      setLoading(false);
       if (response && response.message) {
         toast.error(String(response.message));
         return
@@ -73,6 +119,14 @@ export default function ProjectInviteModal() {
 
 
   const handleDecline = async () => {
+    const isLink = searchParams.get('project-link');
+    if (isLink) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('project-link');
+      window.location.href = url.toString();
+      setInviteData(null);
+      return
+    }
     try {
       setLoading(true);
       const projectInviteId = searchParams.get('project-invite');
@@ -102,6 +156,14 @@ export default function ProjectInviteModal() {
   };
 
   const handleClose = async () => {
+    const isLink = searchParams.get('project-link');
+    if (isLink) {
+      const url = new URL(window.location.href);
+      url.searchParams.delete('project-link');
+      window.location.href = url.toString();
+      setInviteData(null);
+      return
+    }
     const url = new URL(window.location.href);
     url.searchParams.delete('project-invite');
     toast.warning('Project invite declined successfully');
@@ -157,7 +219,7 @@ export default function ProjectInviteModal() {
   const statusDisplay = getStatusDisplay();
   const canInteract = status === 'pending' && !isExpired;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" style={{zIndex:1000}}>
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" style={{ zIndex: 1000 }}>
       {
         loading ?
           <div className="flex items-center justify-center h-full">

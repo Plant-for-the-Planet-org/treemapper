@@ -13,6 +13,9 @@ import {
     Check,
     AlertCircle
 } from 'lucide-react';
+import { createProjectInviteLink, getAllProjectInviteLink, removeInviteLink } from '../../../../api/api.fetch';
+import { useToken } from '../../../../context/TokenContext'
+import useProjectStore from '../../../../store/useProjectStore'
 
 const BulkInvitationModal = ({ isOpen, onClose }) => {
     const [existingLinks, setExistingLinks] = useState([]);
@@ -23,6 +26,9 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
     const [copiedId, setCopiedId] = useState(null);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
+    const { accessToken } = useToken()
+    const SelectedProject = useProjectStore(state => (state.selectedProject))
+    const inviteurl = `${window.location.protocol}//${window.location.host}/dashboard?project-link`;
 
     // Fetch existing links when modal opens
     useEffect(() => {
@@ -36,30 +42,14 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
     const fetchExistingLinks = async () => {
         setIsLoading(true);
         try {
-            // TODO: Replace with actual API call
-            // const response = await fetch('/api/invitations');
-            // const data = await response.json();
-
-            // Placeholder data
-            setTimeout(() => {
-                setExistingLinks([
-                    {
-                        id: '1',
-                        invitationlink: 'https://app.example.com/invite/abc123',
-                        domain_restriction: '@company.com',
-                        created_at: '2024-01-15T10:30:00Z',
-                        created_by: 'john.doe@example.com'
-                    },
-                    {
-                        id: '2',
-                        invitationlink: 'https://app.example.com/invite/xyz789',
-                        domain_restriction: '@university.edu',
-                        created_at: '2024-01-14T15:45:00Z',
-                        created_by: 'jane.smith@example.com'
-                    }
-                ]);
+            const response = await getAllProjectInviteLink(accessToken || '', SelectedProject?.uid)
+            if (response && response.statusCode == 200) {
+                setExistingLinks(response.data)
                 setIsLoading(false);
-            }, 1000);
+            } else {
+                throw ''
+            }
+            setIsLoading(false);
         } catch (err) {
             setError('Failed to fetch existing links');
             setIsLoading(false);
@@ -81,30 +71,28 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
         setError('');
 
         try {
-            // TODO: Replace with actual API call
-            // const response = await fetch('/api/invitations', {
-            //   method: 'POST',
-            //   headers: { 'Content-Type': 'application/json' },
-            //   body: JSON.stringify({ domain_restriction: domainRestriction })
-            // });
-            // const data = await response.json();
-
-            // Simulated API response
-            setTimeout(() => {
+            const response = await createProjectInviteLink(accessToken || '', SelectedProject?.uid, {
+                restriction: domainRestriction,
+                expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
+            })
+            console.log("SDC", response.data.link)
+            if (response && response.statusCode == 200 || response.statusCode == 201) {
                 const generatedLink = {
                     id: Date.now().toString(),
-                    invitationlink: `https://app.example.com/invite/${Math.random().toString(36).substr(2, 9)}`,
+                    invitationlink: `${response.data.link}`,
                     domain_restriction: domainRestriction,
                     created_at: new Date().toISOString(),
-                    created_by: 'current.user@example.com'
+                    created_by: "me"
                 };
-
-                setNewLink(generatedLink);
+                setNewLink(`${response.data.link}`,);
                 setExistingLinks(prev => [generatedLink, ...prev]);
                 setDomainRestriction('');
                 setSuccess('Invitation link created successfully!');
                 setIsCreating(false);
-            }, 1500);
+            } else {
+                throw ''
+            }
+
         } catch (err) {
             setError('Failed to create invitation link');
             setIsCreating(false);
@@ -113,11 +101,9 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
 
     const deleteLink = async (id) => {
         try {
-            // TODO: Replace with actual API call
-            // await fetch(`/api/invitations/${id}`, { method: 'DELETE' });
-
             setExistingLinks(prev => prev.filter(link => link.id !== id));
             setSuccess('Link deleted successfully');
+            await removeInviteLink(accessToken || '', SelectedProject?.uid, id)
         } catch (err) {
             setError('Failed to delete link');
         }
@@ -151,7 +137,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4"
-            style={{zIndex:10000}}
+            style={{ zIndex: 10000 }}
             onClick={onClose}
         >
             <motion.div
@@ -267,12 +253,12 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                                     <div className="flex items-center gap-2">
                                         <input
                                             type="text"
-                                            value={newLink.invitationlink}
+                                            value={`${inviteurl}=${newLink}`}
                                             readOnly
                                             className="flex-1 px-3 py-2 bg-white border border-green-300 rounded text-sm"
                                         />
                                         <button
-                                            onClick={() => copyToClipboard(newLink.invitationlink, newLink.id)}
+                                            onClick={() => copyToClipboard(`${inviteurl}=${newLink}`, newLink.id)}
                                             className="p-2 text-green-600 hover:bg-green-100 rounded transition-colors"
                                         >
                                             {copiedId === newLink.id ? (
@@ -335,12 +321,12 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                                                 <div className="flex items-center gap-2">
                                                     <input
                                                         type="text"
-                                                        value={link.invitationlink}
+                                                        value={`${inviteurl}=${link.invitationlink}`}
                                                         readOnly
                                                         className="flex-1 px-2 py-1 text-xs bg-white border border-gray-300 rounded truncate"
                                                     />
                                                     <button
-                                                        onClick={() => copyToClipboard(link.invitationlink, link.id)}
+                                                        onClick={() => copyToClipboard(`${inviteurl}=${link.invitationlink}`, link.id)}
                                                         className="p-1 text-gray-400 hover:text-blue-600 transition-colors"
                                                         title="Copy link"
                                                     >

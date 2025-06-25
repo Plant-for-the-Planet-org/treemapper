@@ -10,6 +10,7 @@ import MigrationModal from '../../components/MigrationModal';
 import useProjectStore from 'dashboard/store/useProjectStore'
 import NoProjectSelected from '../../components/NoProjectPlaceHolde';
 import ErrorLoadingProject from '../../components/ProjectErrorPlaceholder';
+import LoadingBar from '../../components/LoadinBar'; // Add this import
 
 
 
@@ -111,15 +112,15 @@ export default function DashboardLayout({
 
   return (
     <>
+      <LoadingBar />
       <TokenProvider accessToken={accessToken}>
         <div className="app-container">
           <MigrationModal />
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {/* {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
-            </div> : renderNoPlaceHolderCondition()} */}
-            {children}
+            </div> : renderNoPlaceHolderCondition()}
           </div>
         </div>
       </TokenProvider>

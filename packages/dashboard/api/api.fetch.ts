@@ -79,6 +79,12 @@ export const acceptProjectInvite = async (token: string, params: any) => {
   return result;
 };
 
+export const acceptLinkProjectInvite = async (token: string, params: any) => {
+  const uri = `${postUrlApi.acceptlinkInvite}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 export const declineProjectInvite = async (token: string, params: any) => {
   const uri = `${postUrlApi.declineInvite}`;
   const result = await fetchPostCall(uri, params, token);
@@ -88,6 +94,12 @@ export const declineProjectInvite = async (token: string, params: any) => {
 export const expireInvite = async (token: string, params: any, pid: string) => {
   const uri = `${postUrlApi.expireInvite}/${pid}/invites/expire`;
   const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+export const getAllProjectInviteLink = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getAllInviteLinks}/${id}/links`;
+  const result = await fetchGetCall(uri, token);
   return result;
 };
 
@@ -193,6 +205,13 @@ export const getInviteStatus = async (token: string, uuid: string) => {
   return result
 }
 
+export const getLinkInviteStatus = async (token: string, uuid: string) => {
+  const uri = `${getUrlApi.inviteStatus}/${uuid}/status/link`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
 
 
 export const createProjectInvite = async (token: string, project_id: string, params: any) => {
@@ -200,6 +219,14 @@ export const createProjectInvite = async (token: string, project_id: string, par
   const result = await fetchPostCall(uri, params, token);
   return result;
 };
+
+
+export const createProjectInviteLink = async (token: string, project_id: string, params: any) => {
+  const uri = `${postUrlApi.createProjectinvite}/${project_id}/invites/link`
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 export const updateUserMigrate = async (token: string, params: any) => {
@@ -234,5 +261,11 @@ export const updateProjectSpecies = async (token: string, params: any, prjId: st
 export const removePrjSpecies = async (token: string, projectGuiD: string, speciesId: string) => {
   const uri = `${deleteUrlApi.deletePrjSpecies}/${projectGuiD}/species/${speciesId}`;
   const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
+export const removeInviteLink = async (token: string, projectGuiD: string, memberGuid: string) => {
+  const uri = `${patchUrlApi.deleteLink}/${projectGuiD}/invites/${memberGuid}/link`;
+  const result = await fetchPatchCall(uri, {}, token);
   return result;
 };
