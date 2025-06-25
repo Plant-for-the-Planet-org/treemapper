@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, RefreshCw, AlertCircle, MapPin, Calendar, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { getMyProjects } from '../../../../api/api.fetch';
 
-const SelectProjectSite = ({ onBack, onNext }) => {
+const SelectProjectSite = ({ onBack, onNext,accessToken }) => {
   const [projects, setProjects] = useState([]);
   const [sites, setSites] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -22,54 +23,12 @@ const SelectProjectSite = ({ onBack, onNext }) => {
 
       // Simulate API delay
       await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock data based on your schema
-      const mockProjects = [
-        {
-          id: 1,
-          uid: 'proj_001',
-          projectName: 'Amazon Rainforest Conservation',
-          projectType: 'Conservation',
-          ecosystem: 'Tropical Rainforest',
-          projectScale: 'Large',
-          target: 50000,
-          country: 'BR',
-          purpose: 'Biodiversity Protection',
-          description: 'Large-scale conservation project in the Amazon basin focusing on biodiversity protection and sustainable forestry practices.',
-          isActive: true,
-          createdAt: new Date('2024-01-15')
-        },
-        {
-          id: 2,
-          uid: 'proj_002',
-          projectName: 'Urban Forest Initiative',
-          projectType: 'Reforestation',
-          ecosystem: 'Urban Forest',
-          projectScale: 'Medium',
-          target: 15000,
-          country: 'US',
-          purpose: 'Air Quality Improvement',
-          description: 'Urban reforestation project aimed at improving air quality and creating green spaces in metropolitan areas.',
-          isActive: true,
-          createdAt: new Date('2024-02-20')
-        },
-        {
-          id: 3,
-          uid: 'proj_003',
-          projectName: 'Coastal Mangrove Restoration',
-          projectType: 'Restoration',
-          ecosystem: 'Mangrove',
-          projectScale: 'Medium',
-          target: 25000,
-          country: 'PH',
-          purpose: 'Coastal Protection',
-          description: 'Mangrove restoration project to protect coastal communities and restore marine ecosystems.',
-          isActive: true,
-          createdAt: new Date('2024-03-10')
-        }
-      ];
-
-      setProjects(mockProjects);
+      const response = await getMyProjects(accessToken||'');
+      if(response && response.statusCode===200){
+        setProjects(response.data)
+      }else{
+        throw ''
+      }     
     } catch (error) {
       setProjectsError('Failed to load projects. Please try again.');
     } finally {
@@ -137,7 +96,7 @@ const SelectProjectSite = ({ onBack, onNext }) => {
   useEffect(() => {
     if (selectedProject) {
       setSelectedSite(null);
-      fetchSites(selectedProject.id);
+      fetchSites(selectedProject.uid);
     } else {
       setSites([]);
       setSelectedSite(null);
@@ -172,27 +131,19 @@ const SelectProjectSite = ({ onBack, onNext }) => {
 
   return (
     <div className="w-full h-full relative">
-      {/* Header with Back Button */}
       <div>
-        <button
-          onClick={onBack}
-          className="flex items-center text-gray-600 hover:text-[#007A49] transition-colors mr-4 mt-2 mb-3"
-        >
-          <ArrowLeft className="h-5 w-5 mr-1" />
-          Previous step
-        </button>
         <h1 className="text-3xl font-bold text-gray-900">Select Project and Site</h1>
         {selectedProject && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            style={{position:'absolute', right:20, top:20}}
+            style={{ position: 'absolute', right: 20, top: 20 }}
           >
             <button
-              onClick={() => onNext({ project: selectedProject, site: selectedSite })}
+              onClick={() => onNext(selectedProject, selectedSite, 1)}
               className="flex items-center px-6 py-3 bg-[#007A49] text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
             >
-              Continue to Validation
+              Continue
               <ArrowRight className="ml-2 h-4 w-4" />
             </button>
           </motion.div>
@@ -234,10 +185,10 @@ const SelectProjectSite = ({ onBack, onNext }) => {
           <div className="flex overflow-x-auto pb-4 space-x-4">
             {projects.map((project) => (
               <motion.div
-                key={project.id}
+                key={project.uid}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className={`flex-shrink-0 mt-2 ml-2 w-80 bg-white rounded-lg shadow-sm border-2 cursor-pointer transition-all ${selectedProject?.id === project.id
+                className={`flex-shrink-0 mt-2 ml-2 w-80 bg-white rounded-lg shadow-sm border-2 cursor-pointer transition-all ${selectedProject?.uid === project.uid
                   ? 'border-[#007A49] ring-2 ring-[#007A49] ring-opacity-20'
                   : 'border-gray-200 hover:border-[#007A49]'
                   }`}
@@ -248,7 +199,7 @@ const SelectProjectSite = ({ onBack, onNext }) => {
                     <h3 className="text-lg font-semibold text-gray-900 leading-tight">
                       {project.projectName}
                     </h3>
-                    {selectedProject?.id === project.id && (
+                    {selectedProject?.uid === project.uid && (
                       <CheckCircle className="h-5 w-5 text-[#007A49] flex-shrink-0 ml-2" />
                     )}
                   </div>
@@ -297,7 +248,7 @@ const SelectProjectSite = ({ onBack, onNext }) => {
             </h2>
             {sitesError && (
               <button
-                onClick={() => fetchSites(selectedProject.id)}
+                onClick={() => fetchSites(selectedProject.uid)}
                 className="flex items-center text-sm text-[#007A49] hover:text-green-700 transition-colors"
               >
                 <RefreshCw className="h-4 w-4 mr-1" />
@@ -316,7 +267,7 @@ const SelectProjectSite = ({ onBack, onNext }) => {
               <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-2" />
               <p className="text-red-800 mb-3">{sitesError}</p>
               <button
-                onClick={() => fetchSites(selectedProject.id)}
+                onClick={() => fetchSites(selectedProject.uid)}
                 className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
               >
                 Try Again
@@ -332,10 +283,10 @@ const SelectProjectSite = ({ onBack, onNext }) => {
             <div className="flex overflow-x-auto pb-4 space-x-4">
               {sites.map((site) => (
                 <motion.div
-                  key={site.id}
+                  key={site.uid}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
-                  className={`flex-shrink-0 w-72  mt-2 ml-2  bg-white rounded-lg shadow-sm border-2 cursor-pointer transition-all ${selectedSite?.id === site.id
+                  className={`flex-shrink-0 w-72  mt-2 ml-2  bg-white rounded-lg shadow-sm border-2 cursor-pointer transition-all ${selectedSite?.uid === site.uid
                     ? 'border-[#007A49] ring-2 ring-[#007A49] ring-opacity-20'
                     : 'border-gray-200 hover:border-[#007A49]'
                     }`}
@@ -346,7 +297,7 @@ const SelectProjectSite = ({ onBack, onNext }) => {
                       <h3 className="text-lg font-semibold text-gray-900 leading-tight">
                         {site.name}
                       </h3>
-                      {selectedSite?.id === site.id && (
+                      {selectedSite?.uid === site.uid && (
                         <CheckCircle className="h-5 w-5 text-[#007A49] flex-shrink-0 ml-2" />
                       )}
                     </div>

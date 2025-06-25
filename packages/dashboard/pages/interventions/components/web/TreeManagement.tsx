@@ -33,7 +33,8 @@ import {
   Calendar as CalendarIcon,
   MoreHorizontal,
   Expand,
-  Shrink
+  Shrink,
+  Upload
 } from 'lucide-react';
 import MapDisplayComponent from './ProjectSelectMap';
 
@@ -249,7 +250,7 @@ const SpeciesCard = ({ species }) => (
 );
 
 // Main Component
-const TreeMapperUI = () => {
+const TreeMapperUI = (props: any) => {
   const [interventions, setInterventions] = useState([]);
   const [selectedIntervention, setSelectedIntervention] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -297,7 +298,7 @@ const TreeMapperUI = () => {
     return () => scrollContainer?.removeEventListener('scroll', handleScroll);
   }, [loadMoreInterventions]);
   const { accessToken } = useToken();
-    const selectedProject = useProjectStore(state => state.selectedProject)
+  const selectedProject = useProjectStore(state => state.selectedProject)
 
 
   useEffect(() => {
@@ -461,11 +462,15 @@ const TreeMapperUI = () => {
             </div>
 
             <div className="hidden lg:flex items-center space-x-3">
-              <button className="flex items-center px-4 py-2 bg-white/90 border border-slate-200 text-slate-700 rounded-xl hover:bg-white hover:shadow-md transition-all font-medium">
-                <Download className="h-4 w-4 mr-2" />
-                Export
+              <button
+                onClick={props.bulkUpload}
+                className="flex items-center px-4 py-2 bg-white/90 border border-slate-200 text-slate-700 rounded-xl hover:bg-white hover:shadow-md transition-all font-medium">
+                <Upload className="h-4 w-4 mr-2" />
+                Bulk Upload
               </button>
-              <button className="flex items-center px-6 py-2 bg-gradient-to-r from-[#007A49] to-green-700 text-white rounded-xl transition-all font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
+              <button
+                onClick={props.newIntervention}
+                className="flex items-center px-6 py-2 bg-gradient-to-r from-[#007A49] to-green-700 text-white rounded-xl transition-all font-semibold shadow-md hover:shadow-lg transform hover:scale-105">
                 <Plus className="h-4 w-4 mr-2" />
                 New Intervention
               </button>
@@ -610,10 +615,9 @@ const TreeMapperUI = () => {
         </div>
 
         {/* Right Panel - Details and Map */}
-        <div className="flex-1 flex flex-col overflow-y-auto">
+        <div className="flex-1 flex flex-col overflow-y-auto" style={{marginBottom:20}}>
           {selectedIntervention ? (
             <>
-              {/* Map Area */}
               <div className="flex-1 bg-white/60 backdrop-blur-sm m-6 mb-4 rounded-2xl border border-slate-200/60 relative overflow-hidden shadow-lg">
                 <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-slate-50/50">
                   <div className="absolute inset-0 opacity-5" style={{
@@ -621,15 +625,13 @@ const TreeMapperUI = () => {
                     backgroundSize: '30px 30px'
                   }}></div>
                 </div>
-
-
                 <div className="absolute inset-0 flex items-center justify-center p-4">
                   <MapDisplayComponent geoJSON={selectedIntervention.originalGeometry} />
                 </div>
               </div>
 
               {/* Details Panel */}
-              <div className="h-64 px-6 pb-6 overflow-y-auto">
+              <div className="h-64 px-6 pb-6">
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm">
                   {/* Header */}
                   <div className="p-6 border-b border-slate-200/60">

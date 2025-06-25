@@ -1,9 +1,9 @@
 
 import HomeBulkUpload from "./web/Home";
 
-export function InterventionUI() {
+export function InterventionUI({goback}) {
 
-  return <HomeBulkUpload/>
+  return <HomeBulkUpload goback={goback}/>
 }
 
 export default InterventionUI;

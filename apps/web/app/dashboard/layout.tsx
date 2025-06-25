@@ -41,6 +41,8 @@ export default function DashboardLayout({
         setCurrentSection('newsite');
       } else if (pathname.includes('/dashboard/new-intervention')) {
         setCurrentSection('newintervention');
+      } else if (pathname.includes('/dashboard/bulkupload')) {
+        setCurrentSection('bulkupload');
       } else {
         setCurrentSection('default');
       }
@@ -86,6 +88,8 @@ export default function DashboardLayout({
         return null
       case 'newsite':
         return null
+      case 'bulkupload':
+        return null
       case 'newintervention':
         return null
       default:
@@ -101,6 +105,8 @@ export default function DashboardLayout({
       case 'project':
         return children
       case 'newsite':
+        return children
+      case 'bulkupload':
         return children
       default:
         return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -118,9 +124,10 @@ export default function DashboardLayout({
           <MigrationModal />
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            {/* {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
-            </div> : renderNoPlaceHolderCondition()}
+            </div> : renderNoPlaceHolderCondition()} */}
+            {children}
           </div>
         </div>
       </TokenProvider>

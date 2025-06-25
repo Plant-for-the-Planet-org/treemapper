@@ -314,7 +314,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
         {/* Header */}
         <div className="relative">
           <button
-            onClick={onBack}
+            onClick={()=>{onBack(3)}}
             className="flex items-center text-gray-600 hover:text-[#007A49] transition-colors mr-4 mb-3"
           >
             <ArrowLeft className="h-5 w-5 mr-1" />
@@ -322,7 +322,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
           </button>
           <h1 className="text-3xl font-bold text-gray-900">Data Validation</h1>
           <button
-            onClick={() => onNext(validationResults.map(r => r.processedData))}
+            onClick={() => onNext(validationResults.map(r => r.processedData),3)}
             disabled={!canProceed}
             style={{ position: 'absolute', right: 0, top: 25 }}
             className={`flex items-center px-6 py-3 rounded-md transition-colors ${canProceed

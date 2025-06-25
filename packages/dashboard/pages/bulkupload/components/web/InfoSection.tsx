@@ -11,7 +11,7 @@ const InfoSection = (props: any) => {
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false)
 
-    const { setFileData } = props
+    const { setFileData,updateStep } = props
 
     const validateFile = (file) => {
         if (!file) {
@@ -56,6 +56,7 @@ const InfoSection = (props: any) => {
                 csvData.push(row);
             }
             setFileData(csvData)
+            updateStep(2)
         } catch (error) {
             setError("Error Occured while transforming data.")
             setLoading(false)
