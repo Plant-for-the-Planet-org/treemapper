@@ -30,7 +30,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       const totalRecords = validatedData.length;
       
       for (let i = 0; i <= totalRecords; i++) {
-        await new Promise(resolve => setTimeout(resolve, 200)); // Simulate upload delay
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate upload delay
         setUploadProgress((i / totalRecords) * 100);
         setUploadedRecords(i);
       }
@@ -43,19 +43,19 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       };
 
       // Mock API call - replace with actual endpoint
-      const response = await fetch('/api/bulk-upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(uploadPayload)
-      });
+      // const response = await fetch('/api/bulk-upload', {
+      //   method: 'POST',
+      //   headers: {
+      //     'Content-Type': 'application/json',
+      //   },
+      //   body: JSON.stringify(uploadPayload)
+      // });
 
-      if (!response.ok) {
-        throw new Error('Upload failed. Please try again.');
-      }
+      // if (!response.ok) {
+      //   throw new Error('Upload failed. Please try again.');
+      // }
 
-      const result = await response.json();
+      // const result = await response.json();
       
       setUploadState('success');
       
@@ -77,13 +77,6 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   const renderUploadingState = () => (
     <div className="text-center">
-      <motion.div
-        animate={{ rotate: 360 }}
-        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-        className="mx-auto mb-6"
-      >
-        <Upload className="h-16 w-16 text-[#007A49]" />
-      </motion.div>
       
       <h2 className="text-2xl font-bold text-gray-900 mb-4">Uploading Your Data</h2>
       <p className="text-gray-600 mb-8">Please wait while we process your plantation data...</p>

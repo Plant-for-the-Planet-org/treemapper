@@ -78,7 +78,7 @@ export const fetchPutCall = (uri: string, payload: any, token?: string) =>
   fetchCall('PUT', uri, payload, token)
 
 export const fetchDeleteCall = (uri: string, token?: string) =>
-  fetchCall('DELETE', uri, null, token) // Changed from {} to null
+  fetchCall('DELETE', uri, {}, token) // Changed from {} to null
 
 export const fetchPatchCall = (uri: string, payload: any, token?: string) =>
   fetchCall('PATCH', uri, payload, token)
