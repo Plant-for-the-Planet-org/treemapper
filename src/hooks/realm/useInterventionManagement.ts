@@ -386,6 +386,35 @@ const useInterventionManagement = () => {
     }
   };
 
+    const saveInterventionLocation = async (interventionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
+        intervention.location_type = location.type
+        intervention.location = location
+        intervention.entire_site = isEntireSite
+        intervention.last_updated_at = Date.now()
+      });
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Location saved for Intervention-${interventionID}(${isEntireSite ? 'Entire Site' : location.type})`,
+        logLevel: 'info',
+        statusCode: ''
+      })
+      return true
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occurred while saving intervention location',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+  };
+
+
   const updateInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies, isEdit: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -921,7 +950,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
+  return { saveInterventionLocation,addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
 }
 
 export default useInterventionManagement
