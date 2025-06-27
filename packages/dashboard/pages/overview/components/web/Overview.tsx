@@ -8,6 +8,7 @@ import RecentAdditionsComponent from './RecentAdditionsComponent';
 import ProjectSummaryKPIs from './ProjectKPI';
 import SpeciesAnalytics from './SpeciesAnalyst';
 import GeographicalInterventionAnalytics from './GeolocationKPI';
+import {useAnalyticsStore} from '../../../../store/useAnalyticsStore'
 
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
@@ -16,7 +17,7 @@ const Overview = () => {
     const calendarRef = useRef(null);
     const isLargeScreen = useMediaQuery('(min-width: 768px)');
     const [selectTab, setSelectedTab] = useState('overview')
-
+    const { setGlobalEndDate, setGlobalStartDate } = useAnalyticsStore(state => state)
     const getMonthRange = () => {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -25,9 +26,13 @@ const Overview = () => {
             startDate: start.toISOString().split('T')[0], // YYYY-MM-DD
             endDate: end.toISOString().split('T')[0],
         };
-
-
     };
+
+    const handleCalendarChange=()=>{
+        setGlobalStartDate(endDate)
+        setGlobalEndDate(startDate)
+        setShowCalendar(false)
+    }
 
     // Handle clicking outside to close the calendar
     useEffect(() => {
@@ -283,7 +288,7 @@ const Overview = () => {
                                         Clear
                                     </button>
                                     <button
-                                        onClick={() => setShowCalendar(false)}
+                                        onClick={handleCalendarChange}
                                         className="bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
                                     >
                                         Apply

@@ -301,7 +301,7 @@ const Overview = () => {
                     </button>
                 </div>
             </div>
-            <ChildTabs selectedTab={selectTab} setSelectedTab={setSelectedTab} />
+            {/* <ChildTabs selectedTab={selectTab} setSelectedTab={setSelectedTab} /> */}
             {selectTab == 'overview' && <><StatCardsContainer />
                 <div className="px-4 py-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -316,8 +316,6 @@ const Overview = () => {
             {selectTab == 'projectKPI' && <ProjectSummaryKPIs />}
             {selectTab == 'species' && <SpeciesAnalytics />}
             {selectTab == 'geo' && <GeographicalInterventionAnalytics/>}
-
-
         </div>
     );
 };

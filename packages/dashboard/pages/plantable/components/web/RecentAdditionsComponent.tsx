@@ -59,6 +59,15 @@ const UserAvatar = ({ index, name }) => {
   );
 };
 
+const customImageGenerator = (id) => {
+    const svg = avatar(id, { size: 40 })
+    return <div
+        className="h-10 w-10 rounded-full overflow-hidden"
+        dangerouslySetInnerHTML={{ __html: svg }}
+    />
+}
+
+
 const RecentAdditionsComponent = () => {
   return (
     <div className="bg-white rounded-2xl shadow p-6 max-w-3xl w-full">

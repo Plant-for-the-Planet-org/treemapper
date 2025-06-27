@@ -30,6 +30,9 @@ export const getUrlApi = {
     getProjectIntervnetion: `${baseUrl}/api/interventions/projects`,
     getMyNotification: `${baseUrl}/api/notifications`,
     getAllInviteLinks: `${baseUrl}/api/projects`,
+    getDashboardKpis: `${baseUrl}/api/analytics/project-kpis`,
+    getOverviewGraph: `${baseUrl}/api/analytics/planting-overview`,
+    getDashboardRecentAddition: `${baseUrl}/api/analytics/recent-additions`,
 }
 
 export const patchUrlApi = {

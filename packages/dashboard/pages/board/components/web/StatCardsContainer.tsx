@@ -1,6 +1,10 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Leaf, Sprout, Map, Activity } from 'lucide-react';
+import { getDashboardKpis } from '../../../../api/api.fetch';
+import useProjectStore from '../../../../store/useProjectStore'
+import { useToken } from '../../../../context/TokenContext'
 
+import { useAnalyticsStore } from '../../../../store/useAnalyticsStore'
 const StatCard = ({ title, value, note, icon: Icon }) => {
   return (
     <div className="flex-shrink-0 rounded-lg border border-gray-200 p-3 shadow-sm bg-white min-w-[280px] sm:min-w-[250px] lg:min-w-0 w-full h-full">
@@ -43,17 +47,28 @@ const StatCardsContainer = () => {
       icon: Activity
     }
   ];
+  const selectedProject = useProjectStore(state => state.selectedProject);
+  const { startDate, endDate } = useAnalyticsStore(state => state)
+  const { accessToken } = useToken()
+  useEffect(() => {
+    fetchData()
+  }, [startDate, endDate])
+
+  const fetchData = async () => {
+    const response = await getDashboardKpis(accessToken || '', selectedProject?.uid || '', startDate, endDate)
+    console.log("Response",response)
+  }
 
   return (
     <div className="w-full px-4 py-6">
       <div className="flex gap-4 overflow-x-auto md:overflow-visible md:flex-wrap">
         {stats.map((stat, index) => (
           <div key={index} className="flex-shrink-0 md:flex-1 md:min-w-[0]">
-            <StatCard 
-              title={stat.title} 
-              value={stat.value} 
-              note={stat.note} 
-              icon={stat.icon} 
+            <StatCard
+              title={stat.title}
+              value={stat.value}
+              note={stat.note}
+              icon={stat.icon}
             />
           </div>
         ))}

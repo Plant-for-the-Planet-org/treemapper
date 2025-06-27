@@ -192,9 +192,23 @@ export const markNotificationRead = async (token: string) => {
 
 
 
+export const getDashboardKpis = async (token: string, start: string, end: string, pid: string) => {
+  const uri = `${getUrlApi.getDashboardKpis}/${pid}?startDate=${end}&endDate=${start}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
 
+export const getOverviewGraph = async (token: string, pid: string, interval: string) => {
+  const uri = `${getUrlApi.getOverviewGraph}/${pid}?interval=${interval}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
 
-
+export const getDashboardRecentAddition = async (token: string, pid: string, page: number, limit: number) => {
+  const uri = `${getUrlApi.getDashboardRecentAddition}/${pid}?page=${page}&limit=${limit}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
 
 
 
