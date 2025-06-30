@@ -123,7 +123,7 @@ const TreeLoader = () => {
               ease: "easeInOut"
             }}
           >
-            Growing your forest data...
+            Generating your forest data...
           </motion.span>
           
           <motion.div
