@@ -8,7 +8,6 @@ import {
   AlertCircle,
   CheckCircle,
   Edit3,
-  Save,
   X,
   Trash2,
   Filter,
@@ -18,7 +17,9 @@ import {
   Calendar,
   Users,
   TreePine,
-  Tag
+  Tag,
+  Plus,
+  Minus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -27,7 +28,6 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
   const [data, setData] = useState([]);
   const [validationResults, setValidationResults] = useState([]);
   const [editingCard, setEditingCard] = useState(null);
-  const [editData, setEditData] = useState({});
   const [filterType, setFilterType] = useState('all');
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [selectedCardErrors, setSelectedCardErrors] = useState([]);
@@ -108,7 +108,6 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       return { isValid: false, errors };
     }
 
-    // Basic coordinate range validation
     if (fieldName.toLowerCase().includes('latitude') && (num < -90 || num > 90)) {
       errors.push(`${fieldName} must be between -90 and 90`);
       return { isValid: false, errors };
@@ -122,34 +121,96 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
     return { isValid: true, errors };
   };
 
-  const validateSpecies = (speciesStr, plantationType, isRequired = true) => {
-    const errors = [];
-
+  const parseSpeciesData = (speciesStr, treesPlanted = 0, plantationType = null) => {
+    console.log("Parsing species:", speciesStr, "Trees:", treesPlanted, "Type:", plantationType);
+    
     if (!speciesStr || speciesStr.trim() === '') {
-      if (isRequired) {
-        errors.push('Species is required');
-      }
-      return { isValid: !isRequired, errors, species: [] };
+      return [];
     }
 
-    const speciesArray = speciesStr
+    // Clean the species string - remove quotes and extra whitespace
+    let cleanedSpeciesStr = String(speciesStr)
+      .replace(/^["']|["']$/g, '') // Remove leading/trailing quotes
+      .trim();
+
+    console.log("Cleaned species string:", cleanedSpeciesStr);
+
+    const speciesArray = cleanedSpeciesStr
       .split(',')
       .map(s => s.trim())
       .filter(s => s.length > 0)
-      .map(s => String(s));
+      .map(s => s.replace(/^["']|["']$/g, '')); // Remove quotes from individual species
 
-    if (speciesArray.length === 0 && isRequired) {
-      errors.push('At least one species is required');
-      return { isValid: false, errors, species: [] };
+    console.log("Species array:", speciesArray);
+
+    // For single plantations, always return one species with count 1
+    if (plantationType === 'single') {
+      return [{ name: speciesArray[0] || '', count: 1 }];
+    }
+
+    // For single species (but not Single plantation type), use the full tree count
+    if (speciesArray.length === 1) {
+      return [{ name: speciesArray[0], count: treesPlanted || 1 }];
+    }
+
+    // For multiple species, distribute trees evenly initially
+    const countPerSpecies = Math.floor(treesPlanted / speciesArray.length);
+    const remainder = treesPlanted % speciesArray.length;
+
+    const result = speciesArray.map((species, index) => ({
+      name: species,
+      count: countPerSpecies + (index < remainder ? 1 : 0)
+    }));
+
+    console.log("Final species data:", result);
+    return result;
+  };
+
+  const validateSpeciesData = (speciesData, plantationType, isRequired = true) => {
+    const errors = [];
+
+    if (!speciesData || speciesData.length === 0) {
+      if (isRequired) {
+        errors.push('At least one species is required');
+      }
+      return { isValid: !isRequired, errors };
     }
 
     // Validate based on plantation type
-    if (plantationType === 'Single' && speciesArray.length > 1) {
+    if (plantationType === 'single' && speciesData.length > 1) {
       errors.push('Single plantation can only have one species');
-      return { isValid: false, errors, species: speciesArray };
+      return { isValid: false, errors };
     }
 
-    return { isValid: true, errors, species: speciesArray };
+    if (plantationType === 'single' && speciesData[0]?.count !== 1) {
+      errors.push('Single plantation must have exactly 1 tree');
+      return { isValid: false, errors };
+    }
+
+    if (plantationType === 'multi' && speciesData.length === 1) {
+      errors.push('Multi plantation must have more than one species');
+      return { isValid: false, errors };
+    }
+
+    // Validate individual counts
+    for (const species of speciesData) {
+      if (!species.name || species.name.trim() === '') {
+        errors.push('Species name cannot be empty');
+        return { isValid: false, errors };
+      }
+      if (!species.count || species.count <= 0) {
+        errors.push(`${species.name} must have at least 1 tree`);
+        return { isValid: false, errors };
+      }
+    }
+
+    const totalTrees = speciesData.reduce((sum, species) => sum + species.count, 0);
+    if (plantationType === 'multi' && totalTrees <= 1) {
+      errors.push('Multi plantation must have more than 1 tree total');
+      return { isValid: false, errors };
+    }
+
+    return { isValid: true, errors };
   };
 
   const validatePlantationType = (value, isRequired = true) => {
@@ -162,44 +223,9 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       return { isValid: !isRequired, errors };
     }
 
-    const validValues = ['Single', 'Multi'];
+    const validValues = ['Single', 'Multi', 'multi', 'single'];
     if (!validValues.includes(value.toString())) {
       errors.push('Plantation type must be either "Single" or "Multi"');
-      return { isValid: false, errors };
-    }
-
-    return { isValid: true, errors };
-  };
-
-  const validateTreesPlanted = (value, plantationType, isRequired = true) => {
-    const errors = [];
-
-    if (!value || value.toString().trim() === '') {
-      if (isRequired) {
-        errors.push('Trees planted is required');
-      }
-      return { isValid: !isRequired, errors };
-    }
-
-    const num = parseInt(value);
-    if (isNaN(num)) {
-      errors.push('Trees planted must be a valid number');
-      return { isValid: false, errors };
-    }
-
-    if (num <= 0) {
-      errors.push('Trees planted must be a positive number');
-      return { isValid: false, errors };
-    }
-
-    // Validate based on plantation type
-    if (plantationType === 'Single' && num !== 1) {
-      errors.push('Single plantation must have exactly 1 tree');
-      return { isValid: false, errors };
-    }
-
-    if (plantationType === 'Multi' && num <= 1) {
-      errors.push('Multi plantation must have more than 1 tree');
       return { isValid: false, errors };
     }
 
@@ -271,19 +297,16 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       hasErrors = true;
     }
 
-    // Species validation (depends on plantation type)
-    const speciesResult = validateSpecies(row['SPECIES'], typeVal, true);
+    // Species validation with new structure
+    const speciesData = row['SPECIES_DATA'] || parseSpeciesData(row['SPECIES'], row['TREES PLANTED'], typeVal);
+    const speciesResult = validateSpeciesData(speciesData, typeVal, true);
     if (!speciesResult.isValid) {
       errors.push(...speciesResult.errors);
       hasErrors = true;
     }
 
-    // Trees planted validation (depends on plantation type)
-    const treesResult = validateTreesPlanted(row['TREES PLANTED'], typeVal, true);
-    if (!treesResult.isValid) {
-      errors.push(...treesResult.errors);
-      hasErrors = true;
-    }
+    // Calculate total trees from species data
+    const calculatedTreesPlanted = speciesData.reduce((sum, species) => sum + (species.count || 0), 0);
 
     // Optional validations
     const elevationResult = validatePositiveNumber(row['ELEVATION'], 'Elevation', false);
@@ -324,8 +347,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       processedData: {
         ...row,
         'PLANTATION END DATE': endDate,
-        'SPECIES': speciesResult.species,
-        'TREES PLANTED': typeVal === 'Single' ? 1 : row['TREES PLANTED'] // Ensure single is always 1
+        'SPECIES_DATA': speciesData,
+        'TREES PLANTED': calculatedTreesPlanted
       }
     };
   };
@@ -338,9 +361,15 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
         throw new Error('No file selected');
       }
 
-      const results = fileData.map((row, index) => validateRow(row, index));
+      // Process each row and add species data structure
+      const processedFileData = fileData.map(row => ({
+        ...row,
+        'SPECIES_DATA': parseSpeciesData(row['SPECIES'], row['TREES PLANTED'] || 1, row['TYPE'])
+      }));
 
-      setData(fileData);
+      const results = processedFileData.map((row, index) => validateRow(row, index));
+
+      setData(processedFileData);
       setValidationResults(results);
 
       setTimeout(() => {
@@ -357,29 +386,89 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
     processCSVData();
   }, [fileData]);
 
-  const handleEdit = (index) => {
-    setEditingCard(index);
-    setEditData({ ...data[index] });
+  // Auto-save function
+  const autoSaveChanges = (index, newData) => {
+    const validationResult = validateRow(newData, index);
+
+    const updatedData = [...data];
+    const updatedValidationResults = [...validationResults];
+
+    updatedData[index] = newData;
+    updatedValidationResults[index] = validationResult;
+
+    setData(updatedData);
+    setValidationResults(updatedValidationResults);
   };
 
-  const handleSaveEdit = () => {
-    const validationResult = validateRow(editData, editingCard);
+  const handleFieldChange = (index, fieldName, value) => {
+    const newData = { ...data[index], [fieldName]: value };
+    
+    // Handle type change logic
+    if (fieldName === 'TYPE') {
+      if (value.toLowerCase() === 'single') {
+        // For single plantation, ensure only one species with count 1
+        if (newData['SPECIES_DATA'] && newData['SPECIES_DATA'].length > 0) {
+          newData['SPECIES_DATA'] = [{ 
+            name: newData['SPECIES_DATA'][0].name, 
+            count: 1 
+          }];
+        } else {
+          newData['SPECIES_DATA'] = [{ name: '', count: 1 }];
+        }
+      } else if (value.toLowerCase() === 'multi') {
+        // For multi plantation, ensure at least 2 species
+        if (!newData['SPECIES_DATA'] || newData['SPECIES_DATA'].length < 2) {
+          newData['SPECIES_DATA'] = [
+            { name: '', count: 1 },
+            { name: '', count: 1 }
+          ];
+        }
+      }
+    }
 
-    const newData = [...data];
-    const newValidationResults = [...validationResults];
-
-    newData[editingCard] = editData;
-    newValidationResults[editingCard] = validationResult;
-
-    setData(newData);
-    setValidationResults(newValidationResults);
-    setEditingCard(null);
-    setEditData({});
+    autoSaveChanges(index, newData);
   };
 
-  const handleCancelEdit = () => {
-    setEditingCard(null);
-    setEditData({});
+  const handleSpeciesChange = (rowIndex, speciesIndex, field, value) => {
+    const newData = { ...data[rowIndex] };
+    const newSpeciesData = [...newData['SPECIES_DATA']];
+    
+    if (field === 'name') {
+      newSpeciesData[speciesIndex].name = value;
+    } else if (field === 'count') {
+      const count = parseInt(value) || 0;
+      newSpeciesData[speciesIndex].count = Math.max(0, count);
+    }
+    
+    newData['SPECIES_DATA'] = newSpeciesData;
+    
+    // Auto-calculate total trees
+    const totalTrees = newSpeciesData.reduce((sum, species) => sum + species.count, 0);
+    newData['TREES PLANTED'] = totalTrees;
+    
+    autoSaveChanges(rowIndex, newData);
+  };
+
+  const addSpecies = (rowIndex) => {
+    const newData = { ...data[rowIndex] };
+    newData['SPECIES_DATA'] = [...newData['SPECIES_DATA'], { name: '', count: 1 }];
+    
+    // Auto-calculate total trees
+    const totalTrees = newData['SPECIES_DATA'].reduce((sum, species) => sum + species.count, 0);
+    newData['TREES PLANTED'] = totalTrees;
+    
+    autoSaveChanges(rowIndex, newData);
+  };
+
+  const removeSpecies = (rowIndex, speciesIndex) => {
+    const newData = { ...data[rowIndex] };
+    newData['SPECIES_DATA'] = newData['SPECIES_DATA'].filter((_, index) => index !== speciesIndex);
+    
+    // Auto-calculate total trees
+    const totalTrees = newData['SPECIES_DATA'].reduce((sum, species) => sum + species.count, 0);
+    newData['TREES PLANTED'] = totalTrees;
+    
+    autoSaveChanges(rowIndex, newData);
   };
 
   const handleDelete = (index) => {
@@ -395,20 +484,6 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
   const showErrors = (errors) => {
     setSelectedCardErrors(errors);
     setShowErrorModal(true);
-  };
-
-  // Handle type change in edit mode
-  const handleTypeChange = (newType) => {
-    const updatedEditData = { ...editData, 'TYPE': newType };
-    
-    // Auto-set trees planted based on type
-    if (newType === 'Single') {
-      updatedEditData['TREES PLANTED'] = 1;
-    } else if (newType === 'Multi' && (!editData['TREES PLANTED'] || editData['TREES PLANTED'] <= 1)) {
-      updatedEditData['TREES PLANTED'] = 2; // Default minimum for multi
-    }
-    
-    setEditData(updatedEditData);
   };
 
   const filteredResults = validationResults.filter(result => {
@@ -513,9 +588,10 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                 <li>Review the imported CSV data and correct any validation errors</li>
                 <li><strong>Single Plantation:</strong> Must have exactly 1 tree and 1 species only</li>
                 <li><strong>Multi Plantation:</strong> Must have 2+ trees and can have multiple species</li>
+                <li>For Multi plantations, specify tree count for each species</li>
+                <li>Changes are auto-saved as you edit</li>
                 <li>Required fields are marked with an asterisk (*)</li>
                 <li>Date format must be MM/DD/YYYY</li>
-                <li>Latitude and Longitude are mandatory coordinates</li>
               </ul>
             </div>
           </div>
@@ -627,8 +703,12 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       )}
                       <div className="flex space-x-1">
                         <button
-                          onClick={() => handleEdit(result.index)}
-                          className="p-2 text-gray-400 hover:text-[#007A49] hover:bg-green-50 rounded-lg transition-all duration-200"
+                          onClick={() => setEditingCard(editingCard === result.index ? null : result.index)}
+                          className={`p-2 rounded-lg transition-all duration-200 ${
+                            editingCard === result.index 
+                              ? 'text-[#007A49] bg-green-50' 
+                              : 'text-gray-400 hover:text-[#007A49] hover:bg-green-50'
+                          }`}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
@@ -650,14 +730,73 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       <div>
                         <label className="block text-xs font-semibold text-gray-700 mb-2">PLANTATION TYPE *</label>
                         <select
-                          value={editData['TYPE'] || ''}
-                          onChange={(e) => handleTypeChange(e.target.value)}
+                          value={data[result.index]['TYPE']?data[result.index]['TYPE'].toLowerCase(): ''}
+                          onChange={(e) => handleFieldChange(result.index, 'TYPE', e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                         >
                           <option value="">Select Type...</option>
-                          <option value="Single">Single</option>
-                          <option value="Multi">Multi</option>
+                          <option value="single">Single</option>
+                          <option value="multi">Multi</option>
                         </select>
+                      </div>
+
+                      {/* Species Section */}
+                      <div>
+                        <label className="block text-xs font-semibold text-gray-700 mb-2">
+                          SPECIES & TREE COUNT *
+                        </label>
+                        <div className="space-y-3">
+                          {data[result.index]['SPECIES_DATA']?.map((species, speciesIndex) => (
+                            <div key={speciesIndex} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                              <input
+                                type="text"
+                                placeholder="Species name"
+                                value={species.name}
+                                onChange={(e) => handleSpeciesChange(result.index, speciesIndex, 'name', e.target.value)}
+                                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                              />
+                              <input
+                                type="number"
+                                placeholder="Count"
+                                min="1"
+                                value={species.count}
+                                onChange={(e) => handleSpeciesChange(result.index, speciesIndex, 'count', e.target.value)}
+                                disabled={data[result.index]['TYPE'] === 'single'}
+                                className={`w-20 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 ${
+                                  data[result.index]['TYPE'] === 'single' ? 'bg-gray-100 cursor-not-allowed' : ''
+                                }`}
+                              />
+                              {data[result.index]['TYPE'] === 'multi' && data[result.index]['SPECIES_DATA']?.length > 1 && (
+                                <button
+                                  onClick={() => removeSpecies(result.index, speciesIndex)}
+                                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+                              )}
+                            </div>
+                          ))}
+                          
+                          {data[result.index]['TYPE'] === 'multi' && (
+                            <button
+                              onClick={() => addSpecies(result.index)}
+                              className="w-full flex items-center justify-center space-x-2 py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-[#007A49] hover:text-[#007A49] transition-all duration-200"
+                            >
+                              <Plus className="h-4 w-4" />
+                              <span className="text-sm font-medium">Add Another Species</span>
+                            </button>
+                          )}
+                        </div>
+                        
+                        {/* Total Trees Display */}
+                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                          <div className="flex items-center justify-between text-sm">
+                            <span className="text-blue-600 font-medium">Total Trees:</span>
+                            <span className="font-bold text-blue-800">
+                              {data[result.index]['SPECIES_DATA']?.reduce((sum, species) => sum + species.count, 0) || 0}
+                            </span>
+                          </div>
+                        </div>
                       </div>
 
                       {/* Dates */}
@@ -667,8 +806,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="MM/DD/YYYY"
-                            value={editData['PLANTATION START DATE'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'PLANTATION START DATE': e.target.value })}
+                            value={data[result.index]['PLANTATION START DATE'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'PLANTATION START DATE', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -677,8 +816,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="MM/DD/YYYY (defaults to start date)"
-                            value={editData['PLANTATION END DATE'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'PLANTATION END DATE': e.target.value })}
+                            value={data[result.index]['PLANTATION END DATE'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'PLANTATION END DATE', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -691,8 +830,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="e.g., 12.9221"
-                            value={editData['LATITUDE'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'LATITUDE': e.target.value })}
+                            value={data[result.index]['LATITUDE'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'LATITUDE', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -701,47 +840,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="e.g., 77.5937"
-                            value={editData['LONGITIUDE'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'LONGITIUDE': e.target.value })}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
-                          />
-                        </div>
-                      </div>
-
-                      {/* Trees and Species */}
-                      <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">
-                            TREES PLANTED * 
-                            {editData['TYPE'] === 'Single' && (
-                              <span className="text-xs text-gray-500 ml-1">(Fixed at 1)</span>
-                            )}
-                          </label>
-                          <input
-                            type="text"
-                            value={editData['TREES PLANTED'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'TREES PLANTED': e.target.value })}
-                            disabled={editData['TYPE'] === 'Single'}
-                            className={`w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 ${
-                              editData['TYPE'] === 'Single' ? 'bg-gray-100 cursor-not-allowed' : ''
-                            }`}
-                          />
-                          {editData['TYPE'] === 'Multi' && (
-                            <p className="text-xs text-gray-500 mt-1">Minimum 2 trees for multi plantation</p>
-                          )}
-                        </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">
-                            SPECIES *
-                            {editData['TYPE'] === 'Single' && (
-                              <span className="text-xs text-gray-500 ml-1">(One species only)</span>
-                            )}
-                          </label>
-                          <input
-                            type="text"
-                            placeholder={editData['TYPE'] === 'Single' ? 'Single species name' : 'Comma separated'}
-                            value={Array.isArray(editData['SPECIES']) ? editData['SPECIES'].join(', ') : editData['SPECIES'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'SPECIES': e.target.value })}
+                            value={data[result.index]['LONGITIUDE'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'LONGITIUDE', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -754,8 +854,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="meters"
-                            value={editData['ELEVATION'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'ELEVATION': e.target.value })}
+                            value={data[result.index]['ELEVATION'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'ELEVATION', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -764,8 +864,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="meters"
-                            value={editData['AVERAGE PLANT HEIGHT'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'AVERAGE PLANT HEIGHT': e.target.value })}
+                            value={data[result.index]['AVERAGE PLANT HEIGHT'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'AVERAGE PLANT HEIGHT', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -774,8 +874,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="cm"
-                            value={editData['AVERGAE PLANT DIAMETER'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'AVERGAE PLANT DIAMETER': e.target.value })}
+                            value={data[result.index]['AVERGAE PLANT DIAMETER'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'AVERGAE PLANT DIAMETER', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -787,8 +887,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">PEOPLE INVOLVED</label>
                           <input
                             type="text"
-                            value={editData['NUMBER OF PEOPLE INVOLVED'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'NUMBER OF PEOPLE INVOLVED': e.target.value })}
+                            value={data[result.index]['NUMBER OF PEOPLE INVOLVED'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'NUMBER OF PEOPLE INVOLVED', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -796,8 +896,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">TAG</label>
                           <input
                             type="text"
-                            value={editData['TAG'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'TAG': e.target.value })}
+                            value={data[result.index]['TAG'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'TAG', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -809,8 +909,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">LOCATION NAME</label>
                           <input
                             type="text"
-                            value={editData['LOCATION NAME'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'LOCATION NAME': e.target.value })}
+                            value={data[result.index]['LOCATION NAME'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'LOCATION NAME', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -818,8 +918,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">PERSON NAME</label>
                           <input
                             type="text"
-                            value={editData['PERSON NAME'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'PERSON NAME': e.target.value })}
+                            value={data[result.index]['PERSON NAME'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'PERSON NAME', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -831,8 +931,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">ID</label>
                           <input
                             type="text"
-                            value={editData['ID'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'ID': e.target.value })}
+                            value={data[result.index]['ID'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'ID', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -840,8 +940,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <label className="block text-xs font-semibold text-gray-700 mb-2">DESIGNATION</label>
                           <input
                             type="text"
-                            value={editData['DESIGNATION'] || ''}
-                            onChange={(e) => setEditData({ ...editData, 'DESIGNATION': e.target.value })}
+                            value={data[result.index]['DESIGNATION'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'DESIGNATION', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -854,30 +954,13 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           rows={3}
                           maxLength={200}
                           placeholder="Maximum 200 characters"
-                          value={editData['COMMENT'] || ''}
-                          onChange={(e) => setEditData({ ...editData, 'COMMENT': e.target.value })}
+                          value={data[result.index]['COMMENT'] || ''}
+                          onChange={(e) => handleFieldChange(result.index, 'COMMENT', e.target.value)}
                           className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 resize-none"
                         />
                         <div className="text-xs text-gray-500 mt-1">
-                          {(editData['COMMENT'] || '').length}/200 characters
+                          {(data[result.index]['COMMENT'] || '').length}/200 characters
                         </div>
-                      </div>
-
-                      <div className="flex justify-end space-x-3 pt-4 border-t border-gray-100">
-                        <button
-                          onClick={handleCancelEdit}
-                          className="px-4 py-2 text-sm font-medium text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50 transition-all duration-200"
-                        >
-                          <X className="h-4 w-4 inline mr-1" />
-                          Cancel
-                        </button>
-                        <button
-                          onClick={handleSaveEdit}
-                          className="px-4 py-2 text-sm font-medium bg-[#007A49] text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center"
-                        >
-                          <Save className="h-4 w-4 mr-1" />
-                          Save Changes
-                        </button>
                       </div>
                     </div>
                   ) : (
@@ -892,11 +975,11 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                             <p className="text-sm font-semibold text-gray-900">
                               {data[result.index]['TYPE'] || 'N/A'}
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
-                                data[result.index]['TYPE'] === 'Single' 
+                                data[result.index]['TYPE'] === 'single' 
                                   ? 'bg-blue-100 text-blue-800' 
                                   : 'bg-purple-100 text-purple-800'
                               }`}>
-                                {data[result.index]['TYPE'] === 'Single' ? '1 Tree' : 'Multi Trees'}
+                                {data[result.index]['TYPE'].toLowerCase() === 'single' ? '1 Tree' : 'Multi Trees'}
                               </span>
                             </p>
                           </div>
@@ -906,7 +989,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                             <TreePine className="h-3 w-3 text-green-600" />
                           </div>
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Trees Planted</p>
+                            <p className="text-xs font-medium text-gray-500">Total Trees</p>
                             <p className="text-sm font-bold text-green-800">
                               {data[result.index]['TREES PLANTED'] || '0'}
                             </p>
@@ -914,24 +997,24 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                         </div>
                       </div>
 
-                      {/* Species */}
+                      {/* Species with Counts */}
                       <div className="flex items-start space-x-2">
                         <Tag className="h-4 w-4 text-purple-600 mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500">Species</p>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {Array.isArray(data[result.index]['SPECIES'])
-                              ? data[result.index]['SPECIES'].map((species, idx) => (
-                                <span key={idx} className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                                  {species}
+                          <p className="text-xs font-medium text-gray-500">Species & Tree Count</p>
+                          <div className="space-y-2 mt-1">
+                            {data[result.index]['SPECIES_DATA']?.map((species, idx) => (
+                              <div key={idx} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
+                                <span className="text-sm font-medium text-purple-800">
+                                  {species.name || 'Unknown Species'}
                                 </span>
-                              ))
-                              : (
-                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full">
-                                  {data[result.index]['SPECIES'] || 'Unknown'}
+                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold">
+                                  {species.count} {species.count === 1 ? 'tree' : 'trees'}
                                 </span>
-                              )
-                            }
+                              </div>
+                            )) || (
+                              <span className="text-sm text-gray-500 italic">No species data</span>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -1095,7 +1178,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
           </div>
 
           <button
-            onClick={() => onNext(validationResults.map(r => r.processedData))}
+            onClick={() => onNext(validationResults.map(r => r.processedData), 3)}
             disabled={!canProceed}
             className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${canProceed
                 ? 'bg-gradient-to-r from-[#007A49] to-green-600 text-white shadow-lg hover:shadow-xl'

@@ -14,6 +14,7 @@ export const postUrlApi = {
     createNewDashboardSite: `${baseUrl}/api/projects`,
     createNewIntervention: `${baseUrl}/api/interventions/projects`,
     createInvtiationLink: `${baseUrl}/api/projects`,
+    bulkIntervention: `${baseUrl}/api/prokects`,
 }
 
 export const getUrlApi = {

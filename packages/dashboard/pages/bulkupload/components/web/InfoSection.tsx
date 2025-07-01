@@ -3,6 +3,8 @@
 import React, { useState, useRef } from 'react';
 import { Upload, Download, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
+import Papa from 'papaparse';
+
 
 const InfoSection = (props: any) => {
     const [selectedFile, setSelectedFile] = useState(null);
@@ -11,7 +13,7 @@ const InfoSection = (props: any) => {
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false)
 
-    const { setFileData,updateStep } = props
+    const { setFileData, updateStep } = props
 
     const validateFile = (file) => {
         if (!file) {
@@ -42,28 +44,27 @@ const InfoSection = (props: any) => {
             const file = fileInputRef.current.files[0];
             const text = await file.text();
 
-            // Parse CSV
-            const lines = text.split('\n').filter(line => line.trim());
-            const headers = lines[0].split(',').map(h => h.trim());
+            const result = Papa.parse(text, {
+                header: true,
+                skipEmptyLines: true,
+                trimHeaders: true,
+                transformHeader: (header) => header.trim()
+            });
 
-            const csvData = [];
-            for (let i = 1; i < lines.length; i++) {
-                const values = lines[i].split(',').map(v => v.trim());
-                const row = {};
-                headers.forEach((header, index) => {
-                    row[header] = values[index] || '';
-                });
-                csvData.push(row);
+            if (result.errors.length > 0) {
+                console.warn("CSV parsing warnings:", result.errors);
             }
-            setFileData(csvData)
-            updateStep(2)
-        } catch (error) {
-            setError("Error Occured while transforming data.")
-            setLoading(false)
-        }
-        setLoading(false)
-    }
 
+            console.log("Parsed CSV data:", result.data);
+            setFileData(result.data);
+            updateStep(2);
+        } catch (error) {
+            console.error("CSV parsing error:", error);
+            setError("Error occurred while transforming data: " + error.message);
+            setLoading(false);
+        }
+        setLoading(false);
+    }
     const handleFileSelect = (file) => {
         setError('');
 

@@ -3,9 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, RefreshCw, AlertCircle, MapPin, Calendar, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { getMyProjects } from '../../../../api/api.fetch';
+import { getMyProjects, getProjectSpecies, getUserProjectSites } from '../../../../api/api.fetch';
 
-const SelectProjectSite = ({ onBack, onNext,accessToken }) => {
+const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
   const [projects, setProjects] = useState([]);
   const [sites, setSites] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
@@ -14,22 +14,20 @@ const SelectProjectSite = ({ onBack, onNext,accessToken }) => {
   const [loadingSites, setLoadingSites] = useState(false);
   const [projectsError, setProjectsError] = useState('');
   const [sitesError, setSitesError] = useState('');
-
+  console.log("Access Token:", accessToken);
   // Mock API functions - replace with your actual API calls
   const fetchProjects = async () => {
     try {
       setLoadingProjects(true);
       setProjectsError('');
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      const response = await getMyProjects(accessToken||'');
-      if(response && response.statusCode===200){
+      const response = await getMyProjects(accessToken || '');
+      if (response && response.statusCode === 200) {
         setProjects(response.data)
-      }else{
+      } else {
         throw ''
-      }     
+      }
     } catch (error) {
+      console.error("Error fetching projects:", error);
       setProjectsError('Failed to load projects. Please try again.');
     } finally {
       setLoadingProjects(false);
@@ -40,48 +38,12 @@ const SelectProjectSite = ({ onBack, onNext,accessToken }) => {
     try {
       setLoadingSites(true);
       setSitesError('');
-
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 800));
-
-      // Mock data based on your schema - different sites for different projects
-      const mockSitesData = {
-        1: [
-          {
-            id: 1,
-            uid: 'site_001',
-            projectId: 1,
-            name: 'North Amazon Sector A',
-            description: 'Primary conservation area covering 1000 hectares of pristine rainforest.',
-            status: 'monitoring',
-            createdAt: new Date('2024-01-20')
-          },
-          {
-            id: 2,
-            uid: 'site_002',
-            projectId: 1,
-            name: 'South Amazon Sector B',
-            description: 'Secondary conservation area with ongoing restoration activities.',
-            status: 'planting',
-            createdAt: new Date('2024-01-25')
-          }
-        ],
-        2: [
-          {
-            id: 3,
-            uid: 'site_003',
-            projectId: 2,
-            name: 'Central Park Extension',
-            description: 'Urban forest expansion in downtown area.',
-            status: 'planting',
-            createdAt: new Date('2024-02-25')
-          }
-        ],
-        3: [] // No sites for project 3
-      };
-
-      const projectSites = mockSitesData[projectId] || [];
-      setSites(projectSites);
+      const response = await getUserProjectSites(accessToken || '', projectId);
+      if (response && response.statusCode === 200) {
+        setSites(response.data)
+      } else {
+        throw ''
+      }
     } catch (error) {
       setSitesError('Failed to load sites. Please try again.');
     } finally {
@@ -140,7 +102,14 @@ const SelectProjectSite = ({ onBack, onNext,accessToken }) => {
             style={{ position: 'absolute', right: 20, top: 20 }}
           >
             <button
-              onClick={() => onNext(selectedProject, selectedSite, 1)}
+              onClick={() => {
+                handleFinalSelection({
+                  projectName: selectedProject.projectName,
+                  siteName: selectedSite ? selectedSite.name : 'No site selected',
+                  projectId: selectedProject.uid,
+                  siteId: selectedSite ? selectedSite.uid : null
+                }, 1)}
+              }
               className="flex items-center px-6 py-3 bg-[#007A49] text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
             >
               Continue

@@ -167,6 +167,12 @@ export const getProjectIntervention = async (token: string, id: string) => {
 }
 
 
+export const createBulkIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/bulk`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 //notification
 

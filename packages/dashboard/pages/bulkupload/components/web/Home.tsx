@@ -7,12 +7,14 @@ import SelectProjectSite from './SelectProjectSite';
 import DataValidation from './DataValidation';
 import UploadSuccess from './UploadSuccess';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
-import {useToken} from '../../../../context/TokenContext'
+import { useToken } from '../../../../context/TokenContext'
 
-const Home = ({goback}) => {
-    const {accessToken} = useToken()
+const Home = ({ goback }) => {
+    const { accessToken } = useToken()
     const [currentStep, setCurrentStep] = useState(1)
     const [fileData, setFileData] = useState([]);
+    const [selectedProject, setSelectedProject] = useState({ name: '', id: '' });
+    const [selectedSite, setSelectedSite] = useState({ name: '', id: '' });
     const [steps, setSteps] = useState([
         { id: 1, name: 'Project', status: 'current' },
         { id: 2, name: 'Upload', status: 'upcoming' },
@@ -89,14 +91,17 @@ const Home = ({goback}) => {
         }
     }
 
-    const handleProjectPage = (pid, sid, i) => {
-        updateSteps(i)
-    }
-
     const handleProjectValidations = (valdiatedData, i) => {
         updateSteps(i)
+        setFileData(valdiatedData);
     }
 
+    const handleFinalSelection = ({ projectName, siteName, projectId, siteId }, i) => {
+        setSelectedProject({ name: projectName, id: projectId });
+        setSelectedSite({ name: siteName, id: siteId || null});
+        updateSteps(i)
+
+    }
 
     return (
         <div className="bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 w-full h-full">
@@ -141,10 +146,11 @@ const Home = ({goback}) => {
                 </nav>
             </div>
 
-            {currentStep === 1 && <SelectProjectSite onBack={prviousStep} onNext={handleProjectPage} accessToken={accessToken}/>}
+            {currentStep === 1 && <SelectProjectSite onBack={prviousStep} accessToken={accessToken}
+                handleFinalSelection={handleFinalSelection} />}
             {currentStep === 2 && <InfoSection setFileData={setFileData} updateStep={updateSteps} />}
             {currentStep === 3 && < DataValidation fileData={fileData} onBack={prviousStep} onNext={handleProjectValidations} />}
-            {currentStep === 4 && <UploadSuccess validatedData={[]} selectedProject={'undefined'} selectedSite={'undefined'} onBack={prviousStep} onStartOver={updateSteps} />}
+            {currentStep === 4 && <UploadSuccess validatedData={fileData} selectedProject={selectedProject} selectedSite={selectedSite} onBack={prviousStep} onStartOver={updateSteps} accessToken={accessToken} />}
         </div>
     )
 

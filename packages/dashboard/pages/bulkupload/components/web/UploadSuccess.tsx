@@ -1,24 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { 
-  CheckCircle, 
-  XCircle, 
-  Upload, 
-  ArrowLeft, 
-  RefreshCw, 
-  FileText, 
+import {
+  CheckCircle,
+  XCircle,
+  Upload,
+  ArrowLeft,
+  RefreshCw,
+  FileText,
   Mail,
   ExternalLink
 } from 'lucide-react';
 import { motion } from 'framer-motion';
+import ForestBulkLoader from './ForestBulkLoader';
+import { generateJsonIdempotencyKey } from '../../../../utils/idempotencyGenertor';
+import { v4 as uuidv4 } from 'uuid';
+import { createBulkIntervention } from '../../../../api/api.fetch';
 
-const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, onStartOver }) => {
+const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, onStartOver, accessToken }) => {
   const [uploadState, setUploadState] = useState('uploading'); // 'uploading', 'success', 'error'
   const [uploadProgress, setUploadProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState('');
   const [uploadedRecords, setUploadedRecords] = useState(0);
-
+  console.log('validatedData', validatedData)
   // Mock upload function - replace with your actual API call
   const uploadData = async () => {
     try {
@@ -27,44 +31,76 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       setUploadedRecords(0);
 
       // Simulate upload progress
-      const totalRecords = validatedData.length;
-      
-      for (let i = 0; i <= totalRecords; i++) {
-        await new Promise(resolve => setTimeout(resolve, 10000)); // Simulate upload delay
-        setUploadProgress((i / totalRecords) * 100);
-        setUploadedRecords(i);
+      const data = await transformDataForUpload(validatedData);
+      console.log('Data to upload:', data);
+      const response = await createBulkIntervention(accessToken, data, selectedProject.id);
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        setUploadState('success');
+      } else {
+        throw new Error('Failed to upload data. Please try again.');
       }
-
-      // Simulate API call
-      const uploadPayload = {
-        projectId: selectedProject.id,
-        siteId: selectedSite?.id || null,
-        data: validatedData
-      };
-
-      // Mock API call - replace with actual endpoint
-      // const response = await fetch('/api/bulk-upload', {
-      //   method: 'POST',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //   },
-      //   body: JSON.stringify(uploadPayload)
-      // });
-
-      // if (!response.ok) {
-      //   throw new Error('Upload failed. Please try again.');
-      // }
-
-      // const result = await response.json();
-      
-      setUploadState('success');
-      
     } catch (error) {
       console.error('Upload error:', error);
       setUploadState('error');
       setErrorMessage(error.message || 'An unexpected error occurred during upload.');
     }
   };
+
+  const transformDataForUpload = async (data) => {
+    const interventionType = data.TYPE === 'Multi' || data.TYPE === 'multi' ? 'multi-tree-registration' : 'single-tree-registration';
+
+    // Use Promise.all to wait for all async operations
+    return await Promise.all(data.map(async record => {
+      const keyId = await generateJsonIdempotencyKey(record);
+      const payload = {
+        plantProject: selectedProject.id,
+        type: interventionType,
+        idempotencyKey: keyId,
+        registrationDate: new Date(),
+        interventionStartDate: new Date(record['PLANTATION START DATE']),
+        interventionEndDate: new Date(record['PLANTATION END DATE']),
+        geometry: latLongToGeoJSON(record['LATITUDE'], record['LONGITUDE']),
+        treeCount: record['TREES PLANTED'],
+        species: transformSpecies(record['SPECIES_DATA']),
+        metadata: {
+          'tag': record['TAG'],
+          "locationName": record['LOCATION NAME'],
+          "personName": record['PERSON NAME'],
+          "id": record['ID'],
+          "designation": record['DESIGNATION'],
+          'height': record['AVERAGE PLANT HEIGHT'],
+          'width': record['AVERAGE PLANT WIDTH'], // Fixed typo here
+        }
+      }
+      if (selectedSite && selectedSite.id) {
+        payload.plantProjectSite = selectedSite.id;
+      }
+      return payload
+    }));
+  };
+
+  const transformSpecies = (d) => {
+    return d.map(record => ({
+      uid: uuidv4(),
+      scientificSpeciesId: null,
+      scientificSpeciesUid: null,
+      speciesName: null,
+      isUnknown: true,
+      otherSpeciesName: record.name,
+      count: record.count,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+      deletedAt: null
+    }));
+  }
+
+  function latLongToGeoJSON(latitude, longitude) {
+    return {
+      type: "Point",
+      coordinates: [longitude, latitude] // Note: GeoJSON uses [lng, lat] order
+    };
+  }
+
 
   useEffect(() => {
     // Start upload when component mounts
@@ -77,31 +113,19 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   const renderUploadingState = () => (
     <div className="text-center">
-      
+
       <h2 className="text-2xl font-bold text-gray-900 mb-4">Uploading Your Data</h2>
       <p className="text-gray-600 mb-8">Please wait while we process your plantation data...</p>
-      
+
       {/* Progress Bar */}
-      <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
-        <motion.div 
-          className="bg-[#007A49] h-3 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${uploadProgress}%` }}
-          transition={{ duration: 0.3, ease: "easeOut" }}
-        />
-      </div>
-      
-      <div className="flex justify-between text-sm text-gray-600 mb-8">
-        <span>Progress: {Math.round(uploadProgress)}%</span>
-        <span>Records: {uploadedRecords} / {validatedData.length}</span>
-      </div>
+      <ForestBulkLoader />
 
       {/* Upload Details */}
       <div className="bg-gray-50 rounded-lg p-6 max-w-md mx-auto">
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-gray-600">Project:</span>
-            <span className="font-medium text-gray-900">{selectedProject.projectName}</span>
+            <span className="font-medium text-gray-900">{selectedProject.name}</span>
           </div>
           {selectedSite && (
             <div className="flex justify-between">
@@ -127,7 +151,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       >
         <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
       </motion.div>
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -164,10 +188,10 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
           <div className="flex justify-between">
             <span className="text-green-700">Upload Date:</span>
             <span className="font-medium text-green-900">
-              {new Date().toLocaleDateString('en-US', { 
-                year: 'numeric', 
-                month: 'long', 
-                day: 'numeric' 
+              {new Date().toLocaleDateString('en-US', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
               })}
             </span>
           </div>
@@ -228,7 +252,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       >
         <XCircle className="h-20 w-20 text-red-500 mx-auto mb-6" />
       </motion.div>
-      
+
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -283,7 +307,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
             <p className="text-sm text-yellow-800 mb-3">
               If the problem persists, please contact our support team with the error details above.
             </p>
-            <a 
+            <a
               href="mailto:info@plant-for-the-planet.org"
               className="inline-flex items-center text-sm text-yellow-700 hover:text-yellow-900 font-medium"
             >
@@ -309,7 +333,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
           Retry Upload
         </button>
         <button
-          onClick={()=>{onBack(4)}}
+          onClick={() => { onBack(4) }}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors flex items-center justify-center"
         >
           <ArrowLeft className="h-4 w-4 mr-2" />
