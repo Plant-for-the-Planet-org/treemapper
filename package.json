@@ -46,10 +46,6 @@
     "react-dom": "18.2.0",
     "@types/react": "18.2.6"
   },
-  "engines": {
-    "node": ">=18.x",
-    "yarn": ">=1.22.19"
-  },
   "packageManager": "yarn@1.22.19",
   "workspaces": [
     "apps/*",
