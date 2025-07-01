@@ -25,25 +25,25 @@ const StatCardsContainer = () => {
   const [overview, setOverview] = useState([
     {
       title: "Trees Planted",
-      value: "990.4k",
+      value: "0.0k",
       note: "+20.1% from last month",
       icon: Leaf
     },
     {
       title: "Species Planted",
-      value: "28",
+      value: "0",
       note: "+10% from last month",
       icon: Sprout
     },
     {
       title: "Area Covered",
-      value: "124 ha",
+      value: "0 ha",
       note: "+19% from last month",
       icon: Map
     },
     {
       title: "Field Data Collectors",
-      value: "5",
+      value: "0",
       note: "+0 since last month",
       icon: Activity
     }
