@@ -291,7 +291,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       hasErrors = true;
     }
 
-    const lngResult = validateCoordinate(row['LONGITIUDE'], 'Longitude', true);
+    const lngResult = validateCoordinate(row['LONGITUDE'], 'Longitude', true);
     if (!lngResult.isValid) {
       errors.push(...lngResult.errors);
       hasErrors = true;
@@ -321,7 +321,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       hasErrors = true;
     }
 
-    const diameterResult = validatePositiveNumber(row['AVERGAE PLANT DIAMETER'], 'Average Plant Diameter', false);
+    const diameterResult = validatePositiveNumber(row['AVERAGE PLANT DIAMETER'], 'Average Plant Diameter', false);
     if (!diameterResult.isValid) {
       errors.push(...diameterResult.errors);
       hasErrors = true;
@@ -840,8 +840,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="e.g., 77.5937"
-                            value={data[result.index]['LONGITIUDE'] || ''}
-                            onChange={(e) => handleFieldChange(result.index, 'LONGITIUDE', e.target.value)}
+                            value={data[result.index]['LONGITUDE'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'LONGITUDE', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -874,8 +874,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           <input
                             type="text"
                             placeholder="cm"
-                            value={data[result.index]['AVERGAE PLANT DIAMETER'] || ''}
-                            onChange={(e) => handleFieldChange(result.index, 'AVERGAE PLANT DIAMETER', e.target.value)}
+                            value={data[result.index]['AVERAGE PLANT DIAMETER'] || ''}
+                            onChange={(e) => handleFieldChange(result.index, 'AVERAGE PLANT DIAMETER', e.target.value)}
                             className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
                           />
                         </div>
@@ -1050,8 +1050,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                             {data[result.index]['LOCATION NAME'] || 'Unnamed Location'}
                           </p>
                           <p className="text-xs text-gray-600">
-                            {data[result.index]['LATITUDE'] && data[result.index]['LONGITIUDE']
-                              ? `${parseFloat(data[result.index]['LATITUDE']).toFixed(4)}, ${parseFloat(data[result.index]['LONGITIUDE']).toFixed(4)}`
+                            {data[result.index]['LATITUDE'] && data[result.index]['LONGITUDE']
+                              ? `${parseFloat(data[result.index]['LATITUDE']).toFixed(4)}, ${parseFloat(data[result.index]['LONGITUDE']).toFixed(4)}`
                               : 'Coordinates missing'}
                           </p>
                         </div>
@@ -1095,7 +1095,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       )}
 
                       {/* Additional Details */}
-                      {(data[result.index]['ELEVATION'] || data[result.index]['AVERAGE PLANT HEIGHT'] || data[result.index]['AVERGAE PLANT DIAMETER'] || data[result.index]['TAG']) && (
+                      {(data[result.index]['ELEVATION'] || data[result.index]['AVERAGE PLANT HEIGHT'] || data[result.index]['AVERAGE PLANT DIAMETER'] || data[result.index]['TAG']) && (
                         <div className="border-t border-gray-100 pt-3">
                           <p className="text-xs font-medium text-gray-500 mb-2">Additional Details</p>
                           <div className="grid grid-cols-2 gap-2 text-xs">
@@ -1111,10 +1111,10 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                                 <span className="ml-1 font-medium">{data[result.index]['AVERAGE PLANT HEIGHT']}m</span>
                               </div>
                             )}
-                            {data[result.index]['AVERGAE PLANT DIAMETER'] && (
+                            {data[result.index]['AVERAGE PLANT DIAMETER'] && (
                               <div>
                                 <span className="text-gray-500">Diameter:</span>
-                                <span className="ml-1 font-medium">{data[result.index]['AVERGAE PLANT DIAMETER']}cm</span>
+                                <span className="ml-1 font-medium">{data[result.index]['AVERAGE PLANT DIAMETER']}cm</span>
                               </div>
                             )}
                             {data[result.index]['TAG'] && (

@@ -40,7 +40,8 @@
     "react-native-web": "^0.20.0",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.3",
-    "setimmediate": "^1.0.5"
+    "setimmediate": "^1.0.5",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@types/node": "17.0.21",

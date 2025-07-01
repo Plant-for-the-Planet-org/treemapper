@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 import { Upload, Download, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Papa from 'papaparse';
+import { downloadTreeMapperTemplate } from '../../../../utils/downloadTemplate';
 
 
 const InfoSection = (props: any) => {
@@ -107,9 +108,9 @@ const InfoSection = (props: any) => {
         }
     };
 
-    const downloadTemplate = () => {
+    const downloadTemplate =  () => {
         // Placeholder function - you'll implement the actual download logic
-        console.log('Download template clicked');
+         downloadTreeMapperTemplate()
     };
 
     return (
