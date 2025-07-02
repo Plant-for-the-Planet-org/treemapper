@@ -27,8 +27,8 @@ export const downloadTreeMapperTemplate = () => {
     // Single type plantation example
     {
       'TYPE': 'Single',
-      'PLANTATION START DATE': '2024-03-15',
-      'PLANTATION END DATE': '2024-03-17',
+      'PLANTATION START DATE': '03/04/2024',
+      'PLANTATION END DATE': '04/04/2024',
       'LATITUDE': 40.7128,
       'LONGITUDE': -74.0060,
       'ELEVATION': 125,
@@ -47,8 +47,8 @@ export const downloadTreeMapperTemplate = () => {
     // Multi type plantation example 1
     {
       'TYPE': 'Multi',
-      'PLANTATION START DATE': '2024-04-10',
-      'PLANTATION END DATE': '2024-04-15',
+      'PLANTATION START DATE': '05/04/2024',
+      'PLANTATION END DATE': '06/04/2024',
       'LATITUDE': 34.0522,
       'LONGITUDE': -118.2437,
       'ELEVATION': 280,
@@ -67,8 +67,8 @@ export const downloadTreeMapperTemplate = () => {
     // Multi type plantation example 2
     {
       'TYPE': 'Multi',
-      'PLANTATION START DATE': '2024-05-01',
-      'PLANTATION END DATE': '2024-05-05',
+      'PLANTATION START DATE': '03/18/2024',
+      'PLANTATION END DATE': '03/20/2024',
       'LATITUDE': 51.5074,
       'LONGITUDE': -0.1278,
       'ELEVATION': 45,
@@ -87,8 +87,8 @@ export const downloadTreeMapperTemplate = () => {
     // Single type plantation example 2
     {
       'TYPE': 'Single',
-      'PLANTATION START DATE': '2024-06-12',
-      'PLANTATION END DATE': '2024-06-14',
+      'PLANTATION START DATE': '03/23/2024',
+      'PLANTATION END DATE': '03/23/2024',
       'LATITUDE': -33.8688,
       'LONGITUDE': 151.2093,
       'ELEVATION': 180,
