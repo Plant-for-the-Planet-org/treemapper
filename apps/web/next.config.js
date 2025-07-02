@@ -1,4 +1,3 @@
-const { withExpo } = require('@expo/next-adapter')
 const path = require('path');
 
 /** @type {import('next').NextConfig} */
@@ -17,12 +16,6 @@ const nextConfig = {
     ignoreDuringBuilds: true,
   },
   webpack(config) {
-    // Keep existing aliases
-    config.resolve.alias = {
-      ...config.resolve.alias,
-      'react-native-svg': 'react-native-svg-web',
-    };
-
     // Add the rule for shared package images
     config.module.rules.push({
       test: /\.(png|jpg|jpeg|gif|svg|webp)$/i,
@@ -68,19 +61,6 @@ const nextConfig = {
     // This makes paths available to your app at runtime
     sharedAssetsPath: '/shared', // This will be the URL path prefix for shared assets
   },
-  transpilePackages: [
-    'react-native',
-    'react-native-web',
-    'solito',
-    'moti',
-    'app',
-    'react-native-reanimated',
-    '@expo/html-elements',
-    'react-native-gesture-handler',
-    'dashboard'
-  ],
 };
 
-const plugins = [];
-
-module.exports = withExpo(plugins.reduce((acc, next) => next(acc), nextConfig));
+module.exports = nextConfig;
