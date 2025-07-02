@@ -34,7 +34,8 @@ import {
   MoreHorizontal,
   Expand,
   Shrink,
-  Upload
+  Upload,
+  TreePine
 } from 'lucide-react';
 import MapDisplayComponent from './ProjectSelectMap';
 
@@ -392,7 +393,7 @@ const TreeMapperUI = (props: any) => {
   return (
     <div className="bg-gray-50 flex flex-col h-screen w-full">
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 px-4 sm:px-6 py-3 shadow-sm mt-4">
+      <div className="bg-white/80 backdrop-blur-sm border-b border-slate-200/60 px-4 sm:px-6 py-3 shadow-sm" style={{paddingTop:'7vh'}}>
         <div className="flex flex-col xl:flex-row xl:items-center justify-between gap-4">
           <div className="flex items-center justify-between lg:justify-start" style={{ paddingTop: 20 }}>
             <div className="flex items-center space-x-4">
@@ -675,20 +676,20 @@ const TreeMapperUI = (props: any) => {
 
                       <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
-                          <Activity className="w-8 h-8 text-purple-600" />
+                          <TreePine className="w-8 h-8 text-purple-600" />
                           <span className="text-2xl font-bold text-purple-900">{selectedIntervention.trees?.length || 0}</span>
                         </div>
-                        <p className="text-purple-700 font-medium">Tracked Trees</p>
+                        <p className="text-purple-700 font-medium">Sample Trees</p>
                       </div>
 
                       <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4">
                         <div className="flex items-center justify-between mb-2">
                           <CalendarIcon className="w-8 h-8 text-orange-600" />
                           <span className="text-lg font-bold text-orange-900">
-                            {Math.ceil((new Date() - new Date(selectedIntervention.registrationDate)) / (1000 * 60 * 60 * 24))}d
+                            {formatDate(selectedIntervention.updatedAt)}
                           </span>
                         </div>
-                        <p className="text-orange-700 font-medium">Days Active</p>
+                        <p className="text-orange-700 font-medium">Last Update</p>
                       </div>
                     </div>
 
