@@ -72,6 +72,12 @@ export const getMyProjects = async (token: string) => {
   return result
 }
 
+export const getSingleProjectDetails = async (token: string, prid: string) => {
+  const uri = `${getUrlApi.projects}/${prid}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 //inivte
 export const acceptProjectInvite = async (token: string, params: any) => {
   const uri = `${postUrlApi.acceptInvite}`;

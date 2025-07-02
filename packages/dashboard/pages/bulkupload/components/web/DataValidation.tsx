@@ -187,10 +187,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
       return { isValid: false, errors };
     }
 
-    if (plantationType === 'multi' && speciesData.length === 1) {
-      errors.push('Multi plantation must have more than one species');
-      return { isValid: false, errors };
-    }
+
 
     // Validate individual counts
     for (const species of speciesData) {
