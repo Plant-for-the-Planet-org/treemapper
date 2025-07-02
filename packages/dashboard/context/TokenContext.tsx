@@ -3,17 +3,17 @@
 import { createContext, useContext, ReactNode } from 'react';
 
 interface TokenContextType {
-  accessToken: string | null;
+  accessToken: string;
 }
 
-const TokenContext = createContext<TokenContextType>({ accessToken: null });
+const TokenContext = createContext<TokenContextType>({ accessToken: '' });
 
 export const TokenProvider = ({ 
   children, 
   accessToken 
 }: { 
   children: ReactNode; 
-  accessToken: string | null;
+  accessToken: string;
 }) => {
   return (
     <TokenContext.Provider value={{ accessToken }}>

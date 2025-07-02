@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation';
 import GoogleSpinner from '../../components/Spinner';
 import { useEffect, useState } from 'react';
-import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeader';
+import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeaderWeb';
 import { useAccessToken } from '../../hooks/useAccessToken';
 import { TokenProvider } from 'dashboard/context/TokenContext';
 import MigrationModal from '../../components/MigrationModal';
@@ -79,6 +79,19 @@ export default function DashboardLayout({
     );
   }
 
+
+  const createNewProject = () => {
+    router.push(`/dashboard/project`)
+
+  }
+  const openProfileSetting = () => {
+    router.push(`/dashboard/profile`)
+  }
+
+  const updateRoute = (newRoute: string) => {
+    router.push(`/dashboard/${newRoute}`)
+  }
+
   // Conditional rendering based on current section
   const renderSectionSpecificContent = () => {
     switch (currentSection) {
@@ -93,7 +106,7 @@ export default function DashboardLayout({
       case 'newintervention':
         return null
       default:
-        return <DashboardHeader token={accessToken || ''} />;
+        return <DashboardHeader token={accessToken} createNewProject={createNewProject}  openProfileSetting={openProfileSetting} updateRoute={updateRoute}/>;
     }
   };
 

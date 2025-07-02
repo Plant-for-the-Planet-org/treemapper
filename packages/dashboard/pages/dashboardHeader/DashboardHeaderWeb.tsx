@@ -1,5 +1,4 @@
-import React from 'react';
-import ProjectTabs from './web/ProjectTabs';
+import ProjectTabs from './components/web/ProjectTabs';
 
 
 interface HomeUIProps {
@@ -9,7 +8,7 @@ interface HomeUIProps {
   token: string
 }
 
-export function HomeUI({ createNewProject, openProfileSetting, updateRoute, token }: HomeUIProps) {
+export function DashboardHeaderWeb({ createNewProject, openProfileSetting, updateRoute, token }: HomeUIProps) {
   return (
     <div className="flex-grow w-full md:w-auto sticky top-0 z-50" style={{ backgroundColor: "#fff", position:'relative', zIndex:100 }}>
       <ProjectTabs
@@ -22,4 +21,4 @@ export function HomeUI({ createNewProject, openProfileSetting, updateRoute, toke
   );
 }
 
-export default HomeUI;
+export default DashboardHeaderWeb;

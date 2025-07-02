@@ -35,7 +35,7 @@ const ProjectDropdown = ({
     }
   }, [user])
 
-  function createProjectTitle(name) {
+  function createProjectTitle(name: string) {
     // Capitalize the first letter and make the rest lowercase
     const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
     return `${formattedName}'s personal project`;
@@ -52,7 +52,7 @@ const ProjectDropdown = ({
           selectProject(sortedResponse[0]);
         } else {
           const payLoad = {
-            "projectName": createProjectTitle(user?.displayName || user?.authName),
+            "projectName": createProjectTitle(user?.displayName),
             "projectType": 'personal',
             "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
           };
@@ -245,7 +245,6 @@ const ProjectDropdown = ({
             </div>
             <div className="h-8 w-px bg-gray-300"></div>
             <ProfileAvatar
-              imageUrl='https://avatar.iran.liara.run/public'
               openProfileSetting={openProfileSetting}
             />
           </div>
