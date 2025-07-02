@@ -11,8 +11,8 @@
     "postinstall": "patch-package",
     "clean": "turbo clean && rm -rf node_modules",
     "clean:deep": "rm -rf node_modules && rm -rf yarn.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
-    "heroku-postbuild": "cd apps/web && npm install --production=false && npm run build",
-    "start": "cd apps/web && npm start",
+    "heroku-postbuild": "cd apps/web && yarn install && yarn build",
+    "start": "cd apps/web && yarn start",
     "type-check": "turbo type-check",
     "// Workspace-specific scripts": "",
     "native:dev": "turbo dev --filter=nativeapp",
@@ -23,8 +23,8 @@
     "web:start": "turbo start --filter=web"
   },
   "engines": {
-    "node": "23.0.0",
-    "npm": "10.x"
+    "node": "23.x.x",
+    "yarn": "1.x"
   },
   "devDependencies": {
     "prettier": "^3.2.5",
