@@ -317,7 +317,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
                 <div className="bg-gray-50 rounded-xl p-6 space-y-4">
                   <p className="text-sm text-gray-600 leading-relaxed">
                     Define your project area by using the interactive map below. You can place a marker for point locations,
-                    draw a polygon to outline larger areas, or upload a KML/GeoJSON file with precise boundaries.
+                    draw a polygon to outline  larger areas, or upload a KML/GeoJSON file with precise boundaries.
                   </p>
 
                   <div className="w-full h-80 rounded-xl overflow-hidden shadow-inner">
