@@ -24,9 +24,8 @@
     "db:studio": "drizzle-kit studio",
     "set-user-role": "ts-node scripts/create-admin.ts"
   },
-  "engines": {
-    "node": "23.x",
-    "yarn": "1.22.x"
+"engines": {
+    "node": "~23.0.0"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.824.0",

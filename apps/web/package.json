@@ -11,7 +11,7 @@
     "heroku-postbuild": "npm run build"
   },
   "engines": {
-    "node": ">=23.x"
+    "node": "~23.0.0"
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "3.7.0",
