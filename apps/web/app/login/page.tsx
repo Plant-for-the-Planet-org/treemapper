@@ -9,7 +9,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
   const [loading, setLoading] = useState(false);
-  const [imageLoaded, setImageLoaded] = useState(false);
+  const [imageLoaded, setImageLoaded] = useState(true);
 
   const handleLogin = useCallback(() => {
     setLoading(true);
@@ -50,27 +50,24 @@ export default function LoginPage() {
   return (
     <div className="flex flex-col md:flex-row h-screen w-screen overflow-hidden">
       <EmailVerificationModal />
-      
+
       {/* Left section with background image - 70% on desktop, full width on mobile */}
       <div className="hidden md:block md:w-[70%] h-full relative">
         {/* Loading placeholder */}
         {!imageLoaded && (
           <div className="absolute inset-0 bg-gray-200 animate-pulse" />
         )}
-        
+
         <Image
-          src="https://images.unsplash.com/photo-1513836279014-a89f7a76ae86?q=80&w=1920&auto=format&fit=crop&ixlib=rb-4.0.3"
+          src="/loginbackdrop.jpeg"
           alt="Forest background"
           fill
           sizes="70vw"
           style={{ objectFit: 'cover' }}
           priority
           quality={85}
-          onLoad={handleImageLoad}
-          placeholder="blur"
-          blurDataURL="data:image/jpeg;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/2wBDAAYEBQYFBAYGBQYHBwYIChAKCgkJChQODwwQFxQYGBcUFhYaHSUfGhsjHBYWICwgIyYnKSopGR8tMC0oMCUoKSj/2wBDAQcHBwoIChMKChMoGhYaKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCgoKCj/wAARCAAIAAoDASIAAhEBAxEB/8QAFQABAQAAAAAAAAAAAAAAAAAAAAv/xAAhEAACAQMDBQAAAAAAAAAAAAABAgMABAUGIWGRkqGx0f/EABUBAQEAAAAAAAAAAAAAAAAAAAMF/8QAGhEAAgIDAAAAAAAAAAAAAAAAAAECEgMRkf/aAAwDAQACEQMRAD8AltJagyeH0AthI5xdrLcNM91BF5pX2HaH9bcfaSXWGaRmknyJckliyjqTzSlT54b6bk+h0R//2Q=="
         />
-        
+
         <div className="absolute inset-0 bg-black bg-opacity-30 flex items-center justify-center">
           <div className="text-white text-center p-8">
             <h2 className="text-4xl font-bold mb-4">TreeMapper</h2>
@@ -133,8 +130,8 @@ export default function LoginPage() {
             <div className="mt-4 text-center">
               <p className="text-sm text-gray-600">
                 Having problems logging in?{' '}
-                <a 
-                  href="mailto:info@plant-for-the-planet.org" 
+                <a
+                  href="https://www.plant-for-the-planet.org/contact/"
                   className="text-green-600 hover:text-green-800 transition-colors"
                 >
                   Contact us
@@ -189,19 +186,19 @@ export default function LoginPage() {
         {/* Footer */}
         <footer className="p-4 bg-gray-50 text-center text-xs text-gray-500 border-t border-gray-200">
           <nav className="flex justify-center space-x-4" role="navigation" aria-label="Footer navigation">
-            <button 
+            <button
               onClick={openImprint}
               className="hover:text-green-600 transition-colors focus:outline-none focus:text-green-600"
             >
               Imprint
             </button>
-            <button 
+            <button
               onClick={openPolicy}
               className="hover:text-green-600 transition-colors focus:outline-none focus:text-green-600"
             >
               Privacy Policy
             </button>
-            <button 
+            <button
               onClick={openTerms}
               className="hover:text-green-600 transition-colors focus:outline-none focus:text-green-600"
             >
