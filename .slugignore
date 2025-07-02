@@ -1,1 +1,31 @@
+# Development files
+*.md
+*.txt
+.git/
+.gitignore
+.eslintrc*
+.prettierrc*
+
+# Native app (not needed for web)
 apps/nativeapp/
+
+# Server app (if deploying separately)
+apps/server/
+
+# Test files
+test/
+tests/
+__tests__/
+*.test.js
+*.spec.js
+
+# Documentation
+docs/
+README.md
+CODE_OF_CONDUCT.md
+CONTRIBUTING.md
+
+# Development dependencies that might not be needed
+node_modules/*/test/
+node_modules/*/tests/
+node_modules/*/docs/
