@@ -14,7 +14,6 @@ import {
 import { motion } from 'framer-motion';
 import ForestBulkLoader from './ForestBulkLoader';
 import { generateJsonIdempotencyKey } from '../../../../utils/idempotencyGenertor';
-import { v4 as uuidv4 } from 'uuid';
 import { createBulkIntervention } from '../../../../api/api.fetch';
 
 const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, onStartOver, accessToken }) => {
@@ -81,7 +80,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   const transformSpecies = (d) => {
     return d.map(record => ({
-      uid: uuidv4(),
+      uid: new Date().getTime() + Math.random().toString(36).substring(2, 15),
       scientificSpeciesId: null,
       scientificSpeciesUid: null,
       speciesName: null,

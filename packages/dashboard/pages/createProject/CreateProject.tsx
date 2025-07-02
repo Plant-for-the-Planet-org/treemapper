@@ -28,11 +28,11 @@ export function CreateProjectUI({ token, goBack }: Props) {
   const [finalGeoJSON, setFinalGeoJSON] = useState(null)
   const [loading, setLoading] = useState(false)
 
-  const updateGeoJSON = (geoJSONData) => {
+  const updateGeoJSON = (geoJSONData: React.SetStateAction<null>) => {
     setFinalGeoJSON(geoJSONData);
   };
 
-  const handleGeoJSONChange = (geoJson) => {
+  const handleGeoJSONChange = (geoJson: React.SetStateAction<null>) => {
     if (geoJson) {
       setFinalGeoJSON(geoJson);
     } else {
@@ -40,7 +40,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
     }
   };
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: { target: { name: any; value: any; type: any; checked: any; }; }) => {
     const { name, value, type, checked } = e.target;
     setFormData(prev => ({
       ...prev,
@@ -48,7 +48,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: { preventDefault: () => void; }) => {
     e.preventDefault();
 
     if (!finalGeoJSON) {
