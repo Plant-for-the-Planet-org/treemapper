@@ -10,6 +10,9 @@
     "build:dev": "next build --no-lint",
     "heroku-postbuild": "npm run build"
   },
+  "engines": {
+    "node": ">=23.x"
+  },
   "dependencies": {
     "@auth0/nextjs-auth0": "3.7.0",
     "@mapbox/togeojson": "^0.16.2",

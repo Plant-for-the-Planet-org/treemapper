@@ -14,7 +14,6 @@
     "heroku-postbuild": "cd apps/web && npm run build",
     "start": "turbo start --filter=web",
     "type-check": "turbo type-check",
-    
     "// Workspace-specific scripts": "",
     "native:dev": "turbo dev --filter=nativeapp",
     "native:build": "turbo build --filter=nativeapp",
@@ -40,6 +39,9 @@
     "react": "18.2.0",
     "react-dom": "18.2.0"
   },
+"engines": {
+  "node": ">=23.x"
+},
   "resolutions": {
     "react": "18.2.0",
     "react-native": "0.74.2",
