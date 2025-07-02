@@ -18,7 +18,6 @@ import {
   Clock,
   Map
 } from 'lucide-react';
-import AddNewSite from './AddNewSite';
 import useProjectStore from '../../../../store/useProjectStore';
 import { useToken } from '../../../../context/TokenContext'
 import { getUserProjectSites } from '../../../../api/api.fetch';
@@ -26,22 +25,19 @@ import { toast } from 'react-toastify'
 import Spinner from '../../../../components/spinner/Spinner'
 import { findAreaInHa } from '../../../../utils/geoJSON.helper';
 import SiteViewer from './MapComponent';
-import { useRouter } from 'solito/navigation'
 
 
-const SiteManagementPage = () => {
+const SiteManagementPage = ({handleCreateNewSite}) => {
   const [sites, setSites] = useState([]);
   const [selectedSite, setSelectedSite] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
   const [editedSite, setEditedSite] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showAddModal, setShowAddModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [loading, setLoading] = useState(false)
   const selectedProject = useProjectStore(state => state.selectedProject)
   const { accessToken } = useToken()
-  const { push } = useRouter()
 
   useEffect(() => {
     if (isEditing && selectedSite) {
@@ -71,11 +67,6 @@ const SiteManagementPage = () => {
       setSelectedSite(mappedResponse[0])
     }
     setLoading(false)
-  }
-
-  const handleCreateNewSite = () => {
-    push(`/dashboard/newsite`)
-
   }
 
 

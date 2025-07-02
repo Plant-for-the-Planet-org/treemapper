@@ -2,12 +2,12 @@
 
 import React, { useState, useRef } from 'react';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus, Square, Dessert, LandPlot } from 'lucide-react';
-import ProjectMap from './web/ProjectSelectMap';
-import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './web/GeoJSONfileupload';
-import useProjectStore from '../../../store/useProjectStore'
+import ProjectMap from './components/web/ProjectSelectMap';
+import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './components/web/GeoJSONfileupload';
+import useProjectStore from '../../store/useProjectStore'
 import { toast } from 'react-toastify'
-import { createNewDashboardSite } from '../../../api/api.fetch'
-import { useToken } from '../../../context/TokenContext'
+import { createNewDashboardSite } from '../../api/api.fetch'
+import { useToken } from '../../context/TokenContext'
 
 // Mock components - replace with your actual imports
 

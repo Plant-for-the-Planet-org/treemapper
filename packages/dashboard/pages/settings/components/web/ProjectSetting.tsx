@@ -7,7 +7,6 @@ import {
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock, Menu, X, Plus, UserX
 } from 'lucide-react';
-import BackButton from '../../../../components/backButton/BackButton';
 
 interface ProjectData {
   projectName: string;

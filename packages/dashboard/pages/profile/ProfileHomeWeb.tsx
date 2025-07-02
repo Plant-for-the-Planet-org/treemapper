@@ -15,11 +15,11 @@ import {
   Upload,
   Trash2,
   Menu,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
-import BackButton from '../../components/backButton/BackButton';
 
-const ProfileSettings = () => {
+const ProfileSettings = ({goBack}) => {
   // State for mobile menu
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -145,8 +145,8 @@ const ProfileSettings = () => {
         <div className="bg-white/80 backdrop-blur-sm border-b border-gray-200/50 sticky top-0 z-50">
           <div className="px-4 px-2">
             <div className="flex items-center justify-between h-16">
-              <BackButton label='Profile Settings' />
-              
+              {/* <BackButton label='Profile Settings' /> */}
+              <div onClick={goBack} ><ArrowLeft/></div>
               {/* Mobile menu button */}
               <button
                 onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
