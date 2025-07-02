@@ -1,23 +1,36 @@
-import React from 'react';
-import BackButtonUI from './components'; // This imports the platform-specific UI
-import { useRouter } from 'solito/navigation'
+// components/Spinner.tsx
+import React from 'react'
 
-interface Props {
-  label?: string
-}
-
-function Spinner({ label, h }: Props) {
-  const { back } = useRouter()
-  const navigateBack = () => {
-    back()
-  };
+const Spinner = () => {
   return (
-    <BackButtonUI
-      navigateBack={navigateBack}
-      label={label}
-      h={h}
-    />
-  );
+    <div className="spinner-container">
+      <div className="spinner" />
+      <style jsx>{`
+        .spinner-container {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+
+        .spinner {
+          width: 25px;
+          height: 25px;
+          border: 4px solid #262626;
+          border-top: 4px solid transparent;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+    </div>
+  )
 }
 
-export default Spinner;
+export default Spinner

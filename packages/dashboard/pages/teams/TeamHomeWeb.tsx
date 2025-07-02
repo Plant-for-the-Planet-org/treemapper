@@ -1,5 +1,5 @@
 import React from 'react';
-import TeamHomeUI from './components'; // This imports the platform-specific UI
+import TeamHomeUI from './components/web/TeamDashboard'; // This imports the platform-specific UI
 function TeamHome() {
   return (
     <TeamHomeUI/>

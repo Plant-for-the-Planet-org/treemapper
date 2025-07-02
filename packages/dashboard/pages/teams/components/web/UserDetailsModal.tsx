@@ -370,9 +370,6 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
           </div>}
         </div>
       </div>
-
-      {/* Confirmation Modal */}
-
     </>
   );
 };

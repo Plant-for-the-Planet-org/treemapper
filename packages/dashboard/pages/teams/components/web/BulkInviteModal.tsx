@@ -11,7 +11,8 @@ import {
     User,
     Loader2,
     Check,
-    AlertCircle
+    AlertCircle,
+    Minus
 } from 'lucide-react';
 import { createProjectInviteLink, getAllProjectInviteLink, removeInviteLink } from '../../../../api/api.fetch';
 import { useToken } from '../../../../context/TokenContext'
@@ -21,7 +22,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
     const [existingLinks, setExistingLinks] = useState([]);
     const [isLoading, setIsLoading] = useState(false);
     const [isCreating, setIsCreating] = useState(false);
-    const [domainRestriction, setDomainRestriction] = useState('');
+    const [domainRestrictions, setDomainRestrictions] = useState(['']); // Changed to array
     const [newLink, setNewLink] = useState(null);
     const [copiedId, setCopiedId] = useState(null);
     const [error, setError] = useState('');
@@ -36,6 +37,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
             fetchExistingLinks();
             setError('');
             setSuccess('');
+            setDomainRestrictions(['']); // Reset to single empty field
         }
     }, [isOpen]);
 
@@ -56,14 +58,42 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
         }
     };
 
+    const addDomainField = () => {
+        setDomainRestrictions(prev => [...prev, '']);
+    };
+
+    const removeDomainField = (index) => {
+        if (domainRestrictions.length > 1) {
+            setDomainRestrictions(prev => prev.filter((_, i) => i !== index));
+        }
+    };
+
+    const updateDomainRestriction = (index, value) => {
+        setDomainRestrictions(prev => 
+            prev.map((domain, i) => i === index ? value : domain)
+        );
+    };
+
     const generateInvitationLink = async () => {
-        if (!domainRestriction.trim()) {
-            setError('Please enter a domain restriction');
+        // Filter out empty domains and validate
+        const validDomains = domainRestrictions.filter(domain => domain.trim());
+        
+        if (validDomains.length === 0) {
+            setError('Please enter at least one domain restriction');
             return;
         }
 
-        if (!domainRestriction.startsWith('@')) {
-            setError('Domain restriction should start with @');
+        // Validate all domains start with @
+        const invalidDomains = validDomains.filter(domain => !domain.startsWith('@'));
+        if (invalidDomains.length > 0) {
+            setError('All domain restrictions should start with @');
+            return;
+        }
+
+        // Check for duplicates
+        const uniqueDomains = [...new Set(validDomains)];
+        if (uniqueDomains.length !== validDomains.length) {
+            setError('Duplicate domains are not allowed');
             return;
         }
 
@@ -72,21 +102,21 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
 
         try {
             const response = await createProjectInviteLink(accessToken || '', SelectedProject?.uid, {
-                restriction: domainRestriction,
+                restriction: uniqueDomains, // Now sending array
                 expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             })
             console.log("SDC", response.data.link)
-            if (response && response.statusCode == 200 || response.statusCode == 201) {
+            if (response && (response.statusCode == 200 || response.statusCode == 201)) {
                 const generatedLink = {
                     id: Date.now().toString(),
                     invitationlink: `${response.data.link}`,
-                    domain_restriction: domainRestriction,
+                    restriction: uniqueDomains, // Updated field name
                     created_at: new Date().toISOString(),
                     created_by: "me"
                 };
-                setNewLink(`${response.data.link}`,);
+                setNewLink(`${response.data.link}`);
                 setExistingLinks(prev => [generatedLink, ...prev]);
-                setDomainRestriction('');
+                setDomainRestrictions(['']); // Reset to single empty field
                 setSuccess('Invitation link created successfully!');
                 setIsCreating(false);
             } else {
@@ -127,6 +157,14 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
             hour: '2-digit',
             minute: '2-digit'
         });
+    };
+
+    const renderDomainRestrictions = (restrictions) => {
+        // Handle both old format (string) and new format (array)
+        if (Array.isArray(restrictions)) {
+            return restrictions.join(', ');
+        }
+        return restrictions || '';
     };
 
     if (!isOpen) return null;
@@ -200,21 +238,59 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                         <div className="space-y-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                                    Domain Restriction
+                                    Domain Restrictions
                                 </label>
-                                <div className="relative">
-                                    <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-                                    <input
-                                        type="text"
-                                        value={domainRestriction}
-                                        onChange={(e) => setDomainRestriction(e.target.value)}
-                                        placeholder="@company.com"
-                                        className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                                        disabled={isCreating}
-                                    />
+                                
+                                {/* Dynamic Domain Input Fields */}
+                                <div className="space-y-2">
+                                    {domainRestrictions.map((domain, index) => (
+                                        <motion.div
+                                            key={index}
+                                            initial={{ opacity: 0, height: 0 }}
+                                            animate={{ opacity: 1, height: 'auto' }}
+                                            exit={{ opacity: 0, height: 0 }}
+                                            className="flex items-center gap-2"
+                                        >
+                                            <div className="relative flex-1">
+                                                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
+                                                <input
+                                                    type="text"
+                                                    value={domain}
+                                                    onChange={(e) => updateDomainRestriction(index, e.target.value)}
+                                                    placeholder="@company.com"
+                                                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                                    disabled={isCreating}
+                                                />
+                                            </div>
+                                            
+                                            {/* Remove button (only show if more than 1 field) */}
+                                            {domainRestrictions.length > 1 && (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => removeDomainField(index)}
+                                                    className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                                                    disabled={isCreating}
+                                                >
+                                                    <Minus className="w-4 h-4" />
+                                                </button>
+                                            )}
+                                        </motion.div>
+                                    ))}
                                 </div>
+
+                                {/* Add another domain button */}
+                                <button
+                                    type="button"
+                                    onClick={addDomainField}
+                                    className="mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                    disabled={isCreating}
+                                >
+                                    <Plus className="w-3 h-3" />
+                                    Add another domain
+                                </button>
+
                                 <p className="text-xs text-gray-500 mt-1">
-                                    Only emails with this domain can use the invitation link
+                                    Only emails with these domains can use the invitation link
                                 </p>
                             </div>
 
@@ -309,7 +385,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                                                 <div className="flex items-center gap-2 mb-1">
                                                     <Mail className="w-4 h-4 text-gray-400" />
                                                     <span className="text-sm font-medium text-gray-900">
-                                                        {link.domain_restriction}
+                                                        {renderDomainRestrictions(link.restriction || link.domain_restriction)}
                                                     </span>
                                                 </div>
                                                 <div className="flex items-center gap-2 text-xs text-gray-500 mb-2">
