@@ -1,5 +1,4 @@
-import React from 'react';
-import OverViewUI from './components';
+import OverViewUI from './components/web/Overview';
 
 
 function OverView() {
