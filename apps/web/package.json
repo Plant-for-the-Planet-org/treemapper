@@ -5,10 +5,9 @@
   "scripts": {
     "dev": "next dev -p 3000",
     "build": "next build",
-    "start": "next start -p 3000",
+    "start": "next start -p ${PORT:-3000}",
     "lint": "next lint",
-    "build:dev": "next build --no-lint",
-    "heroku-postbuild": "npm run build"
+    "build:dev": "next build --no-lint"
   },
   "engines": {
     "node": "23.x.x",
