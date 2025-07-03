@@ -23,6 +23,13 @@ export const getMyDetails = async (token: string) => {
   return result
 }
 
+export const generatePreSignUrl = async (token: string, params: any) => {
+  const uri = `${postUrlApi.preSignUrl}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+
 
 //migrate
 
@@ -161,7 +168,7 @@ export const createNewDashboardSite = async (token: string, params: any, prjId: 
 
 
 export const createNewIntervention = async (token: string, params: any, prjId: string) => {
-  const uri = `${postUrlApi.createNewIntervention}/${prjId}`;
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/web`;
   const result = await fetchPostCall(uri, params, token);
   return result;
 };

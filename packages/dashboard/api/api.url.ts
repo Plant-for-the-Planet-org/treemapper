@@ -15,6 +15,7 @@ export const postUrlApi = {
     createNewIntervention: `${baseUrl}/api/interventions/projects`,
     createInvtiationLink: `${baseUrl}/api/projects`,
     bulkIntervention: `${baseUrl}/api/prokects`,
+    preSignUrl:`${baseUrl}/api/users/presign-url`
 }
 
 export const getUrlApi = {

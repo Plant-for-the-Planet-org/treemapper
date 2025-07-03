@@ -111,7 +111,6 @@ export default function DashboardLayout({
   };
 
   const renderNoPlaceHolderCondition = () => {
-    console.log("sssss")
     switch (currentSection) {
       case 'profile':
         return children
