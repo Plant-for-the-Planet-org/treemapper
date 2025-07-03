@@ -49,7 +49,14 @@ const InfoSection = (props: any) => {
                 header: true,
                 skipEmptyLines: true,
                 trimHeaders: true,
-                transformHeader: (header) => header.trim()
+                transformHeader: (header) => header.trim(),
+                transform: (value, field) => {
+                    if (field === 'TYPE' && typeof value === 'string') {
+                        return value.toLowerCase();
+                    }
+                    
+                    return value;
+                }
             });
 
             if (result.errors.length > 0) {
@@ -108,9 +115,9 @@ const InfoSection = (props: any) => {
         }
     };
 
-    const downloadTemplate =  () => {
+    const downloadTemplate = () => {
         // Placeholder function - you'll implement the actual download logic
-         downloadTreeMapperTemplate()
+        downloadTreeMapperTemplate()
     };
 
     return (

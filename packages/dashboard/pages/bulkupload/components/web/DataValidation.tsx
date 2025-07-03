@@ -535,15 +535,11 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => onBack(3)}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-[#007A49] hover:bg-white rounded-lg transition-all duration-200 shadow-sm hover:shadow-md"
+              className="flex items-center px-4 py-2 text-gray-600 hover:text-[#007A49] hover:bg-white rounded-lg transition-all duration-200"
             >
               <ArrowLeft className="h-5 w-5 mr-2" />
-              Back
             </button>
-            <div>
-              <h1 className="text-4xl font-bold text-gray-900">Data Validation</h1>
-              <p className="text-gray-600 mt-1">Review and validate your imported data</p>
-            </div>
+              <h1 className="text-4xl font-bold text-gray-900" style={{margin:0,padding:0}}>Data Validation</h1>
           </div>
 
           <button
@@ -758,7 +754,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                                 min="1"
                                 value={species.count}
                                 onChange={(e) => handleSpeciesChange(result.index, speciesIndex, 'count', e.target.value)}
-                                disabled={data[result.index]['TYPE'] === 'single'}
+                                disabled={data[result.index]['TYPE'] === 'single' || data[result.index]['TYPE'] === 'single'}
                                 className={`w-20 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 ${
                                   data[result.index]['TYPE'] === 'single' ? 'bg-gray-100 cursor-not-allowed' : ''
                                 }`}

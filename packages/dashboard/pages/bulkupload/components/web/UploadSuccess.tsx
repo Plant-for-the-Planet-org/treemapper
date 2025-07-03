@@ -13,8 +13,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import ForestBulkLoader from './ForestBulkLoader';
-import { generateJsonIdempotencyKey } from '../../../../utils/idempotencyGenertor';
 import { createBulkIntervention } from '../../../../api/api.fetch';
+import * as crypto from 'crypto';
+
 
 const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, onStartOver, accessToken }) => {
   const [uploadState, setUploadState] = useState('uploading'); // 'uploading', 'success', 'error'
@@ -45,45 +46,50 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
     }
   };
 
-  const transformDataForUpload = async (data) => {
-    const interventionType = data.TYPE === 'Multi' || data.TYPE === 'multi' ? 'multi-tree-registration' : 'single-tree-registration';
+  function generateUid(prefix) {
+    const randomPart = crypto.randomBytes(16).toString('hex').substring(0, 24);
+    return `${prefix}_${randomPart}`;
+  }
 
-    // Use Promise.all to wait for all async operations
-    return await Promise.all(data.map(async record => {
-      const keyId = await generateJsonIdempotencyKey(record);
+
+  const transformDataForUpload = (data) => {
+    return data.map(record => {
+      const interventionType = record.TYPE !== 'single' ? 'multi-tree-registration' : 'single-tree-registration';
       const payload = {
-        plantProject: selectedProject.id,
+        uid: generateUid('inv'),
         type: interventionType,
-        idempotencyKey: keyId,
-        registrationDate: new Date(),
+        plantProject: selectedProject.id,
         interventionStartDate: new Date(record['PLANTATION START DATE']),
         interventionEndDate: new Date(record['PLANTATION END DATE']),
         geometry: latLongToGeoJSON(record['LATITUDE'], record['LONGITUDE']),
-        treeCount: record['TREES PLANTED'],
+        treesPlanted: record['TREES PLANTED'],
         species: transformSpecies(record['SPECIES_DATA']),
+        'height': record['AVERAGE PLANT HEIGHT'],
+        'width': record['AVERAGE PLANT WIDTH'],
+        'tag': record['TAG'],
         metadata: {
-          'tag': record['TAG'],
           "locationName": record['LOCATION NAME'],
           "personName": record['PERSON NAME'],
           "id": record['ID'],
           "designation": record['DESIGNATION'],
-          'height': record['AVERAGE PLANT HEIGHT'],
-          'width': record['AVERAGE PLANT WIDTH'], // Fixed typo here
+          'averageHeight': record['AVERAGE PLANT HEIGHT'],
+          'averageWidth': record['AVERAGE PLANT WIDTH'],
+          'tag': record['TAG'],
         }
       }
       if (selectedSite && selectedSite.id) {
-        payload.plantProjectSite = selectedSite.id;
+        payload["plantProjectSite"] = selectedSite.id;
       }
       return payload
-    }));
+    })
   };
 
   const transformSpecies = (d) => {
     return d.map(record => ({
-      uid: new Date().getTime() + Math.random().toString(36).substring(2, 15),
+      uid: generateUid('spc'),
       scientificSpeciesId: null,
       scientificSpeciesUid: null,
-      speciesName: null,
+      speciesName: record.name,
       isUnknown: true,
       otherSpeciesName: record.name,
       count: record.count,
@@ -95,9 +101,16 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   function latLongToGeoJSON(latitude, longitude) {
     return {
-      type: "Point",
-      coordinates: [longitude, latitude] // Note: GeoJSON uses [lng, lat] order
-    };
+      "type": "Feature",
+      "properties": {},
+      "geometry": {
+        "coordinates": [
+          Number(longitude),
+          Number(latitude),
+        ],
+        "type": "Point"
+      }
+    }
   }
 
 
@@ -172,7 +185,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
         <div className="space-y-3 text-sm">
           <div className="flex justify-between">
             <span className="text-green-700">Project:</span>
-            <span className="font-medium text-green-900">{selectedProject.projectName}</span>
+            <span className="font-medium text-green-900">{selectedProject.name}</span>
           </div>
           {selectedSite && (
             <div className="flex justify-between">
@@ -211,7 +224,9 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
             <p className="text-sm text-blue-800 mb-3">
               Your uploaded data is now available in the TreeMapper dashboard. You can view and manage your interventions from the Intervention section.
             </p>
-            <button className="inline-flex items-center text-sm text-blue-700 hover:text-blue-900 font-medium">
+            <button
+              onClick={() => window.location.href = '/dashboard/intervention'}
+              className="inline-flex items-center text-sm text-blue-700 hover:text-blue-900 font-medium">
               <ExternalLink className="h-4 w-4 mr-1" />
               Go to Interventions
             </button>
@@ -227,16 +242,16 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
         className="flex flex-col sm:flex-row gap-4 justify-center"
       >
         <button
-          onClick={onStartOver}
+          onClick={() => window.location.href = '/dashboard/intervention'}
           className="px-6 py-3 bg-[#007A49] text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
         >
-          Upload More Data
+          Go To Intervention
         </button>
         <button
           onClick={() => window.location.href = '/dashboard'}
           className="px-6 py-3 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
         >
-          Go to Dashboard
+          Home
         </button>
       </motion.div>
     </div>
