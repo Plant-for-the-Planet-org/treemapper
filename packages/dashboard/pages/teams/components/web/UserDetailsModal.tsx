@@ -285,10 +285,8 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                     className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
                   >
                     <option value="admin">Admin - Full access and management</option>
-                    <option value="manager">Manager - Can manage project and members</option>
                     <option value="contributor">Contributor - Can edit and create</option>
                     <option value="observer">Observre - Can review the project</option>
-                    <option value="researcher">Researcher - Has access to reports</option>
                   </select>
 
                   {isEdited && !saveSuccess && (

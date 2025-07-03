@@ -138,10 +138,8 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
                   className="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
                 >
                   <option value="admin">Admin</option>
-                  <option value="manager">Manager</option>
                   <option value="contributor">Contributor</option>
                   <option value="observer">Observer</option>
-                  <option value="researcher">Researcher</option>
                 </select>
               </div>
 
