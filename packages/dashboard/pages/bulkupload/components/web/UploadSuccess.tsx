@@ -56,7 +56,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
     return data.map(record => {
       const interventionType = record.TYPE !== 'single' ? 'multi-tree-registration' : 'single-tree-registration';
       const payload = {
-        uid: generateUid('inv'),
+        clientId: generateUid('inv'),
         type: interventionType,
         plantProject: selectedProject.id,
         interventionStartDate: new Date(record['PLANTATION START DATE']),
@@ -86,7 +86,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
   const transformSpecies = (d) => {
     return d.map(record => ({
-      uid: generateUid('spc'),
+      clientId: generateUid('spc'),
       scientificSpeciesId: null,
       scientificSpeciesUid: null,
       speciesName: record.name,

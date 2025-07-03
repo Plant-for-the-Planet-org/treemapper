@@ -173,8 +173,15 @@ export const createNewIntervention = async (token: string, params: any, prjId: s
   return result;
 };
 
-export const getProjectIntervention = async (token: string, id: string) => {
-  const uri = `${getUrlApi.getProjectIntervnetion}/${id}`
+export const getProjectIntervention = async (token: string, id: string, queryParams: any) => {
+  let uri = `${getUrlApi.getProjectIntervnetion}/${id}`
+
+  // Convert queryParams object to query string
+  if (queryParams && Object.keys(queryParams).length > 0) {
+    const searchParams = new URLSearchParams(queryParams);
+    uri += `?${searchParams.toString()}`;
+  }
+
   const result = await fetchGetCall(uri, token)
   return result
 }

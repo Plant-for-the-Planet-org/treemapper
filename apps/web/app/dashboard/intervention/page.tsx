@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 export default function Dashboard() {
   const router = useRouter();
     const newIntervention = () => {
+      console.log("SDLkc")
     router.push(`/dashboard/new-intervention`)
   }
   const bulkUpload = () => {

@@ -429,9 +429,9 @@ const ProjectSiteSelector = ({
             value={formData.siteId || ''}
             onChange={(e) => {
               setFormData(prev => ({
-              ...prev,
-              siteId: e.target.value || null
-            }))
+                ...prev,
+                siteId: e.target.value || null
+              }))
             }}
             disabled={!formData.projectId || sites.length === 0}
             className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-emerald-500/20 focus:border-emerald-500 transition-all duration-200 ${!formData.projectId ? 'bg-slate-100/50' : 'bg-white/50'
@@ -1231,7 +1231,7 @@ const ImageUpload = ({
 };
 
 // ===================== MAIN COMPONENT =====================
-const InterventionCreator = ({goBack}) => {
+const InterventionCreator = ({ goBack }) => {
   // Form state
   const [formData, setFormData] = useState<FormData>({
     projectId: null,
@@ -1346,6 +1346,8 @@ const InterventionCreator = ({goBack}) => {
 
   // Build API payload
   const buildApiPayload = () => {
+    const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
+
     const payload: any = {
       type: formData.interventionType,
       captureMode: 'off-site',
@@ -1353,6 +1355,7 @@ const InterventionCreator = ({goBack}) => {
       registrationDate: new Date().toISOString(),
       metadata: { app: {}, public: {}, private: {} },
       plantProject: formData.projectId,
+      treeCount:totalTreeCount,
       interventionStartDate: new Date(formData.treeDetails.plantingDate).toISOString(),
       interventionEndDate: new Date(formData.treeDetails.plantingDate).toISOString(),
     };
@@ -1529,7 +1532,7 @@ const InterventionCreator = ({goBack}) => {
           <InterventionUploadModal
             accessToken={accessToken}
             imageRef={fileInputRef}
-            isOpen={startUpload!==null} onClose={() => { setStartUpload(null) }} onSuccess={goBack} formData={startUpload} image={formData.image} />
+            isOpen={startUpload !== null} onClose={() => { setStartUpload(null) }} onSuccess={goBack} formData={startUpload} image={formData.image} />
 
           {/* Form Actions */}
           <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
