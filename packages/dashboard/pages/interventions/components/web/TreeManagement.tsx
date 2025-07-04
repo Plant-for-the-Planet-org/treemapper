@@ -47,6 +47,8 @@ import MapDisplayComponent from './ProjectSelectMap';
 import { useToken } from '../../../../context/TokenContext';
 import { getProjectIntervention } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
+import Image from 'next/image'
+
 
 const interventionTypeIcons = {
   'enrichment-planting': Trees,
@@ -134,6 +136,16 @@ const TreeTooltip = ({ tree, isVisible, position }) => {
         transform: 'translateY(-100%)'
       }}
     >
+      {tree.image && <div className="relative w-full h-32 mb-3 bg-gray-100 rounded-md overflow-hidden">
+        <Image
+          src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/tree/${tree.image}`}
+          alt="Tree image"
+          fill
+          className="object-cover"
+        />
+      </div>}
+
+
       <div className="flex items-center space-x-2 mb-3">
         <Trees className="w-4 h-4 text-green-600" />
         <span className="font-semibold text-slate-800">{tree.tag || tree.hid}</span>
@@ -613,7 +625,7 @@ const SpeciesCard = ({ species }) => (
           <h4 className="font-semibold text-slate-800">
             {species.speciesName || species.otherSpeciesName || 'Unknown Species'}
           </h4>
-          {species.scientificSpeciesUid && typeof species.scientificSpeciesUid==='string' && (
+          {species.scientificSpeciesUid && typeof species.scientificSpeciesUid === 'string' && (
             <span className="text-sm text-slate-600">ID: {species.scientificSpeciesUid}</span>
           )}
         </div>
@@ -926,7 +938,7 @@ const InterventionDetails = ({
 // MAIN COMPONENT
 // ============================================================================
 
-const TreeMapperUI = ({newIntervention, bulkUpload}) => {
+const TreeMapperUI = ({ newIntervention, bulkUpload }) => {
   const [interventions, setInterventions] = useState([]);
   const [selectedIntervention, setSelectedIntervention] = useState(null);
   const [loading, setLoading] = useState(false);
@@ -995,7 +1007,7 @@ const TreeMapperUI = ({newIntervention, bulkUpload}) => {
           // if (selectedIntervention && !newInterventions.find(i => i.id === selectedIntervention.id)) {
           //   setSelectedIntervention(null);
           // }
-          if (!selectedIntervention && newInterventions.length>0) {
+          if (!selectedIntervention && newInterventions.length > 0) {
             setSelectedIntervention(newInterventions[0]);
           }
         }

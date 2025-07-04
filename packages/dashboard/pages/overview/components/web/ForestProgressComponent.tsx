@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { TreePine, Leaf, Target } from 'lucide-react';
 
-const ForestProgressComponent = ({ target, treeCount }) => {
+const ForestProgressComponent = ({ target=0, treeCount=0 }) => {
   const [animatedProgress, setAnimatedProgress] = useState(0);
   const [animatedTreeCount, setAnimatedTreeCount] = useState(0);
 
