@@ -211,6 +211,13 @@ export const markNotificationRead = async (token: string) => {
 
 
 
+export const updateProjectSettings = async (token: string, params, prid) => {
+  const uri = `${patchUrlApi.updateProjectSettings}/${prid}`;
+  const result = await fetchPatchCall(uri, params, token);
+  return result;
+};
+
+
 
 
 

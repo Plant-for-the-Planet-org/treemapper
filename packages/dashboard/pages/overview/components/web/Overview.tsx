@@ -8,7 +8,10 @@ import RecentAdditionsComponent from './RecentAdditionsComponent';
 // import ProjectSummaryKPIs from './ProjectKPI';
 // import SpeciesAnalytics from './SpeciesAnalyst';
 // import GeographicalInterventionAnalytics from './GeolocationKPI';
-import {useAnalyticsStore} from '../../../../store/useAnalyticsStore'
+import { useAnalyticsStore } from '../../../../store/useAnalyticsStore'
+import useProjectStore from '../../../../store/useProjectStore'
+
+import ForestProgressComponent from './ForestProgressComponent';
 
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
@@ -16,8 +19,10 @@ const Overview = () => {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
     const isLargeScreen = useMediaQuery('(min-width: 768px)');
+    const [totalTrees, setTotalTrees] = useState(0)
     const [selectTab, setSelectedTab] = useState('overview')
     const { setGlobalEndDate, setGlobalStartDate } = useAnalyticsStore(state => state)
+    const Target = useProjectStore(state=>state.selectedProject?.target)
     const getMonthRange = () => {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -28,7 +33,7 @@ const Overview = () => {
         };
     };
 
-    const handleCalendarChange=()=>{
+    const handleCalendarChange = () => {
         setGlobalStartDate(endDate)
         setGlobalEndDate(startDate)
         setShowCalendar(false)
@@ -306,7 +311,8 @@ const Overview = () => {
                     </button>
                 </div>
             </div>
-            {selectTab == 'overview' && <><StatCardsContainer />
+            {selectTab == 'overview' && <><StatCardsContainer setTotalTrees={setTotalTrees}/>
+                <ForestProgressComponent target={Target} treeCount={totalTrees}/>
                 <div className="px-4 py-6">
                     <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                         <div className="h-full flex">

@@ -21,7 +21,7 @@ const StatCard = ({ title, value, note, icon: Icon }) => {
   );
 };
 
-const StatCardsContainer = () => {
+const StatCardsContainer = ({setTotalTrees}) => {
   const [overview, setOverview] = useState([
     {
       title: "Trees Planted",
@@ -57,10 +57,11 @@ const StatCardsContainer = () => {
 
   const fetchData = async () => {
     const response = await getDashboardKpis(accessToken || '', startDate, endDate, selectedProject?.uid || '')
-    console.log("dssd", response)
     if (response && response.statusCode === 200 && response.data) {
       const { totalTreesPlanted, totalAreaCovered, totalSpeciesPlanted, totalContributors } = response.data.kpis
-
+      if(totalTreesPlanted){
+        setTotalTrees(totalTreesPlanted)
+      }
       setOverview(
         [
           {

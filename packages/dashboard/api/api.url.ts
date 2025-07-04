@@ -15,7 +15,7 @@ export const postUrlApi = {
     createNewIntervention: `${baseUrl}/api/interventions/projects`,
     createInvtiationLink: `${baseUrl}/api/projects`,
     bulkIntervention: `${baseUrl}/api/prokects`,
-    preSignUrl:`${baseUrl}/api/users/presign-url`
+    preSignUrl: `${baseUrl}/api/users/presign-url`
 }
 
 export const getUrlApi = {
@@ -42,7 +42,7 @@ export const patchUrlApi = {
     updateMemeberRole: `${baseUrl}/api/projects`,
     markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
     deleteLink: `${baseUrl}/api/projects`,
-
+    updateProjectSettings: `${baseUrl}/api/projects`,
 }
 
 
