@@ -18,7 +18,7 @@ const ForestProgressComponent = ({ target=0, treeCount=0 }) => {
   } else if (num >= 1_000) {
     return (num / 1_000).toFixed(1) + ' Thousand';
   } else {
-    return num.toString();
+    return num
   }
 }
 

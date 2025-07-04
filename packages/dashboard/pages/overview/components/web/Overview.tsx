@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { CalendarDays } from 'lucide-react';
 import useMediaQuery from '../../../../utils/useMediaQuery/useMediaQuery.web';
-// import ChildTabs from './ChildTabs';
+import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
 import TreePlantingChart from './TreePlantingChart';
 import RecentAdditionsComponent from './RecentAdditionsComponent';
@@ -10,9 +10,12 @@ import RecentAdditionsComponent from './RecentAdditionsComponent';
 // import GeographicalInterventionAnalytics from './GeolocationKPI';
 import { useAnalyticsStore } from '../../../../store/useAnalyticsStore'
 import useProjectStore from '../../../../store/useProjectStore'
-
+import { toast } from 'react-toastify'
 import ForestProgressComponent from './ForestProgressComponent';
-
+import PlantableAreasMap from './Plantable';
+import { exportAllData } from '../../../../api/api.fetch';
+import { useToken } from '../../../../context/TokenContext'
+import { downloadJsonAsCsv } from '../../../../utils/reportHelper';
 const Overview = () => {
     const [startDate, setStartDate] = useState('');
     const [endDate, setEndDate] = useState('');
@@ -21,8 +24,12 @@ const Overview = () => {
     const isLargeScreen = useMediaQuery('(min-width: 768px)');
     const [totalTrees, setTotalTrees] = useState(0)
     const [selectTab, setSelectedTab] = useState('overview')
+    const [dowloanding, setDownloading] = useState(false)
     const { setGlobalEndDate, setGlobalStartDate } = useAnalyticsStore(state => state)
-    const Target = useProjectStore(state=>state.selectedProject?.target)
+    const Target = useProjectStore(state => state.selectedProject?.target)
+    const userRole = useProjectStore(state => state.selectedProject?.userRole)
+    const selectedProject = useProjectStore(state => state.selectedProject?.uid)
+
     const getMonthRange = () => {
         const now = new Date();
         const start = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -57,74 +64,30 @@ const Overview = () => {
         };
     }, []);
 
-    const downloadJsonAsCsv = (jsonData, filename, includeHeaders = true) => {
-        // Return early if no data
-        if (!jsonData || !jsonData.length) {
-            console.error('No data provided for CSV download');
-            return;
-        }
 
+
+    const { accessToken } = useToken()
+    const handleDownload = async () => {
         try {
-            // Get headers from the first object in the array
-            const headers = Object.keys(jsonData[0]);
+            setDownloading(true)
+            const response = await exportAllData(accessToken, {
+                "startDate": new Date(startDate),
+                "endDate": new Date(endDate),
+            }, selectedProject)
+            console.log('Downloading data for range:',  response.data.interventions);
 
-            // Create CSV rows from the JSON data
-            let csvRows = [];
-
-            // Add headers row if requested
-            if (includeHeaders) {
-                csvRows.push(headers.join(','));
+            if (response.statusCode === 200 || response.statusCode === 201) {
+                setDownloading(false)
+                const interventionsData = response.data.interventions;
+                downloadJsonAsCsv(interventionsData, 'TreeMapperReport');
+                return;
             }
-
-            // Add data rows
-            jsonData.forEach(item => {
-                const values = headers.map(header => {
-                    // Handle special cases (commas, quotes, undefined, null)
-                    const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
-                    const escapedValue = String(cellValue)
-                        .replace(/"/g, '""') // Escape double quotes with double quotes
-                        .replace(/\n/g, ' '); // Replace newlines with spaces
-
-                    // Wrap with quotes if contains comma, quote or newline
-                    return /[,"\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
-                });
-
-                csvRows.push(values.join(','));
-            });
-
-            // Combine rows into a CSV string
-            const csvString = csvRows.join('\n');
-
-            // Create a Blob containing the CSV data
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-
-            // Create a link element to trigger the download
-            const link = document.createElement('a');
-
-            // Create a URL for the blob
-            const url = URL.createObjectURL(blob);
-
-            // Set link properties
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${filename}.csv`);
-            link.style.visibility = 'hidden';
-
-            // Add link to the document, trigger click, and remove it
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Release the blob URL
-            URL.revokeObjectURL(url);
         } catch (error) {
-            console.error('Error generating CSV download:', error);
+            toast.error("Report not downloaded")
+        } finally {
+            setDownloading(false)
         }
-    };
 
-
-    const handleDownload = () => {
-        console.log('Downloading data for range:', startDate, 'to', endDate);
-        downloadJsonAsCsv([{ name: "TreeMapperTest" }], 'interventionReport')
     };
 
     // Format dates for display
@@ -311,18 +274,23 @@ const Overview = () => {
                     </button>
                 </div>
             </div>
-            {selectTab == 'overview' && <><StatCardsContainer setTotalTrees={setTotalTrees}/>
-                <ForestProgressComponent target={Target} treeCount={totalTrees}/>
-                <div className="px-4 py-6">
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                        <div className="h-full flex">
-                            <TreePlantingChart />
-                        </div>
-                        <div className="h-full flex">
-                            <RecentAdditionsComponent />
-                        </div>
-                    </div>
-                </div></>}
+            {userRole === 'contributor' ?
+                <PlantableAreasMap /> : <>
+                    <ChildTabs selectedTab={selectTab} setSelectedTab={setSelectedTab} />
+                    {selectTab == 'overview' && <><StatCardsContainer setTotalTrees={setTotalTrees} />
+                        <ForestProgressComponent target={Target} treeCount={totalTrees} />
+                        <div className="px-4 py-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="h-full flex">
+                                    <TreePlantingChart />
+                                </div>
+                                <div className="h-full flex">
+                                    <RecentAdditionsComponent />
+                                </div>
+                            </div>
+                        </div></>}
+                    {selectTab == 'treeMap' && <PlantableAreasMap />}
+                </>}
             {/* {selectTab == 'projectKPI' && <ProjectSummaryKPIs />}
             {selectTab == 'species' && <SpeciesAnalytics />}
             {selectTab == 'geo' && <GeographicalInterventionAnalytics/>} */}

@@ -26,25 +26,25 @@ const StatCardsContainer = ({setTotalTrees}) => {
     {
       title: "Trees Planted",
       value: "0.0k",
-      note: "+20.1% from last month",
+      note: "",
       icon: Leaf
     },
     {
       title: "Species Planted",
       value: "0",
-      note: "+10% from last month",
+      note: "",
       icon: Sprout
     },
     {
       title: "Area Covered",
       value: "0 ha",
-      note: "+19% from last month",
+      note: "",
       icon: Map
     },
     {
       title: "Field Data Collectors",
       value: "0",
-      note: "+0 since last month",
+      note: "",
       icon: Activity
     }
   ])
@@ -73,19 +73,19 @@ const StatCardsContainer = ({setTotalTrees}) => {
           {
             title: "Species Planted",
             value: totalSpeciesPlanted,
-            note: "+10% from last month",
+            note: "",
             icon: Sprout
           },
           {
             title: "Area Covered",
             value: `${formatNumber(Number(totalAreaCovered))} ha`,
-            note: "+19% from last month",
+            note: "",
             icon: Map
           },
           {
             title: "Field Data Collectors",
             value: totalContributors,
-            note: "+0 since last month",
+            note: "",
             icon: Activity
           }
         ]

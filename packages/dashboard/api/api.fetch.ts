@@ -66,6 +66,13 @@ export const createNewPersonalProject = async (token: string, params: any,) => {
   return result;
 };
 
+
+export const exportAllData = async (token: string, params: any,prid) => {
+  const uri = `${postUrlApi.exportData}/${prid}/export`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 export const getTeamMemebers = async (token: string, id: string) => {
   const uri = `${getUrlApi.teamMembers}/${id}/allmembers`
   const result = await fetchGetCall(uri, token)

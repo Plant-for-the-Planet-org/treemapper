@@ -63,7 +63,7 @@ export function CreateProjectUI({ token, goBack }: Props) {
       "location": finalGeoJSON,
     };
     if (formData.target !== '') {
-      payLoad["target"] = Number(formData.target)
+      payLoad["target"] = formData.target
     }
 
     if (formData.projectWebsite !== '') {

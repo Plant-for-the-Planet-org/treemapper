@@ -212,6 +212,7 @@ const HeaderWithFilters = ({
   sidebarCollapsed,
   setSidebarCollapsed,
   newIntervention,
+  userRole,
   bulkUpload,
   error
 }) => {
@@ -276,13 +277,13 @@ const HeaderWithFilters = ({
                 )}
               </button>
             </div>
-            <button
+            {userRole !== 'contributor' && <button
               onClick={bulkUpload}
               className="flex items-center px-4 py-2 bg-white/90 border border-slate-200 text-slate-700 rounded-xl hover:bg-white hover:shadow-md transition-all font-medium"
             >
               <Upload className="h-4 w-4 mr-2" />
               Bulk Upload
-            </button>
+            </button>}
             <button
               onClick={newIntervention}
               className="flex items-center px-6 py-2 bg-gradient-to-r from-[#007A49] to-green-700 text-white rounded-xl transition-all font-semibold shadow-md hover:shadow-lg transform hover:scale-105"
@@ -1114,6 +1115,7 @@ const TreeMapperUI = ({ newIntervention, bulkUpload }) => {
         sites={sites}
         newIntervention={newIntervention}
         bulkUpload={bulkUpload}
+        userRole={selectedProject?.userRole}
         handleDateChange={handleDateChange} sidebarCollapsed={sidebarCollapsed} setSidebarCollapsed={setSidebarCollapsed} error={error} />
 
       {/* Main Content */}
@@ -1210,7 +1212,7 @@ const TreeMapperUI = ({ newIntervention, bulkUpload }) => {
         </div>
 
         {/* Right Panel - Details and Map */}
-        <div className="flex-1 flex flex-col overflow-hidden" style={{ marginBottom: 20 }}>
+        <div className="flex-1 flex flex-col overflow-y-auto" style={{ marginBottom: 20 }}>
           {selectedIntervention ? (
             loading && !selectedIntervention ? (
               <DetailsSkeleton />
