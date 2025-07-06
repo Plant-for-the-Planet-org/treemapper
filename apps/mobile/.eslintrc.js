@@ -28,6 +28,7 @@ module.exports = {
       'android',
       'coverage',
       '*.lock',
+      '.husky',
       'patches',
       'bskyweb',
       '*.html',
