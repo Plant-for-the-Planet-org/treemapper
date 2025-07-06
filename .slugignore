@@ -7,7 +7,7 @@
 .prettierrc*
 
 # Native app (not needed for web)
-apps/nativeapp/
+apps/mobile/
 
 # Server app (if deploying separately)
 apps/server/

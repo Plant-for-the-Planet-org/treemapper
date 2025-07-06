@@ -14,9 +14,9 @@
     "heroku-postbuild": "turbo build --filter=web",
     "start": "cd apps/web && PORT=$PORT yarn start",
     "type-check": "turbo type-check",
-    "native:dev": "turbo dev --filter=nativeapp",
-    "native:build": "turbo build --filter=nativeapp", 
-    "native:start": "turbo start --filter=nativeapp",
+    "native:dev": "turbo dev --filter=mobile",
+    "native:build": "turbo build --filter=mobile", 
+    "native:start": "turbo start --filter=mobile",
     "web:dev": "turbo dev --filter=web",
     "web:build": "turbo build --filter=web",
     "web:start": "turbo start --filter=web"
