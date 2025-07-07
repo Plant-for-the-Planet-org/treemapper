@@ -26,7 +26,7 @@ interface Props {
 }
 
 const ProjectDropdown: React.FC<Props> = ({
-  projects=[],
+  projects = [],
   activeProject,
   onSelectProject,
   onCreateNewProject,
@@ -50,8 +50,7 @@ const ProjectDropdown: React.FC<Props> = ({
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Dropdown Trigger Button */}
+    <View style={styles.container}>
       <TouchableOpacity
         style={styles.triggerButton}
         onPress={toggleModal}
@@ -113,7 +112,7 @@ const ProjectDropdown: React.FC<Props> = ({
             {/* Projects List */}
             <View style={styles.projectsSection}>
               <Text style={styles.sectionTitle}>Your Projects</Text>
-              
+
               <ScrollView
                 style={styles.projectsList}
                 showsVerticalScrollIndicator={false}
@@ -171,19 +170,19 @@ const ProjectDropdown: React.FC<Props> = ({
           </View>
         </SafeAreaView>
       </Modal>
-    </SafeAreaView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    width: '60%',
+    width: '100%',
     marginVertical: 8,
+    backgroundColor: "#F9FAFB"
   },
-  
+
   // Trigger Button Styles
   triggerButton: {
-    backgroundColor: '#fff',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1.5,
