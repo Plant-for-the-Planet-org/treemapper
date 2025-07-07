@@ -4,6 +4,8 @@ import SideBarCard from './SideBarCard'
 import { SideDrawerItem } from 'src/types/interface/app.interface'
 import ManageSpeciesIcon from 'assets/images/svg/ManageSpeciesIcon.svg'
 import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
+import ToolsIcon from 'assets/images/svg/tools-icon.svg'
+
 import OfflineMapIcon from 'assets/images/svg/OfflineMapIcon.svg'
 import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
@@ -13,10 +15,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales'
 import { SCALE_24 } from 'src/utils/constants/spacing'
-
-interface Props {
-  isLoggedIn: boolean
-}
+import { SCALE_20, SCALE_22 } from '../../utils/constants/spacing'
 
 const SideBarList = (props: Props) => {
   const { isLoggedIn } = props
@@ -68,10 +67,20 @@ const SideBarList = (props: Props) => {
       key: 'activity_log'
     },
     {
+      label: i18next.t('Troubleshoot'),
+      screen: 'TroubleShoot',
+      icon: <View style={{ width: SCALE_24, height: SCALE_24, backgroundColor: '#007A49', borderRadius: 40, justifyContent: 'center', alignItems: 'center' }}>
+        <ToolsIcon width={SCALE_20} height={SCALE_20} fill='#fff'/>
+      </View>,
+      visible: true,
+      key: 'toubleshoot'
+    },
+
+    {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
-      visible: isLoggedIn && UserType!=='tpo',
+      visible: isLoggedIn && UserType !== 'tpo',
       key: 'delete'
     },
     {

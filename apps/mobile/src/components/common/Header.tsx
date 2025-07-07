@@ -12,10 +12,11 @@ interface Props {
   showBackIcon?: boolean
   note?: string
   backFunc?: () => void
+  bgColor?: string
 }
 
 const Header = (props: Props) => {
-  const { rightComponent, label, showBackIcon = true, note, backFunc } = props
+  const { rightComponent, label, showBackIcon = true, note, backFunc, bgColor = '#fff' } = props
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const goBack = () => {
     if (backFunc) {
@@ -25,7 +26,7 @@ const Header = (props: Props) => {
     }
   }
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: bgColor }]}>
       {showBackIcon && <TouchableOpacity style={styles.backIcon} onPress={goBack}><BackIcon onPress={goBack} /></TouchableOpacity>}
       <View style={styles.HeaderWrapper}>
         <Text style={styles.title}>{label}</Text>
