@@ -10,7 +10,7 @@ const fetchCall = async (
       'Accept': 'application/json', // Add this
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
-    
+
     const options: RequestInit = {
       method,
       headers,
@@ -25,7 +25,7 @@ const fetchCall = async (
     }
 
     const response = await fetch(uri, options)
-    
+    console.log("OIIPOP", response)
     // Better error handling
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))
@@ -37,13 +37,13 @@ const fetchCall = async (
         code: 'http_error',
       }
     }
-    
+
     const responseJson = await response.json()
     return responseJson
-    
+
   } catch (err) {
     console.error('Error in fetchCall:', err)
-    
+
     // More specific error handling
     if (err instanceof TypeError && err.message.includes('Failed to fetch')) {
       return {
@@ -54,7 +54,7 @@ const fetchCall = async (
         code: 'network_error',
       }
     }
-    
+
     return {
       message: 'Something went wrong',
       statusCode: 500,

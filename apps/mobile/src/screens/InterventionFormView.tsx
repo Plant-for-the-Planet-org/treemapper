@@ -115,16 +115,16 @@ const InterventionFormView = () => {
   const handleBounds = (pid, sid, isPoint) => {
     try {
       if (userType !== 'tpo') return;
-  
+
       const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pid);
       if (!ProjectData) return;
-  
+
       const updateBounds = (geometry) => {
         const { geoJSON } = makeInterventionGeoJson('Point', [geometry], 'sd');
         const bounds = bbox(geoJSON);
         dispatch(updateMapBounds({ bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }));
       };
-  
+
       if (!sid || sid === 'other') {
         if (!ProjectData.geometry) return;
         const coords = JSON.parse(ProjectData.geometry);
@@ -211,7 +211,15 @@ const InterventionFormView = () => {
         value: 'other',
         index: 0,
       },])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
+      setRegisterForm(prevState => ({
+        ...prevState,
+        project_id: ProjectData.id,
+        project_name: ProjectData.name,
+        ...(siteValidate?.length > 0 && siteValidate[0]?.label && {
+          site_name: siteValidate[0].label,
+          site_id: siteValidate[0].value
+        })
+      }))
     } else {
       setProjectSites([
         {
@@ -225,7 +233,15 @@ const InterventionFormView = () => {
           index: 0,
         },
       ])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
+      setRegisterForm(prevState => ({
+        ...prevState,
+        project_id: ProjectData.id,
+        project_name: ProjectData.name,
+        ...(siteValidate && siteValidate.length > 0 && siteValidate[0]?.label && {
+          site_name: siteValidate[0].label,
+          site_id: siteValidate[0].value
+        })
+      }))
     }
   }
 
@@ -315,29 +331,29 @@ const InterventionFormView = () => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
       metaData["location-name"] = {
-          "key": "location-name",
-          "originalKey":"location-name",
-          "value":locationName,
-          "label":"Location Name",
-          "type":"input",
-          "unit":"",
-          "visibility":"public",
-          "dataType":"string",
-          "elementType":"metaData"
+        "key": "location-name",
+        "originalKey": "location-name",
+        "value": locationName,
+        "label": "Location Name",
+        "type": "input",
+        "unit": "",
+        "visibility": "public",
+        "dataType": "string",
+        "elementType": "metaData"
       };
     }
     if (furtherInfo && furtherInfo.length > 0) {
       metaData["more-info"] = {
         "key": "more-info",
-        "originalKey":"more-info",
-        "value":furtherInfo,
-        "label":"More Info",
-        "type":"input",
-        "unit":"",
-        "visibility":"public",
-        "dataType":"string",
-        "elementType":"metaData"
-    };
+        "originalKey": "more-info",
+        "value": furtherInfo,
+        "label": "More Info",
+        "type": "input",
+        "unit": "",
+        "visibility": "public",
+        "dataType": "string",
+        "elementType": "metaData"
+      };
     }
     return metaData;
   };
@@ -424,7 +440,7 @@ const InterventionFormView = () => {
 
   if (!registerForm) {
     return (
-      <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.activityIndicator}/>
+      <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.activityIndicator} />
     )
   }
 
@@ -534,10 +550,10 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-  activityIndicator:{
-    position:'absolute',
-    top:'40%',
-    left:'49%'
+  activityIndicator: {
+    position: 'absolute',
+    top: '40%',
+    left: '49%'
   },
   wrapperScrollView: {
     flexGrow: 1,

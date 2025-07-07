@@ -82,6 +82,7 @@ export const getTeamMemebers = async (token: string, id: string) => {
 
 export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
+  console.log("SDCDSC",uri)
   const result = await fetchGetCall(uri, token)
   return result
 }
