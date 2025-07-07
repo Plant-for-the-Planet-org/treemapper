@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import RootNavigator from './src/navigation/RootNavigator'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -16,12 +16,23 @@ import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import Bugsnag from '@bugsnag/expo'
 import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
+import { OneSignal, LogLevel } from 'react-native-onesignal';
+
 
 
 Bugsnag.start(BugSnagConfig)
 MapLibreGL.setAccessToken(null)
 
 export default function App() {
+
+  // Initialize OneSignal in useEffect to ensure it runs only once
+  useEffect(() => {
+    // Enable verbose logging for debugging (remove in production)
+    OneSignal.Debug.setLogLevel(LogLevel.Verbose);
+    OneSignal.initialize(process.env.EXPO_PUBLIC_ONESIGNAL);
+    OneSignal.Notifications.requestPermission(false);
+
+  }, []); // Ensure this only runs once on app mount
   return (
     <SafeAreaProvider>
       <StatusBar translucent />

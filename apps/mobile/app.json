@@ -15,6 +15,12 @@
       "**/*"
     ],
     "plugins": [
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "production"
+        }
+      ],
       "@maplibre/maplibre-react-native",
       [
         "expo-build-properties"
@@ -60,13 +66,19 @@
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
       "entitlements": {
-        "aps-environment": "development"
+        "aps-environment": "production",
+        "com.apple.security.application-groups": [
+          "group.org.pftp.treemapper.onesignal"
+        ]
       },
       "infoPlist": {
         "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
         "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees.",
         "ITSAppUsesNonExemptEncryption": false,
-        "LSMinimumSystemVersion": "12.0"
+        "LSMinimumSystemVersion": "12.0",
+        "UIBackgroundModes": [
+          "remote-notification"
+        ]
       }
     },
     "android": {
