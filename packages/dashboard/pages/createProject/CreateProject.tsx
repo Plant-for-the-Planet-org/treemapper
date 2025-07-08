@@ -3,9 +3,9 @@
 import React, { useState, useRef } from 'react';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus } from 'lucide-react';
 import ProjectMap from './components/web/ProjectSelectMap';
-import GeoJSONFileUpload, { calculateFarmArea, getLatLonFromGeoJSON } from './components/web/GeoJSONfileupload';
 import { toast } from 'react-toastify'
 import { createNewProject } from '../../api/api.fetch';
+import GeoJSONUpload from './components/web/GeoJSONfileupload';
 // Mock components - replace with your actual imports
 
 
@@ -328,10 +328,11 @@ export function CreateProjectUI({ token, goBack }: Props) {
                   </div>
 
                   {/* File Upload */}
-                  <GeoJSONFileUpload
+                  <GeoJSONUpload
                     onGeoJSONChange={handleGeoJSONChange}
                     maxAreaHa={500}
                     className=""
+                    allowedGeometryTypes='point'
                   />
 
                   {/* Location Status */}

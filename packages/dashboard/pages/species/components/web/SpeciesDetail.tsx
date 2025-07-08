@@ -212,7 +212,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                     <div className="w-40 h-40 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-inner">
                                         {editForm.image ? (
                                             <img
-                                                src={editForm.image}
+                                                src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${editForm.image}`}
                                                 alt="Preview"
                                                 className="w-full h-full object-cover"
                                             />
@@ -370,7 +370,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                 <div className="lg:w-80 h-64 lg:h-auto bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center relative">
                                     {selectedSpecies.image ? (
                                         <img
-                                            src={selectedSpecies.image}
+                                            src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${selectedSpecies.image}`}
                                             alt={selectedSpecies.scientificName}
                                             className="w-full h-full object-cover"
                                         />

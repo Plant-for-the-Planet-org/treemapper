@@ -884,11 +884,13 @@ const SpeciesSelector = ({
 const LocationSelector = ({
   formData,
   setFormData,
+  currentConfig,
   errors
 }: {
   formData: FormData;
   setFormData: React.Dispatch<React.SetStateAction<FormData>>;
   errors: ValidationErrors;
+  currentConfig: any
 }) => {
   const handleGeoJSONChange = (geoJson: any) => {
     setFormData(prev => ({ ...prev, geoJSON: geoJson }));
@@ -941,7 +943,9 @@ const LocationSelector = ({
 
         {/* File Upload */}
         <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
-          <GeoJSONFileUpload onGeoJSONChange={handleGeoJSONChange} />
+          <GeoJSONFileUpload onGeoJSONChange={handleGeoJSONChange} allowedGeometryTypes={
+            currentConfig.type === 'single-tree-registration' ? 'point' : 'both'
+          } />
         </div>
 
         {/* File Preview */}
@@ -1355,7 +1359,7 @@ const InterventionCreator = ({ goBack }) => {
       registrationDate: new Date().toISOString(),
       metadata: { app: {}, public: {}, private: {} },
       plantProject: formData.projectId,
-      treeCount:totalTreeCount,
+      treeCount: totalTreeCount,
       interventionStartDate: new Date(formData.treeDetails.plantingDate).toISOString(),
       interventionEndDate: new Date(formData.treeDetails.plantingDate).toISOString(),
     };
@@ -1504,6 +1508,7 @@ const InterventionCreator = ({ goBack }) => {
           <LocationSelector
             formData={formData}
             setFormData={setFormData}
+            currentConfig={currentConfig}
             errors={errors}
           />
 

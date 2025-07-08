@@ -18,9 +18,12 @@ const turf = {
   centroid: (geoJson: any) => ({ geometry: { coordinates: [0, 0] } })
 };
 
+type AllowedGeometryTypes = 'point' | 'polygon' | 'both';
+
 interface GeoJSONUploadProps {
     onGeoJSONChange: (geoJson: any | null) => void;
     maxAreaHa?: number;
+    allowedGeometryTypes?: AllowedGeometryTypes;
     className?: string;
 }
 
@@ -29,11 +32,13 @@ interface UploadState {
   message: string;
   fileName?: string;
   area?: number;
+  coordinates?: [number, number];
 }
 
 export default function GeoJSONUpload({
     onGeoJSONChange,
     maxAreaHa = 1000,
+    allowedGeometryTypes = 'polygon',
     className = ""
 }: GeoJSONUploadProps) {
     const [uploadState, setUploadState] = useState<UploadState>({
@@ -121,7 +126,7 @@ export default function GeoJSONUpload({
                 fileName: file.name
             });
         }
-    }, [maxAreaHa]);
+    }, [maxAreaHa, allowedGeometryTypes]);
 
     const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
         accept: {
@@ -150,97 +155,193 @@ export default function GeoJSONUpload({
         }
     });
 
+    const getGeometryTypes = (geoJson: any): string[] => {
+        if (!geoJson.features || !Array.isArray(geoJson.features)) {
+            return [];
+        }
+        
+        const types = new Set<string>();
+        geoJson.features.forEach((feature: any) => {
+            if (feature.geometry && feature.geometry.type) {
+                types.add(feature.geometry.type);
+            }
+        });
+        
+        return Array.from(types);
+    };
+
+    const getAllowedGeometryTypesText = (): string => {
+        switch (allowedGeometryTypes) {
+            case 'point':
+                return 'points';
+            case 'polygon':
+                return 'polygons and multipolygons';
+            case 'both':
+                return 'points, polygons, and multipolygons';
+            default:
+                return 'supported geometries';
+        }
+    };
+
     const normalizeGeoJson = (geoJson: any, fileName: string) => {
-        if (gjv.isGeoJSONObject(geoJson) && geoJson.features?.length > 0) {
-            try {
-                // Convert LineString to Polygon
-                const convertLineStringToPolygon = (geoJson: any) => {
-                    const convertedGeoJSON = JSON.parse(JSON.stringify(geoJson));
+        console.log("SDc", geoJson);
+        
+        if (!gjv.isGeoJSONObject(geoJson) || !geoJson.features?.length) {
+            setUploadState({
+                status: 'error',
+                message: 'Invalid file format. No valid features found.',
+                fileName
+            });
+            return;
+        }
 
-                    convertedGeoJSON.features = convertedGeoJSON.features.map((feature: any) => {
-                        if (feature.geometry?.type === "LineString") {
-                            const coordinates = feature.geometry.coordinates;
+        try {
+            const geometryTypes = getGeometryTypes(geoJson);
+            console.log("Geometry types found:", geometryTypes);
 
-                            if (
-                                coordinates.length > 0 &&
-                                (coordinates[0][0] !== coordinates[coordinates.length - 1][0] ||
-                                    coordinates[0][1] !== coordinates[coordinates.length - 1][1])
-                            ) {
-                                coordinates.push(coordinates[0]);
-                            }
+            // Check for mixed geometry types
+            if (geometryTypes.length > 1) {
+                setUploadState({
+                    status: 'error',
+                    message: 'Mixed geometry types found. Please upload a file with only one geometry type.',
+                    fileName
+                });
+                return;
+            }
 
-                            feature.geometry.type = "Polygon";
-                            feature.geometry.coordinates = [coordinates];
-                        }
-                        return feature;
+            const geometryType = geometryTypes[0];
+            
+            // Validate allowed geometry types
+            if (allowedGeometryTypes === 'point' && geometryType !== 'Point') {
+                setUploadState({
+                    status: 'error',
+                    message: 'Only point geometries are allowed.',
+                    fileName
+                });
+                return;
+            }
+
+            if (allowedGeometryTypes === 'polygon' && !['Polygon', 'MultiPolygon', 'LineString'].includes(geometryType)) {
+                setUploadState({
+                    status: 'error',
+                    message: 'Only polygon and multipolygon geometries are allowed.',
+                    fileName
+                });
+                return;
+            }
+
+            // Handle Point geometries
+            if (geometryType === 'Point') {
+                const pointFeature = geoJson.features.find((feature: any) => feature.geometry?.type === 'Point');
+                
+                if (!pointFeature) {
+                    setUploadState({
+                        status: 'error',
+                        message: 'No valid point found in the file',
+                        fileName
                     });
+                    return;
+                }
 
-                    return convertedGeoJSON;
+                const featureCollection = {
+                    type: "FeatureCollection",
+                    features: [pointFeature],
                 };
 
-                const flattened = flatten(geoJson);
-                const geoJsonWithPolygons = convertLineStringToPolygon(flattened);
+                const [longitude, latitude] = pointFeature.geometry.coordinates;
+                
+                setGeoJson(featureCollection);
+                setUploadState({
+                    status: 'success',
+                    message: `Point processed successfully.`,
+                    fileName,
+                    coordinates: [longitude, latitude]
+                });
+                onGeoJSONChange(featureCollection);
+                return;
+            }
 
-                const polygons = geoJsonWithPolygons.features.filter(
-                    (feature: any) => feature.geometry?.type === "Polygon"
-                );
+            // Handle Polygon geometries (existing logic)
+            const convertLineStringToPolygon = (geoJson: any) => {
+                const convertedGeoJSON = JSON.parse(JSON.stringify(geoJson));
 
-                if (polygons.length > 0) {
-                    const featureCollection = {
-                        type: "FeatureCollection",
-                        features: [polygons[0]],
-                    };
+                convertedGeoJSON.features = convertedGeoJSON.features.map((feature: any) => {
+                    if (feature.geometry?.type === "LineString") {
+                        const coordinates = feature.geometry.coordinates;
 
-                    if (gjv.isFeatureCollection(featureCollection)) {
-                        const area = turf.area(featureCollection);
-                        const areaInHa = area / 10000;
-
-                        if (areaInHa > maxAreaHa) {
-                            const roundedArea = Math.round(areaInHa * 100) / 100;
-                            setUploadState({
-                                status: 'error',
-                                message: `Area is too large (${roundedArea} ha). Maximum allowed: ${maxAreaHa} ha`,
-                                fileName,
-                                area: roundedArea
-                            });
-                            return;
+                        if (
+                            coordinates.length > 0 &&
+                            (coordinates[0][0] !== coordinates[coordinates.length - 1][0] ||
+                                coordinates[0][1] !== coordinates[coordinates.length - 1][1])
+                        ) {
+                            coordinates.push(coordinates[0]);
                         }
 
+                        feature.geometry.type = "Polygon";
+                        feature.geometry.coordinates = [coordinates];
+                    }
+                    return feature;
+                });
+
+                return convertedGeoJSON;
+            };
+
+            const flattened = flatten(geoJson);
+            const geoJsonWithPolygons = convertLineStringToPolygon(flattened);
+
+            const polygons = geoJsonWithPolygons.features.filter(
+                (feature: any) => feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon"
+            );
+
+            if (polygons.length > 0) {
+                const featureCollection = {
+                    type: "FeatureCollection",
+                    features: [polygons[0]],
+                };
+
+                if (gjv.isFeatureCollection(featureCollection)) {
+                    const area = turf.area(featureCollection);
+                    const areaInHa = area / 10000;
+
+                    if (areaInHa > maxAreaHa) {
                         const roundedArea = Math.round(areaInHa * 100) / 100;
-                        setGeoJson(featureCollection);
                         setUploadState({
-                            status: 'success',
-                            message: `File processed successfully. Area: ${roundedArea} ha`,
+                            status: 'error',
+                            message: `Area is too large (${roundedArea} ha). Maximum allowed: ${maxAreaHa} ha`,
                             fileName,
                             area: roundedArea
                         });
-                        onGeoJSONChange(featureCollection);
-                    } else {
-                        setUploadState({
-                            status: 'error',
-                            message: 'Invalid geometry format. Only polygons and multipolygons are supported.',
-                            fileName
-                        });
+                        return;
                     }
+
+                    const roundedArea = Math.round(areaInHa * 100) / 100;
+                    setGeoJson(featureCollection);
+                    setUploadState({
+                        status: 'success',
+                        message: `File processed successfully. Area: ${roundedArea} ha`,
+                        fileName,
+                        area: roundedArea
+                    });
+                    onGeoJSONChange(featureCollection);
                 } else {
                     setUploadState({
                         status: 'error',
-                        message: 'No valid polygons found in the file',
+                        message: `Invalid geometry format. Only ${getAllowedGeometryTypesText()} are supported.`,
                         fileName
                     });
                 }
-            } catch (error) {
-                console.error("Error processing GeoJSON:", error);
+            } else {
                 setUploadState({
                     status: 'error',
-                    message: 'An error occurred while processing the file',
+                    message: 'No valid polygons found in the file',
                     fileName
                 });
             }
-        } else {
+        } catch (error) {
+            console.error("Error processing GeoJSON:", error);
             setUploadState({
                 status: 'error',
-                message: 'Invalid file format. Only polygons and multipolygons are supported.',
+                message: 'An error occurred while processing the file',
                 fileName
             });
         }
@@ -275,23 +376,15 @@ export default function GeoJSONUpload({
         }
     };
 
+    const getUploadHelpText = () => {
+        const baseText = "Supported formats: KML, GeoJSON (max 10MB)";
+        const geometryText = `Accepts: ${getAllowedGeometryTypesText()}`;
+        return `${baseText} • ${geometryText}`;
+    };
+
     return (
         <div className={className}>
             <div className="space-y-4">
-                {/* Info Section */}
-                {/* <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-xl">
-                    <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
-                    <div className="text-sm">
-                        <p className="font-medium text-blue-900 mb-1">
-                            Upload Location File
-                        </p>
-                        <p className="text-blue-700">
-                            Upload a KML or GeoJSON file to define your project area. 
-                            Maximum area allowed: <span className="font-semibold">{maxAreaHa} hectares</span>
-                        </p>
-                    </div>
-                </div> */}
-
                 {/* Upload Area */}
                 <div
                     {...getRootProps()}
@@ -316,7 +409,7 @@ export default function GeoJSONUpload({
                                         {isDragActive ? 'Drop your file here' : 'Choose file or drag & drop'}
                                     </h3>
                                     <p className="text-sm text-gray-600">
-                                        Supported formats: KML, GeoJSON (max 10MB)
+                                        {getUploadHelpText()}
                                     </p>
                                 </>
                             )}
@@ -346,6 +439,11 @@ export default function GeoJSONUpload({
                                         {uploadState.area && (
                                             <p className="text-sm text-green-600">
                                                 Area: {uploadState.area} hectares
+                                            </p>
+                                        )}
+                                        {uploadState.coordinates && (
+                                            <p className="text-sm text-green-600">
+                                                Coordinates: {uploadState.coordinates[1].toFixed(6)}, {uploadState.coordinates[0].toFixed(6)}
                                             </p>
                                         )}
                                     </div>
@@ -413,37 +511,41 @@ export default function GeoJSONUpload({
                         </div>
                     )}
                 </div>
-
-                {/* File Format Help */}
-                {/* <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                        <FileText className="h-4 w-4 text-gray-500" />
-                        <div>
-                            <p className="font-medium text-gray-700">KML Files</p>
-                            <p className="text-gray-500">Google Earth format</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
-                        <MapPin className="h-4 w-4 text-gray-500" />
-                        <div>
-                            <p className="font-medium text-gray-700">GeoJSON Files</p>
-                            <p className="text-gray-500">Standard geo format</p>
-                        </div>
-                    </div>
-                </div> */}
             </div>
         </div>
     );
 }
 
-// Utility functions
+// Updated utility functions
 export const calculateFarmArea = (geoJson: any): number => {
+    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        return 0;
+    }
+    
+    const feature = geoJson.features[0];
+    if (feature.geometry?.type === 'Point') {
+        return 0; // Points don't have area
+    }
+    
     const area = turf.area(geoJson);
     const areaInHa = area / 10000;
     return Math.round(areaInHa * 100) / 100;
 };
 
 export const getLatLonFromGeoJSON = (geoJson: any): { latitude: number; longitude: number } => {
+    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
+        return { latitude: 0, longitude: 0 };
+    }
+    
+    const feature = geoJson.features[0];
+    
+    // Handle Point geometry directly
+    if (feature.geometry?.type === 'Point') {
+        const [longitude, latitude] = feature.geometry.coordinates;
+        return { latitude, longitude };
+    }
+    
+    // Handle other geometries using centroid
     const centroid = turf.centroid(geoJson);
     const [longitude, latitude] = centroid.geometry.coordinates;
     return { latitude, longitude };

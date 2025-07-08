@@ -23,7 +23,7 @@ const SpeciesCard = ({ species, isSelected, onClick, isMobile, formatDate, handl
                 <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex-shrink-0 shadow-inner border border-gray-200">
                     {species.image ? (
                         <img
-                            src={species.image}
+                            src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${species.image}`}
                             alt={species.scientificName}
                             className="w-full h-full object-cover"
                         />

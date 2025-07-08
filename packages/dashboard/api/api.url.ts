@@ -9,22 +9,22 @@ function getBaseUrl(): string {
   if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SERVER_URL) {
     return process.env.NEXT_PUBLIC_SERVER_URL;
   }
-  
+
   // Expo uses EXPO_PUBLIC_ prefix (Expo SDK 49+)
   if (process.env.EXPO_PUBLIC_API_ENDPOINT) {
     return process.env.EXPO_PUBLIC_API_ENDPOINT;
   }
-  
+
   // Fallback for older Expo versions or manual setup
   if (process.env.SERVER_URL) {
     return process.env.SERVER_URL;
   }
-  
+
   // Development fallback
   if (__DEV__ || process.env.NODE_ENV === 'development') {
     return 'http://localhost:3000'; // Adjust to your dev server port
   }
-  
+
   throw new Error('SERVER_URL environment variable is not configured');
 }
 
@@ -79,6 +79,7 @@ export const patchUrlApi = {
 export const deleteUrlApi = {
   removeUser: `${baseUrl}/api/projects`,
   deletePrjSpecies: `${baseUrl}/api/project-species`,
+  deletePrjIntervention: `${baseUrl}/api/interventions`,
 } as const;
 
 export const putUrlApi = {

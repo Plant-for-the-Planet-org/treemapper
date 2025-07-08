@@ -67,7 +67,7 @@ export const createNewPersonalProject = async (token: string, params: any,) => {
 };
 
 
-export const exportAllData = async (token: string, params: any,prid) => {
+export const exportAllData = async (token: string, params: any, prid) => {
   const uri = `${postUrlApi.exportData}/${prid}/export`;
   const result = await fetchPostCall(uri, params, token);
   return result;
@@ -82,7 +82,7 @@ export const getTeamMemebers = async (token: string, id: string) => {
 
 export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
-  console.log("SDCDSC",uri)
+  console.log("SDCDSC", uri)
   const result = await fetchGetCall(uri, token)
   return result
 }
@@ -226,6 +226,13 @@ export const updateProjectSettings = async (token: string, params, prid) => {
 };
 
 
+
+
+export const deleteIntervention = async (token: string, prjId: string, invId: string,) => {
+  const uri = `${deleteUrlApi.deletePrjIntervention}/${prjId}/${invId}`;
+  const result = await fetchDeleteCall(uri, token);
+  return result;
+};
 
 
 

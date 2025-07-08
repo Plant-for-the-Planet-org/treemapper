@@ -34,6 +34,7 @@ import {
   MoreHorizontal,
   Expand,
   Shrink,
+  Check,
   Upload,
   TreePine,
   Flag,
@@ -45,10 +46,13 @@ import {
 } from 'lucide-react';
 import MapDisplayComponent from './ProjectSelectMap';
 import { useToken } from '../../../../context/TokenContext';
-import { getProjectIntervention } from '../../../../api/api.fetch';
+import { deleteIntervention, getProjectIntervention } from '../../../../api/api.fetch';
 import useProjectStore from '../../../../store/useProjectStore';
 import Image from 'next/image'
+import { toast } from 'react-toastify'
 
+import { Trash2, } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const interventionTypeIcons = {
   'enrichment-planting': Trees,
@@ -545,71 +549,286 @@ const InterventionCard = ({ intervention, isSelected, onClick }) => {
 // TREE CARD COMPONENT
 // ============================================================================
 
-const TreeCard = ({ tree, onMouseEnter, onMouseLeave }) => {
+
+const TreeCard = ({
+  tree,
+  onMouseEnter,
+  onMouseLeave,
+  onImageUpload, // New prop for handling image upload
+  onImageUpdate  // New prop for handling image update
+}) => {
+  const [showImageModal, setShowImageModal] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleCameraClick = (e) => {
+    e.stopPropagation(); // Prevent card hover events
+    fileInputRef.current?.click();
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files?.[0];
+    if (file && file.type.startsWith('image/')) {
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setShowImageModal(true);
+    }
+  };
+
+  const handleImageAction = async (action) => {
+    if (!selectedFile) return;
+
+    setIsUploading(true);
+    try {
+      if (action === 'upload' && onImageUpload) {
+        await onImageUpload(tree.hid, selectedFile);
+      } else if (action === 'update' && onImageUpdate) {
+        await onImageUpdate(tree.hid, selectedFile);
+      }
+      handleCloseModal();
+    } catch (error) {
+      console.error(`Error ${action}ing image:`, error);
+      // Handle error appropriately
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCloseModal = () => {
+    setShowImageModal(false);
+    setSelectedFile(null);
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
   return (
-    <div
-      className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer"
-      onMouseEnter={onMouseEnter}
-      onMouseLeave={onMouseLeave}
-    >
-      <div className="flex items-center justify-between mb-3">
-        <div className="flex items-center space-x-3">
-          <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-[#007A49] rounded-lg flex items-center justify-center">
-            <Trees className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <h4 className="font-semibold text-slate-800">{tree.tag || tree.hid}</h4>
-            <span className="text-xs text-slate-600">{tree.hid}</span>
-          </div>
-        </div>
-        <span className={`px-2 py-1 rounded-full text-xs font-medium ${tree.status === 'alive' ? 'bg-green-100 text-green-700' :
-          tree.status === 'dead' ? 'bg-red-100 text-red-700' :
-            'bg-slate-100 text-slate-700'
-          }`}>
-          {tree.status}
-        </span>
-      </div>
+    <>
+      <div
+        className="bg-white rounded-xl border border-slate-200 p-4 hover:shadow-md transition-all duration-200 cursor-pointer relative group"
+        onMouseEnter={onMouseEnter}
+        onMouseLeave={onMouseLeave}
+      >
+        {/* Camera Button */}
+        <button
+          onClick={handleCameraClick}
+          className="absolute top-3 right-3 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100"
+          title={tree.image ? "Update tree image" : "Upload tree image"}
+        >
+          <Camera className="w-4 h-4" />
+        </button>
 
-      <div className="grid grid-cols-2 gap-3 text-sm">
-        {tree.speciesName && (
-          <div className="col-span-2 flex items-center space-x-2">
-            <Leaf className="w-4 h-4 text-slate-500" />
-            <span className="text-slate-700 truncate">{tree.speciesName}</span>
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleFileSelect}
+          className="hidden"
+        />
+
+        {/* Tree Image */}
+        {tree.image && (
+          <div className="mb-3">
+            <img
+              src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/tree/${tree.image}`}
+              alt={`Tree ${tree.tag || tree.hid}`}
+              className="w-full h-32 object-cover rounded-lg"
+            />
           </div>
         )}
-        <div className="flex items-center space-x-2">
-          <Tag className="w-4 h-4 text-slate-500" />
-          <span className="text-slate-700 capitalize">{tree.treeType}</span>
+
+        <div className="flex items-center justify-between mb-3">
+          <div className="flex items-center space-x-3">
+            <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-[#007A49] rounded-lg flex items-center justify-center">
+              <Trees className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h4 className="font-semibold text-slate-800">{tree.tag || tree.hid}</h4>
+              <span className="text-xs text-slate-600">{tree.hid}</span>
+            </div>
+          </div>
+          <span className={`px-2 py-1 rounded-full text-xs font-medium ${tree.status === 'alive' ? 'bg-green-100 text-green-700' :
+            tree.status === 'dead' ? 'bg-red-100 text-red-700' :
+              'bg-slate-100 text-slate-700'
+            }`}>
+            {tree.status}
+          </span>
         </div>
-        {tree.height && (
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          {tree.speciesName && (
+            <div className="col-span-2 flex items-center space-x-2">
+              <Leaf className="w-4 h-4 text-slate-500" />
+              <span className="text-slate-700 truncate">{tree.speciesName}</span>
+            </div>
+          )}
           <div className="flex items-center space-x-2">
-            <Ruler className="w-4 h-4 text-slate-500" />
-            <span className="text-slate-700">{tree.height}m</span>
+            <Tag className="w-4 h-4 text-slate-500" />
+            <span className="text-slate-700 capitalize">{tree.treeType}</span>
           </div>
-        )}
-        {tree.plantingDate && (
-          <div className="col-span-2 flex items-center space-x-2">
-            <Calendar className="w-4 h-4 text-slate-500" />
-            <span className="text-slate-700">
-              {new Date(tree.plantingDate).toLocaleDateString()}
-            </span>
+          {tree.height && (
+            <div className="flex items-center space-x-2">
+              <Ruler className="w-4 h-4 text-slate-500" />
+              <span className="text-slate-700">{tree.height}m</span>
+            </div>
+          )}
+          {tree.plantingDate && (
+            <div className="col-span-2 flex items-center space-x-2">
+              <Calendar className="w-4 h-4 text-slate-500" />
+              <span className="text-slate-700">
+                {new Date(tree.plantingDate).toLocaleDateString()}
+              </span>
+            </div>
+          )}
+        </div>
+
+        {tree.records && tree.records.length > 0 && (
+          <div className="mt-3 pt-3 border-t border-slate-200">
+            <div className="flex items-center justify-between">
+              <span className="text-xs text-slate-600">Records: {tree.records.length}</span>
+              <span className="text-xs text-slate-500">
+                Last: {new Date(tree.records[0]?.recordedAt).toLocaleDateString()}
+              </span>
+            </div>
           </div>
         )}
       </div>
 
-      {tree.records && tree.records.length > 0 && (
-        <div className="mt-3 pt-3 border-t border-slate-200">
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-slate-600">Records: {tree.records.length}</span>
-            <span className="text-xs text-slate-500">
-              Last: {new Date(tree.records[0]?.recordedAt).toLocaleDateString()}
-            </span>
+      {/* Image Upload/Update Modal */}
+      <AnimatePresence>
+        {showImageModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center">
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={handleCloseModal}
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-2xl p-6 max-w-lg w-full mx-4 shadow-xl border border-slate-200"
+            >
+              {/* Close Button */}
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Content */}
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-blue-100 mb-4">
+                  <Camera className="w-6 h-6 text-blue-600" />
+                </div>
+
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  {tree.image ? 'Update Tree Image' : 'Upload Tree Image'}
+                </h3>
+
+                <p className="text-slate-600 mb-4">
+                  {tree.image
+                    ? 'Replace the current image with a new one?'
+                    : 'Add an image to this tree record?'
+                  }
+                </p>
+
+                {/* Tree Info */}
+                <div className="bg-slate-50 rounded-lg p-3 mb-4">
+                  <p className="text-sm text-slate-700">
+                    <strong>Tree:</strong> {tree.tag || tree.hid}
+                  </p>
+                  {tree.speciesName && (
+                    <p className="text-sm text-slate-700">
+                      <strong>Species:</strong> {tree.speciesName}
+                    </p>
+                  )}
+                </div>
+
+                {/* Image Preview */}
+                {previewUrl && (
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-600 mb-2">Preview:</p>
+                    <img
+                      src={previewUrl}
+                      alt="Preview"
+                      className="w-full max-h-48 object-cover rounded-lg border border-slate-200"
+                    />
+                  </div>
+                )}
+
+                {/* Current Image (if exists) */}
+                {tree.image && (
+                  <div className="mb-4">
+                    <p className="text-sm text-slate-600 mb-2">Current Image:</p>
+                    <img
+                      src={tree.image}
+                      alt="Current tree image"
+                      className="w-full max-h-32 object-cover rounded-lg border border-slate-200"
+                    />
+                  </div>
+                )}
+
+                {/* Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCloseModal}
+                    disabled={isUploading}
+                    className="flex-1 px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+
+                  <button
+                    onClick={() => handleImageAction(tree.image ? 'update' : 'upload')}
+                    disabled={isUploading || !selectedFile}
+                    className="flex-1 px-4 py-2 text-white bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isUploading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        {tree.image ? 'Updating...' : 'Uploading...'}
+                      </>
+                    ) : (
+                      <>
+                        {tree.image ? (
+                          <>
+                            <Upload className="w-4 h-4 mr-2" />
+                            Update Image
+                          </>
+                        ) : (
+                          <>
+                            <Check className="w-4 h-4 mr-2" />
+                            Upload Image
+                          </>
+                        )}
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </AnimatePresence>
+    </>
   );
 };
+
 
 // ============================================================================
 // SPECIES CARD COMPONENT
@@ -639,7 +858,6 @@ const SpeciesCard = ({ species }) => (
 
     <div className="flex items-center space-x-4 text-sm text-slate-600">
       <span>Unknown: {species.isUnknown ? 'Yes' : 'No'}</span>
-      <span>Created: {new Date(species.createdAt).toLocaleDateString()}</span>
     </div>
   </div>
 );
@@ -648,13 +866,20 @@ const SpeciesCard = ({ species }) => (
 // INTERVENTION DETAILS COMPONENT
 // ============================================================================
 
+
 const InterventionDetails = ({
   intervention,
   hoveredTree,
   tooltipPosition,
   onTreeHover,
-  onTreeLeave
+  onTreeLeave,
+  accessToken,
+  pid,
+  removeIntervention
 }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -688,239 +913,276 @@ const InterventionDetails = ({
     }
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+    try {
+      const response = await deleteIntervention(accessToken, pid, intervention.uid);
+      if (response.statusCode != 200 && response.statusCode != 201) {
+        toast.error("Something went wrong")
+        return
+      }
+      setShowDeleteModal(false);
+      removeIntervention(intervention)
+    } catch (error) {
+      console.error('Error deleting intervention:', error);
+      // Handle error appropriately
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   return (
     <>
-      {/* Map Section */}
-      <div className="flex-1 bg-white/60 backdrop-blur-sm m-6 mb-4 rounded-2xl border border-slate-200/60 relative overflow-hidden shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-slate-50/50">
-          <div className="absolute inset-0 opacity-5" style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23007A49' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
-            backgroundSize: '30px 30px'
-          }}></div>
-        </div>
-        <div className="absolute inset-0 flex items-center justify-center p-4">
-          <MapDisplayComponent geoJSON={intervention.originalGeometry} />
-        </div>
-      </div>
-
-      {/* Details Panel */}
-      <div className="h-64 px-6 pb-6 overflow-y-auto">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm">
-          {/* Header */}
-          <div className="p-6 border-b border-slate-200/60">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-xl font-bold text-slate-800">
-                  {formatInterventionType(intervention.type)}
-                </h2>
-                <div className="flex items-center space-x-2 mt-1">
-                  <p className="text-slate-600">ID: {intervention.hid}</p>
-                  {intervention.flag && (
-                    <div className="flex items-center space-x-1 text-red-600">
-                      <Flag className="w-4 h-4" />
-                      <span className="text-sm font-medium">Flagged</span>
-                    </div>
-                  )}
-                  {intervention.hasRecords && (
-                    <div className="flex items-center space-x-1 text-blue-600">
-                      <FileText className="w-4 h-4" />
-                      <span className="text-sm font-medium">Has Records</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="flex items-center space-x-2">
-                <span className={`px-3 py-1 rounded-full border font-medium text-sm ${getStatusColor(intervention.interventionStatus)}`}>
-                  {intervention.interventionStatus}
-                </span>
-                <span className={`px-3 py-1 rounded-full border font-medium text-sm ${getCaptureStatusColor(intervention.captureStatus)}`}>
-                  {intervention.captureStatus}
-                </span>
-              </div>
+      {/* Scrollable Container */}
+      <div className="flex-1 overflow-y-auto">
+        <div className="p-6 space-y-6">
+          {/* Map Section */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 relative overflow-hidden shadow-lg h-80">
+            <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 to-slate-50/50">
+              <div className="absolute inset-0 opacity-5" style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23007A49' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+                backgroundSize: '30px 30px'
+              }}></div>
+            </div>
+            <div className="absolute inset-0 flex items-center justify-center p-4">
+              <MapDisplayComponent geoJSON={intervention.originalGeometry} />
             </div>
           </div>
 
-          {/* Content */}
-          <div className="p-6 space-y-6">
-            {/* Flag Reasons */}
-            {intervention.flag && intervention.flagReason && intervention.flagReason.length > 0 && (
-              <div className="bg-red-50 border border-red-200 rounded-xl p-4">
-                <h3 className="text-lg font-semibold text-red-800 mb-3 flex items-center">
-                  <AlertTriangle className="w-5 h-5 mr-2" />
-                  Flag Reasons
-                </h3>
-                <div className="space-y-2">
-                  {intervention.flagReason.map((reason, index) => (
-                    <div key={index} className="bg-white rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-medium text-red-700">{reason.title}</span>
-                        <span className="text-xs text-red-600 capitalize">{reason.level}</span>
+          {/* Details Panel */}
+          <div className="bg-white/80 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-sm">
+            {/* Header */}
+            <div className="p-6 border-b border-slate-200/60">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-800">
+                    {formatInterventionType(intervention.type)}
+                  </h2>
+                  <div className="flex items-center space-x-2 mt-1">
+                    <p className="text-slate-600">ID: {intervention.hid}</p>
+                    {intervention.flag && (
+                      <div className="flex items-center space-x-1 text-red-600">
+                        <Flag className="w-4 h-4" />
+                        <span className="text-sm font-medium">Flagged</span>
                       </div>
-                      <p className="text-sm text-red-600">{reason.message}</p>
-                      <div className="text-xs text-red-500 mt-1">
-                        Created: {new Date(reason.createdAt).toLocaleString()}
+                    )}
+                    {intervention.hasRecords && (
+                      <div className="flex items-center space-x-1 text-blue-600">
+                        <FileText className="w-4 h-4" />
+                        <span className="text-sm font-medium">Has Records</span>
                       </div>
-                    </div>
-                  ))}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )}
-
-            {/* Overview Stats */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Trees className="w-8 h-8 text-blue-600" />
-                  <span className="text-2xl font-bold text-blue-900">{intervention.treeCount}</span>
-                </div>
-                <p className="text-blue-700 font-medium">Trees</p>
-              </div>
-
-              <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Leaf className="w-8 h-8 text-green-600" />
-                  <span className="text-2xl font-bold text-green-900">{intervention.species?.length || 0}</span>
-                </div>
-                <p className="text-green-700 font-medium">Species</p>
-              </div>
-
-              <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <TreePine className="w-8 h-8 text-purple-600" />
-                  <span className="text-2xl font-bold text-purple-900">{intervention.trees?.length || 0}</span>
-                </div>
-                <p className="text-purple-700 font-medium">Sample Trees</p>
-              </div>
-
-              <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <CalendarIcon className="w-8 h-8 text-orange-600" />
-                  <span className="text-lg font-bold text-orange-900">
-                    {formatDate(intervention.updatedAt)}
+                <div className="flex items-center space-x-2">
+                  <span className={`px-3 py-1 rounded-full border font-medium text-sm ${getStatusColor(intervention.interventionStatus)}`}>
+                    {intervention.interventionStatus}
                   </span>
-                </div>
-                <p className="text-orange-700 font-medium">Last Update</p>
-              </div>
-            </div>
-
-            {/* Species Section */}
-            {intervention.species?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-                  <Leaf className="w-5 h-5 mr-2 text-[#007A49]" />
-                  Species Planted
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                  {intervention.species.map((species, index) => (
-                    <SpeciesCard key={species.uid || index} species={species} />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Trees Section */}
-            {intervention.trees?.length > 0 && (
-              <div>
-                <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
-                  <Trees className="w-5 h-5 mr-2 text-[#007A49]" />
-                  Individual Trees ({intervention.trees.length})
-                </h3>
-                <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                  {intervention.trees.map((tree) => (
-                    <TreeCard
-                      key={tree.id}
-                      tree={tree}
-                      onMouseEnter={(e) => onTreeHover(tree, e)}
-                      onMouseLeave={onTreeLeave}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Metadata */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
-                  <Info className="w-4 h-4 mr-2" />
-                  Intervention Details
-                </h4>
-                <div className="space-y-3 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Registration Date:</span>
-                    <span className="font-medium">{formatDate(intervention.registrationDate)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Start Date:</span>
-                    <span className="font-medium">{formatDate(intervention.interventionStartDate)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">End Date:</span>
-                    <span className="font-medium">{formatDate(intervention.interventionEndDate)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Capture Mode:</span>
-                    <span className="font-medium capitalize">{intervention.captureMode?.replace('-', ' ')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Sample Tree Count:</span>
-                    <span className="font-medium">{intervention.sampleTreeCount}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Privacy:</span>
-                    <span className="font-medium">{intervention.isPrivate ? 'Private' : 'Public'}</span>
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
-                  <MapPin className="w-4 h-4 mr-2" />
-                  Location & Site
-                </h4>
-                <div className="space-y-3 text-sm">
-                  {intervention.site && (
-                    <>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Site:</span>
-                        <span className="font-medium">{intervention.site.name}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Site Status:</span>
-                        <span className="font-medium capitalize">{intervention.site.status}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-slate-600">Site Description:</span>
-                        <span className="font-medium">{intervention.site.description || 'N/A'}</span>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Created:</span>
-                    <span className="font-medium">{formatDate(intervention.createdAt)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-600">Last Updated:</span>
-                    <span className="font-medium">{formatDate(intervention.updatedAt)}</span>
-                  </div>
+                  <span className={`px-3 py-1 rounded-full border font-medium text-sm ${getCaptureStatusColor(intervention.captureStatus)}`}>
+                    {intervention.captureStatus}
+                  </span>
+                  {/* Delete Button */}
+                  <button
+                    onClick={handleDeleteClick}
+                    className="p-2 text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                    title="Delete Intervention"
+                  >
+                    <Trash2 className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
             </div>
 
-            {/* Metadata Section */}
-            {intervention.metadata && (
-              <div>
-                <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
-                  <Database className="w-4 h-4 mr-2" />
-                  Metadata
-                </h4>
-                <div className="bg-slate-50 rounded-xl p-4">
-                  <pre className="text-xs text-slate-600 whitespace-pre-wrap">
-                    {JSON.stringify(intervention.metadata, null, 2)}
-                  </pre>
+            {/* Content */}
+            <div className="p-6 space-y-6">
+              {/* Flag Reasons */}
+              {intervention.flag && intervention.flagReason && intervention.flagReason.length > 0 && (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+                  <h3 className="text-lg font-semibold text-red-800 mb-3 flex items-center">
+                    <AlertTriangle className="w-5 h-5 mr-2" />
+                    Flag Reasons
+                  </h3>
+                  <div className="space-y-2">
+                    {intervention.flagReason.map((reason, index) => (
+                      <div key={index} className="bg-white rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-medium text-red-700">{reason.title}</span>
+                          <span className="text-xs text-red-600 capitalize">{reason.level}</span>
+                        </div>
+                        <p className="text-sm text-red-600">{reason.message}</p>
+                        <div className="text-xs text-red-500 mt-1">
+                          Created: {new Date(reason.createdAt).toLocaleString()}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Overview Stats */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                {intervention.type !== 'single-tree-registration' && <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Trees className="w-8 h-8 text-blue-600" />
+                    <span className="text-2xl font-bold text-blue-900">{intervention.treeCount}</span>
+                  </div>
+                  <p className="text-blue-700 font-medium">Trees</p>
+                </div>}
+
+                {intervention.type !== 'single-tree-registration' && <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <Leaf className="w-8 h-8 text-green-600" />
+                    <span className="text-2xl font-bold text-green-900">{intervention.species?.length || 0}</span>
+                  </div>
+                  <p className="text-green-700 font-medium">Species</p>
+                </div>}
+
+                {intervention.type !== 'single-tree-registration' && <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <TreePine className="w-8 h-8 text-purple-600" />
+                    <span className="text-2xl font-bold text-purple-900">{intervention.trees?.length || 0}</span>
+                  </div>
+                  <p className="text-purple-700 font-medium">Sample Trees</p>
+                </div>}
+
+                <div className="bg-gradient-to-r from-orange-50 to-orange-100 rounded-xl p-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <CalendarIcon className="w-8 h-8 text-orange-600" />
+                    <span className="text-lg font-bold text-orange-900">
+                      {formatDate(intervention.updatedAt)}
+                    </span>
+                  </div>
+                  <p className="text-orange-700 font-medium">Last Update</p>
                 </div>
               </div>
-            )}
+
+              {/* Species Section */}
+              {intervention.species?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <Leaf className="w-5 h-5 mr-2 text-[#007A49]" />
+                    Species Planted
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    {intervention.species.map((species, index) => (
+                      <SpeciesCard key={species.uid || index} species={species} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Trees Section */}
+              {intervention.trees?.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold text-slate-800 mb-4 flex items-center">
+                    <Trees className="w-5 h-5 mr-2 text-[#007A49]" />
+                    Individual Trees ({intervention.trees.length})
+                  </h3>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+                    {intervention.trees.map((tree) => (
+                      <TreeCard
+                        key={tree.id}
+                        tree={tree}
+                        onMouseEnter={(e) => onTreeHover(tree, e)}
+                        onMouseLeave={onTreeLeave}
+                      />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Metadata */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
+                    <Info className="w-4 h-4 mr-2" />
+                    Intervention Details
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Registration Date:</span>
+                      <span className="font-medium">{formatDate(intervention.registrationDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Start Date:</span>
+                      <span className="font-medium">{formatDate(intervention.interventionStartDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">End Date:</span>
+                      <span className="font-medium">{formatDate(intervention.interventionEndDate)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Capture Mode:</span>
+                      <span className="font-medium capitalize">{intervention.captureMode?.replace('-', ' ')}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Sample Tree Count:</span>
+                      <span className="font-medium">{intervention.sampleTreeCount}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Privacy:</span>
+                      <span className="font-medium">{intervention.isPrivate ? 'Private' : 'Public'}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    Location & Site
+                  </h4>
+                  <div className="space-y-3 text-sm">
+                    {intervention.site && (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Site:</span>
+                          <span className="font-medium">{intervention.site.name}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Site Status:</span>
+                          <span className="font-medium capitalize">{intervention.site.status}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-slate-600">Site Description:</span>
+                          <span className="font-medium">{intervention.site.description || 'N/A'}</span>
+                        </div>
+                      </>
+                    )}
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Created:</span>
+                      <span className="font-medium">{formatDate(intervention.createdAt)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-600">Last Updated:</span>
+                      <span className="font-medium">{formatDate(intervention.updatedAt)}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Metadata Section */}
+              {intervention.metadata && (
+                <div>
+                  <h4 className="font-semibold text-slate-800 mb-3 flex items-center">
+                    <Database className="w-4 h-4 mr-2" />
+                    Metadata
+                  </h4>
+                  <div className="bg-slate-50 rounded-xl p-4">
+                    <pre className="text-xs text-slate-600 whitespace-pre-wrap">
+                      {JSON.stringify(intervention.metadata, null, 2)}
+                    </pre>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -931,10 +1193,98 @@ const InterventionDetails = ({
         isVisible={!!hoveredTree}
         position={tooltipPosition}
       />
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {showDeleteModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center"
+            style={{ zIndex: 1000 }}
+          >
+            {/* Backdrop */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+              onClick={handleCancelDelete}
+            />
+
+            {/* Modal */}
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              className="relative bg-white rounded-2xl p-6 max-w-md w-full mx-4 shadow-xl border border-slate-200"
+            >
+              {/* Close Button */}
+              <button
+                onClick={handleCancelDelete}
+                className="absolute top-4 right-4 p-1 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+
+              {/* Content */}
+              <div className="text-center">
+                <div className="mx-auto flex items-center justify-center w-12 h-12 rounded-full bg-red-100 mb-4">
+                  <AlertTriangle className="w-6 h-6 text-red-600" />
+                </div>
+
+                <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                  Delete Intervention
+                </h3>
+
+                <p className="text-slate-600 mb-6">
+                  Are you sure you want to delete this intervention? This action cannot be undone and will permanently remove all associated data including trees, species, and metadata.
+                </p>
+
+                <div className="bg-slate-50 rounded-lg p-3 mb-6">
+                  <p className="text-sm text-slate-700">
+                    <strong>Intervention ID:</strong> {intervention.hid}
+                  </p>
+                  <p className="text-sm text-slate-700">
+                    <strong>Type:</strong> {formatInterventionType(intervention.type)}
+                  </p>
+                  <p className="text-sm text-slate-700">
+                    <strong>Trees:</strong> {intervention.treeCount}
+                  </p>
+                </div>
+
+                {/* Buttons */}
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCancelDelete}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg font-medium transition-colors disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDelete}
+                    disabled={isDeleting}
+                    className="flex-1 px-4 py-2 text-white bg-red-600 hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                  >
+                    {isDeleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent mr-2"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      <>
+                        <Trash2 className="w-4 h-4 mr-2" />
+                        Delete
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </>
   );
 };
-
 // ============================================================================
 // MAIN COMPONENT
 // ============================================================================
@@ -1103,6 +1453,11 @@ const TreeMapperUI = ({ newIntervention, bulkUpload }) => {
     return interventions.sort((a, b) => new Date(b.registrationDate) - new Date(a.registrationDate));
   }, [interventions]);
 
+  const removeIntervention = (i: any) => {
+    setInterventions(prev => [...prev.filter(e => e.uid !== i.uid)]);
+    setSelectedIntervention(null)
+  }
+
   return (
     <div className="bg-gray-50 flex flex-col h-screen w-full">
       {/* Header */}
@@ -1223,6 +1578,9 @@ const TreeMapperUI = ({ newIntervention, bulkUpload }) => {
                 tooltipPosition={tooltipPosition}
                 onTreeHover={handleTreeHover}
                 onTreeLeave={handleTreeLeave}
+                accessToken={accessToken}
+                pid={selectedProject?.uid}
+                removeIntervention={removeIntervention}
               />
             )
           ) : (

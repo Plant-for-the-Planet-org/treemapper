@@ -123,7 +123,7 @@ const ProjectDropdown = ({
             className="flex items-center justify-between w-full bg-white border border-gray-300 hover:border-gray-400 rounded-lg px-3 py-1 hover:bg-gray-50 transition-all duration-200 shadow-sm group"
           >
             {selectedProject && (
-              <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+              <div className="flex items-center min-w-0  overflow-hidden">
                 <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
                   <span className="font-semibold text-gray-900 truncate text-sm w-full block">
                     {selectedProject?.projectName || 'Select Project'}

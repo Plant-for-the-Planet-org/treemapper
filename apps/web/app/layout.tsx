@@ -3,7 +3,26 @@ import Auth0Provider from './providers/Auth0Provider';
 import ResponsiveDashboardWrapper from '../components/ResponsiveDashboardWrapper';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import type { Metadata } from 'next';
 
+// This ensures the title stays consistent across all pages
+export const metadata: Metadata = {
+  title: 'TreeMapper Dashboard', // Fixed title that won't change
+  description: 'Manage and monitor your tree mapping projects',
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' }
+    ],
+    apple: '/apple-touch-icon.png',
+  },
+  // Optional: Prevent other pages from overriding the title
+  // Remove this if you want some flexibility
+  other: {
+    'format-detection': 'telephone=no',
+  }
+};
 
 export default function RootLayout({
   children,
@@ -12,20 +31,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <head>
-        {/* Preconnect to external domains for performance */}
-        <link rel="preconnect" href="https://images.unsplash.com" />
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        
-        {/* PWA manifest if you have one */}
-        <link rel="manifest" href="/manifest.json" />
-        
-        {/* Favicon */}
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="icon" href="/icon.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
-      </head>
       <body className="antialiased bg-gray-50 min-h-screen">
         <ToastContainer
           position="top-right"

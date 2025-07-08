@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useToken } from '../../context/TokenContext';
 import useProjectStore from '../../store/useProjectStore';
-import { createNewProjectSpecies, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateProjectSpecies } from '../../api/api.fetch';
+import { createNewProjectSpecies, generatePreSignUrl, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateProjectSpecies } from '../../api/api.fetch';
 import { toast } from 'react-toastify';
 import SpeciesCard from './components/web/SpeciesCard';
 import SpeciesDetail from './components/web/SpeciesDetail';
@@ -55,6 +55,9 @@ const SpeciesManagementDashboard = () => {
     const [loading, setLoading] = useState(false);
     const [requestLoading, setRequestLoading] = useState(false);
     const [showMobileModal, setShowMobileModal] = useState(false);
+
+    const [imageDetails, setImageDetails] = useState<File | null>(null)
+
     const [viewMode, setViewMode] = useState('grid'); // 'grid' or 'list'
     const [sortBy, setSortBy] = useState('name'); // 'name', 'date', 'favorite'
     const [isMobile, setIsMobile] = useState(false);
@@ -291,46 +294,119 @@ const SpeciesManagementDashboard = () => {
         };
     }
 
-    const handleSave = async () => {
-        setLoading(true);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        console.log('Saving species:', editForm);
-        let payLoad = {
-            isDisbaledSpecies: editForm.disabled,
-            isNativeSpecies: editForm.isNativeSpecies,
-            favourite: editForm.favourite,
-            metadata: {
-                habitat: editForm.habitat,
-                height: editForm.height,
-                flowers: editForm.hasFlowersOrFruits,
-                bloomingSeason: editForm.bloomingSeason
+    const uploadViaAPI = async (selectedImage: File, uploadUrl: string) => {
+        try {
+            const formData = new FormData();
+            formData.append('file', selectedImage);
+
+            const response = await fetch(`/api/upload-image?uploadUrl=${encodeURIComponent(uploadUrl)}`, {
+                method: 'PUT',
+                body: formData,
+            });
+
+            if (!response.ok) {
+                throw new Error('Upload failed');
+            }
+
+            const result = await response.json();
+            return result;
+        } catch (error) {
+            console.error('Upload error:', error);
+            throw error;
+        }
+    };
+
+
+
+    const uploadImage = async () => {
+        try {
+            if (!imageDetails) {
+                throw 'Image Details not found'
+            }
+            // Get pre-signed URL
+            const presignedResponse = await generatePreSignUrl(accessToken, {
+                fileName: String(new Date().getMilliseconds()),
+                fileType: imageDetails?.type,
+                folder: 'species'
+            })
+
+            if (presignedResponse.statusCode !== 200 && presignedResponse.statusCode !== 201) {
+                throw new Error(presignedResponse.message || 'Failed to get upload URL');
+            }
+
+            const response = await uploadViaAPI(imageDetails, presignedResponse.data.data.uploadUrl)
+            if (response.success) {
+                return {
+                    fileName: presignedResponse.data.data.fileName,
+                    success: true
+                }
+            } else {
+                throw 'Failed to upload image'
+            }
+
+        } catch (error) {
+            console.error('Image upload error:', error);
+            return {
+                fileName: '',
+                success: false
             }
         }
-        if (editForm.commonName) {
-            payLoad['commonName'] = editForm.commonName;
-        }
-        if (editForm.description) {
-            payLoad['description'] = editForm.description;
-        }
+    };
 
+    const handleSave = async () => {
+        setLoading(true);
+        try {
+            let payLoad = {
+                isDisbaledSpecies: editForm.disabled,
+                isNativeSpecies: editForm.isNativeSpecies,
+                favourite: editForm.favourite,
+                metadata: {
+                    habitat: editForm.habitat,
+                    height: editForm.height,
+                    flowers: editForm.hasFlowersOrFruits,
+                    bloomingSeason: editForm.bloomingSeason
+                }
+            }
+            if (editForm.commonName) {
+                payLoad['commonName'] = editForm.commonName;
+            }
+            if (editForm.description) {
+                payLoad['description'] = editForm.description;
+            }
+            let fileName = ''
+            if (imageDetails) {
+                const uplaodResponse = await uploadImage()
+                if (uplaodResponse.success) {
+                    fileName = uplaodResponse.fileName
+                }
+            }
+            if (fileName) {
+                payLoad['image'] = fileName
+            }
 
-        if (isAddingNew) {
-            payLoad['scientificSpeciesId'] = editForm.uid;
-            console.log('payLoad', payLoad);
-            setSpeciesList([...speciesList, { ...editForm, uid: Date.now() }]);
-            await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
-        } else {
-            setSpeciesList(speciesList.map(species =>
-                species.uid === editForm.uid ? { ...editForm, updatedAt: new Date().toISOString() } : species
-            ));
-            await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+            if (isAddingNew) {
+                payLoad['scientificSpeciesId'] = editForm.uid;
+                console.log('payLoad', payLoad);
+
+                setSpeciesList([...speciesList, { ...editForm, uid: Date.now() }]);
+                await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
+            } else {
+                setSpeciesList(speciesList.map(species =>
+                    species.uid === editForm.uid ? { ...editForm, updatedAt: new Date().toISOString() } : species
+                ));
+                await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+            }
+
+            setSelectedSpecies(editForm);
+            setIsEditing(false);
+            setIsAddingNew(false);
+            setSpeciesNotFound(false);
+            setLoading(false);
+        } catch (error) {
+            toast.error(`Error uploading data: ${String(error)}`)
+        } finally {
+            setLoading(false)
         }
-
-        setSelectedSpecies(editForm);
-        setIsEditing(false);
-        setIsAddingNew(false);
-        setSpeciesNotFound(false);
-        setLoading(false);
     };
 
     const handleCancel = () => {
@@ -386,11 +462,14 @@ const SpeciesManagementDashboard = () => {
     const handleImageUpload = (e) => {
         const file = e.target.files[0];
         if (file) {
+            setImageDetails(file)
             const reader = new FileReader();
             reader.onloadend = () => {
                 setEditForm({ ...editForm, image: reader.result });
             };
             reader.readAsDataURL(file);
+        } else {
+            setImageDetails(null)
         }
     };
 

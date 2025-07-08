@@ -504,7 +504,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
               <button
                 onClick={handleSetCoordinates}
                 type="button"
-                className="w-full sm:w-auto bg-blue-500 text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors"
+                className={`w-full sm:w-auto ${manualCoords.latitude && manualCoords.longitude?'bg-green-800':'bg-gray-500'} text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors`}
               >
                 Set Location
               </button>
