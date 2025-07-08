@@ -16,8 +16,8 @@ function getBaseUrl(): string {
   }
 
   // Fallback for older Expo versions or manual setup
-  if (process.env.SERVER_URL) {
-    return process.env.SERVER_URL;
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL;
   }
 
 
