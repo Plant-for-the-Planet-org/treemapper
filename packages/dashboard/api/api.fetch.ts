@@ -29,6 +29,12 @@ export const generatePreSignUrl = async (token: string, params: any) => {
   return result;
 };
 
+export const updateUserDetails = async (token: string, params: any) => {
+  const uri = `${getUrlApi.me}`
+  const result = await fetchPatchCall(uri, params, token)
+  return result
+}
+
 
 
 //migrate

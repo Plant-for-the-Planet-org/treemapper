@@ -11,6 +11,8 @@ import { useToken } from '../../../../context/TokenContext'
 import useProjectStore from '../../../../store/useProjectStore';
 import { getSingleProjectDetails, updateProjectSettings } from '../../../../api/api.fetch';
 import { toast } from 'react-toastify'
+import UnifiedMapComponent from '../../../createProject/components/web/ProjectSelectMap';
+import GeoJSONUpload from '../../../createProject/components/web/GeoJSONfileupload';
 interface ProjectData {
   projectName: string;
   projectType: string;
@@ -26,6 +28,7 @@ interface ProjectData {
   country: string;
   image: File | null;
   location: File | null;
+  geoMetry: any
   isPublic: boolean;
   isPersonal: boolean;
   isPrimary: boolean;
@@ -490,66 +493,45 @@ const GeneralSettings: React.FC<{
 const LocationSettings: React.FC<{
   handleInputChange: (e: any) => void;
   locationFileName: string;
-}> = ({ handleInputChange, locationFileName }) => (
-  <div className="space-y-8">
-    <div>
-      <h2 className="text-3xl font-bold text-gray-900 mb-2">Project Location</h2>
-      <p className="text-gray-600">Update the location of your project using the map or by uploading a file.</p>
-    </div>
+  handleLocationUpdate: (e: any) => void
+  existingGeoJSON
+}> = ({ handleInputChange, locationFileName, handleLocationUpdate, existingGeoJSON }) => {
+  const [geoJSON, setGeoJSON] = useState(existingGeoJSON || null)
+  return (
+    <div className="space-y-8">
+      <div>
+        <h2 className="text-3xl font-bold text-gray-900 mb-2">Project Location</h2>
+        <p className="text-gray-600">Update the location of your project using the map or by uploading a file.</p>
+      </div>
 
-    <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8 shadow-sm">
-      <h3 className="text-xl font-semibold text-gray-800 mb-6">Interactive Map</h3>
+      <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-gray-200/50 p-8 shadow-sm">
+        <h3 className="text-xl font-semibold text-gray-800 mb-6">Interactive Map</h3>
 
-      {/* Map Component */}
-      <div className="w-full h-64 md:h-80 lg:h-96 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center border border-green-200 mb-8">
-        <div className="text-center">
-          <MapPin className="h-16 w-16 text-green-500 mx-auto mb-4" />
-          <p className="text-green-700 font-medium">Interactive Map Component</p>
-          <p className="text-green-600 text-sm">Map integration would be implemented here</p>
+        {/* Map Component */}
+        <div className="w-full h-64 md:h-80 lg:h-96 bg-gradient-to-br from-green-100 to-emerald-100 rounded-2xl flex items-center justify-center border border-green-200 mb-8">
+          <UnifiedMapComponent updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
+        </div>
+
+        {/* File Upload */}
+        <div className="bg-gray-50/50 rounded-xl p-6">
+          <GeoJSONUpload onGeoJSONChange={setGeoJSON} />
         </div>
       </div>
 
-      {/* File Upload */}
-      <div className="bg-gray-50/50 rounded-xl p-6">
-        <h4 className="text-lg font-semibold text-gray-800 mb-4">Upload Location File</h4>
-        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-          <label htmlFor="locationFile" className="cursor-pointer bg-white py-3 px-6 border-2 border-dashed border-gray-300 rounded-xl shadow-sm text-sm font-medium text-gray-700 hover:bg-gray-50 hover:border-gray-400 focus:outline-none transition-all flex items-center">
-            <Upload className="h-4 w-4 mr-2" />
-            Choose File
-          </label>
-          <input
-            id="locationFile"
-            name="location"
-            type="file"
-            accept=".kml,.geojson,.json"
-            className="sr-only"
-            onChange={handleInputChange}
-          />
-          <div className="flex-1">
-            <span className="text-sm text-gray-600 font-medium">
-              {locationFileName}
-            </span>
-            <p className="text-xs text-gray-400 mt-1">
-              Accepted formats: KML, GeoJSON (Max size: 10MB)
-            </p>
-          </div>
-        </div>
+      {/* Save Button */}
+      <div className="flex justify-end">
+        <button
+          type="button"
+          onClick={() => { handleLocationUpdate(geoJSON) }}
+          className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 flex items-center font-semibold shadow-md transition-all transform hover:scale-105"
+        >
+          <Save className="h-4 w-4 mr-2" />
+          Update Location
+        </button>
       </div>
     </div>
-
-    {/* Save Button */}
-    <div className="flex justify-end">
-      <button
-        type="button"
-        onClick={() => alert('Location updated!')}
-        className="px-6 py-3 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-xl hover:from-green-700 hover:to-green-800 flex items-center font-semibold shadow-md transition-all transform hover:scale-105"
-      >
-        <Save className="h-4 w-4 mr-2" />
-        Update Location
-      </button>
-    </div>
-  </div>
-);
+  )
+};
 
 // Notification Settings Component
 const NotificationSettings: React.FC<{
@@ -740,6 +722,7 @@ const ProjectSettings: React.FC = () => {
     isPublic: true,
     isPersonal: false,
     isPrimary: false,
+    geoMetry: null,
     notifications: {
       progressUpdates: false,
       treeAdditions: false,
@@ -772,6 +755,7 @@ const ProjectSettings: React.FC = () => {
         revisionPeriodicityLevel: response.revisionPeriodicityLevel || '',
         country: response.country || '',
         image: null, // Assuming image is handled separately
+        geoMetry: response.originalGeometry,
         location: null, // Assuming location is handled separately
         isPublic: response.isPublic !== undefined ? response.isPublic : true,
         isPersonal: response.isPersonal !== undefined ? response.isPersonal : false,
@@ -830,6 +814,22 @@ const ProjectSettings: React.FC = () => {
       }));
     }
   };
+
+  const handleLocationUpdate = async (e: any) => {
+    setLoading(true)
+    console.log("SDc", e)
+    const response = await updateProjectSettings(accessToken, {
+      location: e
+    }, selectedProject?.uid)
+    if (response && response.statusCode == 200) {
+      toast.info('Project Data updated')
+      window.location.reload()
+      setLoading(false)
+    } else {
+      throw new Error('Failed to save project settings');
+    }
+    setLoading(false)
+  }
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -900,7 +900,9 @@ const ProjectSettings: React.FC = () => {
         return (
           <LocationSettings
             handleInputChange={handleInputChange}
+            handleLocationUpdate={handleLocationUpdate}
             locationFileName={locationFileName}
+            existingGeoJSON={projectData.geoMetry}
           />
         );
       case 'notifications':

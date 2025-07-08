@@ -74,6 +74,8 @@ export const patchUrlApi = {
   markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
   deleteLink: `${baseUrl}/api/projects`,
   updateProjectSettings: `${baseUrl}/api/projects`,
+  userDetails: `${baseUrl}/api/users/me`,
+
 } as const;
 
 export const deleteUrlApi = {

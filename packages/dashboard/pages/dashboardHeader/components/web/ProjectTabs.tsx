@@ -141,7 +141,7 @@ const ProjectDropdown = ({
             )}
             {!selectedProject && (
               <div className="flex items-center min-w-0 flex-1 py-2 overflow-hidden">
-                <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
+                <div className="flex flex-col items-start min-w-0  overflow-hidden">
                   <span className="font-semibold text-gray-900 truncate text-sm w-full block">
                     Select Project
                   </span>
