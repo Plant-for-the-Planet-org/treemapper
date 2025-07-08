@@ -20,10 +20,7 @@ function getBaseUrl(): string {
     return process.env.SERVER_URL;
   }
 
-  // Development fallback
-  if (__DEV__ || process.env.NODE_ENV === 'development') {
-    return 'http://localhost:3000'; // Adjust to your dev server port
-  }
+
 
   throw new Error('SERVER_URL environment variable is not configured');
 }
