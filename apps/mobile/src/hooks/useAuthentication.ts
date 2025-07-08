@@ -36,14 +36,14 @@ const useAuthentication = () => {
   const checkAuthStatus = useCallback(async () => {
     try {
       const credentials = await getCredentials()
-      setAuthState(prev => ({ 
-        ...prev, 
-        isAuthenticated: !!credentials?.accessToken 
+      setAuthState(prev => ({
+        ...prev,
+        isAuthenticated: !!credentials?.accessToken
       }))
     } catch (error) {
-      setAuthState(prev => ({ 
-        ...prev, 
-        isAuthenticated: false 
+      setAuthState(prev => ({
+        ...prev,
+        isAuthenticated: false
       }))
     }
   }, [getCredentials])
@@ -68,16 +68,14 @@ const useAuthentication = () => {
       // Clear Auth0 session and credentials
       await clearSession()
       await clearCredentials()
-      
-      // Clear app data
-      await Promise.all([
-        deleteAllSyncedIntervention(),
-        deleteAllProjects(),
-        deleteAllUserSpecies()
-      ])
-      
-      setAuthState(prev => ({ 
-        ...prev, 
+      setTimeout(async () => {
+        await deleteAllSyncedIntervention()
+        await deleteAllProjects()
+        await deleteAllUserSpecies()
+      }, 2000);
+
+      setAuthState(prev => ({
+        ...prev,
         isAuthenticated: false,
         loginAttempts: 0
       }))
@@ -89,16 +87,16 @@ const useAuthentication = () => {
   const logoutUser = useCallback(async (): Promise<boolean> => {
     try {
       setAuthState(prev => ({ ...prev, isLoading: true }))
-      
+
       await clearAuthState()
-      
+
       addNewLog({
         logType: 'USER',
         message: 'User logout successfully.',
         logLevel: 'info',
         statusCode: '',
       })
-      
+
       return true
     } catch (error) {
       Bugsnag.notify(error)
@@ -155,8 +153,8 @@ const useAuthentication = () => {
         throw new Error('No access token received')
       }
 
-      setAuthState(prev => ({ 
-        ...prev, 
+      setAuthState(prev => ({
+        ...prev,
         isAuthenticated: true,
         loginAttempts: 0
       }))
@@ -174,15 +172,15 @@ const useAuthentication = () => {
       }
     } catch (error) {
       const attempts = authState.loginAttempts + 1
-      setAuthState(prev => ({ 
-        ...prev, 
+      setAuthState(prev => ({
+        ...prev,
         loginAttempts: attempts,
         isAuthenticated: false
       }))
 
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      const shouldRetry = attempts < MAX_LOGIN_ATTEMPTS && 
-                         (errorMessage.includes('user_cancelled') === false)
+      const shouldRetry = attempts < MAX_LOGIN_ATTEMPTS &&
+        (errorMessage.includes('user_cancelled') === false)
 
       addNewLog({
         logType: 'USER',
@@ -223,7 +221,7 @@ const useAuthentication = () => {
       }
 
       lastResult = await authorizeUser()
-      
+
       if (lastResult.success) {
         return lastResult
       }
@@ -240,11 +238,11 @@ const useAuthentication = () => {
   const refreshUserToken = useCallback(async (refreshToken?: string) => {
     try {
       const result = await getCredentials(refreshToken)
-      
+
       if (result?.accessToken) {
-        setAuthState(prev => ({ 
-          ...prev, 
-          isAuthenticated: true 
+        setAuthState(prev => ({
+          ...prev,
+          isAuthenticated: true
         }))
       }
 
@@ -257,9 +255,9 @@ const useAuthentication = () => {
 
       return result
     } catch (error) {
-      setAuthState(prev => ({ 
-        ...prev, 
-        isAuthenticated: false 
+      setAuthState(prev => ({
+        ...prev,
+        isAuthenticated: false
       }))
 
       addNewLog({
@@ -288,13 +286,13 @@ const useAuthentication = () => {
     }
   }, [clearAuthState, addNewLog])
 
-  return { 
-    getUserCredentials, 
-    logoutUser, 
+  return {
+    getUserCredentials,
+    logoutUser,
     authorizeUser: authorizeUserWithRetry, // Use retry version by default
     authorizeUserSingle: authorizeUser, // Single attempt version
-    user, 
-    refreshUserToken, 
+    user,
+    refreshUserToken,
     error,
     forceLogout,
     isLoading: authState.isLoading,

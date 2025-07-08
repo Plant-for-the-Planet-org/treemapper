@@ -3,7 +3,7 @@ import { RealmProvider as Provider } from '@realm/react'
 import schema from './schema'
 import { runRealmMigrations } from './migrations'
 import Realm from 'realm'
-const schemaVersion = 19
+const schemaVersion = 20
 
 const realmConfig = {
   schemaVersion: schemaVersion,

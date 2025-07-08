@@ -126,7 +126,8 @@ const useManageScientificSpecies = () => {
             image: specie.image || '',
             description: specie.description || '',
             isUpdated: true,
-            specieId: specie.id || ''
+            specieId: specie.id || '',
+            editable: false
           }
           realm.create(
             RealmSchema.ScientificSpecies,

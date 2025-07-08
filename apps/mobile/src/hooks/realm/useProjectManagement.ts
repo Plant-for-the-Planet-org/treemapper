@@ -82,7 +82,7 @@ const useProjectManagement = () => {
   const addNewSite = async (projectID: string, siteData: any): Promise<boolean> => {
     try {
       realm.write(() => {
-        const projectData =  realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects,projectID)
+        const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, projectID)
         const existingSites = [...projectData.sites]
         existingSites.push(siteData)
         projectData.sites = existingSites

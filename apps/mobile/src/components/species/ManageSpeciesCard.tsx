@@ -50,7 +50,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
               <ExpoImage.Image
                 cachePolicy='memory-disk'
                 source={{
-                  uri: item.image.includes('/') ? `${item.image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
+                  uri: item.image.includes('/') ? `${item.image}` : `https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${item.image}`,
                 }}
                 style={styles.imageView}
               />

@@ -1,19 +1,19 @@
-import { StyleSheet, TouchableOpacity, View} from 'react-native'
-import React, {useEffect, useState} from 'react'
-import {Colors} from 'src/utils/constants'
+import { StyleSheet, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useState } from 'react'
+import { Colors } from 'src/utils/constants'
 import UploadSpecieIcon from 'assets/images/svg/UploadSpecieIcon.svg'
 import PenIcon from 'assets/images/svg/PenIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
-import {useNavigation} from '@react-navigation/native'
-import {StackNavigationProp} from '@react-navigation/stack'
-import {RootStackParamList} from 'src/types/type/navigation.type'
-import {useDispatch, useSelector} from 'react-redux'
-import {RootState} from 'src/store'
-import {IScientificSpecies} from 'src/types/interface/app.interface'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+import { useDispatch, useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
-import {updateImageDetails} from 'src/store/slice/takePictureSlice'
-import { SCALE_36, SCALE_26} from 'src/utils/constants/spacing'
-import {scaleSize} from 'src/utils/constants/mixins'
+import { updateImageDetails } from 'src/store/slice/takePictureSlice'
+import { SCALE_36, SCALE_26 } from 'src/utils/constants/spacing'
+import { scaleSize } from 'src/utils/constants/mixins'
 import * as ExpoImage from 'expo-image';
 
 interface Props {
@@ -21,21 +21,24 @@ interface Props {
 }
 
 const SpecieInfoImageSection = (props: Props) => {
-  const {image} = props.item
+  const { image, editable } = props.item
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
-  const {updateSpeciesDetails} = useManageScientificSpecies()
+  const { updateSpeciesDetails } = useManageScientificSpecies()
   const [imageId, setImageId] = useState('')
   const dispatch = useDispatch()
 
   useEffect(() => {
     if (imageId === imageDetails.id && imageId !== '') {
-      dispatch(updateImageDetails({id: '', url: ''}))
-      updateSpeciesDetails({...props.item, image: imageDetails.url})
+      dispatch(updateImageDetails({ id: '', url: '' }))
+      updateSpeciesDetails({ ...props.item, image: imageDetails.url })
     }
   }, [imageDetails])
 
   const takePicture = () => {
+    if(!editable){
+      return;
+    }
     const newID = String(new Date().getTime())
     setImageId(newID)
     navigation.navigate('TakePicture', {
@@ -45,7 +48,7 @@ const SpecieInfoImageSection = (props: Props) => {
   }
 
   const deleteImage = () => {
-    updateSpeciesDetails({...props.item, image: ''})
+    updateSpeciesDetails({ ...props.item, image: '' })
   }
 
   return (
@@ -54,7 +57,7 @@ const SpecieInfoImageSection = (props: Props) => {
         <TouchableOpacity
           style={styles.emptyImageContainer}
           onPress={takePicture}>
-          <View style={{alignItems: 'center'}}>
+          <View style={{ alignItems: 'center' }}>
             <UploadSpecieIcon />
           </View>
         </TouchableOpacity>
@@ -62,23 +65,23 @@ const SpecieInfoImageSection = (props: Props) => {
         <View style={styles.imageContainer}>
           <ExpoImage.Image
             source={{
-              uri: image,
+              uri: props.item.image.includes('/') ? `${props.item.image}` : `https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${props.item.image}`,
             }}
             style={styles.imageView}
-            contentFit="cover" 
+            contentFit="cover"
           />
-          <View style={styles.imageControls}>
+         {editable && <View style={styles.imageControls}>
             <TouchableOpacity onPress={takePicture}>
               <View style={[styles.iconContainer]}>
-                <PenIcon  width={SCALE_26} height={SCALE_26}/>
+                <PenIcon width={SCALE_26} height={SCALE_26} />
               </View>
             </TouchableOpacity>
             <TouchableOpacity
               onPress={deleteImage}
               style={styles.iconContainer}>
-              <BinIcon  width={18} height={18} fill={Colors.TEXT_COLOR}/>
+              <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity>
-          </View>
+          </View>}
         </View>
       )}
     </View>
@@ -119,7 +122,7 @@ const styles = StyleSheet.create({
   imageControls: {
     position: 'absolute',
     bottom: 10,
-    right:10,
+    right: 10,
 
   },
   iconContainer: {
@@ -129,6 +132,6 @@ const styles = StyleSheet.create({
     height: SCALE_36,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical:8
+    marginVertical: 8
   },
 })

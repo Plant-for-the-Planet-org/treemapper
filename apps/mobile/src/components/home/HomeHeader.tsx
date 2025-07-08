@@ -56,7 +56,7 @@ const HomeHeader = (props: Props) => {
     if (userType === 'gen') {
       handleProjects()
     }
-  }, [userType, projectAdded, expiringAt])
+  }, [userType])
 
 
   useEffect(() => {

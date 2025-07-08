@@ -55,17 +55,16 @@ const ManageSpeciesHome = (props: Props) => {
 
 
   const syncUserSpecies = async () => {
-    // setLoading(true)
+    setLoading(true)
     try {
       const { response, success } = await getProjectSpecies(currentProject.projectId)
-      console.log("SDc",response)
       if (success) {
         const result = await addUserSpecies(response.data)
         if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
       }
-      // setLoading(false)
+      setLoading(false)
     } catch (error) {
       setLoading(false)
       console.log("error", error)

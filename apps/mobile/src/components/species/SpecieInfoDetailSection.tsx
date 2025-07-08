@@ -13,7 +13,7 @@ const SpecieInfoDetailSection = (props: Props) => {
   const [localName, setLocalName] = useState('')
   const [details, setDetails] = useState('')
 
-  const { description, aliases } = props.item
+  const { description, aliases, editable } = props.item
   const { updateSpeciesDetails } = useManageScientificSpecies()
 
   useEffect(() => {
@@ -41,6 +41,7 @@ const SpecieInfoDetailSection = (props: Props) => {
         onChangeText={updateAlias}
         style={styles.input}
         returnKeyType='done'
+        readOnly={!editable}
       />
       <Text style={styles.infoCardHeading}>
         {i18next.t('label.species_description')}
@@ -48,6 +49,7 @@ const SpecieInfoDetailSection = (props: Props) => {
       <TextInput
         multiline
         value={details}
+        readOnly={!editable}
         onChangeText={updateDescription}
         style={[styles.textArea]}
       />
