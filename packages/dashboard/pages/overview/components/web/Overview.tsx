@@ -32,7 +32,7 @@ const Overview = () => {
 
     const getMonthRange = () => {
         const now = new Date();
-        const start = new Date(now.getFullYear(), now.getMonth(), 1);
+        const start = new Date(now.getFullYear() - 1, now.getMonth(), 1);
         const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of the month
         return {
             startDate: start.toISOString().split('T')[0], // YYYY-MM-DD
@@ -74,7 +74,7 @@ const Overview = () => {
                 "startDate": new Date(startDate),
                 "endDate": new Date(endDate),
             }, selectedProject)
-            console.log('Downloading data for range:',  response.data.interventions);
+            console.log('Downloading data for range:', response.data.interventions);
 
             if (response.statusCode === 200 || response.statusCode === 201) {
                 setDownloading(false)

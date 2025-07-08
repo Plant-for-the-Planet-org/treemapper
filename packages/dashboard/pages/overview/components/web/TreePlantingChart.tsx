@@ -6,7 +6,7 @@ import { getOverviewGraph } from '../../../../api/api.fetch';
 import TreeLoader from './TreeLoader';
 
 const TreePlantingChart = () => {
-  const [interval, setInterval] = useState('days');
+  const [interval, setInterval] = useState('months');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);

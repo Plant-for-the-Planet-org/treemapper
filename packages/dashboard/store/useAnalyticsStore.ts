@@ -10,7 +10,7 @@ interface AnalyticsStore {
 
 export const useAnalyticsStore = create<AnalyticsStore>((set) => ({
   startDate: new Date().toISOString(),
-  endDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
+  endDate: new Date(new Date().getFullYear() - 1, new Date().getMonth(), new Date().getDate()).toISOString(),
   setGlobalStartDate: (d) => set({ startDate:d }),
   setGlobalEndDate: (d) => set({ endDate:d }),
 }))

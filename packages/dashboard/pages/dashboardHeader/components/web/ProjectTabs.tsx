@@ -116,39 +116,44 @@ const ProjectDropdown = ({
       {/* Top row with project dropdown and notification/profile */}
       <div className="flex items-center w-full px-3 py-2">
         {/* Enhanced Project Dropdown */}
-        <div className="relative min-w-1 flex-1 max-w-sm" style={{ marginRight: 20 }} >
+        <div className="relative min-w-1 flex-1 max-w-sm" style={{ marginRight: 20 }}>
           {/* Dropdown Button */}
           <button
             onClick={toggleDropdown}
             className="flex items-center justify-between w-full bg-white border border-gray-300 hover:border-gray-400 rounded-lg px-3 py-1 hover:bg-gray-50 transition-all duration-200 shadow-sm group"
           >
-            {selectedProject && <div className="flex items-center  min-w-0 flex-1">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <span className="font-semibold text-gray-900 truncate text-sm">
-                  {selectedProject?.projectName || 'Select Project'}
-                </span>
-                {selectedProject && (
-                  <div className="flex items-center gap-1">
-                    {getRoleIcon(selectedProject.userRole)}
-                    <span className="text-xs text-gray-500 capitalize">
-                      {selectedProject.userRole}
-                    </span>
-                  </div>
-                )}
+            {selectedProject && (
+              <div className="flex items-center min-w-0 flex-1 overflow-hidden">
+                <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
+                  <span className="font-semibold text-gray-900 truncate text-sm w-full block">
+                    {selectedProject?.projectName || 'Select Project'}
+                  </span>
+                  {selectedProject && (
+                    <div className="flex items-center gap-1 min-w-0 overflow-hidden">
+                      {getRoleIcon(selectedProject.userRole)}
+                      <span className="text-xs text-gray-500 capitalize truncate">
+                        {selectedProject.userRole}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>}
-            {!selectedProject && <div className="flex items-center  min-w-0 flex-1 py-2">
-              <div className="flex flex-col items-start min-w-0 flex-1">
-                <span className="font-semibold text-gray-900 truncate text-sm">
-                  Select Project
-                </span>
+            )}
+            {!selectedProject && (
+              <div className="flex items-center min-w-0 flex-1 py-2 overflow-hidden">
+                <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
+                  <span className="font-semibold text-gray-900 truncate text-sm w-full block">
+                    Select Project
+                  </span>
+                </div>
               </div>
-            </div>}
+            )}
             <div className="flex-shrink-0 ml-2">
-              {isOpen ?
-                <ChevronUp className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" /> :
+              {isOpen ? (
+                <ChevronUp className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
+              ) : (
                 <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              }
+              )}
             </div>
           </button>
 
@@ -164,11 +169,11 @@ const ProjectDropdown = ({
                   }}
                   className="w-full flex items-center justify-between p-3 rounded-lg font-medium bg-green-700 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg"
                 >
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center">
+                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
+                    <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
                       <Plus className="w-4 h-4" />
                     </div>
-                    <span>Create New Project</span>
+                    <span className="truncate">Create New Project</span>
                   </div>
                 </button>
               </div>
@@ -181,35 +186,36 @@ const ProjectDropdown = ({
                       <button
                         key={project.uid}
                         onClick={() => handleProjectSelect(project)}
-                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group ${project.uid === selectedProject?.uid
-                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                          : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group overflow-hidden ${project.uid === selectedProject?.uid
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
+                            : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
                           }`}
                       >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3 min-w-0 flex-1">
-                            <div className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
-                              ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                              : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
-                              }`}>
+                        <div className="flex items-center justify-between min-w-0 overflow-hidden">
+                          <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
+                            <div
+                              className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
+                                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                  : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
+                                }`}
+                            >
                               <Folder className="w-4 h-4 text-white" />
                             </div>
-                            <div className="flex flex-col min-w-0 flex-1">
-                              <span className={`font-medium truncate text-sm ${project.uid === selectedProject?.uid ? 'text-blue-900' : 'text-gray-900'
-                                }`}>
+                            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
+                              <span
+                                className={`font-medium truncate text-sm w-full block ${project.uid === selectedProject?.uid ? 'text-blue-900' : 'text-gray-900'
+                                  }`}
+                              >
                                 {project.projectName}
                               </span>
-                              <div className="flex items-center gap-1 mt-1">
+                              <div className="flex items-center gap-1 mt-1 min-w-0 overflow-hidden">
                                 {getRoleIcon(project.userRole)}
-                                <span className="text-xs text-gray-500 capitalize">
+                                <span className="text-xs text-gray-500 capitalize truncate">
                                   {project.userRole}
                                 </span>
                               </div>
                             </div>
                           </div>
-
-                          {/* Role Badge */}
-
                         </div>
                       </button>
                     ))}
