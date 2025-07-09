@@ -80,7 +80,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {!isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
+          {!item.editable ? null : !isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (

@@ -61,6 +61,7 @@ export const getUrlApi = {
   getMyNotification: `${baseUrl}/api/notifications`,
   getAllInviteLinks: `${baseUrl}/api/projects`,
   getDashboardKpis: `${baseUrl}/api/analytics/project-kpis`,
+  getProjectMapData: `${baseUrl}/api/analytics`,
   getOverviewGraph: `${baseUrl}/api/analytics/planting-overview`,
   getDashboardRecentAddition: `${baseUrl}/api/analytics/recent-additions`,
 } as const;

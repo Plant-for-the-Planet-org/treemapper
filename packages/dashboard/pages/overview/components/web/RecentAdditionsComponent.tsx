@@ -39,8 +39,11 @@ const getActivityValue = (activity) => {
 
 // User Avatar component
 const UserAvatar = ({ user, index }) => {
+  if (!user.image) {
+    return customImageGenerator(user.uid)
+  }
   const imageUrl = user.image
-    ? `/api/uploads/${user.image}`
+    ? `${user.image}`
     : `https://avatar.iran.liara.run/public/${(index % 50) + 1}`;
 
   return (
@@ -58,11 +61,12 @@ const UserAvatar = ({ user, index }) => {
 };
 
 const customImageGenerator = (id) => {
-    const svg = avatar(id, { size: 40 })
-    return <div
-        className="h-10 w-10 rounded-full overflow-hidden"
-        dangerouslySetInnerHTML={{ __html: svg }}
-    />
+  const svg = avatar(id, { size: 40 })
+  return <div
+    style={{ marginRight: 10 }}
+    className="h-15 w-15 rounded-full overflow-hidden"
+    dangerouslySetInnerHTML={{ __html: svg }}
+  />
 }
 
 // Format date to readable format
@@ -189,8 +193,8 @@ const RecentAdditionsComponent = () => {
           <div className="h-full overflow-y-auto px-6 py-4">
             <div className="space-y-4">
               {activities.map((activity, index) => (
-                <div 
-                  key={activity.id} 
+                <div
+                  key={activity.id}
                   className="flex items-center justify-between p-4 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors group"
                 >
                   <div className="flex items-center min-w-0 flex-1">
@@ -210,7 +214,7 @@ const RecentAdditionsComponent = () => {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 ml-4 flex-shrink-0">
                     {getActivityValue(activity) && (
                       <div className="text-right">
@@ -268,11 +272,10 @@ const RecentAdditionsComponent = () => {
                       key={pageNum}
                       onClick={() => handlePageChange(pageNum)}
                       disabled={loading}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${
-                        pagination.page === pageNum
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors shadow-sm ${pagination.page === pageNum
                           ? 'bg-blue-600 text-white shadow-blue-200'
                           : 'bg-white hover:bg-gray-50 text-gray-700 border border-gray-300'
-                      } disabled:opacity-50 disabled:cursor-not-allowed`}
+                        } disabled:opacity-50 disabled:cursor-not-allowed`}
                     >
                       {pageNum}
                     </button>

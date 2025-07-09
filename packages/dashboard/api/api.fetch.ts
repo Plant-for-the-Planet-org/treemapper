@@ -242,7 +242,11 @@ export const deleteIntervention = async (token: string, prjId: string, invId: st
 
 
 
-
+export const getProjectMapData = async (token: string, pid: string) => {
+  const uri = `${getUrlApi.getProjectMapData}/${pid}/map`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
 
 
 
