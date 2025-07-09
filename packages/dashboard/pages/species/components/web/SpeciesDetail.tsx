@@ -212,8 +212,8 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                     <div className="w-40 h-40 rounded-xl overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 flex items-center justify-center shadow-inner">
                                         {editForm.image ? (
                                             <img
-                                                src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/development/species/${editForm.image}`}
-                                                alt="Preview"
+                                                src={editForm.image}
+                                                alt="Upload Image"
                                                 className="w-full h-full object-cover"
                                             />
                                         ) : (
@@ -426,7 +426,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                                     </div>
                                                     <h4 className="font-semibold text-blue-900">Habitat</h4>
                                                 </div>
-                                                <p className="text-sm text-blue-800">{selectedSpecies.habitat || 'Not specified'}</p>
+                                                <p className="text-sm text-blue-800">{selectedSpecies.metadata?.habitat ?? 'Not specified'}</p>
                                             </div>
 
                                             <div className="bg-gradient-to-br from-purple-50 to-pink-50 p-4 rounded-xl border border-purple-100">
@@ -436,7 +436,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                                     </div>
                                                     <h4 className="font-semibold text-purple-900">Height</h4>
                                                 </div>
-                                                <p className="text-sm text-purple-800">{selectedSpecies.height || 'Not specified'}</p>
+                                                <p className="text-sm text-purple-800">{selectedSpecies.metadata?.height ?? 'Not specified'}</p>
                                             </div>
 
                                             <div className="bg-gradient-to-br from-emerald-50 to-green-50 p-4 rounded-xl border border-emerald-100">
@@ -446,7 +446,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                                     </div>
                                                     <h4 className="font-semibold text-emerald-900">Flowers/Fruits</h4>
                                                 </div>
-                                                <p className="text-sm text-emerald-800">{selectedSpecies.hasFlowersOrFruits || 'Not specified'}</p>
+                                                <p className="text-sm text-emerald-800">{selectedSpecies.metadata?.hasFlowersOrFruits ?? 'Not specified'}</p>
                                             </div>
 
                                             <div className="bg-gradient-to-br from-orange-50 to-yellow-50 p-4 rounded-xl border border-orange-100">
@@ -456,7 +456,7 @@ const SpeciesDetail = ({ onClose = null, selectedSpecies, isMobile, isAddingNew,
                                                     </div>
                                                     <h4 className="font-semibold text-orange-900">Blooming Season</h4>
                                                 </div>
-                                                <p className="text-sm text-orange-800">{selectedSpecies.bloomingSeason || 'Not specified'}</p>
+                                                <p className="text-sm text-orange-800">{selectedSpecies.metadata?.bloomingSeason ?? 'Not specified'}</p>
                                             </div>
                                         </div>
                                     </div>

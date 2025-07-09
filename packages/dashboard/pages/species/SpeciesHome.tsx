@@ -388,13 +388,15 @@ const SpeciesManagementDashboard = () => {
                 payLoad['scientificSpeciesId'] = editForm.uid;
                 console.log('payLoad', payLoad);
 
-                setSpeciesList([...speciesList, { ...editForm, uid: Date.now() }]);
+                setSpeciesList([...speciesList, { ...editForm, uid: Date.now(), image: fileName || editForm.image }]);
                 await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
+                setSelectedSpecies(null)
             } else {
                 setSpeciesList(speciesList.map(species =>
-                    species.uid === editForm.uid ? { ...editForm, updatedAt: new Date().toISOString() } : species
+                    species.uid === editForm.uid ? { ...editForm, updatedAt: new Date().toISOString(), image: fileName || editForm.image } : species
                 ));
                 await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+                setSelectedSpecies(null)
             }
 
             setSelectedSpecies(editForm);
