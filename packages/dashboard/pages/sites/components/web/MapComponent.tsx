@@ -63,24 +63,9 @@ const MapComponent = ({
 
   // Update map view when geoJSON changes
   useEffect(() => {
-    // Only update if geoJsonData actually changed
-    if (geoJsonData && 
-        mapRef.current && 
-        JSON.stringify(geoJsonData) !== JSON.stringify(prevGeoJsonRef.current)) {
-      
-      const newViewState = calculateBounds(geoJsonData);
-      
-      // Animate to new bounds
-      mapRef.current.flyTo({
-        center: [newViewState.longitude, newViewState.latitude],
-        zoom: newViewState.zoom,
-        duration: 1500,
-        essential: true
-      });
 
-      // Update the ref to track the current geoJSON
-      prevGeoJsonRef.current = geoJsonData;
-    }
+    prevGeoJsonRef.current = geoJsonData;
+
   }, [geoJsonData, calculateBounds]);
 
   // Validate GeoJSON data
