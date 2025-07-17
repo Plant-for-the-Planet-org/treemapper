@@ -53,7 +53,14 @@ export default function DashboardLayout({
   useEffect(() => {
     if (!tokenLoading && !user) {
       router.push('/login');
+      return
     }
+
+    const organizationId = localStorage.getItem('organizationId');
+    if (!organizationId) {
+      router.push('/organization');
+    }
+
   }, [user, tokenLoading, router]);
 
   const handleCreateProject = () => {
@@ -106,7 +113,7 @@ export default function DashboardLayout({
       case 'newintervention':
         return null
       default:
-        return <DashboardHeader token={accessToken} createNewProject={createNewProject}  openProfileSetting={openProfileSetting} updateRoute={updateRoute}/>;
+        return <DashboardHeader token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
     }
   };
 
