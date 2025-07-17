@@ -43,6 +43,10 @@ export default function DashboardLayout({
         setCurrentSection('newintervention');
       } else if (pathname.includes('/dashboard/bulkupload')) {
         setCurrentSection('bulkupload');
+
+      } else if (pathname.includes('/dashboard/organization')) {
+        setCurrentSection('organization');
+
       } else {
         setCurrentSection('default');
       }
@@ -58,7 +62,7 @@ export default function DashboardLayout({
 
     const organizationId = localStorage.getItem('organizationId');
     if (!organizationId) {
-      router.push('/organization');
+      router.push('/dashboard/organization');
     }
 
   }, [user, tokenLoading, router]);
@@ -110,7 +114,9 @@ export default function DashboardLayout({
         return null
       case 'bulkupload':
         return null
-      case 'newintervention':
+      case 'bulkupload':
+        return null
+      case 'organization':
         return null
       default:
         return <DashboardHeader token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
@@ -126,6 +132,8 @@ export default function DashboardLayout({
       case 'newsite':
         return children
       case 'bulkupload':
+        return children
+      case 'organization':
         return children
       default:
         return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
@@ -143,9 +151,10 @@ export default function DashboardLayout({
           <MigrationModal />
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            {children}
+            {/* {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <GoogleSpinner />
-            </div> : renderNoPlaceHolderCondition()}
+            </div> : renderNoPlaceHolderCondition()} */}
           </div>
         </div>
       </TokenProvider>
