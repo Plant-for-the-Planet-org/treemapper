@@ -60,7 +60,7 @@ export default function DashboardLayout({
       return
     }
 
-    const organizationId = localStorage.getItem('organizationId');
+    const organizationId = localStorage.getItem('orgId');
     if (!organizationId) {
       router.push('/dashboard/organization');
     }

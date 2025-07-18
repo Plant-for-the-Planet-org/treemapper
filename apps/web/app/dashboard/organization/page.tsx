@@ -2,11 +2,13 @@
 
 import React, { useState, useCallback } from 'react';
 import { Building2, Plus, Users, Calendar, User, TreePine, Search, ArrowRight } from 'lucide-react';
+import { useRouter, usePathname } from 'next/navigation';
 
 export default function OrganizationSelector() {
   const [newOrgName, setNewOrgName] = useState('');
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const router = useRouter();
 
   // Mock data - replace with actual API data
   const [organizations, setOrganizations] = useState([
@@ -44,11 +46,12 @@ export default function OrganizationSelector() {
     if (!newOrgName.trim()) return;
 
     setIsCreating(true);
-    
+
     try {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      localStorage.setItem('orgId', '123');
+      router.replace('/dashboard');
       const newOrg = {
         id: organizations.length + 1,
         name: newOrgName.trim(),
@@ -58,7 +61,7 @@ export default function OrganizationSelector() {
         memberCount: 1,
         icon: Building2
       };
-      
+
       setOrganizations([newOrg, ...organizations]);
       setNewOrgName('');
     } catch (error) {
@@ -69,6 +72,8 @@ export default function OrganizationSelector() {
   }, [newOrgName, organizations]);
 
   const handleSelectOrganization = useCallback((orgId) => {
+    localStorage.setItem('orgId', '123');
+    router.replace('/dashboard')
     // Handle organization selection - redirect to main app
     console.log('Selected organization:', orgId);
     // window.location.href = `/dashboard?org=${orgId}`;
@@ -186,7 +191,7 @@ export default function OrganizationSelector() {
                       </p>
                     </div>
                   </div>
-                  
+
                   <div className="mt-4 pt-4 border-t border-gray-100">
                     <div className="flex items-center justify-between text-xs text-gray-500">
                       <div className="flex items-center space-x-4">
@@ -216,7 +221,7 @@ export default function OrganizationSelector() {
               {searchTerm ? 'No organizations found' : 'No organizations yet'}
             </h3>
             <p className="text-gray-600">
-              {searchTerm 
+              {searchTerm
                 ? 'Try adjusting your search terms or create a new organization.'
                 : 'Create your first organization to get started with TreeMapper.'
               }
