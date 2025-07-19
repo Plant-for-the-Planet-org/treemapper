@@ -36,10 +36,13 @@
     "react-map-gl": "^8.0.4",
     "react-toastify": "^11.0.5",
     "recharts": "^2.15.3",
+    "shared-core": "*",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@babel/plugin-transform-private-methods": "^7.27.1",
+    "@babel/plugin-transform-private-property-in-object": "^7.27.1",
     "@types/node": "17.0.21",
     "@types/papaparse": "^5.3.16",
     "autoprefixer": "^10.4.14",

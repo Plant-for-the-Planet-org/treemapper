@@ -2,7 +2,10 @@ import './global.css';
 import Auth0Provider from './providers/Auth0Provider';
 import ResponsiveDashboardWrapper from '../components/ResponsiveDashboardWrapper';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css'; // Import toast styles
+import 'react-toastify/dist/ReactToastify.css';
+import { SharedQueryProvider } from 'shared-core/api/client/QueryProvider'
+
+
 import type { Metadata } from 'next';
 
 // This ensures the title stays consistent across all pages
@@ -44,11 +47,13 @@ export default function RootLayout({
           pauseOnHover
           theme="light"
         />
-        <Auth0Provider>
-          <ResponsiveDashboardWrapper>
-            {children}
-          </ResponsiveDashboardWrapper>
-        </Auth0Provider>
+        <SharedQueryProvider>
+          <Auth0Provider>
+            <ResponsiveDashboardWrapper>
+              {children}
+            </ResponsiveDashboardWrapper>
+          </Auth0Provider>
+        </SharedQueryProvider>
       </body>
     </html>
   );
