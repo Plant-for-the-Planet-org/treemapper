@@ -1,5 +1,5 @@
 import { Suspense } from 'react';
-import LoginContent from './LoginContent';
+import LoginContent from './components/LoginContent';
 import { TreePine } from 'lucide-react';
 
 function LoginLoading() {

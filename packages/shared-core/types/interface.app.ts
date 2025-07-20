@@ -43,3 +43,39 @@ export interface PageHeaderProps {
 }
 
 export interface FooterProps { }
+
+
+export interface FeatureCardProps {
+  icon: React.ElementType;
+  title: string;
+  description: string;
+}
+
+export interface TrustIndicatorProps {
+  icon: React.ElementType;
+  label: string;
+}
+
+export interface LoginFormProps {
+  loading: boolean;
+  onLogin: () => void;
+}
+
+export interface MobileAppSectionProps {
+  onPlayStoreClick: () => void;
+  onAppStoreClick: () => void;
+}
+
+export interface BrandingSectionProps {
+  features: Array<{
+    icon: React.ElementType;
+    title: string;
+    description: string;
+  }>;
+}
+
+export interface LoginFooterProps {
+  onImprintClick: () => void;
+  onPolicyClick: () => void;
+  onTermsClick: () => void;
+}
