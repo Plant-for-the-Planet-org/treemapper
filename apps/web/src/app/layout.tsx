@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { SharedQueryProvider } from '@shared-core/api/client/QueryProvider'
+import { SharedQueryProvider } from '@shared-core/api/index'
 import { Open_Sans } from 'next/font/google'
 
 // This ensures the title stays consistent across all pages

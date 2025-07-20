@@ -9,6 +9,7 @@ import { Footer } from './components/Footer';
 import { OrganizationGrid } from './components/OrganizationGrid';
 import { PageHeader } from './components/PageHeader';
 import { EmptyState } from './components/EmptyState';
+import { useTodos, useCreateTodo, useDeleteTodo } from '@shared-core/api/index';
 
 
 
@@ -19,7 +20,9 @@ export default function OrganizationSelector() {
   const [isCreating, setIsCreating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
-
+  const { data: todosResponse, isLoading, error } = useTodos();
+  const todos = todosResponse?.data || [];
+  console.log("KSJLDC", error)
   // Mock data - replace with actual API data
   const [organizations, setOrganizations] = useState<Organization[]>([
     {
