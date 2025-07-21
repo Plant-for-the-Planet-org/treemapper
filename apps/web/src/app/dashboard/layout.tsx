@@ -32,7 +32,7 @@ export default function DashboardLayout({
   };
 
   useEffect(() => {
-    if (currentSection === 'organization') {
+    if (currentSection === 'organization' || currentSection === 'project') {
       setOrgLoded(true)
     }
   }, [currentSection])
