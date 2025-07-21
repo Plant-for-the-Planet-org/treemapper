@@ -339,7 +339,7 @@ const MigrationModal = () => {
                             </div>
 
                             <p className="text-center text-sm text-green-700">
-                                You're all set! Your TreeManager data is being migrated. Feel free to close this page; we’ll handle the rest and notify you when it's ready. 🌿
+                                You're all set! Your TreeMapper data is being migrated. Feel free to close this page; we’ll handle the rest and notify you when it's ready. 🌿
                             </p>
                         </motion.div>
                     )}
