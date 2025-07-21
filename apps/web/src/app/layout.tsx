@@ -3,12 +3,12 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { SharedQueryProvider } from '@shared-core/api/index'
 import { Open_Sans } from 'next/font/google'
+import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
+import Auth0Provider from '@/providers/Auth0Provider';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-// This ensures the title stays consistent across all pages
-
-
-
-const openSans = Open_Sans({ 
+const openSans = Open_Sans({
   subsets: ['latin'],
   variable: '--font-open-sans'
 })
@@ -52,9 +52,25 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <SharedQueryProvider>
-          {children}
-        </SharedQueryProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={5000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+          theme="light"
+        />
+        <ResponsiveDashboardWrapper>
+          <Auth0Provider>
+            <SharedQueryProvider>
+              {children}
+            </SharedQueryProvider>
+          </Auth0Provider>
+        </ResponsiveDashboardWrapper>
       </body>
     </html>
   );

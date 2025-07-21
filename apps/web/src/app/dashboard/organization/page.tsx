@@ -1,101 +1,95 @@
 "use client";
 
 import React, { useState, useCallback } from 'react';
-import { Building2, Plus, Users, Calendar, User, TreePine, Search, ArrowRight, LucideIcon } from 'lucide-react';
-import { useRouter, usePathname } from 'next/navigation';
-import { Organization } from '@shared-core/types/interface.app';
+import { useRouter } from 'next/navigation';
 import { CreateOrganizationForm } from './components/CreateOrganizationForm';
 import { Footer } from './components/Footer';
 import { OrganizationGrid } from './components/OrganizationGrid';
 import { PageHeader } from './components/PageHeader';
 import { EmptyState } from './components/EmptyState';
-import { useTodos, useCreateTodo, useDeleteTodo } from '@shared-core/api/index';
-
-
-
+import { useOrganizations, useCreateOrganization } from '@shared-core/api/index';
+import Spinner from '@/component/Spinner';
 
 // Main Component
 export default function OrganizationSelector() {
   const [newOrgName, setNewOrgName] = useState('');
-  const [isCreating, setIsCreating] = useState(false);
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm] = useState('');
   const router = useRouter();
-  const { data: todosResponse, isLoading, error } = useTodos();
-  const todos = todosResponse?.data || [];
-  console.log("KSJLDC", error)
-  // Mock data - replace with actual API data
-  const [organizations, setOrganizations] = useState<Organization[]>([
-    {
-      id: 1,
-      name: "Amazon Rainforest Project",
-      description: "Large-scale reforestation initiative in the Amazon basin focusing on biodiversity restoration",
-      createdBy: "Maria Santos",
-      createdAt: "2024-01-15",
-      memberCount: 24,
-      icon: TreePine
+  
+  // React Query hooks
+  const { data: orgResponse, isLoading, error } = useOrganizations();
+  const organizations = orgResponse?.data || [];
+  
+  const createOrganization = useCreateOrganization({
+    onSuccess: (data) => {
+      console.log('Organization created successfully:', data);
+      setNewOrgName('');
+      
+      // Store the new org ID and redirect to dashboard
+      if (data?.data?.id) {
+        localStorage.setItem('orgId', data.data.id);
+        router.replace('/dashboard');
+      }
     },
-    {
-      id: 2,
-      name: "Urban Green Spaces",
-      description: "Community-driven urban forestry program for metropolitan areas",
-      createdBy: "John Smith",
-      createdAt: "2024-02-20",
-      memberCount: 12,
-      icon: Building2
+    onError: (error) => {
+      console.error('Failed to create organization:', error);
+      // You might want to show a toast notification here
+      alert(`Failed to create organization: ${error.message}`);
     },
-    {
-      id: 3,
-      name: "Coastal Restoration Alliance",
-      description: "Mangrove restoration and coastal ecosystem rehabilitation",
-      createdBy: "Sarah Johnson",
-      createdAt: "2024-03-10",
-      memberCount: 8,
-      icon: Users
-    }
-  ]);
+  });
 
   const handleCreateOrganization = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newOrgName.trim()) return;
 
-    setIsCreating(true);
-
     try {
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      localStorage.setItem('orgId', '123');
-      router.replace('/dashboard');
-      const newOrg: Organization = {
-        id: organizations.length + 1,
+      // Use React Query mutation with async/await
+      await createOrganization.mutateAsync({
         name: newOrgName.trim(),
         description: `New organization created for ${newOrgName.trim()}`,
-        createdBy: "You",
-        createdAt: new Date().toISOString().split('T')[0],
-        memberCount: 1,
-        icon: Building2
-      };
-
-      setOrganizations([newOrg, ...organizations]);
-      setNewOrgName('');
+      });
+      
+      // Success handling is done in the onSuccess callback above
+      
     } catch (error) {
-      console.error('Failed to create organization:', error);
-    } finally {
-      setIsCreating(false);
+      // Error handling is done in the onError callback above
+      console.error('Create organization error:', error);
     }
-  }, [newOrgName, organizations, router]);
+  }, [newOrgName, createOrganization]);
 
-  const handleSelectOrganization = useCallback((orgId: number) => {
-    localStorage.setItem('orgId', '123');
+  const handleSelectOrganization = useCallback((orgId: number | string) => {
+    localStorage.setItem('orgId', String(orgId));
     router.replace('/dashboard');
-    // Handle organization selection - redirect to main app
     console.log('Selected organization:', orgId);
-    // window.location.href = `/dashboard?org=${orgId}`;
   }, [router]);
 
   const filteredOrganizations = organizations.filter(org =>
     org.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    org.description.toLowerCase().includes(searchTerm.toLowerCase())
+    (org.description || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Show error state if there's an error loading organizations
+  if (error) {
+    return (
+      <div className="h-full bg-white flex flex-col w-full">
+        <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
+          <div className="h-full w-full flex flex-col justify-center items-center">
+            <div className="text-red-500 text-center">
+              <h2 className="text-xl font-semibold mb-2">Error Loading Organizations</h2>
+              <p className="text-gray-600 mb-4">{error.message}</p>
+              <button 
+                onClick={() => window.location.reload()} 
+                className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                Retry
+              </button>
+            </div>
+          </div>
+        </main>
+        <Footer />
+      </div>
+    );
+  }
 
   return (
     <div className="h-full bg-white flex flex-col w-full">
@@ -110,19 +104,13 @@ export default function OrganizationSelector() {
           newOrgName={newOrgName}
           setNewOrgName={setNewOrgName}
           onCreateOrganization={handleCreateOrganization}
-          isCreating={isCreating}
+          isCreating={createOrganization.isPending} // Use React Query's loading state
         />
-
-        {/* Uncomment when search functionality is needed */}
-        {/* {organizations.length > 0 && (
-          <SearchBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-          />
-        )} */}
-
-        {/* Organizations Grid or Empty State */}
-        {filteredOrganizations.length > 0 ? (
+        {isLoading ? (
+          <div className='h-full w-full flex flex-col justify-center items-center'>
+            <Spinner/>
+          </div>
+        ) : filteredOrganizations.length > 0 ? (
           <OrganizationGrid
             organizations={filteredOrganizations}
             onSelectOrganization={handleSelectOrganization}

@@ -1,20 +1,32 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from "next/navigation";
-import {MapPin, Wifi, Database } from 'lucide-react';
+import { MapPin, Wifi, Database } from 'lucide-react';
 import { BackgroundDecorations } from './BackgroundDecorations';
 import { BrandingSection } from './BrandingSection';
 import { LoginFooter } from './LoginFooter';
 import { LoginForm } from './LoginForm';
 import { MobileAppSection } from './MobileAppSection';
 import { MobileLogo } from './MobileLogo';
+import { useRouter, usePathname } from 'next/navigation';
+import { useAccessToken } from '@/hooks/useAccessToken';
 
 
 export default function LoginContent() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
   const [loading, setLoading] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
+  const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
+
+  useEffect(() => {
+    if (tokenLoading && user) {
+      router.push('/dashboard');
+      return
+    }
+  }, [user, tokenLoading, router]);
 
   // Updated features based on website content
   const features = [

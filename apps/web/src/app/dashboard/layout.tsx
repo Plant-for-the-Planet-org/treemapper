@@ -3,14 +3,13 @@
 import { useRouter, usePathname } from 'next/navigation';
 import Spinner from '../../component/Spinner';
 import { useEffect, useState } from 'react';
-// import DashboardHeader from 'dashboard/pages/dashboardHeader/DashboardHeaderWeb';
-// import { useAccessToken } from '../../hooks/useAccessToken';
-// import { TokenProvider } from 'dashboard/context/TokenContext';
-// import MigrationModal from '../../components/MigrationModal';
-// import useProjectStore from 'dashboard/store/useProjectStore'
-// import NoProjectSelected from '../../components/NoProjectPlaceHolde';
-// import ErrorLoadingProject from '../../components/ProjectErrorPlaceholder';
-// import LoadingBar from '../../components/LoadinBar'; // Add this import
+import { useAccessToken } from '@/hooks/useAccessToken';
+import DashboardHeaderWeb from '@/component/header/MainHeader';
+import { TokenProvider } from '@/context/useTokenContext';
+import MigrationModal from '@/component/MigrationModal';
+import useProjectStore from '@shared-core/store/useProjectStore'
+import NoProjectSelected from '@/component/NoProjectPlaceHolder';
+import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
 
 
 
@@ -19,17 +18,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
-  // const { selectedProject, loading, error, clearPrjError } = useProjectStore(state => state)
+  const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
+  const { selectedProject, loading, error, clearPrjError } = useProjectStore(state => state)
 
   const router = useRouter();
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<string>('default');
 
-  // const handleRefresh = () => {
-  //   window.location.reload();
-  //   clearPrjError();
-  // };
+  const handleRefresh = () => {
+    window.location.reload();
+    clearPrjError();
+  };
 
   useEffect(() => {
     if (pathname) {
@@ -54,18 +53,18 @@ export default function DashboardLayout({
   }, [pathname]);
 
   // // Use useEffect for navigation
-  // useEffect(() => {
-  //   if (!tokenLoading && !user) {
-  //     router.push('/login');
-  //     return
-  //   }
+  useEffect(() => {
+    if (!tokenLoading && !user) {
+      router.push('/login');
+      return
+    }
 
-  //   const organizationId = localStorage.getItem('orgId');
-  //   if (!organizationId) {
-  //     router.push('/dashboard/organization');
-  //   }
+    const organizationId = localStorage.getItem('orgId');
+    if (!organizationId) {
+      router.push('/dashboard/organization');
+    }
 
-  // }, [user, tokenLoading, router]);
+  }, [user, tokenLoading, router]);
 
   const handleCreateProject = () => {
     router.push('/dashboard/project');
@@ -73,22 +72,22 @@ export default function DashboardLayout({
 
 
   // Handle logout
-  // const handleLogout = () => {
-  //   window.location.href = '/api/auth/logout';
-  // };
+  const handleLogout = () => {
+    window.location.href = '/api/auth/logout';
+  };
 
-  // if (tokenError) {
-  //   handleLogout()
-  //   return <div className="p-8 text-center text-red-500">Error: {String(tokenError)}</div>;
-  // }
+  if (tokenError) {
+    handleLogout()
+    return <div className="p-8 text-center text-red-500">Error: {String(tokenError)}</div>;
+  }
 
-  // if (tokenLoading || !user) {
-  //   return (
-  //     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-  //       <GoogleSpinner />
-  //     </div>
-  //   );
-  // }
+  if (tokenLoading || !user) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <Spinner />
+      </div>
+    );
+  }
 
 
   const createNewProject = () => {
@@ -119,8 +118,7 @@ export default function DashboardLayout({
       case 'organization':
         return null
       default:
-        return null
-      //  return <DashboardHeader token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
+       return <DashboardHeaderWeb token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
     }
   };
 
@@ -137,9 +135,9 @@ export default function DashboardLayout({
       case 'organization':
         return children
       default:
-        // return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-        //   <Spinner />
-        // </div> : <NoProjectSelected handleCreateProject={handleCreateProject} />;
+        return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <Spinner />
+        </div> : <NoProjectSelected handleCreateProject={handleCreateProject} />;
         return null
     }
   };
@@ -147,19 +145,17 @@ export default function DashboardLayout({
 
   return (
     <>
-      {/* <LoadingBar /> */}
-      {/* <TokenProvider accessToken={accessToken}> */}
-        <div className="app-container">
-          {/* <MigrationModal /> */}
-          <div className="app-content">
-            {/* {renderSectionSpecificContent()} */}
-            {children}
-            {/* {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-              <GoogleSpinner />
-            </div> : renderNoPlaceHolderCondition()} */}
-          </div>
+      <TokenProvider accessToken={accessToken}>
+      <div className="app-container">
+        <MigrationModal />
+        <div className="app-content">
+          {renderSectionSpecificContent()}
+          {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <Spinner />
+            </div> : renderNoPlaceHolderCondition()}
         </div>
-      {/* </TokenProvider> */}
+      </div>
+      </TokenProvider>
     </>
   );
 }

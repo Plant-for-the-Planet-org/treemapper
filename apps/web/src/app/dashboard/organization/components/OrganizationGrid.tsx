@@ -6,7 +6,7 @@ export const OrganizationGrid: React.FC<OrganizationGridProps> = ({ organization
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {organizations.map((org) => (
         <OrganizationCard
-          key={org.id}
+          key={org.uid}
           organization={org}
           onSelect={onSelectOrganization}
         />

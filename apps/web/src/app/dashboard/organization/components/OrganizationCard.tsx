@@ -1,9 +1,9 @@
 import { OrganizationCardProps } from "@shared-core/types/interface.app";
-import { User, Users, Calendar } from "lucide-react";
+import { User, Users, Calendar , Building2} from "lucide-react";
 import { useCallback } from "react";
 
+
 export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization, onSelect }) => {
-  const IconComponent = organization.icon;
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -14,8 +14,8 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
   };
 
   const handleClick = useCallback(() => {
-    onSelect(organization.id);
-  }, [organization.id, onSelect]);
+    onSelect(organization.uid);
+  }, [organization.uid, onSelect]);
 
   return (
     <div
@@ -24,7 +24,7 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
     >
       <div className="flex items-start space-x-4">
         <div className="flex items-center justify-center w-12 h-12 bg-[#007A49]/10 rounded-lg group-hover:bg-[#007A49]/20 transition-colors">
-          <IconComponent className="w-6 h-6 text-[#007A49]" />
+          {!organization.image && <Building2 className="w-6 h-6 text-[#007A49]" />}
         </div>
         <div className="flex-1 min-w-0">
           <h3 className="text-lg font-semibold text-gray-900 group-hover:text-[#007A49] transition-colors truncate">
@@ -39,10 +39,6 @@ export const OrganizationCard: React.FC<OrganizationCardProps> = ({ organization
       <div className="mt-4 pt-4 border-t border-gray-100">
         <div className="flex items-center justify-between text-xs text-gray-500">
           <div className="flex items-center space-x-4">
-            <span className="flex items-center">
-              <User className="w-3 h-3 mr-1" />
-              {organization.createdBy}
-            </span>
             <span className="flex items-center">
               <Users className="w-3 h-3 mr-1" />
               {organization.memberCount} members

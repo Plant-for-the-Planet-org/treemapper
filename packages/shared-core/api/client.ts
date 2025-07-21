@@ -1,22 +1,24 @@
 import { handleApiError, ApiError } from '../utils/error-handler';
-import { getBaseURL } from './endpoints';
+import { AuthTokenManager } from '../utils/auth';
+import { getBaseUrl } from './endpoints';
 
 class ApiClient {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = getBaseURL();
+    this.baseURL = getBaseUrl();
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
   ): Promise<T> {
-    const url = `${this.baseURL}${endpoint}`;
-    
+    const url = `${endpoint}`;
+
     const config: RequestInit = {
       headers: {
         'Content-Type': 'application/json',
+        ...AuthTokenManager.getAuthHeaders(), // Add auth headers
         ...options.headers,
       },
       ...options,
@@ -24,7 +26,7 @@ class ApiClient {
 
     try {
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
         throw new ApiError(
@@ -60,6 +62,13 @@ class ApiClient {
 
   async delete<T>(endpoint: string): Promise<T> {
     return this.request<T>(endpoint, { method: 'DELETE' });
+  }
+
+  async patch<T>(endpoint: string, data?: any): Promise<T> {
+    return this.request<T>(endpoint, {
+      method: 'PATCH',
+      body: data ? JSON.stringify(data) : undefined,
+    });
   }
 }
 
