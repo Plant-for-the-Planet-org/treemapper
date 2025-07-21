@@ -1,6 +1,6 @@
 // middleware.ts
 import { NextResponse } from 'next/server';
-import { getSession } from '@auth0/nextjs-auth0/edge';
+import { getSession } from '@auth0/nextjs-auth0/edge'; // Use edge version for middleware
 import type { NextRequest } from 'next/server';
 
 export async function middleware(req: NextRequest) {
@@ -23,6 +23,7 @@ export async function middleware(req: NextRequest) {
     return res;
   }
   
+  // Use the edge version and pass both req and res
   const session = await getSession(req, res);
   const isAuthenticated = !!session?.user;
   

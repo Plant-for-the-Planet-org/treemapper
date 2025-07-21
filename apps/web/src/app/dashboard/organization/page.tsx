@@ -1,13 +1,15 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { CreateOrganizationForm } from './components/CreateOrganizationForm';
 import { Footer } from './components/Footer';
 import { OrganizationGrid } from './components/OrganizationGrid';
 import { PageHeader } from './components/PageHeader';
 import { EmptyState } from './components/EmptyState';
-import { useOrganizations, useCreateOrganization } from '@shared-core/api/index';
+import { getAllMyOrg, createNewOrg } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
+import { toast } from 'react-toastify';
 import Spinner from '@/component/Spinner';
 
 // Main Component
@@ -15,47 +17,52 @@ export default function OrganizationSelector() {
   const [newOrgName, setNewOrgName] = useState('');
   const [searchTerm] = useState('');
   const router = useRouter();
-  
-  // React Query hooks
-  const { data: orgResponse, isLoading, error } = useOrganizations();
-  const organizations = orgResponse?.data || [];
-  
-  const createOrganization = useCreateOrganization({
-    onSuccess: (data) => {
-      console.log('Organization created successfully:', data);
-      setNewOrgName('');
-      
-      // Store the new org ID and redirect to dashboard
-      if (data?.data?.id) {
-        localStorage.setItem('orgId', data.data.id);
-        router.replace('/dashboard');
-      }
-    },
-    onError: (error) => {
-      console.error('Failed to create organization:', error);
-      // You might want to show a toast notification here
-      alert(`Failed to create organization: ${error.message}`);
-    },
-  });
+  const [organizations, setAllOrganizations] = useState([])
+  const { accessToken } = useToken()
+  const [errorMessage, setErrorMessage] = useState('')
+  const [isLoading, setLoading] = useState(false)
+
+  console.log("OPDCPop")
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    console.log("Attached")
+    const response = await getAllMyOrg(accessToken)
+    if (response && response.data) {
+      setAllOrganizations(response.data)
+    } else {
+      setErrorMessage("Error Loading your organizarion")
+    }
+    setLoading(false)
+  }
+
 
   const handleCreateOrganization = useCallback(async (e: React.FormEvent) => {
+    setLoading(true)
     e.preventDefault();
     if (!newOrgName.trim()) return;
-
     try {
-      // Use React Query mutation with async/await
-      await createOrganization.mutateAsync({
-        name: newOrgName.trim(),
-        description: `New organization created for ${newOrgName.trim()}`,
-      });
-      
-      // Success handling is done in the onSuccess callback above
-      
+      const response = await createNewOrg(accessToken, { name: newOrgName.trim() })
+      setLoading(false)
+
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        localStorage.setItem('orgId', String(response.data.uid));
+        router.replace('/dashboard');
+        return
+      } else {
+        toast.error(response.message || 'something went wrong')
+      }
+
     } catch (error) {
+      setLoading(false)
+
       // Error handling is done in the onError callback above
-      console.error('Create organization error:', error);
+      toast.error(String(error) || 'something went wrong')
     }
-  }, [newOrgName, createOrganization]);
+  }, [newOrgName]);
 
   const handleSelectOrganization = useCallback((orgId: number | string) => {
     localStorage.setItem('orgId', String(orgId));
@@ -69,16 +76,16 @@ export default function OrganizationSelector() {
   );
 
   // Show error state if there's an error loading organizations
-  if (error) {
+  if (errorMessage) {
     return (
       <div className="h-full bg-white flex flex-col w-full">
         <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
           <div className="h-full w-full flex flex-col justify-center items-center">
             <div className="text-red-500 text-center">
               <h2 className="text-xl font-semibold mb-2">Error Loading Organizations</h2>
-              <p className="text-gray-600 mb-4">{error.message}</p>
-              <button 
-                onClick={() => window.location.reload()} 
+              <p className="text-gray-600 mb-4">{errorMessage}</p>
+              <button
+                onClick={fetchData}
                 className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
               >
                 Retry
@@ -104,11 +111,11 @@ export default function OrganizationSelector() {
           newOrgName={newOrgName}
           setNewOrgName={setNewOrgName}
           onCreateOrganization={handleCreateOrganization}
-          isCreating={createOrganization.isPending} // Use React Query's loading state
+          isCreating={isLoading} // Use React Query's loading state
         />
         {isLoading ? (
           <div className='h-full w-full flex flex-col justify-center items-center'>
-            <Spinner/>
+            <Spinner />
           </div>
         ) : filteredOrganizations.length > 0 ? (
           <OrganizationGrid

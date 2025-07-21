@@ -36,6 +36,19 @@ export const updateUserDetails = async (token: string, params: any) => {
 }
 
 
+export const getAllMyOrg = async (token: string) => {
+  const uri = `${getUrlApi.getMyOrgs}`
+  console.log("Firest s")
+  const result = await fetchGetCall(uri, token)
+  console.log("result result", result)
+  return result
+}
+
+export const createNewOrg = async (token: string, params: any) => {
+  const uri = `${postUrlApi.createNewOrg}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
 
 //migrate
 

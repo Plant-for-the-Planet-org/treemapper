@@ -24,11 +24,19 @@ export default function DashboardLayout({
   const router = useRouter();
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<string>('default');
+  const [orgLoaded, setOrgLoded] = useState(false)
 
   const handleRefresh = () => {
     window.location.reload();
     clearPrjError();
   };
+
+  useEffect(() => {
+    if (currentSection === 'organization') {
+      setOrgLoded(true)
+    }
+  }, [currentSection])
+
 
   useEffect(() => {
     if (pathname) {
@@ -118,7 +126,7 @@ export default function DashboardLayout({
       case 'organization':
         return null
       default:
-       return <DashboardHeaderWeb token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
+        return <DashboardHeaderWeb token={accessToken} createNewProject={createNewProject} openProfileSetting={openProfileSetting} updateRoute={updateRoute} />;
     }
   };
 
@@ -146,15 +154,15 @@ export default function DashboardLayout({
   return (
     <>
       <TokenProvider accessToken={accessToken}>
-      <div className="app-container">
-        <MigrationModal />
-        <div className="app-content">
-          {renderSectionSpecificContent()}
-          {loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+        <div className="app-container">
+          <MigrationModal />
+          <div className="app-content">
+            {renderSectionSpecificContent()}
+            {loading && !orgLoaded? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spinner />
             </div> : renderNoPlaceHolderCondition()}
+          </div>
         </div>
-      </div>
       </TokenProvider>
     </>
   );

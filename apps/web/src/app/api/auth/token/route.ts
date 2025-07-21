@@ -4,30 +4,28 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function GET(req: NextRequest) {
   try {
-    // Check if user is authenticated
-    // const session = await getSession();
+    // Create response object first
+    const res = new NextResponse();
 
-    // if (!session) {
-    //   return NextResponse.json(
-    //     { error: 'Not authenticated' },
-    //     { status: 401 }
-    //   );
-    // }
+    // Check if user is authenticated - pass req and res
+    const session = await getSession(req, res);
 
-    // // Create a new response object
-    // const res = new NextResponse();
+    if (!session) {
+      return NextResponse.json(
+        { error: 'Not authenticated' },
+        { status: 401 }
+      );
+    }
 
-    // // Get the access token
-    // const { accessToken } = await getAccessToken(req, res);
+    // Get the access token - pass req and res
+    const { accessToken } = await getAccessToken(req, res);
 
-    // if (!accessToken) {
-    //   return NextResponse.json(
-    //     { error: 'No access token available' },
-    //     { status: 404 }
-    //   );
-    // }
-
-    const accessToken = ''
+    if (!accessToken) {
+      return NextResponse.json(
+        { error: 'No access token available' },
+        { status: 404 }
+      );
+    }
 
     return NextResponse.json({ accessToken });
   } catch (error: any) {
@@ -35,8 +33,8 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       {
-        error: error.message,
-        code: error.code
+        error: error.message || 'Unknown error',
+        code: error.code || 'UNKNOWN_ERROR'
       },
       { status: error.status || 500 }
     );

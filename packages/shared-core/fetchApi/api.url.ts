@@ -44,7 +44,9 @@ export const postUrlApi = {
   bulkIntervention: `${baseUrl}/api/prokects`, // Note: typo in original (prokects)
   preSignUrl: `${baseUrl}/api/users/presign-url`,
   exportData: `${baseUrl}/api/analytics`,
+  createNewOrg: `${baseUrl}/api/organizations`,
 } as const;
+
 
 export const getUrlApi = {
   health: `${baseUrl}/health`,
@@ -64,6 +66,7 @@ export const getUrlApi = {
   getProjectMapData: `${baseUrl}/api/analytics`,
   getOverviewGraph: `${baseUrl}/api/analytics/planting-overview`,
   getDashboardRecentAddition: `${baseUrl}/api/analytics/recent-additions`,
+  getMyOrgs: `${baseUrl}/api/organizations`,
 } as const;
 
 export const patchUrlApi = {
