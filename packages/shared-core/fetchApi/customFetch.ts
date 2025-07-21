@@ -25,7 +25,6 @@ const fetchCall = async (
     }
 
     const response = await fetch(uri, options)
-    console.log("OIIPOP", response)
     // Better error handling
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}))

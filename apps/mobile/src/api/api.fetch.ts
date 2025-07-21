@@ -128,7 +128,6 @@ export const createNewSite = async (pid: string, params: any) => {
 };
 
 export const updateServerInvImage = async (params: any) => {
-  console.log("updateInvImage",params)
   const uri = `${postUrlApi.updateInvImage}`
   const result = await fetchPostCall(uri, params);
   return result;
@@ -151,7 +150,6 @@ export const uploadFileToPresignedUrl = async (filePath, presignedUrl) => {
     });
 
     if (uploadResponse.ok) {
-      console.log('File uploaded successfully');
       return true;
     } else {
       console.error('Upload failed:', uploadResponse.status);

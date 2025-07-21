@@ -184,7 +184,6 @@ export default function GeoJSONUpload({
     };
 
     const normalizeGeoJson = (geoJson: any, fileName: string) => {
-        console.log("SDc", geoJson);
         
         if (!gjv.isGeoJSONObject(geoJson) || !geoJson.features?.length) {
             setUploadState({
@@ -197,8 +196,6 @@ export default function GeoJSONUpload({
 
         try {
             const geometryTypes = getGeometryTypes(geoJson);
-            console.log("Geometry types found:", geometryTypes);
-
             // Check for mixed geometry types
             if (geometryTypes.length > 1) {
                 setUploadState({

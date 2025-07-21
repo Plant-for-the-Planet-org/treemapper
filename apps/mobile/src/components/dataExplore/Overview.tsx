@@ -84,7 +84,6 @@ const Overview = () => {
     };
 
     const handleIntervalChange = (interval: string) => {
-        console.log('Interval changed to:', interval);
         // You can add additional logic here if needed
     };
     return (

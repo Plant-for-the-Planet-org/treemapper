@@ -59,9 +59,7 @@ export const projectMutations = {
   },
 
   createPersonal: async (data: CreateProjectRequest): Promise<ApiResponse<Project>> => {
-    console.log("J", data)
     const ks = apiClient.post<ApiResponse<Project>>(API_ENDPOINTS.PROJECTS_PERSONAL, data);
-    console.log("J", await ks)
     return ks
   },
 

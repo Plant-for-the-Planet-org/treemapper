@@ -379,12 +379,9 @@ export function CreateProjectUI() {
             payLoad["projectWebsite"] = formData.projectWebsite
         }
 
-        console.log('Payload to submit:', payLoad);
         try {
-            console.log('Submitting project:', payLoad);
             setLoading(true);
             const response = await createNewProject(accessToken, payLoad);
-            console.log('Response from project creation:', response);
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
                 router.back();

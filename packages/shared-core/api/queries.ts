@@ -39,9 +39,7 @@ export const organizationQueries = {
 
 export const projectQueries = {
   getMyProjects: async (): Promise<ApiResponse<Project[]>> => {
-    console.log("SDV")
     const abc = apiClient.get<ApiResponse<Project[]>>(API_ENDPOINTS.PROJECTS);
-    console.log("LKJSDC",await abc)
     return abc
   },
 

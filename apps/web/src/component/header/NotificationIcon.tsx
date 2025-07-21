@@ -71,7 +71,6 @@ const NotificationsPanel = () => {
         break;
       case 'navigate':
         // Handle navigation - you can implement your routing logic here
-        console.log('Navigating to:', actionUrl);
         closeModal();
         break;
       default:

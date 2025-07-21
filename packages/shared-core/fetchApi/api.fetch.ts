@@ -38,9 +38,7 @@ export const updateUserDetails = async (token: string, params: any) => {
 
 export const getAllMyOrg = async (token: string) => {
   const uri = `${getUrlApi.getMyOrgs}`
-  console.log("Firest s")
   const result = await fetchGetCall(uri, token)
-  console.log("result result", result)
   return result
 }
 
@@ -101,7 +99,6 @@ export const getTeamMemebers = async (token: string, id: string) => {
 
 export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
-  console.log("SDCDSC", uri)
   const result = await fetchGetCall(uri, token)
   return result
 }

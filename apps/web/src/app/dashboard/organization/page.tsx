@@ -22,7 +22,6 @@ export default function OrganizationSelector() {
   const [errorMessage, setErrorMessage] = useState('')
   const [isLoading, setLoading] = useState(false)
 
-  console.log("OPDCPop")
 
   useEffect(() => {
     fetchData()
