@@ -208,7 +208,7 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
                 <div className="flex-1 rounded-lg overflow-hidden border border-gray-200 mb-3">
                     <ProjectMap
                         updateGeoJSON={updateGeoJSON}
-                        mode="polygon"
+                        mode="point"
                         uploadedGeoJSON={finalGeoJSON}
                     />
                 </div>

@@ -41,6 +41,17 @@ body {
     /* Center the container on larger screens */
     position: relative;
   }
+
+  @layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none;  /* Internet Explorer 10+ */
+    scrollbar-width: none;     /* Firefox */
+  }
+  
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;             /* Safari and Chrome */
+  }
+}
   
   /* Wrapper for screens larger than 1920x934 */
   @media (min-width: 1921px) or (min-height: 935px) {
@@ -66,9 +77,9 @@ body {
     height: 95%;
     border: 0.5px solid lightgray;
     border-radius: 12px;
-    overflow: auto;
     background-color: #fff;
     box-shadow: 0 0px 0.5px rgb(236, 236, 236);
     position: relative;
+    overflow-x: hidden;
   }
   
