@@ -1,8 +1,7 @@
 import { useEffect } from "react";
 import { useUserStore } from "@shared-core/store/useUserStore";
-// import { getMyDetails } from "../../../../../../pla/treemapper/packages/dashboard/api/api.fetch";
-// import { useToken } from "../../../../../../pla/treemapper/packages/dashboard/context/TokenContext";
-import { useUserMe } from "@shared-core/api";
+import { getMyDetails } from "@shared-core/fetchApi/api.fetch";
+import { useToken } from "@/context/useTokenContext";
 import { Leaf } from 'lucide-react';
 
 const ProfileAvatar = ({
@@ -12,28 +11,27 @@ const ProfileAvatar = ({
   openProfileSetting
 }) => {
 
+  const { accessToken } = useToken()
   const User = useUserStore((state) => state.user);
-  const {data: userData} = useUserMe()
+
 
   useEffect(() => {
-     fetchUser()
-  }, [userData])
+    if (accessToken) {
+      fetchUser()
+    }
+  }, [])
 
   const fetchUser = async () => {
-    console.log("SDsddsdsc",userData)
-    if(userData){
-      useUserStore.getState().setUser(userData)
+    try {
+      const res = await getMyDetails(accessToken || '');
+      if (res && res.statusCode !== 200) {
+        throw new Error('Failed to fetch user')
+      }
+      useUserStore.getState().setUser(res.data)
+    } catch (err) {
+      console.error(err)
+      useUserStore.getState().clearUser()
     }
-    // try {
-    //   const res = await getMyDetails(accessToken || '');
-    //   if (res && res.statusCode !== 200) {
-    //     throw new Error('Failed to fetch user')
-    //   }
-    //   useUserStore.getState().setUser(res.data)
-    // } catch (err) {
-    //   console.error(err)
-    //   useUserStore.getState().clearUser()
-    // }
   }
 
   return (

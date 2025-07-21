@@ -6,11 +6,7 @@ import LabelTabs from './LabelTabs';
 import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useUserStore } from '@shared-core/store/useUserStore';
-import {
-  useMyProjects,
-  useCreatePersonalProject,
-  useCreateProjectTitle
-} from '@shared-core/api/index'
+import { createNewPersonalProject, getMyProjects } from '@shared-core/fetchApi/api.fetch'
 
 import { sortProjects } from '@shared-core/utils/sortProjects';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
@@ -32,16 +28,12 @@ const ProjectDropdown = ({
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
   const { projects, selectProject, selectedProject, addProjects, updatePrjError, updateProjectLoading } = useProjectStore((state) => state);
   const { user } = useUserStore((state) => state);
-  const { data: projectsResponse, isLoading, error } = useMyProjects();
-  
-  useEffect(() => {
-        console.log("KL JCD user",user)
 
+  useEffect(() => {
     if (user) {
       fetchUserProjects()
     }
-    console.log("KLJCD",projectsResponse)
-  }, [user,projectsResponse])
+  }, [user])
 
   function createProjectTitle(name: string) {
     // Capitalize the first letter and make the rest lowercase
@@ -49,48 +41,37 @@ const ProjectDropdown = ({
     return `${formattedName}'s personal project`;
   }
 
-
-  const createPersonalProject = useCreatePersonalProject({
-    onSuccess: (data) => {
-      console.log('Personal project created successfully:', data);
-      // Projects list will automatically update due to cache invalidation
-    },
-    onError: (error) => {
-      console.error('Failed to create personal project:', error);
-      alert(`Failed to create project: ${error.message}`);
-    },
-  });
-
-
   const fetchUserProjects = async () => {
-    console.log("SDc")
     updateProjectLoading(true)
-    if (projectsResponse) {
-      const sortedResponse = sortProjects(projectsResponse);
-      addProjects(sortedResponse)
-      if (sortedResponse.length > 0) {
-        selectProject(sortedResponse[0]);
-      } else {
-        const payLoad = {
-          "projectName": createProjectTitle(user?.displayName),
-          "projectType": 'personal',
-          "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
-        };
-        await createPersonalProject.mutateAsync(payLoad);
-        // if (resp && resp.statusCode === 201) {
-        //   const newProject = {
-        //     ...resp.data,
-        //     userRole: 'owner',
-        //   } as ProjectWithUserRoleI;
-       
-        // } else {
-        //   updatePrjError(resp?.message || 'Failed to create personal project');
-        // }
+    const response = await getMyProjects(token)
+    if (response && response.statusCode == 200) {
+      if (response.data) {
+        const sortedResponse = sortProjects(response.data);
+        addProjects(sortedResponse)
+        if (sortedResponse.length > 0) {
+          selectProject(sortedResponse[0]);
+        } else {
+          const payLoad = {
+            "projectName": createProjectTitle(user?.displayName),
+            "projectType": 'personal',
+            "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
+          };
+          const resp = await createNewPersonalProject(token, payLoad)
+          if (resp && resp.statusCode === 201) {
+            const newProject = {
+              ...resp.data,
+              userRole: 'owner',
+            } as ProjectWithUserRoleI;
+            addProjects([newProject]);
+            selectProject(newProject);
+          } else {
+            updatePrjError(resp?.message || 'Failed to create personal project');
+          }
+        }
       }
+      return
     }
-    return
-
-    updatePrjError('Failed to fetch projects');
+    updatePrjError(response?.message || 'Failed to fetch projects');
   }
 
   const rolePriority = {
@@ -206,16 +187,16 @@ const ProjectDropdown = ({
                         key={project.uid}
                         onClick={() => handleProjectSelect(project)}
                         className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group overflow-hidden ${project.uid === selectedProject?.uid
-                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                          : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
+                            : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
                           }`}
                       >
                         <div className="flex items-center justify-between min-w-0 overflow-hidden">
                           <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
                             <div
                               className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
-                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                                : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
+                                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                  : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
                                 }`}
                             >
                               <Folder className="w-4 h-4 text-white" />

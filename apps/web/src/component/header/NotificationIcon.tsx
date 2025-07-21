@@ -3,8 +3,7 @@ import {
   Bell, X, MessageSquare, Heart, UserPlus, Star, Settings, AlertCircle,
   Calendar, Clock, Tag, ExternalLink, Archive, Trash2
 } from 'lucide-react';
-// import { getMyNotification, markNotificationRead } from '../../../../api/api.fetch';
-import { useMyNotifications } from '@shared-core/api'
+import { getMyNotification, markNotificationRead } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from "@/context/useTokenContext";
 import NotificationIcon, { NotificationType } from './NotificationIcons';
 import { NotificationModal } from './NotificationModal';
@@ -16,23 +15,19 @@ import { NotificationModal } from './NotificationModal';
 
 
 const NotificationsPanel = () => {
-  const [isOpen, setIsOpen] = useState(false);
+ const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Array<any>>([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { data: allNotification } = useMyNotifications()
-
-
-
   useEffect(() => {
-    if (allNotification) {
-      fetchAllNotification()
-    }
-  }, [allNotification])
+    fetchAllNotification()
+  }, [])
+  const { accessToken } = useToken()
 
   const fetchAllNotification = async () => {
-    if (allNotification) {
-      setNotifications(allNotification.notifications)
+    const response = await getMyNotification(accessToken || '', 1, 10)
+    if (response && response.statusCode == 200) {
+      setNotifications(response.data.notifications)
     }
   }
 
@@ -40,7 +35,7 @@ const NotificationsPanel = () => {
 
   const markAllAsRead = async () => {
     setNotifications(notifications.map(n => ({ ...n, isRead: true })));
-    // await markNotificationRead(accessToken || '')
+    await markNotificationRead(accessToken || '')
   };
 
   const markAsRead = (id) => {
@@ -125,7 +120,7 @@ const NotificationsPanel = () => {
         {isOpen && (
           <>
             <div
-              className="fixed inset-0 bg-opacity-10 z-[30]"
+              className="fixed inset-0 bg-black bg-opacity-10 z-[30]"
               onClick={() => setIsOpen(false)} // Add click handler to close
               style={{ width: '100vw', height: '100vh' }}
             />
