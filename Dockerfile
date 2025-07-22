@@ -37,7 +37,7 @@ FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
-ENV PORT=3000
+# PORT will be provided by Heroku at runtime
 ENV SERVER_PORT=3001
 
 # Add non-root user
@@ -63,6 +63,8 @@ COPY --from=builder /app/node_modules ./node_modules
 RUN chown -R nextjs:nodejs /app
 USER nextjs
 
+# Expose port 3000 for general Docker usage
+# Note: Heroku ignores this and uses PORT environment variable instead
 EXPOSE 3000
 
 CMD ["yarn", "start"]
