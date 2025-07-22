@@ -146,7 +146,6 @@ export default function DashboardLayout({
         return error ? <ErrorLoadingProject onRefresh={handleRefresh} /> : selectedProject ? children : loading ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
           <Spinner />
         </div> : <NoProjectSelected handleCreateProject={handleCreateProject} />;
-        return null
     }
   };
 
