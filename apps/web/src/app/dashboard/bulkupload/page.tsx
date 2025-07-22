@@ -127,7 +127,7 @@ const Home = ({ goback }) => {
                                 )}
 
                                 {/* Step Circle */}
-                                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white">
+                                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white" style={{borderColor:'lightgray'}}>
                                     {step.status === 'complete' ? (
                                         <CheckCircle className="h-5 w-5 text-[#007A49]" />
                                     ) : step.status === 'current' ? (
@@ -135,7 +135,7 @@ const Home = ({ goback }) => {
                                     ) : (
                                         <span className="h-2.5 w-2.5 rounded-full bg-gray-300" />
                                     )}
-                                    <div className={`absolute -top-5 text-sm font-medium ${step.status === 'current' ? 'text-[#007A49]' : 'text-gray-500'
+                                    <div className={`absolute -top-8 text-sm font-medium ${step.status === 'current' ? 'text-[#007A49]' : 'text-gray-500'
                                         }`}>
                                         {step.name}
                                     </div>

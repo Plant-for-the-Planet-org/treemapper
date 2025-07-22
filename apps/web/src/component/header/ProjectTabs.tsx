@@ -249,16 +249,16 @@ const ProjectDropdown = ({
             <div className="relative">
               <NotificationBell />
             </div>
+            <button
+              onClick={() => { router.push('/dashboard/organization/settings') }}
+              className="cursor-pointer relative p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+            >
+              <Building size={26} />
+            </button>
             <div className="h-8 w-px bg-gray-300"></div>
             <ProfileAvatar
               openProfileSetting={openProfileSetting}
             />
-            <button
-              onClick={() => {router.push('/dashboard/organization/settings')}}
-              className="cursor-pointer relative p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
-            >
-              <Building size={30} />
-            </button>
           </div>
         </div>
       </div>

@@ -2,18 +2,21 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Settings, Users, BarChart3, Shield, Trash2, Save, 
+  Settings, Users, BarChart3, Shield, Trash2, Save,
   Building2, Globe, Mail, Phone, MapPin, Palette,
-  Upload, Eye, EyeOff, Plus, Crown, UserCheck, 
+  Upload, Eye, EyeOff, Plus, Crown, UserCheck,
   UserX, Calendar, Clock, Activity, TrendingUp, TreePine, Target, X, Check, Loader,
   ChevronRight, Menu, AlertTriangle, Lock,
-  Edit3, Copy, ExternalLink, Filter, Search
+  Edit3, Copy, ExternalLink, Filter, Search,
+  ArrowLeft
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
 
 // Mock API functions - replace with your actual API calls
 const useOrganization = () => ({ currentOrg: { uid: 'mock-org' } });
-const getOrganizationDetails = async () => ({ 
-  statusCode: 200, 
+const getOrganizationDetails = async () => ({
+  statusCode: 200,
   data: {
     name: 'EcoRestore Initiative',
     slug: 'eco-restore',
@@ -95,22 +98,22 @@ const generateAnimalAvatar = (uid) => {
 };
 
 // Enhanced Input Field Component
-const InputField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  type = 'text', 
-  placeholder, 
+const InputField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
   icon: Icon,
   validation,
   required = false,
   disabled = false,
-  ...props 
+  ...props
 }) => {
   const hasError = validation?.error;
   const hasSuccess = validation?.success;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -129,15 +132,14 @@ const InputField = ({
           onChange={onChange}
           placeholder={placeholder}
           disabled={disabled}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-            disabled
-              ? 'bg-stone-50 text-stone-500 cursor-not-allowed border-stone-200'
-              : hasError
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${disabled
+            ? 'bg-stone-50 text-stone-500 cursor-not-allowed border-stone-200'
+            : hasError
               ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
               : hasSuccess
-              ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white`}
+                ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
+                : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
+            } focus:outline-none bg-white`}
           {...props}
         />
         {hasError && (
@@ -164,20 +166,20 @@ const InputField = ({
 };
 
 // Enhanced Select Field Component
-const SelectField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  options, 
+const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
   icon: Icon,
   validation,
   required = false,
   disabled = false,
-  ...props 
+  ...props
 }) => {
   const hasError = validation?.error;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -194,13 +196,12 @@ const SelectField = ({
           value={value}
           onChange={onChange}
           disabled={disabled}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-            disabled
-              ? 'bg-stone-50 text-stone-500 cursor-not-allowed border-stone-200'
-              : hasError
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${disabled
+            ? 'bg-stone-50 text-stone-500 cursor-not-allowed border-stone-200'
+            : hasError
               ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
               : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white appearance-none`}
+            } focus:outline-none bg-white appearance-none`}
           {...props}
         >
           {options.map(option => (
@@ -223,19 +224,19 @@ const SelectField = ({
 };
 
 // Enhanced Textarea Component
-const TextareaField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  rows = 4, 
-  placeholder, 
+const TextareaField = ({
+  label,
+  name,
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
   icon: Icon,
   validation,
-  required = false 
+  required = false
 }) => {
   const hasError = validation?.error;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -253,11 +254,10 @@ const TextareaField = ({
           onChange={onChange}
           rows={rows}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 ${
-            hasError
-              ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white`}
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 ${hasError
+            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+            : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
+            } focus:outline-none bg-white`}
         />
       </div>
       {hasError && (
@@ -272,7 +272,7 @@ const TextareaField = ({
 // Collapsible Section Component
 const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-stone-200/50 shadow-sm transition-all duration-300 hover:shadow-md">
       <button
@@ -285,11 +285,11 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true })
           </div>
           <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
         </div>
-        <ChevronRight 
-          className={`h-5 w-5 text-stone-500 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
+        <ChevronRight
+          className={`h-5 w-5 text-stone-500 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
         />
       </button>
-      
+
       {isOpen && (
         <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
           {children}
@@ -302,7 +302,7 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true })
 // Logo Upload Component
 const LogoUpload = ({ orgData, onLogoChange, isUploading }) => {
   const logoSrc = orgData.logo || generateAnimalAvatar(orgData.name || 'default');
-  
+
   return (
     <div className="flex flex-col items-center space-y-4">
       <div className="relative group">
@@ -372,15 +372,14 @@ const ColorPicker = ({ label, name, value, onChange }) => {
 const NavItem = ({ item, isActive, onClick }) => (
   <button
     onClick={() => onClick(item.id)}
-    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-      isActive
-        ? item.danger
-          ? 'bg-red-50 text-red-700 border border-red-200 shadow-sm'
-          : 'bg-[#007A49]/10 text-[#007A49] border border-[#007A49]/20 shadow-sm'
-        : item.danger
-          ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
-          : 'text-stone-700 hover:bg-stone-50 hover:text-stone-900'
-    }`}
+    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 ${isActive
+      ? item.danger
+        ? 'bg-red-50 text-red-700 border border-red-200 shadow-sm'
+        : 'bg-[#007A49]/10 text-[#007A49] border border-[#007A49]/20 shadow-sm'
+      : item.danger
+        ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
+        : 'text-stone-700 hover:bg-stone-50 hover:text-stone-900'
+      }`}
   >
     <item.icon size={20} className="mr-3 flex-shrink-0" />
     <span className="font-medium">{item.label}</span>
@@ -405,7 +404,7 @@ const MemberDetailsModal = ({ member, isOpen, onClose }) => {
             </button>
           </div>
         </div>
-        
+
         <div className="p-6 space-y-6">
           {/* Member Info */}
           <div className="flex items-center space-x-4">
@@ -420,16 +419,14 @@ const MemberDetailsModal = ({ member, isOpen, onClose }) => {
               </h3>
               <p className="text-stone-600">{member.user.email}</p>
               <div className="flex items-center space-x-4 mt-2">
-                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                  member.role === 'owner' ? 'bg-purple-100 text-purple-700' :
+                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${member.role === 'owner' ? 'bg-purple-100 text-purple-700' :
                   member.role === 'admin' ? 'bg-blue-100 text-blue-700' :
-                  'bg-green-100 text-green-700'
-                }`}>
+                    'bg-green-100 text-green-700'
+                  }`}>
                   {member.role}
                 </span>
-                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${
-                  member.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-                }`}>
+                <span className={`px-2 py-1 rounded-lg text-xs font-medium ${member.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                  }`}>
                   {member.status}
                 </span>
               </div>
@@ -564,9 +561,9 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
       {/* Basic Information */}
       <CollapsibleSection title="Basic Information" icon={Building2}>
         <div className="flex flex-col lg:flex-row gap-8">
-          <LogoUpload 
-            orgData={orgData} 
-            onLogoChange={() => {}}
+          <LogoUpload
+            orgData={orgData}
+            onLogoChange={() => { }}
             isUploading={false}
           />
 
@@ -581,7 +578,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
                 validation={{ error: validationErrors.name }}
                 required
               />
-              
+
               <InputField
                 label="Slug"
                 name="slug"
@@ -616,7 +613,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
             icon={Mail}
             required
           />
-          
+
           <InputField
             label="Phone"
             name="phone"
@@ -625,7 +622,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
             onChange={handleInputChange}
             icon={Phone}
           />
-          
+
           <div className="md:col-span-2">
             <InputField
               label="Website"
@@ -637,7 +634,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
               placeholder="https://yourorganization.com"
             />
           </div>
-          
+
           <div className="md:col-span-2">
             <TextareaField
               label="Address"
@@ -666,7 +663,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
               { value: 'AU', label: 'Australia' }
             ]}
           />
-          
+
           <SelectField
             label="Timezone"
             name="timezone"
@@ -692,7 +689,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
             value={orgData.primaryColor}
             onChange={handleInputChange}
           />
-          
+
           <ColorPicker
             label="Secondary Color"
             name="secondaryColor"
@@ -714,7 +711,7 @@ const GeneralSettings = ({ orgData, handleInputChange, handleSubmit, logoFileNam
             placeholder="yourcompany.com"
             validation={{ hint: "Only users with email addresses from this domain can join" }}
           />
-          
+
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div className="flex items-start space-x-3">
               <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
@@ -804,7 +801,7 @@ const MembersSettings = ({ members }) => {
                 className="pl-10 w-full px-4 py-2 border border-stone-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#007A49]/20 focus:border-[#007A49] transition-all duration-200"
               />
             </div>
-            
+
             <select
               value={roleFilter}
               onChange={(e) => setRoleFilter(e.target.value)}
@@ -816,7 +813,7 @@ const MembersSettings = ({ members }) => {
               <option value="member">Member</option>
             </select>
           </div>
-          
+
           <button
             onClick={() => setShowInviteModal(true)}
             className="px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006841] flex items-center font-medium transition-all duration-200 transform hover:scale-105"
@@ -834,7 +831,7 @@ const MembersSettings = ({ members }) => {
             Organization Members ({filteredMembers.length})
           </h3>
         </div>
-        
+
         <div className="divide-y divide-stone-200">
           {filteredMembers.map((member) => {
             const RoleIcon = getRoleIcon(member.role);
@@ -863,7 +860,7 @@ const MembersSettings = ({ members }) => {
                       </div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <button
                       onClick={() => setSelectedMember(member)}
@@ -920,7 +917,7 @@ const MembersSettings = ({ members }) => {
 const DangerZone = ({ orgData }) => {
   const [showTransferConfirm, setShowTransferConfirm] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  
+
   return (
     <div className="space-y-8">
       <div>
@@ -1071,7 +1068,7 @@ const NotificationToast = ({ type, message, onClose }) => {
         <div>
           <p className="font-medium">{message}</p>
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="ml-auto hover:bg-white/20 rounded-lg p-1 transition-colors"
         >
@@ -1113,7 +1110,7 @@ const OrganizationSettings = () => {
 
   const [activeTab, setActiveTab] = useState('overview');
   const [logoFileName, setLogoFileName] = useState('No file selected');
-
+  const router = useRouter()
   useEffect(() => {
     fetchOrganizationData();
   }, []);
@@ -1144,21 +1141,21 @@ const OrganizationSettings = () => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!orgData.name.trim()) {
       errors.name = 'Organization name is required';
     }
-    
+
     if (!orgData.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(orgData.email)) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (orgData.website && !/^https?:\/\/.+/.test(orgData.website)) {
       errors.website = 'Please enter a valid URL starting with http:// or https://';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -1181,12 +1178,12 @@ const OrganizationSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
       return;
     }
-    
+
     setLoading(true);
     try {
       const response = await updateOrganizationSettings(currentOrg?.uid, orgData);
@@ -1248,7 +1245,16 @@ const OrganizationSettings = () => {
       <div className="bg-white/80 backdrop-blur-sm border-b border-stone-200/50 sticky top-0 z-50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-stone-900">Organization Settings</h1>
+            <motion.button
+              whileHover={{ x: -2 }}
+              whileTap={{ scale: 0.98 }}
+              onClick={router.back}
+              className="cursor-pointer flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
+            >
+              <ArrowLeft size={18} />
+              <span className="text-sm font-medium">Back to home</span>
+            </motion.button>
+            {/* <h1 className="text-2xl font-bold text-stone-900">Organization Settings</h1> */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg text-stone-600 hover:bg-stone-100 transition-colors duration-200"
@@ -1268,6 +1274,7 @@ const OrganizationSettings = () => {
           overflow-y-auto lg:overflow-visible
         `}>
           <div className="p-6 space-y-2">
+
             <h3 className="text-sm font-semibold text-stone-500 uppercase tracking-wider mb-4">
               Organization Management
             </h3>
