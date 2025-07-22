@@ -3,7 +3,8 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": ["NODE_ENV", "NEXT_PUBLIC_*"]
     },
     "dev": {
       "cache": false,
@@ -13,7 +14,13 @@
       "cache": false,
       "persistent": true
     },
-    "lint": {},
-    "type-check": {}
-  }
+    "lint": {
+      "outputs": []
+    },
+    "type-check": {
+      "outputs": []
+    }
+  },
+  "globalEnv": ["NODE_ENV"],
+  "globalDependencies": ["package.json", "yarn.lock"]
 }

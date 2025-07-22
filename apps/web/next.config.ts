@@ -6,7 +6,11 @@ const nextConfig: NextConfig = {
       ignoreBuildErrors: true,
    },
    eslint: {
-      ignoreDuringBuilds: true, // Also ignore ESLint if needed
+      ignoreDuringBuilds: true,
+   },
+   // Build optimizations
+   compiler: {
+     removeConsole: process.env.NODE_ENV === 'production',
    },
    async rewrites() {
     return [
