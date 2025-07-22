@@ -12,7 +12,7 @@
     "clean": "turbo clean && rm -rf node_modules",
     "clean:deep": "rm -rf node_modules && rm -rf yarn.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
     "heroku-postbuild": "turbo build --filter=web && turbo build --filter=server",
-    "start": "concurrently \"npm run start:web\" \"npm run start:server\"",
+    "start": "concurrently \"cd apps/web && PORT=$PORT yarn start\" \"cd apps/server && PORT=3001 yarn start:prod\"",
     "start:web": "cd apps/web && PORT=$PORT yarn start",
     "start:server": "cd apps/server && PORT=${SERVER_PORT:-3001} yarn start:prod",
     "type-check": "turbo type-check",
