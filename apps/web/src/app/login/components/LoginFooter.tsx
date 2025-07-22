@@ -25,9 +25,11 @@ export const LoginFooter: React.FC<LoginFooterProps> = ({ onImprintClick, onPoli
           Terms
         </button>
       </nav>
-      <p className="text-xs text-gray-500">
-        © {new Date().getFullYear()} TreeMapper by Plant-for-the-Planet. All rights reserved.
-      </p>
+      <div className="flex justify-center items-center">
+       <p className="text-xs text-gray-500">
+        ©{new Date().getFullYear()} TreeMapper by Plant-for-the-Planet</p>
+        <img src="/pftp-logo.svg" alt="Plant-for-the-Planet" className="w-4 h-4 ml-1" />
+      </div>
     </footer>
   );
 };

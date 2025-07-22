@@ -47,10 +47,9 @@ export default function DashboardLayout({
       } else if (pathname.includes('/dashboard/newsite')) {
         setCurrentSection('newsite');
       } else if (pathname.includes('/dashboard/new-intervention')) {
-        setCurrentSection('newintervention');
+        setCurrentSection('new-intervention');
       } else if (pathname.includes('/dashboard/bulkupload')) {
         setCurrentSection('bulkupload');
-
       } else if (pathname.includes('/dashboard/organization')) {
         setCurrentSection('organization');
 
@@ -123,6 +122,8 @@ export default function DashboardLayout({
         return null
       case 'bulkupload':
         return null
+      case 'new-intervention':
+        return null
       case 'organization':
         return null
       default:
@@ -157,7 +158,7 @@ export default function DashboardLayout({
           <MigrationModal />
           <div className="app-content">
             {renderSectionSpecificContent()}
-            {loading && !orgLoaded? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            {loading && !orgLoaded ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spinner />
             </div> : renderNoPlaceHolderCondition()}
           </div>

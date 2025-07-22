@@ -119,7 +119,7 @@ const NotificationsPanel = () => {
         {isOpen && (
           <>
             <div
-              className="fixed inset-0 bg-black/50 bg-opacity-10 z-[30]"
+              className="fixed inset-0 bg-black/50 bg-opacity-10 z-40"
               onClick={() => setIsOpen(false)} // Add click handler to close
               style={{ width: '100vw', height: '100vh' }}
             />

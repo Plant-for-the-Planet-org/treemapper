@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, Folder, Crown, Shield, Users, Eye, User } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Folder, Crown, Shield, Users, Eye, User, Bell, Building } from 'lucide-react';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
@@ -7,7 +7,7 @@ import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { createNewPersonalProject, getMyProjects } from '@shared-core/fetchApi/api.fetch'
-
+import { useRouter } from 'next/navigation';
 import { sortProjects } from '@shared-core/utils/sortProjects';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 
@@ -28,7 +28,7 @@ const ProjectDropdown = ({
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
   const { projects, selectProject, selectedProject, addProjects, updatePrjError, updateProjectLoading } = useProjectStore((state) => state);
   const { user } = useUserStore((state) => state);
-
+  const router = useRouter()
   useEffect(() => {
     if (user) {
       fetchUserProjects()
@@ -187,16 +187,16 @@ const ProjectDropdown = ({
                         key={project.uid}
                         onClick={() => handleProjectSelect(project)}
                         className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group overflow-hidden ${project.uid === selectedProject?.uid
-                            ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                            : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
+                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
+                          : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
                           }`}
                       >
                         <div className="flex items-center justify-between min-w-0 overflow-hidden">
                           <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
                             <div
                               className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
-                                  ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                                  : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
+                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
+                                : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
                                 }`}
                             >
                               <Folder className="w-4 h-4 text-white" />
@@ -253,13 +253,19 @@ const ProjectDropdown = ({
             <ProfileAvatar
               openProfileSetting={openProfileSetting}
             />
+            <button
+              onClick={() => {router.push('/dashboard/organization/settings')}}
+              className="cursor-pointer relative p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+            >
+              <Building size={30} />
+            </button>
           </div>
         </div>
       </div>
 
       {/* Enhanced Mobile Tabs */}
       {!isLargeScreen && (
-        <div className="px-4 pb-3">
+        <div className="px-3 pb-3">
           <div className="bg-gray-50 rounded-xl p-1 border border-gray-200">
             <LabelTabs updateRoute={updateRoute} />
           </div>

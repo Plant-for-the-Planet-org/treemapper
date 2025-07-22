@@ -52,6 +52,7 @@ import { deleteIntervention, getProjectIntervention } from '@shared-core/fetchAp
 import useProjectStore from '@shared-core/store/useProjectStore';
 import Image from 'next/image'
 import { toast } from 'react-toastify'
+import { useRouter } from 'next/navigation';
 
 import { Trash2, } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -222,7 +223,7 @@ const HeaderWithFilters = ({
   error
 }) => {
   const [showFilters, setShowFilters] = useState(false);
-
+const router = useRouter()
   return (
     <div className="bg-gray-50 border-b border-gray-200 px-4 sm:px-5 py-4">
       <div className="flex flex-col gap-3">
@@ -283,15 +284,15 @@ const HeaderWithFilters = ({
               </button>
             </div>
             {userRole !== 'contributor' && <button
-              onClick={bulkUpload}
-              className="flex items-center px-4 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-xs font-medium"
+              onClick={()=>{router.push('/dashboard/bulkupload')}}
+              className="cursor-pointer flex items-center px-4 py-3.5 bg-white border border-gray-200 text-gray-700 rounded-lg hover:bg-gray-50 transition-all text-xs font-medium"
             >
               <Upload className="h-3 w-3 mr-1.5" />
               Bulk Upload
             </button>}
             <button
-              onClick={newIntervention}
-              className="flex items-center px-4 py-3 bg-[#007A49] text-white rounded-lg transition-all font-medium text-xs hover:bg-[#005a37]"
+              onClick={()=>{router.push('/dashboard/new-intervention')}}
+              className="cursor-pointer flex items-center px-4 py-3 bg-[#007A49] text-white rounded-lg transition-all font-medium text-xs hover:bg-[#005a37]"
             >
               <Plus className="h-3 w-3 mr-1.5" />
               New Intervention
