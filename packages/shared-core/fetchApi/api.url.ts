@@ -5,24 +5,14 @@
  * Handles different environment variable naming conventions between Next.js and Expo
  */
 function getBaseUrl(): string {
-  // Next.js uses NEXT_PUBLIC_ prefix for client-side env vars
-  if (typeof window !== 'undefined' && process.env.NEXT_PUBLIC_SERVER_URL) {
-    return process.env.NEXT_PUBLIC_SERVER_URL;
-  }
-
-  // Expo uses EXPO_PUBLIC_ prefix (Expo SDK 49+)
+  // For mobile/Expo apps, use the full URL
   if (process.env.EXPO_PUBLIC_API_ENDPOINT) {
     return process.env.EXPO_PUBLIC_API_ENDPOINT;
   }
 
-  // Fallback for older Expo versions or manual setup
-  if (process.env.NEXT_PUBLIC_SERVER_URL) {
-    return process.env.NEXT_PUBLIC_SERVER_URL;
-  }
-
-
-
-  throw new Error('SERVER_URL environment variable is not configured');
+  // For web apps (both client and server), use Next.js proxy
+  // This works for both SSR and client-side calls
+  return '/api/server';
 }
 
 const baseUrl = getBaseUrl();

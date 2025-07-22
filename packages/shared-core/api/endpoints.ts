@@ -1,8 +1,14 @@
-export const getBaseUrl = (): string => {
-  return '/'
+const getBaseUrl = (): string => {
+  // For mobile/Expo apps, use the full URL
+  if (process.env.NEXT_PUBLIC_SERVER_URL) {
+    return process.env.NEXT_PUBLIC_SERVER_URL;
+  }
+  
+  // For web apps (both client and server), use Next.js proxy
+  return '/api/server';
 };
 
-const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"
+const baseUrl = getBaseUrl()
 
 export const API_ENDPOINTS = {
   // Health
