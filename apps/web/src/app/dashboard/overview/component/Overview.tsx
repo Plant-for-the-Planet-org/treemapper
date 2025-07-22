@@ -1,17 +1,12 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react';
-import { CalendarDays } from 'lucide-react';
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
 
 import useMediaQuery from '@/hooks/useMediaQuery';
-import ChildTabs from './ChildTabs';
 import StatCardsContainer from './StatCardsContainer';
 import TreePlantingChart from './TreePlantingChart';
 import RecentAdditionsComponent from './RecentAdditionsComponent';
-// import ProjectSummaryKPIs from './ProjectKPI';
-// import SpeciesAnalytics from './SpeciesAnalyst';
-// import GeographicalInterventionAnalytics from './GeolocationKPI';
 import { useAnalyticsStore } from '@shared-core/store/useAnalyticsStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { toast } from 'react-toastify'

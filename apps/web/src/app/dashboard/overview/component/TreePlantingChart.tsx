@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
+import { XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Area, AreaChart } from 'recharts';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { getOverviewGraph } from '@shared-core/fetchApi/api.fetch';
-import TreeLoader from './TreeLoader';
 import { ChevronDown, TrendingUp } from 'lucide-react';
 
 const TreePlantingChart = () => {
