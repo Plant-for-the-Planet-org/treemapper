@@ -2,7 +2,6 @@
 import { handleAuth, handleLogin, handleLogout } from '@auth0/nextjs-auth0';
 import { NextRequest } from 'next/server';
 
-// Create the auth handler with configuration
 const authHandler = handleAuth({
   login: handleLogin({
     authorizationParams: {
@@ -11,29 +10,25 @@ const authHandler = handleAuth({
     }
   }),
   logout: handleLogout({
-    returnTo: process.env.AUTH0_BASE_URL || 'http://localhost:3000',
-    logoutParams: {
-      federated: true
-    }
+    returnTo: process.env.AUTH0_BASE_URL || 'http://localhost:3000'
+    // Don't include logoutParams with federated: true
   })
 });
 
-// Create async wrapper for GET requests
-async function GET(req: NextRequest, context: { params: Promise<any> }) {
-  // Await the params to comply with Next.js 15
-  const resolvedParams = await context.params;
-  
-  // Call the auth handler with resolved params
-  return authHandler(req, { params: resolvedParams });
+export async function GET(req: NextRequest, context: { params: Promise<{ auth0: string[] }> }) {
+  try {
+    return authHandler(req, context);
+  } catch (error) {
+    console.error('Auth handler error:', error);
+    return new Response('Internal Server Error', { status: 500 });
+  }
 }
 
-// Create async wrapper for POST requests
-async function POST(req: NextRequest, context: { params: Promise<any> }) {
-  // Await the params to comply with Next.js 15
-  const resolvedParams = await context.params;
-  
-  // Call the auth handler with resolved params
-  return authHandler(req, { params: resolvedParams });
+export async function POST(req: NextRequest, context: { params: Promise<{ auth0: string[] }> }) {
+  try {
+    return authHandler(req, context);
+  } catch (error) {
+    console.error('Auth handler error:', error);
+    return new Response('Internal Server Error', { status: 500 });
+  }
 }
-
-export { GET, POST };

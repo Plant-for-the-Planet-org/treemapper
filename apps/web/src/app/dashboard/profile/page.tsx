@@ -465,8 +465,8 @@ const ProfileSettings = ({ goBack }) => {
   };
 
   const handleLogout = () => {
-    // Implement logout logic
-    console.log('Logging out...');
+    localStorage.removeItem('orgId');
+    window.location.href = '/api/auth/logout';
   };
 
   const handleCancel = () => {
