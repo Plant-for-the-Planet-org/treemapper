@@ -1,27 +1,34 @@
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
+import { parseDatabaseConfig } from './database-url.parser';
 
 @Injectable()
 export class DatabaseConfig {
+  private readonly config = parseDatabaseConfig();
+
   constructor(private configService: ConfigService) {}
 
   get host(): string {
-    return this.configService.get<string>('DB_HOST', 'localhost');
+    return this.config.host;
   }
 
   get port(): number {
-    return this.configService.get<number>('DB_PORT', 5432);
+    return this.config.port;
   }
 
   get username(): string {
-    return this.configService.get<string>('DB_USERNAME', 'postgres');
+    return this.config.username;
   }
 
   get password(): string {
-    return this.configService.get<string>('DB_PASSWORD', 'postgres');
+    return this.config.password;
   }
 
   get database(): string {
-    return this.configService.get<string>('DB_NAME', 'postgres');
+    return this.config.database;
+  }
+
+  get ssl(): boolean {
+    return this.config.ssl || false;
   }
 }

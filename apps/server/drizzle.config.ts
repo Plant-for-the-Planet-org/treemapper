@@ -1,18 +1,21 @@
 import * as dotenv from 'dotenv';
 import type { Config } from 'drizzle-kit';
+import { parseDatabaseConfig } from './src/database/database-url.parser';
 
 dotenv.config();
+
+const dbConfig = parseDatabaseConfig();
 
 export default {
   schema: './src/database/schema/index.ts',
   out: './drizzle/migrations',
-  dialect: 'postgresql', // This is the required parameter now, instead of 'driver: pg'
+  dialect: 'postgresql',
   dbCredentials: {
-    host: process.env.DB_HOST || 'localhost',
-    port: Number(process.env.DB_PORT) || 6543,
-    user: process.env.DB_USERNAME || 'postgres.famrkomiqrclihrrzcfu',
-    password: process.env.DB_PASSWORD || '[YOUR-PASSWORD]',
-    database: process.env.DB_NAME || 'postgres',
-    ssl: false,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    user: dbConfig.username,
+    password: dbConfig.password,
+    database: dbConfig.database,
+    ssl: dbConfig.ssl || false,
   },
 } satisfies Config;

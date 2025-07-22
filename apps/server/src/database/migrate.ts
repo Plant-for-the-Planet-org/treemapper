@@ -2,16 +2,20 @@ import { drizzle } from 'drizzle-orm/node-postgres';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { Pool } from 'pg';
 import * as dotenv from 'dotenv';
+import { parseDatabaseConfig } from './database-url.parser';
 
 dotenv.config();
 
 const main = async () => {
+  const dbConfig = parseDatabaseConfig();
+  
   const pool = new Pool({
-    host: process.env.DB_HOST,
-    port: Number(process.env.DB_PORT),
-    user: process.env.DB_USERNAME,
-    password: process.env.DB_PASSWORD,
-    database: process.env.DB_NAME,
+    host: dbConfig.host,
+    port: dbConfig.port,
+    user: dbConfig.username,
+    password: dbConfig.password,
+    database: dbConfig.database,
+    ssl: dbConfig.ssl,
   });
 
   const db = drizzle(pool);
