@@ -1,0 +1,13 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1753157984239,
+      "tag": "0000_sticky_major_mapleleaf",
+      "breakpoints": true
+    }
+  ]
+}

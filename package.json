@@ -11,15 +11,21 @@
     "postinstall": "patch-package",
     "clean": "turbo clean && rm -rf node_modules",
     "clean:deep": "rm -rf node_modules && rm -rf yarn.lock && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
-    "heroku-postbuild": "turbo build --filter=web",
-    "start": "cd apps/web && PORT=$PORT yarn start",
+    "heroku-postbuild": "turbo build --filter=web && turbo build --filter=server",
+    "start": "concurrently \"npm run start:web\" \"npm run start:server\"",
+    "start:web": "cd apps/web && PORT=$PORT yarn start",
+    "start:server": "cd apps/server && PORT=${SERVER_PORT:-3001} yarn start:prod",
     "type-check": "turbo type-check",
     "native:dev": "turbo dev --filter=mobile",
-    "native:build": "turbo build --filter=mobile", 
+    "native:build": "turbo build --filter=mobile",
     "native:start": "turbo start --filter=mobile",
     "web:dev": "turbo dev --filter=web",
     "web:build": "turbo build --filter=web",
-    "web:start": "turbo start --filter=web"
+    "web:start": "turbo start --filter=web",
+    "server:dev": "turbo dev --filter=server",
+    "server:build": "turbo build --filter=server",
+    "server:start": "turbo start --filter=server",
+    "dev:fullstack": "concurrently \"turbo dev --filter=web\" \"turbo dev --filter=server\""
   },
   "engines": {
     "node": "23.x.x"
@@ -30,16 +36,17 @@
     "packages/*"
   ],
   "devDependencies": {
-    "prettier": "^3.2.5",
-    "turbo": "^2.2.3",
-    "typescript": "5.5.4",
-    "patch-package": "^8.0.0",
     "@typescript-eslint/eslint-plugin": "^6.15.0",
     "@typescript-eslint/parser": "^6.15.0",
     "eslint": "^8.56.0",
-    "eslint-config-prettier": "^9.1.0"
+    "eslint-config-prettier": "^9.1.0",
+    "patch-package": "^8.0.0",
+    "prettier": "^3.2.5",
+    "turbo": "^2.2.3",
+    "typescript": "5.5.4"
   },
   "dependencies": {
+    "concurrently": "^9.2.0",
     "dotenv-cli": "^7.1.0"
   },
   "peerDependencies": {

@@ -1,4 +1,4 @@
-const baseUrl = "192.168.0.101:3001/api"
+const baseUrl = "api"
 
 const https = 'http://'
 
