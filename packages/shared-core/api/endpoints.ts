@@ -2,7 +2,7 @@ export const getBaseUrl = (): string => {
   return '/'
 };
 
-const baseUrl = "http://192.168.0.115:3001"
+const baseUrl = process.env.NEXT_PUBLIC_SERVER_URL || "http://localhost:3001"
 
 export const API_ENDPOINTS = {
   // Health
