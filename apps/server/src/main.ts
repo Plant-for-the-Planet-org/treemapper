@@ -21,7 +21,7 @@ async function bootstrap() {
         ignoreTrailingSlash: true,
       })
     );
-    
+
     app.use((req, res, next) => {
       console.log(`${req.method} ${req.url}`);
       next();
@@ -29,24 +29,14 @@ async function bootstrap() {
 
     // Updated CORS configuration for monorepo deployment
     const isProduction = process.env.NODE_ENV === 'production';
-    const allowedOrigins = isProduction 
-      ? [
-          'https://treemapper-dashboard-1944c398f284.herokuapp.com',
-          // Add your new monorepo Heroku URL here when you deploy
-          process.env.CLIENT_URL || 'https://your-new-monorepo-app.herokuapp.com'
-        ]
-      : [
-          'http://localhost:3000', 
-          'http://localhost:3001'
-        ];
+
 
     app.enableCors({
-      origin: allowedOrigins,
+      origin: ['http://127.0.0.1:3000', 'http://localhost:3000'],
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
-
     app.setGlobalPrefix('api');
 
     app.useGlobalPipes(new ValidationPipe({
