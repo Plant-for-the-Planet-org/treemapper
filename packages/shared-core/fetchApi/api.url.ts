@@ -12,7 +12,7 @@ function getBaseUrl(): string {
 
   // For web apps (both client and server), use Next.js proxy
   // This works for both SSR and client-side calls
-  return '/api/server';
+  return '';
 }
 
 const baseUrl = getBaseUrl();
