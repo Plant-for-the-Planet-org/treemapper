@@ -11,7 +11,7 @@ export const BrandingSection: React.FC<BrandingSectionProps> = ({ features }) =>
           <div className="flex items-center mb-8">
             <div className="mb-4 flex items-center justify-center bg-gradient-to-br from-[#007A49] to-emerald-600 rounded-2xl mr-4 shadow-lg">
               <Image
-                src="/treemapper-logo.webp"
+                src="/tmlogo.png"
                 alt="TreeMapper Logo"
                 width={80}
                 height={80}
