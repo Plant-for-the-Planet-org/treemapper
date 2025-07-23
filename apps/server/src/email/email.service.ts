@@ -22,23 +22,20 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     // Setup email configuration from environment
     this.frontendUrl = this.configService.get<string>('CLIENT_URL') || '';
-    // this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'noreply@yourdomain.com');
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'noreply@yourdomain.com');
     this.emailTemplatesDir = path.join(process.cwd(), 'src/notification/templates');
     this.apiUrl = this.configService.get<string>('PLUNK_URL') || '';
     this.apiToken = this.configService.get<string>('PLUNK_API_TOKEN') || '';
     handlebars.registerHelper('eq', function (a, b) {
       return a === b;
     });
-    // // Initialize email transporter
-    // this.transporter = createTransport({
-    //   host: this.configService.get<string>('EMAIL_HOST'),
-    //   port: this.configService.get<number>('EMAIL_PORT'),
-    //   secure: this.configService.get<boolean>('EMAIL_SECURE', false),
-    //   auth: {
-    //     user: this.configService.get<string>('EMAIL_USER'),
-    //     pass: this.configService.get<string>('EMAIL_PASSWORD'),
-    //   },
-    // });
+    // Initialize email transporter using a single SMTP_URL
+    // Example SMTP_URL format: smtp://user:password@host:port
+    // or with SSL: smtps://user:password@host:port
+    const smtpUrl = this.configService.get<string>('SMTP_URL');
+    if (smtpUrl) {
+      this.transporter = createTransport(smtpUrl);
+    }
   }
 
   /**
@@ -92,7 +89,7 @@ export class EmailService {
     memberName: string;
     memberEmail: string;
     projectName: string;
-    projectId: string | number; 
+    projectId: string | number;
   }): Promise<boolean> {
     const projectUrl = `${this.frontendUrl}/projects/${projectId}`;
 
@@ -187,27 +184,30 @@ export class EmailService {
       const compiledTemplate = handlebars.compile(template);
       const html = compiledTemplate(context);
 
-      // // Send email
-      // await this.transporter.sendMail({
-      //   from: this.fromEmail,
-      //   to,
-      //   subject,
-      //   html,
-      // });
-      const response = await axios.post(
-        this.apiUrl,
-        {
+      // Send email using SMTP if transporter is configured, otherwise use API
+      if (this.transporter) {
+        await this.transporter.sendMail({
+          from: this.configService.get<string>('EMAIL_FROM', 'noreply@yourdomain.com'),
           to,
           subject,
-          body: html,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiToken}`,
+          html,
+        });
+      } else {
+        const response = await axios.post(
+          this.apiUrl,
+          {
+            to,
+            subject,
+            body: html,
           },
-        },
-      );
+          {
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${this.apiToken}`,
+            },
+          },
+        );
+      }
       this.logger.log(`Email sent successfully to ${to}`);
       return true;
     } catch (error) {
