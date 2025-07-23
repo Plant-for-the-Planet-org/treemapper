@@ -6,7 +6,8 @@ import { AnalyticsService } from './analytics.service';
 import { AnalyticsJobProcessor } from './analytics-job.processor';
 import { HistoricalSnapshotService } from './historical-snapshot.service';
 import { DatabaseModule } from '../database/database.module';
-import { ProjectsModule } from '../projects/projects.module'; // Add this import
+import { ProjectsModule } from '../projects/projects.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 
 
 @Module({
@@ -14,11 +15,12 @@ import { ProjectsModule } from '../projects/projects.module'; // Add this import
     DatabaseModule,
     ProjectsModule,
     ScheduleModule.forRoot(),
-    BullModule.forRoot({
-      redis: {
-        host: process.env.REDIS_HOST || 'localhost',
-        port: 6379,
-      },
+    ConfigModule,
+    BullModule.forRootAsync({
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        redis: configService.get('redis'),
+      }),
     }),
     BullModule.registerQueue({
       name: 'analytics',
