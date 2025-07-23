@@ -1,4 +1,4 @@
-// packages/shared-logic/src/api/api.url.ts
+// packages/shared-logic/src/api.url.ts
 
 /**
  * Get the base URL for API calls
@@ -12,71 +12,71 @@ function getBaseUrl(): string {
 
   // For web apps (both client and server), use Next.js proxy
   // This works for both SSR and client-side calls
-  return '';
+  return '/api/server';
 }
 
 const baseUrl = getBaseUrl();
 
 export const postUrlApi = {
-  createProject: `${baseUrl}/api/projects`,
-  createProjectinvite: `${baseUrl}/api/projects`,
-  acceptInvite: `${baseUrl}/api/projects/invites/accept`,
-  acceptlinkInvite: `${baseUrl}/api/projects/invites/accept/link`,
-  declineInvite: `${baseUrl}/api/projects/invites/decline`,
-  expireInvite: `${baseUrl}/api/projects`,
-  createProjectSpecies: `${baseUrl}/api/project-species`,
-  requestNewSpecies: `${baseUrl}/api/species-requests`,
-  createPersonalProject: `${baseUrl}/api/projects/personal`,
-  startMigration: `${baseUrl}/api/migration/start`,
-  createNewDashboardSite: `${baseUrl}/api/projects`,
-  createNewIntervention: `${baseUrl}/api/interventions/projects`,
-  createInvtiationLink: `${baseUrl}/api/projects`,
-  bulkIntervention: `${baseUrl}/api/prokects`, // Note: typo in original (prokects)
-  preSignUrl: `${baseUrl}/api/users/presign-url`,
-  exportData: `${baseUrl}/api/analytics`,
-  createNewOrg: `${baseUrl}/api/organizations`,
+  createProject: `${baseUrl}/projects`,
+  createProjectinvite: `${baseUrl}/projects`,
+  acceptInvite: `${baseUrl}/projects/invites/accept`,
+  acceptlinkInvite: `${baseUrl}/projects/invites/accept/link`,
+  declineInvite: `${baseUrl}/projects/invites/decline`,
+  expireInvite: `${baseUrl}/projects`,
+  createProjectSpecies: `${baseUrl}/project-species`,
+  requestNewSpecies: `${baseUrl}/species-requests`,
+  createPersonalProject: `${baseUrl}/projects/personal`,
+  startMigration: `${baseUrl}/migration/start`,
+  createNewDashboardSite: `${baseUrl}/projects`,
+  createNewIntervention: `${baseUrl}/interventions/projects`,
+  createInvtiationLink: `${baseUrl}/projects`,
+  bulkIntervention: `${baseUrl}/prokects`, // Note: typo in original (prokects)
+  preSignUrl: `${baseUrl}/users/presign-url`,
+  exportData: `${baseUrl}/analytics`,
+  createNewOrg: `${baseUrl}/organizations`,
 } as const;
 
 
 export const getUrlApi = {
   health: `${baseUrl}/health`,
-  me: `${baseUrl}/api/users/me`,
-  checkMigration: `${baseUrl}/api/migration/check`,
-  projects: `${baseUrl}/api/projects`,
-  inviteStatus: `${baseUrl}/api/projects/invites`,
-  teamMembers: `${baseUrl}/api/projects`,
-  searchSpeciesSci: `${baseUrl}/api/scientific-species/search`,
-  projectSpecies: `${baseUrl}/api/project-species`,
-  migrationStatus: `${baseUrl}/api/migration/status`,
-  getProjectSites: `${baseUrl}/api/projects`,
-  getProjectIntervnetion: `${baseUrl}/api/interventions/projects`, // Note: typo in original
-  getMyNotification: `${baseUrl}/api/notifications`,
-  getAllInviteLinks: `${baseUrl}/api/projects`,
-  getDashboardKpis: `${baseUrl}/api/analytics/project-kpis`,
-  getProjectMapData: `${baseUrl}/api/analytics`,
-  getOverviewGraph: `${baseUrl}/api/analytics/planting-overview`,
-  getDashboardRecentAddition: `${baseUrl}/api/analytics/recent-additions`,
-  getMyOrgs: `${baseUrl}/api/organizations`,
+  me: `${baseUrl}/users/me`,
+  checkMigration: `${baseUrl}/migration/check`,
+  projects: `${baseUrl}/projects`,
+  inviteStatus: `${baseUrl}/projects/invites`,
+  teamMembers: `${baseUrl}/projects`,
+  searchSpeciesSci: `${baseUrl}/scientific-species/search`,
+  projectSpecies: `${baseUrl}/project-species`,
+  migrationStatus: `${baseUrl}/migration/status`,
+  getProjectSites: `${baseUrl}/projects`,
+  getProjectIntervnetion: `${baseUrl}/interventions/projects`, // Note: typo in original
+  getMyNotification: `${baseUrl}/notifications`,
+  getAllInviteLinks: `${baseUrl}/projects`,
+  getDashboardKpis: `${baseUrl}/analytics/project-kpis`,
+  getProjectMapData: `${baseUrl}/analytics`,
+  getOverviewGraph: `${baseUrl}/analytics/planting-overview`,
+  getDashboardRecentAddition: `${baseUrl}/analytics/recent-additions`,
+  getMyOrgs: `${baseUrl}/organizations`,
 } as const;
 
 export const patchUrlApi = {
-  userMigrated: `${baseUrl}/api/users/migrated`,
-  updateMemeberRole: `${baseUrl}/api/projects`, // Note: typo in original (Memeber)
-  markAllRead: `${baseUrl}/api/notifications/mark-all-read`,
-  deleteLink: `${baseUrl}/api/projects`,
-  updateProjectSettings: `${baseUrl}/api/projects`,
-  userDetails: `${baseUrl}/api/users/me`,
+  userMigrated: `${baseUrl}/users/migrated`,
+  updateMemeberRole: `${baseUrl}/projects`, // Note: typo in original (Memeber)
+  markAllRead: `${baseUrl}/notifications/mark-all-read`,
+  deleteLink: `${baseUrl}/projects`,
+  updateProjectSettings: `${baseUrl}/projects`,
+  userDetails: `${baseUrl}/users/me`,
 
 } as const;
 
 export const deleteUrlApi = {
-  removeUser: `${baseUrl}/api/projects`,
-  deletePrjSpecies: `${baseUrl}/api/project-species`,
-  deletePrjIntervention: `${baseUrl}/api/interventions`,
+  removeUser: `${baseUrl}/projects`,
+  deletePrjSpecies: `${baseUrl}/project-species`,
+  deletePrjIntervention: `${baseUrl}/interventions`,
 } as const;
 
 export const putUrlApi = {
-  updatePrjSpecies: `${baseUrl}/api/project-species`,
+  updatePrjSpecies: `${baseUrl}/project-species`,
 } as const;
 
 // Export the base URL for other modules that might need it
