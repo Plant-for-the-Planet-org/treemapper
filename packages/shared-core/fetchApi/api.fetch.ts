@@ -48,6 +48,12 @@ export const createNewOrg = async (token: string, params: any) => {
   return result;
 };
 
+export const selectOrg = async (token: string, params: any) => {
+  const uri = `${postUrlApi.selectOrg}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 //migrate
 
 export const checkForMigration = async (token: string) => {

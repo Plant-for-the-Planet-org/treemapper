@@ -13,7 +13,7 @@ export const PageHeader: React.FC<PageHeaderProps> = ({ title, description, canP
           <button
             onClick={handleContinueToDashboard}
             disabled={isLoading}
-            className="px-8 py-3 bg-[#007A49] text-white rounded-lg hover:bg-[#006141] transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2 mx-auto font-medium text-lg"
+              className="cursor-pointer px-6 py-3 bg-[#007A49] text-white rounded-lg hover:bg-[#006141] transition-colors flex items-center gap-2 font-medium"
           >
             {isLoading ? (
               <>

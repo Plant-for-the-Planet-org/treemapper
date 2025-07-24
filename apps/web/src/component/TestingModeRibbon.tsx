@@ -12,7 +12,7 @@ export const TestingModeRibbon = ({ onDisableClick,  }: { onDisableClick: () => 
   topStrong = "Explore",
   bottomText = "", 
   bottomStrong = "Mode",
-  position = "top-[30vh] left-[1vw]"
+  position = "bottom-[10vh]"
   const growAnimation = {
     initial: {
       width: 0,

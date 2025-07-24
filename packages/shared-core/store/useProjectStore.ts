@@ -20,7 +20,7 @@ const useStore = create<ProjectStore>(set => ({
   addProjects: p => set(state => ({ ...state, projects: p, loading: false })),
   selectProject: p => set(state => ({ ...state, selectedProject: p })),
   updateProjectLoading:b => set(state => ({ ...state, loading: b })),
-  loading: true,
+  loading: false,
   error: '',
   updatePrjError: (error: string) => set(state => ({ ...state, error, loading: false })),
   clearPrjError: () => set(state => ({ ...state, error: '', loading: true}))

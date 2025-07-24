@@ -16,7 +16,7 @@ const ProfileAvatar = ({
 
 
   useEffect(() => {
-    if (accessToken) {
+    if (accessToken && !User) {
       fetchUser()
     }
   }, [])

@@ -3,16 +3,18 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Footer } from './components/Footer';
-import { OrganizationGrid } from './components/OrganizationGrid';
 import { PageHeader } from './components/PageHeader';
 import { useToken } from '@/context/useTokenContext';
 import { toast } from 'react-toastify';
 import Spinner from '@/component/Spinner';
 import { Info, X, Mail, Phone, MapPin } from 'lucide-react';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { getAllMyOrg, getMyDetails, selectOrg } from '@shared-core/fetchApi/api.fetch';
+import useHomeStore from '@shared-core/store/useHomeStore';
 
-// Placeholder API calls
+
+
 const assignToDevOrg = async (accessToken: string) => {
-  // TODO: Implement API call to assign user to dev organization
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve({ statusCode: 200, data: { orgId: 'dev-org-id' } });
@@ -195,16 +197,52 @@ const PartnerModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 // Main Component
 export default function OrganizationSelector() {
   const router = useRouter();
-  const [organizations] = useState([
-    // Mock existing organizations - in real app this would come from user's profile
-    { id: 1, name: 'Partner Organization', description: 'Access to partner features and tools' },
-    { id: 2, name: 'Public Organization', description: 'General access to TreeMapper features' }
-  ]);
-  const { accessToken } = useToken();
   const [isLoading, setLoading] = useState(false);
   const [isTestingMode, setIsTestingMode] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
+  const [organizations, setOrganizations] = useState([])
+  const [userLoading, setUserLoading] = useState(true)
+  const changeOrgType = useHomeStore(state => state.setOrgType)
+  const { accessToken } = useToken()
+  const User = useUserStore((state) => state.user);
+
+  useEffect(() => {
+    if (accessToken) {
+      fetchUser()
+    }
+  }, [])
+
+  const fetchUser = async () => {
+    try {
+      const res = await getMyDetails(accessToken || '');
+      if (res && res.statusCode !== 200) {
+        throw new Error('Failed to fetch user')
+      }
+      useUserStore.getState().setUser(res.data)
+      await fetchUserOrg()
+    } catch (err) {
+      console.error(err)
+      useUserStore.getState().clearUser()
+    }
+  }
+
+  const fetchUserOrg = async () => {
+    try {
+      const res = await getAllMyOrg(accessToken || '');
+      if (res && res.statusCode !== 200) {
+        throw new Error('Failed to fetch user')
+      }
+      setOrganizations(res.data)
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
+
+
+
+
 
   const handleTestingToggle = useCallback((enabled: boolean) => {
     setIsTestingMode(enabled);
@@ -213,29 +251,35 @@ export default function OrganizationSelector() {
     }
   }, []);
 
-  const handleSelectOrganization = useCallback((orgId: number) => {
+  const handleSelectOrganization = (orgId: any) => {
+    if (selectedOrgId === orgId) {
+      setSelectedOrgId(() => null);
+      setIsTestingMode(false);
+      return
+    }
     setSelectedOrgId(orgId);
     setIsTestingMode(false); // Disable testing mode when org is selected
-  }, []);
+  }
 
   const handleContinueToDashboard = useCallback(async () => {
     setLoading(true);
-
     try {
+      let payload = {}
       if (isTestingMode) {
-        // Assign to dev organization
-        const response = await assignToDevOrg(accessToken);
-        localStorage.setItem('orgId', 'dev');
-        localStorage.setItem('isTestingMode', 'true');
+        payload["devMode"] = true
       } else if (selectedOrgId) {
-        // Use selected organization
-        localStorage.setItem('orgId', String(selectedOrgId));
-        localStorage.removeItem('isTestingMode');
+        payload["selectedOrg"] = selectedOrgId
       }
-
-      router.replace('/dashboard');
+      const response = await selectOrg(accessToken, payload)
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        changeOrgType(isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
+        localStorage.setItem('orgId',isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
+        router.replace('/dashboard');
+      } else {
+        throw response.message
+      }
     } catch (error) {
-      toast.error('Failed to proceed. Please try again.');
+      toast.error('Failed to proceed');
       setLoading(false);
     }
   }, [isTestingMode, selectedOrgId, accessToken, router]);
@@ -272,7 +316,6 @@ export default function OrganizationSelector() {
               <span className="text-sm text-gray-700">No</span>
               <button
                 onClick={() => handleTestingToggle(!isTestingMode)}
-                disabled={selectedOrgId !== null}
                 className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-[#007A49] focus:ring-offset-2 ${isTestingMode
                   ? 'bg-[#007A49]'
                   : selectedOrgId !== null
@@ -332,8 +375,8 @@ export default function OrganizationSelector() {
                 {organizations.map((org) => (
                   <div
                     key={org.id}
-                    onClick={() => !isTestingMode && handleSelectOrganization(org.id)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedOrgId === org.id
+                    onClick={() => !isTestingMode && handleSelectOrganization(org.uid)}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedOrgId === org.uid
                       ? 'border-[#007A49] bg-green-50'
                       : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
                       } ${isTestingMode ? 'cursor-not-allowed' : ''}`}

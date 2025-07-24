@@ -35,6 +35,8 @@ export const postUrlApi = {
   preSignUrl: `${baseUrl}/users/presign-url`,
   exportData: `${baseUrl}/analytics`,
   createNewOrg: `${baseUrl}/organizations`,
+  selectOrg: `${baseUrl}/organizations/primary`,
+
 } as const;
 
 

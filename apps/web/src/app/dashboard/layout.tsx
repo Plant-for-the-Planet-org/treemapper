@@ -11,7 +11,7 @@ import useProjectStore from '@shared-core/store/useProjectStore'
 import NoProjectSelected from '@/component/NoProjectPlaceHolder';
 import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
 import { TestingModeManager } from '@/component/TestingModeManager';
-
+import useHomeStore from '@shared-core/store/useHomeStore'
 
 
 export default function DashboardLayout({
@@ -26,7 +26,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<string>('default');
   const [orgLoaded, setOrgLoded] = useState(false)
-
+  const orgType = useHomeStore(state=>state.orgType)
   const handleRefresh = () => {
     window.location.reload();
     clearPrjError();
@@ -157,7 +157,7 @@ export default function DashboardLayout({
       <TokenProvider accessToken={accessToken}>
         <div className="app-container">
           <div className="app-content">
-            <TestingModeManager devMode={true} />
+            <TestingModeManager devMode={orgType==='dev'} />
             {renderSectionSpecificContent()}
             {loading && !orgLoaded ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spinner />
