@@ -40,6 +40,9 @@ export interface SearchBarProps {
 export interface PageHeaderProps {
   title: string;
   description: string;
+  canProceed: boolean;
+  handleContinueToDashboard: () => void
+  isLoading: boolean
 }
 
 export interface FooterProps { }

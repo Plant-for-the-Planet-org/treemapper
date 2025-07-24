@@ -10,6 +10,7 @@ import MigrationModal from '@/component/MigrationModal';
 import useProjectStore from '@shared-core/store/useProjectStore'
 import NoProjectSelected from '@/component/NoProjectPlaceHolder';
 import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
+import { TestingModeManager } from '@/component/TestingModeManager';
 
 
 
@@ -155,8 +156,8 @@ export default function DashboardLayout({
     <>
       <TokenProvider accessToken={accessToken}>
         <div className="app-container">
-          <MigrationModal />
           <div className="app-content">
+            <TestingModeManager devMode={true} />
             {renderSectionSpecificContent()}
             {loading && !orgLoaded ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spinner />
