@@ -26,7 +26,7 @@ export default function DashboardLayout({
   const pathname = usePathname();
   const [currentSection, setCurrentSection] = useState<string>('default');
   const [orgLoaded, setOrgLoded] = useState(false)
-  const orgType = useHomeStore(state=>state.orgType)
+  const orgType = useHomeStore(state => state.orgType)
   const handleRefresh = () => {
     window.location.reload();
     clearPrjError();
@@ -59,6 +59,7 @@ export default function DashboardLayout({
       }
     }
   }, [pathname]);
+  const organizationId = localStorage.getItem('orgId');
 
   // // Use useEffect for navigation
   useEffect(() => {
@@ -67,7 +68,6 @@ export default function DashboardLayout({
       return
     }
 
-    const organizationId = localStorage.getItem('orgId');
     if (!organizationId) {
       router.push('/dashboard/organization');
     }
@@ -157,7 +157,7 @@ export default function DashboardLayout({
       <TokenProvider accessToken={accessToken}>
         <div className="app-container">
           <div className="app-content">
-            <TestingModeManager devMode={orgType==='dev'} />
+            <TestingModeManager devMode={orgType === 'dev'} />
             {renderSectionSpecificContent()}
             {loading && !orgLoaded ? <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
               <Spinner />

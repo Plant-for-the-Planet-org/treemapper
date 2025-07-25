@@ -220,10 +220,12 @@ export default function OrganizationSelector() {
         throw new Error('Failed to fetch user')
       }
       useUserStore.getState().setUser(res.data)
-      await fetchUserOrg()
+        await fetchUserOrg()
     } catch (err) {
       console.error(err)
       useUserStore.getState().clearUser()
+    } finally {
+      setUserLoading(false)
     }
   }
 
@@ -273,7 +275,7 @@ export default function OrganizationSelector() {
       const response = await selectOrg(accessToken, payload)
       if (response.statusCode === 200 || response.statusCode === 201) {
         changeOrgType(isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
-        localStorage.setItem('orgId',isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
+        localStorage.setItem('orgId', isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
         router.replace('/dashboard');
       } else {
         throw response.message
@@ -285,10 +287,15 @@ export default function OrganizationSelector() {
   }, [isTestingMode, selectedOrgId, accessToken, router]);
 
   const canProceed = isTestingMode || selectedOrgId !== null;
-
+  if (userLoading) {
+    return (<div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
+      <Spinner />
+    </div>)
+  }
   return (
     <div className="h-full bg-gray-50 flex flex-col w-full">
       {/* Main Content */}
+
       <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
         <PageHeader
           title="Welcome to TreeMapper"
