@@ -43,7 +43,7 @@ const Onboarding = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center p-4">
-      <div className="w-full max-w-3xl">
+      <div className="w-full max-w-4xl">
         <AnimatePresence mode="wait">
           {currentScreen === 1 && (
             <ScreenOne
@@ -68,7 +68,7 @@ const Onboarding = () => {
 const ScreenOne = ({ onNext }) => {
   const [formData, setFormData] = useState({
     projectName: '',
-    selectedPlan: 'public'
+    selectedPlan: ''
   });
   const [errors, setErrors] = useState({});
 
@@ -79,14 +79,15 @@ const ScreenOne = ({ onNext }) => {
       subtitle: 'All data will be shared publicly',
       description: 'Contribute to global reforestation efforts with transparent data sharing',
       icon: <Users className="w-5 h-5" />,
-      recommended: true
     },
     {
-      id: 'private', 
+      id: 'private',
       title: 'Personal/Organization Use',
       subtitle: 'Use all features of TreeMapper',
       description: 'Complete access to all TreeMapper features for private projects',
-      icon: <Building className="w-5 h-5" />
+      icon: <Building className="w-5 h-5" />,
+      recommended: true
+
     },
     {
       id: 'trial',
@@ -108,11 +109,11 @@ const ScreenOne = ({ onNext }) => {
   const handleProjectNameChange = useCallback((e) => {
     const value = e.target.value;
     setFormData(prev => ({ ...prev, projectName: value }));
-    
-    const error = validateProjectName(value);
+
+    // const error = validateProjectName(value);
     setErrors(prev => ({
       ...prev,
-      projectName: error
+      projectName: ''
     }));
   }, [validateProjectName]);
 
@@ -141,7 +142,6 @@ const ScreenOne = ({ onNext }) => {
       {/* Header */}
       <div className="text-center space-y-2">
         <h1 className="text-3xl font-bold text-gray-900">Get started with TreeMapper</h1>
-        <p className="text-gray-600"> Set up your project</p>
       </div>
 
       {/* Project Name Card */}
@@ -183,16 +183,15 @@ const ScreenOne = ({ onNext }) => {
             {plans.map((plan) => (
               <Card
                 key={plan.id}
-                className={`cursor-pointer transition-all hover:shadow-md relative ${
-                  formData.selectedPlan === plan.id
-                    ? 'ring-2 ring-green-500 border-green-500'
-                    : 'hover:border-gray-300'
-                }`}
+                className={`cursor-pointer transition-all hover:shadow-md relative ${formData.selectedPlan === plan.id
+                  ? 'ring-2 ring-green-500 border-green-500'
+                  : 'hover:border-gray-300'
+                  }`}
                 onClick={() => handlePlanSelect(plan.id)}
               >
                 {plan.recommended && (
-                  <Badge 
-                    variant="default" 
+                  <Badge
+                    variant="default"
                     className="absolute -top-2 left-4 bg-green-600 z-10"
                   >
                     Recommended
@@ -201,18 +200,17 @@ const ScreenOne = ({ onNext }) => {
                 <CardContent className="p-4 h-full">
                   <div className="flex flex-col space-y-3 h-full">
                     <div className="flex items-center justify-between">
-                      <div className={`p-2 rounded-md ${
-                        formData.selectedPlan === plan.id 
-                          ? 'bg-green-100 text-green-600' 
-                          : 'bg-gray-100 text-gray-600'
-                      }`}>
+                      <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id
+                        ? 'bg-green-100 text-green-600'
+                        : 'bg-gray-100 text-gray-600'
+                        }`}>
                         {plan.icon}
                       </div>
                       {formData.selectedPlan === plan.id && (
                         <Check className="w-5 h-5 text-green-600" />
                       )}
                     </div>
-                    
+
                     <div className="flex-1">
                       <h3 className="font-medium text-gray-900 text-sm leading-tight">
                         {plan.title}
@@ -258,7 +256,7 @@ const ScreenTwo = ({ onNext, onBack }) => {
 
   const roleOptions = [
     'Forest Manager',
-    'Researcher', 
+    'Researcher',
     'Conservation Officer',
     'Policy Maker',
     'Environmental Consultant',
@@ -271,7 +269,7 @@ const ScreenTwo = ({ onNext, onBack }) => {
   const goalOptions = [
     'Forest Conservation',
     'Reforestation Projects',
-    'Biodiversity Monitoring', 
+    'Biodiversity Monitoring',
     'Carbon Sequestration',
     'Sustainable Logging',
     'Research & Data Collection',
@@ -296,7 +294,7 @@ const ScreenTwo = ({ onNext, onBack }) => {
       ...prev,
       [field]: value
     }));
-    
+
     const error = validateField(field, value);
     setErrors(prev => ({
       ...prev,
@@ -376,8 +374,8 @@ const ScreenTwo = ({ onNext, onBack }) => {
           {/* Demo Call */}
           <div className="space-y-3">
             <Label>Would you like a demo call from us?</Label>
-            <RadioGroup 
-              value={formData.wantsDemo} 
+            <RadioGroup
+              value={formData.wantsDemo}
               onValueChange={(value) => handleFieldChange('wantsDemo', value)}
               className="flex space-x-6"
             >

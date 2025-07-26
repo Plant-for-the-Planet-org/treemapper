@@ -102,7 +102,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return (
         <div className="flex justify-center items-center h-full">
           <div className="text-center">
-            <p className="text-gray-600 mb-4">Please select an organization to continue</p>
+            {/* <p className="text-gray-600 mb-4">Please select an organization to continue</p> */}
             <Spinner />
           </div>
         </div>

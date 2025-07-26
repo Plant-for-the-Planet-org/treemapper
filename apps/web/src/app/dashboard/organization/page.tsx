@@ -14,6 +14,8 @@ import useHomeStore from '@shared-core/store/useHomeStore';
 import { motion, AnimatePresence } from 'framer-motion';
 
 
+import Onboarding from '../onboarding/page';
+
 
 
 const submitPartnerInquiry = async (accessToken: string, formData: any) => {
@@ -190,6 +192,7 @@ const PartnerModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 
 // Main Component
 export default function OrganizationSelector() {
+  return <Onboarding/>
   const router = useRouter();
   const [isTestingMode, setIsTestingMode] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
