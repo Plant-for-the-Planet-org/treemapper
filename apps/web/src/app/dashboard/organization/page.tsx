@@ -7,20 +7,14 @@ import { PageHeader } from './components/PageHeader';
 import { useToken } from '@/context/useTokenContext';
 import { toast } from 'react-toastify';
 import Spinner from '@/component/Spinner';
-import { Info, X, Mail, Phone, MapPin } from 'lucide-react';
+import { Info, X, Mail, Phone, MapPin, AlertCircle, RefreshCw } from 'lucide-react';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { getAllMyOrg, getMyDetails, selectOrg } from '@shared-core/fetchApi/api.fetch';
 import useHomeStore from '@shared-core/store/useHomeStore';
+import { motion, AnimatePresence } from 'framer-motion';
 
 
 
-const assignToDevOrg = async (accessToken: string) => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve({ statusCode: 200, data: { orgId: 'dev-org-id' } });
-    }, 1000);
-  });
-};
 
 const submitPartnerInquiry = async (accessToken: string, formData: any) => {
   // TODO: Implement API call to submit partner inquiry
@@ -197,59 +191,91 @@ const PartnerModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => voi
 // Main Component
 export default function OrganizationSelector() {
   const router = useRouter();
-  const [isLoading, setLoading] = useState(false);
   const [isTestingMode, setIsTestingMode] = useState(false);
   const [selectedOrgId, setSelectedOrgId] = useState<number | null>(null);
   const [showPartnerModal, setShowPartnerModal] = useState(false);
-  const [organizations, setOrganizations] = useState([])
-  const [userLoading, setUserLoading] = useState(true)
-  const changeOrgType = useHomeStore(state => state.setOrgType)
-  const { accessToken } = useToken()
+  const [isProceeding, setIsProceeding] = useState(false)
+  const [organizations, setOrganizations] = useState([]);
+  const [userLoading, setUserLoading] = useState(true);
+
+  // Error handling states
+  const [hasError, setHasError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
+  const [errorMessage, setErrorMessage] = useState('');
+
+  const changeOrgType = useHomeStore(state => state.setOrgType);
+  const { accessToken } = useToken();
   const User = useUserStore((state) => state.user);
 
+  const MAX_RETRIES = 3;
+
   useEffect(() => {
-    if (accessToken) {
-      fetchUser()
+    fetchUserWithRetry();
+  }, []);
+
+  const fetchUserWithRetry = async (attempt = 1) => {
+    try {
+      await fetchUser();
+    } catch (error) {
+      if (attempt < MAX_RETRIES) {
+        setRetryCount(attempt);
+        const delay = Math.pow(2, attempt - 1) * 1000;
+        setTimeout(() => {
+          fetchUserWithRetry(attempt + 1);
+        }, delay);
+      } else {
+        setHasError(true);
+        setRetryCount(MAX_RETRIES);
+        setErrorMessage('Failed to load user details');
+        setUserLoading(false);
+      }
     }
-  }, [])
+  };
 
   const fetchUser = async () => {
     try {
       const res = await getMyDetails(accessToken || '');
       if (res && res.statusCode !== 200) {
-        throw new Error('Failed to fetch user')
+        throw new Error('Failed to fetch user details');
       }
-      useUserStore.getState().setUser(res.data)
-        await fetchUserOrg()
-    } catch (err) {
-      console.error(err)
-      useUserStore.getState().clearUser()
-    } finally {
+      useUserStore.getState().setUser(res.data);
       setUserLoading(false)
+      setHasError(false);
+      setErrorMessage('');
+      await fetchUserOrg();
+    } catch (err) {
+      console.error('Error fetching user:', err);
+      useUserStore.getState().clearUser();
+      setUserLoading(true)
+      setHasError(false);
+      setRetryCount(0);
+      setErrorMessage('');
+      throw err; // Re-throw to trigger retry logic
     }
-  }
+  };
 
   const fetchUserOrg = async () => {
     try {
       const res = await getAllMyOrg(accessToken || '');
       if (res && res.statusCode !== 200) {
-        throw new Error('Failed to fetch user')
+        throw new Error('Failed to fetch organizations');
       }
-      setOrganizations(res.data)
+      setOrganizations(res.data);
     } catch (err) {
-      console.error(err)
+      console.error('Error fetching organizations:', err);
     }
-  }
+  };
 
 
 
-
-
+  const handleReloadPage = () => {
+    window.location.reload();
+  };
 
   const handleTestingToggle = useCallback((enabled: boolean) => {
     setIsTestingMode(enabled);
     if (enabled) {
-      setSelectedOrgId(null); // Clear any selected organization
+      setSelectedOrgId(null);
     }
   }, []);
 
@@ -257,52 +283,120 @@ export default function OrganizationSelector() {
     if (selectedOrgId === orgId) {
       setSelectedOrgId(() => null);
       setIsTestingMode(false);
-      return
+      return;
     }
     setSelectedOrgId(orgId);
-    setIsTestingMode(false); // Disable testing mode when org is selected
-  }
+    setIsTestingMode(false);
+  };
 
   const handleContinueToDashboard = useCallback(async () => {
-    setLoading(true);
+    setIsProceeding(true)
     try {
-      let payload = {}
+      let payload = {};
       if (isTestingMode) {
-        payload["devMode"] = true
+        payload["devMode"] = true;
       } else if (selectedOrgId) {
-        payload["selectedOrg"] = selectedOrgId
+        payload["selectedOrg"] = selectedOrgId;
       }
-      const response = await selectOrg(accessToken, payload)
+      const response = await selectOrg(accessToken, payload);
       if (response.statusCode === 200 || response.statusCode === 201) {
-        changeOrgType(isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
-        localStorage.setItem('orgId', isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public')
-        router.replace('/dashboard');
+        changeOrgType(isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public');
+        localStorage.setItem('orgId', isTestingMode ? 'dev' : selectedOrgId ? 'private' : 'public');
+        router.replace('/dashboard/overview');
       } else {
-        throw response.message
+        throw response.message;
       }
+      setIsProceeding(false)
+
     } catch (error) {
+      setIsProceeding(false)
+
       toast.error('Failed to proceed');
-      setLoading(false);
     }
   }, [isTestingMode, selectedOrgId, accessToken, router]);
 
   const canProceed = isTestingMode || selectedOrgId !== null;
+
+  // Error UI Component
+  const ErrorUI = () => (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      className="min-h-screen bg-gray-50 flex items-center justify-center p-4"
+    >
+      <div className="max-w-md w-full bg-white rounded-xl shadow-lg border border-gray-200 p-8 text-center">
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={{ delay: 0.2, type: "spring" }}
+          className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6"
+        >
+          <AlertCircle className="w-8 h-8 text-red-600" />
+        </motion.div>
+
+        <h2 className="text-xl font-semibold text-gray-900 mb-4">
+          Unable to Load User Details
+        </h2>
+
+        <p className="text-gray-600 mb-6">
+          {errorMessage || 'We encountered an issue while loading your information. Please try again.'}
+        </p>
+
+        {/* <div className="text-sm text-gray-500 mb-8">
+          Attempted {retryCount} of {MAX_RETRIES} times
+        </div> */}
+
+        <div className="space-y-3">
+          <motion.button
+            whileHover={{ scale: 1.02 }}
+            whileTap={{ scale: 0.98 }}
+            onClick={handleReloadPage}
+            className="w-full bg-gray-100 text-gray-700 px-6 py-3 rounded-lg font-medium hover:bg-gray-200 transition-colors"
+          >
+            Reload Page
+          </motion.button>
+        </div>
+      </div>
+    </motion.div>
+  );
+
+  // Loading UI with retry indication
+  const LoadingUI = () => (
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="text-center">
+        <Spinner />
+      </div>
+    </div>
+  );
+
   if (userLoading) {
-    return (<div style={{ display: 'flex', height: '100vh', width: '100vw', justifyContent: 'center', alignItems: 'center' }}>
-      <Spinner />
-    </div>)
+    return <LoadingUI />
   }
+
+  if (hasError) {
+    return <ErrorUI />
+  }
+
+  function getName(input) {
+  // If the string contains any digits, return empty string
+  if (/\d/.test(input)) return '';
+
+  // Match everything from the start until a special character (non-letter)
+  const match = input.match(/^[a-zA-Z]+/);
+  return match ? match[0] : '';
+}
+
   return (
     <div className="h-full bg-gray-50 flex flex-col w-full">
       {/* Main Content */}
-
       <main className="flex-1 w-full px-4 sm:px-6 lg:px-8 py-8 overflow-y-auto">
         <PageHeader
-          title="Welcome to TreeMapper"
+          title={`👋 hey ${User && getName(User.displayName)}`}
           description="Choose how you'd like to get started with our platform."
           canProceed={canProceed}
           handleContinueToDashboard={handleContinueToDashboard}
-          isLoading={isLoading}
+          isLoading={isProceeding}
         />
 
         <div className="max-w-8xl mx-auto space-y-8">
@@ -317,7 +411,7 @@ export default function OrganizationSelector() {
               </Tooltip>
             </div>
             <p className="text-gray-600 mb-6">
-              Interested in trying TreeMapper’s features without making real changes?
+              Interested in trying TreeMapper's features without making real changes?
             </p>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-700">No</span>
@@ -381,7 +475,7 @@ export default function OrganizationSelector() {
               <div className={`grid gap-4 ${isTestingMode ? 'opacity-50 pointer-events-none' : ''}`}>
                 {organizations.map((org) => (
                   <div
-                    key={org.id}
+                    key={org.uid}
                     onClick={() => !isTestingMode && handleSelectOrganization(org.uid)}
                     className={`p-4 border-2 rounded-lg cursor-pointer transition-all ${selectedOrgId === org.uid
                       ? 'border-[#007A49] bg-green-50'
@@ -400,8 +494,6 @@ export default function OrganizationSelector() {
               )}
             </div>
           )}
-
-
         </div>
       </main>
 
