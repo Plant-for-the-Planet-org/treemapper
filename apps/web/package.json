@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@auth0/nextjs-auth0": "3.7.0",
+    "@turf/turf": "^7.0.0",
     "animal-avatar-generator": "^1.2.0",
     "crypto": "^1.0.1",
     "dotenv": "^16.5.0",
@@ -21,10 +22,10 @@
     "react": "18.3.1",
     "react-dom": "18.2.0",
     "react-dropzone": "^14.3.8",
-    "@turf/turf": "^7.0.0",
     "react-map-gl": "^8.0.4",
     "react-toastify": "^11.0.5",
     "recharts": "^3.1.0",
+    "shadcn": "^2.9.3",
     "shared-core": "*",
     "uuid": "^11.1.0",
     "xlsx": "^0.18.5"
