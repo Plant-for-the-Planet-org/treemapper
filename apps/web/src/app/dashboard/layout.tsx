@@ -19,7 +19,8 @@ const STANDALONE_ROUTES = [
   'newsite',
   'bulkupload',
   'new-intervention',
-  'organization'
+  'organization',
+  'onboarding'
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
