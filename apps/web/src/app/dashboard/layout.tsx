@@ -136,6 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <TokenProvider accessToken={accessToken}>
+      <div className='parent'>
       <div className="app-container">
         <div className="app-content">
           <TestingModeManager devMode={orgType === 'dev'} />
@@ -150,6 +151,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           
           {renderMainContent()}
         </div>
+      </div>
       </div>
     </TokenProvider>
   );

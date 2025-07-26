@@ -55,7 +55,7 @@ body {
   
   /* Wrapper for screens larger than 1920x934 */
   @media (min-width: 1921px) or (min-height: 935px) {
-    body {
+    .parent {
       display: flex;
       justify-content: center;
       align-items: center;

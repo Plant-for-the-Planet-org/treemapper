@@ -80,7 +80,7 @@ export const ScreenOne = ({ formData, updateFormData, onNext }) => {
                     transition={{ delay: 0.2 }}
                     className="text-4xl font-bold text-white mb-3 tracking-tight"
                 >
-                    Set up your project
+                    Get started with TreeMapper
                 </motion.h1>
                 <motion.p
                     initial={{ y: 20, opacity: 0 }}
@@ -88,7 +88,7 @@ export const ScreenOne = ({ formData, updateFormData, onNext }) => {
                     transition={{ delay: 0.3 }}
                     className="text-lg text-white/80"
                 >
-                    Get started with TreeMapper App
+                    Set up your project
                 </motion.p>
             </div>
 
@@ -131,7 +131,7 @@ export const ScreenOne = ({ formData, updateFormData, onNext }) => {
                 className="mb-12"
             >
                 <label className="block text-base font-semibold text-white mb-6">
-                    Select Plan
+                    What are you using TreeMapper for?
                 </label>
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                     {plans.map((plan, index) => (
@@ -143,8 +143,8 @@ export const ScreenOne = ({ formData, updateFormData, onNext }) => {
                             whileTap={{ scale: 0.98 }}
                             onClick={() => handlePlanSelect(plan.id)}
                             className={`relative p-6 rounded-2xl cursor-pointer transition-all duration-300 backdrop-blur-sm ${formData.selectedPlan === plan.id
-                                    ? 'bg-white/20 border-2 border-white/40 shadow-xl'
-                                    : 'bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30'
+                                ? 'bg-white/20 border-2 border-white/40 shadow-xl'
+                                : 'bg-white/5 border border-white/20 hover:bg-white/10 hover:border-white/30'
                                 }`}
                             style={{
                                 boxShadow: formData.selectedPlan === plan.id
@@ -199,8 +199,8 @@ export const ScreenOne = ({ formData, updateFormData, onNext }) => {
                     onClick={onNext}
                     disabled={!canProceed()}
                     className={`px-8 py-4 rounded-2xl text-base font-semibold flex items-center transition-all duration-300 ${canProceed()
-                            ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-xl hover:shadow-2xl hover:from-emerald-500 hover:to-green-500'
-                            : 'bg-white/10 text-white/40 cursor-not-allowed'
+                        ? 'bg-gradient-to-r from-emerald-600 to-green-600 text-white shadow-xl hover:shadow-2xl hover:from-emerald-500 hover:to-green-500'
+                        : 'bg-white/10 text-white/40 cursor-not-allowed'
                         }`}
                     style={{
                         boxShadow: canProceed() ? '0 10px 30px rgba(0, 122, 73, 0.4)' : 'none'
