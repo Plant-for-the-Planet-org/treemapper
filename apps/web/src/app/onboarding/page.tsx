@@ -88,8 +88,6 @@ const Onboarding = () => {
             {currentScreen === 2 && (
               <ScreenTwo
                 key="screen2"
-                formData={formData}
-                updateFormData={updateFormData}
                 onNext={handleNext}
                 onBack={handleBack}
               />

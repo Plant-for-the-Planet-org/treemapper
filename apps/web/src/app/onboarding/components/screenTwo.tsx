@@ -1,10 +1,32 @@
 import { motion } from "framer-motion";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
-export const ScreenTwo = ({ formData, updateFormData, onNext, onBack }) => {
+export const ScreenTwo = ({ onNext, onBack }) => {
+  // Local state for all form data
+  const [formData, setFormData] = useState({
+    organizationName: '',
+    organizationType: '',
+    organizationSize: '',
+    role: '',
+    primaryGoal: '',
+    areaSize: '',
+    projectRole: '',
+    projectDuration: '',
+    isNewProject: '',
+    hasMonitoring: '',
+    trackingTool: '',
+    premiumFeatures: [],
+    wantsDemo: '',
+    wantsContact: '',
+    email: '',
+    phone: ''
+  });
+
   const [errors, setErrors] = useState({});
+  const [touched, setTouched] = useState({});
 
+  // Form options
   const roleOptions = [
     'Forest Manager',
     'Researcher',
@@ -63,8 +85,6 @@ export const ScreenTwo = ({ formData, updateFormData, onNext, onBack }) => {
 
   const trackingToolOptions = [
     'Excel',
-    'KoboToolbox',
-    'Open Data Kit',
     'Other digital tool',
     'None'
   ];
@@ -80,81 +100,117 @@ export const ScreenTwo = ({ formData, updateFormData, onNext, onBack }) => {
     'AI-based survival analysis'
   ];
 
-  const validateField = (field, value) => {
-    switch (field) {
-      case 'organizationName':
-        if (!value.trim()) return '';
-        if (value.length > 100) return 'Organization name must be less than 100 characters';
-        if (!/^[a-zA-Z0-9\s\-_&.,()]+$/.test(value)) return 'Invalid characters in organization name';
-        break;
-      case 'areaSize':
-        if (!value.trim()) return '';
-        if (!/^\d+(\.\d{1,2})?$/.test(value)) return 'Please enter a valid number (e.g., 100 or 100.50)';
-        if (parseFloat(value) <= 0) return 'Area size must be greater than 0';
-        if (parseFloat(value) > 1000000) return 'Area size seems too large';
-        break;
-      case 'email':
-        if (!value.trim()) return 'Email address is required';
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
-        break;
-      case 'phone':
-        if (!value.trim()) return '';
-        if (!/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) return 'Please enter a valid phone number';
-        break;
-    }
+  // Validation functions
+  const validateField = useCallback((field, value) => {
+    // switch (field) {
+    //   case 'organizationName':
+    //     if (!value.trim()) return '';
+    //     if (value.length > 100) return 'Organization name must be less than 100 characters';
+    //     if (!/^[a-zA-Z0-9\s\-_&.,()]+$/.test(value)) return 'Invalid characters in organization name';
+    //     break;
+    //   case 'areaSize':
+    //     if (!value.trim()) return '';
+    //     if (!/^\d+(\.\d{1,2})?$/.test(value)) return 'Please enter a valid number (e.g., 100 or 100.50)';
+    //     if (parseFloat(value) <= 0) return 'Area size must be greater than 0';
+    //     if (parseFloat(value) > 1000000) return 'Area size seems too large';
+    //     break;
+    //   case 'email':
+    //     if (!value.trim()) return 'Email address is required';
+    //     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Please enter a valid email address';
+    //     break;
+    //   case 'phone':
+    //     if (!value.trim()) return '';
+    //     if (!/^[\+]?[1-9][\d]{0,15}$/.test(value.replace(/[\s\-\(\)]/g, ''))) return 'Please enter a valid phone number';
+    //     break;
+    // }
     return '';
-  };
+  }, []);
 
-  const handleFieldChange = (field, value) => {
-    updateFormData({ [field]: value });
+  // Handle field changes with validation
+  const handleFieldChange = useCallback((field, value) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }));
     
+    // Mark field as touched
+    setTouched(prev => ({
+      ...prev,
+      [field]: true
+    }));
+
+    // Validate field
     const error = validateField(field, value);
     setErrors(prev => ({
       ...prev,
       [field]: error
     }));
-  };
+  }, [validateField]);
 
-  const handleCheckboxChange = (feature, checked) => {
-    const currentFeatures = formData.premiumFeatures || [];
-    const updatedFeatures = checked 
-      ? [...currentFeatures, feature]
-      : currentFeatures.filter(f => f !== feature);
-    
-    updateFormData({ premiumFeatures: updatedFeatures });
-  };
+  // Handle checkbox changes for premium features
+  const handleCheckboxChange = useCallback((feature, checked) => {
+    setFormData(prev => {
+      const currentFeatures = prev.premiumFeatures || [];
+      const updatedFeatures = checked 
+        ? [...currentFeatures, feature]
+        : currentFeatures.filter(f => f !== feature);
+      
+      return {
+        ...prev,
+        premiumFeatures: updatedFeatures
+      };
+    });
+  }, []);
 
-  const hasAnyInput = () => {
-    return formData.organizationName?.trim() || 
-           formData.role || 
-           formData.primaryGoal || 
-           formData.areaSize?.trim() ||
-           formData.organizationType ||
-           formData.organizationSize ||
-           formData.projectRole ||
-           formData.projectDuration ||
-           formData.isNewProject ||
-           formData.hasMonitoring ||
-           formData.trackingTool ||
-           (formData.premiumFeatures && formData.premiumFeatures.length > 0) ||
-           formData.wantsDemo ||
-           formData.wantsContact ||
-           formData.email?.trim() ||
-           formData.phone?.trim();
-  };
+  // Check if user has provided any input
+  const hasAnyInput = useCallback(() => {
+    return Object.entries(formData).some(([key, value]) => {
+      if (key === 'premiumFeatures') {
+        return Array.isArray(value) && value.length > 0;
+      }
+      return typeof value === 'string' && value.trim();
+    });
+  }, [formData]);
 
-  const canContinue = () => {
+  // // Validate email requirement when other fields are filled
+  // useEffect(() => {
+  //   if (hasAnyInput() && !formData.email.trim() && touched.email !== false) {
+  //     setErrors(prev => ({
+  //       ...prev,
+  //       email: 'Email is required when providing other information'
+  //     }));
+  //   } else if (formData.email.trim() || !hasAnyInput()) {
+  //     setErrors(prev => {
+  //       const newErrors = { ...prev };
+  //       if (newErrors.email === 'Email is required when providing other information') {
+  //         delete newErrors.email;
+  //       }
+  //       return newErrors;
+  //     });
+  //   }
+  // }, [formData.email, hasAnyInput, touched.email]);
+
+  // Check if form can be submitted
+  const canContinue = useCallback(() => {
     if (!hasAnyInput()) return true;
     
-    // If there's any input, email becomes required
-    if (hasAnyInput() && !formData.email?.trim()) {
-      setErrors(prev => ({ ...prev, email: 'Email is required when providing other information' }));
-      return false;
-    }
+    // If there's any input, email is required
+    // if (hasAnyInput() && !formData.email.trim()) {
+    //   return false;
+    // }
     
+    // Check for any validation errors
     const hasErrors = Object.values(errors).some(error => error);
     return !hasErrors;
-  };
+  }, [formData.email, hasAnyInput, errors]);
+
+  // Handle form submission
+  const handleSubmit = useCallback(() => {
+    if (canContinue()) {
+      // Pass the complete form data to parent
+      onNext(formData);
+    }
+  }, [formData, canContinue, onNext]);
 
   return (
     <motion.div
@@ -509,7 +565,7 @@ export const ScreenTwo = ({ formData, updateFormData, onNext, onBack }) => {
             {/* Email */}
             <div>
               <label className="block text-sm font-semibold text-white mb-3">
-                Email Address {hasAnyInput() && <span className="text-red-300">*</span>}
+                Email Address
               </label>
               <input
                 type="email"
@@ -567,7 +623,7 @@ export const ScreenTwo = ({ formData, updateFormData, onNext, onBack }) => {
         <motion.button
           whileHover={{ scale: canContinue() ? 1.05 : 1, x: canContinue() ? 5 : 0 }}
           whileTap={{ scale: canContinue() ? 0.95 : 1 }}
-          onClick={onNext}
+          onClick={handleSubmit}
           disabled={!canContinue()}
           className={`px-8 py-4 rounded-2xl text-base font-semibold flex items-center transition-all duration-300 ${
             canContinue()
