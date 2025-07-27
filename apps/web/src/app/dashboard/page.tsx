@@ -3,25 +3,29 @@
 import React, { useState } from 'react'
 import { useEffect } from "react";
 import { useUserStore } from "@shared-core/store/useUserStore";
-import { createNewPersonalProject, getMyDetails, getMyProjects } from "@shared-core/fetchApi/api.fetch";
+import { createNewPersonalProject, getMyDetails, getMyProjects, getMyWorkspaceProjects } from "@shared-core/fetchApi/api.fetch";
 import { useToken } from "@/context/useTokenContext";
+import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 import Spinner from '@/component/Spinner';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 import { sortProjects } from '@shared-core/utils/sortProjects';
+import NoProjectSelected from '@/component/NoProjectPlaceHolder';
+import useProjectStore from '@shared-core/store/useProjectStore';
+import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
 
 export default function page() {
 
   const { accessToken } = useToken()
   const User = useUserStore((state) => state.user);
+  const clearUser = useUserStore((state) => state.clearUser);
+
   const [errorUser, setErrorUser] = useState(false)
   const [retry, setRetry] = useState(3)
-
-  const organizationId = localStorage.getItem('orgId');
-  if (!organizationId) {
-    return null
-  }
+  const router = useRouter()
+  const [personalProjectLoading, setPersonalProjectLoading] = useState(false)
+  const { error, updatePrjError, clearPrjError, addProjects, updateProjectLoading, addWorkspace } = useProjectStore(state => state);
 
   useEffect(() => {
     if (accessToken && !User) {
@@ -37,6 +41,15 @@ export default function page() {
       }
       useUserStore.getState().setUser(res.data)
       setRetry(() => 3)
+      if (res.data && !res.data.primaryWorkspace) {
+        router.replace('/dashboard/onboarding')
+        return
+      }
+      if (res.data && !res.data.primaryProject) {
+        setPersonalProjectLoading(true)
+        await createNewProject()
+        return;
+      }
       await fetchWorkspaceAndProjects()
     } catch (err) {
       setRetry((prevRetry) => {
@@ -45,7 +58,6 @@ export default function page() {
           setErrorUser(true)
           useUserStore.getState().clearUser()
         } else {
-          // Use setTimeout to avoid blocking and allow state to update
           setTimeout(() => fetchUser(), 5000)
         }
         return newRetry
@@ -53,18 +65,50 @@ export default function page() {
     }
   }
 
-  function createProjectTitle(name: string) {
-    const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    return `${formattedName}'s personal project`;
-  }
-
   const fetchWorkspaceAndProjects = async () => {
     try {
-      const response = await getMyProjects(accessToken)
-
+      const response = await getMyWorkspaceProjects(accessToken)
+      if(response.statusCode===200){
+       addProjects(response.data.projects) 
+       addWorkspace(response.data.workspaces)
+       updateProjectLoading(false)
+       clearPrjError()
+       router.replace('/dashboard/overview');
+       return
+      }
+      throw ''
     } catch (error) {
-
+      updatePrjError("Error Occured while Creating project")
+      setPersonalProjectLoading(false)
     }
+  }
+
+  const createNewProject = async () => {
+    try {
+      const response = await createNewPersonalProject(accessToken, {
+      })
+      if (response.statusCode !== 200 || response.statusCode !== 201) {
+        updatePrjError("Error Occured while Creating project")
+        setPersonalProjectLoading(false)
+        return
+      }
+      await fetchWorkspaceAndProjects()
+    } catch (error) {
+      updatePrjError("Error Occured while Creating project")
+      setPersonalProjectLoading(false)
+    }
+  }
+
+
+  if (personalProjectLoading) {
+    return <NoProjectSelected />
+  }
+
+  if (error) {
+    return <ErrorLoadingProject onRefresh={() => {
+      clearUser()
+      router.replace('/')
+    }} />
   }
 
 

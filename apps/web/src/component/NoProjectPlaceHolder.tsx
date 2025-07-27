@@ -3,7 +3,7 @@
 import { Trees, Sparkles, ArrowRight } from 'lucide-react';
 // import ProjectInviteModal from './ProjectInviteModal';
 
-export default function NoProjectSelected({ handleCreateProject }: { handleCreateProject: () => void }) {
+export default function NoProjectSelected() {
 
 
     return (
@@ -27,7 +27,7 @@ export default function NoProjectSelected({ handleCreateProject }: { handleCreat
                 </h3>
 
                 <p className="text-gray-600 mb-6 leading-relaxed">
-                   Creating new personal project....
+                   Creating new project....
                 </p>
 
                 {/* Call to Action Button (Optional) */}

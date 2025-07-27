@@ -135,5 +135,6 @@ export interface ProjectWithUserRoleI {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
+  workspace: string,
   "userRole": string
 }

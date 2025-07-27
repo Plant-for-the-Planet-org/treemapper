@@ -1,14 +1,15 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import {  ChevronLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import Spinner from '@/component/Spinner';
 
-export const ScreenTwo = ({ onNext, onBack }) => {
+export const ScreenTwo = ({ onNext, onBack, loading }) => {
   const [formData, setFormData] = useState({
     organizationName: '',
     role: '',
@@ -42,7 +43,7 @@ export const ScreenTwo = ({ onNext, onBack }) => {
     'Other'
   ];
 
-  const validateField = useCallback((field, value) => {
+  const validateField = (field, value) => {
     switch (field) {
       case 'organizationName':
         if (!value.trim()) return '';
@@ -51,9 +52,9 @@ export const ScreenTwo = ({ onNext, onBack }) => {
         break;
     }
     return '';
-  }, []);
+  }
 
-  const handleFieldChange = useCallback((field, value) => {
+  const handleFieldChange = (field, value) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
@@ -64,22 +65,22 @@ export const ScreenTwo = ({ onNext, onBack }) => {
       ...prev,
       [field]: error
     }));
-  }, [validateField]);
+  }
 
-  const hasAnyInput = useCallback(() => {
+  const hasAnyInput = () => {
     return Object.values(formData).some(value => value && value.trim());
-  }, [formData]);
+  }
 
-  const canContinue = useCallback(() => {
+  const canContinue = () => {
     const hasErrors = Object.values(errors).some(error => error);
     return !hasErrors;
-  }, [errors]);
+  }
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = () => {
     if (canContinue()) {
       onNext(formData);
     }
-  }, [formData, canContinue, onNext]);
+  }
 
   return (
     <motion.div
@@ -184,11 +185,15 @@ export const ScreenTwo = ({ onNext, onBack }) => {
 
         <Button
           onClick={handleSubmit}
-          disabled={!canContinue()}
+          disabled={!canContinue() || loading}
           className="bg-gray-900 hover:bg-gray-800 cursor-pointer"
         >
-          {hasAnyInput() ? 'Continue to Dashboard' : 'Skip and Continue'}
-          <ArrowRight className="w-4 h-4 ml-2" />
+          {loading ? <>
+            Processing
+            <Spinner />
+          </> : <>
+            {hasAnyInput() ? 'Continue to Dashboard' : 'Skip and Continue'}
+            <ArrowRight className="w-4 h-4 ml-2" /></>}
         </Button>
       </div>
     </motion.div>

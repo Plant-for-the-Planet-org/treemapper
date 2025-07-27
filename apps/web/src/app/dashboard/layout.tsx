@@ -5,8 +5,6 @@ import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardHeaderWeb from '@/component/header/MainHeader';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
-import NoProjectSelected from '@/component/NoProjectPlaceHolder';
-import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
 import { TestingModeManager } from '@/component/TestingModeManager';
 import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
@@ -24,7 +22,7 @@ const STANDALONE_ROUTES = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
-  const { selectedProject, loading, error, clearPrjError } = useProjectStore(state => state);
+  const { loading, error } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
   const router = useRouter();
   const pathname = usePathname();
@@ -37,7 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
 
-    useEffect(() => {
+  useEffect(() => {
     if (!tokenLoading && !user) {
       router.push('/login');
       return;
@@ -45,7 +43,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     const organizationId = localStorage.getItem('orgId');
     if (!organizationId && currentSection !== 'onboarding') {
-      router.push('/dashboard/onboarding');
+      router.push('/dashboard');
     }
   }, [user, tokenLoading, router, currentSection]);
 
@@ -56,11 +54,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // Navigation handlers
   const handleLogout = () => {
     window.location.href = '/api/auth/logout';
-  };
-
-  const handleRefresh = () => {
-    window.location.reload();
-    clearPrjError();
   };
 
   const handleCreateProject = () => {
@@ -81,7 +74,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   if (tokenLoading || !user) {
     return (
-      <div className="flex justify-center items-center h-full">
+      <div className="flex justify-center items-center h-full w-full" style={{ width: '100vw', height: '100vh' }}>
         <Spinner />
       </div>
     );
@@ -93,23 +86,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return children;
     }
 
-    if (error) {
-      return <ErrorLoadingProject onRefresh={handleRefresh} />;
-    }
 
-    const projectExists = localStorage.getItem('project')
-
-    if (projectExists && !selectedProject) {
-      return <NoProjectSelected handleCreateProject={handleCreateProject} />;
-    }
-
-    if (loading) {
-      return (
-        <div className="flex justify-center items-center h-full">
-          <Spinner />
-        </div>
-      );
-    }
 
 
     return children;

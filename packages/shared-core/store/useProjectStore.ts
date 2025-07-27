@@ -11,6 +11,16 @@ interface ProjectStore {
   clearPrjError: () => void
   loading?: boolean
   error?: string
+  workspace: Array<{
+    name: string,
+    uid: string,
+    role: string
+  }>
+  addWorkspace: (p: Array<{
+    name: string,
+    uid: string,
+    role: string
+  }>) => void
 }
 
 // Create the typed store
@@ -23,10 +33,12 @@ const useStore = create<ProjectStore>(set => ({
     return ({ ...state, selectedProject: p })
   }),
   updateProjectLoading: b => set(state => ({ ...state, loading: b })),
-  loading: false,
+  loading: true,
   error: '',
   updatePrjError: (error: string) => set(state => ({ ...state, error, loading: false })),
-  clearPrjError: () => set(state => ({ ...state, error: '', loading: true }))
+  clearPrjError: () => set(state => ({ ...state, error: '', loading: true })),
+  workspace: [],
+  addWorkspace: p => set(state => ({ ...state, workspace: p })),
 }))
 
 export default useStore

@@ -26,9 +26,7 @@ const ProjectDropdown = ({
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
-  const [loading, setLoading] = useState(false)
-  const { projects, selectProject, selectedProject, addProjects, updatePrjError, updateProjectLoading } = useProjectStore((state) => state);
-  const { user } = useUserStore((state) => state);
+  const { projects, selectProject, selectedProject, } = useProjectStore((state) => state);
   const router = useRouter()
  
   const rolePriority = {

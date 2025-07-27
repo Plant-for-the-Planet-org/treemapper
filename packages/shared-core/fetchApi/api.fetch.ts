@@ -23,6 +23,12 @@ export const getMyDetails = async (token: string) => {
   return result
 }
 
+export const startOnboarding = async (token: string, params: any) => {
+  const uri = `${postUrlApi.onboarding}`
+  const result = await fetchPostCall(uri, params, token)
+  return result
+}
+
 export const generatePreSignUrl = async (token: string, params: any) => {
   const uri = `${postUrlApi.preSignUrl}`;
   const result = await fetchPostCall(uri, params, token);
@@ -105,6 +111,13 @@ export const getTeamMemebers = async (token: string, id: string) => {
 
 export const getMyProjects = async (token: string) => {
   const uri = `${getUrlApi.projects}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
+export const getMyWorkspaceProjects = async (token: string) => {
+  const uri = `${getUrlApi.workspce}`
   const result = await fetchGetCall(uri, token)
   return result
 }

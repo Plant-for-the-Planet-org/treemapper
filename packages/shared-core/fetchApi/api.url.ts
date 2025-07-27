@@ -12,7 +12,7 @@ function getBaseUrl(): string {
 
   // For web apps (both client and server), use Next.js proxy
   // This works for both SSR and client-side calls
-  return '/api/server';
+  return `${process.env.NEXT_PUBLIC_SERVER_URL}/api`;
 }
 
 const baseUrl = getBaseUrl();
@@ -36,7 +36,7 @@ export const postUrlApi = {
   exportData: `${baseUrl}/analytics`,
   createNewOrg: `${baseUrl}/organizations`,
   selectOrg: `${baseUrl}/organizations/primary`,
-
+  onboarding: `${baseUrl}/users/onboarding`
 } as const;
 
 
@@ -45,6 +45,7 @@ export const getUrlApi = {
   me: `${baseUrl}/users/me`,
   checkMigration: `${baseUrl}/migration/check`,
   projects: `${baseUrl}/projects`,
+  workspce: `${baseUrl}/projects/workspace`,
   inviteStatus: `${baseUrl}/projects/invites`,
   teamMembers: `${baseUrl}/projects`,
   searchSpeciesSci: `${baseUrl}/scientific-species/search`,
