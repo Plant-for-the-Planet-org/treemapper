@@ -6,11 +6,13 @@ interface ProjectStore {
   selectedProject: ProjectWithUserRoleI | null
   addProjects: (p: ProjectWithUserRoleI[]) => void
   selectProject: (p: ProjectWithUserRoleI) => void
-  updatePrjError: (error: string) => void
-  updateProjectLoading: (b: boolean) => void,
-  clearPrjError: () => void
   loading?: boolean
   error?: string
+  selectedWorkspce: {
+    name: string,
+    uid: string,
+    role: string
+  } | null
   workspace: Array<{
     name: string,
     uid: string,
@@ -21,6 +23,11 @@ interface ProjectStore {
     uid: string,
     role: string
   }>) => void
+  setDefaultWorkspce: (p: {
+    name: string,
+    uid: string,
+    role: string
+  }) => void
 }
 
 // Create the typed store
@@ -32,13 +39,12 @@ const useStore = create<ProjectStore>(set => ({
     localStorage.setItem('project', p ? p.uid : '')
     return ({ ...state, selectedProject: p })
   }),
-  updateProjectLoading: b => set(state => ({ ...state, loading: b })),
-  loading: true,
+  loading: false,
   error: '',
-  updatePrjError: (error: string) => set(state => ({ ...state, error, loading: false })),
-  clearPrjError: () => set(state => ({ ...state, error: '', loading: true })),
   workspace: [],
   addWorkspace: p => set(state => ({ ...state, workspace: p })),
+  setDefaultWorkspce: p => set(state => ({ ...state, selectedWorkspce: p })),
+  selectedWorkspce: null
 }))
 
 export default useStore

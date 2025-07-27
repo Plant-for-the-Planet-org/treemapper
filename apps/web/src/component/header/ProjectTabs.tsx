@@ -10,6 +10,10 @@ import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useRouter } from 'next/navigation';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { selectOrg } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext'
+import { toast } from 'react-toastify';
 
 interface Props {
   createNewProject: () => void;
@@ -37,13 +41,16 @@ const ProjectDropdown = ({
   const [isOpen, setIsOpen] = useState(false);
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set());
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
-  const { projects, selectProject, selectedProject } = useProjectStore((state) => state);
+  const { projects, selectProject, selectedProject, selectedWorkspce, setDefaultWorkspce, workspace } = useProjectStore((state) => state);
   const router = useRouter();
+  const { accessToken } = useToken()
+
+
 
   // Group projects by workspace and sort
   const groupedProjects = () => {
     const groups: { [key: string]: WorkspaceGroup } = {};
-    
+
     projects.forEach(project => {
       const workspaceKey = project.workspace.uid;
       if (!groups[workspaceKey]) {
@@ -78,10 +85,40 @@ const ProjectDropdown = ({
     setCollapsedWorkspaces(newCollapsed);
   };
 
-  const handleProjectSelect = (project: ProjectWithUserRoleI) => {
+  const handleProjectSelect = async (project: ProjectWithUserRoleI) => {
     setIsOpen(false);
-    selectProject(project);
+    const result = await selectProjectandWorkspace(project)
+    if (result) {
+      selectProject(project);
+      const finalWorkspace = workspace.filter(el => el.uid === project.workspace['uid'])
+      if (finalWorkspace.length > 0) {
+        setDefaultWorkspce(finalWorkspace[0])
+      }
+    } else {
+
+    }
   };
+
+  const selectProjectandWorkspace = async (project: ProjectWithUserRoleI) => {
+    const workspaceChange = project.workspace['uid'] !== selectedWorkspce.uid
+    console.log("DSC", workspaceChange)
+    if (workspaceChange) {
+      const response = await selectOrg(accessToken, {
+        workspaceUid: project.workspace['uid'],
+        projectUid: project.uid
+      })
+      if (response.statusCode === 200) {
+        return true
+      } else {
+        toast.error("Something went wrong")
+        return false
+      }
+    } else {
+      return true
+    }
+  }
+
+
 
   const workspaceGroups = groupedProjects();
 
@@ -142,7 +179,7 @@ const ProjectDropdown = ({
                   className="w-full justify-start h-auto p-2.5 bg-gray-900 hover:bg-gray-800 cursor-pointer"
                 >
                   <Plus className="w-4 h-4 mr-2.5 text-white" />
-                  <span style={{color:"white"}}>Create New Project</span>
+                  <span style={{ color: "white" }}>Create New Project</span>
                 </Button>
               </div>
 

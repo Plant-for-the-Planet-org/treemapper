@@ -103,6 +103,8 @@ export interface UserInterface {
   isActive: boolean;
   createdAt: string;
   migratedAt?: string;
+  primaryWorkspace: number;
+  primaryProject: number
 }
 
 export interface ProjectWithUserRoleI {
@@ -135,6 +137,6 @@ export interface ProjectWithUserRoleI {
   createdAt: Date;
   updatedAt: Date;
   deletedAt: Date | null;
-  workspace: string,
+  workspace: any,
   "userRole": string
 }

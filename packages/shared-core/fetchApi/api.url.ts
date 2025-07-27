@@ -36,7 +36,7 @@ export const postUrlApi = {
   exportData: `${baseUrl}/analytics`,
   createNewOrg: `${baseUrl}/organizations`,
   selectOrg: `${baseUrl}/organizations/primary`,
-  onboarding: `${baseUrl}/users/onboarding`
+  onboarding: `${baseUrl}/users/onboarding`,
 } as const;
 
 

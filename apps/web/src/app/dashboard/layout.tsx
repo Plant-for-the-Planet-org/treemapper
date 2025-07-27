@@ -27,7 +27,7 @@ const STANDALONE_ROUTES = [
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
-  const { addProjects, updateProjectLoading, addWorkspace } = useProjectStore(state => state);
+  const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
   const router = useRouter();
   const pathname = usePathname();
@@ -56,6 +56,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       return;
     }
   }, [user, tokenLoading, router, currentSection]);
+
+
+  useEffect(() => {
+    if (User) {
+      setDefaultProjectandWorkspace(projects, workspace)
+    }
+  }, [User, projects, workspace])
+
 
 
   useEffect(() => {
@@ -118,6 +126,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       setWorkspaceDetailsLoadingFailed(true)
     }
   }
+
+
+
+  const setDefaultProjectandWorkspace = (projects, workspace) => {
+    const projectFilter = projects.filter(el => el.id === User.primaryProject)
+    const workspaceFilter = workspace.filter(el => el.id === User.primaryWorkspace)
+    if (projectFilter.length > 0 && !selectedProject) {
+      selectProject(projectFilter[0])
+    }
+    if (workspaceFilter.length > 0 && !selectedWorkspce) {
+      setDefaultWorkspce(workspaceFilter[0])
+    }
+  }
+
+
 
   const createNewProject = async () => {
     setPersonalProjectFailed(false)
@@ -229,7 +252,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     if (personalProjectFailed || workspaceDetailsLoadingFailed) {
       return <ErrorLoadingProject onRefresh={() => {
-        router.replace('/')
+        window.location.reload()
       }} />
     }
 
