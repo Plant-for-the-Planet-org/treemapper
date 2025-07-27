@@ -1,8 +1,7 @@
-import { useEffect } from "react";
-import { useUserStore } from "@shared-core/store/useUserStore";
-import { getMyDetails } from "@shared-core/fetchApi/api.fetch";
-import { useToken } from "@/context/useTokenContext";
+
 import { Leaf } from 'lucide-react';
+import { useUserStore } from "@shared-core/store/useUserStore";
+
 
 const ProfileAvatar = ({
   altText = 'Profile picture',
@@ -11,28 +10,8 @@ const ProfileAvatar = ({
   openProfileSetting
 }) => {
 
-  const { accessToken } = useToken()
+
   const User = useUserStore((state) => state.user);
-
-
-  useEffect(() => {
-    if (accessToken && !User) {
-      fetchUser()
-    }
-  }, [])
-
-  const fetchUser = async () => {
-    try {
-      const res = await getMyDetails(accessToken || '');
-      if (res && res.statusCode !== 200) {
-        throw new Error('Failed to fetch user')
-      }
-      useUserStore.getState().setUser(res.data)
-    } catch (err) {
-      console.error(err)
-      useUserStore.getState().clearUser()
-    }
-  }
 
   return (
     <div className="relative inline-block">

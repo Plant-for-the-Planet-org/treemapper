@@ -1,7 +1,6 @@
 "use client";
 
 import { useRouter, usePathname } from 'next/navigation';
-import { useEffect } from 'react';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardHeaderWeb from '@/component/header/MainHeader';
 import { TokenProvider } from '@/context/useTokenContext';
@@ -11,15 +10,15 @@ import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
 import { TestingModeManager } from '@/component/TestingModeManager';
 import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
+import { useEffect } from 'react';
 
 // Define routes that don't need project selection or header
 const STANDALONE_ROUTES = [
   'profile',
-  'project', 
+  'project',
   'newsite',
   'bulkupload',
   'new-intervention',
-  'organization',
   'onboarding'
 ];
 
@@ -30,7 +29,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
 
-  // Get current section from pathname
   const getCurrentSection = (path: string): string => {
     const section = STANDALONE_ROUTES.find(route => path.includes(`/dashboard/${route}`));
     return section || 'default';
@@ -39,22 +37,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
 
-  // Handle authentication and organization redirect
-  useEffect(() => {
+    useEffect(() => {
     if (!tokenLoading && !user) {
       router.push('/login');
       return;
     }
 
     const organizationId = localStorage.getItem('orgId');
-    if (!organizationId && currentSection !== 'organization') {
-      router.push('/dashboard/organization');
+    if (!organizationId && currentSection !== 'onboarding') {
+      router.push('/dashboard/onboarding');
     }
   }, [user, tokenLoading, router, currentSection]);
 
-  // Check if organization is selected
-  const organizationId = localStorage.getItem('orgId');
-  const hasOrganization = !!organizationId;
+
+
+
 
   // Navigation handlers
   const handleLogout = () => {
@@ -90,33 +87,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
-  // Main content rendering
   const renderMainContent = () => {
-    // Always allow organization route to render
-    if (currentSection === 'organization') {
-      return children;
-    }
 
-    // If no organization selected, redirect (don't render children to prevent API calls)
-    if (!hasOrganization) {
-      return (
-        <div className="flex justify-center items-center h-full">
-          <div className="text-center">
-            {/* <p className="text-gray-600 mb-4">Please select an organization to continue</p> */}
-            <Spinner />
-          </div>
-        </div>
-      );
-    }
-
-    // For standalone routes (except organization), show children
     if (isStandaloneRoute) {
       return children;
     }
 
-    // For default route, handle project selection logic
     if (error) {
       return <ErrorLoadingProject onRefresh={handleRefresh} />;
+    }
+
+    const projectExists = localStorage.getItem('project')
+
+    if (projectExists && !selectedProject) {
+      return <NoProjectSelected handleCreateProject={handleCreateProject} />;
     }
 
     if (loading) {
@@ -127,9 +111,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       );
     }
 
-    if (!selectedProject) {
-      return <NoProjectSelected handleCreateProject={handleCreateProject} />;
-    }
 
     return children;
   };
@@ -137,21 +118,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   return (
     <TokenProvider accessToken={accessToken}>
       <div className='parent'>
-      <div className="app-container">
-        <div className="app-content">
-          <TestingModeManager devMode={orgType === 'dev'} />
-          
-          {/* Only show header for default route */}
-          {!isStandaloneRoute && (
-            <DashboardHeaderWeb 
-              token={accessToken} 
-              {...navigationHandlers}
-            />
-          )}
-          
-          {renderMainContent()}
+        <div className="app-container">
+          <div className="app-content">
+            <TestingModeManager devMode={orgType === 'dev'} />
+
+            {/* Only show header for default route */}
+            {!isStandaloneRoute && (
+              <DashboardHeaderWeb
+                token={accessToken}
+                {...navigationHandlers}
+              />
+            )}
+
+            {renderMainContent()}
+          </div>
         </div>
-      </div>
       </div>
     </TokenProvider>
   );

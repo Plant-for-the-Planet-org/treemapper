@@ -1,7 +1,170 @@
+'use client'
 
-import React from 'react'
-import Overview from './overview/component/Overview'
+import React, { useState } from 'react'
+import { useEffect } from "react";
+import { useUserStore } from "@shared-core/store/useUserStore";
+import { createNewPersonalProject, getMyDetails, getMyProjects } from "@shared-core/fetchApi/api.fetch";
+import { useToken } from "@/context/useTokenContext";
+import { motion } from 'framer-motion';
+import { XCircle } from 'lucide-react';
+import Spinner from '@/component/Spinner';
+import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
+import { sortProjects } from '@shared-core/utils/sortProjects';
 
 export default function page() {
-  return  <Overview /> 
+
+  const { accessToken } = useToken()
+  const User = useUserStore((state) => state.user);
+  const [errorUser, setErrorUser] = useState(false)
+  const [retry, setRetry] = useState(3)
+
+  const organizationId = localStorage.getItem('orgId');
+  if (!organizationId) {
+    return null
+  }
+
+  useEffect(() => {
+    if (accessToken && !User) {
+      fetchUser()
+    }
+  }, [accessToken, User])
+
+  const fetchUser = async () => {
+    try {
+      const res = await getMyDetails(accessToken || '');
+      if (res && res.statusCode !== 200) {
+        throw new Error('Failed to fetch user')
+      }
+      useUserStore.getState().setUser(res.data)
+      setRetry(() => 3)
+      await fetchWorkspaceAndProjects()
+    } catch (err) {
+      setRetry((prevRetry) => {
+        const newRetry = prevRetry - 1
+        if (newRetry <= 0) {
+          setErrorUser(true)
+          useUserStore.getState().clearUser()
+        } else {
+          // Use setTimeout to avoid blocking and allow state to update
+          setTimeout(() => fetchUser(), 5000)
+        }
+        return newRetry
+      })
+    }
+  }
+
+  function createProjectTitle(name: string) {
+    const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+    return `${formattedName}'s personal project`;
+  }
+
+  const fetchWorkspaceAndProjects = async () => {
+    try {
+      const response = await getMyProjects(accessToken)
+
+    } catch (error) {
+
+    }
+  }
+
+
+
+  // const fetchUserProjects = async () => {
+  //   if (loading) {
+  //     return
+  //   }
+  //   updateProjectLoading(true)
+  //   setLoading(true)
+  //   try {
+  //     if (response && response.statusCode == 200) {
+  //       if (response.data) {
+  //         const sortedResponse = sortProjects(response.data);
+  //         addProjects(sortedResponse)
+  //         if (sortedResponse.length > 0) {
+  //           selectProject(sortedResponse[0]);
+  //         } else {
+  //           const payLoad = {
+  //             "projectName": createProjectTitle(user?.displayName),
+  //             "projectType": 'personal',
+  //             "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
+  //           };
+  //           const resp = await createNewPersonalProject(token, payLoad)
+  //           if (resp && resp.data) {
+  //             const newProject = {
+  //               ...resp.data,
+  //               userRole: 'owner',
+  //             } as ProjectWithUserRoleI;
+  //             addProjects([newProject]);
+  //             selectProject(newProject);
+  //           } else {
+  //             updatePrjError(resp?.message || 'Failed to create personal project');
+  //           }
+  //         }
+  //       }
+  //       return
+  //     }
+  //     updatePrjError(response?.message || 'Failed to fetch projects');
+  //   } catch (error) {
+  //     updatePrjError(String(error) || 'Failed to fetch projects');
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }
+
+
+  if (errorUser) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          className="fixed inset-0 bg-green-100/30 backdrop-blur-sm"
+        />
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0.9, opacity: 0 }}
+          transition={{ type: 'spring', bounce: 0.3 }}
+          className="relative mx-4 w-full max-w-xl overflow-hidden rounded-3xl bg-white p-8 shadow-2xl border border-green-200"
+        >
+          <motion.div
+            key="failed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-6 text-center"
+          >
+            <div className="mb-5 flex items-center justify-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+                <XCircle size={24} />
+              </div>
+            </div>
+
+            <h3 className="text-xl font-bold text-red-800">
+              Error Occured
+            </h3>
+
+            <p className="text-gray-700">
+            </p>
+            <div className="space-y-4">
+              <p className="text-red-600 font-medium">
+                There was an error while fetching your details
+              </p>
+              <button
+                onClick={() => { window.location.reload() }}
+                className="cursor-pointer w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 transition hover:bg-gray-100"
+              >
+                Reload
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      </div>
+    )
+  }
+
+  return <div className='h-full w-full flex items-center justify-center'>
+    <Spinner />
+  </div>
 }

@@ -34,8 +34,6 @@ export const metadata: Metadata = {
     ],
     apple: '/apple-touch-icon.png',
   },
-  // Optional: Prevent other pages from overriding the title
-  // Remove this if you want some flexibility
   other: {
     'format-detection': 'telephone=no',
   }

@@ -30,60 +30,7 @@ const ProjectDropdown = ({
   const { projects, selectProject, selectedProject, addProjects, updatePrjError, updateProjectLoading } = useProjectStore((state) => state);
   const { user } = useUserStore((state) => state);
   const router = useRouter()
-  useEffect(() => {
-    if (user && !loading) {
-      fetchUserProjects()
-    }
-  }, [user])
-
-  function createProjectTitle(name: string) {
-    const formattedName = name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-    return `${formattedName}'s personal project`;
-  }
-
-  const fetchUserProjects = async () => {
-    if (loading) {
-      return
-    }
-    updateProjectLoading(true)
-    setLoading(true)
-    try {
-      const response = await getMyProjects(token)
-      if (response && response.statusCode == 200) {
-        if (response.data) {
-          const sortedResponse = sortProjects(response.data);
-          addProjects(sortedResponse)
-          if (sortedResponse.length > 0) {
-            selectProject(sortedResponse[0]);
-          } else {
-            const payLoad = {
-              "projectName": createProjectTitle(user?.displayName),
-              "projectType": 'personal',
-              "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
-            };
-            const resp = await createNewPersonalProject(token, payLoad)
-            if (resp && resp.data) {
-              const newProject = {
-                ...resp.data,
-                userRole: 'owner',
-              } as ProjectWithUserRoleI;
-              addProjects([newProject]);
-              selectProject(newProject);
-            } else {
-              updatePrjError(resp?.message || 'Failed to create personal project');
-            }
-          }
-        }
-        return
-      }
-      updatePrjError(response?.message || 'Failed to fetch projects');
-    } catch (error) {
-      updatePrjError(String(error) || 'Failed to fetch projects');
-    } finally {
-      setLoading(false)
-    }
-  }
-
+ 
   const rolePriority = {
     'owner': 1,
     'admin': 2,

@@ -18,12 +18,15 @@ const useStore = create<ProjectStore>(set => ({
   projects: [],
   selectedProject: null,
   addProjects: p => set(state => ({ ...state, projects: p, loading: false })),
-  selectProject: p => set(state => ({ ...state, selectedProject: p })),
-  updateProjectLoading:b => set(state => ({ ...state, loading: b })),
-  loading: true,
+  selectProject: p => set(state => {
+    localStorage.setItem('project', p ? p.uid : '')
+    return ({ ...state, selectedProject: p })
+  }),
+  updateProjectLoading: b => set(state => ({ ...state, loading: b })),
+  loading: false,
   error: '',
   updatePrjError: (error: string) => set(state => ({ ...state, error, loading: false })),
-  clearPrjError: () => set(state => ({ ...state, error: '', loading: true}))
+  clearPrjError: () => set(state => ({ ...state, error: '', loading: true }))
 }))
 
 export default useStore
