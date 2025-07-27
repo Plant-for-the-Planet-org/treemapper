@@ -58,7 +58,8 @@ const Onboarding = () => {
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      router.replace('/')
+      router.replace('/dashboard')
+      window.location.reload()
     } catch (error) {
       toast.error("Something went wrong")
       setLoading(false)
