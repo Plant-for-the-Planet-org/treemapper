@@ -49,7 +49,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
-
   useEffect(() => {
     if (!tokenLoading && !user) {
       router.push('/login');
@@ -116,7 +115,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       if (response.statusCode === 200) {
         addProjects(response.data.projects)
         addWorkspace(response.data.workspaces)
-        router.replace('/dashboard/overview');
+        if (currentSection === 'default') {
+          router.replace('/dashboard/overview');
+        }
         setWorkspaceDetailsLoading(false)
         return
       }
@@ -258,6 +259,11 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 
     if (isStandaloneRoute) {
+      if (!selectedProject) {
+        return <div className='h-full w-full flex items-center justify-center'>
+          <Spinner />
+        </div>
+      }
       return children;
     }
 
