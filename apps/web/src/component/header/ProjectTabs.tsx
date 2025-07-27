@@ -1,14 +1,14 @@
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, Plus, Folder, Crown, Shield, Users, Eye, User, Bell, Building } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Folder } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { cn } from '@/lib/utils';
 import NotificationBell from './NotificationIcon';
 import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { useUserStore } from '@shared-core/store/useUserStore';
-import { createNewPersonalProject, getMyProjects } from '@shared-core/fetchApi/api.fetch'
 import { useRouter } from 'next/navigation';
-import { sortProjects } from '@shared-core/utils/sortProjects';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 
 interface Props {
@@ -18,6 +18,16 @@ interface Props {
   token: string
 }
 
+interface WorkspaceGroup {
+  workspace: {
+    uid: string;
+    name: string;
+    slug: string;
+    type: 'Platform' | 'Private' | 'Development';
+  };
+  projects: ProjectWithUserRoleI[];
+}
+
 const ProjectDropdown = ({
   createNewProject,
   openProfileSetting,
@@ -25,163 +35,201 @@ const ProjectDropdown = ({
   token
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set());
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
-  const { projects, selectProject, selectedProject, } = useProjectStore((state) => state);
-  const router = useRouter()
- 
-  const rolePriority = {
-    'owner': 1,
-    'admin': 2,
-    'contributor': 3,
-    'viewer': 4,
-    'member': 5
-  };
+  const { projects, selectProject, selectedProject } = useProjectStore((state) => state);
+  const router = useRouter();
 
-  const getRoleIcon = (role: string) => {
-    switch (role) {
-      case 'owner': return <Crown className="w-3 h-3 text-yellow-600" />;
-      case 'admin': return <Shield className="w-3 h-3 text-blue-600" />;
-      case 'contributor': return <Users className="w-3 h-3 text-green-600" />;
-      case 'viewer': return <Eye className="w-3 h-3 text-gray-600" />;
-      default: return <User className="w-3 h-3 text-gray-600" />;
-    }
-  };
+  // Group projects by workspace and sort
+  const groupedProjects = () => {
+    const groups: { [key: string]: WorkspaceGroup } = {};
+    
+    projects.forEach(project => {
+      const workspaceKey = project.workspace.uid;
+      if (!groups[workspaceKey]) {
+        groups[workspaceKey] = {
+          workspace: project.workspace,
+          projects: []
+        };
+      }
+      groups[workspaceKey].projects.push(project);
+    });
 
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'owner': return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-      case 'admin': return 'bg-blue-50 text-blue-700 border-blue-200';
-      case 'contributor': return 'bg-green-50 text-green-700 border-green-200';
-      case 'viewer': return 'bg-gray-50 text-gray-700 border-gray-200';
-      default: return 'bg-gray-50 text-gray-700 border-gray-200';
-    }
+    // Sort projects within each workspace by creation date (newest first)
+    Object.values(groups).forEach(group => {
+      group.projects.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    });
+
+    // Sort workspaces alphabetically
+    return Object.values(groups).sort((a, b) => a.workspace.name.localeCompare(b.workspace.name));
   };
 
   const toggleDropdown = () => {
     setIsOpen(!isOpen);
   };
 
-  const handleProjectSelect = (projectId: ProjectWithUserRoleI) => {
-    setIsOpen(false);
-    selectProject(projectId)
+  const toggleWorkspace = (workspaceUid: string) => {
+    const newCollapsed = new Set(collapsedWorkspaces);
+    if (newCollapsed.has(workspaceUid)) {
+      newCollapsed.delete(workspaceUid);
+    } else {
+      newCollapsed.add(workspaceUid);
+    }
+    setCollapsedWorkspaces(newCollapsed);
   };
 
-  return (
-    <div className="flex flex-col w-full bg-white shadow-sm border-b border-gray-200">
-      {/* Top row with project dropdown and notification/profile */}
-      <div className="flex items-center w-full px-3 py-2">
-        {/* Enhanced Project Dropdown */}
-        <div className="relative min-w-1 flex-1 max-w-sm" style={{ marginRight: 20 }}>
-          {/* Dropdown Button */}
-          <button
-            onClick={toggleDropdown}
-            className="flex items-center justify-between w-full bg-white border border-gray-300 hover:border-gray-400 rounded-lg px-3 py-1 hover:bg-gray-50 transition-all duration-200 shadow-sm group"
-          >
-            {selectedProject && (
-              <div className="flex items-center min-w-0  overflow-hidden">
-                <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
-                  <span className="font-semibold text-gray-900 truncate text-sm w-full block">
-                    {selectedProject?.projectName || 'Select Project'}
-                  </span>
-                  {selectedProject && (
-                    <div className="flex items-center gap-1 min-w-0 overflow-hidden">
-                      {getRoleIcon(selectedProject.userRole)}
-                      <span className="text-xs text-gray-500 capitalize truncate">
-                        {selectedProject.userRole}
-                      </span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
-            {!selectedProject && (
-              <div className="flex items-center min-w-0 flex-1 py-2 overflow-hidden">
-                <div className="flex flex-col items-start min-w-0  overflow-hidden">
-                  <span className="font-semibold text-gray-900 truncate text-sm w-full block">
-                    Select Project
-                  </span>
-                </div>
-              </div>
-            )}
-            <div className="flex-shrink-0 ml-2">
-              {isOpen ? (
-                <ChevronUp className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              ) : (
-                <ChevronDown className="w-5 h-5 text-gray-400 group-hover:text-gray-600 transition-colors" />
-              )}
-            </div>
-          </button>
+  const handleProjectSelect = (project: ProjectWithUserRoleI) => {
+    setIsOpen(false);
+    selectProject(project);
+  };
 
-          {/* Enhanced Dropdown Content */}
+  const workspaceGroups = groupedProjects();
+
+  return (
+    <div className="flex flex-col w-full bg-white border-b border-gray-100">
+      {/* Top row with project dropdown and notification/profile */}
+      <div className="flex items-center w-full px-4 py-2.5">
+        {/* Project Dropdown */}
+        <div className="relative min-w-1 flex-1 max-w-sm mr-2">
+          {/* Dropdown Button */}
+          <Button
+            variant="ghost"
+            onClick={toggleDropdown}
+            className={cn(
+              "w-full justify-between h-auto p-2.5 bg-gray-50/50 hover:bg-gray-100/80 border border-gray-200/60 rounded-md text-left font-normal transition-all duration-200",
+              isOpen && "bg-gray-100/80"
+            )}
+          >
+            {selectedProject ? (
+              <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
+                <span className="font-medium text-gray-900 truncate text-sm w-full block">
+                  {selectedProject.projectName}
+                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-xs text-gray-500 truncate">
+                    {selectedProject.workspace.name}
+                  </span>
+                  <span className="text-xs text-gray-400">•</span>
+                  <span className="text-xs text-gray-500 capitalize">
+                    {selectedProject.userRole}
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-start min-w-0 flex-1">
+                <span className="font-medium text-gray-600 text-sm">
+                  Select Project
+                </span>
+              </div>
+            )}
+            <ChevronDown className={cn(
+              "w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0",
+              isOpen && "rotate-180"
+            )} />
+          </Button>
+
+          {/* Dropdown Content */}
           {isOpen && (
-            <div className="absolute mt-2 w-full z-50 bg-white border border-gray-200 rounded-xl shadow-xl overflow-hidden">
+            <div className="absolute mt-1 w-full z-50 bg-white border border-gray-200/80 rounded-lg shadow-lg overflow-hidden">
               {/* Create New Project Button */}
-              <div className="p-3 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white">
-                <button
+              <div className="p-2 border-b border-gray-100/80">
+                <Button
+                  variant="ghost"
                   onClick={() => {
                     createNewProject();
                     setIsOpen(false);
                   }}
-                  className="w-full flex items-center justify-between p-3 rounded-lg font-medium bg-green-700 hover:bg-green-600 text-white transition-all duration-200 shadow-md hover:shadow-lg"
+                  className="w-full justify-start h-auto p-2.5 bg-gray-900 hover:bg-gray-800 cursor-pointer"
                 >
-                  <div className="flex items-center gap-2 min-w-0 overflow-hidden">
-                    <div className="w-6 h-6 rounded-md bg-white/20 flex items-center justify-center flex-shrink-0">
-                      <Plus className="w-4 h-4" />
-                    </div>
-                    <span className="truncate">Create New Project</span>
-                  </div>
-                </button>
+                  <Plus className="w-4 h-4 mr-2.5 text-white" />
+                  <span style={{color:"white"}}>Create New Project</span>
+                </Button>
               </div>
 
-              {/* Project List */}
-              <div className="max-h-72 overflow-y-auto">
-                {projects.length > 0 ? (
-                  <div className="p-2">
-                    {projects.map((project, index) => (
-                      <button
-                        key={project.uid}
-                        onClick={() => handleProjectSelect(project)}
-                        className={`w-full text-left p-3 rounded-lg transition-all duration-200 mb-1 group overflow-hidden ${project.uid === selectedProject?.uid
-                          ? 'bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 shadow-sm'
-                          : 'hover:bg-gray-50 border border-transparent hover:border-gray-200'
-                          }`}
+              {/* Workspace and Project List */}
+              <div className="max-h-80 overflow-y-auto py-1 mr-2 pb-2">
+                {workspaceGroups.length > 0 ? (
+                  <div className="space-y-1">
+                    {workspaceGroups.map((group) => (
+                      <Collapsible
+                        key={group.workspace.uid}
+                        open={!collapsedWorkspaces.has(group.workspace.uid)}
+                        onOpenChange={() => toggleWorkspace(group.workspace.uid)}
                       >
-                        <div className="flex items-center justify-between min-w-0 overflow-hidden">
-                          <div className="flex items-center gap-3 min-w-0 flex-1 overflow-hidden">
-                            <div
-                              className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${project.uid === selectedProject?.uid
-                                ? 'bg-gradient-to-br from-blue-500 to-indigo-600'
-                                : 'bg-gradient-to-br from-gray-400 to-gray-500 group-hover:from-gray-500 group-hover:to-gray-600'
-                                }`}
-                            >
-                              <Folder className="w-4 h-4 text-white" />
-                            </div>
-                            <div className="flex flex-col min-w-0 flex-1 overflow-hidden">
-                              <span
-                                className={`font-medium truncate text-sm w-full block ${project.uid === selectedProject?.uid ? 'text-blue-900' : 'text-gray-900'
-                                  }`}
-                              >
-                                {project.projectName}
-                              </span>
-                              <div className="flex items-center gap-1 mt-1 min-w-0 overflow-hidden">
-                                {getRoleIcon(project.userRole)}
-                                <span className="text-xs text-gray-500 capitalize truncate">
-                                  {project.userRole}
+                        {/* Workspace Header */}
+                        <CollapsibleTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            className={cn(
+                              "w-full justify-between h-auto py-2  rounded-sm hover:bg-gray-50/80 font-normal text-left",
+                              selectedProject?.workspace.uid === group.workspace.uid && "bg-gray-100/60"
+                            )}
+                          >
+                            <div className="flex items-center gap-2 min-w-0 flex-1">
+                              <div className={cn(
+                                "w-2 h-2 rounded-full flex-shrink-0",
+                                selectedProject?.workspace.uid === group.workspace.uid ? "bg-gray-400" : "bg-gray-300"
+                              )} />
+                              <div className="flex flex-col items-start min-w-0 flex-1">
+                                <span className="font-medium text-gray-800 text-sm truncate w-full">
+                                  {group.workspace.name}
+                                </span>
+                                <span className="text-xs text-gray-500 truncate">
+                                  {group.projects.length} project{group.projects.length !== 1 ? 's' : ''}
                                 </span>
                               </div>
                             </div>
+                            <ChevronRight className={cn(
+                              "w-3.5 h-3.5 text-gray-400 transition-transform duration-200 flex-shrink-0",
+                              !collapsedWorkspaces.has(group.workspace.uid) && "rotate-90"
+                            )} />
+                          </Button>
+                        </CollapsibleTrigger>
+
+                        {/* Projects List */}
+                        <CollapsibleContent className="space-y-0.5">
+                          <div className="ml-6 space-y-0.5">
+                            {group.projects.map((project) => (
+                              <Button
+                                key={project.uid}
+                                variant="ghost"
+                                onClick={() => handleProjectSelect(project)}
+                                className={cn(
+                                  "w-full justify-start h-auto mt-1 rounded-sm hover:bg-gray-50/80 font-normal text-left",
+                                  project.uid === selectedProject?.uid && "bg-green-50/80 hover:bg-green-50"
+                                )}
+                              >
+                                <div className="flex items-center gap-2.5 min-w-0 flex-1">
+                                  <div className={cn(
+                                    "w-1.5 h-1.5 rounded-full flex-shrink-0",
+                                    project.uid === selectedProject?.uid ? "bg-green-700" : "bg-gray-300"
+                                  )} />
+                                  <div className="flex flex-col items-start min-w-0 flex-1">
+                                    <span className={cn(
+                                      "font-medium text-sm truncate w-full",
+                                      project.uid === selectedProject?.uid ? "text-blue-900" : "text-gray-800"
+                                    )}>
+                                      {project.projectName}
+                                    </span>
+                                    <span className="text-xs text-gray-500 capitalize">
+                                      {project.userRole}
+                                    </span>
+                                  </div>
+                                </div>
+                              </Button>
+                            ))}
                           </div>
-                        </div>
-                      </button>
+                        </CollapsibleContent>
+                      </Collapsible>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-6 text-center">
-                    <div className="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
-                      <Folder className="w-6 h-6 text-gray-400" />
+                  <div className="p-8 text-center">
+                    <div className="w-10 h-10 rounded-lg bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                      <Folder className="w-5 h-5 text-gray-400" />
                     </div>
-                    <p className="text-gray-500 font-medium">No projects available</p>
-                    <p className="text-gray-400 text-sm mt-1">Create your first project to get started</p>
+                    <p className="text-gray-600 font-medium text-sm">No projects available</p>
+                    <p className="text-gray-500 text-xs mt-1">Create your first project to get started</p>
                   </div>
                 )}
               </div>
@@ -189,39 +237,36 @@ const ProjectDropdown = ({
           )}
         </div>
 
-        {/* Enhanced Tabs for Large Screen */}
+        {/* Tabs for Large Screen */}
         {isLargeScreen && (
           <div>
-            <div>
-              <LabelTabs updateRoute={updateRoute} />
-            </div>
+            <LabelTabs updateRoute={updateRoute} />
           </div>
         )}
 
-        {/* Enhanced Right-side components */}
-        <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'flex-end' }}>
-          <div className="flex items-center gap-4 flex-shrink-0">
-            <div className="relative">
-              <NotificationBell />
-            </div>
-            <button
+        <div className="flex flex-1 items-center justify-end">
+          <div className="flex items-center gap-3">
+            <NotificationBell />
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => { router.push('/dashboard/organization/settings') }}
-              className="cursor-pointer relative p-2 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+              className="p-2 h-auto text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md"
             >
-              <Building size={26} />
-            </button>
-            <div className="h-8 w-px bg-gray-300"></div>
-            <ProfileAvatar
-              openProfileSetting={openProfileSetting}
-            />
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m12 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
+              </svg>
+            </Button>
+            <div className="h-6 w-px bg-gray-200"></div>
+            <ProfileAvatar openProfileSetting={openProfileSetting} />
           </div>
         </div>
       </div>
 
-      {/* Enhanced Mobile Tabs */}
+      {/* Mobile Tabs */}
       {!isLargeScreen && (
-        <div className="px-3 pb-3">
-          <div className="bg-gray-50 rounded-xl p-1 border border-gray-200">
+        <div className="px-4 pb-3">
+          <div className="bg-gray-50/80 rounded-lg p-1 border border-gray-200/60">
             <LabelTabs updateRoute={updateRoute} />
           </div>
         </div>
