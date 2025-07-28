@@ -18,6 +18,7 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
       user: this.dbConfig.username,
       password: this.dbConfig.password,
       database: this.dbConfig.database,
+      ssl:this.dbConfig.ssl
     });
 
     this._db = drizzle(this._pool, { schema });
