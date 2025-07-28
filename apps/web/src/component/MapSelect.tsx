@@ -19,7 +19,7 @@ const ControlPanel = ({ children, title, isCollapsed, onToggle, className = "" }
         onClick={onToggle}
       >
         <div className="flex items-center gap-2">
-          <Settings className="h-4 w-4 text-gray-600" />
+          {/* <Settings className="h-4 w-4 text-gray-600" /> */}
           <span className="text-sm font-medium text-gray-900">{title}</span>
         </div>
         {isCollapsed ? (

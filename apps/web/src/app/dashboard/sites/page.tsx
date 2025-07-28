@@ -91,7 +91,7 @@ const SiteManagementPage = () => {
         area: areaLabel(item.originalGeometry),
         treeCapacity: null,
         image: null,
-        geometry: item.originalGeometry || null
+        geometry: item.originalGeometry
       };
     });
   };

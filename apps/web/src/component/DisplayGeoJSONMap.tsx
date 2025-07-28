@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import Map, { Source, Layer } from 'react-map-gl/maplibre';
-import { AlertTriangle, MapPin } from 'lucide-react';
+import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 
@@ -17,88 +17,39 @@ const MapComponent = ({
   }
 }) => {
   const [mapError, setMapError] = useState(null);
-  const [isValidGeoJson, setIsValidGeoJson] = useState(true);
   const mapRef = useRef();
-  const prevGeoJsonRef = useRef();
 
-  // Calculate bounds for the polygon to fit the view
-  const calculateBounds = useCallback((geoJson) => {
+  useEffect(() => {
+    if (!geoJsonData || !mapRef.current) return;
+    console.log('GeoJSON data received:', geoJsonData);
     try {
-      if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
-        return initialViewState;
-      }
-
-      // Get the bounding box of the feature collection
-      const bbox = turf.bbox(geoJson);
-      const [minLng, minLat, maxLng, maxLat] = bbox;
-
-      // Calculate center point
-      const center = turf.center(geoJson);
+      // Get bounds and center using Turf.js
+      const bounds = turf.bbox(geoJsonData);
+      const [minLng, minLat, maxLng, maxLat] = bounds;
+      const center = turf.center(geoJsonData);
       const [longitude, latitude] = center.geometry.coordinates;
 
-      // Calculate appropriate zoom level based on bounding box size
-      const latDiff = maxLat - minLat;
-      const lngDiff = maxLng - minLng;
-      const maxDiff = Math.max(latDiff, lngDiff);
+      // Calculate zoom based on bounding box size
+      const maxDiff = Math.max(maxLat - minLat, maxLng - minLng);
 
-      // Rough zoom calculation (you can adjust this formula)
-      let zoom = 13;
-      if (maxDiff > 0.1) zoom = 10;
-      else if (maxDiff > 0.05) zoom = 11;
-      else if (maxDiff > 0.02) zoom = 12;
-      else if (maxDiff > 0.01) zoom = 13;
-      else if (maxDiff > 0.005) zoom = 14;
-      else zoom = 15;
+      const zoom = maxDiff > 0.1 ? 8 :
+        maxDiff > 0.05 ? 10 :
+          maxDiff > 0.02 ? 12 :
+            maxDiff > 0.01 ? 13 :
+              maxDiff > 0.005 ? 14 : 15;
 
-      return {
-        longitude,
-        latitude,
-        zoom
-      };
+      // Fly to new location
+      setTimeout(() => {
+        mapRef.current?.flyTo({
+          center: [longitude, latitude],
+          zoom,
+          duration: 1500,
+          essential: true
+        });
+      }, 100);
+
     } catch (error) {
       console.error('Error calculating bounds with Turf:', error);
-      return initialViewState;
-    }
-  }, [initialViewState]);
-
-  // Update map view when geoJSON changes
-  useEffect(() => {
-    // Only update if geoJsonData actually changed
-    if (geoJsonData && 
-        mapRef.current && 
-        JSON.stringify(geoJsonData) !== JSON.stringify(prevGeoJsonRef.current)) {
-      
-      const newViewState = calculateBounds(geoJsonData);
-      
-      // Animate to new bounds
-      mapRef.current.flyTo({
-        center: [newViewState.longitude, newViewState.latitude],
-        zoom: newViewState.zoom,
-        duration: 1500,
-        essential: true
-      });
-
-      // Update the ref to track the current geoJSON
-      prevGeoJsonRef.current = geoJsonData;
-    }
-  }, [geoJsonData, calculateBounds]);
-
-  // Validate GeoJSON data
-  useEffect(() => {
-    if (geoJsonData) {
-      try {
-        // Basic validation - check if it's a valid GeoJSON structure
-        if (geoJsonData.type && (geoJsonData.type === 'FeatureCollection' || geoJsonData.type === 'Feature')) {
-          setIsValidGeoJson(true);
-        } else {
-          setIsValidGeoJson(false);
-        }
-      } catch (error) {
-        console.error('Invalid GeoJSON:', error);
-        setIsValidGeoJson(false);
-      }
-    } else {
-      setIsValidGeoJson(true); // Allow null/undefined geoJSON
     }
   }, [geoJsonData]);
 
@@ -107,8 +58,8 @@ const MapComponent = ({
     id: 'polygon-fill',
     type: 'fill',
     paint: {
-      'fill-color': '#3b82f6',
-      'fill-opacity': 0.3
+      'fill-color': '#007A49',
+      'fill-opacity': 0.4
     }
   };
 
@@ -116,8 +67,8 @@ const MapComponent = ({
     id: 'polygon-outline',
     type: 'line',
     paint: {
-      'line-color': '#1d4ed8',
-      'line-width': 2
+      'line-color': '#007A49',
+      'line-width': 3
     }
   };
 
@@ -126,56 +77,37 @@ const MapComponent = ({
     setMapError(error.message || 'Failed to load map');
   }, []);
 
-  // Error placeholder component
-  const ErrorPlaceholder = ({ message }) => (
-    <div
-      className="flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg"
-      style={{ width, height }}
-    >
-      <AlertTriangle className="w-12 h-12 text-gray-400 mb-4" />
-      <h3 className="text-lg font-semibold text-gray-600 mb-2">Map Unavailable</h3>
-      <p className="text-gray-500 text-center max-w-sm">
-        {message || 'Unable to display map due to invalid data or configuration'}
-      </p>
-    </div>
-  );
-
-  // Loading placeholder component
-  const LoadingPlaceholder = () => (
-    <div
-      className="flex flex-col items-center justify-center bg-gray-50 border border-gray-200 rounded-lg"
-      style={{ width, height }}
-    >
-      <MapPin className="w-12 h-12 text-blue-500 mb-4 animate-pulse" />
-      <p className="text-gray-600">Loading map...</p>
-    </div>
-  );
-
-  // Show error placeholder if GeoJSON is invalid
-  if (!isValidGeoJson && geoJsonData) {
-    return <ErrorPlaceholder message="Invalid GeoJSON data provided" />;
-  }
-
-  // Show error placeholder if map failed to load
+  // Error placeholder
   if (mapError) {
-    return <ErrorPlaceholder message={mapError} />;
+    return (
+      <div
+        className="flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg"
+        style={{ width, height: '40vh' }}
+      >
+        <AlertTriangle className="w-12 h-12 text-gray-400 mb-4" />
+        <h3 className="text-lg font-semibold text-gray-600 mb-2">Map Unavailable</h3>
+        <p className="text-gray-500 text-center max-w-sm">{mapError}</p>
+      </div>
+    );
   }
-
-  // Calculate initial view state only if geoJSON exists
-  const currentViewState = geoJsonData ? calculateBounds(geoJsonData) : initialViewState;
 
   return (
-    <div className="relative rounded-lg overflow-hidden border border-gray-200" style={{ width: '100%', height: '100%' }}>
+    <div className="relative rounded-lg overflow-hidden border border-gray-200" style={{ width: '100%', height: '40vh' }}>
       <Map
         ref={mapRef}
-        style={{ width: '100%', height: '40vh' }}
-        initialViewState={currentViewState}
+        style={{ width: '100%', height: '100%' }}
         mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
         attributionControl={false}
+        onError={handleMapError}
         reuseMaps
       >
         {geoJsonData && (
-          <Source id="polygon-source" type="geojson" data={geoJsonData}>
+          <Source
+            id="polygon-source"
+            type="geojson"
+            data={geoJsonData}
+            key={JSON.stringify(geoJsonData)}
+          >
             <Layer {...polygonLayer} />
             <Layer {...polygonOutlineLayer} />
           </Source>
@@ -186,6 +118,13 @@ const MapComponent = ({
       <div className="absolute bottom-2 right-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs text-gray-600">
         © CartoDB
       </div>
+
+      {/* Debug info */}
+      {geoJsonData && (
+        <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs text-gray-600">
+          GeoJSON: {geoJsonData.geometry?.type || geoJsonData.type}
+        </div>
+      )}
     </div>
   );
 };

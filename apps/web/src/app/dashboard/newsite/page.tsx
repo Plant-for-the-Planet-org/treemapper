@@ -336,7 +336,7 @@ const SubmitSection = ({
 );
 
 // Main Component
-export function CreateProjectUI({ token, goBack }) {
+export function CreateProjectUI() {
     const [formData, setFormData] = useState({
         projectName: '',
         projectType: 'planting',
@@ -442,10 +442,10 @@ export function CreateProjectUI({ token, goBack }) {
                 payload,
                 SelectedProject?.uid || ''
             );
-
-            if (response.statusCode === 200 || response.statusCode === 201) {
+            console.log('Create site response:', response);
+            if (response.statusCode === 200) {
                 toast.success('Site created successfully!');
-                goBack();
+                router.back();
             } else {
                 toast.error(response.message || 'Something went wrong');
             }

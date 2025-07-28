@@ -30,7 +30,6 @@ export const SiteCard = ({ site, isSelected, onSelect }) => {
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h3 className="font-medium text-gray-900 text-sm mb-1 truncate">{site.name}</h3>
-          <p className="text-xs text-gray-500">ID: {site.id}</p>
         </div>
         <div className={`px-2.5 py-1 rounded-full text-xs font-medium border flex items-center gap-1.5 ${statusConfig.bg} ${statusConfig.text} ${statusConfig.border}`}>
           <div className={`w-1.5 h-1.5 rounded-full ${statusConfig.dot}`}></div>

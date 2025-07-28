@@ -30,7 +30,6 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
             <span className="bg-white/20 px-2 py-1 rounded-md text-xs font-medium capitalize">
               {site.status}
             </span>
-            <span className="text-xs text-white/70">ID: {site.id}</span>
           </div>
         </div>
 
