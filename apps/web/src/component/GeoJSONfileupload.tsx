@@ -386,7 +386,7 @@ export default function GeoJSONUpload({
                 <div
                     {...getRootProps()}
                     className={`
-                        relative border-2 border-dashed rounded-xl p-8 text-center cursor-pointer 
+                        relative border-2 border-dashed rounded-xl px-8 py-1 text-center cursor-pointer 
                         transition-all duration-200 ${getStatusColor()}
                     `}
                 >

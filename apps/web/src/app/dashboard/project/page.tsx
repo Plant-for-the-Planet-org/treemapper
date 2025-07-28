@@ -43,8 +43,8 @@ const ProjectTypeSelector = ({ value, onChange, projectTypes }) => {
                         <label
                             key={type.id}
                             className={`relative flex cursor-pointer rounded-lg border-2 p-3 transition-all hover:shadow-sm ${value === type.id
-                                    ? `${type.color} shadow-sm`
-                                    : 'border-gray-200 hover:border-gray-300'
+                                ? `${type.color} shadow-sm`
+                                : 'border-gray-200 hover:border-gray-300'
                                 }`}
                         >
                             <input
@@ -184,7 +184,6 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes }) => {
                         onChange={onChange}
                         placeholder="Describe your project goals and methods..."
                         icon={Info}
-                        required
                         rows={4}
                     />
                 </div>
@@ -227,7 +226,7 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
                                 <MapPin className="h-4 w-4 mr-2 text-green-600" />
                                 <div>
                                     <span className="block text-xs font-medium">
-                                        Location selected successfully
+                                        Location selected
                                     </span>
                                 </div>
                             </div>
@@ -269,8 +268,8 @@ const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) =>
                     disabled={!agreeTerms || loading}
                     onClick={onSubmit}
                     className={`px-8 py-3.5 rounded-lg font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
-                            ? 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
-                            : 'bg-gray-400 cursor-not-allowed'
+                        ? 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
+                        : 'bg-gray-400 cursor-not-allowed'
                         }`}
                 >
                     {loading ? (
@@ -280,7 +279,6 @@ const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) =>
                         </div>
                     ) : (
                         <div className="flex items-center gap-2">
-                            <TreePine className="h-5 w-5" />
                             Create Project
                         </div>
                     )}
@@ -360,19 +358,27 @@ export function CreateProjectUI() {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (!finalGeoJSON) {
-            toast.warning('Please select a location on the map or upload a location file.');
-            return;
-        }
+        // if (!finalGeoJSON) {
+        //     toast.warning('Please select a location on the map or upload a location file.');
+        //     return;
+        // }
 
         const payLoad = {
             "projectName": formData.projectName,
             "projectType": formData.projectType,
             "description": formData.aboutProject,
-            "location": finalGeoJSON,
+
         };
         if (formData.target !== '') {
             payLoad["target"] = formData.target
+        }
+
+        if (formData.aboutProject !== '') {
+            payLoad["description"] = formData.aboutProject
+        }
+
+        if (finalGeoJSON) {
+            payLoad["location"] = finalGeoJSON
         }
 
         if (formData.projectWebsite !== '') {
@@ -385,6 +391,9 @@ export function CreateProjectUI() {
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
                 router.back();
+                setTimeout(() => {
+                    window.location.reload();
+                }, 500);
                 return
             }
 
