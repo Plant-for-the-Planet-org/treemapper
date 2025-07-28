@@ -1,14 +1,11 @@
-import { Injectable, NotFoundException, ConflictException, BadRequestException, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, BadRequestException, Logger } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { users } from '../database/schema';
-import { CreateUserDto } from './dto/create-user.dto';
-import { CreateAuth0UserDto } from './dto/create-auth0-user.dto';
+import { projectMembers, projects, survey, users, workspace, workspaceMembers } from '../database/schema';
+import { CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { UserQueryDto } from './dto/user-query.dto';
 import { User, PublicUser } from './entities/user.entity';
-import { eq, and, or, like, desc, asc, count, isNull } from 'drizzle-orm';
+import { eq, and, isNull } from 'drizzle-orm';
 import { generateUid } from 'src/util/uidGenerator';
-
 import { CacheService } from '../cache/cache.service';
 import { CACHE_KEYS, CACHE_TTL } from '../cache/cache-keys';
 import { R2Service } from 'src/common/services/r2.service';
@@ -48,27 +45,12 @@ export class UsersService {
     migratedAt: users.migratedAt,
     existingPlanetUser: users.existingPlanetUser,
     flag: users.flag,
-    flagReason: users.flagReason
+    flagReason: users.flagReason,
+    primaryWorkspace: users.primaryWorkspace,
+    primaryProject: users.primaryProject
   } as const;
 
-  // Public user selection (excludes sensitive fields)
-  private readonly PUBLIC_USER_SELECT = {
-    uid: users.uid,
-    email: users.email,
-    firstname: users.firstname,
-    lastname: users.lastname,
-    displayName: users.displayName,
-    image: users.image,
-    slug: users.slug,
-    type: users.type,
-    country: users.country,
-    url: users.url,
-    isPrivate: users.isPrivate,
-    bio: users.bio,
-    locale: users.locale,
-    isActive: users.isActive,
-    migratedAt: users.migratedAt,
-  } as const;
+
 
 
   async createFromAuth0(auth0Id: string, email: string, name: string): Promise<User> {
@@ -79,30 +61,109 @@ export class UsersService {
         .where(and(eq(users.auth0Id, auth0Id), isNull(users.deletedAt)))
         .limit(1);
       if (existingUser.length > 0) {
-        this.cacheNewUser(existingUser[0]);
+        if (existingUser[0].primaryWorkspace) {
+          this.cacheNewUser(existingUser[0]);
+        }
         return existingUser[0];
       }
-      const user = await this.drizzleService.db.transaction(async (tx) => {
-        const result = await tx
-          .insert(users)
-          .values({
-            uid: generateUid('usr'),
-            auth0Id: auth0Id,
-            email: email,
-            displayName: name || email.split('@')[0],
-            isActive: true,
-            lastLoginAt: new Date(),
-          })
-          .returning(this.FULL_USER_SELECT);
-        return result[0];
-      });
+      const user = await this.drizzleService.db
+        .insert(users)
+        .values({
+          uid: generateUid('usr'),
+          auth0Id: auth0Id,
+          email: email,
+          displayName: name || email.split('@')[0],
+          isActive: true,
+          lastLoginAt: new Date(),
+        })
+        .returning(this.FULL_USER_SELECT);
       if (!user) {
         throw new ConflictException(`User not created`);
       }
-      return user;
+      return user
     } catch (error) {
       throw error;
     }
+  }
+
+  async createSurvey(userId: number, auth0Id: string, surveyDetails: CreateSurvey): Promise<any> {
+    try {
+      if (!surveyDetails.skip) {
+        await this.drizzleService.db
+          .insert(survey)
+          .values({
+            uid: generateUid('srv'),
+            userId: userId,
+            organizationName: surveyDetails.organizationName,
+            primaryGoal: surveyDetails.primaryGoal,
+            role: surveyDetails.role,
+            requestedDemo: surveyDetails.requestedDemo ? true : false,
+            isCompleted: surveyDetails.complete ? true : false,
+          })
+      }
+
+
+      await this.drizzleService.db.transaction(async (tx) => {
+        let organizationId: number;
+        if (surveyDetails.devMode) {
+          organizationId = 3;
+        } else if (surveyDetails.forestCloud) {
+          organizationId = 1;
+        } else {
+          organizationId = 2;
+        }
+        const slug = this.generateSlug(surveyDetails.projectName);
+        await tx.insert(workspaceMembers)
+          .values({
+            uid: generateUid('worm'),
+            workspaceId: organizationId,
+            userId,
+            createdAt: new Date(),
+          })
+          .onConflictDoNothing({
+            target: [workspaceMembers.workspaceId, workspaceMembers.userId]
+          })
+        const projectDetails = await tx.insert(projects)
+          .values({
+            uid: generateUid('prj'),
+            workspaceId: organizationId,
+            createdById: userId,
+            slug: `${slug}-${Date.now()}`,
+            projectName: surveyDetails.projectName,
+            createdAt: new Date(),
+            isPrimary: true,
+            isPersonal: true,
+          }).returning()
+        await tx
+          .insert(projectMembers)
+          .values({
+            uid: generateUid('mem'),
+            projectId: projectDetails[0].id,
+            userId: userId,
+            workspaceId: organizationId,
+            projectRole: 'owner',
+            joinedAt: new Date(),
+            invitedAt: new Date()
+          });
+        await tx.update(users)
+          .set({ primaryWorkspace: organizationId, primaryProject: projectDetails[0].id })
+          .where(eq(users.id, userId)),
+          await this.cacheService.delete(CACHE_KEYS.USER.BY_AUTH0_ID(auth0Id));
+        return { message: 'success' }
+      })
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  private generateSlug(projectName: string): string {
+    return projectName
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '') // Remove special chars
+      .replace(/\s+/g, '-')         // Replace spaces with hyphens
+      .replace(/-+/g, '-')          // Replace multiple hyphens with single
+      .trim()
+      .substring(0, 255); // Ensure it fits in varchar(255)
   }
 
   async findByEmail(email: string): Promise<User | null> {
@@ -143,11 +204,7 @@ export class UsersService {
   // Private helper methods
   private async cacheNewUser(user: User): Promise<void> {
     try {
-      await Promise.all([
-        this.cacheService.set(CACHE_KEYS.USER.BY_AUTH0_ID(user.auth0Id), user, CACHE_TTL.MEDIUM),
-        this.cacheService.set(CACHE_KEYS.USER.BY_EMAIL(user.email), user, CACHE_TTL.MEDIUM),
-        this.cacheService.set(CACHE_KEYS.USER.BY_ID(user.id), user, CACHE_TTL.MEDIUM),
-      ]);
+      await this.cacheService.set(CACHE_KEYS.USER.BY_AUTH0_ID(user.auth0Id), user, CACHE_TTL.MEDIUM)
       this.logger.debug(`Cached user: ${user.auth0Id}`);
     } catch (error) {
       this.logger.error(`Failed to cache user: ${user.auth0Id}`, error);
@@ -207,26 +264,26 @@ export class UsersService {
     return true;
   }
 
-    private async prepareUpdateData(updateProjectDto: any): Promise<any> {
-      const updateData: any = {
-        ...updateProjectDto,
-        updatedAt: new Date(),
-      };
-  
+  private async prepareUpdateData(updateProjectDto: any): Promise<any> {
+    const updateData: any = {
+      ...updateProjectDto,
+      updatedAt: new Date(),
+    };
 
 
-  
-      // Clean up undefined values
-      Object.keys(updateData).forEach(key => {
-        if (updateData[key] === undefined) {
-          delete updateData[key];
-        }
-      });
-      console.log("updateData",updateData)
-  
-      return updateData;
-    }
-  
+
+
+    // Clean up undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+    console.log("updateData", updateData)
+
+    return updateData;
+  }
+
 
   async update(id: number, updateUserDto: UpdateUserDto): Promise<PublicUser> {
     const payload = this.prepareUpdateData(updateUserDto)
@@ -257,7 +314,7 @@ export class UsersService {
         updatedAt: users.updatedAt,
         migratedAt: users.migratedAt,
         existingPlanetUser: users.existingPlanetUser, flag: users.flag,
-        flagReason: users.flagReason
+        flagReason: users.flagReason,
       });
 
     return result[0];

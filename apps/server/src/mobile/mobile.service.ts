@@ -197,6 +197,7 @@ export class MobileService {
           width: createInterventionDto.measurements.width,
           plantingDate: new Date(createInterventionDto.interventionStartDate),
           metadata: createInterventionDto.metadata || null,
+          workspaceId: 1,
         }
         const sampleResult = await this.drizzleService.db
           .insert(trees)
@@ -215,6 +216,7 @@ export class MobileService {
         uid: uid,
         hid: newHID,
         userId: membership.userId,
+        workspaceId: 1,
         projectId: membership.projectId,
         projectSiteId: projectSiteId || null,
         idempotencyKey: generateUid('ide'),
@@ -271,6 +273,7 @@ export class MobileService {
           width: createInterventionDto.measurements.width,
           plantingDate: new Date(createInterventionDto.interventionStartDate),
           metadata: createInterventionDto.metadata || null,
+          workspaceId: 1,
         }
         const singleResult = await this.drizzleService.db
           .insert(trees)
@@ -392,7 +395,7 @@ export class MobileService {
     } catch (error) {
     }
   }
-  
+
 
   async getProjectSpecies(membership: ProjectGuardResponse) {
     const [data] = await Promise.all([

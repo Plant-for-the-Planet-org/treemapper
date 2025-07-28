@@ -1,4 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsBoolean, IsOptional, IsString, Length } from 'class-validator';
+import { Transform } from 'class-transformer';
 
 export class OrganizationMemberDto {
   @ApiProperty({ example: 'usr_1234567890' })
@@ -89,23 +91,32 @@ export class OrganizationResponseDto {
 }
 
 export class UserOrganizationResponseDto extends OrganizationResponseDto {
-  @ApiProperty({ 
-    example: 'owner', 
+  @ApiProperty({
+    example: 'owner',
     enum: ['owner', 'admin', 'member'],
     description: 'Current user\'s role in this organization'
   })
   userRole: string;
 
-  @ApiProperty({ 
-    example: 'active', 
+  @ApiProperty({
+    example: 'active',
     enum: ['active', 'inactive', 'suspended', 'pending'],
     description: 'Current user\'s status in this organization'
   })
   userStatus: string;
 
-  @ApiProperty({ 
+  @ApiProperty({
     example: '2024-01-15T10:30:00Z',
     description: 'When the current user joined this organization'
   })
   joinedAt: Date;
+}
+
+export class SelectOrganizationDto {
+
+  @IsString()
+  workspaceUid: string
+
+  @IsString()
+  projectUid: string
 }

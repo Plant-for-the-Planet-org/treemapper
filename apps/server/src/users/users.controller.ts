@@ -24,7 +24,7 @@ import {
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateUserDto } from './dto/create-user.dto';
+import { CreateSurvey, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -57,7 +57,9 @@ export class UsersController {
       locale: users.locale,
       isActive: users.isActive,
       migratedAt: users.migratedAt,
-      existingPlanetUser: users.existingPlanetUser
+      existingPlanetUser: users.existingPlanetUser,
+      primaryWorkspace: users.primaryWorkspace,
+      primaryProject: users.primaryProject
     }
   }
   // @ApiExcludeEndpoint()
@@ -83,10 +85,10 @@ export class UsersController {
   }
 
 
-  // @Post()
-  // async create(@Body() createUserDto: CreateUserDto) {
-  //   return await this.usersService.create(createUserDto);
-  // }
+  @Post('onboarding')
+  async create(@Body() createSurveyDto: CreateSurvey, @CurrentUser() user: User,) {
+    return await this.usersService.createSurvey(user.id, user.auth0Id, createSurveyDto, );
+  }
 
 
   // @Get('stats')

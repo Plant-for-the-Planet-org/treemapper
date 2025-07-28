@@ -200,7 +200,7 @@ export class MigrationService {
           "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
         }
         this.addLog(userMigrationRecord.id, 'warning', `Personal project not found. Created new`, 'projects');
-        const newPersonalProject = await this.projectService.createPersonalProject(payload, userId)
+        const newPersonalProject = await this.projectService.createPersonalProject(payload.projectName, userId, 1, '')
         if (newPersonalProject.statusCode === 201 || newPersonalProject.statusCode === 200) {
           this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Created', 'projects');
         } else {
@@ -637,6 +637,7 @@ export class MigrationService {
                   .values({
                     projectId: newProjectId,
                     userId: userId,
+                    workspaceId: 1,
                     uid: generateUid('mem'),
                     projectRole: 'owner',
                     joinedAt: new Date(),
@@ -881,7 +882,7 @@ export class MigrationService {
           "description": "This is your personal project, you can add species to it. You can invite other users to this project.",
         }
         this.addLog(migrationId, 'warning', `Personal project not found. Created new`, 'species');
-        const newPersonalProject = await this.projectService.createPersonalProject(payload, uid)
+        const newPersonalProject = await this.projectService.createPersonalProject(payload.projectName, uid, 1, '')
         if (newPersonalProject) {
           projectId = newPersonalProject.data?.id
         }
@@ -942,6 +943,7 @@ export class MigrationService {
         scientificSpeciesId: Number(internalId),
         projectId: projectId,
         addedById: uid,
+        workspaceId: 1,
         isNativeSpecies: false,
         isDisabled: false,
         commonName: species.aliases || null,

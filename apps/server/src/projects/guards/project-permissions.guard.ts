@@ -19,7 +19,6 @@ export class ProjectPermissionsGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
     const projectUid = request.params?.id
-    console.log("SDc", userId, projectUid)
     if (!userId || !projectUid) {
       return false;
     }

@@ -68,6 +68,7 @@ export class SiteService {
         createdById: membership.userId,
         name: createSiteDto.name,
         description: createSiteDto.description,
+        workspaceId: 1,
         location: locationValue,
         originalGeometry: createSiteDto.location,
         status: createSiteDto.status || 'barren',

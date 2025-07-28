@@ -20,7 +20,7 @@ import {
 import { Request } from 'express';
 import { OrganizationsService } from './organization.service';
 import { CreateOrganizationDto } from './dto/create-organization.dto';
-import { OrganizationResponseDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
+import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 // Assuming you have these guards - adjust import paths as needed
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
@@ -29,6 +29,7 @@ interface AuthenticatedRequest extends Request {
     id: number;
     uid: string;
     email: string;
+    auth0Id: string
   };
 }
 
@@ -41,52 +42,6 @@ export class OrganizationsController {
   constructor(private readonly organizationsService: OrganizationsService) { }
 
   @Post()
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Create a new organization',
-    description: 'Creates a new organization and automatically adds the creator as an owner',
-  })
-  @ApiBody({ type: CreateOrganizationDto })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Organization created successfully',
-    type: OrganizationResponseDto,
-  })
-  @ApiResponse({
-    status: HttpStatus.BAD_REQUEST,
-    description: 'Invalid input data',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'array', items: { type: 'string' } },
-        error: { type: 'string', example: 'Bad Request' },
-        statusCode: { type: 'number', example: 400 },
-      },
-    },
-  })
-  @ApiResponse({
-    status: HttpStatus.CONFLICT,
-    description: 'Organization with this name already exists',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: 'Organization with this name already exists' },
-        error: { type: 'string', example: 'Conflict' },
-        statusCode: { type: 'number', example: 409 },
-      },
-    },
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'User not authenticated',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: 'Unauthorized' },
-        statusCode: { type: 'number', example: 401 },
-      },
-    },
-  })
   async create(
     @Body(ValidationPipe) createOrganizationDto: CreateOrganizationDto,
     @Req() req: AuthenticatedRequest,
@@ -94,27 +49,16 @@ export class OrganizationsController {
     return this.organizationsService.create(createOrganizationDto, req.user.id);
   }
 
+
+  @Post('/primary')
+  async selectOrg(
+    @Body(ValidationPipe) createOrganizationDto: SelectOrganizationDto,
+    @Req() req: AuthenticatedRequest,
+  ): Promise<any> {
+    return this.organizationsService.selectOrg(createOrganizationDto, req.user.id, req.user.auth0Id, req.user);
+  }
+
   @Get()
-  @ApiOperation({
-    summary: 'Get all organizations for current user',
-    description: 'Returns all organizations that the current user is a member of, including their role and membership details',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Organizations retrieved successfully',
-    type: [UserOrganizationResponseDto],
-  })
-  @ApiResponse({
-    status: HttpStatus.UNAUTHORIZED,
-    description: 'User not authenticated',
-    schema: {
-      type: 'object',
-      properties: {
-        message: { type: 'string', example: 'Unauthorized' },
-        statusCode: { type: 'number', example: 401 },
-      },
-    },
-  })
   async findAllByUser(@Req() req: AuthenticatedRequest): Promise<UserOrganizationResponseDto[]> {
     return this.organizationsService.findAllByUser(req.user.id);
   }

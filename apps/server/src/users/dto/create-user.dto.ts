@@ -82,3 +82,44 @@ export class CreateUserDto {
   @MaxLength(10)
   locale?: string;
 }
+
+export class CreateSurvey {
+
+  @IsOptional()
+  @IsBoolean()
+  skip: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  complete: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  organizationName: string;
+
+  @IsOptional()
+  @IsBoolean()
+  requestedDemo: boolean;
+
+  @IsOptional()
+  @IsString()
+  primaryGoal: string;
+
+  @IsOptional()
+  @IsString()
+  role: string;
+
+  @IsOptional()
+  @IsBoolean()
+  devMode: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  forestCloud: boolean;
+
+
+  @IsString()
+  projectName: string;
+
+}

@@ -1,7 +1,7 @@
 // src/projects/projects.service.ts
 import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { projects, projectMembers, users, projectInvites, bulkInvites } from '../database/schema';
+import { projects, projectMembers, users, projectInvites, bulkInvites, workspace, workspaceMembers } from '../database/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
@@ -15,6 +15,8 @@ import { User } from 'src/users/entities/user.entity';
 import { NotificationType } from 'src/notification/dto/notification.dto';
 import { NotificationService } from 'src/notification/notification.service';
 import { isValidEmailDomain } from 'src/util/domainValidationHelper';
+import { CACHE_KEYS, CACHE_TTL } from 'src/cache/cache-keys';
+import { CacheService } from 'src/cache/cache.service';
 
 export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string }
 
@@ -84,6 +86,8 @@ export class ProjectsService {
     private drizzleService: DrizzleService,
     private emailService: EmailService,
     private notificationService: NotificationService,
+    private cacheService: CacheService,
+
   ) { }
 
   private getGeoJSONForPostGIS(locationInput: any): any {
@@ -123,7 +127,7 @@ export class ProjectsService {
       .substring(0, 255); // Ensure it fits in varchar(255)
   }
 
-  async create(createProjectDto: CreateProjectDto, userId: number): Promise<any> {
+  async create(createProjectDto: CreateProjectDto, userId: number, user: User): Promise<any> {
     try {
       let locationValue: any = null;
       if (createProjectDto.location) {
@@ -141,23 +145,6 @@ export class ProjectsService {
         }
       }
 
-      // Generate slug if not provided
-      const slug = createProjectDto.slug || this.generateSlug(createProjectDto.projectName);
-
-      // Check if slug is unique
-      const existingProject = await this.drizzleService.db
-        .select({ id: projects.id })
-        .from(projects)
-        .where(eq(projects.slug, slug))
-        .limit(1);
-
-      if (existingProject.length > 0) {
-        // Generate unique slug by appending timestamp
-        const uniqueSlug = `${slug}-${Date.now()}`;
-        createProjectDto.slug = uniqueSlug;
-      } else {
-        createProjectDto.slug = slug;
-      }
 
       // Use transaction to ensure data consistency
       const result = await this.drizzleService.db.transaction(async (tx) => {
@@ -167,7 +154,8 @@ export class ProjectsService {
           .values({
             uid: createProjectDto.uid ?? generateUid('prj'),
             createdById: userId,
-            slug: createProjectDto.slug ?? this.generateSlug(createProjectDto.projectName),
+            workspaceId: 1,
+            slug: this.generateSlug(createProjectDto.projectName) + `-${Date.now()}`,
             projectName: createProjectDto.projectName ?? '',
             projectType: createProjectDto.projectType ?? '',
             projectWebsite: createProjectDto.projectWebsite ?? '',
@@ -185,13 +173,19 @@ export class ProjectsService {
             projectId: project.id,
             uid: generateUid('mem'),
             userId: userId,
+            workspaceId: 1,
             projectRole: 'owner',
             joinedAt: new Date(),
           });
-
+        await tx.update(users)
+          .set({ primaryWorkspace: user.primaryWorkspace, primaryProject: project.id })
+          .where(eq(users.id, userId));
+        const updatedUser = {...user}
+        await this.cacheService.delete(CACHE_KEYS.USER.BY_ID(userId));
+        updatedUser.primaryProject = project.id;
+        await this.cacheService.set(CACHE_KEYS.USER.BY_AUTH0_ID(user.auth0Id), updatedUser, CACHE_TTL.MEDIUM)
         return project;
       });
-      console.log("IOSCJD", result)
       this.notificationService.createNotification({
         userId: userId,
         type: NotificationType.PROJECT_UPDATE,
@@ -217,32 +211,39 @@ export class ProjectsService {
     }
   }
 
-  async createPersonalProject(createProjectDto: CreateProjectDto, userId: number): Promise<any> {
+  async createPersonalProject(name: string, userId: number, primaryWorkspaceId: number, auth0Id: string): Promise<any> {
     try {
-      const slug = createProjectDto.slug || this.generateSlug(createProjectDto.projectName);
       const existingProject = await this.drizzleService.db
         .select({ id: projects.id })
         .from(projects)
-        .where(eq(projects.slug, slug))
+        .where(
+          and(
+            eq(projects.isPersonal, true),
+            eq(projects.createdById, userId),
+            eq(projects.workspaceId, primaryWorkspaceId)
+          )
+        )
         .limit(1);
 
       if (existingProject.length > 0) {
-        const uniqueSlug = `${slug}-${Date.now()}`;
-        createProjectDto.slug = uniqueSlug;
-      } else {
-        createProjectDto.slug = slug;
+        return {
+          message: 'Personal project already exists in this workspace',
+          statusCode: 409,
+          error: 'personal_project_exists',
+          data: null,
+          code: 'personal_project_exists',
+        };
       }
 
       const result = await this.drizzleService.db.transaction(async (tx) => {
-        const project = await tx
+        const [project] = await tx
           .insert(projects)
           .values({
-            uid: createProjectDto.uid ?? generateUid('proj'),
+            uid: generateUid('proj'),
             createdById: userId,
-            slug: createProjectDto.slug ?? this.generateSlug(createProjectDto.projectName),
-            projectName: createProjectDto.projectName ?? '',
-            projectType: createProjectDto.projectType ?? '',
-            description: createProjectDto.description ?? '',
+            workspaceId: primaryWorkspaceId,
+            slug: `${this.generateSlug(name)}-${Date.now()}`,
+            projectName: `${name}'s personal project`,
             isPersonal: true,
           })
           .returning();
@@ -251,41 +252,47 @@ export class ProjectsService {
           .insert(projectMembers)
           .values({
             uid: generateUid('mem'),
-            projectId: project[0].id,
+            projectId: project.id,
             userId: userId,
+            workspaceId: primaryWorkspaceId,
             projectRole: 'owner',
             joinedAt: new Date(),
-            invitedAt: new Date()
           });
+        await tx.update(users)
+          .set({ primaryWorkspace: primaryWorkspaceId, primaryProject: project.id })
+          .where(eq(users.id, userId)),
+          await this.cacheService.delete(CACHE_KEYS.USER.BY_AUTH0_ID(auth0Id));
         this.notificationService.createNotification({
           userId: userId,
           type: NotificationType.PROJECT_UPDATE,
-          title: 'New Personal Project created',
-          message: `New Personal Project with name ${createProjectDto.projectName} created.`
-        })
+          title: 'Personal Project Created',
+          message: `Your personal project ${name} has been created successfully.`
+        }).catch(err => console.error('Notification failed:', err));
+
         return project;
       });
 
       return {
-        message: 'Project created successfully',
+        message: 'Personal project created successfully',
         statusCode: 201,
         error: null,
         data: result,
-        code: 'project_created',
+        code: 'personal_project_created',
       };
+
     } catch (error) {
-      console.error('Error creating project:', error);
+      console.error('Error creating personal project:', error);
       return {
-        message: 'Failed to create project',
+        message: 'Failed to create personal project',
         statusCode: 500,
-        error: error.message || "internal_server_error",
+        error: error.message || 'internal_server_error',
         data: null,
-        code: 'project_creation_failed',
+        code: 'personal_project_creation_failed',
       };
     }
   }
 
-  async findAll(userId: number) {
+  async findAll(userId: number, primaryOrg: number) {
     try {
       const result = await this.drizzleService.db
         .select({
@@ -304,7 +311,7 @@ export class ProjectsService {
         })
         .from(projectMembers)
         .innerJoin(projects, eq(projectMembers.projectId, projects.id))
-        .where(eq(projectMembers.userId, userId));
+        .where(and(eq(projectMembers.userId, userId), eq(projectMembers.workspaceId, primaryOrg)));
 
       return {
         message: 'User projects fetched successfully',
@@ -327,6 +334,87 @@ export class ProjectsService {
       };
     }
   }
+
+  async findProjectsAndWorkspace(userId: number) {
+    try {
+      // Get all projects where user is a member
+      const projectsResult = await this.drizzleService.db
+        .select({
+          project: {
+            id: projects.id,
+            uid: projects.uid,
+            slug: projects.slug,
+            projectName: projects.projectName,
+            projectType: projects.projectType,
+            target: projects.target,
+            description: projects.description,
+            createdAt: projects.createdAt,
+            updatedAt: projects.updatedAt,
+            location: sql`ST_AsGeoJSON(${projects.location})::json`.as('location')
+          },
+          projectRole: projectMembers.projectRole,
+          workspace: {
+            uid: workspace.uid,
+            name: workspace.name,
+            slug: workspace.slug,
+            type: workspace.type
+          }
+        })
+        .from(projectMembers)
+        .innerJoin(projects, eq(projectMembers.projectId, projects.id))
+        .innerJoin(workspace, eq(projects.workspaceId, workspace.id))
+        .where(eq(projectMembers.userId, userId));
+
+      // Get all workspaces where user is a member
+      const workspacesResult = await this.drizzleService.db
+        .select({
+          workspace: {
+            id: workspace.id,
+            uid: workspace.uid,
+            name: workspace.name,
+            slug: workspace.slug,
+            type: workspace.type,
+            description: workspace.description,
+            isActive: workspace.isActive,
+            createdAt: workspace.createdAt
+          },
+          workspaceRole: workspaceMembers.role,
+          memberStatus: workspaceMembers.status
+        })
+        .from(workspaceMembers)
+        .innerJoin(workspace, eq(workspaceMembers.workspaceId, workspace.id))
+        .where(eq(workspaceMembers.userId, userId));
+
+      return {
+        message: 'User projects and workspaces fetched successfully',
+        statusCode: 200,
+        error: null,
+        data: {
+          projects: projectsResult.map(({ project, projectRole, workspace }) => ({
+            ...project,
+            userRole: projectRole,
+            workspace: workspace
+          })),
+          workspaces: workspacesResult.map(({ workspace, workspaceRole, memberStatus }) => ({
+            ...workspace,
+            userRole: workspaceRole,
+            memberStatus: memberStatus
+          }))
+        },
+        code: 'user_projects_workspaces_fetched',
+      };
+    } catch (error) {
+      console.error('Error fetching user projects and workspaces:', error);
+      return {
+        message: 'Failed to fetch user projects and workspaces',
+        statusCode: 500,
+        error: error.message || "internal_server_error",
+        data: null,
+        code: 'user_projects_workspaces_fetch_failed',
+      };
+    }
+  }
+
 
   async getProjectMembersAndInvitations(membership: ProjectGuardResponse): Promise<ProjectMembersAndInvitesResponse> {
     // Get all members with user detailsgetProjectInviteStatus
@@ -477,6 +565,7 @@ export class ProjectsService {
         .values({
           projectId: membership.projectId,
           uid: generateUid('inv'),
+          workspaceId: 1,
           email,
           // Only allow roles supported by your schema
           projectRole: role as 'owner' | 'admin' | 'contributor' | 'observer',
@@ -543,6 +632,7 @@ export class ProjectsService {
           uid: generateUid('inv'),
           projectRole: 'contributor',
           expiresAt: expiryDate,
+          workspaceId: 1,
           message: '',
           restriction: data.restriction
         })
@@ -861,6 +951,7 @@ export class ProjectsService {
             projectId: invite.invite.projectId,
             userId: userId,
             uid: generateUid('mem'),
+            workspaceId: 1,
             projectRole: invite.invite.projectRole,
             joinedAt: new Date(),
           })
@@ -990,6 +1081,7 @@ export class ProjectsService {
           userId: userId,
           uid: generateUid('mem'),
           projectRole: 'contributor',
+          workspaceId: 1,
           joinedAt: new Date(),
           bulkInviteId: invite.invite.id,
         })
@@ -1755,6 +1847,7 @@ export class ProjectsService {
         .insert(projectMembers)
         .values({
           projectId: projectId,
+          workspaceId: 1,
           uid: uuidv4(),
           userId: userToAdd.id,
           projectRole: addMemberDto.role as 'owner' | 'admin' | 'contributor' | 'observer',

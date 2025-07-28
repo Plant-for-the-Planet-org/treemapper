@@ -66,18 +66,18 @@ export class AnalyticsController {
   }
 
   
-  @Post('/:id/export')
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  async exportInterventionData(
-    @Body(ValidationPipe) dto: InterventionExportDto,
-    @Req() req: Request,
-    @Membership() membership: any
-  ): Promise<InterventionExportResponse> {
+  // @Post('/:id/export')
+  // @ProjectRoles('owner', 'admin')
+  // @UseGuards(ProjectPermissionsGuard)
+  // async exportInterventionData(
+  //   @Body(ValidationPipe) dto: InterventionExportDto,
+  //   @Req() req: Request,
+  //   @Membership() membership: any
+  // ): Promise<InterventionExportResponse> {
 
-    return this.analyticsService.exportInterventionData(
-      dto,
-      membership.projectId
-    );
-  }
+  //   return this.analyticsService.exportInterventionData(
+  //     dto,
+  //     membership.projectId
+  //   );
+  // }
 }

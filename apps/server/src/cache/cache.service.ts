@@ -18,9 +18,9 @@ export class CacheService {
     try {
       const value = await this.cacheManager.get<T>(key);
       if (value) {
-        this.logger.debug(`Cache HIT for key: ${key}`);
+        // this.logger.debug(`Cache HIT for key: ${key}`);
       } else {
-        this.logger.debug(`Cache MISS for key: ${key}`);
+        // this.logger.debug(`Cache MISS for key: ${key}`);
       }
       return value || null;
     } catch (error) {
@@ -35,7 +35,7 @@ export class CacheService {
   async set<T>(key: string, value: T, ttl?: number): Promise<void> {
     try {
       await this.cacheManager.set(key, value, ttl);
-      this.logger.debug(`Cache SET for key: ${key}, TTL: ${ttl || 'default'}`);
+      // this.logger.debug(`Cache SET for key: ${key}, TTL: ${ttl || 'default'}`);
     } catch (error) {
       this.logger.error(`Cache SET error for key ${key}:`, error);
     }
@@ -106,7 +106,7 @@ export class CacheService {
 
       return value;
     } catch (error) {
-      this.logger.error(`Cache GET_OR_SET error for key ${key}:`, error);
+      // this.logger.error(`Cache GET_OR_SET error for key ${key}:`, error);
       // Fallback to factory function if cache fails
       try {
         return await factory();
