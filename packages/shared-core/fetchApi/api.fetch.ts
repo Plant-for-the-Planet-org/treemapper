@@ -203,7 +203,11 @@ export const createNewDashboardSite = async (token: string, params: any, prjId: 
   return result;
 };
 
-
+export const updateDashboardSite = async (token: string, params: any, prjId: string, site) => {
+  const uri = `${putUrlApi.updateSiteData}/${prjId}/sites/${site}`;
+  const result = await fetchPutCall(uri, params, token);
+  return result;
+};
 
 
 //intervention

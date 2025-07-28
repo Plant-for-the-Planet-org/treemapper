@@ -80,6 +80,7 @@ export const deleteUrlApi = {
 
 export const putUrlApi = {
   updatePrjSpecies: `${baseUrl}/project-species`,
+  updateSiteData: `${baseUrl}/projects`,
 } as const;
 
 // Export the base URL for other modules that might need it

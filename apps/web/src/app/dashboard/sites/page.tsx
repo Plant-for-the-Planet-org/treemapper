@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
-import { getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
+import { getUserProjectSites, updateDashboardSite } from '@shared-core/fetchApi/api.fetch';
 import { toast } from 'react-toastify';
 import { findAreaInHa } from '@/utils/geoJSON.helper';
 import { DeleteModal } from './component/DeleteModal';
@@ -39,7 +39,7 @@ const SiteManagementPage = () => {
     }
   }, [selectedProject]);
 
-  const handleCreateNewSite=()=>{
+  const handleCreateNewSite = () => {
     router.push('/dashboard/newsite')
   }
 
@@ -108,7 +108,7 @@ const SiteManagementPage = () => {
   });
 
   const handleEdit = () => setIsEditing(true);
-  const handleSave = () => {
+  const handleSave = async () => {
     if (editedSite) {
       const updatedSites = sites.map(site =>
         site.id === editedSite.id
@@ -119,6 +119,7 @@ const SiteManagementPage = () => {
       setSelectedSite(editedSite);
       setIsEditing(false);
       setEditedSite(null);
+      await updateDashboardSite(accessToken, { name: editedSite.name, description: editedSite.description }, selectedProject?.uid, editedSite.id)
     }
   };
 
@@ -132,6 +133,7 @@ const SiteManagementPage = () => {
     setSites(updatedSites);
     setSelectedSite(updatedSites[0] || null);
     setShowDeleteModal(false);
+
   };
 
   return (

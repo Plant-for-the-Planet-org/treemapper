@@ -63,14 +63,14 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
               >
                 <Edit3 className="w-4 h-4" />
               </motion.button>
-              <motion.button
+              {/* <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={onDelete}
                 className="bg-red-500/80 hover:bg-red-600 p-2 rounded-lg transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-              </motion.button>
+              </motion.button> */}
             </>
           )}
         </div>
