@@ -7,6 +7,7 @@ import { getMyNotification, markNotificationRead } from '@shared-core/fetchApi/a
 import { useToken } from "@/context/useTokenContext";
 import NotificationIcon, { NotificationType } from './NotificationIcons';
 import { NotificationModal } from './NotificationModal';
+import { useUserStore } from '@shared-core/store/useUserStore';
 
 
 
@@ -19,9 +20,12 @@ const NotificationsPanel = () => {
   const [notifications, setNotifications] = useState<Array<any>>([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const User = useUserStore((state) => state.user);
   useEffect(() => {
-    fetchAllNotification()
-  }, [])
+    if(User && User.primaryProject){
+      fetchAllNotification()
+    }
+  }, [User])
   const { accessToken } = useToken()
 
   const fetchAllNotification = async () => {

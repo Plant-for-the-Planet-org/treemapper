@@ -1,7 +1,6 @@
 'use client'
-import { useRouter } from "next/navigation"
-import { useEffect } from "react"
 
+import Overview from "./overview/component/Overview"
 export default function page() {
-  return null
+  return <Overview />
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter, usePathname } from 'next/navigation';
+import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardHeaderWeb from '@/component/header/MainHeader';
 import { TokenProvider } from '@/context/useTokenContext';
@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 import NoProjectSelected from '@/component/NoProjectPlaceHolder';
 import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
+import ProjectInviteModal from '@/component/ProjectInviteModal';
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -34,6 +35,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const orgType = useHomeStore(state => state.orgType);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
   const User = useUserStore((state) => state.user);
 
   // Simplified state management
@@ -47,6 +49,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
+
+  // Check if user is on the root dashboard path WITHOUT any query parameters
+  // If there are query params (like project-invite), don't redirect
+  const isRootDashboardPath = (pathname === '/dashboard' || pathname === '/dashboard/') && !searchParams.toString();
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -70,24 +76,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       initializeApp();
     }
   }, [accessToken, User, appState]);
-
-
-
-  // Also handle browser visibility changes (for external navigation)
-  useEffect(() => {
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' &&
-        pathname.includes('/dashboard') &&
-        !pathname.includes('/onboarding') &&
-        User &&
-        appState === 'success') {
-        refreshAppData();
-      }
-    };
-
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
-  }, [pathname, User, appState]);
 
   const setDefaultProjectAndWorkspace = useCallback(() => {
     if (!User?.primaryProject || !User?.primaryWorkspace) return;
@@ -156,8 +144,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       // Step 4: Fetch workspace and projects
       await fetchWorkspaceAndProjects();
 
-      // Step 5: Navigate to overview if on default route
-      if (currentSection === 'default') {
+      // Step 5: Only redirect to overview if user is on the exact root dashboard path
+      // This preserves other routes like /dashboard/species, /dashboard/species?a=1&b=2, etc.
+      if (isRootDashboardPath) {
         router.replace('/dashboard/overview');
       }
 
@@ -310,6 +299,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <TokenProvider accessToken={accessToken}>
+      <ProjectInviteModal/>
       <div className='parent'>
         <div className="app-container">
           <div className="app-content">
