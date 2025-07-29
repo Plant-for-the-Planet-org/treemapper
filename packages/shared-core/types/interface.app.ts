@@ -103,8 +103,8 @@ export interface UserInterface {
   isActive: boolean;
   createdAt: string;
   migratedAt?: string;
-  primaryWorkspace: number;
-  primaryProject: number
+  primaryWorkspace: string | null;
+  primaryProject: string | null;
 }
 
 export interface ProjectWithUserRoleI {

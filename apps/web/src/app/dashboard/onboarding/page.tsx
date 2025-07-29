@@ -8,6 +8,7 @@ import { toast } from 'react-toastify'
 import { startOnboarding } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { useRouter } from 'next/navigation';
+import { useUserStore } from '@shared-core/store/useUserStore';
 
 const Onboarding = () => {
   const [currentScreen, setCurrentScreen] = useState(1);
@@ -57,9 +58,7 @@ const Onboarding = () => {
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      setTimeout(() => {
-        router.replace('/dashboard/overview');
-      }, 300)
+      window.location.replace('/dashboard')
     } catch (error) {
       toast.error("Something went wrong")
       setLoading(false)

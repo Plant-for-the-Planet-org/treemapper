@@ -3,12 +3,12 @@
 import { useRouter, usePathname } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardHeaderWeb from '@/component/header/MainHeader';
-import { TokenProvider, useToken } from '@/context/useTokenContext';
+import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
 import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails } from '@shared-core/fetchApi/api.fetch';
 import { motion } from 'framer-motion';
@@ -25,6 +25,9 @@ const STANDALONE_ROUTES = [
   'onboarding'
 ];
 
+// Consolidated loading states
+type LoadingState = 'loading' | 'success' | 'error' | 'idle';
+
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
   const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
@@ -32,15 +35,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const router = useRouter();
   const pathname = usePathname();
   const User = useUserStore((state) => state.user);
-  const [retry, setRetry] = useState(3)
-  const [userLoading, setUserLoading] = useState(true)
-  const [userLoadingFailed, setUserLoadingFailed] = useState(false)
-  const [personalProjectLoading, setPersonalProjectLoading] = useState(false)
-  const [personalProjectFailed, setPersonalProjectFailed] = useState(false)
-  const [workspaceDetailsLoading, setWorkspaceDetailsLoading] = useState(false)
-  const [workspaceDetailsLoadingFailed, setWorkspaceDetailsLoadingFailed] = useState(false)
 
-
+  // Simplified state management
+  const [appState, setAppState] = useState<LoadingState>('idle');
+  const [retryCount, setRetryCount] = useState(3);
 
   const getCurrentSection = (path: string): string => {
     const section = STANDALONE_ROUTES.find(route => path.includes(`/dashboard/${route}`));
@@ -49,123 +47,168 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
+
+  // Redirect to login if not authenticated
   useEffect(() => {
     if (!tokenLoading && !user) {
       router.push('/login');
-      return;
+      return
     }
-  }, [user, tokenLoading, router, currentSection]);
+  }, [user, tokenLoading, router]);
 
-
+  // Set default project and workspace when data is available
   useEffect(() => {
-    if (User) {
-      setDefaultProjectandWorkspace(projects, workspace)
+    if (User && projects.length > 0 && workspace.length > 0) {
+      setDefaultProjectAndWorkspace();
+      return
     }
-  }, [User, projects, workspace])
+  }, [User, projects, workspace]);
 
-
-
+  // Initialize app data when token is available
   useEffect(() => {
-    if (accessToken && !User) {
-      fetchUser()
+    if (accessToken && !User && appState === 'idle') {
+      initializeApp();
     }
-  }, [accessToken, User])
+  }, [accessToken, User, appState]);
 
-  const fetchUser = async () => {
-    try {
-      setUserLoadingFailed(false)
-      const res = await getMyDetails(accessToken);
-      if (res && res.statusCode !== 200) {
-        throw new Error('Failed to fetch user')
+
+
+  // Also handle browser visibility changes (for external navigation)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible' &&
+        pathname.includes('/dashboard') &&
+        !pathname.includes('/onboarding') &&
+        User &&
+        appState === 'success') {
+        refreshAppData();
       }
-      useUserStore.getState().setUser(res.data)
-      setRetry(() => 3)
-      if (res.data && !res.data.primaryWorkspace) {
-        router.push('/dashboard/onboarding')
-        setUserLoading(false)
-        return
-      }
-      if (res.data && !res.data.primaryProject) {
-        setPersonalProjectLoading(true)
-        setUserLoading(false)
-        await createNewProject()
-        return;
-      }
-      setUserLoading(false)
-      await fetchWorkspaceAndProjects()
-    } catch (err) {
-      setRetry((prevRetry) => {
-        const newRetry = prevRetry - 1
-        if (newRetry <= 0) {
-          setUserLoadingFailed(true)
-          setUserLoading(false)
-          useUserStore.getState().clearUser()
-        } else {
-          setTimeout(() => fetchUser(), 5000)
-        }
-        return newRetry
-      })
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [pathname, User, appState]);
+
+  const setDefaultProjectAndWorkspace = useCallback(() => {
+    if (!User?.primaryProject || !User?.primaryWorkspace) return;
+
+    const defaultProject = projects.find(p => p.uid === User.primaryProject);
+    const defaultWorkspace = workspace.find(w => w.uid === User.primaryWorkspace);
+
+    if (defaultProject && !selectedProject) {
+      selectProject(defaultProject);
     }
-  }
+    if (defaultWorkspace && !selectedWorkspce) {
+      setDefaultWorkspce(defaultWorkspace);
+    }
+  }, [User, projects, workspace, selectedProject, selectedWorkspce, selectProject, setDefaultWorkspce]);
+
+  const fetchUserDetails = async (): Promise<any> => {
+    const res = await getMyDetails(accessToken);
+    if (res?.statusCode !== 200) {
+      throw new Error('Failed to fetch user details');
+    }
+    return res.data;
+  };
 
   const fetchWorkspaceAndProjects = async () => {
+    const response = await getMyWorkspaceProjects(accessToken);
+    if (response?.statusCode !== 200) {
+      throw new Error('Failed to fetch workspace and projects');
+    }
+
+    addProjects(response.data.projects);
+    addWorkspace(response.data.workspaces);
+    return response.data;
+  };
+
+  const createPersonalProject = async () => {
+    const response = await createNewPersonalProject(accessToken, {});
+    if (response?.statusCode !== 200 && response?.statusCode !== 201) {
+      throw new Error('Failed to create personal project');
+    }
+    return response;
+  };
+
+  const initializeApp = async () => {
+    setAppState('loading');
+
     try {
-      setWorkspaceDetailsLoading(true)
-      const response = await getMyWorkspaceProjects(accessToken)
-      if (response.statusCode === 200) {
-        addProjects(response.data.projects)
-        addWorkspace(response.data.workspaces)
-        if (currentSection === 'default') {
-          router.replace('/dashboard/overview');
-        }
-        setWorkspaceDetailsLoading(false)
-        return
+      // Step 1: Fetch user details
+      const userData = await fetchUserDetails();
+      useUserStore.getState().setUser(userData);
+
+      // Step 2: Check if user needs onboarding
+      if (!userData.primaryWorkspace) {
+        router.push('/dashboard/onboarding');
+        setAppState('success');
+        return;
       }
-      throw ''
+
+      // Step 3: Create personal project if needed
+      if (!userData.primaryProject) {
+        await createPersonalProject();
+        // Refresh user data after creating project
+        const updatedUserData = await fetchUserDetails();
+        useUserStore.getState().setUser(updatedUserData);
+      }
+
+      // Step 4: Fetch workspace and projects
+      await fetchWorkspaceAndProjects();
+
+      // Step 5: Navigate to overview if on default route
+      if (currentSection === 'default') {
+        router.replace('/dashboard/overview');
+      }
+
+      setAppState('success');
+      setRetryCount(3); // Reset retry count on success
+
     } catch (error) {
-      setWorkspaceDetailsLoading(false)
-      setWorkspaceDetailsLoadingFailed(true)
+      console.error('App initialization failed:', error);
+      handleError();
     }
-  }
+  };
 
-
-
-  const setDefaultProjectandWorkspace = (projects, workspace) => {
-    const projectFilter = projects.filter(el => el.uid === User.primaryProject)
-    const workspaceFilter = workspace.filter(el => el.uid === User.primaryWorkspace)
-    if (projectFilter.length > 0 && !selectedProject) {
-      selectProject(projectFilter[0])
-    }
-    if (workspaceFilter.length > 0 && !selectedWorkspce) {
-      setDefaultWorkspce(workspaceFilter[0])
-    }
-  }
-
-
-
-  const createNewProject = async () => {
-    setPersonalProjectFailed(false)
+  const refreshAppData = async () => {
     try {
-      const response = await createNewPersonalProject(accessToken, {
-      })
-      if (response.statusCode !== 200 && response.statusCode !== 201) {
-        throw ''
-      }
-      await fetchWorkspaceAndProjects()
+      setAppState('loading');
+
+      // Fetch fresh user data
+      const userData = await fetchUserDetails();
+      useUserStore.getState().setUser(userData);
+
+      // Fetch fresh workspace and projects
+      await fetchWorkspaceAndProjects();
+
+      setAppState('success');
     } catch (error) {
-      setPersonalProjectLoading(false)
-      setPersonalProjectFailed(true)
+      console.error('Data refresh failed:', error);
+      // Don't show error UI for refresh failures, just log them
+      setAppState('success'); // Keep the current state
     }
-  }
+  };
 
+  const handleError = () => {
+    if (retryCount > 0) {
+      setRetryCount(prev => prev - 1);
+      setTimeout(() => {
+        setAppState('idle'); // This will trigger initializeApp again
+      }, 5000);
+    } else {
+      setAppState('error');
+      useUserStore.getState().clearUser();
+    }
+  };
 
-
-
+  const handleRetry = () => {
+    setRetryCount(3);
+    setAppState('idle');
+  };
 
   const handleLogout = () => {
     window.location.href = '/api/auth/logout';
   };
-
 
   const navigationHandlers = {
     createNewProject: () => router.push('/dashboard/project'),
@@ -173,12 +216,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     updateRoute: (newRoute: string) => router.push(`/dashboard/${newRoute}`)
   };
 
-  // Loading and error states
+  // Handle token errors
   if (tokenError) {
     handleLogout();
     return <div className="p-8 text-center text-red-500">Error: {String(tokenError)}</div>;
   }
 
+  // Show loading for initial authentication
   if (tokenLoading || !user) {
     return (
       <div className="flex justify-center items-center h-full w-full" style={{ width: '100vw', height: '100vh' }}>
@@ -187,15 +231,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     );
   }
 
+  // Render main content based on app state
   const renderMainContent = () => {
-
-    if (userLoading || workspaceDetailsLoading) {
-      return <div className='h-full w-full flex items-center justify-center'>
-        <Spinner />
-      </div>
+    if (appState === 'loading') {
+      return (
+        <div className='h-full w-full flex items-center justify-center'>
+          <Spinner />
+        </div>
+      );
     }
 
-    if (userLoadingFailed) {
+    if (appState === 'error') {
       return (
         <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ zIndex: 1000 }}>
           <motion.div
@@ -212,7 +258,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             className="relative mx-4 w-full max-w-xl overflow-hidden rounded-3xl bg-white p-8 shadow-2xl border border-green-200"
           >
             <motion.div
-              key="failed"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
@@ -225,44 +270,34 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               </div>
 
               <h3 className="text-xl font-bold text-red-800">
-                Error Occured
+                Error Occurred
               </h3>
 
-              <p className="text-gray-700">
-              </p>
               <div className="space-y-4">
                 <p className="text-red-600 font-medium">
-                  There was an error while fetching your details
+                  There was an error while loading your dashboard
                 </p>
                 <button
-                  onClick={() => { window.location.reload() }}
+                  onClick={handleRetry}
                   className="cursor-pointer w-full rounded-lg border border-gray-300 px-4 py-2.5 text-gray-700 transition hover:bg-gray-100"
                 >
-                  Reload
+                  Try Again
                 </button>
               </div>
             </motion.div>
           </motion.div>
         </div>
-      )
+      );
     }
 
-    if (personalProjectLoading) {
-      return <NoProjectSelected />
-    }
-
-    if (personalProjectFailed || workspaceDetailsLoadingFailed) {
-      return <ErrorLoadingProject onRefresh={() => {
-        window.location.reload()
-      }} />
-    }
-
-
+    // For standalone routes, ensure project is selected (except onboarding)
     if (isStandaloneRoute) {
-      if (!selectedProject && currentSection!== 'onboarding') {
-        return <div className='h-full w-full flex items-center justify-center'>
-          <Spinner />
-        </div>
+      if (!selectedProject && currentSection !== 'onboarding') {
+        return (
+          <div className='h-full w-full flex items-center justify-center'>
+            <Spinner />
+          </div>
+        );
       }
       return children;
     }
@@ -270,13 +305,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     return children;
   };
 
+  // Show header only when app is ready and not on standalone routes
+  const showHeader = appState === 'success' && !isStandaloneRoute;
+
   return (
     <TokenProvider accessToken={accessToken}>
       <div className='parent'>
         <div className="app-container">
           <div className="app-content">
             <TestingModeManager devMode={orgType === 'dev'} />
-            {userLoading || workspaceDetailsLoading || userLoadingFailed || personalProjectFailed || personalProjectLoading || workspaceDetailsLoadingFailed ? null : isStandaloneRoute ? null : (
+            {showHeader && (
               <DashboardHeaderWeb
                 token={accessToken}
                 {...navigationHandlers}
