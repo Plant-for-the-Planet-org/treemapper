@@ -131,8 +131,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
 
   const setDefaultProjectandWorkspace = (projects, workspace) => {
-    const projectFilter = projects.filter(el => el.id === User.primaryProject)
-    const workspaceFilter = workspace.filter(el => el.id === User.primaryWorkspace)
+    const projectFilter = projects.filter(el => el.uid === User.primaryProject)
+    const workspaceFilter = workspace.filter(el => el.uid === User.primaryWorkspace)
     if (projectFilter.length > 0 && !selectedProject) {
       selectProject(projectFilter[0])
     }

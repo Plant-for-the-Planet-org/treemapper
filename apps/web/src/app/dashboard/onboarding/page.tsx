@@ -8,13 +8,11 @@ import { toast } from 'react-toastify'
 import { startOnboarding } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { useRouter } from 'next/navigation';
-import useProjectStore from '@shared-core/store/useProjectStore';
 
 const Onboarding = () => {
   const [currentScreen, setCurrentScreen] = useState(1);
   const [loading, setLoading] = useState(false)
   const router = useRouter()
-    const { setLastRefetched } = useProjectStore(state => state);
 
   const [screenOneData, setScreenOneData] = useState({
     projectName: '',

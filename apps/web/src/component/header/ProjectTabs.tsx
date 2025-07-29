@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { ChevronDown, ChevronRight, Plus, Folder } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -101,7 +101,6 @@ const ProjectDropdown = ({
 
   const selectProjectandWorkspace = async (project: ProjectWithUserRoleI) => {
     const workspaceChange = project.workspace['uid'] !== selectedWorkspce.uid
-    console.log("DSC", workspaceChange)
     if (workspaceChange) {
       const response = await selectOrg(accessToken, {
         workspaceUid: project.workspace['uid'],
@@ -244,7 +243,7 @@ const ProjectDropdown = ({
                                   <div className="flex flex-col items-start min-w-0 flex-1">
                                     <span className={cn(
                                       "font-medium text-sm truncate w-full",
-                                      project.uid === selectedProject?.uid ? "text-blue-900" : "text-gray-800"
+                                      project.uid === selectedProject?.uid ? "text-green-900" : "text-gray-800"
                                     )}>
                                       {project.projectName}
                                     </span>
