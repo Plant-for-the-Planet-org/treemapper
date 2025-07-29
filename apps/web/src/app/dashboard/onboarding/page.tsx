@@ -8,11 +8,14 @@ import { toast } from 'react-toastify'
 import { startOnboarding } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { useRouter } from 'next/navigation';
+import useProjectStore from '@shared-core/store/useProjectStore';
 
 const Onboarding = () => {
   const [currentScreen, setCurrentScreen] = useState(1);
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+    const { setLastRefetched } = useProjectStore(state => state);
+
   const [screenOneData, setScreenOneData] = useState({
     projectName: '',
     selectedPlan: ''
@@ -52,16 +55,13 @@ const Onboarding = () => {
         payload.role === '' &&
         payload.primaryGoal === '';
 
-      console.log('Onboarding completed with data:', allData);
-      console.log('Onboarding payload:', payload);
       const resp = await startOnboarding(accessToken, payload)
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      router.back()
       setTimeout(() => {
-        window.location.reload()
-      }, 500);
+        router.replace('/dashboard/overview');
+      }, 300)
     } catch (error) {
       toast.error("Something went wrong")
       setLoading(false)
