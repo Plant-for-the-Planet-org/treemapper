@@ -11,13 +11,13 @@ const authHandler = handleAuth({
   }),
   logout: handleLogout({
     returnTo: process.env.AUTH0_BASE_URL || 'http://localhost:3000'
-    // Don't include logoutParams with federated: true
   })
 });
 
 export async function GET(req: NextRequest, context: { params: Promise<{ auth0: string[] }> }) {
   try {
-    return authHandler(req, context);
+    const resolvedParams = await context.params;
+    return authHandler(req, { params: resolvedParams });
   } catch (error) {
     console.error('Auth handler error:', error);
     return new Response('Internal Server Error', { status: 500 });
@@ -26,7 +26,8 @@ export async function GET(req: NextRequest, context: { params: Promise<{ auth0: 
 
 export async function POST(req: NextRequest, context: { params: Promise<{ auth0: string[] }> }) {
   try {
-    return authHandler(req, context);
+    const resolvedParams = await context.params;
+    return authHandler(req, { params: resolvedParams });
   } catch (error) {
     console.error('Auth handler error:', error);
     return new Response('Internal Server Error', { status: 500 });
