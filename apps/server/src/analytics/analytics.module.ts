@@ -4,7 +4,6 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
 import { AnalyticsJobProcessor } from './analytics-job.processor';
-import { HistoricalSnapshotService } from './historical-snapshot.service';
 import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -27,7 +26,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
     }),
   ],
   controllers: [AnalyticsController],
-  providers: [AnalyticsService, AnalyticsJobProcessor, HistoricalSnapshotService],
+  providers: [AnalyticsService, AnalyticsJobProcessor],
   exports: [AnalyticsService],
 })
 export class AnalyticsModule {}

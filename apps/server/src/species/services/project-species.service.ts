@@ -6,10 +6,9 @@ import {
   ForbiddenException
 } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
-import { projectSpecies, scientificSpecies } from '../../database/schema';
+import { intervention, projectSpecies, scientificSpecies } from '../../database/schema';
 import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
-import { eq, and, ilike, or, desc, sql, is } from 'drizzle-orm';
-import { v4 as uuidv4 } from 'uuid';
+import { eq, and, ilike, or, desc, sql, is, isNotNull } from 'drizzle-orm';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 
@@ -57,12 +56,11 @@ export class ProjectSpeciesService {
     const newUserSpecies = await this.drizzle.db
       .insert(projectSpecies)
       .values({
-        uid: generateUid('psp'),
+        uid: generateUid('projspc'),
         projectId: membership.projectId,
         addedById: membership.userId,
         scientificSpeciesId: createDto.scientificSpeciesId,
         commonName: createDto.commonName,
-        workspaceId: 1,
         isNativeSpecies: createDto.isNativeSpecies || false,
         isDisabled: createDto.isDisbaledSpecies || false,
         description: createDto.description || scientificSpeciesData.description,
@@ -167,37 +165,208 @@ export class ProjectSpeciesService {
 
     return updatedSpecies[0]
   }
+async getInterventionSpecies(membership: ProjectGuardResponse) {
+  return this.drizzle.db
+    .select({
+      interventionUid: intervention.uid,
+      interventionHid: intervention.hid,
+      interventionType: intervention.type,
+      species: intervention.species,
+      registrationDate: intervention.registrationDate,
+      interventionStartDate: intervention.interventionStartDate,
+      createdAt: intervention.createdAt,
+    })
+    .from(intervention)
+    .where(
+      and(
+        eq(intervention.projectId, membership.projectId),
+        isNotNull(intervention.species),
+        sql`jsonb_array_length(${intervention.species}) > 0`
+      )
+    )
+    .orderBy(desc(intervention.createdAt));
+}
 
-  async getAll(membership: ProjectGuardResponse) {
-    const [data] = await Promise.all([
-      this.drizzle.db
-        .select({
-          uid: projectSpecies.uid,
-          commonName: projectSpecies.commonName,
-          description: projectSpecies.description,
-          isNativeSpecies: projectSpecies.isNativeSpecies,
-          disbaled: projectSpecies.isDisabled,
-          image: projectSpecies.image,
-          favourite: projectSpecies.favourite,
-          createdAt: projectSpecies.createdAt,
-          scientificName: scientificSpecies.scientificName,
-          updatedAt: projectSpecies.updatedAt,
-          metadata: projectSpecies.metadata,
-          scientificSpecies: {
-            id: scientificSpecies.id,
-            uid: scientificSpecies.uid,
-            commonName: scientificSpecies.commonName,
-            description: scientificSpecies.description,
-            gbifId: scientificSpecies.gbifId,
-          },
-        })
-        .from(projectSpecies)
-        .leftJoin(scientificSpecies, eq(projectSpecies.scientificSpeciesId, scientificSpecies.id))
-        .where(eq(projectSpecies.projectId, membership.projectId))
-        .orderBy(desc(projectSpecies.createdAt))
-    ]);
-    return data
-  }
+async getAll(membership: ProjectGuardResponse) {
+  const [projectSpeciesData, interventionSpeciesData] = await Promise.all([
+    this.drizzle.db
+      .select({
+        uid: projectSpecies.uid,
+        scientificSpeciesId: projectSpecies.scientificSpeciesId,
+        speciesName: projectSpecies.speciesName,
+        scientificSpeciesUid: projectSpecies.scientificSpeciesUid,
+        isUnknown: projectSpecies.isUnknown,
+        commonName: projectSpecies.commonName,
+        description: projectSpecies.description,
+        isNativeSpecies: projectSpecies.isNativeSpecies,
+        disbaled: projectSpecies.isDisabled,
+        image: projectSpecies.image,
+        favourite: projectSpecies.favourite,
+        createdAt: projectSpecies.createdAt,
+        updatedAt: projectSpecies.updatedAt,
+        metadata: projectSpecies.metadata,
+      })
+      .from(projectSpecies)
+      .where(eq(projectSpecies.projectId, membership.projectId)),
+    
+    this.getInterventionSpecies(membership)
+  ]);
+
+  // Process intervention species into known and unknown
+  const { knownSpecies, unknownSpecies } = this.processInterventionSpecies(interventionSpeciesData);
+
+  // Aggregate scientific species (project + known intervention species)
+  const scientificSpecies = this.aggregateScientificSpecies(projectSpeciesData, knownSpecies);
+
+  return {
+    scientificSpecies,
+    unknownSpecies
+  };
+}
+
+private processInterventionSpecies(interventionData: any[]) {
+  const knownSpecies:any = [];
+  const unknownSpecies:any = [];
+
+  interventionData.forEach(intervention => {
+    const speciesArray = intervention.species as any[];
+    
+    speciesArray.forEach(species => {
+      if (species.isUnknown) {
+        // Keep unknown species separate with intervention context
+        unknownSpecies.push({
+          clientId: species.clientId,
+          speciesName: species.speciesName,
+          count: Number(species.count) || 0,
+          interventionUid: intervention.interventionUid,
+          interventionHid: intervention.interventionHid,
+          interventionType: intervention.interventionType,
+          createdAt: new Date(species.createdAt),
+          updatedAt: species.updatedAt ? new Date(species.updatedAt) : null,
+          isUnknown: true,
+          scientificSpeciesUid: null,
+          scientificSpeciesId: null
+        });
+      } else if (species.scientificSpeciesUid) {
+        // Collect known species for aggregation
+        knownSpecies.push({
+          speciesName: species.speciesName,
+          scientificSpeciesUid: species.scientificSpeciesUid,
+          scientificSpeciesId: species.scientificSpeciesId,
+          count: Number(species.count) || 0,
+          interventionUid: intervention.interventionUid,
+          interventionHid: intervention.interventionHid,
+          interventionType: intervention.interventionType,
+          createdAt: new Date(species.createdAt),
+          updatedAt: species.updatedAt ? new Date(species.updatedAt) : null,
+          isUnknown: false
+        });
+      }
+    });
+  });
+
+  return { knownSpecies, unknownSpecies };
+}
+
+private aggregateScientificSpecies(projectSpecies: any[], interventionKnownSpecies: any[]) {
+  const aggregatedMap = new Map();
+
+  // Add project species
+  projectSpecies.forEach(species => {
+    if (species.scientificSpeciesUid) {
+      const key = species.scientificSpeciesUid;
+      aggregatedMap.set(key, {
+        uid: species.uid,
+        scientificSpeciesUid: species.scientificSpeciesUid,
+        scientificSpeciesId: species.scientificSpeciesId,
+        speciesName: species.speciesName,
+        commonName: species.commonName,
+        description: species.description,
+        isNativeSpecies: species.isNativeSpecies,
+        isDisabled: species.disbaled,
+        image: species.image,
+        favourite: species.favourite,
+        sources: ['project'],
+        totalCount: 0,
+        interventionCount: 0,
+        interventionTypes: [],
+        projectCreatedAt: species.createdAt,
+        projectUpdatedAt: species.updatedAt,
+        metadata: species.metadata
+      });
+    }
+  });
+
+  // Aggregate intervention known species
+  interventionKnownSpecies.forEach(species => {
+    const key = species.scientificSpeciesUid;
+    
+    if (aggregatedMap.has(key)) {
+      // Update existing entry (from project species)
+      const existing = aggregatedMap.get(key);
+      existing.sources.push('intervention');
+      existing.sources = [...new Set(existing.sources)]; // Remove duplicates
+      existing.totalCount += species.count;
+      existing.interventionCount += 1;
+      
+      if (!existing.interventionTypes.includes(species.interventionType)) {
+        existing.interventionTypes.push(species.interventionType);
+      }
+    } else {
+      // Create new entry for intervention-only species
+      if (aggregatedMap.has(key)) {
+        const existing = aggregatedMap.get(key);
+        existing.totalCount += species.count;
+        existing.interventionCount += 1;
+        
+        if (!existing.interventionTypes.includes(species.interventionType)) {
+          existing.interventionTypes.push(species.interventionType);
+        }
+      } else {
+        aggregatedMap.set(key, {
+          scientificSpeciesUid: species.scientificSpeciesUid,
+          scientificSpeciesId: species.scientificSpeciesId,
+          speciesName: species.speciesName,
+          sources: ['intervention'],
+          totalCount: species.count,
+          interventionCount: 1,
+          interventionTypes: [species.interventionType],
+          interventionCreatedAt: species.createdAt,
+          interventionUpdatedAt: species.updatedAt
+        });
+      }
+    }
+  });
+
+  // Aggregate intervention counts for species that appear multiple times
+  const countMap = new Map();
+  interventionKnownSpecies.forEach(species => {
+    const key = species.scientificSpeciesUid;
+    if (countMap.has(key)) {
+      countMap.get(key).count += species.count;
+      countMap.get(key).interventionCount += 1;
+      countMap.get(key).interventionTypes.add(species.interventionType);
+    } else {
+      countMap.set(key, {
+        count: species.count,
+        interventionCount: 1,
+        interventionTypes: new Set([species.interventionType])
+      });
+    }
+  });
+
+  // Update aggregated data with correct counts
+  Array.from(aggregatedMap.values()).forEach(species => {
+    if (countMap.has(species.scientificSpeciesUid)) {
+      const counts = countMap.get(species.scientificSpeciesUid);
+      species.totalCount = counts.count;
+      species.interventionCount = counts.interventionCount;
+      species.interventionTypes = Array.from(counts.interventionTypes);
+    }
+  });
+
+  return Array.from(aggregatedMap.values());
+}
 
 
 

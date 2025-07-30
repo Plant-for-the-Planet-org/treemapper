@@ -1,13 +1,11 @@
-// src/modules/interventions/interventions.service.ts
 import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
 import { and, eq, desc, asc, like, gte, lte, inArray, sql, count, isNull, or } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
 import {
-  interventions,
-  sites,
-  users,
-  treeRecords,
-  trees,
+  intervention,
+  site,
+  treeRecord,
+  tree,
   workspace,
 } from '../database/schema/index';
 import {
@@ -91,12 +89,12 @@ export class InterventionsService {
       let newHID = generateParentHID();
       let projectSiteId: null | number = null;
       if (createInterventionDto.plantProjectSite) {
-        const site = await this.drizzleService.db
-          .select({ id: sites.id })
-          .from(sites)
-          .where(eq(sites.uid, createInterventionDto.plantProjectSite))
+        const siteData = await this.drizzleService.db
+          .select({ id: site.id })
+          .from(site)
+          .where(eq(site.uid, createInterventionDto.plantProjectSite))
           .limit(1);
-        if (site.length === 0) {
+        if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
         }
         projectSiteId = site[0].id;
@@ -111,7 +109,7 @@ export class InterventionsService {
         userId: membership.userId,
         projectId: membership.projectId,
         projectSiteId: projectSiteId || null,
-        idempotencyKey: generateUid('ide'),
+        idempotencyKey: generateUid('idem'),
         type: createInterventionDto.type,
         registrationDate: new Date(),
         interventionStartDate: new Date(createInterventionDto.interventionStartDate),
@@ -130,7 +128,7 @@ export class InterventionsService {
         species: createInterventionDto.species || [],
       }
       const result = await this.drizzleService.db
-        .insert(interventions)
+        .insert(intervention)
         .values(interventionData)
         .returning();
       if (!result) {
@@ -160,7 +158,7 @@ export class InterventionsService {
           metadata: createInterventionDto.metadata || null,
         }
         const singleResult = await this.drizzleService.db
-          .insert(trees)
+          .insert(tree)
           .values(payload)
           .returning();
         if (!singleResult) {
@@ -182,12 +180,12 @@ export class InterventionsService {
         throw new NotFoundException('Project not found');
       }
       if (createInterventionDto[0].plantProjectSite) {
-        const site = await this.drizzleService.db
+        const siteData = await this.drizzleService.db
           .select()
-          .from(sites)
-          .where(eq(sites.uid, createInterventionDto[0].plantProjectSite ?? ''))
+          .from(site)
+          .where(eq(site.uid, createInterventionDto[0].plantProjectSite ?? ''))
           .limit(1);
-        if (site.length === 0) {
+        if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
         }
         projectSiteId = site[0].id;
@@ -212,7 +210,7 @@ export class InterventionsService {
           uid: el.clientId,
           hid: newHID,
           userId: membership.userId,
-          idempotencyKey: generateUid('ide'),
+          idempotencyKey: generateUid('idem'),
           type: el.type,
           interventionStartDate: new Date(el.interventionStartDate),
           interventionEndDate: new Date(el.interventionEndDate),
@@ -229,15 +227,12 @@ export class InterventionsService {
           species: el.species || [],
         })
       })
-      console.log("tranformedData s", tranformedData)
-
       const finalInterventionIDMapping: any = []
       try {
         const result = await this.drizzleService.db
-          .insert(interventions)
+          .insert(intervention)
           .values(tranformedData)
-          .returning({ id: interventions.id, uid: interventions.uid });
-        console.log("SKDLc", result)
+          .returning({ id: intervention.id, uid: intervention.uid });
         const finalParentIntervention = result.map(el => ({ id: el.id, uid: el.uid, success: true, error: false }))
         finalInterventionIDMapping.push(...finalParentIntervention)
       } catch (error) {
@@ -275,9 +270,9 @@ export class InterventionsService {
       })
       try {
         await this.drizzleService.db
-          .insert(trees)
+          .insert(tree)
           .values(singleTreeUpload)
-          .returning({ id: trees.id, uid: trees.uid });
+          .returning({ id: tree.id, uid: tree.uid });
       } catch (error) {
         console.log("LSKDc s", error)
         await this.insertTreeChunkIndividually(singleTreeUpload);
@@ -291,7 +286,7 @@ export class InterventionsService {
       }
     } catch (error) {
       console.log("LSKDc", error)
-      throw new BadRequestException(`Failed to create interventions: ${error.message}`);
+      throw new BadRequestException(`Failed to create intervention: ${error.message}`);
     }
   }
 
@@ -300,7 +295,7 @@ export class InterventionsService {
     for (let j = 0; j < chunk.length; j++) {
       try {
         const result = await this.drizzleService.db
-          .insert(interventions)
+          .insert(intervention)
           .values(chunk[j])
           .returning();
 
@@ -327,7 +322,7 @@ export class InterventionsService {
     for (let j = 0; j < chunk.length; j++) {
       try {
         const result = await this.drizzleService.db
-          .insert(trees)
+          .insert(tree)
           .values(chunk[j])
           .returning();
 
@@ -374,48 +369,48 @@ export class InterventionsService {
 
     // Build where conditions
     const whereConditions = [
-      eq(interventions.projectId, projectId),
-      isNull(interventions.deletedAt), // Exclude soft deleted
+      eq(intervention.projectId, projectId),
+      isNull(intervention.deletedAt), // Exclude soft deleted
     ];
 
     // Add filters
     if (type) {
-      whereConditions.push(eq(interventions.type, type));
+      whereConditions.push(eq(intervention.type, type));
     }
 
     if (userId) {
-      whereConditions.push(eq(interventions.userId, userId));
+      whereConditions.push(eq(intervention.userId, userId));
     }
 
     if (interventionStartDate) {
-      whereConditions.push(gte(interventions.interventionStartDate, new Date(interventionStartDate)));
+      whereConditions.push(gte(intervention.interventionStartDate, new Date(interventionStartDate)));
     }
 
     if (registrationDate) {
-      whereConditions.push(gte(interventions.registrationDate, new Date(registrationDate)));
+      whereConditions.push(gte(intervention.registrationDate, new Date(registrationDate)));
     }
 
     if (projectSiteId) {
-      whereConditions.push(eq(interventions.projectSiteId, projectSiteId));
+      whereConditions.push(eq(intervention.projectSiteId, projectSiteId));
     }
 
     if (captureMode) {
-      whereConditions.push(eq(interventions.captureMode, captureMode));
+      whereConditions.push(eq(intervention.captureMode, captureMode));
     }
 
     if (flag !== undefined) {
-      whereConditions.push(eq(interventions.flag, flag));
+      whereConditions.push(eq(intervention.flag, flag));
     }
 
     if (searchHid) {
-      whereConditions.push(like(interventions.hid, `%${searchHid}%`));
+      whereConditions.push(like(intervention.hid, `%${searchHid}%`));
     }
 
     // Species filter - search in JSONB array
     if (species && species.length > 0) {
       const speciesConditions = species.map(speciesName =>
         sql`EXISTS (
-          SELECT 1 FROM jsonb_array_elements(${interventions.species}) AS spec
+          SELECT 1 FROM jsonb_array_elements(${intervention.species}) AS spec
           WHERE spec->>'speciesName' ILIKE ${'%' + speciesName + '%'}
         )`
       );
@@ -425,43 +420,43 @@ export class InterventionsService {
     // Get total count
     const totalCountResult = await this.drizzleService.db
       .select({ count: sql<number>`count(*)` })
-      .from(interventions)
+      .from(intervention)
       .where(and(...whereConditions));
 
     const total = totalCountResult[0]?.count || 0;
     const totalPages = Math.ceil(total / limit);
 
-    // Get interventions with related data
+    // Get intervention with related data
     const interventionsData = await this.drizzleService.db
       .select({
-        intervention: interventions,
-        site: sites,
+        intervention: intervention,
+        site: site,
       })
-      .from(interventions)
-      .leftJoin(sites, eq(interventions.projectSiteId, sites.id))
+      .from(intervention)
+      .leftJoin(site, eq(intervention.projectSiteId, site.id))
       .where(and(...whereConditions))
-      .orderBy(sortOrder === SortOrderEnum.DESC ? desc(interventions.createdAt) : asc(interventions.createdAt))
+      .orderBy(sortOrder === SortOrderEnum.DESC ? desc(intervention.createdAt) : asc(intervention.createdAt))
       .limit(limit)
       .offset(offset);
 
-    // Get trees and their records for each intervention
+    // Get tree and their records for each intervention
     const interventionIds = interventionsData.map(item => item.intervention.id);
 
     let treesWithRecords: any[] = [];
     if (interventionIds.length > 0) {
       treesWithRecords = await this.drizzleService.db
         .select({
-          tree: trees,
-          record: treeRecords,
+          tree: tree,
+          record: treeRecord,
         })
-        .from(trees)
-        .leftJoin(treeRecords, eq(trees.id, treeRecords.treeId))
+        .from(tree)
+        .leftJoin(treeRecord, eq(tree.id, treeRecord.treeId))
         .where(and(
-          inArray(trees.interventionId, interventionIds),
-          isNull(trees.deletedAt),
-          isNull(treeRecords.deletedAt)
+          inArray(tree.interventionId, interventionIds),
+          isNull(tree.deletedAt),
+          isNull(treeRecord.deletedAt)
         ))
-        .orderBy(desc(treeRecords.recordedAt));
+        .orderBy(desc(treeRecord.recordedAt));
     }
 
     // Group trees and records by intervention
@@ -577,22 +572,22 @@ export class InterventionsService {
   }
 
 
-  async deleteIntervention(intervention: string, membership: ProjectGuardResponse) {
+  async deleteIntervention(interventionData: string, membership: ProjectGuardResponse) {
     try {
       const existingIntevention = await this.drizzleService.db
         .select()
-        .from(interventions)
-        .where(eq(interventions.uid, intervention))
+        .from(intervention)
+        .where(eq(intervention.uid, interventionData))
 
       if (!existingIntevention) {
         throw new BadRequestException('Intetvention does not existis');
       }
 
       await this.drizzleService.db
-        .delete(interventions)
+        .delete(intervention)
         .where(
           and(
-            eq(interventions.id, existingIntevention[0].id),
+            eq(intervention.id, existingIntevention[0].id),
           ),
         )
         .returning();

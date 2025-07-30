@@ -1,13 +1,11 @@
 import { Module } from '@nestjs/common';
 import { InterventionsService } from './interventions.service';
 import { InterventionsController } from './interventions.controller';
-import { TreesModule } from '../trees/trees.module';
-import { TreesController } from '../trees/trees.controller';
-import { DatabaseModule } from '../database/database.module'; // Adjust import path
-import { ProjectsModule } from '../projects/projects.module'; // Add this import
+import { DatabaseModule } from '../database/database.module';
+import { ProjectsModule } from '../projects/projects.module';
 
 @Module({
-  imports: [DatabaseModule,ProjectsModule, TreesModule],
+  imports: [DatabaseModule,ProjectsModule],
   controllers: [InterventionsController],
   providers: [InterventionsService,],
   exports: [InterventionsService],

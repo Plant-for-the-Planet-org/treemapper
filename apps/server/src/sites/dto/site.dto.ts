@@ -57,24 +57,6 @@ export class UpdateSiteDto {
   @IsOptional()
   @IsString()
   description?: string;
-
-  @ApiPropertyOptional({ description: 'Site location as GeoJSON geometry' })
-  @IsOptional()
-  @IsObject()
-  originalGeometry?: any;
-
-  @ApiPropertyOptional({
-    description: 'Site status',
-    enum: ['planted', 'planting', 'barren', 'reforestation']
-  })
-  @IsOptional()
-  @IsEnum(['planted', 'planting', 'barren', 'reforestation'])
-  status?: 'planted' | 'planting' | 'barren' | 'reforestation';
-
-  @ApiPropertyOptional({ description: 'Additional metadata' })
-  @IsOptional()
-  @IsObject()
-  metadata?: any;
 }
 
 // Update Site Images DTO

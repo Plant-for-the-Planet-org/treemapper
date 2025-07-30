@@ -1,7 +1,7 @@
 import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { eq, and, desc, count, sql } from 'drizzle-orm';
-import { sites, projects, users } from '../database/schema'; // Adjust import path as needed
-import { CreateSiteDto, QuerySitesDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dto';
+import { site, project, user } from '../database/schema'; // Adjust import path as needed
+import { CreateSiteDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dto';
 import { generateUid } from 'src/util/uidGenerator';
 import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
@@ -43,7 +43,7 @@ export class SiteService {
 
   async createSite(
     membership: ProjectGuardResponse,
-    createSiteDto: CreateSiteDto
+    createSiteDto: CreateSiteDto,
   ) {
     let locationValue: any = null;
     if (createSiteDto.location) {
@@ -61,14 +61,13 @@ export class SiteService {
       }
     }
     const [newSite] = await this.drizzleService.db
-      .insert(sites)
+      .insert(site)
       .values({
-        uid: generateUid('ste'),
+        uid: generateUid('site'),
         projectId: membership.projectId,
         createdById: membership.userId,
         name: createSiteDto.name,
         description: createSiteDto.description,
-        workspaceId: 1,
         location: locationValue,
         originalGeometry: createSiteDto.location,
         status: createSiteDto.status || 'barren',
@@ -80,64 +79,64 @@ export class SiteService {
   }
 
   async getAllSitesByProject(membership: ProjectGuardResponse) {
-    const sitesData = await this.drizzleService.db
+    const siteData = await this.drizzleService.db
       .select({
-        uid: sites.uid,
-        name: sites.name,
-        description: sites.description,
-        status: sites.status,
-        originalGeometry: sites.originalGeometry,
-        metadata: sites.metadata,
-        createdAt: sites.createdAt,
-        updatedAt: sites.updatedAt,
+        uid: site.uid,
+        name: site.name,
+        description: site.description,
+        status: site.status,
+        originalGeometry: site.originalGeometry,
+        metadata: site.metadata,
+        createdAt: site.createdAt,
+        updatedAt: site.updatedAt,
         project: {
-          uid: projects.uid,
-          name: projects.projectName, // or projectName if that's the field name
-          slug: projects.slug,
+          uid: project.uid,
+          name: project.projectName,
+          slug: project.slug,
         },
         createdBy: {
-          uid: users.uid,
-          name: users.displayName,
-          email: users.email,
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
         }
       })
-      .from(sites)
-      .where(eq(sites.projectId, membership.projectId))
-      .leftJoin(projects, eq(sites.projectId, projects.id)) // Fixed: join on projects.id
-      .leftJoin(users, eq(sites.createdById, users.id)); // Fixed: this was correct
+      .from(site)
+      .where(eq(site.projectId, membership.projectId))
+      .leftJoin(project, eq(site.projectId, project.id))
+      .leftJoin(user, eq(site.createdById, user.id));
 
-    return sitesData;
+    return siteData;
   }
 
   async getSiteByUid(projectId: number, siteUid: string) {
     const siteData = await this.drizzleService.db
       .select({
-        uid: sites.uid,
-        name: sites.name,
-        description: sites.description,
-        status: sites.status,
-        originalGeometry: sites.originalGeometry,
-        metadata: sites.metadata,
-        createdAt: sites.createdAt,
-        updatedAt: sites.updatedAt,
+        uid: site.uid,
+        name: site.name,
+        description: site.description,
+        status: site.status,
+        originalGeometry: site.originalGeometry,
+        metadata: site.metadata,
+        createdAt: site.createdAt,
+        updatedAt: site.updatedAt,
         project: {
-          uid: projects.uid,
-          projectName: projects.projectName,
-          slug: projects.slug,
+          uid: project.uid,
+          projectName: project.projectName,
+          slug: project.slug,
         },
         createdBy: {
-          uid: users.uid,
-          name: users.displayName,
-          email: users.email,
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
         }
       })
-      .from(sites)
-      .leftJoin(projects, eq(sites.projectId, projects.id))
-      .leftJoin(users, eq(sites.createdById, users.id))
+      .from(site)
+      .leftJoin(project, eq(site.projectId, project.id))
+      .leftJoin(user, eq(site.createdById, user.id))
       .where(
         and(
-          eq(sites.uid, siteUid),
-          eq(sites.projectId, projectId)
+          eq(site.uid, siteUid),
+          eq(site.projectId, projectId)
         )
       )
       .limit(1);
@@ -152,29 +151,29 @@ export class SiteService {
   private async getSiteById(siteId: number) {
     const siteData = await this.drizzleService.db
       .select({
-        uid: sites.uid,
-        name: sites.name,
-        description: sites.description,
-        status: sites.status,
-        originalGeometry: sites.originalGeometry,
-        metadata: sites.metadata,
-        createdAt: sites.createdAt,
-        updatedAt: sites.updatedAt,
+        uid: site.uid,
+        name: site.name,
+        description: site.description,
+        status: site.status,
+        originalGeometry: site.originalGeometry,
+        metadata: site.metadata,
+        createdAt: site.createdAt,
+        updatedAt: site.updatedAt,
         project: {
-          uid: projects.uid,
-          projectName: projects.projectName,
-          slug: projects.slug,
+          uid: project.uid,
+          projectName: project.projectName,
+          slug: project.slug,
         },
         createdBy: {
-          uid: users.uid,
-          name: users.displayName,
-          email: users.email,
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
         }
       })
-      .from(sites)
-      .leftJoin(projects, eq(sites.projectId, projects.id))
-      .leftJoin(users, eq(sites.createdById, users.id))
-      .where(eq(sites.id, siteId))
+      .from(site)
+      .leftJoin(project, eq(site.projectId, project.id))
+      .leftJoin(user, eq(site.createdById, user.id))
+      .where(eq(site.id, siteId))
       .limit(1);
 
     if (!siteData.length) {
@@ -191,12 +190,12 @@ export class SiteService {
   ) {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
-      .select({ id: sites.id })
-      .from(sites)
+      .select({ id: site.id })
+      .from(site)
       .where(
         and(
-          eq(sites.uid, siteUid),
-          eq(sites.projectId, projectId)
+          eq(site.uid, siteUid),
+          eq(site.projectId, projectId)
         )
       )
       .limit(1);
@@ -211,14 +210,11 @@ export class SiteService {
 
     if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
     if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
-    if (updateSiteDto.originalGeometry !== undefined) updateData.originalGeometry = updateSiteDto.originalGeometry;
-    if (updateSiteDto.status !== undefined) updateData.status = updateSiteDto.status;
-    if (updateSiteDto.metadata !== undefined) updateData.metadata = updateSiteDto.metadata;
 
     await this.drizzleService.db
-      .update(sites)
+      .update(site)
       .set(updateData)
-      .where(eq(sites.id, existingSite[0].id));
+      .where(eq(site.id, existingSite[0].id));
 
     return '';
   }
@@ -230,12 +226,12 @@ export class SiteService {
   ) {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
-      .select({ id: sites.id })
-      .from(sites)
+      .select({ id: site.id })
+      .from(site)
       .where(
         and(
-          eq(sites.uid, siteUid),
-          eq(sites.projectId, projectId)
+          eq(site.uid, siteUid),
+          eq(site.projectId, projectId)
         )
       )
       .limit(1);
@@ -253,9 +249,9 @@ export class SiteService {
     if (updateImagesDto.allImages !== undefined) updateData.allImages = updateImagesDto.allImages;
 
     await this.drizzleService.db
-      .update(sites)
+      .update(site)
       .set(updateData)
-      .where(eq(sites.id, existingSite[0].id));
+      .where(eq(site.id, existingSite[0].id));
 
     return this.getSiteById(existingSite[0].id);
   }
@@ -264,14 +260,14 @@ export class SiteService {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
       .select({
-        id: sites.id,
-        name: sites.name
+        id: site.id,
+        name: site.name
       })
-      .from(sites)
+      .from(site)
       .where(
         and(
-          eq(sites.uid, siteUid),
-          eq(sites.projectId, projectId)
+          eq(site.uid, siteUid),
+          eq(site.projectId, projectId)
         )
       )
       .limit(1);
@@ -282,12 +278,12 @@ export class SiteService {
 
     // Soft delete by setting deletedAt
     await this.drizzleService.db
-      .update(sites)
+      .update(site)
       .set({
         deletedAt: new Date(),
         updatedAt: new Date(),
       })
-      .where(eq(sites.id, existingSite[0].id));
+      .where(eq(site.id, existingSite[0].id));
 
     return {
       message: `Site "${existingSite[0].name}" has been successfully deleted`,
@@ -295,25 +291,25 @@ export class SiteService {
     };
   }
 
-  async getSiteStats(projectId: number) {
+  async getsitetats(projectId: number) {
     const stats = await this.drizzleService.db
       .select({
-        status: sites.status,
+        status: site.status,
         count: count(),
       })
-      .from(sites)
+      .from(site)
       .where(
         and(
-          eq(sites.projectId, projectId),
-          // Exclude soft-deleted sites
+          eq(site.projectId, projectId),
+          // Exclude soft-deleted site
         )
       )
-      .groupBy(sites.status);
+      .groupBy(site.status);
 
-    const totalSites = stats.reduce((sum, stat) => sum + stat.count, 0);
+    const totalsite = stats.reduce((sum, stat) => sum + stat.count, 0);
 
     return {
-      total: totalSites,
+      total: totalsite,
       byStatus: stats.reduce((acc, stat) => {
         acc[stat.status || 'unknown'] = stat.count;
         return acc;

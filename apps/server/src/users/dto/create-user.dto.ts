@@ -82,6 +82,12 @@ export class CreateUserDto {
   @MaxLength(10)
   locale?: string;
 }
+export class AvatarDTO {
+
+  @IsString()
+  avatarUrl: string;
+
+}
 
 export class CreateSurvey {
 

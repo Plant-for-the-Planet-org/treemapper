@@ -34,11 +34,12 @@ export class SiteController {
   async createSite(
     @Membership() membership: ProjectGuardResponse,
     @Body() createSiteDto: CreateSiteDto,
+    @Req() req: any
   ) {
 
     const site = await this.siteService.createSite(
       membership,
-      createSiteDto
+      createSiteDto,
     );
 
     return site
@@ -59,23 +60,16 @@ export class SiteController {
   }
 
 
-  @Put(':siteUid')
+  @Put('/:siteUid')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async updateSite(
-    @Param('projectId') projectId: string,
+    @Membership() membership: ProjectGuardResponse,
     @Param('siteUid') siteUid: string,
     @Body() updateSiteDto: UpdateSiteDto,
-    @Req() req: any
   ) {
-    // Check permissions - only allow contributors and above
-    const allowedRoles = ['owner', 'admin', 'contributor'];
-    if (!allowedRoles.includes(req.userRole)) {
-      throw new ForbiddenException('Insufficient permissions to update sites');
-    }
-
     const site = await this.siteService.updateSite(
-      parseInt(projectId),
+      membership.projectId,
       siteUid,
       updateSiteDto
     );
@@ -86,6 +80,32 @@ export class SiteController {
       data: site,
     };
   }
+
+
+  // @Delete(':siteUid')
+  // @ProjectRoles('owner', 'admin')
+  // @UseGuards(ProjectPermissionsGuard)
+  // async deleteSite(
+  //   @Param('projectId') projectId: string,
+  //   @Param('siteUid') siteUid: string,
+  //   @Req() req: any
+  // ) {
+  //   // Check permissions - only allow managers and above
+  //   const allowedRoles = ['owner', 'admin', 'manager'];
+  //   if (!allowedRoles.includes(req.userRole)) {
+  //     throw new ForbiddenException('Insufficient permissions to delete sites');
+  //   }
+
+  //   const result = await this.siteService.deleteSite(
+  //     parseInt(projectId),
+  //     siteUid
+  //   );
+
+  //   return {
+  //     status: 'success',
+  //     ...result,
+  //   };
+  // }
 
   // @Get('stats')
   // @ProjectRoles('owner', 'admin')
@@ -179,28 +199,5 @@ export class SiteController {
   //   };
   // }
 
-  // @Delete(':siteUid')
-  // @ProjectRoles('owner', 'admin')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async deleteSite(
-  //   @Param('projectId') projectId: string,
-  //   @Param('siteUid') siteUid: string,
-  //   @Req() req: any
-  // ) {
-  //   // Check permissions - only allow managers and above
-  //   const allowedRoles = ['owner', 'admin', 'manager'];
-  //   if (!allowedRoles.includes(req.userRole)) {
-  //     throw new ForbiddenException('Insufficient permissions to delete sites');
-  //   }
 
-  //   const result = await this.siteService.deleteSite(
-  //     parseInt(projectId),
-  //     siteUid
-  //   );
-
-  //   return {
-  //     status: 'success',
-  //     ...result,
-  //   };
-  // }
 }

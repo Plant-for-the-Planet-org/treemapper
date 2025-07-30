@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { DrizzleService } from '../database/drizzle.service'; // Adjust import path
+import { DrizzleService } from '../database/drizzle.service';
 import { notifications } from '../database/schema/index';
 import { eq, and, desc, count, sql, inArray, isNull, or } from 'drizzle-orm';
 import { CreateNotification, Notification } from '../notification/entity/notification.entity';

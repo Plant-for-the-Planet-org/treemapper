@@ -1,0 +1,92 @@
+// src/organizations/organizations.controller.ts
+import {
+    Controller,
+    Get,
+    Post,
+    Body,
+    UseGuards,
+    Req,
+    HttpStatus,
+    HttpCode,
+    ValidationPipe,
+    HttpException,
+} from '@nestjs/common';
+import {
+    ApiTags,
+    ApiOperation,
+    ApiResponse,
+    ApiBearerAuth,
+    ApiBody,
+} from '@nestjs/swagger';
+import { Request } from 'express';
+import { WorkspaceService } from './workspace.service';
+import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
+import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
+import { User } from 'src/users/entities/user.entity';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+
+
+interface AuthenticatedRequest extends Request {
+    user: {
+        id: number;
+        uid: string;
+        email: string;
+        auth0Id: string
+    };
+}
+
+@Controller('workspace')
+export class WorkspaceController {
+    constructor(private readonly workspaceService: WorkspaceService) { }
+
+    @Post()
+    async createNewWorkspace(
+        @Body() createOrganizationDto: CreateNewWorkspaceDto,
+        @Req() req: any,
+    ): Promise<Boolean> {
+        if (req.user.type !== 'superadmin') {
+            throw new HttpException('Only superadmin can create new workspace', HttpStatus.FORBIDDEN);
+        }
+        return this.workspaceService.createNewWorkspace(createOrganizationDto, req.user.id);
+    }
+
+
+    @Post('/primary')
+    async setPrimaryOrg(
+        @Body() createOrganizationDto: SelectOrganizationDto,
+        @CurrentUser() user: User,
+    ): Promise<any> {
+        return this.workspaceService.setPrimaryWorkspaceAndProject(createOrganizationDto, user);
+    }
+
+
+    @Post('cache')
+    cacheWorkspace(@CurrentUser() user: User) {
+        return this.workspaceService.cacheWorkspace(user);
+    }
+
+    // @Get()
+    // async findAllByUser(@Req() req: AuthenticatedRequest): Promise<UserOrganizationResponseDto[]> {
+    //     return this.organizationsService.findAllByUser(req.user.id);
+    // }
+
+    // Additional endpoints you might want to add later:
+
+    // @Get(':uid')
+    // @ApiOperation({
+    //   summary: 'Get organization by UID',
+    //   description: 'Returns organization details by UID'
+    // })
+    // @ApiResponse({
+    //   status: HttpStatus.OK,
+    //   description: 'Organization found',
+    //   type: OrganizationResponseDto,
+    // })
+    // @ApiResponse({
+    //   status: HttpStatus.NOT_FOUND,
+    //   description: 'Organization not found',
+    // })
+    // async findByUid(@Param('uid') uid: string): Promise<OrganizationResponseDto> {
+    //   return this.organizationsService.findByUid(uid);
+    // }
+}

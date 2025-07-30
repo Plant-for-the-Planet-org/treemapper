@@ -2,6 +2,8 @@ import { Global, Module } from '@nestjs/common';
 import { CacheModule } from '@nestjs/cache-manager';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { CacheService } from './cache.service';
+import { UserCacheService } from './user-cache.service';
+import { ProjectCacheService } from './project-cache.service';
 
 
 @Global()
@@ -9,18 +11,14 @@ import { CacheService } from './cache.service';
     imports: [
         CacheModule.registerAsync({
             imports: [ConfigModule],
-            useFactory: async (configService: ConfigService) => {
-                return {
-                    store: 'memory', // Explicitly set memory store
-                    ttl: 900, // 15 minutes
-                    max: 1000, // Maximum number of items in cache
-                };
-            },
+            useFactory: async () => ({
+                store: 'memory'
+            }),
             inject: [ConfigService],
-            isGlobal: true, // Makes cache available globally
+            isGlobal: true,
         }),
     ],
-    providers: [CacheService], // Add CacheService as a provider
-    exports: [CacheService],
+    providers: [CacheService, UserCacheService, ProjectCacheService],
+    exports: [CacheService, CacheModule, UserCacheService, ProjectCacheService],
 })
 export class MemoryCacheMoudle { }

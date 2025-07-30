@@ -1,6 +1,6 @@
-import { projects } from '../../database/schema';
+// import { projects } from '../../database/schema';
 
-export type Project = typeof projects.$inferSelect;
-export type NewProject = typeof projects.$inferInsert;
+// export type Project = typeof projects.$inferSelect;
+// export type NewProject = typeof projects.$inferInsert;
 
-export type PublicProject = Omit<Project, 'deletedAt'>;
+// export type PublicProject = Omit<Project, 'deletedAt'>;

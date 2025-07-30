@@ -24,7 +24,7 @@ import {
   ApiExcludeEndpoint,
 } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { CreateSurvey, CreateUserDto } from './dto/create-user.dto';
+import { AvatarDTO, CreateSurvey, CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { UserQueryDto } from './dto/user-query.dto';
 import { UserResponseDto } from './dto/user-response.dto';
@@ -51,7 +51,7 @@ export class UsersController {
       slug: users.slug,
       type: users.type,
       country: users.country,
-      url: users.url,
+      url: users.website,
       isPrivate: users.isPrivate,
       bio: users.bio,
       locale: users.locale,
@@ -62,13 +62,25 @@ export class UsersController {
       primaryProject: users.primaryProject
     }
   }
-  // @ApiExcludeEndpoint()
-  @Put('migrated')
-  async migrated(@CurrentUser() user: User) {
-    return await this.usersService.migrateSuccess(user.id);
+
+
+  @Post('onboarding')
+  async onBoardUser(@Body() createSurveyDto: CreateSurvey, @CurrentUser() user: User,) {
+    return await this.usersService.onBoardUser(createSurveyDto, user);
   }
 
-  // @ApiExcludeEndpoint()
+  @Put('avatar')
+  async updateUserAvatar(@Body() avatarDto: AvatarDTO, @CurrentUser() user: User,) {
+    return await this.usersService.updateUserAvatar(avatarDto.avatarUrl, user);
+  }
+
+
+  //   // @ApiExcludeEndpoint()
+  //   @Put('migrated')
+  //   async migrated(@CurrentUser() user: User) {
+  //     return await this.usersService.migrateSuccess(user.id);
+  //   }
+
   @Post('presign-url')
   async getSignedUrl(
     @Body() dto: CreatePresignedUrlDto,
@@ -85,63 +97,59 @@ export class UsersController {
   }
 
 
-  @Post('onboarding')
-  async create(@Body() createSurveyDto: CreateSurvey, @CurrentUser() user: User,) {
-    return await this.usersService.createSurvey(user.id, user.auth0Id, createSurveyDto, );
-  }
 
 
-  // @Get('stats')
-  // async getStats() {
-  //   return await this.usersService.getUserStats();
-  // }
+  //   @Get('stats')
+  //   async getStats() {
+  //     return await this.usersService.getUserStats();
+  //   }
 
-  // @Get('check-email')
-  // async checkEmail(@Query('email') email: string) {
-  //   const exists = await this.usersService.checkEmailExists(email);
-  //   return { exists };
-  // }
+  //   @Get('check-email')
+  //   async checkEmail(@Query('email') email: string) {
+  //     const exists = await this.usersService.checkEmailExists(email);
+  //     return { exists };
+  //   }
 
-  // @Get('by-guid/:guid')
-  // async findByGuid(@Param('guid') guid: string) {
-  //   return await this.usersService.findByuid(guid);
-  // }
+  //   @Get('by-guid/:guid')
+  //   async findByGuid(@Param('guid') guid: string) {
+  //     return await this.usersService.findByuid(guid);
+  //   }
 
-  // @Get(':id')
-  // async findOne(@Param('id', ParseIntPipe) id: number) {
-  //   return await this.usersService.findOne(id);
-  // }
+  //   @Get(':id')
+  //   async findOne(@Param('id', ParseIntPipe) id: number) {
+  //     return await this.usersService.findOne(id);
+  //   }
 
 
-  // @Patch(':id')
-  // async update(
-  //   @Param('id', ParseIntPipe) id: number,
-  //   @Body() updateUserDto: UpdateUserDto,
-  // ) {
-  //   return await this.usersService.update(id, updateUserDto);
-  // }
+  //   @Patch(':id')
+  //   async update(
+  //     @Param('id', ParseIntPipe) id: number,
+  //     @Body() updateUserDto: UpdateUserDto,
+  //   ) {
+  //     return await this.usersService.update(id, updateUserDto);
+  //   }
 
-  // @Patch(':id/deactivate')
-  // async deactivate(@Param('id', ParseIntPipe) id: number) {
-  //   return await this.usersService.deactivate(id);
-  // }
+  //   @Patch(':id/deactivate')
+  //   async deactivate(@Param('id', ParseIntPipe) id: number) {
+  //     return await this.usersService.deactivate(id);
+  //   }
 
-  // @Patch(':id/activate')
-  // async activate(@Param('id', ParseIntPipe) id: number) {
-  //   return await this.usersService.activate(id);
-  // }
+  //   @Patch(':id/activate')
+  //   async activate(@Param('id', ParseIntPipe) id: number) {
+  //     return await this.usersService.activate(id);
+  //   }
 
 
 
-  // @Delete(':id')
-  // @HttpCode(HttpStatus.OK)
-  // async remove(@Param('id', ParseIntPipe) id: number) {
-  //   return await this.usersService.remove(id);
-  // }
+  //   @Delete(':id')
+  //   @HttpCode(HttpStatus.OK)
+  //   async remove(@Param('id', ParseIntPipe) id: number) {
+  //     return await this.usersService.remove(id);
+  //   }
 
-  // @Delete(':id/hard')
-  // @HttpCode(HttpStatus.OK)
-  // async hardDelete(@Param('id', ParseIntPipe) id: number) {
-  //   return await this.usersService.hardDelete(id);
-  // }
+  //   @Delete(':id/hard')
+  //   @HttpCode(HttpStatus.OK)
+  //   async hardDelete(@Param('id', ParseIntPipe) id: number) {
+  //     return await this.usersService.hardDelete(id);
+  //   }
 }

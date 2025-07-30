@@ -31,7 +31,7 @@ export class CreateProjectDto {
   @IsString()
   target?: string;
 
-
+  @IsOptional()
   @IsString()
   description?: string;
 

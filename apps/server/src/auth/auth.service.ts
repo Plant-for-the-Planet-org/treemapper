@@ -1,4 +1,3 @@
-// src/auth/auth.service.ts
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
 import { User } from 'src/users/entities/user.entity';
@@ -11,7 +10,6 @@ export class AuthService {
     private usersService: UsersService,
   ) { }
 
-  // Verify user exists and create if not
 async validateUser(auth0Id: string, email: string, name: string): Promise<User> {
   try {
     let user = await this.usersService.findByAuth0Id(auth0Id);

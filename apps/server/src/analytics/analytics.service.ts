@@ -20,7 +20,7 @@ import {
   InterventionExportDto,
   InterventionExportResponse,
 } from './dto/analytics.dto';
-import { interventions, projectMembers, projects, trees, users } from '../database/schema';
+import { intervention, projectMember, project, tree, user, site } from '../database/schema';
 
 // DTOs for response
 export interface InterventionMapData {
@@ -192,20 +192,20 @@ export class AnalyticsService {
 
     const result = await this.drizzleService.db
       .select({
-        date: sql<string>`DATE(${interventions.interventionStartDate})`,
-        treeCount: sql<number>`COALESCE(SUM(${interventions.treeCount}), 0)`
+        date: sql<string>`DATE(${intervention.interventionStartDate})`,
+        treeCount: sql<number>`COALESCE(SUM(${intervention.treeCount}), 0)`
       })
-      .from(interventions)
+      .from(intervention)
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          gte(interventions.interventionStartDate, startDate),
-          lte(interventions.interventionStartDate, endDate),
-          isNull(interventions.deletedAt)
+          eq(intervention.projectId, projectId),
+          gte(intervention.interventionStartDate, startDate),
+          lte(intervention.interventionEndDate, endDate),
+          isNull(intervention.deletedAt)
         )
       )
-      .groupBy(sql`DATE(${interventions.interventionStartDate})`)
-      .orderBy(sql`DATE(${interventions.interventionStartDate})`);
+      .groupBy(sql`DATE(${intervention.interventionStartDate})`)
+      .orderBy(sql`DATE(${intervention.interventionStartDate})`);
 
     return this.fillMissingDates(result, startDate, endDate, 'day');
   }
@@ -219,20 +219,20 @@ export class AnalyticsService {
 
     const result = await this.drizzleService.db
       .select({
-        date: sql<string>`DATE(DATE_TRUNC('week', ${interventions.interventionStartDate}) + INTERVAL '0 days')`,
-        treeCount: sql<number>`COALESCE(SUM(${interventions.treeCount}), 0)`
+        date: sql<string>`DATE(DATE_TRUNC('week', ${intervention.interventionStartDate}) + INTERVAL '0 days')`,
+        treeCount: sql<number>`COALESCE(SUM(${intervention.treeCount}), 0)`
       })
-      .from(interventions)
+      .from(intervention)
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          gte(interventions.interventionStartDate, startDate),
-          lte(interventions.interventionStartDate, endDate),
-          isNull(interventions.deletedAt)
+          eq(intervention.projectId, projectId),
+          gte(intervention.interventionStartDate, startDate),
+          lte(intervention.interventionStartDate, endDate),
+          isNull(intervention.deletedAt)
         )
       )
-      .groupBy(sql`DATE_TRUNC('week', ${interventions.interventionStartDate})`)
-      .orderBy(sql`DATE_TRUNC('week', ${interventions.interventionStartDate})`);
+      .groupBy(sql`DATE_TRUNC('week', ${intervention.interventionStartDate})`)
+      .orderBy(sql`DATE_TRUNC('week', ${intervention.interventionStartDate})`);
     return this.fillMissingDates(result, this.getWeekStart(startDate), this.getWeekStart(endDate), 'week');
   }
 
@@ -243,20 +243,20 @@ export class AnalyticsService {
 
     const result = await this.drizzleService.db
       .select({
-        date: sql<string>`DATE(DATE_TRUNC('month', ${interventions.interventionStartDate}))`,
-        treeCount: sql<number>`COALESCE(SUM(${interventions.treeCount}), 0)`
+        date: sql<string>`DATE(DATE_TRUNC('month', ${intervention.interventionStartDate}))`,
+        treeCount: sql<number>`COALESCE(SUM(${intervention.treeCount}), 0)`
       })
-      .from(interventions)
+      .from(intervention)
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          gte(interventions.interventionStartDate, startDate),
-          lte(interventions.interventionStartDate, endDate),
-          isNull(interventions.deletedAt)
+          eq(intervention.projectId, projectId),
+          gte(intervention.interventionStartDate, startDate),
+          lte(intervention.interventionStartDate, endDate),
+          isNull(intervention.deletedAt)
         )
       )
-      .groupBy(sql`DATE_TRUNC('month', ${interventions.interventionStartDate})`)
-      .orderBy(sql`DATE_TRUNC('month', ${interventions.interventionStartDate})`);
+      .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
+      .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`);
     return this.fillMissingDates(result, startDate, new Date(today.getFullYear(), today.getMonth(), 1), 'month');
   }
 
@@ -358,38 +358,38 @@ export class AnalyticsService {
     // Single query to get trees, species, and area from interventions
     const interventionStats = await this.drizzleService.db
       .select({
-        totalTrees: sql<number>`COALESCE(SUM(${interventions.treeCount}), 0)`,
-        totalArea: sql<number>`COALESCE(SUM(ST_Area(${interventions.location}::geography)), 0)`,
+        totalTrees: sql<number>`COALESCE(SUM(${intervention.treeCount}), 0)`,
+        totalArea: sql<number>`COALESCE(SUM(ST_Area(${intervention.location}::geography)), 0)`,
         uniqueSpecies: sql<number>`(
           SELECT COUNT(DISTINCT species_element->>'speciesName')
           FROM (
-            SELECT jsonb_array_elements(${interventions.species}) as species_element
-            FROM ${interventions}
-            WHERE ${interventions.projectId} = ${projectId}
-              AND ${interventions.interventionStartDate} >= ${startDateTime}
-              AND ${interventions.interventionStartDate} <= ${endDateTime}
-              AND ${interventions.deletedAt} IS NULL
+            SELECT jsonb_array_elements(${intervention.species}) as species_element
+            FROM ${intervention}
+            WHERE ${intervention.projectId} = ${projectId}
+              AND ${intervention.interventionStartDate} >= ${startDateTime}
+              AND ${intervention.interventionStartDate} <= ${endDateTime}
+              AND ${intervention.deletedAt} IS NULL
           ) species_data
           WHERE species_element->>'speciesName' IS NOT NULL
         )`
       })
-      .from(interventions)
+      .from(intervention)
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          gte(interventions.interventionStartDate, startDateTime),
-          lte(interventions.interventionStartDate, endDateTime),
-          sql`${interventions.deletedAt} IS NULL`
+          eq(intervention.projectId, projectId),
+          gte(intervention.interventionStartDate, startDateTime),
+          lte(intervention.interventionStartDate, endDateTime),
+          sql`${intervention.deletedAt} IS NULL`
         )
       );
 
     // Separate query for contributors count
     const contributorStats = await this.drizzleService.db
       .select({
-        totalContributors: sql<number>`COUNT(DISTINCT ${projectMembers.userId})`
+        totalContributors: sql<number>`COUNT(DISTINCT ${projectMember.userId})`
       })
-      .from(projectMembers)
-      .where(eq(projectMembers.projectId, projectId));
+      .from(projectMember)
+      .where(eq(projectMember.projectId, projectId));
 
     const interventionResult = interventionStats[0];
     const contributorResult = contributorStats[0];
@@ -423,8 +423,8 @@ export class AnalyticsService {
     NULL::numeric as area_in_ha,
     NULL::text as species_name,
     NULL::text as member_name
-  FROM ${interventions} i
-  JOIN ${users} u ON i.user_id = u.id
+  FROM ${intervention} i
+  JOIN ${user} u ON i.user_id = u.id
   WHERE i.project_id = ${projectId} AND i.deleted_at IS NULL
 )
 UNION ALL
@@ -442,7 +442,7 @@ UNION ALL
     COALESCE(ps.common_name, ss.scientific_name) as species_name,
     NULL::text as member_name
   FROM ${schema.projectSpecies} ps
-  JOIN ${users} u ON ps.added_by_id = u.id
+  JOIN ${user} u ON ps.added_by_id = u.id
   JOIN ${schema.scientificSpecies} ss ON ps.scientific_species_id = ss.id
   WHERE ps.project_id = ${projectId} AND ps.deleted_at IS NULL
 )
@@ -460,8 +460,8 @@ UNION ALL
     ROUND((ST_Area(s.location::geography) / 10000.0)::numeric, 2) as area_in_ha,
     NULL::text as species_name,
     NULL::text as member_name
-  FROM ${schema.sites} s
-  JOIN ${users} u ON s.created_by_id = u.id
+  FROM ${schema.site} s
+  JOIN ${user} u ON s.created_by_id = u.id
   WHERE s.project_id = ${projectId} AND s.deleted_at IS NULL
 )
 UNION ALL
@@ -478,9 +478,9 @@ UNION ALL
     NULL::numeric as area_in_ha,
     NULL::text as species_name,
     new_member.display_name as member_name
-  FROM ${projectMembers} pm
-  JOIN ${users} new_member ON pm.user_id = new_member.id
-  LEFT JOIN ${users} invited_by ON pm.user_id = invited_by.id
+  FROM ${projectMember} pm
+  JOIN ${user} new_member ON pm.user_id = new_member.id
+  LEFT JOIN ${user} invited_by ON pm.user_id = invited_by.id
   WHERE pm.project_id = ${projectId}
 )
 ORDER BY time_of_activity DESC
@@ -489,13 +489,13 @@ LIMIT ${limit} OFFSET ${offset}
 
     const countQuery = sql`
     SELECT COUNT(*) as total FROM (
-      (SELECT uid FROM ${interventions} WHERE project_id = ${projectId} AND deleted_at IS NULL)
+      (SELECT uid FROM ${intervention} WHERE project_id = ${projectId} AND deleted_at IS NULL)
       UNION ALL
       (SELECT uid FROM ${schema.projectSpecies} WHERE project_id = ${projectId} AND deleted_at IS NULL)
       UNION ALL
-      (SELECT uid FROM ${schema.sites} WHERE project_id = ${projectId} AND deleted_at IS NULL)
+      (SELECT uid FROM ${schema.site} WHERE project_id = ${projectId} AND deleted_at IS NULL)
       UNION ALL
-      (SELECT uid FROM ${projectMembers} WHERE project_id = ${projectId})
+      (SELECT uid FROM ${projectMember} WHERE project_id = ${projectId})
     ) combined
   `;
 
@@ -648,16 +648,16 @@ LIMIT ${limit} OFFSET ${offset}
   //       },
   //       // User data
   //       user: {
-  //         id: users.id,
-  //         displayName: users.displayName,
-  //         email: users.email,
-  //         type: users.type,
+  //         id: user.id,
+  //         displayName: user.displayName,
+  //         email: user.email,
+  //         type: user.type,
   //       }
   //     })
   //     .from(interventions)
   //     .leftJoin(schema.projects, eq(interventions.projectId, schema.projects.id))
   //     .leftJoin(schema.sites, eq(interventions.projectSiteId, schema.sites.id))
-  //     .leftJoin(users, eq(interventions.userId, users.id))
+  //     .leftJoin(user, eq(interventions.userId, user.id))
   //     .where(and(...baseConditions))
   //     .orderBy(desc(interventions.interventionStartDate));
 
@@ -715,12 +715,12 @@ LIMIT ${limit} OFFSET ${offset}
   //       description: schema.interventionRecords.description,
   //       updatedAt: schema.interventionRecords.updatedAt,
   //       updatedBy: {
-  //         id: users.id,
-  //         displayName: users.displayName,
+  //         id: user.id,
+  //         displayName: user.displayName,
   //       },
   //     })
   //     .from(schema.interventionRecords)
-  //     .leftJoin(users, eq(schema.interventionRecords.updatedBy, users.id))
+  //     .leftJoin(user, eq(schema.interventionRecords.updatedBy, users.id))
   //     .where(inArray(schema.interventionRecords.interventionId, interventionIds))
   //     .orderBy(desc(schema.interventionRecords.updatedAt)) : [];
 
@@ -859,72 +859,72 @@ LIMIT ${limit} OFFSET ${offset}
 
   async getProjectMapData(projectId: number): Promise<MapDataResponse> {
     // First, verify the project exists
-    const project = await this.drizzleService.db
+    const projectData = await this.drizzleService.db
       .select({
-        id: projects.id,
-        uid: projects.uid,
-        projectName: projects.projectName,
+        id: project.id,
+        uid: project.uid,
+        projectName: project.projectName,
       })
-      .from(projects)
-      .where(eq(projects.id, projectId))
+      .from(project)
+      .where(eq(project.id, projectId))
       .limit(1);
 
-    if (!project.length) {
+    if (!projectData.length) {
       throw new NotFoundException(`Project with ID ${projectId} not found`);
     }
 
     // Fetch interventions with spatial data
     const interventionsData = await this.drizzleService.db
       .select({
-        id: interventions.id,
-        uid: interventions.uid,
-        hid: interventions.hid,
-        type: interventions.type,
-        description: interventions.description,
-        treeCount: interventions.treeCount,
-        interventionStatus: interventions.interventionStatus,
-        registrationDate: interventions.registrationDate,
-        interventionStartDate: interventions.interventionStartDate,
-        interventionEndDate: interventions.interventionEndDate,
-        location: sql<string>`ST_AsGeoJSON(${interventions.location})`.as('location'),
-        image: interventions.image,
-        species: interventions.species,
-        createdAt: interventions.createdAt,
-        updatedAt: interventions.updatedAt,
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        description: intervention.description,
+        treeCount: intervention.treeCount,
+        interventionStatus: intervention.interventionStatus,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        location: sql<string>`ST_AsGeoJSON(${intervention.location})`.as('location'),
+        image: intervention.image,
+        species: intervention.species,
+        createdAt: intervention.createdAt,
+        updatedAt: intervention.updatedAt,
       })
-      .from(interventions)
+      .from(intervention)
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          isNull(interventions.deletedAt)
+          eq(intervention.projectId, projectId),
+          isNull(intervention.deletedAt)
         )
       );
 
     // Fetch trees with spatial data
     const treesData = await this.drizzleService.db
       .select({
-        id: trees.id,
-        hid: trees.hid,
-        uid: trees.uid,
-        interventionId: trees.interventionId,
-        speciesName: trees.speciesName,
-        status: trees.status,
-        height: trees.height,
-        width: trees.width,
-        plantingDate: trees.plantingDate,
-        location: sql<string>`ST_AsGeoJSON(${trees.location})`.as('location'),
-        image: trees.image,
-        tag: trees.tag,
-        createdAt: trees.createdAt,
-        updatedAt: trees.updatedAt,
+        id: tree.id,
+        hid: tree.hid,
+        uid: tree.uid,
+        interventionId: tree.interventionId,
+        speciesName: tree.speciesName,
+        status: tree.status,
+        height: tree.height,
+        width: tree.width,
+        plantingDate: tree.plantingDate,
+        location: sql<string>`ST_AsGeoJSON(${tree.location})`.as('location'),
+        image: tree.image,
+        tag: tree.tag,
+        createdAt: tree.createdAt,
+        updatedAt: tree.updatedAt,
       })
-      .from(trees)
-      .innerJoin(interventions, eq(trees.interventionId, interventions.id))
+      .from(tree)
+      .innerJoin(intervention, eq(tree.interventionId, intervention.id))
       .where(
         and(
-          eq(interventions.projectId, projectId),
-          isNull(trees.deletedAt),
-          isNull(interventions.deletedAt)
+          eq(intervention.projectId, projectId),
+          isNull(tree.deletedAt),
+          isNull(intervention.deletedAt)
         )
       );
 
@@ -971,9 +971,9 @@ LIMIT ${limit} OFFSET ${offset}
       interventions: transformedInterventions,
       trees: transformedTrees,
       projectInfo: {
-        id: project[0].id,
-        uid: project[0].uid,
-        projectName: project[0].projectName,
+        id: projectData[0].id,
+        uid: projectData[0].uid,
+        projectName: projectData[0].projectName,
         totalInterventions: transformedInterventions.length,
         totalTrees: transformedTrees.length,
       },

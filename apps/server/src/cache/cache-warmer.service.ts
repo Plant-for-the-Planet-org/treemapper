@@ -1,8 +1,8 @@
 import { Injectable } from "@nestjs/common";
 import { Cron } from "@nestjs/schedule";
 import { and, eq, gte } from "drizzle-orm";
-import { users } from "src/database/schema";
-import { UsersService } from "src/users/users.service";
+import { user as users } from "src/database/schema";
+// import { UsersService } from "src/users/users.service";
 import { CACHE_KEYS, CACHE_TTL } from "./cache-keys";
 import { CacheService } from "./cache.service";
 
@@ -10,7 +10,7 @@ import { CacheService } from "./cache.service";
 export class CacheWarmerService {
     drizzleService: any;
     constructor(
-        private usersService: UsersService,
+        // private usersService: UsersService,
         private cacheService: CacheService,
     ) { }
 
@@ -28,7 +28,7 @@ export class CacheWarmerService {
                 slug: users.slug,
                 type: users.type,
                 country: users.country,
-                url: users.url,
+                url: users.website,
                 isPrivate: users.isPrivate,
                 bio: users.bio,
                 locale: users.locale,

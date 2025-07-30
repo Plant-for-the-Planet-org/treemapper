@@ -9,14 +9,13 @@ import {
   unique,
   jsonb,
   doublePrecision,
-  date,
-  varchar,
   decimal,
   serial,
   index,
   uniqueIndex,
   bigint,
   char,
+  check,
 } from 'drizzle-orm/pg-core';
 import { relations, sql } from 'drizzle-orm';
 import { customType } from 'drizzle-orm/pg-core';
@@ -26,10 +25,53 @@ interface GeoJSONGeometry {
   coordinates: number[] | number[][] | number[][][];
 }
 
+export type FlagLevel = 'high' | 'medium' | 'low';
+export type FlagType = 'error' | 'warning' | 'info';
+
+export const auditActionEnum = pgEnum('audit_action', [
+  'create',
+  'update',
+  'delete',
+  'soft_delete',
+  'restore',
+  'login',
+  'logout',
+  'invite',
+  'accept_invite',
+  'decline_invite',
+  'role_change',
+  'permission_change',
+  'export',
+  'import',
+  'archive',
+  'unarchive'
+]);
+
+export const auditEntityEnum = pgEnum('audit_entity', [
+  'user',
+  'workspace',
+  'workspace_member',
+  'project',
+  'project_member',
+  'site',
+  'intervention',
+  'tree',
+  'tree_record',
+  'scientific_species',
+  'project_species',
+  'species_request',
+  'project_invite',
+  'bulk_invite',
+  'image',
+  'notification',
+  'migration'
+]);
+
+
 export interface FlagReasonEntry {
   uid: string;
-  type: string;
-  level: string;
+  type: FlagType;
+  level: FlagLevel;
   title: string;
   message: string;
   updatedAt: Date;
@@ -50,31 +92,48 @@ export interface InterventionSpeciesEntry {
 }
 
 
-const geometryWithGeoJSON = (srid?: number) =>
-  customType<{
-    data: GeoJSONGeometry
-    driverData: string;
-  }>({
-    dataType() {
-      return srid ? `geometry(Geometry,${srid})` : 'geometry';
-    },
-    toDriver(value: any): string {
-      if (typeof value === 'object') {
-        return `ST_GeomFromGeoJSON('${JSON.stringify(value)}')`;
-      }
-      return `ST_GeomFromText('${value}')`;
-    },
-    fromDriver(value: string): any {
-      return value;
-    },
-  });
 
+export const userTypeEnum = pgEnum('user_type', ['individual', 'tpo', "organization", 'other', "school", "superadmin"]);
+export const workspaceTypeEnum = pgEnum('workspace_type', ['platform', "private", 'development', 'premium']);
 
-
+export const logLevelEnum = pgEnum('log_level', [
+  'debug',
+  'info',
+  'warning',
+  'error',
+  'fatal'
+]);
+export const entityEnum = pgEnum('entity_type', [
+  'users',
+  'projects',
+  'interventions',
+  'species',
+  'sites',
+  'images'
+]);
 export const projectRoleEnum = pgEnum('project_role', ['owner', 'admin', 'contributor', 'observer']);
 export const inviteStatusEnum = pgEnum('invite_status', ['pending', 'accepted', 'declined', 'expired', 'discarded']);
-export const userTypeEnum = pgEnum('user_type', ['individual', 'education', 'tpo', 'workspace', 'student']);
+export const imageUploadDeviceEnum = pgEnum('image_upload_device', ['web', 'mobile']);
 export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation']);
+export const siteAccessEnum = pgEnum('site_access', ['all_sites', 'deny_all', 'read_only', 'limited_access']);
+export const speciesRequestStatusEnum = pgEnum('species_request_status', ['pending', 'approved', 'rejected']);
+export const interventionDiscriminatorEnum = pgEnum('intervention_discriminator', ['plot', 'intervention']);
+export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown']);
+export const captureStatusEnum = pgEnum('capture_status', ['complete', 'partial', 'incomplete']);
+export const notificationTypeEnum = pgEnum('notification_type', ['project', 'site', 'member', 'intervention', 'tree', 'species', 'user', 'invite', 'system', 'other']);
+export const workspaceRoleEnum = pgEnum('workspace_role', [
+  'owner',
+  'admin',
+  'member'
+]);
+export const memberStatusEnum = pgEnum('member_status', [
+  'active',
+  'inactive',
+  'suspended',
+  'pending'
+]);
+
+
 export const interventionTypeEnum = pgEnum('intervention_type', [
   'assisting-seed-rain',
   'control-livestock',
@@ -110,60 +169,47 @@ export const recordTypeEnum = pgEnum('record_type', [
   'health_assessment',
   'growth_monitoring'
 ]);
-export const speciesRequestStatusEnum = pgEnum('species_request_status', ['pending', 'approved', 'rejected']);
-export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown']);
-export const captureStatusEnum = pgEnum('capture_status', ['complete', 'partial', 'incomplete']);
-export const imageEntityEnum = pgEnum('image_entity', ['projects', 'sites', 'users', 'interventions', 'trees']);
 
-export const interventionDiscriminatorEnum = pgEnum('intervention_discriminator', ['plot', 'intervention']);
+export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree']);
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
-export const coordinateTypeEnum = pgEnum('coordinate_type', ['gps', 'manual', 'estimated']);
-export const captureModeMethodEnum = pgEnum('capture_method', ['app', 'map', 'survey', 'web-import']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
 export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
 export const migrationStatusEnum = pgEnum('migration_status', [
   'in_progress', 'completed', 'failed', 'started'
 ]);
-export const logLevelEnum = pgEnum('log_level', [
-  'debug',
-  'info',
-  'warning',
-  'error',
-  'fatal'
-]);
-export const entityEnum = pgEnum('entity_type', [
-  'users',
-  'projects',
-  'interventions',
-  'species',
-  'sites',
-  'images'
-]);
 
 
-export const workspaceRoleEnum = pgEnum('workspace_role', [
-  'owner',
-  'admin',
-  'member'
-]);
-
-export const memberStatusEnum = pgEnum('member_status', [
-  'active',
-  'inactive',
-  'suspended',
-  'pending'
-]);
 
 
-// ============================================================================
-// User Migrations Table
-// ============================================================================
 
-export const userMigrations = pgTable('user_migrations', {
+const geometryWithGeoJSON = (srid?: number) =>
+  customType<{
+    data: GeoJSONGeometry
+    driverData: string;
+  }>({
+    dataType() {
+      return srid ? `geometry(Geometry,${srid})` : 'geometry';
+    },
+    toDriver(value: any): string {
+      if (typeof value === 'object') {
+        return `ST_GeomFromGeoJSON('${JSON.stringify(value)}')`;
+      }
+      return `ST_GeomFromText('${value}')`;
+    },
+    fromDriver(value: string): any {
+      return value;
+    },
+  });
+
+
+
+
+
+export const migration = pgTable('migration', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  userId: integer('user_id').notNull().references(() => users.id),
-  planetId: varchar('planet_id', { length: 50 }).notNull().unique(),
+  uid: text('uid').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  planetId: text('planet_id').notNull().unique(),
   status: migrationStatusEnum('status').default('in_progress').notNull(),
   migratedEntities: jsonb('migrated_entities').$type<{
     user: boolean;
@@ -183,56 +229,78 @@ export const userMigrations = pgTable('user_migrations', {
   migrationCompletedAt: timestamp('migration_completed_at', { withTimezone: true }),
   errorMessage: text('error_message'),
   retryCount: integer('retry_count').default(0),
-  migrationVersion: varchar('migration_version', { length: 50 }).default('1.0'),
+  migrationVersion: text('migration_version').default('1.0'),
   metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
-  interventionPageUrl: text('intervention_page_url')
 }, (table) => ({
-  userIdx: index('user_id_idx').on(table.userId)
-}));
+  migrationIdIdx: index('migration_id_idx').on(table.userId)
+}))
 
-// ============================================================================
-// migration_log
-// ============================================================================
-
-export const migrationLogs = pgTable('migration_logs', {
+export const migrationLog = pgTable('migration_log', {
   id: serial('id').primaryKey(),
-  userMigrationId: integer('user_migration_id').notNull().references(() => userMigrations.id),
-  uid: varchar('uid', { length: 50 }).notNull(),
+  migrationId: integer('migration_id').notNull().references(() => migration.id, { onDelete: 'cascade' }),
+  uid: text('uid').notNull(),
   level: logLevelEnum('level').notNull(),
   message: text('message').notNull(),
   entity: entityEnum('entity'),
-  entityId: varchar('entity_id', { length: 255 }),
-  context: jsonb('context'),
+  entityId: text('entity_id'),
   stackTrace: text('stack_trace'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  userMigrationIdx: index('user_migration_id_idx').on(table.userMigrationId)
+  migrationLogsIdx: index('migration_logs_idx').on(table.migrationId)
 }))
 
+export const user = pgTable('user', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  auth0Id: text('auth0_id').notNull().unique(),
+  email: text('email').notNull().unique(),
+  firstname: text('firstname'),
+  lastname: text('lastname'),
+  displayName: text('display_name').notNull(),
+  primaryWorkspace: text('primary_workspace').references(() => workspace.uid),
+  primaryProject: text('primary_project').references(() => project.uid),
+  image: text('image'),
+  slug: text('slug').unique().notNull(),
+  type: userTypeEnum('type').default('individual'),
+  country: char('country', { length: 3 }),
+  website: text('url'),
+  isPrivate: boolean('is_private').default(false).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastLoginAt: timestamp('last_login_at', { withTimezone: true }).defaultNow(),
+  bio: text('bio'),
+  locale: text('locale').default('en'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  flag: boolean('flag').default(false),
+  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  migratedAt: timestamp('migrated_at', { withTimezone: true }),
+  existingPlanetUser: boolean('existing_planet_user').default(false)
+}, (table) => ({
+  emailFormat: check('email_format', sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
+  slugFormat: check('slug_format', sql`slug ~* '^[a-z0-9-]+$' AND length(slug) >= 3`),
+}));
 
 export const workspace = pgTable('workspace', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  name: varchar('name', { length: 255 }).notNull(),
-  slug: varchar('slug', { length: 100 }).notNull().unique(),
+  uid: text('uid').notNull().unique(),
+  name: text('name').notNull(),
+  slug: text('slug').notNull().unique(),
+  type: workspaceTypeEnum('type').notNull(),
   description: text('description'),
-  logo: text('logo'),
-  primaryColor: varchar('primary_color', { length: 7 }),
-  secondaryColor: varchar('secondary_color', { length: 7 }),
-  domainRestriction: varchar('custom_domain', { length: 255 }).unique(),
-  email: varchar('email', { length: 320 }),
-  phone: varchar('phone', { length: 50 }),
-  type: varchar('type', { length: 50 }).notNull().default('public'),
+  image: text('logo'),
+  primaryColor: text('primary_color'),
+  secondaryColor: text('secondary_color'),
+  email: text('email'),
+  phone: text('phone'),
   website: text('website'),
   address: text('address'),
-  country: char('country', { length: 2 }),
-  timezone: varchar('timezone', { length: 50 }).default('UTC'),
   isActive: boolean('is_active').default(true).notNull(),
-  createdById: integer('created_by_id').references(() => users.id),
+  createdById: integer('created_by_id').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -244,33 +312,29 @@ export const workspace = pgTable('workspace', {
   createdByIdx: index('workspace_created_by_idx').on(table.createdById),
 }));
 
-export const workspaceMembers = pgTable('workspace_members', {
+export const workspaceMember = pgTable('workspace_member', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
+  uid: text('uid').notNull().unique(),
   workspaceId: integer('workspace_id').notNull().references(() => workspace.id, { onDelete: 'cascade' }),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   role: workspaceRoleEnum('role').notNull().default('member'),
   status: memberStatusEnum('status').default('active'),
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
   invitedAt: timestamp('invited_at', { withTimezone: true }),
-  invitedById: integer('invited_by_id').references(() => users.id),
+  invitedById: integer('invited_by_id').references(() => user.id, { onDelete: 'cascade' }),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   metadata: jsonb('metadata'),
 }, (table) => ({
-  uniqueMember: unique('unique_workspace_member').on(table.workspaceId, table.userId),
   workspaceIdx: index('workspace_members_idx').on(table.workspaceId),
   userIdx: index('workspace_members_user_idx').on(table.userId),
-  roleIdx: index('workspace_members_role_idx').on(table.role),
-  statusIdx: index('workspace_members_status_idx').on(table.status),
-  invitedByIdx: index('workspace_members_invited_by_idx').on(table.invitedById),
 }));
 
 export const survey = pgTable('survey', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+  uid: text('uid').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   isCompleted: boolean('is_completed').notNull().default(false),
   organizationName: text("organizationName"),
   primaryGoal: text("primary_goal"),
@@ -283,70 +347,142 @@ export const survey = pgTable('survey', {
   userIdx: index('survey_user_idx').on(table.userId),
 }));
 
-// ============================================================================
-// USERS TABLE
-// ============================================================================
-
-export const users = pgTable('users', {
+export const image = pgTable('image', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  auth0Id: varchar('auth0_id', { length: 255 }).notNull().unique(),
-  email: varchar('email', { length: 320 }).notNull().unique(),
-  firstname: varchar('firstname', { length: 255 }),
-  lastname: varchar('lastname', { length: 255 }),
-  displayName: varchar('display_name', { length: 400 }),
-  primaryWorkspace: integer('primary_workspace').references(() => workspace.id),
-  primaryProject: integer('primary_project').references(() => projects.id),
-  image: text('image'),
-  slug: varchar('slug', { length: 100 }).unique(),
-  type: userTypeEnum('type').default('individual'),
-  country: char('country', { length: 2 }),
-  url: text('url'),
-  isPrivate: boolean('is_private').default(false).notNull(),
-  isActive: boolean('is_active').default(true).notNull(),
-  lastLoginAt: timestamp('last_login_at', { withTimezone: true }).defaultNow(),
-  bio: text('bio'),
-  locale: varchar('locale', { length: 10 }).default('en'),
+  uid: text('uid').notNull().unique(),
+  type: imageTypeEnum('type').notNull().default('overview'),
+  entityId: integer('entity_id').notNull(),
+  entityType: imageEntityEnum('entity_type').notNull(),
+  filename: text('filename'),
+  originalName: text('original_name'),
+  mimeType: text('mime_type'),
+  size: bigint('size', { mode: 'number' }),
+  width: integer('width'),
+  height: integer('height'),
+  notes: text('notes'),
+  deviceType: imageUploadDeviceEnum('device_type').notNull(),
+  isPrimary: boolean('is_primary').default(false),
+  isPrivate: boolean('is_private').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  flag: boolean('flag').default(false),
-  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  migratedAt: timestamp('migrated_at', { withTimezone: true }),
-  existingPlanetUser: boolean('existing_planet_user').default(false)
-});
+}, (table) => ({
+  entityId: index('entityId_images__id_idx').on(table.entityId),
+  sizePositive: check('size_positive', sql`size IS NULL OR size > 0`),
+  dimensionsPositive: check('dimensions_positive', sql`(width IS NULL OR width > 0) AND (height IS NULL OR height > 0)`),
+  reasonableFileSize: check('reasonable_file_size', sql`size IS NULL OR size <= 104857600`), // 100MB limit
+}));
 
-// ============================================================================
-// PROJECTS TABLE
-// ============================================================================
-
-export const projects = pgTable('projects', {
+export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  createdById: integer('created_by_id').notNull().references(() => users.id),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  slug: varchar('slug', { length: 255 }).notNull().unique(),
-  purpose: varchar('purpose', { length: 100 }),
-  projectName: varchar('project_name', { length: 255 }).notNull(),
-  projectType: varchar('project_type', { length: 100 }),
-  ecosystem: varchar('ecosystem', { length: 100 }),
-  projectScale: varchar('project_scale', { length: 100 }),
+  uid: text('uid').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: notificationTypeEnum('type').notNull().default('other'),
+  title: text('title').notNull(),
+  message: text('message').notNull(),
+  entityId: integer('entity_id'),
+  priority: text('priority').default('normal'),
+  category: text('category'),
+  isRead: boolean('is_read').default(false).notNull(),
+  isArchived: boolean('is_archived').default(false).notNull(),
+  actionUrl: text('action_url'),
+  actionText: text('action_text'),
+  scheduledFor: timestamp('scheduled_for'),
+  expiresAt: timestamp('expires_at'),
+  deliveryMethod: text('delivery_method'),
+  sentAt: timestamp('sent_at'),
+  deliveredAt: timestamp('delivered_at'),
+  image: text('image'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  userIdIdx: index('notifications_user_id_idx').on(table.userId),
+  typeIdx: index('notifications_type_idx').on(table.type),
+  isReadIdx: index('notifications_is_read_idx').on(table.isRead),
+  isArchivedIdx: index('notifications_is_archived_idx').on(table.isArchived),
+  priorityIdx: index('notifications_priority_idx').on(table.priority),
+  scheduledForIdx: index('notifications_scheduled_for_idx').on(table.scheduledFor),
+  expiresAtIdx: index('notifications_expires_at_idx').on(table.expiresAt),
+  userUnreadIdx: index('notifications_user_unread_idx').on(table.userId, table.isRead),
+  userCategoryIdx: index('notifications_user_category_idx').on(table.userId, table.category),
+  unreadNotificationsIdx: index('notifications_unread_idx').on(table.userId).where(sql`is_read = false AND is_archived = false`),
+}));
+
+
+export const auditLog = pgTable('audit_log', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  action: auditActionEnum('action').notNull(),
+  entityType: auditEntityEnum('entity_type').notNull(),
+  entityId: text('entity_id').notNull(),
+  entityUid: text('entity_uid'),
+  userId: integer('user_id').references(() => user.id, { onDelete: 'set null' }),
+  workspaceId: integer('workspace_id').references(() => workspace.id, { onDelete: 'set null' }),
+  projectId: integer('project_id').references(() => project.id, { onDelete: 'set null' }),
+  oldValues: jsonb('old_values'),
+  newValues: jsonb('new_values'),
+  changedFields: text('changed_fields').array(),
+  description: text('description'),
+  source: text('source').default('web'), // 'web', 'mobile', 'api', 'system', 'migration'
+  userAgent: text('user_agent'),
+  ipAddress: text('ip_address'),
+  sessionId: text('session_id'),
+  requestId: text('request_id'),
+  reason: text('reason'),
+  metadata: jsonb('metadata'),
+  occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  // Performance indexes
+  entityIdx: index('audit_log_entity_idx').on(table.entityType, table.entityId),
+  userIdx: index('audit_log_user_idx').on(table.userId),
+  workspaceIdx: index('audit_log_workspace_idx').on(table.workspaceId),
+  projectIdx: index('audit_log_project_idx').on(table.projectId),
+  actionIdx: index('audit_log_action_idx').on(table.action),
+  occurredAtIdx: index('audit_log_occurred_at_idx').on(table.occurredAt),
+
+  // Composite indexes for common queries
+  entityTimeIdx: index('audit_log_entity_time_idx').on(table.entityType, table.entityId, table.occurredAt),
+  userTimeIdx: index('audit_log_user_time_idx').on(table.userId, table.occurredAt),
+  workspaceTimeIdx: index('audit_log_workspace_time_idx').on(table.workspaceId, table.occurredAt),
+
+  // JSONB indexes for change tracking
+  changedFieldsIdx: index('audit_log_changed_fields_gin_idx').using('gin', table.changedFields),
+  oldValuesIdx: index('audit_log_old_values_gin_idx').using('gin', table.oldValues),
+  newValuesIdx: index('audit_log_new_values_gin_idx').using('gin', table.newValues),
+}));
+
+
+
+export const project = pgTable('project', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  workspaceId: integer('workspace_id').notNull().references(() => workspace.id, { onDelete: 'cascade' }),
+  slug: text('slug').notNull().unique(),
+  purpose: text('purpose'),
+  projectName: text('project_name').notNull(),
+  projectType: text('project_type'),
+  ecosystem: text('ecosystem'),
+  projectScale: text('project_scale'),
   target: integer('target'),
   projectWebsite: text('project_website'),
   description: text('description'),
-  classification: varchar('classification', { length: 100 }),
+  classification: text('classification'),
   image: text('image'),
   videoUrl: text('video_url'),
-  country: varchar('country', { length: 2 }),
+  country: char('country', { length: 3 }),
   location: geometryWithGeoJSON(4326)('location'),
   originalGeometry: jsonb('original_geometry'),
+  latitude: doublePrecision('latitude'),
+  longitude: doublePrecision('longitude'),
   url: text('url'),
   isActive: boolean('is_active').notNull().default(true),
   isPublic: boolean('is_public').default(true).notNull(),
   isPrimary: boolean('is_primary').default(false).notNull(),
   isPersonal: boolean('is_personal').default(false).notNull(),
-  intensity: varchar('intensity', { length: 100 }),
-  revisionPeriodicityLevel: varchar('revision_periodicity_level', { length: 100 }),
+  intensity: text('intensity'),
+  revisionPeriodicityLevel: text('revision_periodicity_level'),
   metadata: jsonb('metadata'),
   migratedProject: boolean('migrated_project').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -355,26 +491,26 @@ export const projects = pgTable('projects', {
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
 }, (table) => ({
   locationIdx: index('projects_location_gist_idx').using('gist', table.location),
-  createdByIdx: index('projects_created_by_idx').on(table.createdById),
+  createdByIdIdx: index('project_created_by_id_idx').on(table.createdById),
   workspaceIdx: index('projects_workpsace_by_idx').on(table.workspaceId),
+  targetPositive: check('target_positive', sql`target IS NULL OR target > 0`),
+  latitudeRange: check('latitude_range', sql`latitude IS NULL OR (latitude >= -90 AND latitude <= 90)`),
+  longitudeRange: check('longitude_range', sql`longitude IS NULL OR (longitude >= -180 AND longitude <= 180)`),
 }));
 
-// ============================================================================
-// PROJECT MEMBERS TABLE
-// ============================================================================
-
-export const projectMembers = pgTable('project_members', {
+export const projectMember = pgTable('project_member', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => projects.id),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  userId: integer('user_id').notNull().references(() => users.id),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id),
+  userId: integer('user_id').notNull().references(() => user.id),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
   invitedAt: timestamp('invited_at', { withTimezone: true }),
   joinedAt: timestamp('joined_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  bulkInviteId: integer('bulk_invite_id').references(() => bulkInvites.id),
+  bulkInviteId: integer('bulk_invite_id').references(() => bulkInvite.id),
+  siteAccess: siteAccessEnum('site_access').default('all_sites').notNull(),
+  restrictedSites: text('restricted_sites').array().default([]),
 }, (table) => ({
   uniqueMember: unique('unique_project_member').on(table.projectId, table.userId),
   projectIdIdx: index('project_members_project_idx').on(table.projectId),
@@ -382,16 +518,15 @@ export const projectMembers = pgTable('project_members', {
   projectRoleIdx: index('project_members_role_idx').on(table.projectRole),
 }));
 
-export const bulkInvites = pgTable('bulk_invites', {
+export const bulkInvite = pgTable('bulk_invite', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => projects.id),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  restriction: varchar('restriction').array().default([]),
-  message: varchar('message', { length: 400 }),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id),
+  restriction: text('restriction').array().default([]),
+  message: text('message'),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
-  invitedById: integer('invited_by_id').notNull().references(() => users.id),
-  discardedBy: integer('discarded_by').references(() => users.id),
+  invitedById: integer('invited_by_id').notNull().references(() => user.id),
+  discardedBy: integer('discarded_by').references(() => user.id),
   status: inviteStatusEnum('status').notNull().default('pending'),
   token: uuid('token').defaultRandom().notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
@@ -406,47 +541,21 @@ export const bulkInvites = pgTable('bulk_invites', {
   deletedAtIdx: index('project_bulk_invites_deleted_at_idx').on(table.deletedAt),
 }));
 
-// ============================================================================
-// PROJECT Images 
-// ============================================================================
 
-export const images = pgTable('images', {
+export const site = pgTable('site', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  entityId: serial('entity_id'),
-  entityType: varchar('entity_type'),
-  filename: varchar('filename', { length: 255 }),
-  originalName: varchar('original_name', { length: 255 }),
-  mimeType: varchar('mime_type', { length: 50 }),
-  size: bigint('size', { mode: 'number' }),
-  width: integer('width'),
-  height: integer('height'),
-  notes: text('notes'),
-  uploadedFrom: varchar('uploaded_from'),
-  isPrimary: boolean('is_primary').default(false),
-  isPrivate: boolean('is_private').default(false),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
-}, (table) => ({
-  entityId: index('entityId_images__id_idx').on(table.entityId)
-}));
-
-// ============================================================================
-// SITES TABLE
-// ============================================================================
-
-export const sites = pgTable('sites', {
-  id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  name: varchar('name', { length: 255 }).notNull(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  name: text('name').notNull(),
   description: text('description'),
   location: geometryWithGeoJSON(4326)('location'),
   originalGeometry: jsonb('original_geometry'),
+  latitude: doublePrecision('latitude'),
+  image: text('image'),
+  longitude: doublePrecision('longitude'),
+  area: doublePrecision('area'),
   status: siteStatusEnum('status').default('planting'),
-  createdById: integer('created_by_id').notNull().references(() => users.id),
+  createdById: integer('created_by_id').notNull().references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   flag: boolean('flag').default(false),
@@ -457,23 +566,21 @@ export const sites = pgTable('sites', {
 }, (table) => ({
   projectIdIdx: index('sites_project_id_idx').on(table.projectId),
   locationIdx: index('sites_location_gist_idx').using('gist', table.location),
+  areaPositive: check('area_positive', sql`area IS NULL OR area > 0`),
+  latitudeRange: check('latitude_range', sql`latitude IS NULL OR (latitude >= -90 AND latitude <= 90)`),
+  longitudeRange: check('longitude_range', sql`longitude IS NULL OR (longitude >= -180 AND longitude <= 180)`),
 }));
 
 
-// ============================================================================
-// PROJECT INVITES TABLE
-// ============================================================================
-
-export const projectInvites = pgTable('project_invites', {
+export const projectInvites = pgTable('project_invite', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => projects.id, { onDelete: 'cascade' }),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  email: varchar('email', { length: 320 }).notNull(),
-  message: varchar('message', { length: 400 }),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  email: text('email').notNull(),
+  message: text('message'),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
-  invitedById: integer('invited_by_id').notNull().references(() => users.id),
-  discardedBy: integer('discarded_by').references(() => users.id),
+  invitedById: integer('invited_by_id').notNull().references(() => user.id),
+  discardedBy: integer('discarded_by').references(() => user.id),
   status: inviteStatusEnum('status').notNull().default('pending'),
   token: uuid('token').defaultRandom().notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
@@ -486,38 +593,22 @@ export const projectInvites = pgTable('project_invites', {
 }, (table) => ({
   projectIdIdx: index('project_invites_project_idx').on(table.projectId),
   emailIdx: index('project_invites_email_idx').on(table.email),
-  projectStatusIdx: index('project_invites_project_status_idx').on(table.projectId, table.status)
+  projectStatusIdx: index('project_invites_project_status_idx').on(table.projectId, table.status),
+  acceptedBeforeExpiry: check('accepted_before_expiry', sql`accepted_at IS NULL OR accepted_at <= expires_at`),
+  expiresInFuture: check('expires_in_future', sql`expires_at > created_at`),
 }));
 
-export const projectAudits = pgTable('project_audits', {
-  id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => projects.id),
-  modifiedBy: integer('modified_by').notNull().references(() => users.id),
-  description: text('description'),
-  notes: text('notes'),
-  title: text('title'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  metadata: jsonb('metadata'),
-}, (table) => ({
-  projectIdx: index('project_species_project_idx').on(table.projectId),
-  modifiedByIdx: index('modified_by_idx').on(table.modifiedBy),
-}));
-
-// ============================================================================
-// SCIENTIFIC SPECIES TABLE
-// ============================================================================
 
 export const scientificSpecies = pgTable('scientific_species', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  scientificName: varchar('scientific_name', { length: 255 }).notNull().unique(),
-  commonName: varchar('common_name', { length: 255 }),
-  family: varchar('family', { length: 100 }),
-  genus: varchar('genus', { length: 100 }),
+  uid: text('uid').notNull().unique(),
+  scientificName: text('scientific_name').notNull().unique(),
+  commonName: text('common_name'),
+  family: text('family'),
+  genus: text('genus'),
   description: text('description'),
-  gbifId: varchar('gbif_id', { length: 100 }),
+  image: text('image'),
+  gbifId: text('gbif_id'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -527,21 +618,20 @@ export const scientificSpecies = pgTable('scientific_species', {
   uidIdx: index('scientific_species_uid_idx').on(table.uid),
 }));
 
-// ============================================================================
-// PROJECT SPECIES TABLE
-// ============================================================================
 
 export const projectSpecies = pgTable('project_species', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
+  uid: text('uid').notNull().unique(),
   scientificSpeciesId: integer('scientific_species_id').notNull().references(() => scientificSpecies.id),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
+  scientificSpeciesUid: text('scientific_species_uid'),
+  isUnknown: boolean('is_unknown').default(false).notNull(),
+  speciesName: text('species_name'),
   isNativeSpecies: boolean('is_native_species').default(false),
   isEndangered: boolean('is_endangered').default(false),
   isDisabled: boolean('is_disabled').default(false),
-  projectId: integer('project_id').notNull().references(() => projects.id),
-  addedById: integer('added_by_id').notNull().references(() => users.id),
-  commonName: varchar('common_name', { length: 255 }),
+  projectId: integer('project_id').notNull().references(() => project.id),
+  addedById: integer('added_by_id').notNull().references(() => user.id),
+  commonName: text('common_name'),
   image: text('image'),
   description: text('description'),
   notes: text('notes'),
@@ -558,22 +648,19 @@ export const projectSpecies = pgTable('project_species', {
   nativeSpeciesIdx: index('project_species_native_idx').on(table.isNativeSpecies),
 }));
 
-// ============================================================================
-// SPECIES REQUESTS TABLE
-// ============================================================================
 
-export const speciesRequests = pgTable('species_requests', {
+export const speciesRequest = pgTable('species_request', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  scientificName: varchar('scientific_name', { length: 255 }).notNull(),
-  commonName: varchar('common_name', { length: 400 }),
+  uid: text('uid').notNull().unique(),
+  scientificName: text('scientific_name').notNull(),
+  commonName: text('common_name'),
   description: text('description'),
   requestReason: text('request_reason'),
-  gbifId: varchar('gbif_id', { length: 100 }),
-  requestedById: integer('requested_by_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  projectId: integer('project_id').references(() => projects.id, { onDelete: 'cascade' }), // Optional: species request for a specific project
+  gbifId: text('gbif_id'),
+  requestedById: integer('requested_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  projectId: integer('project_id').references(() => project.id),
   status: speciesRequestStatusEnum('status').notNull().default('pending'),
-  reviewedById: integer('reviewed_by_id').references(() => users.id),
+  reviewedById: integer('reviewed_by_id').references(() => user.id),
   adminNotes: text('admin_notes'),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -583,39 +670,32 @@ export const speciesRequests = pgTable('species_requests', {
   requestedByIdx: index('species_requests_requested_by_idx').on(table.requestedById)
 }));
 
-// ============================================================================
-// SPECIES IMAGES TABLE
-// ============================================================================
-
-
-// ============================================================================
-// ENHANCED INTERVENTIONS TABLE
-// ============================================================================
-
-export const interventions = pgTable('interventions', {
+export const intervention = pgTable('intervention', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  hid: varchar('hid', { length: 16 }).notNull().unique(),
+  uid: text('uid').notNull().unique(),
+  hid: text('hid').notNull().unique(),
   discr: interventionDiscriminatorEnum('discr').notNull().default('intervention'),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  userId: integer('user_id').notNull().references(() => users.id),
-  projectId: integer('project_id').notNull().references(() => projects.id),
-  projectSiteId: integer('project_site_id').references(() => sites.id),
-  parentInterventionId: integer('parent_intervention_id').references(() => interventions.id),
+  userId: integer('user_id').notNull().references(() => user.id),
+  projectId: integer('project_id').notNull().references(() => project.id),
+  projectSiteId: integer('project_site_id').references(() => site.id),
+  parentInterventionId: integer('parent_intervention_id').references(() => intervention.id),
   type: interventionTypeEnum('type').notNull(),
-  idempotencyKey: varchar('idempotency_key', { length: 64 }).unique().notNull(),
-  captureMode: varchar('capture_mode'),
+  idempotencyKey: text('idempotency_key').unique().notNull(),
+  captureMode: captureModeEnum('capture_mode').notNull().default('unknown'),
   captureStatus: captureStatusEnum('capture_status').notNull().default('complete'),
   registrationDate: timestamp('registration_date', { withTimezone: true }).notNull(),
   interventionStartDate: timestamp('intervention_start_date', { withTimezone: true }).notNull(),
   interventionEndDate: timestamp('intervention_end_date', { withTimezone: true }).notNull(),
   location: geometryWithGeoJSON(4326)('location'),
   originalGeometry: jsonb('original_geometry'),
+  latitude: doublePrecision('latitude'),
+  longitude: doublePrecision('longitude'),
+  area: doublePrecision('area'),
   deviceLocation: jsonb('device_location'),
   treeCount: integer('tree_count').default(0),
   sampleTreeCount: integer('sample_tree_count').default(0),
   interventionStatus: interventionStatusEnum('intervention_status').default('active'),
-  description: varchar('description', { length: 2048 }),
+  description: text('description'),
   image: text('image'),
   isPrivate: boolean('is_private').default(false).notNull(),
   species: jsonb('species').$type<InterventionSpeciesEntry[]>().default([]),
@@ -636,28 +716,33 @@ export const interventions = pgTable('interventions', {
   speciesGinIdx: index('interventions_species_gin_idx').using('gin', table.species),
   interventionStartDateIdx: index('interventions_start_date_idx').on(table.interventionStartDate),
   projectDateRangeIdx: index('interventions_project_date_range_idx').on(table.projectId, table.interventionStartDate),
+  areaPositive: check('area_positive', sql`area IS NULL OR area >= 0`),
+  treeCountNonNegative: check('tree_count_non_negative', sql`tree_count >= 0`),
+  sampleTreeCountNonNegative: check('sample_tree_count_non_negative', sql`sample_tree_count >= 0`),
+  validDateRange: check('valid_date_range', sql`intervention_start_date <= intervention_end_date`),
 }));
 
-export const trees = pgTable('trees', {
+export const tree = pgTable('tree', {
   id: serial('id').primaryKey(),
-  hid: varchar('hid', { length: 16 }).notNull().unique(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  interventionId: integer('intervention_id').references(() => interventions.id),
-  workspaceId: integer('workspace_id').notNull().references(() => workspace.id),
-  interventionSpeciesId: varchar('intervention_species_id'),
-  speciesName: varchar('species_name'),
+  hid: text('hid').notNull().unique(),
+  uid: text('uid').notNull().unique(),
+  interventionId: integer('intervention_id').references(() => intervention.id),
+  interventionSpeciesId: text('intervention_species_id'),
+  speciesName: text('species_name'),
   isUnknown: boolean('is_unknown').default(false),
-  createdById: integer('created_by_id').notNull().references(() => users.id),
-  tag: varchar('tag', { length: 100 }),
-  treeType: treeTypeEnum('treeType').default('sample'),
+  createdById: integer('created_by_id').notNull().references(() => user.id),
+  tag: text('tag'),
+  treeType: treeTypeEnum('tree_type').default('sample'),
   altitude: decimal('altitude', { precision: 8, scale: 2 }),
   accuracy: decimal('accuracy', { precision: 6, scale: 2 }),
   location: geometryWithGeoJSON(4326)('location'),
   originalGeometry: jsonb('original_geometry'),
+  latitude: doublePrecision('latitude'),
+  longitude: doublePrecision('longitude'),
   height: doublePrecision('height'),
   width: doublePrecision('width'),
   status: treeStatusEnum('status').default('alive').notNull(),
-  statusReason: varchar('status_reason'),
+  statusReason: text('status_reason'),
   plantingDate: timestamp('planting_date', { withTimezone: true }),
   lastMeasurementDate: timestamp('last_measurement_date', { withTimezone: true }),
   nextMeasurementDate: timestamp('next_measurement_date', { withTimezone: true }),
@@ -676,13 +761,17 @@ export const trees = pgTable('trees', {
   plantingDateIdx: index('trees_planting_date_idx').on(table.plantingDate),
   lastMeasurementIdx: index('trees_last_measurement_idx').on(table.lastMeasurementDate),
   locationIdx: index('trees_location_gist_idx').using('gist', table.location),
+  heightPositive: check('height_positive', sql`height IS NULL OR height >= 0`),
+  widthPositive: check('width_positive', sql`width IS NULL OR width >= 0`),
+  altitudeRange: check('altitude_range', sql`altitude IS NULL OR (altitude >= -500 AND altitude <= 9000)`), // meters
+  accuracyPositive: check('accuracy_positive', sql`accuracy IS NULL OR accuracy >= 0`),
 }));
 
-export const treeRecords = pgTable('tree_records', {
+export const treeRecord = pgTable('tree_record', {
   id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  treeId: integer('tree_id').notNull().references(() => trees.id, { onDelete: 'cascade' }),
-  recordedById: integer('recorded_by_id').notNull().references(() => users.id),
+  uid: text('uid').notNull().unique(),
+  treeId: integer('tree_id').notNull().references(() => tree.id, { onDelete: 'cascade' }),
+  recordedById: integer('recorded_by_id').notNull().references(() => user.id),
   recordType: recordTypeEnum('record_type').notNull(),
   recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
   image: text('image'),
@@ -690,12 +779,12 @@ export const treeRecords = pgTable('tree_records', {
   width: doublePrecision('width'),
   healthScore: integer('health_score'),
   vitalityScore: integer('vitality_score'),
-  structuralIntegrity: varchar('structural_integrity', { length: 50 }),
+  structuralIntegrity: text('structural_integrity'),
   previousStatus: treeStatusEnum('previous_status'),
   newStatus: treeStatusEnum('new_status'),
-  statusReason: varchar('status_reason', { length: 100 }),
+  statusReason: text('status_reason'),
   findings: text('findings'),
-  findingsSeverity: varchar('findings_severity', { length: 50 }), // Low, Medium, High, Critical
+  findingsSeverity: text('findings_severity'), // Low, Medium, High, Critical
   findingsComments: text('findings_comments'),
   notes: text('notes'),
   weatherConditions: jsonb('weather_conditions'),
@@ -705,10 +794,10 @@ export const treeRecords = pgTable('tree_records', {
   diseasesObserved: jsonb('diseases_observed'),
   damageObserved: jsonb('damage_observed'),
   growthRate: decimal('growth_rate', { precision: 6, scale: 3 }),
-  leafDensity: varchar('leaf_density', { length: 50 }),
-  fruitingStatus: varchar('fruiting_status', { length: 50 }),
+  leafDensity: text('leaf_density'),
+  fruitingStatus: text('fruiting_status'),
   recommendedActions: jsonb('recommended_actions'),
-  priorityLevel: varchar('priority_level', { length: 20 }),
+  priorityLevel: text('priority_level'),
   isPublic: boolean('is_public').default(true).notNull(),
   deviceLocation: jsonb('device_location'),
   metadata: jsonb('metadata'),
@@ -717,226 +806,168 @@ export const treeRecords = pgTable('tree_records', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
   treeIdIdx: index('tree_records_tree_id_idx').on(table.treeId),
-  recordedByIdx: index('tree_records_recorded_by_idx').on(table.recordedById)
+  recordedByIdx: index('tree_records_recorded_by_idx').on(table.recordedById),
+  healthScoreRange: check('health_score_range', sql`health_score IS NULL OR (health_score >= 0 AND health_score <= 100)`),
+  vitalityScoreRange: check('vitality_score_range', sql`vitality_score IS NULL OR (vitality_score >= 0 AND vitality_score <= 100)`),
+  heightPositive: check('height_positive', sql`height IS NULL OR height >= 0`),
+  widthPositive: check('width_positive', sql`width IS NULL OR width >= 0`),
+  recordedAtNotFuture: check('recorded_at_not_future', sql`recorded_at <= NOW()`),
 }));
-
-
-export const interventionRecords = pgTable('intervention_records', {
-  id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  interventionId: integer('intervention_id').notNull().references(() => interventions.id),
-  updatedBy: integer('updated_by').notNull().references(() => users.id),
-  title: varchar('title'),
-  description: text('description'),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-}, (table) => ({
-  interventionIdx: index('intervention_records_intervention_idx').on(table.interventionId),
-  updatedByIdx: index('intervention_updated_by_idx').on(table.updatedBy),
-}));
-
-export const notifications = pgTable('notifications', {
-  id: serial('id').primaryKey(),
-  uid: varchar('uid', { length: 50 }).notNull().unique(),
-  userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
-  type: varchar('type', { length: 50 }).notNull(),
-  title: varchar('title', { length: 255 }).notNull(),
-  message: text('message').notNull(),
-  relatedEntityType: varchar('related_entity_type', { length: 50 }),
-  relatedEntityId: integer('related_entity_id'),
-  priority: varchar('priority', { length: 20 }).default('normal'),
-  category: varchar('category', { length: 50 }),
-  isRead: boolean('is_read').default(false).notNull(),
-  isArchived: boolean('is_archived').default(false).notNull(),
-  actionUrl: text('action_url'),
-  actionText: varchar('action_text', { length: 100 }),
-  scheduledFor: timestamp('scheduled_for'),
-  expiresAt: timestamp('expires_at'),
-  deliveryMethod: varchar('delivery_method', { length: 50 }).default('in_app'),
-  sentAt: timestamp('sent_at'),
-  deliveredAt: timestamp('delivered_at'),
-  image: text('image'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
-}, (table) => ({
-  userIdIdx: index('notifications_user_id_idx').on(table.userId),
-  typeIdx: index('notifications_type_idx').on(table.type),
-  isReadIdx: index('notifications_is_read_idx').on(table.isRead),
-  isArchivedIdx: index('notifications_is_archived_idx').on(table.isArchived),
-  priorityIdx: index('notifications_priority_idx').on(table.priority),
-  scheduledForIdx: index('notifications_scheduled_for_idx').on(table.scheduledFor),
-  expiresAtIdx: index('notifications_expires_at_idx').on(table.expiresAt),
-  relatedEntityIdx: index('notifications_related_entity_idx').on(table.relatedEntityType, table.relatedEntityId),
-  userUnreadIdx: index('notifications_user_unread_idx').on(table.userId, table.isRead),
-  userCategoryIdx: index('notifications_user_category_idx').on(table.userId, table.category),
-  unreadNotificationsIdx: index('notifications_unread_idx').on(table.userId).where(sql`is_read = false AND is_archived = false`),
-}));
-
-export const auditLogs = pgTable('audit_logs', {
-  id: serial('id').primaryKey(),
-  tableName: varchar('table_name', { length: 100 }).notNull(),
-  recordUid: varchar('record_uid', { length: 50 }).notNull(),
-  operation: varchar('operation', { length: 10 }).notNull(), // INSERT, UPDATE, DELETE
-  oldValues: jsonb('old_values'),
-  newValues: jsonb('new_values'),
-  changedBy: integer('changed_by').references(() => users.id),
-  changedAt: timestamp('changed_at').defaultNow().notNull(),
-  ipAddress: varchar('ip_address', { length: 45 }),
-  userAgent: text('user_agent'),
-  metadata: jsonb('metadata'),
-}, (table) => ({
-  tableRecordIdx: index('audit_logs_table_record_idx').on(table.tableName, table.recordUid),
-  userIdx: index('audit_logs_user_idx').on(table.changedBy),
-  timeIdx: index('audit_logs_time_idx').on(table.changedAt),
-}));
-
-// ============================================================================
-// RELATIONS
-// ============================================================================
-
-export const userRelations = relations(users, ({ one, many }) => ({
-  projectMemberships: many(projectMembers),
-  createdProjects: many(projects, { relationName: 'createdBy' }),
+export const userRelations = relations(user, ({ one, many }) => ({
+  projectMemberships: many(projectMember),
+  createdProjects: many(project, { relationName: 'createdBy' }),
   addedProjectSpecies: many(projectSpecies, { relationName: 'addedBy' }),
-  createdSites: many(sites, { relationName: 'createdBy' }),
-  recordedIntervention: many(interventionRecords, { relationName: 'recordedBy' }),
-  sentInvites: many(projectInvites, { relationName: 'invitedBy' }),
-  bulkInvites: many(bulkInvites, { relationName: 'invitedBy' }),
-  interventions: many(interventions, { relationName: 'userInterventions' }),
+  createdSites: many(site, { relationName: 'createdBy' }),
+  createdTrees: many(tree, { relationName: 'createdBy' }),
+  recordedTreeRecords: many(treeRecord, { relationName: 'recordedBy' }),
+  sentProjectInvites: many(projectInvites, { relationName: 'invitedBy' }),
+  bulkInvites: many(bulkInvite, { relationName: 'invitedBy' }),
+  interventions: many(intervention, { relationName: 'userInterventions' }),
   notifications: many(notifications),
-  primaryWrokspace: one(workspace, {
-    fields: [users.primaryWorkspace],
-    references: [workspace.id],
+  migrations: many(migration),
+  primaryWorkspace: one(workspace, {
+    fields: [user.primaryWorkspace],
+    references: [workspace.uid],
   }),
-  primaryProject: one(projects, {
-    fields: [users.primaryProject],
-    references: [projects.id],
+  primaryProject: one(project, {
+    fields: [user.primaryProject],
+    references: [project.uid],
   }),
-  speciesRequests: many(speciesRequests, { relationName: 'requestedBy' }),
-  reviewedSpeciesRequests: many(speciesRequests, { relationName: 'reviewedBy' }),
-  createdTrees: many(trees, { relationName: 'createdBy' }),
-  workspaceMemberships: many(workspaceMembers),
-  createdworkspaces: many(workspace, { relationName: 'createdBy' }),
-  sentWorkspaceInvites: many(workspaceMembers, { relationName: 'invitedBy' }),
+  speciesRequests: many(speciesRequest, { relationName: 'requestedBy' }),
+  reviewedSpeciesRequests: many(speciesRequest, { relationName: 'reviewedBy' }),
+  workspaceMemberships: many(workspaceMember),
+  createdWorkspaces: many(workspace, { relationName: 'createdBy' }),
+  sentWorkspaceInvites: many(workspaceMember, { relationName: 'invitedBy' }),
   surveys: many(survey),
 }));
 
 export const surveyRelations = relations(survey, ({ one }) => ({
-  user: one(users, {
+  user: one(user, {
     fields: [survey.userId],
-    references: [users.id],
+    references: [user.id],
   }),
 }));
 
-export const projectRelations = relations(projects, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [projects.createdById],
-    references: [users.id],
+export const migrationRelations = relations(migration, ({ one, many }) => ({
+  user: one(user, {
+    fields: [migration.userId],
+    references: [user.id],
+  }),
+  logs: many(migrationLog),
+}));
+
+export const migrationLogRelations = relations(migrationLog, ({ one }) => ({
+  migration: one(migration, {
+    fields: [migrationLog.migrationId],
+    references: [migration.id],
+  }),
+}));
+
+export const workspaceRelations = relations(workspace, ({ one, many }) => ({
+  createdBy: one(user, {
+    fields: [workspace.createdById],
+    references: [user.id],
     relationName: 'createdBy',
   }),
-  members: many(projectMembers),
-  invites: many(projectInvites),
-  bulkInvites: many(bulkInvites),
-  sites: many(sites),
-  interventions: many(interventions),
-  projectSpecies: many(projectSpecies),
-  workspace: one(workspace, {
-    fields: [projects.workspaceId],
-    references: [workspace.id],
-  }),
-  speciesRequests: many(speciesRequests),
+  members: many(workspaceMember),
+  projects: many(project),
 }));
 
-export const projectMemberRelations = relations(projectMembers, ({ one }) => ({
-  project: one(projects, {
-    fields: [projectMembers.projectId],
-    references: [projects.id],
+export const workspaceMemberRelations = relations(workspaceMember, ({ one }) => ({
+  workspace: one(workspace, {
+    fields: [workspaceMember.workspaceId],
+    references: [workspace.id],
   }),
-  user: one(users, {
-    fields: [projectMembers.userId],
-    references: [users.id],
+  user: one(user, {
+    fields: [workspaceMember.userId],
+    references: [user.id],
+  }),
+  invitedBy: one(user, {
+    fields: [workspaceMember.invitedById],
+    references: [user.id],
+    relationName: 'invitedBy',
+  }),
+}));
+
+export const projectRelations = relations(project, ({ one, many }) => ({
+  createdBy: one(user, {
+    fields: [project.createdById],
+    references: [user.id],
+    relationName: 'createdBy',
   }),
   workspace: one(workspace, {
-    fields: [projectMembers.workspaceId],
+    fields: [project.workspaceId],
     references: [workspace.id],
+  }),
+  members: many(projectMember),
+  invites: many(projectInvites),
+  bulkInvites: many(bulkInvite),
+  sites: many(site),
+  interventions: many(intervention),
+  projectSpecies: many(projectSpecies),
+  speciesRequests: many(speciesRequest),
+}));
+
+export const projectMemberRelations = relations(projectMember, ({ one }) => ({
+  project: one(project, {
+    fields: [projectMember.projectId],
+    references: [project.id],
+  }),
+  user: one(user, {
+    fields: [projectMember.userId],
+    references: [user.id],
+  }),
+  bulkInvite: one(bulkInvite, {
+    fields: [projectMember.bulkInviteId],
+    references: [bulkInvite.id],
   }),
 }));
 
 export const projectInviteRelations = relations(projectInvites, ({ one }) => ({
-  project: one(projects, {
+  project: one(project, {
     fields: [projectInvites.projectId],
-    references: [projects.id],
+    references: [project.id],
   }),
-  invitedBy: one(users, {
+  invitedBy: one(user, {
     fields: [projectInvites.invitedById],
-    references: [users.id],
+    references: [user.id],
     relationName: 'invitedBy',
   }),
-  workspace: one(workspace, {
-    fields: [projectInvites.workspaceId],
-    references: [workspace.id],
+  discardedBy: one(user, {
+    fields: [projectInvites.discardedBy],
+    references: [user.id],
   }),
 }));
 
-export const bulkInviteRelations = relations(bulkInvites, ({ one }) => ({
-  project: one(projects, {
-    fields: [bulkInvites.projectId],
-    references: [projects.id],
+export const bulkInviteRelations = relations(bulkInvite, ({ one, many }) => ({
+  project: one(project, {
+    fields: [bulkInvite.projectId],
+    references: [project.id],
   }),
-  workspace: one(workspace, {
-    fields: [bulkInvites.workspaceId],
-    references: [workspace.id],
-  }),
-  invitedBy: one(users, {
-    fields: [bulkInvites.invitedById],
-    references: [users.id],
+  invitedBy: one(user, {
+    fields: [bulkInvite.invitedById],
+    references: [user.id],
     relationName: 'invitedBy',
   }),
+  discardedBy: one(user, {
+    fields: [bulkInvite.discardedBy],
+    references: [user.id],
+  }),
+  members: many(projectMember),
 }));
 
 export const scientificSpeciesRelations = relations(scientificSpecies, ({ many }) => ({
   projectSpecies: many(projectSpecies),
 }));
 
-export const workspaceRelations = relations(workspace, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [workspace.createdById],
-    references: [users.id],
-    relationName: 'createdBy',
-  }),
-  members: many(workspaceMembers),
-  users: many(users),
-  projects: many(projects),
-}));
-
-export const workspaceMemberRelations = relations(workspaceMembers, ({ one }) => ({
-  workspace: one(workspace, {
-    fields: [workspaceMembers.workspaceId],
-    references: [workspace.id],
-  }),
-  user: one(users, {
-    fields: [workspaceMembers.userId],
-    references: [users.id],
-  }),
-  invitedBy: one(users, {
-    fields: [workspaceMembers.invitedById],
-    references: [users.id],
-    relationName: 'invitedBy',
-  }),
-}));
-
-export const projectSpeciesRelations = relations(projectSpecies, ({ one, many }) => ({
-  project: one(projects, {
+export const projectSpeciesRelations = relations(projectSpecies, ({ one }) => ({
+  project: one(project, {
     fields: [projectSpecies.projectId],
-    references: [projects.id],
+    references: [project.id],
   }),
-  workspace: one(workspace, {
-    fields: [projectSpecies.workspaceId],
-    references: [workspace.id],
-  }),
-  addedBy: one(users, {
+  addedBy: one(user, {
     fields: [projectSpecies.addedById],
-    references: [users.id],
+    references: [user.id],
     relationName: 'addedBy',
   }),
   scientificSpecies: one(scientificSpecies, {
@@ -945,143 +976,107 @@ export const projectSpeciesRelations = relations(projectSpecies, ({ one, many })
   }),
 }));
 
-
-export const siteRelations = relations(sites, ({ one, many }) => ({
-  project: one(projects, {
-    fields: [sites.projectId],
-    references: [projects.id],
-  }),
-  workspace: one(workspace, {
-    fields: [sites.workspaceId],
-    references: [workspace.id],
-  }),
-  createdBy: one(users, {
-    fields: [sites.createdById],
-    references: [users.id],
-    relationName: 'createdBy',
-  }),
-  interventions: many(interventions),
-}));
-
-
-
-export const interventionsRelations = relations(interventions, ({ one, many }) => ({
-  project: one(projects, {
-    fields: [interventions.projectId],
-    references: [projects.id],
-  }),
-  workspace: one(workspace, {
-    fields: [interventions.workspaceId],
-    references: [workspace.id],
-  }),
-  projectSite: one(sites, {
-    fields: [interventions.projectSiteId],
-    references: [sites.id],
-  }),
-  user: one(users, {
-    fields: [interventions.userId],
-    references: [users.id],
-    relationName: 'userInterventions',
-  }),
-  parentIntervention: one(interventions, {
-    fields: [interventions.parentInterventionId],
-    references: [interventions.id],
-    relationName: 'parentIntervention',
-  }),
-  childInterventions: many(interventions, { relationName: 'parentIntervention' }),
-  records: many(interventionRecords),
-  trees: many(trees),
-}));
-
-
-
-export const treesRelations = relations(trees, ({ one, many }) => ({
-  intervention: one(interventions, {
-    fields: [trees.interventionId],
-    references: [interventions.id],
-  }),
-  workspace: one(workspace, {
-    fields: [trees.workspaceId],
-    references: [workspace.id],
-  }),
-  createdBy: one(users, {
-    fields: [trees.createdById],
-    references: [users.id],
-    relationName: 'createdBy',
-  }),
-  records: many(treeRecords),
-}));
-
-export const treeRecordsRelations = relations(treeRecords, ({ one }) => ({
-  tree: one(trees, {
-    fields: [treeRecords.treeId],
-    references: [trees.id],
-  }),
-  recordedBy: one(users, {
-    fields: [treeRecords.recordedById],
-    references: [users.id],
-    relationName: 'recordedBy',
-  }),
-}));
-
-
-export const interventionRecordRelations = relations(interventionRecords, ({ one }) => ({
-  intervention: one(interventions, {
-    fields: [interventionRecords.interventionId],
-    references: [interventions.id],
-  }),
-  updatedBy: one(users, {
-    fields: [interventionRecords.updatedBy],
-    references: [users.id],
-    relationName: 'recordedBy',
-  }),
-}));
-
-
-
-
-export const notificationsRelations = relations(notifications, ({ one }) => ({
-  user: one(users, {
-    fields: [notifications.userId],
-    references: [users.id],
-  }),
-}));
-
-export const speciesRequestRelations = relations(speciesRequests, ({ one }) => ({
-  requestedBy: one(users, {
-    fields: [speciesRequests.requestedById],
-    references: [users.id],
+export const speciesRequestRelations = relations(speciesRequest, ({ one }) => ({
+  requestedBy: one(user, {
+    fields: [speciesRequest.requestedById],
+    references: [user.id],
     relationName: 'requestedBy',
   }),
-  reviewedBy: one(users, {
-    fields: [speciesRequests.reviewedById],
-    references: [users.id],
+  reviewedBy: one(user, {
+    fields: [speciesRequest.reviewedById],
+    references: [user.id],
     relationName: 'reviewedBy',
   }),
-  project: one(projects, {
-    fields: [speciesRequests.projectId],
-    references: [projects.id],
+  project: one(project, {
+    fields: [speciesRequest.projectId],
+    references: [project.id],
   }),
 }));
 
-export const userMigrationsRelations = relations(userMigrations, ({ many }) => ({
-  logs: many(migrationLogs),
+export const siteRelations = relations(site, ({ one, many }) => ({
+  project: one(project, {
+    fields: [site.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [site.createdById],
+    references: [user.id],
+    relationName: 'createdBy',
+  }),
+  interventions: many(intervention),
 }));
 
-export const migrationLogsRelations = relations(migrationLogs, ({ one }) => ({
-  userMigration: one(userMigrations, {
-    fields: [migrationLogs.userMigrationId],
-    references: [userMigrations.id],
+export const interventionRelations = relations(intervention, ({ one, many }) => ({
+  project: one(project, {
+    fields: [intervention.projectId],
+    references: [project.id],
+  }),
+  projectSite: one(site, {
+    fields: [intervention.projectSiteId],
+    references: [site.id],
+  }),
+  user: one(user, {
+    fields: [intervention.userId],
+    references: [user.id],
+    relationName: 'userInterventions',
+  }),
+  parentIntervention: one(intervention, {
+    fields: [intervention.parentInterventionId],
+    references: [intervention.id],
+    relationName: 'parentIntervention',
+  }),
+  childInterventions: many(intervention, { relationName: 'parentIntervention' }),
+  trees: many(tree),
+}));
+
+export const treeRelations = relations(tree, ({ one, many }) => ({
+  intervention: one(intervention, {
+    fields: [tree.interventionId],
+    references: [intervention.id],
+  }),
+  createdBy: one(user, {
+    fields: [tree.createdById],
+    references: [user.id],
+    relationName: 'createdBy',
+  }),
+  records: many(treeRecord),
+}));
+
+export const treeRecordRelations = relations(treeRecord, ({ one }) => ({
+  tree: one(tree, {
+    fields: [treeRecord.treeId],
+    references: [tree.id],
+  }),
+  recordedBy: one(user, {
+    fields: [treeRecord.recordedById],
+    references: [user.id],
+    relationName: 'recordedBy',
   }),
 }));
 
-export const projectAuditRelations = relations(projectAudits, ({ one }) => ({
-  project: one(projects, {
-    fields: [projectAudits.projectId],
-    references: [projects.id],
+export const imageRelations = relations(image, ({ one }) => ({
+  // Note: entityId is generic, so no direct relation possible
+  // You'll need to handle this in your service layer based on entityType
+}));
+
+export const notificationsRelations = relations(notifications, ({ one }) => ({
+  user: one(user, {
+    fields: [notifications.userId],
+    references: [user.id],
   }),
-  modifiedBy: one(users, {
-    fields: [projectAudits.modifiedBy],
-    references: [users.id],
+}));
+
+export const auditLogRelations = relations(auditLog, ({ one }) => ({
+  user: one(user, {
+    fields: [auditLog.userId],
+    references: [user.id],
+  }),
+  workspace: one(workspace, {
+    fields: [auditLog.workspaceId],
+    references: [workspace.id],
+  }),
+  project: one(project, {
+    fields: [auditLog.projectId],
+    references: [project.id],
   }),
 }));

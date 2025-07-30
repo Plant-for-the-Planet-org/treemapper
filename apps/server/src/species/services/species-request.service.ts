@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service'; // Adjust import path
-import { speciesRequests, scientificSpecies, users, projects } from '../../database/schema/index'; // Adjust import path
+import { speciesRequest, scientificSpecies, user, project } from '../../database/schema/index'; // Adjust import path
 import { CreateSpeciesRequestDto, SpeciesRequestFilterDto } from './../dto/species-request.dto';
 import { eq, and, ilike, or, desc, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
@@ -28,11 +28,11 @@ export class SpeciesRequestService {
     // Check if there's already a pending request for this species
     const existingRequest = await this.drizzle.db
       .select()
-      .from(speciesRequests)
+      .from(speciesRequest)
       .where(
         and(
-          eq(speciesRequests.scientificName, createDto.scientificName),
-          eq(speciesRequests.status, 'pending'),
+          eq(speciesRequest.scientificName, createDto.scientificName),
+          eq(speciesRequest.status, 'pending'),
         ),
       )
       .limit(1);
@@ -42,7 +42,7 @@ export class SpeciesRequestService {
     }
 
     const newRequest = await this.drizzle.db
-      .insert(speciesRequests)
+      .insert(speciesRequest)
       .values({
         uid: uuidv4(),
         ...createDto,
@@ -61,14 +61,14 @@ export class SpeciesRequestService {
     let whereConditions: any[] = [];
 
     if (status) {
-      whereConditions.push(eq(speciesRequests.status, status));
+      whereConditions.push(eq(speciesRequest.status, status));
     }
 
     if (search) {
       whereConditions.push(
         or(
-          ilike(speciesRequests.scientificName, `%${search}%`),
-          ilike(speciesRequests.commonName, `%${search}%`),
+          ilike(speciesRequest.scientificName, `%${search}%`),
+          ilike(speciesRequest.commonName, `%${search}%`),
         ),
       );
     }
@@ -78,38 +78,38 @@ export class SpeciesRequestService {
     const [data, totalResult] = await Promise.all([
       this.drizzle.db
         .select({
-          id: speciesRequests.id,
-          uid: speciesRequests.uid,
-          scientificName: speciesRequests.scientificName,
-          commonName: speciesRequests.commonName,
-          description: speciesRequests.description,
-          requestReason: speciesRequests.requestReason,
-          gbifId: speciesRequests.gbifId,
-          status: speciesRequests.status,
-          adminNotes: speciesRequests.adminNotes,
-          reviewedAt: speciesRequests.reviewedAt,
-          createdAt: speciesRequests.createdAt,
+          id: speciesRequest.id,
+          uid: speciesRequest.uid,
+          scientificName: speciesRequest.scientificName,
+          commonName: speciesRequest.commonName,
+          description: speciesRequest.description,
+          requestReason: speciesRequest.requestReason,
+          gbifId: speciesRequest.gbifId,
+          status: speciesRequest.status,
+          adminNotes: speciesRequest.adminNotes,
+          reviewedAt: speciesRequest.reviewedAt,
+          createdAt: speciesRequest.createdAt,
           requestedBy: {
-            id: users.id,
-            name: users.displayName,
-            email: users.email,
+            id: user.id,
+            name: user.displayName,
+            email: user.email,
           },
           project: {
-            id: projects.id,
-            projectName: projects.projectName,
+            id: project.id,
+            projectName: project.projectName,
           },
         })
-        .from(speciesRequests)
-        .leftJoin(users, eq(speciesRequests.requestedById, users.id))
-        .leftJoin(projects, eq(speciesRequests.projectId, projects.id))
+        .from(speciesRequest)
+        .leftJoin(user, eq(speciesRequest.requestedById, user.id))
+        .leftJoin(project, eq(speciesRequest.projectId, project.id))
         .where(whereClause)
-        .orderBy(desc(speciesRequests.createdAt))
+        .orderBy(desc(speciesRequest.createdAt))
         .limit(limit)
         .offset(offset),
 
       this.drizzle.db
         .select({ count: sql<number>`count(*)` })
-        .from(speciesRequests)
+        .from(speciesRequest)
         .where(whereClause),
     ]);
 
@@ -127,31 +127,31 @@ export class SpeciesRequestService {
   async getRequestById(id: number) {
     const request = await this.drizzle.db
       .select({
-        id: speciesRequests.id,
-        uid: speciesRequests.uid,
-        scientificName: speciesRequests.scientificName,
-        commonName: speciesRequests.commonName,
-        description: speciesRequests.description,
-        requestReason: speciesRequests.requestReason,
-        gbifId: speciesRequests.gbifId,
-        status: speciesRequests.status,
-        adminNotes: speciesRequests.adminNotes,
-        reviewedAt: speciesRequests.reviewedAt,
-        createdAt: speciesRequests.createdAt,
+        id: speciesRequest.id,
+        uid: speciesRequest.uid,
+        scientificName: speciesRequest.scientificName,
+        commonName: speciesRequest.commonName,
+        description: speciesRequest.description,
+        requestReason: speciesRequest.requestReason,
+        gbifId: speciesRequest.gbifId,
+        status: speciesRequest.status,
+        adminNotes: speciesRequest.adminNotes,
+        reviewedAt: speciesRequest.reviewedAt,
+        createdAt: speciesRequest.createdAt,
         requestedBy: {
-          id: users.id,
-          name: users.displayName,
-          email: users.email,
+          id: user.id,
+          name: user.displayName,
+          email: user.email,
         },
         project: {
-          id: projects.id,
-          projectName: projects.projectName,
+          id: project.id,
+          projectName: project.projectName,
         },
       })
-      .from(speciesRequests)
-      .leftJoin(users, eq(speciesRequests.requestedById, users.id))
-      .leftJoin(projects, eq(speciesRequests.projectId, projects.id))
-      .where(eq(speciesRequests.id, id))
+      .from(speciesRequest)
+      .leftJoin(user, eq(speciesRequest.requestedById, user.id))
+      .leftJoin(project, eq(speciesRequest.projectId, project.id))
+      .where(eq(speciesRequest.id, id))
       .limit(1);
 
     if (!request.length) {

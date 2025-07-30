@@ -29,37 +29,37 @@ export class NotificationService {
     private readonly notificationRepository: NotificationRepository,
   ) {}
 
-  async createNotification(dto: CreateNotificationDto): Promise<Notification> {
-    const notification = await this.notificationRepository.create({
-      ...dto,
-      priority: dto.priority || NotificationPriority.NORMAL,
-      deliveryMethod: dto.deliveryMethod || DeliveryMethod.IN_APP,
-      scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
-      expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-      uid: ''
-    });
+  async createNotification(dto: CreateNotificationDto): Promise<any> {
+    // const notification = await this.notificationRepository.create({
+    //   ...dto,
+    //   priority: dto.priority || NotificationPriority.NORMAL,
+    //   deliveryMethod: dto.deliveryMethod || DeliveryMethod.IN_APP,
+    //   scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
+    //   expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+    //   uid: ''
+    // });
 
-    // Emit event for real-time notifications
-    return notification;
+    // // Emit event for real-time notifications
+    // return notification;
   }
 
   async createBulkNotifications(dto: BulkCreateNotificationDto): Promise<Notification[]> {
-    const notificationData = dto.userIds.map(userId => ({
-      userId,
-      type: dto.type,
-      title: dto.title,
-      message: dto.message,
-      relatedEntityType: dto.relatedEntityType,
-      relatedEntityId: dto.relatedEntityId,
-      priority: dto.priority || NotificationPriority.NORMAL,
-      category: dto.category,
-      deliveryMethod: DeliveryMethod.IN_APP,
-      metadata: dto.metadata,
-      uid: generateUid("noti")
-    }));
+    // const notificationData = dto.userIds.map(userId => ({
+    //   userId,
+    //   type: dto.type,
+    //   title: dto.title,
+    //   message: dto.message,
+    //   relatedEntityType: dto.relatedEntityType,
+    //   relatedEntityId: dto.relatedEntityId,
+    //   priority: dto.priority || NotificationPriority.NORMAL,
+    //   category: dto.category,
+    //   deliveryMethod: DeliveryMethod.IN_APP,
+    //   metadata: dto.metadata,
+    //   uid: generateUid("noti")
+    // }));
 
-    const notifications = await this.notificationRepository.createMany(notificationData);
-    return notifications;
+    // const notifications = await this.notificationRepository.createMany(notificationData);
+    return [];
   }
 
   // PROJECT COLLABORATION NOTIFICATIONS

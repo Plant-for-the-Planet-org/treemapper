@@ -1,5 +1,5 @@
 // src/main.ts
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
@@ -16,27 +16,30 @@ async function bootstrap() {
       AppModule,
       new FastifyAdapter({
         logger: false,
-        bodyLimit: 10485760, // 10MB
+        bodyLimit: 10485760,
         caseSensitive: false,
         ignoreTrailingSlash: true,
       })
     );
 
-    app.use((req, res, next) => {
-      console.log(`${req.method} ${req.url}`);
-      next();
+    app.getHttpAdapter().getInstance().addHook('onRequest', async (request, reply) => {
+      logger.log(`${request.method} ${request.url}`);
     });
 
-    // Updated CORS configuration for monorepo deployment
     const isProduction = process.env.NODE_ENV === 'production';
 
+    // Environment-based CORS configuration
+    const corsOrigins = isProduction
+      ? process.env.CORS_ORIGINS?.split(',') || [`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`]
+      : ['http://127.0.0.1:3000', 'http://localhost:3000']; 
 
     app.enableCors({
-      origin: ['http://127.0.0.1:3000', 'http://localhost:3000'],
+      origin: corsOrigins,
       credentials: true,
       methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
       allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
     });
+
     app.setGlobalPrefix('api');
 
     app.useGlobalPipes(new ValidationPipe({
@@ -48,8 +51,9 @@ async function bootstrap() {
     app.useGlobalFilters(new HttpExceptionFilter());
     app.useGlobalInterceptors(new ResponseInterceptor());
 
-    // TODO: Add JWT guard when auth is implemented
-    app.useGlobalGuards(app.get(JwtAuthGuard));
+    // Global JWT guard with Reflector for handling @Public() decorator
+    const reflector = app.get(Reflector);
+    app.useGlobalGuards(new JwtAuthGuard(reflector));
 
     // Swagger setup (development only)
     if (!isProduction) {
@@ -65,17 +69,20 @@ async function bootstrap() {
       logger.log('📚 Swagger documentation available at /api/docs');
     }
 
-    // Port configuration for monorepo deployment
-    const port = process.env.PORT || (isProduction ? 3001 : 3001);
+    // Environment-based port configuration
+    const port = process.env.PORT || 3001;
     await app.listen(port, '0.0.0.0');
 
-    // Updated base URL logic
+    // Environment-based base URL
     const baseUrl = isProduction
-      ? `https://${process.env.HEROKU_APP_NAME || 'your-monorepo-app'}.herokuapp.com`
+      ? `https://${process.env.HEROKU_APP_NAME}.herokuapp.com`
       : `http://localhost:${port}`;
 
     logger.log(`🚀 Server running on port: ${port}`);
     logger.log(`🌐 Base URL: ${baseUrl}`);
+    logger.log(`🔒 All routes protected by JWT authentication`);
+    logger.log(`🌐 CORS origins: ${corsOrigins.join(', ')}`);
+
     if (!isProduction) {
       logger.log(`📚 API Documentation: ${baseUrl}/api/docs`);
     }

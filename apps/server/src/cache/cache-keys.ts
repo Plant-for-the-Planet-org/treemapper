@@ -12,12 +12,16 @@ export const CACHE_KEYS = {
   },
   SESSION: {
     USER: (userId: number) => `session:user:${userId}`,
-  }
+  },
+  PROJECT: {
+    BY_PID_UID: (d: string) => `project:user:${d}`,
+  },
 } as const;
 
 export const CACHE_TTL = {
   SHORT: 1200000,      // 5 minutes
-  MEDIUM: 1500000,     // 15 minutes  
+  MEDIUM: 3000000,     // 15 minutes  
   LONG: 600000000,      // 1 hour
-  VERY_LONG: 2400000000 // 24 hours
+  VERY_LONG: 2400000000,// 24 hours
+  FOREVER: 240000000000
 } as const;

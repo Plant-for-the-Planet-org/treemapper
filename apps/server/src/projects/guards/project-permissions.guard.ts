@@ -1,13 +1,14 @@
-// src/projects/guards/project-permissions.guard.ts
 import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ProjectsService } from '../projects.service';
+import { ProjectCacheService } from 'src/cache/project-cache.service';
 
 @Injectable()
 export class ProjectPermissionsGuard implements CanActivate {
   constructor(
     private reflector: Reflector,
     private projectsService: ProjectsService,
+    private projectCacheService: ProjectCacheService,
   ) { }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -23,8 +24,10 @@ export class ProjectPermissionsGuard implements CanActivate {
       return false;
     }
 
-    const membership = await this.projectsService.getMemberRoleFromUid(projectUid, userId);
-
+    let membership = await this.projectCacheService.getUserProject(projectUid, userId);
+    if (!membership) {
+      membership = await this.projectsService.getMemberRoleFromUid(projectUid, userId);
+    }
     if (!membership) {
       throw new ForbiddenException('You do not have access to this project');
     }
