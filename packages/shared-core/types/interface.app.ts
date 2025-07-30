@@ -92,7 +92,7 @@ export interface UserInterface {
   firstname?: string;
   lastname?: string;
   displayName?: string;
-  avatar?: string;
+  image?: string;
   slug?: string;
   type: 'individual' | 'organization' | 'education' | 'tpo' | 'student'
   country?: string;

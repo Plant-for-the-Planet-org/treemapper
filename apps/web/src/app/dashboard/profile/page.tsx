@@ -2,24 +2,20 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  ArrowLeft,
-  Save,
-  Upload,
-  User,
-  Globe,
-  Eye,
-  EyeOff,
-  LogOut,
   Check,
-  X,
-  Loader
-} from 'lucide-react';
 
-// Mock context and API functions for demonstration
-const useToken = () => ({ accessToken: 'mock-token' });
-const generatePreSignUrl = async () => ({ statusCode: 200, data: { data: { uploadUrl: '', fileName: 'test.jpg' } } });
-const getMyDetails = async () => ({ statusCode: 200, data: { displayName: 'John Doe', email: 'john@example.com', firstname: 'John', lastname: 'Doe', bio: '', image: '', slug: 'john-doe', url: '', type: 'individual', isPrivate: false } });
-const updateUserDetails = async () => ({ statusCode: 200 });
+} from 'lucide-react';
+import { ActionButtons } from './components/ActionButtons';
+import { AvatarUpload } from './components/AvatarUpload';
+import { Header } from './components/Header';
+import { InputField } from './components/InputField';
+import { PrivacyToggle } from './components/PrivacyToggle';
+import { SelectField } from './components/SelectField';
+import { TextareaField } from './components/TextareaField';
+import { useToken } from '@/context/useTokenContext';
+import { generatePreSignUrl, getMyDetails, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
+
+
 
 // Generate animal avatar using the pattern you provided
 const generateAnimalAvatar = (uid) => {
@@ -29,265 +25,7 @@ const generateAnimalAvatar = (uid) => {
   return `https://avatar.iran.liara.run/public/${index}`;
 };
 
-// Avatar Component
-const AvatarUpload = ({ profile, onAvatarChange, isUploading }) => {
-  const avatarSrc = profile.image || generateAnimalAvatar(profile.email || 'default');
-  
-  return (
-    <div className="flex flex-col items-center space-y-4 lg:w-1/3">
-      <div className="relative group">
-        <div className="w-32 h-32 rounded-2xl overflow-hidden border-4 border-stone-100 shadow-lg bg-stone-50">
-          <img
-            src={avatarSrc}
-            alt="Profile"
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            onError={(e) => {
-              e.target.src = generateAnimalAvatar(profile.email || 'fallback');
-            }}
-          />
-        </div>
-        <label
-          htmlFor="avatar-upload"
-          className="absolute inset-0 bg-black/40 rounded-2xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300 cursor-pointer backdrop-blur-sm"
-        >
-          {isUploading ? (
-            <Loader size={24} className="text-white animate-spin" />
-          ) : (
-            <Upload size={24} className="text-white" />
-          )}
-          <input
-            id="avatar-upload"
-            type="file"
-            className="hidden"
-            accept="image/*"
-            onChange={onAvatarChange}
-            disabled={isUploading}
-          />
-        </label>
-      </div>
-      <p className="text-sm text-stone-500 text-center max-w-[180px]">
-        {isUploading ? 'Uploading...' : 'Click to upload a new profile picture'}
-      </p>
-    </div>
-  );
-};
 
-// Input Field Component
-const InputField = ({ label, name, value, onChange, type = 'text', placeholder, readOnly, validation, ...props }) => {
-  const hasError = validation?.error;
-  const hasSuccess = validation?.success;
-  
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-stone-700 mb-2">
-        {label}
-      </label>
-      <div className="relative">
-        <input
-          type={type}
-          name={name}
-          value={value}
-          onChange={onChange}
-          placeholder={placeholder}
-          readOnly={readOnly}
-          className={`w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-            readOnly
-              ? 'bg-stone-50 text-stone-500 cursor-not-allowed border-stone-200'
-              : hasError
-              ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-              : hasSuccess
-              ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none`}
-          {...props}
-        />
-        {readOnly && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <span className="text-xs text-stone-400 bg-stone-200 px-2 py-1 rounded">Read-only</span>
-          </div>
-        )}
-        {hasError && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <X size={16} className="text-red-500" />
-          </div>
-        )}
-        {hasSuccess && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
-            <Check size={16} className="text-green-500" />
-          </div>
-        )}
-      </div>
-      {hasError && (
-        <p className="text-xs text-red-600 mt-1 animate-in slide-in-from-top-1 duration-200">
-          {validation.error}
-        </p>
-      )}
-      {validation?.hint && !hasError && (
-        <p className="text-xs text-stone-500 mt-1">{validation.hint}</p>
-      )}
-    </div>
-  );
-};
-
-// Textarea Component
-const TextareaField = ({ label, name, value, onChange, rows = 4, placeholder, validation }) => {
-  const hasError = validation?.error;
-  
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-stone-700 mb-2">
-        {label}
-      </label>
-      <textarea
-        name={name}
-        value={value}
-        onChange={onChange}
-        rows={rows}
-        placeholder={placeholder}
-        className={`w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 ${
-          hasError
-            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-            : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-        } focus:outline-none`}
-      />
-      {hasError && (
-        <p className="text-xs text-red-600 mt-1 animate-in slide-in-from-top-1 duration-200">
-          {validation.error}
-        </p>
-      )}
-    </div>
-  );
-};
-
-// Select Component
-const SelectField = ({ label, name, value, onChange, options, validation }) => {
-  const hasError = validation?.error;
-  
-  return (
-    <div>
-      <label className="block text-sm font-semibold text-stone-700 mb-2">
-        {label}
-      </label>
-      <select
-        name={name}
-        value={value}
-        onChange={onChange}
-        className={`w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-          hasError
-            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-            : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-        } focus:outline-none bg-white`}
-      >
-        {options.map(option => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
-      </select>
-    </div>
-  );
-};
-
-// Privacy Toggle Component
-const PrivacyToggle = ({ profile, onChange }) => {
-  return (
-    <div className="flex items-center justify-between p-6 rounded-2xl bg-stone-50/50 hover:bg-stone-100/50 transition-all duration-300 border border-stone-200/50">
-      <div className="flex items-center space-x-4">
-        <div className={`p-2 rounded-xl transition-colors duration-300 ${
-          profile.isPrivate ? 'bg-stone-200' : 'bg-[#007A49]/10'
-        }`}>
-          {profile.isPrivate ? (
-            <EyeOff size={20} className="text-stone-600" />
-          ) : (
-            <Eye size={20} className="text-[#007A49]" />
-          )}
-        </div>
-        <div>
-          <p className="font-semibold text-stone-800">Private Profile</p>
-          <p className="text-sm text-stone-600">
-            {profile.isPrivate
-              ? "Your profile is private and only visible to you"
-              : "Your profile is public and visible to everyone"
-            }
-          </p>
-        </div>
-      </div>
-      <label className="relative inline-flex items-center cursor-pointer">
-        <input
-          type="checkbox"
-          name="isPrivate"
-          checked={profile.isPrivate}
-          onChange={onChange}
-          className="sr-only peer"
-        />
-        <div className={`w-12 h-6 rounded-full transition-all duration-300 peer-focus:ring-4 peer-focus:ring-[#007A49]/20 ${
-          profile.isPrivate ? 'bg-[#007A49]' : 'bg-stone-300'
-        } peer-checked:after:translate-x-6 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all after:shadow-sm`}></div>
-      </label>
-    </div>
-  );
-};
-
-// Header Component
-const Header = ({ goBack, onLogout }) => {
-  return (
-    <div className="bg-white/80 backdrop-blur-sm border-b border-stone-200/50 sticky top-0 z-50">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <div className="flex items-center">
-            <button
-              onClick={goBack}
-              className="p-2 rounded-lg text-stone-600 hover:bg-stone-100 transition-all duration-200 hover:scale-105"
-            >
-              <ArrowLeft size={24} />
-            </button>
-            <h1 className="ml-4 text-xl font-semibold text-stone-900">Profile Settings</h1>
-          </div>
-          <button
-            onClick={onLogout}
-            className="flex items-center space-x-2 px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
-          >
-            <LogOut size={18} />
-            <span>Logout</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// Action Buttons Component
-const ActionButtons = ({ onSave, isSaving, onCancel }) => {
-  return (
-    <div className="flex justify-end space-x-4 pt-6">
-      <button
-        onClick={onCancel}
-        className="px-6 py-3 text-stone-600 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition-all duration-200 font-medium"
-      >
-        Cancel
-      </button>
-      <button
-        onClick={onSave}
-        disabled={isSaving}
-        className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
-      >
-        {isSaving ? (
-          <>
-            <Loader size={18} className="mr-2 animate-spin" />
-            Saving...
-          </>
-        ) : (
-          <>
-            <Save size={18} className="mr-2" />
-            Save Changes
-          </>
-        )}
-      </button>
-    </div>
-  );
-};
-
-// Main Component
 const ProfileSettings = ({ goBack }) => {
   const [profile, setProfile] = useState({
     displayName: '',
@@ -317,6 +55,7 @@ const ProfileSettings = ({ goBack }) => {
   const fetchUserDetails = async () => {
     const response = await getMyDetails(accessToken);
     if (response.statusCode === 200) {
+      console.log('Fetched user details:', response.data);
       setProfile({ ...response.data });
     }
   };
@@ -500,10 +239,9 @@ const ProfileSettings = ({ goBack }) => {
 
             <div className="flex flex-col lg:flex-row gap-8">
               <AvatarUpload 
-                profile={profile} 
+                profile={profile}
                 onAvatarChange={handleAvatarChange}
-                isUploading={isUploading}
-              />
+                isUploading={isUploading} generateAnimalAvatar={generateAnimalAvatar}              />
 
               <div className="flex-1 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -512,16 +250,14 @@ const ProfileSettings = ({ goBack }) => {
                     name="firstname"
                     value={profile.firstname}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.firstname }}
-                  />
+                    validation={{ error: validationErrors.firstname }} placeholder={undefined} readOnly={undefined}                  />
                   
                   <InputField
                     label="Last Name"
                     name="lastname"
                     value={profile.lastname}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.lastname }}
-                  />
+                    validation={{ error: validationErrors.lastname }} placeholder={undefined} readOnly={undefined}                  />
                   
                   <div className="md:col-span-2">
                     <InputField
@@ -529,8 +265,7 @@ const ProfileSettings = ({ goBack }) => {
                       name="displayName"
                       value={profile.displayName}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.displayName }}
-                    />
+                      validation={{ error: validationErrors.displayName }} placeholder={undefined} readOnly={undefined}                    />
                   </div>
                   
                   <div className="md:col-span-2">
@@ -540,8 +275,7 @@ const ProfileSettings = ({ goBack }) => {
                       type="email"
                       value={profile.email}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.email }}
-                    />
+                      validation={{ error: validationErrors.email }} placeholder={undefined} readOnly={true}                    />
                   </div>
                   
                   <div className="md:col-span-2">
@@ -552,8 +286,7 @@ const ProfileSettings = ({ goBack }) => {
                       value={profile.url}
                       onChange={handleProfileChange}
                       placeholder="https://yourwebsite.com"
-                      validation={{ error: validationErrors.url }}
-                    />
+                      validation={{ error: validationErrors.url }} readOnly={undefined}                    />
                   </div>
                   
                   <div className="md:col-span-2">
@@ -562,11 +295,10 @@ const ProfileSettings = ({ goBack }) => {
                       name="slug"
                       value={profile.slug}
                       readOnly
-                      validation={{ hint: "Your unique profile identifier" }}
-                    />
+                      validation={{ hint: "Your unique profile identifier" }} onChange={undefined} placeholder={undefined}                    />
                   </div>
                   
-                  <div className="md:col-span-2">
+                  {/* <div className="md:col-span-2">
                     <SelectField
                       label="Account Type"
                       name="type"
@@ -575,9 +307,8 @@ const ProfileSettings = ({ goBack }) => {
                       options={[
                         { value: 'individual', label: 'Individual' },
                         { value: 'organization', label: 'Organization' }
-                      ]}
-                    />
-                  </div>
+                      ]} validation={undefined}                    />
+                  </div> */}
                 </div>
 
                 <TextareaField
@@ -585,8 +316,7 @@ const ProfileSettings = ({ goBack }) => {
                   name="bio"
                   value={profile.bio}
                   onChange={handleProfileChange}
-                  placeholder="Tell us about yourself..."
-                />
+                  placeholder="Tell us about yourself..." validation={undefined}                />
               </div>
             </div>
           </div>

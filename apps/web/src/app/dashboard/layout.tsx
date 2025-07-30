@@ -10,7 +10,7 @@ import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
 import { useEffect, useState, useCallback } from 'react';
 import { useUserStore } from '@shared-core/store/useUserStore';
-import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails } from '@shared-core/fetchApi/api.fetch';
+import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails, updateUserAvatar } from '@shared-core/fetchApi/api.fetch';
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 
@@ -64,6 +64,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   useEffect(() => {
     if (User && projects.length > 0 && workspace.length > 0) {
       setDefaultProjectAndWorkspace();
+      updateAvater()
       return
     }
   }, [User, projects, workspace]);
@@ -74,6 +75,13 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       initializeApp();
     }
   }, [accessToken, User, appState]);
+
+
+  const updateAvater = async () => {
+    if (User && !User.image && user.picture) {
+      await updateUserAvatar(accessToken, { avatarUrl: user.picture })
+    }
+  }
 
   const setDefaultProjectAndWorkspace = useCallback(() => {
     if (!User?.primaryProject || !User?.primaryWorkspace) return;

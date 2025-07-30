@@ -42,6 +42,15 @@ export const updateUserDetails = async (token: string, params: any) => {
 }
 
 
+export const updateUserAvatar = async (token: string, params: any) => {
+  const uri = `${putUrlApi.avatarUpdate}`;
+  const result = await fetchPutCall(uri, params, token);
+  return result;
+};
+
+
+
+
 export const getAllMyOrg = async (token: string) => {
   const uri = `${getUrlApi.getMyOrgs}`
   const result = await fetchGetCall(uri, token)

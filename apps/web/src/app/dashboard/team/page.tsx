@@ -36,7 +36,7 @@ function transformData(data) {
         status: member.user.isActive ? 'Active' : 'Inactive',
         invitedBy: null, // No invitedBy info for members
         type: 'member',
-        avatar: member.user.avatar,
+        avatar: member.user.image,
     }));
 
     const invitations = data.invitations.map((invite, index) => ({
@@ -392,7 +392,7 @@ const TeamsDashboard = () => {
                                         <div className="flex-shrink-0 h-10 w-10">
                                             {user.avatar ? <img
                                                 className="h-10 w-10 rounded-full"
-                                                src={`https://avatar.iran.liara.run/public/${user.uid}`}
+                                                src={user.avatar}
                                                 alt={user.name}
                                             /> : customImageGenerator(user.uid)}
                                         </div>
