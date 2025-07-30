@@ -383,3 +383,15 @@ export const removeInviteLink = async (token: string, projectGuiD: string, membe
   const result = await fetchPatchCall(uri, {}, token);
   return result;
 };
+
+export const updateSpciesFav = async (token: string, params: any, prjId: string, species) => {
+  const uri = `${putUrlApi.updateFavSpecies}/${prjId}/species/${species}/fav`;
+  const result = await fetchPutCall(uri, params, token);
+  return result;
+};
+
+export const updateDisbaleSpecies = async (token: string, params: any, prjId: string, species) => {
+  const uri = `${putUrlApi.updateFavSpecies}/${prjId}/species/${species}/disable`;
+  const result = await fetchPutCall(uri, params, token);
+  return result;
+};

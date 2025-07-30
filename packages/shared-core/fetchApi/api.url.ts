@@ -82,6 +82,8 @@ export const putUrlApi = {
   updatePrjSpecies: `${baseUrl}/project-species`,
   updateSiteData: `${baseUrl}/projects`,
   avatarUpdate: `${baseUrl}/users/avatar`,
+  updateFavSpecies:`${baseUrl}/project-species`,
+
 } as const;
 
 // Export the base URL for other modules that might need it
