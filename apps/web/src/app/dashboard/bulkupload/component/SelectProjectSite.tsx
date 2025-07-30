@@ -4,9 +4,9 @@ import React, { useState, useEffect } from 'react';
 import { ArrowLeft, ArrowRight, CheckCircle, RefreshCw, AlertCircle, MapPin, Calendar, Target } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getMyProjects, getProjectSpecies, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
+import useprojststore from '@shared-core/store/useProjectStore';
 
 const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
-  const [projects, setProjects] = useState([]);
   const [sites, setSites] = useState([]);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedSite, setSelectedSite] = useState(null);
@@ -14,21 +14,15 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
   const [loadingSites, setLoadingSites] = useState(false);
   const [projectsError, setProjectsError] = useState('');
   const [sitesError, setSitesError] = useState('');
-  console.log("Access Token:", accessToken);
-  // Mock API functions - replace with your actual API calls
+  const projects = useprojststore(state => state.projects);
   const fetchProjects = async () => {
     try {
-      setLoadingProjects(true);
-      setProjectsError('');
-      const response = await getMyProjects(accessToken || '');
-      if (response && response.statusCode === 200) {
-        setProjects(response.data)
-      } else {
-        throw ''
+      if (!projects || projects.length === 0) {
+        setProjectsError('Failed to load projects. Please try again.')
       }
+      setLoadingProjects(false);
     } catch (error) {
       console.error("Error fetching projects:", error);
-      setProjectsError('Failed to load projects. Please try again.');
     } finally {
       setLoadingProjects(false);
     }
@@ -91,6 +85,7 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
     return colors[status] || 'bg-gray-100 text-gray-800';
   };
 
+
   return (
     <div className="w-full h-full relative">
       <div>
@@ -108,7 +103,8 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
                   siteName: selectedSite ? selectedSite.name : 'No site selected',
                   projectId: selectedProject.uid,
                   siteId: selectedSite ? selectedSite.uid : null
-                }, 1)}
+                }, 1)
+              }
               }
               className="flex items-center px-6 py-3 bg-[#007A49] text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
             >

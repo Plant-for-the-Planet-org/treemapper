@@ -39,7 +39,7 @@ import {
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext';
 import { getSciencetificSpecies, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
-import ProjectMap from '@/component/MapSelect'
+import ProjectMap from './component/InterventionSelectMap'
 import GeoJSONFileUpload from '@/component/GeoJSONfileupload'
 import InterventionUploadModal from './component/InterventionUploadModal';
 

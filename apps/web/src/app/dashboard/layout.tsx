@@ -13,9 +13,7 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails } from '@shared-core/fetchApi/api.fetch';
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
-import NoProjectSelected from '@/component/NoProjectPlaceHolder';
-import ErrorLoadingProject from '@/component/ProjectErrorPlaceholder';
-import ProjectInviteModal from '@/component/ProjectInviteModal';
+
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -299,7 +297,6 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <TokenProvider accessToken={accessToken}>
-      <ProjectInviteModal/>
       <div className='parent'>
         <div className="app-container">
           <div className="app-content">

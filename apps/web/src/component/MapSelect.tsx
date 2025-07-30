@@ -7,7 +7,7 @@ import * as turf from '@turf/turf';
 interface Props {
   updateGeoJSON: (geoJSON: any) => void;
   uploadedGeoJSON: any;
-  mode: 'point' | 'polygon'; // New prop to control mode
+  mode: 'point' | 'polygon';
 }
 
 // Floating Control Panel Component

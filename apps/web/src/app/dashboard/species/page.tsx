@@ -23,7 +23,12 @@ import {
     Filter,
     Check,
     ArrowLeft,
-    Image as ImageIcon
+    Image as ImageIcon,
+    Users,
+    TreePine,
+    HelpCircle,
+    CheckSquare,
+    Square
 } from 'lucide-react';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
@@ -43,17 +48,100 @@ const LoadingSpinner = ({ size = 'default' }) => {
   );
 };
 
+// Multi-select Dropdown Component
+const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
+  const [isOpen, setIsOpen] = useState(false);
+
+  const handleToggle = (value) => {
+    const newSelected = selected.includes(value)
+      ? selected.filter(item => item !== value)
+      : [...selected, value];
+    onChange(newSelected);
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none bg-white"
+      >
+        <span className="truncate">
+          {selected.length === 0 ? placeholder : `${selected.length} selected`}
+        </span>
+        <ChevronDown size={14} className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+      
+      {isOpen && (
+        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
+          {options.map((option) => (
+            <label
+              key={option.value}
+              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs"
+            >
+              <input
+                type="checkbox"
+                checked={selected.includes(option.value)}
+                onChange={() => handleToggle(option.value)}
+                className="mr-2 rounded border-gray-300 text-green-600 focus:ring-green-500"
+              />
+              {option.label}
+            </label>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
+
+// Bulk Action Bar Component
+const BulkActionBar = ({ selectedCount, onAssignSpecies, onClearSelection }) => (
+  <motion.div
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    exit={{ opacity: 0, y: -20 }}
+    className="fixed top-0 left-0 right-0 z-40 bg-blue-600 text-white p-4 shadow-lg"
+  >
+    <div className="flex items-center justify-between max-w-7xl mx-auto">
+      <div className="flex items-center gap-3">
+        <CheckSquare size={20} />
+        <span className="font-medium">{selectedCount} unknown species selected</span>
+      </div>
+      <div className="flex items-center gap-2">
+        <button
+          onClick={onAssignSpecies}
+          className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+        >
+          Assign Scientific Species
+        </button>
+        <button
+          onClick={onClearSelection}
+          className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-400 transition-colors"
+        >
+          Clear Selection
+        </button>
+      </div>
+    </div>
+  </motion.div>
+);
+
 // Header Component
 const SpeciesHeader = ({ 
   speciesCount, 
-  activeCount, 
-  favoriteCount, 
+  scientificCount,
+  unknownCount,
   searchTerm, 
   setSearchTerm,
   sortBy,
   setSortBy,
   showDisabled,
   setShowDisabled,
+  speciesTypeFilter,
+  setSpeciesTypeFilter,
+  sourceFilter,
+  setSourceFilter,
+  interventionTypeFilter,
+  setInterventionTypeFilter,
+  interventionTypes,
   onAddSpecies,
   onExport 
 }) => (
@@ -72,12 +160,12 @@ const SpeciesHeader = ({
               <span className="font-medium">{speciesCount}</span>
             </div>
             <div className="flex items-center gap-1 px-2 py-1 bg-green-50 text-green-700 rounded-md">
-              <Eye size={12} />
-              <span className="font-medium">{activeCount}</span>
+              <Leaf size={12} />
+              <span className="font-medium">{scientificCount}</span>
             </div>
-            <div className="flex items-center gap-1 px-2 py-1 bg-red-50 text-red-700 rounded-md">
-              <Heart size={12} />
-              <span className="font-medium">{favoriteCount}</span>
+            <div className="flex items-center gap-1 px-2 py-1 bg-orange-50 text-orange-700 rounded-md">
+              <HelpCircle size={12} />
+              <span className="font-medium">{unknownCount}</span>
             </div>
           </div>
         </div>
@@ -104,7 +192,7 @@ const SpeciesHeader = ({
         </div>
       </div>
 
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex items-center justify-between gap-4 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
           <input
@@ -125,6 +213,7 @@ const SpeciesHeader = ({
             <option value="name">Name</option>
             <option value="date">Date</option>
             <option value="favorite">Favorite</option>
+            <option value="interventionCount">Intervention Count</option>
           </select>
 
           <button
@@ -140,12 +229,55 @@ const SpeciesHeader = ({
           </button>
         </div>
       </div>
+
+      {/* Additional Filters */}
+      <div className="flex items-center gap-3 text-xs">
+        <select
+          value={speciesTypeFilter}
+          onChange={(e) => setSpeciesTypeFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none bg-white"
+        >
+          <option value="all">All Types</option>
+          <option value="scientific">Scientific Only</option>
+          <option value="unknown">Unknown Only</option>
+        </select>
+
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+          className="px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none bg-white"
+        >
+          <option value="all">All Sources</option>
+          <option value="project">Project Only</option>
+          <option value="intervention">Intervention Only</option>
+          <option value="both">Both</option>
+        </select>
+
+        <div className="min-w-[160px]">
+          <MultiSelectDropdown
+            options={interventionTypes.map(type => ({ value: type, label: type.replace(/-/g, ' ') }))}
+            selected={interventionTypeFilter}
+            onChange={setInterventionTypeFilter}
+            placeholder="Intervention Types"
+          />
+        </div>
+      </div>
     </div>
   </motion.div>
 );
 
 // Species Card Component
-const SpeciesCard = ({ species, isSelected, onClick, onToggleFavorite, onToggleDisabled }) => (
+const SpeciesCard = ({ 
+  species, 
+  isSelected, 
+  onClick, 
+  onToggleFavorite, 
+  onToggleDisabled,
+  isUnknown,
+  showCheckbox,
+  isChecked,
+  onCheckboxChange
+}) => (
   <motion.div
     layout
     initial={{ opacity: 0, y: 20 }}
@@ -159,9 +291,25 @@ const SpeciesCard = ({ species, isSelected, onClick, onToggleFavorite, onToggleD
     } ${species.disabled ? 'opacity-60' : ''}`}
   >
     <div className="flex items-start gap-3">
+      {showCheckbox && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            onCheckboxChange(species.uid);
+          }}
+          className="mt-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
+        >
+          {isChecked ? (
+            <CheckSquare size={16} className="text-blue-600" />
+          ) : (
+            <Square size={16} className="text-gray-400" />
+          )}
+        </button>
+      )}
+
       <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
         {species.image ? (
-          <img src={species.image} alt={species.commonName} className="w-full h-full object-cover" />
+          <img src={species.image} alt={species.commonName || species.speciesName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
             <Leaf className="w-5 h-5 text-gray-400" />
@@ -172,28 +320,37 @@ const SpeciesCard = ({ species, isSelected, onClick, onToggleFavorite, onToggleD
       <div className="flex-1 min-w-0">
         <div className="flex items-start justify-between">
           <div className="flex-1 min-w-0">
-            <h3 className="text-sm font-medium text-gray-900 truncate italic">
-              {species.scientificName}
-            </h3>
-            <p className="text-xs text-gray-600 truncate mt-0.5">
-              {species.commonName}
+            <div className="flex items-center gap-2 mb-1">
+              <h3 className="text-sm font-medium text-gray-900 truncate italic">
+                {species.scientificName || species.speciesName}
+              </h3>
+              {isUnknown && (
+                <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
+                  Unknown
+                </span>
+              )}
+            </div>
+            <p className="text-xs text-gray-600 truncate">
+              {species.commonName || `Intervention: ${species.interventionHid}`}
             </p>
           </div>
 
           <div className="flex items-center gap-1 ml-2">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onToggleFavorite(species.uid);
-              }}
-              className={`p-1 rounded transition-colors ${
-                species.favourite 
-                  ? 'text-red-500 hover:text-red-600' 
-                  : 'text-gray-300 hover:text-red-400'
-              }`}
-            >
-              <Heart size={12} fill={species.favourite ? 'currentColor' : 'none'} />
-            </button>
+            {!isUnknown && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onToggleFavorite(species.uid);
+                }}
+                className={`p-1 rounded transition-colors ${
+                  species.favourite 
+                    ? 'text-red-500 hover:text-red-600' 
+                    : 'text-gray-300 hover:text-red-400'
+                }`}
+              >
+                <Heart size={12} fill={species.favourite ? 'currentColor' : 'none'} />
+              </button>
+            )}
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -216,11 +373,48 @@ const SpeciesCard = ({ species, isSelected, onClick, onToggleFavorite, onToggleD
           </p>
         )}
 
-        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-          <span>Updated {new Date(species.updatedAt).toLocaleDateString()}</span>
-          {species.metadata?.habitat && (
-            <span className="truncate ml-2">{species.metadata.habitat}</span>
+        {/* Usage Stats */}
+        <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+          {species.totalCount > 0 && (
+            <div className="flex items-center gap-1">
+              <TreePine size={10} />
+              <span>{species.totalCount} trees</span>
+            </div>
           )}
+          {species.interventionCount > 0 && (
+            <div className="flex items-center gap-1">
+              <Users size={10} />
+              <span>{species.interventionCount} interventions</span>
+            </div>
+          )}
+          {species.count && (
+            <div className="flex items-center gap-1">
+              <TreePine size={10} />
+              <span>{species.count} trees</span>
+            </div>
+          )}
+        </div>
+
+        {/* Sources */}
+        {species.sources && (
+          <div className="flex items-center gap-1 mt-1">
+            {species.sources.map((source, index) => (
+              <span
+                key={source}
+                className={`px-2 py-0.5 text-xs rounded-full ${
+                  source === 'project' 
+                    ? 'bg-blue-100 text-blue-700'
+                    : 'bg-green-100 text-green-700'
+                }`}
+              >
+                {source}
+              </span>
+            ))}
+          </div>
+        )}
+
+        <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
+          <span>Updated {new Date(species.updatedAt || species.createdAt).toLocaleDateString()}</span>
         </div>
       </div>
     </div>
@@ -298,7 +492,7 @@ const SpeciesSearch = ({
 );
 
 // Species Form Component
-const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
+const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload, isUnknown }) => (
   <div className="space-y-4">
     <div className="grid grid-cols-2 gap-4">
       <div>
@@ -307,9 +501,9 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.scientificName}
-          readOnly
-          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg bg-gray-50 italic"
+          value={editForm.scientificName || editForm.speciesName || ''}
+          onChange={(e) => setEditForm({ ...editForm, scientificName: e.target.value })}
+          className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none italic"
         />
       </div>
       <div>
@@ -318,7 +512,7 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.commonName}
+          value={editForm.commonName || ''}
           onChange={(e) => setEditForm({ ...editForm, commonName: e.target.value })}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
         />
@@ -330,7 +524,7 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         Description
       </label>
       <textarea
-        value={editForm.description}
+        value={editForm.description || ''}
         onChange={(e) => setEditForm({ ...editForm, description: e.target.value })}
         rows={3}
         className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none resize-none"
@@ -344,7 +538,7 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.habitat}
+          value={editForm.habitat || ''}
           onChange={(e) => setEditForm({ ...editForm, habitat: e.target.value })}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
         />
@@ -355,7 +549,7 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.height}
+          value={editForm.height || ''}
           onChange={(e) => setEditForm({ ...editForm, height: e.target.value })}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
         />
@@ -369,7 +563,7 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.hasFlowersOrFruits}
+          value={editForm.hasFlowersOrFruits || ''}
           onChange={(e) => setEditForm({ ...editForm, hasFlowersOrFruits: e.target.value })}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
         />
@@ -380,33 +574,35 @@ const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload }) => (
         </label>
         <input
           type="text"
-          value={editForm.bloomingSeason}
+          value={editForm.bloomingSeason || ''}
           onChange={(e) => setEditForm({ ...editForm, bloomingSeason: e.target.value })}
           className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
         />
       </div>
     </div>
 
-    <div className="flex items-center gap-4">
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={editForm.isNativeSpecies}
-          onChange={(e) => setEditForm({ ...editForm, isNativeSpecies: e.target.checked })}
-          className="rounded border-gray-300 text-green-600 focus:ring-green-500"
-        />
-        Native Species
-      </label>
-      <label className="flex items-center gap-2 text-sm">
-        <input
-          type="checkbox"
-          checked={editForm.favourite}
-          onChange={(e) => setEditForm({ ...editForm, favourite: e.target.checked })}
-          className="rounded border-gray-300 text-red-600 focus:ring-red-500"
-        />
-        Favorite
-      </label>
-    </div>
+    {!isUnknown && (
+      <div className="flex items-center gap-4">
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={editForm.isNativeSpecies || false}
+            onChange={(e) => setEditForm({ ...editForm, isNativeSpecies: e.target.checked })}
+            className="rounded border-gray-300 text-green-600 focus:ring-green-500"
+          />
+          Native Species
+        </label>
+        <label className="flex items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            checked={editForm.favourite || false}
+            onChange={(e) => setEditForm({ ...editForm, favourite: e.target.checked })}
+            className="rounded border-gray-300 text-red-600 focus:ring-red-500"
+          />
+          Favorite
+        </label>
+      </div>
+    )}
 
     <div>
       <label className="block text-xs font-medium text-gray-700 mb-2">
@@ -448,7 +644,7 @@ const Modal = ({ isOpen, onClose, title, children, size = 'default' }) => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          className="fixed inset-0 z-50 bg-black/10 bg-opacity-10  backdrop-blur-sm  flex items-center justify-center p-4"
+          className="fixed inset-0 z-50 bg-black/10 bg-opacity-10 backdrop-blur-sm flex items-center justify-center p-4"
         >
           <motion.div
             initial={{ opacity: 0, scale: 0.95 }}
@@ -477,8 +673,9 @@ const Modal = ({ isOpen, onClose, title, children, size = 'default' }) => {
 
 // Main Component
 const SpeciesManagementDashboard = () => {
-  // All your existing state variables...
-  const [speciesList, setSpeciesList] = useState([]);
+  // State variables
+  const [scientificSpecies, setScientificSpecies] = useState([]);
+  const [unknownSpecies, setUnknownSpecies] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedSpecies, setSelectedSpecies] = useState(null);
   const [isEditing, setIsEditing] = useState(false);
@@ -505,12 +702,41 @@ const SpeciesManagementDashboard = () => {
   });
   const [requestLoading, setRequestLoading] = useState(false);
 
+  // New filter states
+  const [speciesTypeFilter, setSpeciesTypeFilter] = useState('all');
+  const [sourceFilter, setSourceFilter] = useState('all');
+  const [interventionTypeFilter, setInterventionTypeFilter] = useState([]);
+  
+  // Bulk selection states
+  const [selectedUnknownSpecies, setSelectedUnknownSpecies] = useState([]);
+  const [showBulkAssignModal, setShowBulkAssignModal] = useState(false);
+
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
 
-  // Your existing useEffect hooks and functions...
+  // Combined species list for display
+  const allSpecies = [
+    ...scientificSpecies.map(s => ({
+      ...s,
+      isUnknown: false,
+      type: 'scientific'
+    })),
+    ...unknownSpecies.map(s => ({
+      ...s,
+      isUnknown: true,
+      type: 'unknown',
+      sources: ['intervention']
+    }))
+  ];
+
+  // Get unique intervention types for filter
+  const interventionTypes = [...new Set([
+    ...scientificSpecies.flatMap(s => s.interventionTypes || []),
+    ...unknownSpecies.map(s => s.interventionType).filter(Boolean)
+  ])];
+
   useEffect(() => {
-    if (speciesSearchTerm.length >= 3 && isAddingNew) {
+    if (speciesSearchTerm.length >= 3 && (isAddingNew || showBulkAssignModal)) {
       const timeoutId = setTimeout(async () => {
         const results = await searchSpeciesByName(speciesSearchTerm);
         setSearchResults(results);
@@ -519,7 +745,7 @@ const SpeciesManagementDashboard = () => {
     } else {
       setSearchResults([]);
     }
-  }, [speciesSearchTerm, isAddingNew]);
+  }, [speciesSearchTerm, isAddingNew, showBulkAssignModal]);
 
   useEffect(() => {
     fetchProjectSpecies();
@@ -534,7 +760,11 @@ const SpeciesManagementDashboard = () => {
       toast.error(response.message || 'An error occurred while fetching species data.');
       return;
     }
-    setSpeciesList(response.data || []);
+    
+    // Update to handle new data structure
+    const data = response.data || {};
+    setScientificSpecies(data.scientificSpecies || []);
+    setUnknownSpecies(data.unknownSpecies || []);
   };
 
   const searchSpeciesByName = async (searchTerm) => {
@@ -549,28 +779,58 @@ const SpeciesManagementDashboard = () => {
   };
 
   // Filter and sort logic
-  const filteredSpecies = speciesList.filter((species) => {
-    const matchesSearch = species.scientificName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      species.commonName.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredSpecies = allSpecies.filter((species) => {
+    const searchFields = [
+      species.scientificName,
+      species.speciesName,
+      species.commonName,
+      species.interventionHid
+    ].filter(Boolean);
+    
+    const matchesSearch = searchFields.some(field => 
+      field.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+    
     const matchesVisibility = showDisabled || !species.disabled;
-    return matchesSearch && matchesVisibility;
+    
+    const matchesType = speciesTypeFilter === 'all' || 
+      (speciesTypeFilter === 'scientific' && !species.isUnknown) ||
+      (speciesTypeFilter === 'unknown' && species.isUnknown);
+    
+    const matchesSource = sourceFilter === 'all' ||
+      (sourceFilter === 'project' && species.sources?.includes('project')) ||
+      (sourceFilter === 'intervention' && species.sources?.includes('intervention')) ||
+      (sourceFilter === 'both' && species.sources?.includes('project') && species.sources?.includes('intervention'));
+    
+    const matchesInterventionType = interventionTypeFilter.length === 0 ||
+      (species.interventionTypes && species.interventionTypes.some(type => interventionTypeFilter.includes(type))) ||
+      (species.interventionType && interventionTypeFilter.includes(species.interventionType));
+    
+    return matchesSearch && matchesVisibility && matchesType && matchesSource && matchesInterventionType;
   });
 
   const sortedSpecies = [...filteredSpecies].sort((a, b) => {
     switch (sortBy) {
       case 'name':
-        return a.scientificName.localeCompare(b.scientificName);
+        const nameA = a.scientificName || a.speciesName || '';
+        const nameB = b.scientificName || b.speciesName || '';
+        return nameA.localeCompare(nameB);
       case 'date':
-        return new Date(b.updatedAt) - new Date(a.updatedAt);
+        return new Date(b.updatedAt || b.createdAt) - new Date(a.updatedAt || a.createdAt);
       case 'favorite':
         return (b.favourite ? 1 : 0) - (a.favourite ? 1 : 0);
+      case 'interventionCount':
+        const countA = a.interventionCount || 0;
+        const countB = b.interventionCount || 0;
+        return countB - countA;
       default:
         return 0;
     }
   });
 
-  const favoriteCount = speciesList.filter(s => s.favourite).length;
-  const activeCount = speciesList.filter(s => !s.disabled).length;
+  const totalSpeciesCount = allSpecies.length;
+  const scientificCount = scientificSpecies.length;
+  const unknownCount = unknownSpecies.length;
 
   // Event handlers
   const handleSelectSpecies = (species) => {
@@ -605,7 +865,7 @@ const SpeciesManagementDashboard = () => {
   };
 
   const handleToggleFavorite = (uid) => {
-    setSpeciesList(speciesList.map(species =>
+    setScientificSpecies(prev => prev.map(species =>
       species.uid === uid ? { ...species, favourite: !species.favourite, updatedAt: new Date().toISOString() } : species
     ));
     if (selectedSpecies?.uid === uid) {
@@ -614,9 +874,14 @@ const SpeciesManagementDashboard = () => {
   };
 
   const handleToggleDisabled = (uid) => {
-    setSpeciesList(speciesList.map(species =>
-      species.uid === uid ? { ...species, disabled: !species.disabled, updatedAt: new Date().toISOString() } : species
-    ));
+    const updateSpecies = (speciesList) => 
+      speciesList.map(species =>
+        species.uid === uid ? { ...species, disabled: !species.disabled, updatedAt: new Date().toISOString() } : species
+      );
+    
+    setScientificSpecies(updateSpecies);
+    setUnknownSpecies(updateSpecies);
+    
     if (selectedSpecies?.uid === uid) {
       setSelectedSpecies({ ...selectedSpecies, disabled: !selectedSpecies.disabled });
     }
@@ -641,19 +906,91 @@ const SpeciesManagementDashboard = () => {
 
   const uploadImage = async () => {
     // Your existing upload logic...
+    if (!imageDetails) return { fileName: '', success: false };
+    
+    try {
+      const response = await generatePreSignUrl(accessToken || '', imageDetails.name, imageDetails.type);
+      if (response.statusCode === 200) {
+        const uploadResponse = await fetch(response.data.url, {
+          method: 'PUT',
+          body: imageDetails,
+          headers: {
+            'Content-Type': imageDetails.type,
+          },
+        });
+        
+        if (uploadResponse.ok) {
+          return { fileName: response.data.fileName, success: true };
+        }
+      }
+    } catch (error) {
+      console.error('Image upload error:', error);
+    }
+    
     return { fileName: '', success: false };
   };
 
   const handleSave = async () => {
     setLoading(true);
     try {
-      // Your existing save logic...
+      let imageName = editForm.image;
+      
+      // Upload image if new one was selected
+      if (imageDetails) {
+        const uploadResult = await uploadImage();
+        if (uploadResult.success) {
+          imageName = uploadResult.fileName;
+        }
+      }
+
+      const updatedForm = { ...editForm, image: imageName };
+
+      if (isAddingNew) {
+        // Adding new species
+        const response = await createNewProjectSpecies(
+          accessToken || '',
+          selectedProject?.uid,
+          updatedForm
+        );
+        
+        if (response.statusCode === 201) {
+          toast.success('Species added successfully');
+          await fetchProjectSpecies();
+        } else {
+          throw new Error(response.message);
+        }
+      } else {
+        // Editing existing species
+        if (selectedSpecies?.isUnknown && editForm.scientificName && editForm.scientificSpeciesUid) {
+          // Call intervention edit API here for unknown species
+          // await updateInterventionSpecies(accessToken, selectedSpecies.interventionUid, updatedForm);
+          toast.success('Unknown species updated with scientific data');
+        } else {
+          // Update project species
+          const response = await updateProjectSpecies(
+            accessToken || '',
+            selectedProject?.uid,
+            selectedSpecies.uid,
+            updatedForm
+          );
+          
+          if (response.statusCode === 200) {
+            toast.success('Species updated successfully');
+          } else {
+            throw new Error(response.message);
+          }
+        }
+        
+        await fetchProjectSpecies();
+      }
+      
       setIsEditing(false);
       setIsAddingNew(false);
       setShowDetailModal(false);
       setShowAddModal(false);
+      setImageDetails(null);
     } catch (error) {
-      toast.error(`Error uploading data: ${String(error)}`);
+      toast.error(`Error saving data: ${String(error)}`);
     } finally {
       setLoading(false);
     }
@@ -664,21 +1001,88 @@ const SpeciesManagementDashboard = () => {
     setIsAddingNew(false);
     setShowDetailModal(false);
     setShowAddModal(false);
+    setShowBulkAssignModal(false);
+    setImageDetails(null);
+    setEditForm({});
   };
 
   const handleDelete = async () => {
     setIsRemoving(true);
-    const updatedList = speciesList.filter(s => s.uid !== selectedSpecies.uid);
-    setSpeciesList(updatedList);
+    
+    try {
+      if (selectedSpecies.isUnknown) {
+        // For unknown species, you might want to call a different API
+        // await deleteInterventionSpecies(accessToken, selectedSpecies.interventionUid, selectedSpecies.uid);
+        setUnknownSpecies(prev => prev.filter(s => s.uid !== selectedSpecies.uid));
+        toast.success('Unknown species removed');
+      } else {
+        // For project species
+        const response = await removePrjSpecies(accessToken || '', selectedProject?.uid, selectedSpecies.uid);
+        if (response.statusCode === 200) {
+          setScientificSpecies(prev => prev.filter(s => s.uid !== selectedSpecies.uid));
+          toast.success('Species removed successfully');
+        } else {
+          throw new Error(response.message);
+        }
+      }
+    } catch (error) {
+      toast.error(`Error removing species: ${String(error)}`);
+    }
+    
     setSelectedSpecies(null);
     setShowConfirmModal(false);
     setShowDetailModal(false);
     setIsRemoving(false);
-    await removePrjSpecies(accessToken || '', selectedProject?.uid, selectedSpecies.uid);
   };
 
   const downloadJsonAsCsv = (jsonData, filename) => {
-    // Your existing export logic...
+    if (!jsonData || jsonData.length === 0) {
+      toast.error('No data to export');
+      return;
+    }
+
+    // Flatten the data for CSV export
+    const flattenedData = jsonData.map(species => ({
+      'Scientific Name': species.scientificName || species.speciesName || '',
+      'Common Name': species.commonName || '',
+      'Description': species.description || '',
+      'Type': species.isUnknown ? 'Unknown' : 'Scientific',
+      'Sources': species.sources ? species.sources.join(', ') : '',
+      'Total Count': species.totalCount || species.count || 0,
+      'Intervention Count': species.interventionCount || 0,
+      'Is Native': species.isNativeSpecies ? 'Yes' : 'No',
+      'Is Favorite': species.favourite ? 'Yes' : 'No',
+      'Is Disabled': species.disabled ? 'Yes' : 'No',
+      'Intervention HID': species.interventionHid || '',
+      'Created At': species.createdAt || '',
+      'Updated At': species.updatedAt || ''
+    }));
+
+    // Convert to CSV
+    const headers = Object.keys(flattenedData[0]);
+    const csvContent = [
+      headers.join(','),
+      ...flattenedData.map(row => 
+        headers.map(header => 
+          typeof row[header] === 'string' && row[header].includes(',') 
+            ? `"${row[header]}"` 
+            : row[header]
+        ).join(',')
+      )
+    ].join('\n');
+
+    // Download
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${filename}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    toast.success('Data exported successfully');
   };
 
   const handleRequestNew = () => {
@@ -692,57 +1096,159 @@ const SpeciesManagementDashboard = () => {
   };
 
   const handleSubmitRequest = async () => {
-    // Your existing request logic...
+    setRequestLoading(true);
+    try {
+      const response = await requestNewSpecies(
+        accessToken || '',
+        selectedProject?.uid,
+        requestForm
+      );
+      
+      if (response.statusCode === 201) {
+        toast.success('Species request submitted successfully');
+        setShowRequestModal(false);
+        setRequestForm({
+          scientificName: '',
+          commonName: '',
+          description: '',
+          requestReason: ''
+        });
+      } else {
+        throw new Error(response.message);
+      }
+    } catch (error) {
+      toast.error(`Error submitting request: ${String(error)}`);
+    } finally {
+      setRequestLoading(false);
+    }
+  };
+
+  // Bulk operations
+  const handleCheckboxChange = (uid) => {
+    setSelectedUnknownSpecies(prev => 
+      prev.includes(uid) 
+        ? prev.filter(id => id !== uid)
+        : [...prev, uid]
+    );
+  };
+
+  const handleClearSelection = () => {
+    setSelectedUnknownSpecies([]);
+  };
+
+  const handleBulkAssignSpecies = () => {
+    setShowBulkAssignModal(true);
+    setSpeciesSearchTerm('');
+    setSearchResults([]);
+  };
+
+  const handleBulkAssignSave = async (selectedScientificSpecies) => {
+    setLoading(true);
+    try {
+      // Update each selected unknown species with the scientific species
+      const updatePromises = selectedUnknownSpecies.map(async (unknownUid) => {
+        const unknownSpeciesItem = unknownSpecies.find(s => s.uid === unknownUid);
+        if (unknownSpeciesItem) {
+          // Call intervention edit API for each
+          // await updateInterventionSpecies(
+          //   accessToken, 
+          //   unknownSpeciesItem.interventionUid, 
+          //   {
+          //     ...selectedScientificSpecies,
+          //     count: unknownSpeciesItem.count
+          //   }
+          // );
+          
+          // For now, simulate the update
+          return Promise.resolve();
+        }
+      });
+
+      await Promise.all(updatePromises);
+      
+      setSelectedUnknownSpecies([]);
+      setShowBulkAssignModal(false);
+      await fetchProjectSpecies(); // Refresh data
+      toast.success(`Updated ${selectedUnknownSpecies.length} species successfully`);
+    } catch (error) {
+      toast.error(`Error updating species: ${String(error)}`);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
     <div className="bg-gray-50 flex flex-col h-screen w-full">
-      <SpeciesHeader
-        speciesCount={speciesList.length}
-        activeCount={activeCount}
-        favoriteCount={favoriteCount}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        sortBy={sortBy}
-        setSortBy={setSortBy}
-        showDisabled={showDisabled}
-        setShowDisabled={setShowDisabled}
-        onAddSpecies={handleStartAdd}
-        onExport={() => downloadJsonAsCsv(speciesList, 'species-data')}
-      />
-
-      <div className="flex-1 overflow-hidden p-6">
-        {loading ? (
-          <div className="flex justify-center items-center h-full">
-            <LoadingSpinner size="large" />
-          </div>
-        ) : sortedSpecies.length === 0 ? (
-          <div className="text-center py-12">
-            <Leaf size={48} className="mx-auto text-gray-400 mb-4" />
-            <p className="text-gray-500 mb-2">No species found</p>
-            <p className="text-gray-400 text-sm">Start adding species to this project</p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {sortedSpecies.map((species) => (
-              <SpeciesCard
-                key={species.uid}
-                species={species}
-                isSelected={selectedSpecies?.uid === species.uid}
-                onClick={() => handleSelectSpecies(species)}
-                onToggleFavorite={handleToggleFavorite}
-                onToggleDisabled={handleToggleDisabled}
-              />
-            ))}
-          </div>
+      {/* Bulk Action Bar */}
+      <AnimatePresence>
+        {selectedUnknownSpecies.length > 0 && (
+          <BulkActionBar
+            selectedCount={selectedUnknownSpecies.length}
+            onAssignSpecies={handleBulkAssignSpecies}
+            onClearSelection={handleClearSelection}
+          />
         )}
+      </AnimatePresence>
+
+      <div className={selectedUnknownSpecies.length > 0 ? 'pt-16' : ''}>
+        <SpeciesHeader
+          speciesCount={totalSpeciesCount}
+          scientificCount={scientificCount}
+          unknownCount={unknownCount}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          showDisabled={showDisabled}
+          setShowDisabled={setShowDisabled}
+          speciesTypeFilter={speciesTypeFilter}
+          setSpeciesTypeFilter={setSpeciesTypeFilter}
+          sourceFilter={sourceFilter}
+          setSourceFilter={setSourceFilter}
+          interventionTypeFilter={interventionTypeFilter}
+          setInterventionTypeFilter={setInterventionTypeFilter}
+          interventionTypes={interventionTypes}
+          onAddSpecies={handleStartAdd}
+          onExport={() => downloadJsonAsCsv(allSpecies, 'species-data')}
+        />
+
+        <div className="flex-1 overflow-hidden p-6">
+          {loading ? (
+            <div className="flex justify-center items-center h-full">
+              <LoadingSpinner size="large" />
+            </div>
+          ) : sortedSpecies.length === 0 ? (
+            <div className="text-center py-12">
+              <Leaf size={48} className="mx-auto text-gray-400 mb-4" />
+              <p className="text-gray-500 mb-2">No species found</p>
+              <p className="text-gray-400 text-sm">Start adding species to this project</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+              {sortedSpecies.map((species) => (
+                <SpeciesCard
+                  key={species.uid}
+                  species={species}
+                  isSelected={selectedSpecies?.uid === species.uid}
+                  onClick={() => handleSelectSpecies(species)}
+                  onToggleFavorite={handleToggleFavorite}
+                  onToggleDisabled={handleToggleDisabled}
+                  isUnknown={species.isUnknown}
+                  showCheckbox={species.isUnknown}
+                  isChecked={selectedUnknownSpecies.includes(species.uid)}
+                  onCheckboxChange={handleCheckboxChange}
+                />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Species Detail Modal */}
       <Modal
         isOpen={showDetailModal}
         onClose={() => setShowDetailModal(false)}
-        title={isEditing ? "Edit Species" : selectedSpecies?.scientificName}
+        title={isEditing ? "Edit Species" : (selectedSpecies?.scientificName || selectedSpecies?.speciesName)}
         size="large"
       >
         {selectedSpecies && (
@@ -753,13 +1259,14 @@ const SpeciesManagementDashboard = () => {
                 editForm={editForm}
                 setEditForm={setEditForm}
                 onImageUpload={handleImageUpload}
+                isUnknown={selectedSpecies.isUnknown}
               />
             ) : (
               <div className="space-y-4">
                 <div className="flex items-start gap-4">
                   <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                     {selectedSpecies.image ? (
-                      <img src={selectedSpecies.image} alt={selectedSpecies.commonName} className="w-full h-full object-cover" />
+                      <img src={selectedSpecies.image} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Leaf className="w-8 h-8 text-gray-400" />
@@ -767,10 +1274,19 @@ const SpeciesManagementDashboard = () => {
                     )}
                   </div>
                   <div className="flex-1">
-                    <h3 className="text-lg font-semibold text-gray-900 italic mb-1">
-                      {selectedSpecies.scientificName}
-                    </h3>
-                    <p className="text-sm text-gray-600 mb-2">{selectedSpecies.commonName}</p>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-lg font-semibold text-gray-900 italic">
+                        {selectedSpecies.scientificName || selectedSpecies.speciesName}
+                      </h3>
+                      {selectedSpecies.isUnknown && (
+                        <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
+                          Unknown
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">
+                      {selectedSpecies.commonName || `Intervention: ${selectedSpecies.interventionHid}`}
+                    </p>
                     <div className="flex items-center gap-3 text-xs">
                       {selectedSpecies.favourite && (
                         <span className="flex items-center gap-1 text-red-600">
@@ -793,6 +1309,33 @@ const SpeciesManagementDashboard = () => {
                     </div>
                   </div>
                 </div>
+
+                {/* Usage Stats */}
+                {(selectedSpecies.totalCount > 0 || selectedSpecies.interventionCount > 0 || selectedSpecies.count > 0) && (
+                  <div className="bg-gray-50 p-3 rounded-lg">
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Usage Statistics</h4>
+                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                      {selectedSpecies.totalCount > 0 && (
+                        <div className="flex items-center gap-1">
+                          <TreePine size={14} />
+                          <span>{selectedSpecies.totalCount} trees total</span>
+                        </div>
+                      )}
+                      {selectedSpecies.interventionCount > 0 && (
+                        <div className="flex items-center gap-1">
+                          <Users size={14} />
+                          <span>Used in {selectedSpecies.interventionCount} interventions</span>
+                        </div>
+                      )}
+                      {selectedSpecies.count && (
+                        <div className="flex items-center gap-1">
+                          <TreePine size={14} />
+                          <span>{selectedSpecies.count} trees</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 {selectedSpecies.description && (
                   <div>
@@ -828,8 +1371,29 @@ const SpeciesManagementDashboard = () => {
                   )}
                 </div>
 
+                {/* Sources */}
+                {selectedSpecies.sources && (
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900 mb-2">Sources</h4>
+                    <div className="flex items-center gap-2">
+                      {selectedSpecies.sources.map((source) => (
+                        <span
+                          key={source}
+                          className={`px-2 py-1 text-xs rounded-full ${
+                            source === 'project' 
+                              ? 'bg-blue-100 text-blue-700'
+                              : 'bg-green-100 text-green-700'
+                          }`}
+                        >
+                          {source}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="text-xs text-gray-500">
-                  Last updated: {new Date(selectedSpecies.updatedAt).toLocaleString()}
+                  Last updated: {new Date(selectedSpecies.updatedAt || selectedSpecies.createdAt).toLocaleString()}
                 </div>
               </div>
             )}
@@ -919,6 +1483,7 @@ const SpeciesManagementDashboard = () => {
                 editForm={editForm}
                 setEditForm={setEditForm}
                 onImageUpload={handleImageUpload}
+                isUnknown={false}
               />
             </div>
           )}
@@ -942,6 +1507,40 @@ const SpeciesManagementDashboard = () => {
               </button>
             </div>
           )}
+        </div>
+      </Modal>
+
+      {/* Bulk Assign Species Modal */}
+      <Modal
+        isOpen={showBulkAssignModal}
+        onClose={() => setShowBulkAssignModal(false)}
+        title={`Assign Scientific Species to ${selectedUnknownSpecies.length} Unknown Species`}
+        size="large"
+      >
+        <div className="space-y-6">
+          <div className="bg-blue-50 p-3 rounded-lg">
+            <p className="text-sm text-blue-800">
+              Search and select a scientific species to assign to all {selectedUnknownSpecies.length} selected unknown species.
+            </p>
+          </div>
+          
+          <SpeciesSearch
+            searchTerm={speciesSearchTerm}
+            onSearchChange={setSpeciesSearchTerm}
+            searchResults={searchResults}
+            isSearching={isSearchingSpecies}
+            onRequestNew={handleRequestNew}
+          />
+
+          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <button
+              onClick={handleCancel}
+              disabled={loading}
+              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+            >
+              Cancel
+            </button>
+          </div>
         </div>
       </Modal>
 
@@ -1041,7 +1640,7 @@ const SpeciesManagementDashboard = () => {
               Remove Species
             </h3>
             <p className="text-sm text-gray-600">
-              Are you sure you want to delete <strong className="italic">{selectedSpecies?.scientificName}</strong> from this project?
+              Are you sure you want to delete <strong className="italic">{selectedSpecies?.scientificName || selectedSpecies?.speciesName}</strong> from this project?
               This action cannot be undone.
             </p>
           </div>

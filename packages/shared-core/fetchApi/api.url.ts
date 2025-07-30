@@ -44,7 +44,7 @@ export const getUrlApi = {
   health: `${baseUrl}/health`,
   me: `${baseUrl}/users/me`,
   checkMigration: `${baseUrl}/migration/check`,
-  projects: `${baseUrl}/projects`,
+  projects: `${baseUrl}/projects/workspace`,
   workspce: `${baseUrl}/projects`,
   inviteStatus: `${baseUrl}/projects/invites`,
   teamMembers: `${baseUrl}/projects`,
