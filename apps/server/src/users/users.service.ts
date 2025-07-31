@@ -274,6 +274,7 @@ export class UsersService {
 
     async generateR2Url(dto: CreatePresignedUrlDto): Promise<any> {
         try {
+            console.log("SC", process.env.IS_PRODUCTION)
             if (!dto.fileName || !dto.fileType) {
                 throw new BadRequestException('fileName and fileType are required');
             }
@@ -284,7 +285,7 @@ export class UsersService {
             const result = await this.r2Service.generatePresignedUrl({
                 fileName: dto.fileName,
                 fileType: dto.fileType,
-                folder: `${process.env.IS_PRODUCTION ? "producation" : "development"}/${dto.folder}`,
+                folder: `${process.env.IS_PRODUCTION ? "production" : "development"}/${dto.folder}`,
             });
             return {
                 success: true,
@@ -318,51 +319,58 @@ export class UsersService {
     }
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
-        const payload = this.prepareUpdateData(updateUserDto)
+        const payload = this.prepareUpdateData(updateUserDto);
+
         const result = await this.drizzleService.db
             .update(user)
-            .set({
-                ...payload,
-                updatedAt: new Date(),
-            })
+            .set(payload) // payload already includes updatedAt
             .where(eq(user.id, id))
-            .returning({
-                uid: user.uid,
-                email: user.email,
-                firstname: user.firstname,
-                lastname: user.lastname,
-                displayName: user.displayName,
-                image: user.image,
-                slug: user.slug,
-                type: user.type,
-                country: user.country,
-                isPrivate: user.isPrivate,
-                bio: user.bio,
-                locale: user.locale,
-                isActive: user.isActive,
-                lastLoginAt: user.lastLoginAt,
-                createdAt: user.createdAt,
-                updatedAt: user.updatedAt,
-                migratedAt: user.migratedAt,
-                existingPlanetUser: user.existingPlanetUser, flag: user.flag,
-                flagReason: user.flagReason,
-            });
+            .returning();
+
+        if (result.length === 0) {
+            throw new Error(`User with id ${id} not found`);
+        }
+
+        // Refresh cache with the updated user data
+        await this.userCacheService.refreshAuthUser(result[0]);
 
         return result[0];
     }
 
-    private async prepareUpdateData(updateProjectDto: any): Promise<any> {
+    private prepareUpdateData(updateUserDto: UpdateUserDto): Partial<typeof user.$inferInsert> {
+        // Create a clean copy of the DTO
         const updateData: any = {
-            ...updateProjectDto,
-            updatedAt: new Date(),
+            ...updateUserDto,
         };
+
+        // Remove undefined and null values (optional - depends on your requirements)
         Object.keys(updateData).forEach(key => {
-            if (updateData[key] === undefined) {
+            if (updateData[key] === undefined || updateData[key] === null) {
                 delete updateData[key];
             }
         });
-        console.log("updateData", updateData)
 
+        // Additional validation/transformation can go here
+        // For example, ensure email is lowercase
+        if (updateData.email) {
+            updateData.email = updateData.email.toLowerCase();
+        }
+        Object.keys(updateData).forEach(key => {
+            const value = updateData[key];
+
+            if (
+                value === undefined ||
+                value === null ||
+                (typeof value === 'object' &&
+                    value !== null &&
+                    !Array.isArray(value) &&
+                    Object.keys(value).length === 0)
+            ) {
+                delete updateData[key];
+            }
+        });
+
+        console.log("Prepared update data:", updateData);
         return updateData;
     }
 

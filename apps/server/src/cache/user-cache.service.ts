@@ -19,7 +19,7 @@ export class UserCacheService {
         await this.cacheService.set(this.getUseAuthrKey(auth0Id), user, CACHE_TTL.MEDIUM);
     }
 
-    async refreshAuthUser(user: User): Promise<void> {
+    async refreshAuthUser(user: any): Promise<void> {
         await this.cacheService.delete(this.getUseAuthrKey(user.auth0Id));
         await this.cacheService.set(this.getUseAuthrKey(user.auth0Id), user, CACHE_TTL.MEDIUM);
     }

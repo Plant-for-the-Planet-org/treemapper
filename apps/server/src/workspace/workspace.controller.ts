@@ -65,6 +65,15 @@ export class WorkspaceController {
         return this.workspaceService.cacheWorkspace(user);
     }
 
+
+    @Post('cache/clear')
+    async clearServerCache(@CurrentUser() user: User,) {
+        if (user.type !== 'superadmin') {
+            throw 'Not permitted'
+        }
+        return await this.workspaceService.clearServerCache(user);
+    }
+
     // @Get()
     // async findAllByUser(@Req() req: AuthenticatedRequest): Promise<UserOrganizationResponseDto[]> {
     //     return this.organizationsService.findAllByUser(req.user.id);

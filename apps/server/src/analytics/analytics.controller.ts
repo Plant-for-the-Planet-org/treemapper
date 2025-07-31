@@ -17,7 +17,7 @@ import {
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
-import { AnalyticsService, RecentAdditionsResponse, ProjectAnalyticsDto, ProjectKPIsResponse, PlantingOverviewDto, PlantingOverviewResponse, RecentAdditionsDto } from './analytics.service';
+import { AnalyticsService, RecentAdditionsResponse, ProjectAnalyticsDto, PlantingOverviewDto, PlantingOverviewResponse, RecentAdditionsDto, ProjectKPIsResponse } from './analytics.service';
 import { Membership } from 'src/projects/decorators/membership.decorator';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { InterventionExportDto, InterventionExportResponse } from './dto/analytics.dto';
@@ -52,9 +52,8 @@ export class AnalyticsController {
   @Get('project-kpis/:id')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
-  async getProjectKPIs(@Query() dto: ProjectAnalyticsDto, @Membership() membership: any,
-  ): Promise<ProjectKPIsResponse> {
-    return this.analyticsService.getProjectKPIs(dto, membership.projectId);
+  async getProjectKPIs(@Membership() membership: any): Promise<ProjectKPIsResponse> {
+    return this.analyticsService.getProjectKPIs(membership.projectId);
   }
 
 
@@ -66,18 +65,18 @@ export class AnalyticsController {
   }
 
   
-  // @Post('/:id/export')
-  // @ProjectRoles('owner', 'admin')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async exportInterventionData(
-  //   @Body(ValidationPipe) dto: InterventionExportDto,
-  //   @Req() req: Request,
-  //   @Membership() membership: any
-  // ): Promise<InterventionExportResponse> {
+  @Post('/:id/export')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async exportInterventionData(
+    @Body(ValidationPipe) dto: InterventionExportDto,
+    @Req() req: Request,
+    @Membership() membership: any
+  ): Promise<InterventionExportResponse> {
 
-  //   return this.analyticsService.exportInterventionData(
-  //     dto,
-  //     membership.projectId
-  //   );
-  // }
+    return this.analyticsService.exportInterventionData(
+      dto,
+      membership.projectId
+    );
+  }
 }

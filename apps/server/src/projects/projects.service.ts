@@ -1285,6 +1285,211 @@ async acceptLinkInvite(token: string, userId: number, email: string) {
   }
 
 
+   async findOne(projectId: number) {
+    try {
+      const projectQuery = await this.drizzleService.db
+        .select({
+          uid: project.uid,
+          slug: project.slug,
+          projectName: project.projectName,
+          projectType: project.projectType,
+          ecosystem: project.ecosystem,
+          projectScale: project.projectScale,
+          target: project.target,
+          projectWebsite: project.projectWebsite,
+          description: project.description,
+          classification: project.classification,
+          image: project.image,
+          videoUrl: project.videoUrl,
+          country: project.country,
+          originalGeometry: project.originalGeometry,
+          url: project.url,
+          isActive: project.isActive,
+          isPublic: project.isPublic,
+          isPersonal: project.isPersonal,
+          intensity: project.intensity,
+          revisionPeriodicityLevel: project.revisionPeriodicityLevel,
+          metadata: project.metadata,
+          createdById: project.createdById,
+          createdAt: project.createdAt,
+          updatedAt: project.updatedAt,
+          // Convert PostGIS location to GeoJSON
+          location: sql`ST_AsGeoJSON(${project.location})::json`.as('location')
+        })
+        .from(project)
+        .where(eq(project.id, projectId));
+
+      if (projectQuery.length === 0) {
+        return {
+          message: 'Project not found',
+          statusCode: 404,
+          error: "not_found",
+          data: null,
+          code: 'project_not_found',
+        };
+      }
+
+      return {
+        message: 'Project details fetched successfully',
+        statusCode: 200,
+        error: null,
+        data: projectQuery[0],
+        code: 'project_details_fetched',
+      };
+    } catch (error) {
+      console.error('Error fetching project details:', error);
+      return {
+        message: 'Failed to fetch project details',
+        statusCode: 500,
+        error: error.message || "internal_server_error",
+        data: null,
+        code: 'project_details_fetch_failed',
+      };
+    }
+  }
+
+  async updateProject(
+    projectId: number,
+    updateProjectDto: UpdateProjectDto,
+    userId: number
+  ): Promise<ServiceResponse> {
+    try {
+
+      // Prepare update data
+      const updateData = await this.prepareUpdateData(updateProjectDto);
+
+      // Perform the update
+      const [updatedProject] = await this.drizzleService.db
+        .update(project)
+        .set(updateData)
+        .where(eq(project.id, projectId))
+        .returning();
+
+      if (!updatedProject) {
+        return {
+          message: 'Failed to update project',
+          statusCode: 500,
+          error: 'internal_server_error',
+          data: null,
+          code: 'project_update_failed',
+        };
+      }
+
+      return {
+        message: 'Project updated successfully',
+        statusCode: 200,
+        error: null,
+        data: updatedProject,
+        code: 'project_updated',
+      };
+
+    } catch (error) {
+      console.error('Error updating project:', error);
+      return {
+        message: 'Failed to update project',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'project_update_failed',
+      };
+    }
+  }
+
+
+  /**
+   * Prepare update data by cleaning and transforming the DTO
+   * @param updateProjectDto - The update DTO
+   * @returns Promise<object>
+   */
+  private async prepareUpdateData(updateProjectDto: UpdateProjectDto): Promise<any> {
+    const updateData: any = {
+      ...updateProjectDto,
+      updatedAt: new Date(),
+    };
+
+    // Handle location/geometry data
+    if (updateProjectDto.location) {
+      try {
+        const geometry = this.getGeoJSONForPostGIS(updateProjectDto.location);
+        updateData.location = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+        updateData.originalGeometry = updateProjectDto.location
+      } catch (error) {
+        console.error('Invalid GeoJSON provided:', error);
+        delete updateData.location;
+      }
+    }
+
+    // Handle original geometry
+    if (updateProjectDto.originalGeometry) {
+      updateData.originalGeometry = updateProjectDto.originalGeometry;
+    }
+
+    // Handle metadata
+    if (updateProjectDto.metadata) {
+      updateData.metadata = updateProjectDto.metadata;
+    }
+
+    // Clean up undefined values
+    Object.keys(updateData).forEach(key => {
+      if (updateData[key] === undefined) {
+        delete updateData[key];
+      }
+    });
+
+    return updateData;
+  }
+
+
+
+
+  /**
+   * Validate project data before update
+   * @param projectId - The project ID
+   * @param updateProjectDto - The update data
+   * @returns Promise<ServiceResponse>
+   */
+  async validateUpdateData(
+    projectId: number,
+    updateProjectDto: UpdateProjectDto
+  ): Promise<ServiceResponse> {
+    try {
+      const validationErrors = [];
+
+      // Check for duplicate project names (if updating projectName)
+
+
+      // Add more validation rules as needed
+
+      if (validationErrors.length > 0) {
+        return {
+          message: 'Validation failed',
+          statusCode: 400,
+          error: 'validation_failed',
+          data: { validationErrors },
+          code: 'validation_failed',
+        };
+      }
+
+      return {
+        message: 'Validation passed',
+        statusCode: 200,
+        error: null,
+        data: null,
+        code: 'validation_passed',
+      };
+
+    } catch (error) {
+      console.error('Error validating update data:', error);
+      return {
+        message: 'Validation error',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'validation_error',
+      };
+    }
+  }
+
 
 
   
@@ -1530,211 +1735,7 @@ async acceptLinkInvite(token: string, userId: number, email: string) {
   //   }
   // }
 
-  // async findOne(projectId: number) {
-  //   try {
-  //     const projectQuery = await this.drizzleService.db
-  //       .select({
-  //         uid: projects.uid,
-  //         slug: projects.slug,
-  //         projectName: projects.projectName,
-  //         projectType: projects.projectType,
-  //         ecosystem: projects.ecosystem,
-  //         projectScale: projects.projectScale,
-  //         target: projects.target,
-  //         projectWebsite: projects.projectWebsite,
-  //         description: projects.description,
-  //         classification: projects.classification,
-  //         image: projects.image,
-  //         videoUrl: projects.videoUrl,
-  //         country: projects.country,
-  //         originalGeometry: projects.originalGeometry,
-  //         url: projects.url,
-  //         isActive: projects.isActive,
-  //         isPublic: projects.isPublic,
-  //         isPersonal: projects.isPersonal,
-  //         intensity: projects.intensity,
-  //         revisionPeriodicityLevel: projects.revisionPeriodicityLevel,
-  //         metadata: projects.metadata,
-  //         createdById: projects.createdById,
-  //         createdAt: projects.createdAt,
-  //         updatedAt: projects.updatedAt,
-  //         // Convert PostGIS location to GeoJSON
-  //         location: sql`ST_AsGeoJSON(${projects.location})::json`.as('location')
-  //       })
-  //       .from(projects)
-  //       .where(eq(projects.id, projectId));
-
-  //     if (projectQuery.length === 0) {
-  //       return {
-  //         message: 'Project not found',
-  //         statusCode: 404,
-  //         error: "not_found",
-  //         data: null,
-  //         code: 'project_not_found',
-  //       };
-  //     }
-
-  //     return {
-  //       message: 'Project details fetched successfully',
-  //       statusCode: 200,
-  //       error: null,
-  //       data: projectQuery[0],
-  //       code: 'project_details_fetched',
-  //     };
-  //   } catch (error) {
-  //     console.error('Error fetching project details:', error);
-  //     return {
-  //       message: 'Failed to fetch project details',
-  //       statusCode: 500,
-  //       error: error.message || "internal_server_error",
-  //       data: null,
-  //       code: 'project_details_fetch_failed',
-  //     };
-  //   }
-  // }
-
-  // async updateProject(
-  //   projectId: number,
-  //   updateProjectDto: UpdateProjectDto,
-  //   userId: number
-  // ): Promise<ServiceResponse> {
-  //   try {
-
-  //     // Prepare update data
-  //     const updateData = await this.prepareUpdateData(updateProjectDto);
-
-  //     // Perform the update
-  //     const [updatedProject] = await this.drizzleService.db
-  //       .update(projects)
-  //       .set(updateData)
-  //       .where(eq(projects.id, projectId))
-  //       .returning();
-
-  //     if (!updatedProject) {
-  //       return {
-  //         message: 'Failed to update project',
-  //         statusCode: 500,
-  //         error: 'internal_server_error',
-  //         data: null,
-  //         code: 'project_update_failed',
-  //       };
-  //     }
-
-  //     return {
-  //       message: 'Project updated successfully',
-  //       statusCode: 200,
-  //       error: null,
-  //       data: updatedProject,
-  //       code: 'project_updated',
-  //     };
-
-  //   } catch (error) {
-  //     console.error('Error updating project:', error);
-  //     return {
-  //       message: 'Failed to update project',
-  //       statusCode: 500,
-  //       error: error.message || 'internal_server_error',
-  //       data: null,
-  //       code: 'project_update_failed',
-  //     };
-  //   }
-  // }
-
-
-  // /**
-  //  * Prepare update data by cleaning and transforming the DTO
-  //  * @param updateProjectDto - The update DTO
-  //  * @returns Promise<object>
-  //  */
-  // private async prepareUpdateData(updateProjectDto: UpdateProjectDto): Promise<any> {
-  //   const updateData: any = {
-  //     ...updateProjectDto,
-  //     updatedAt: new Date(),
-  //   };
-
-  //   // Handle location/geometry data
-  //   if (updateProjectDto.location) {
-  //     try {
-  //       const geometry = this.getGeoJSONForPostGIS(updateProjectDto.location);
-  //       updateData.location = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
-  //       updateData.originalGeometry = updateProjectDto.location
-  //     } catch (error) {
-  //       console.error('Invalid GeoJSON provided:', error);
-  //       delete updateData.location;
-  //     }
-  //   }
-
-  //   // Handle original geometry
-  //   if (updateProjectDto.originalGeometry) {
-  //     updateData.originalGeometry = updateProjectDto.originalGeometry;
-  //   }
-
-  //   // Handle metadata
-  //   if (updateProjectDto.metadata) {
-  //     updateData.metadata = updateProjectDto.metadata;
-  //   }
-
-  //   // Clean up undefined values
-  //   Object.keys(updateData).forEach(key => {
-  //     if (updateData[key] === undefined) {
-  //       delete updateData[key];
-  //     }
-  //   });
-
-  //   return updateData;
-  // }
-
-
-
-
-  // /**
-  //  * Validate project data before update
-  //  * @param projectId - The project ID
-  //  * @param updateProjectDto - The update data
-  //  * @returns Promise<ServiceResponse>
-  //  */
-  // async validateUpdateData(
-  //   projectId: number,
-  //   updateProjectDto: UpdateProjectDto
-  // ): Promise<ServiceResponse> {
-  //   try {
-  //     const validationErrors = [];
-
-  //     // Check for duplicate project names (if updating projectName)
-
-
-  //     // Add more validation rules as needed
-
-  //     if (validationErrors.length > 0) {
-  //       return {
-  //         message: 'Validation failed',
-  //         statusCode: 400,
-  //         error: 'validation_failed',
-  //         data: { validationErrors },
-  //         code: 'validation_failed',
-  //       };
-  //     }
-
-  //     return {
-  //       message: 'Validation passed',
-  //       statusCode: 200,
-  //       error: null,
-  //       data: null,
-  //       code: 'validation_passed',
-  //     };
-
-  //   } catch (error) {
-  //     console.error('Error validating update data:', error);
-  //     return {
-  //       message: 'Validation error',
-  //       statusCode: 500,
-  //       error: error.message || 'internal_server_error',
-  //       data: null,
-  //       code: 'validation_error',
-  //     };
-  //   }
-  // }
-
+ 
 
   // async remove(projectId: number, userId: number) {
   //   try {

@@ -60,6 +60,9 @@ export class ProjectSpeciesService {
         projectId: membership.projectId,
         addedById: membership.userId,
         scientificSpeciesId: createDto.scientificSpeciesId,
+        scientificSpeciesUid: scientificSpeciesData.uid,
+        speciesName: scientificSpeciesData.scientificName,
+        isUnknown: false,
         commonName: createDto.commonName,
         isNativeSpecies: createDto.isNativeSpecies || false,
         isDisabled: createDto.isDisbaledSpecies || false,
@@ -165,29 +168,95 @@ export class ProjectSpeciesService {
 
     return updatedSpecies[0]
   }
-async getInterventionSpecies(membership: ProjectGuardResponse) {
-  return this.drizzle.db
-    .select({
-      interventionUid: intervention.uid,
-      interventionHid: intervention.hid,
-      interventionType: intervention.type,
-      species: intervention.species,
-      registrationDate: intervention.registrationDate,
-      interventionStartDate: intervention.interventionStartDate,
-      createdAt: intervention.createdAt,
-    })
-    .from(intervention)
-    .where(
-      and(
-        eq(intervention.projectId, membership.projectId),
-        isNotNull(intervention.species),
-        sql`jsonb_array_length(${intervention.species}) > 0`
-      )
-    )
-    .orderBy(desc(intervention.createdAt));
-}
 
-async getAll(membership: ProjectGuardResponse) {
+  async updateFavourite(
+    speciesId: string,
+    membership: ProjectGuardResponse,
+    updateDto: { fav: boolean },
+  ) {
+    const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+    if (!existingSpecies) {
+      throw new NotFoundException('User species not found');
+    }
+
+    const updatedSpecies = await this.drizzle.db
+      .update(projectSpecies)
+      .set({
+        favourite: updateDto.fav,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(projectSpecies.id, existingSpecies.id),
+          eq(projectSpecies.projectId, membership.projectId),
+        ),
+      )
+      .returning();
+
+    if (!updatedSpecies.length) {
+      throw new NotFoundException('User species not found');
+    }
+    return false
+  }
+
+  async updateDisbale(
+    speciesId: string,
+    membership: ProjectGuardResponse,
+    updateDto: { disable: boolean },
+  ) {
+    try {
+      const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+      if (!existingSpecies) {
+        throw new NotFoundException('User species not found');
+      }
+
+      const updatedSpecies = await this.drizzle.db
+        .update(projectSpecies)
+        .set({
+          isDisabled: updateDto.disable,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(projectSpecies.id, existingSpecies.id),
+            eq(projectSpecies.projectId, membership.projectId),
+          ),
+        )
+        .returning();
+      console.log("SDC", updatedSpecies)
+
+      if (!updatedSpecies.length) {
+        throw new NotFoundException('User species not found');
+      }
+      return false
+    } catch (error) {
+      console.log("SDC", error)
+    }
+  }
+
+
+  async getInterventionSpecies(membership: ProjectGuardResponse) {
+    return this.drizzle.db
+      .select({
+        interventionUid: intervention.uid,
+        interventionHid: intervention.hid,
+        interventionType: intervention.type,
+        species: intervention.species,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        createdAt: intervention.createdAt,
+      })
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.projectId, membership.projectId),
+          isNotNull(intervention.species),
+          sql`jsonb_array_length(${intervention.species}) > 0`
+        )
+      )
+      .orderBy(desc(intervention.createdAt));
+  }
+  async getAll(membership: ProjectGuardResponse) {
   const [projectSpeciesData, interventionSpeciesData] = await Promise.all([
     this.drizzle.db
       .select({
@@ -199,7 +268,7 @@ async getAll(membership: ProjectGuardResponse) {
         commonName: projectSpecies.commonName,
         description: projectSpecies.description,
         isNativeSpecies: projectSpecies.isNativeSpecies,
-        disbaled: projectSpecies.isDisabled,
+        isDisabled: projectSpecies.isDisabled, // Fixed typo from 'disbaled'
         image: projectSpecies.image,
         favourite: projectSpecies.favourite,
         createdAt: projectSpecies.createdAt,
@@ -208,7 +277,7 @@ async getAll(membership: ProjectGuardResponse) {
       })
       .from(projectSpecies)
       .where(eq(projectSpecies.projectId, membership.projectId)),
-    
+
     this.getInterventionSpecies(membership)
   ]);
 
@@ -225,16 +294,17 @@ async getAll(membership: ProjectGuardResponse) {
 }
 
 private processInterventionSpecies(interventionData: any[]) {
-  const knownSpecies:any = [];
-  const unknownSpecies:any = [];
+  const knownSpecies: any = [];
+  const unknownSpecies: any = [];
 
   interventionData.forEach(intervention => {
     const speciesArray = intervention.species as any[];
-    
+
     speciesArray.forEach(species => {
       if (species.isUnknown) {
         // Keep unknown species separate with intervention context
         unknownSpecies.push({
+          uid: species.clientId || `unknown_${intervention.interventionUid}_${species.speciesName}`, // Use clientId as uid, with fallback
           clientId: species.clientId,
           speciesName: species.speciesName,
           count: Number(species.count) || 0,
@@ -242,10 +312,18 @@ private processInterventionSpecies(interventionData: any[]) {
           interventionHid: intervention.interventionHid,
           interventionType: intervention.interventionType,
           createdAt: new Date(species.createdAt),
-          updatedAt: species.updatedAt ? new Date(species.updatedAt) : null,
+          updatedAt: species.updatedAt ? new Date(species.updatedAt) : new Date(species.createdAt),
           isUnknown: true,
+          isDisabled: false, // Add missing field
+          favourite: false, // Add missing field
           scientificSpeciesUid: null,
-          scientificSpeciesId: null
+          scientificSpeciesId: null,
+          commonName: null,
+          description: null,
+          isNativeSpecies: false,
+          image: '',
+          sources: ['intervention'], // Add sources field
+          metadata: {} // Add metadata field
         });
       } else if (species.scientificSpeciesUid) {
         // Collect known species for aggregation
@@ -258,7 +336,7 @@ private processInterventionSpecies(interventionData: any[]) {
           interventionHid: intervention.interventionHid,
           interventionType: intervention.interventionType,
           createdAt: new Date(species.createdAt),
-          updatedAt: species.updatedAt ? new Date(species.updatedAt) : null,
+          updatedAt: species.updatedAt ? new Date(species.updatedAt) : new Date(species.createdAt),
           isUnknown: false
         });
       }
@@ -283,94 +361,84 @@ private aggregateScientificSpecies(projectSpecies: any[], interventionKnownSpeci
         commonName: species.commonName,
         description: species.description,
         isNativeSpecies: species.isNativeSpecies,
-        isDisabled: species.disbaled,
+        isDisabled: species.isDisabled, // Fixed field name
         image: species.image,
         favourite: species.favourite,
         sources: ['project'],
         totalCount: 0,
         interventionCount: 0,
         interventionTypes: [],
-        projectCreatedAt: species.createdAt,
-        projectUpdatedAt: species.updatedAt,
+        createdAt: species.createdAt,
+        updatedAt: species.updatedAt,
         metadata: species.metadata
       });
     }
   });
 
-  // Aggregate intervention known species
+  // Create a map to track intervention counts properly
+  const interventionCountMap = new Map();
+  
   interventionKnownSpecies.forEach(species => {
     const key = species.scientificSpeciesUid;
     
+    if (!interventionCountMap.has(key)) {
+      interventionCountMap.set(key, {
+        totalCount: 0,
+        interventionCount: 0,
+        interventionTypes: new Set()
+      });
+    }
+    
+    const counts = interventionCountMap.get(key);
+    counts.totalCount += species.count;
+    counts.interventionCount += 1;
+    counts.interventionTypes.add(species.interventionType);
+  });
+
+  // Aggregate intervention known species
+  interventionKnownSpecies.forEach(species => {
+    const key = species.scientificSpeciesUid;
+
     if (aggregatedMap.has(key)) {
       // Update existing entry (from project species)
       const existing = aggregatedMap.get(key);
-      existing.sources.push('intervention');
-      existing.sources = [...new Set(existing.sources)]; // Remove duplicates
-      existing.totalCount += species.count;
-      existing.interventionCount += 1;
-      
-      if (!existing.interventionTypes.includes(species.interventionType)) {
-        existing.interventionTypes.push(species.interventionType);
+      if (!existing.sources.includes('intervention')) {
+        existing.sources.push('intervention');
       }
+      
+      // Use the aggregated counts
+      const counts = interventionCountMap.get(key);
+      existing.totalCount = counts.totalCount;
+      existing.interventionCount = counts.interventionCount;
+      existing.interventionTypes = Array.from(counts.interventionTypes);
+      
     } else {
       // Create new entry for intervention-only species
-      if (aggregatedMap.has(key)) {
-        const existing = aggregatedMap.get(key);
-        existing.totalCount += species.count;
-        existing.interventionCount += 1;
-        
-        if (!existing.interventionTypes.includes(species.interventionType)) {
-          existing.interventionTypes.push(species.interventionType);
-        }
-      } else {
-        aggregatedMap.set(key, {
-          scientificSpeciesUid: species.scientificSpeciesUid,
-          scientificSpeciesId: species.scientificSpeciesId,
-          speciesName: species.speciesName,
-          sources: ['intervention'],
-          totalCount: species.count,
-          interventionCount: 1,
-          interventionTypes: [species.interventionType],
-          interventionCreatedAt: species.createdAt,
-          interventionUpdatedAt: species.updatedAt
-        });
-      }
-    }
-  });
-
-  // Aggregate intervention counts for species that appear multiple times
-  const countMap = new Map();
-  interventionKnownSpecies.forEach(species => {
-    const key = species.scientificSpeciesUid;
-    if (countMap.has(key)) {
-      countMap.get(key).count += species.count;
-      countMap.get(key).interventionCount += 1;
-      countMap.get(key).interventionTypes.add(species.interventionType);
-    } else {
-      countMap.set(key, {
-        count: species.count,
-        interventionCount: 1,
-        interventionTypes: new Set([species.interventionType])
+      const counts = interventionCountMap.get(key);
+      aggregatedMap.set(key, {
+        uid: `intervention_${key}`, // Generate a uid for intervention-only species
+        scientificSpeciesUid: species.scientificSpeciesUid,
+        scientificSpeciesId: species.scientificSpeciesId,
+        speciesName: species.speciesName,
+        commonName: null,
+        description: null,
+        isNativeSpecies: false,
+        isDisabled: false,
+        image: '',
+        favourite: false,
+        sources: ['intervention'],
+        totalCount: counts.totalCount,
+        interventionCount: counts.interventionCount,
+        interventionTypes: Array.from(counts.interventionTypes),
+        createdAt: species.createdAt,
+        updatedAt: species.updatedAt,
+        metadata: {}
       });
-    }
-  });
-
-  // Update aggregated data with correct counts
-  Array.from(aggregatedMap.values()).forEach(species => {
-    if (countMap.has(species.scientificSpeciesUid)) {
-      const counts = countMap.get(species.scientificSpeciesUid);
-      species.totalCount = counts.count;
-      species.interventionCount = counts.interventionCount;
-      species.interventionTypes = Array.from(counts.interventionTypes);
     }
   });
 
   return Array.from(aggregatedMap.values());
 }
-
-
-
-
 
 
 

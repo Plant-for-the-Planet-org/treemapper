@@ -28,11 +28,15 @@ export class WorkspaceService {
         const workspaceInsResult = await tx
           .insert(workspace)
           .values({
+            // Ensure 'uid' exists in your workspace schema's insert model
             uid: generateUid('work'),
             name: createWorkspaceDto.name,
             slug: slug,
             createdById: userId,
-            type: createWorkspaceDto.type
+            // Only allow valid types
+            type: (['platform', 'private', 'development', 'premium'].includes(createWorkspaceDto.type)
+              ? createWorkspaceDto.type
+              : 'private') as 'platform' | 'private' | 'development' | 'premium'
           })
           .returning();
 
@@ -134,8 +138,21 @@ export class WorkspaceService {
       };
     }
   }
-
-
+  async clearServerCache(userData: User) {
+    try {
+      await this.projectCacheService.clearServerCache();
+      return "success"
+    } catch (error) {
+      console.error('Error fetching user projects and workspaces:', error);
+      return {
+        message: 'Failed to fetch user projects and workspaces',
+        statusCode: 500,
+        error: error.message || "internal_server_error",
+        data: null,
+        code: 'user_projects_workspaces_fetch_failed',
+      };
+    }
+  }
   //   /**
   //    * Get all organizations that a user belongs to
   //    */

@@ -34,6 +34,10 @@ export class ProjectCacheService {
         return this.cacheService.get(`work:${workspaceUid}`);
     }
 
+    async clearServerCache(){
+        return this.cacheService.reset()
+    }
+
     // async refreshAuthUser(user: User): Promise<void> {
     //     await this.cacheService.delete(this.getUseAuthrKey(user.auth0Id));
     //     await this.cacheService.set(this.getUseAuthrKey(user.auth0Id), user, CACHE_TTL.MEDIUM);

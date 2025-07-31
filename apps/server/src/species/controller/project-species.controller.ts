@@ -75,7 +75,37 @@ export class ProjectSpeciesController {
     return this.userSpeciesService.delete(species, membership);
   }
 
+  @Put('/:id/species/:species/fav')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async updateFavourite(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+    @Body() updateDto: { fav: boolean },
+  ) {
+    return this.userSpeciesService.updateFavourite(
+      species,
+      membership,
+      updateDto,
+    );
+  }
 
+  @Put('/:id/species/:species/disable')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async updateDisbale(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+    @Body() updateDto: { disable: boolean },
+  ) {
+    return this.userSpeciesService.updateDisbale(
+      species,
+      membership,
+      updateDto,
+    );
+  }
+
+  
   // @Get(':id')
   // // @ProjectRoles('owner', 'admin', 'manager', 'contributor', 'observer', 'researcher')
   // // @UseGuards(ProjectPermissionsGuard)

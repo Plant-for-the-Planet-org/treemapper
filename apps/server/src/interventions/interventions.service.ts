@@ -7,6 +7,7 @@ import {
   treeRecord,
   tree,
   workspace,
+  user,
 } from '../database/schema/index';
 import {
   InterventionResponseDto,
@@ -97,7 +98,7 @@ export class InterventionsService {
         if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
         }
-        projectSiteId = site[0].id;
+        projectSiteId = siteData[0].id;
       }
       const geometryType = createInterventionDto.geometry.type || 'Point';
       const geometry = this.getGeoJSONForPostGIS(createInterventionDto.geometry);
@@ -188,7 +189,7 @@ export class InterventionsService {
         if (siteData.length === 0) {
           throw new NotFoundException('Site not found');
         }
-        projectSiteId = site[0].id;
+        projectSiteId = siteData[0].id;
       }
 
       const tranformedData: any = [];
@@ -285,7 +286,6 @@ export class InterventionsService {
         failedInterventionUid: failedIntervention
       }
     } catch (error) {
-      console.log("LSKDc", error)
       throw new BadRequestException(`Failed to create intervention: ${error.message}`);
     }
   }
@@ -430,10 +430,20 @@ export class InterventionsService {
     const interventionsData = await this.drizzleService.db
       .select({
         intervention: intervention,
-        site: site,
+        site: {
+          name: site.name,
+          status: site.status,
+          uid: site.uid
+        },
+        user: {
+          uid: user.id,
+          image: user.image,
+          name: user.displayName
+        }
       })
       .from(intervention)
       .leftJoin(site, eq(intervention.projectSiteId, site.id))
+      .leftJoin(user, eq(intervention.userId, user.id))
       .where(and(...whereConditions))
       .orderBy(sortOrder === SortOrderEnum.DESC ? desc(intervention.createdAt) : asc(intervention.createdAt))
       .limit(limit)
@@ -519,12 +529,12 @@ export class InterventionsService {
     const responseData: any[] = interventionsData.map(item => {
       const intervention = item.intervention;
       const site = item.site;
-
+      const userData = item.user
       const interventionTrees = treesByIntervention.get(intervention.id);
       const treesArray = interventionTrees ? Array.from(interventionTrees.values()) : [];
 
       return {
-        id: intervention.id,
+        id:intervention.uid,
         uid: intervention.uid,
         hid: intervention.hid,
         type: intervention.type,
@@ -545,16 +555,11 @@ export class InterventionsService {
         hasRecords: intervention.hasRecords,
         createdAt: intervention.createdAt,
         updatedAt: intervention.updatedAt,
+        user: userData,
         site: site ? {
-          id: site.id,
           uid: site.uid,
           name: site.name,
-          description: site.description,
           status: site.status,
-          location: site.location,
-          originalGeometry: site.originalGeometry,
-          createdAt: site.createdAt,
-          updatedAt: site.updatedAt,
         } : undefined,
         trees: treesArray,
       };

@@ -87,7 +87,7 @@ export interface InterventionSpeciesEntry {
   otherSpeciesName?: string;
   count: number;
   createdAt: string;
-  updatedAt?: string;
+  updatedAt: string;
   deletedAt?: string;
 }
 

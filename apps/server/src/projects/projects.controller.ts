@@ -42,7 +42,8 @@ export class ProjectsController {
   findProjectsAndWorkspace(@CurrentUser() user: User) {
     return this.projectsService.findProjectsAndWorkspace(user);
   }
-  
+
+
 
   @Get(':id/allmembers')
   @ProjectRoles('owner', 'admin')
@@ -121,9 +122,28 @@ export class ProjectsController {
   }
 
 
-    @Get('invites/:invite/status/link')
-    getProjectSingleLinkStatus(@Param('invite') invite: string) {
-      return this.projectsService.getProjectSingleLinkStatus(invite);
+  @Get('invites/:invite/status/link')
+  getProjectSingleLinkStatus(@Param('invite') invite: string) {
+    return this.projectsService.getProjectSingleLinkStatus(invite);
+  }
+
+
+
+    @Get(':id')
+    @ProjectRoles('owner', 'admin')
+    @UseGuards(ProjectPermissionsGuard)
+    findOne(@Membership() membership: ProjectGuardResponse) {
+      return this.projectsService.findOne(membership.projectId);
+    }
+
+    @Patch(':id')
+    @ProjectRoles('owner', 'admin')
+    @UseGuards(ProjectPermissionsGuard)
+    update(
+      @Body() updateProjectDto: any,
+      @Membership() membership: any,
+    ): Promise<any> {
+      return this.projectsService.updateProject(membership.projectId, updateProjectDto, membership.userId);
     }
 
 
@@ -179,23 +199,6 @@ export class ProjectsController {
 
 
 
-
-  //   @Get(':id')
-  //   @ProjectRoles('owner', 'admin')
-  //   @UseGuards(ProjectPermissionsGuard)
-  //   findOne(@Membership() membership: ProjectGuardResponse) {
-  //     return this.projectsService.findOne(membership.projectId);
-  //   }
-
-  //   @Patch(':id')
-  //   @ProjectRoles('owner', 'admin')
-  //   @UseGuards(ProjectPermissionsGuard)
-  //   update(
-  //     @Body() updateProjectDto: any,
-  //     @Membership() membership: any,
-  //   ): Promise<any> {
-  //     return this.projectsService.updateProject(membership.projectId, updateProjectDto, membership.userId);
-  //   }
 
   //   @Delete(':id')
   //   @ProjectRoles('owner')
