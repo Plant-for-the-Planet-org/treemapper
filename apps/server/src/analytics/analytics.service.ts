@@ -733,10 +733,15 @@ LIMIT ${limit} OFFSET ${offset}
       .where(and(...baseConditions))
       .orderBy(desc(intervention.interventionStartDate));
 
+    // Filter out null interventions and create a properly typed array
+    const validInterventionsData = interventionsData.filter(
+      (item): item is typeof item & { interventionD: NonNullable<typeof item.interventionD> } =>
+        item.interventionD !== null
+    );
+
     // Get child interventions for each intervention
-    const interventionIds = interventionsData
-      .filter(i => i.interventionD !== null)
-      .map(i => i.interventionD.id);
+    const interventionIds = validInterventionsData.map(i => i.interventionD.id);
+
     const childInterventions = interventionIds.length > 0 ? await this.drizzleService.db
       .select({
         parentId: intervention.parentInterventionId,
@@ -778,7 +783,6 @@ LIMIT ${limit} OFFSET ${offset}
         )
       ) : [];
 
-
     // Group related data by intervention ID
     const childInterventionsByParent = new Map<number, typeof childInterventions>();
     childInterventions.forEach(child => {
@@ -796,13 +800,10 @@ LIMIT ${limit} OFFSET ${offset}
       treesByIntervention.get(tree.interventionId!)!.push(tree);
     });
 
-
     // Transform the data into the export format
-    const exportedInterventions: any[] = interventionsData.map(data => {
+    const exportedInterventions: any[] = validInterventionsData.map(data => {
       const { interventionD, project, site, user } = data;
-      if (!interventionD) {
-        return null
-      }
+
       return {
         // Basic Information
         interventionId: interventionD.uid,
