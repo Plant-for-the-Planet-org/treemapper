@@ -127,7 +127,6 @@ export const SpeciesHeader = ({
           <option value="all">All Sources</option>
           <option value="project">Project Only</option>
           <option value="intervention">Intervention Only</option>
-          <option value="both">Both</option>
         </select>
 
         <div className="min-w-[160px]">

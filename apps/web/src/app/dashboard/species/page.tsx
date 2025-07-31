@@ -17,6 +17,7 @@ import {
   ArrowLeft,
   Users,
   TreePine,
+  LeafIcon,
 
 } from 'lucide-react';
 import { useToken } from '@/context/useTokenContext';
@@ -151,7 +152,6 @@ const SpeciesManagementDashboard = () => {
       field.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-    const matchesVisibility = showDisabled;
 
     const matchesType = speciesTypeFilter === 'all' ||
       (speciesTypeFilter === 'scientific' && !species.isUnknown) ||
@@ -165,11 +165,15 @@ const SpeciesManagementDashboard = () => {
     const matchesInterventionType = interventionTypeFilter.length === 0 ||
       (species.interventionTypes && species.interventionTypes.some(type => interventionTypeFilter.includes(type))) ||
       (species.interventionType && interventionTypeFilter.includes(species.interventionType));
-
-    return matchesSearch && matchesVisibility && matchesType && matchesSource && matchesInterventionType;
+    return matchesSearch && matchesType && matchesSource && matchesInterventionType;
   });
 
-  const sortedSpecies = [...filteredSpecies].sort((a, b) => {
+  const sortedSpecies = [...filteredSpecies.filter(el => {
+    if (showDisabled) {
+      return el
+    }
+    return !el.isDisabled
+  })].sort((a, b) => {
     switch (sortBy) {
       case 'name':
         const nameA = a.scientificName || a.speciesName || '';
@@ -361,19 +365,28 @@ const SpeciesManagementDashboard = () => {
       if (isAddingNew) {
         payLoad['scientificSpeciesId'] = editForm.uid;
         console.log('payLoad', payLoad);
-        await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
+        const resp = await createNewProjectSpecies(accessToken || '', payLoad, selectedProject?.uid);
+        if (resp.statusCode === 201 || resp.statusCode === 200) {
+          toast.success("Species Added")
+        } else {
+          toast.error("Failed to add species")
+        }
         setSelectedSpecies(null)
       } else {
-
-        await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+        const resp = await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+        if (resp.statusCode === 201 || resp.statusCode === 200) {
+          toast.success("Species Updated")
+        } else {
+          toast.error("Failed to updated species")
+        }
         setSelectedSpecies(null)
       }
-
       setIsEditing(false);
       setIsAddingNew(false);
       setShowDetailModal(false);
       setShowAddModal(false);
       setImageDetails(null);
+      await fetchProjectSpecies()
     } catch (error) {
       toast.error(`Error uploading data: ${String(error)}`)
     } finally {
@@ -709,7 +722,7 @@ const SpeciesManagementDashboard = () => {
                       )}
                       {selectedSpecies.interventionCount > 0 && (
                         <div className="flex items-center gap-1">
-                          <Users size={14} />
+                          <LeafIcon size={14} />
                           <span>Used in {selectedSpecies.interventionCount} interventions</span>
                         </div>
                       )}
@@ -804,13 +817,13 @@ const SpeciesManagementDashboard = () => {
                 </>
               ) : (
                 <>
-                  <button
+                  {selectedSpecies.sources && !selectedSpecies.sources.includes('intervention') ? <button
                     onClick={() => setShowConfirmModal(true)}
                     className="px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
                   >
                     <Trash2 size={14} />
                     Delete
-                  </button>
+                  </button> : null}
                   <button
                     onClick={handleStartEdit}
                     className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"

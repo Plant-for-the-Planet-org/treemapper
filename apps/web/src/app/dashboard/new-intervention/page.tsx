@@ -1378,11 +1378,14 @@ const InterventionCreator = ({ goBack }) => {
       const species = formData.species[0];
       payload.species = [{
         uid: species.uid,
-        scientificSpeciesId: species.scientificSpeciesId,
-        scientificSpeciesUid: species.scientificSpeciesUid,
-        speciesName: species.speciesName,
+        scientificSpeciesId: species.scientificSpeciesId || undefined,
+        scientificSpeciesUid: species.scientificSpeciesUid || undefined,
+        speciesName: species.speciesName || species.otherSpeciesName,
         isUnknown: species.isUnknown,
-        otherSpeciesName: species.otherSpeciesName || null
+        count: 1,
+        otherSpeciesName: species.otherSpeciesName || null,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }];
 
       // Add tree details for single tree registration
@@ -1395,10 +1398,12 @@ const InterventionCreator = ({ goBack }) => {
         uid: species.uid,
         scientificSpeciesId: species.scientificSpeciesId,
         scientificSpeciesUid: species.scientificSpeciesUid,
-        speciesName: species.speciesName,
+        speciesName: species.speciesName || species.otherSpeciesName,
         isUnknown: species.isUnknown,
         otherSpeciesName: species.otherSpeciesName || null,
-        count: species.count
+        count: species.count,
+        createdAt: new Date(),
+        updatedAt: new Date(),
       }));
     }
 

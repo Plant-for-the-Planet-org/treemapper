@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { CheckSquare, Square, Leaf, Heart, EyeOff, Eye, TreePine, Users } from "lucide-react";
+import { CheckSquare, Square, Leaf, Heart, EyeOff, Eye, TreePine, Users, LeafIcon } from "lucide-react";
 
 export const SpeciesCard = ({ 
   species, 
@@ -92,12 +92,12 @@ export const SpeciesCard = ({
                 onToggleDisabled(species.uid, !species.disabled);
               }}
               className={`p-1 rounded transition-colors ${
-                !species.disabled 
+                species.isDisabled 
                   ? 'text-gray-400 hover:text-gray-600' 
                   : 'text-green-500 hover:text-green-600'
               }`}
             >
-              {!species.disabled ? <EyeOff size={12} /> : <Eye size={12} />}
+              {species.isDisabled ? <EyeOff size={12} /> : <Eye size={12} />}
             </button>
           </div>
         </div>
@@ -118,7 +118,7 @@ export const SpeciesCard = ({
           )}
           {species.interventionCount > 0 && (
             <div className="flex items-center gap-1">
-              <Users size={10} />
+              <LeafIcon size={10} />
               <span>{species.interventionCount} interventions</span>
             </div>
           )}

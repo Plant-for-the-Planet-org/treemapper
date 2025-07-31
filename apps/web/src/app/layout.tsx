@@ -6,7 +6,7 @@ import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
 import { ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+
 
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -52,7 +52,7 @@ export default function RootLayout({
       >
         <ToastContainer
           position="top-right"
-          autoClose={5000}
+          autoClose={4000}
           hideProgressBar={false}
           newestOnTop
           closeOnClick
@@ -61,11 +61,13 @@ export default function RootLayout({
           draggable
           pauseOnHover
           theme="light"
+          limit={3} // Limit number of toasts
+          closeButton={true}
         />
         <ResponsiveDashboardWrapper>
           <Auth0Provider>
             {/* <SharedQueryProvider> */}
-              {children}
+            {children}
             {/* </SharedQueryProvider> */}
           </Auth0Provider>
         </ResponsiveDashboardWrapper>
