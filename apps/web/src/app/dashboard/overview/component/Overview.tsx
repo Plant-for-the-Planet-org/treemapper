@@ -231,11 +231,6 @@ const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDat
         return days;
     };
 
-    const displayValue = startDate && endDate
-        ? `${formatDate(startDate)} - ${formatDate(endDate)}`
-        : startDate
-            ? `${formatDate(startDate)} - Select end date`
-            : 'Select date range';
 
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -247,6 +242,13 @@ const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDat
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    const displayValue = startDate && endDate
+        ? `${formatDate(startDate)} - ${formatDate(endDate)}`
+        : startDate
+            ? `${formatDate(startDate)} - Select end date`
+            : 'Select date range for report';
+
 
     return (
         <div className="relative" ref={dropdownRef}>
@@ -368,9 +370,7 @@ const Overview = () => {
     const [showCalendar, setShowCalendar] = useState(false);
     const calendarRef = useRef(null);
     const [totalTrees, setTotalTrees] = useState(0)
-    const [selectTab, setSelectedTab] = useState('overview')
     const [dowloanding, setDownloading] = useState(false)
-    const { setGlobalEndDate, setGlobalStartDate } = useAnalyticsStore(state => state)
     const Target = useProjectStore(state => state.selectedProject?.target)
     const userRole = useProjectStore(state => state.selectedProject?.userRole)
     const selectedProject = useProjectStore(state => state.selectedProject?.uid)
@@ -385,11 +385,7 @@ const Overview = () => {
         };
     };
 
-    const handleCalendarChange = () => {
-        setGlobalStartDate(endDate)
-        setGlobalEndDate(startDate)
-        setShowCalendar(false)
-    }
+
 
     // Handle clicking outside to close the calendar
     useEffect(() => {
@@ -414,6 +410,11 @@ const Overview = () => {
     const { accessToken } = useToken()
     const handleDownload = async () => {
         try {
+            console.log('Downloading data for range:', startDate, endDate);
+            if (startDate === '') {
+                toast.warn("Please select date range")
+                return
+            }
             setDownloading(true)
             const response = await exportAllData(accessToken, {
                 "startDate": new Date(startDate),
@@ -434,100 +435,6 @@ const Overview = () => {
         }
 
     };
-
-    // Format dates for display
-    const formatDateForDisplay = (dateString) => {
-        if (!dateString) return '';
-        const date = new Date(dateString);
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
-    };
-
-    // Get current month and year for calendar
-    const today = new Date();
-    const [currentMonth, setCurrentMonth] = useState(today.getMonth());
-    const [currentYear, setCurrentYear] = useState(today.getFullYear());
-
-    // Navigate months
-    const prevMonth = () => {
-        if (currentMonth === 0) {
-            setCurrentMonth(11);
-            setCurrentYear(currentYear - 1);
-        } else {
-            setCurrentMonth(currentMonth - 1);
-        }
-    };
-
-    const nextMonth = () => {
-        if (currentMonth === 11) {
-            setCurrentMonth(0);
-            setCurrentYear(currentYear + 1);
-        } else {
-            setCurrentMonth(currentMonth + 1);
-        }
-    };
-
-    // Generate days for the current month
-    const generateDays = () => {
-        const days = [];
-        const firstDay = new Date(currentYear, currentMonth, 1).getDay();
-        const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
-
-        // Add empty cells for days before the first day of the month
-        for (let i = 0; i < firstDay; i++) {
-            days.push(<div key={`empty-${i}`} className="h-8 w-8"></div>);
-        }
-
-        // Add days of the month
-        for (let i = 1; i <= daysInMonth; i++) {
-            const date = new Date(currentYear, currentMonth, i);
-            const dateString = date.toISOString().split('T')[0];
-            const isToday = date.toDateString() === today.toDateString();
-            const isSelected = dateString === startDate || dateString === endDate;
-            const isInRange = startDate && endDate && dateString > startDate && dateString < endDate;
-
-            days.push(
-                <div
-                    key={i}
-                    className={`flex items-center justify-center h-8 w-8 rounded-full cursor-pointer
-            ${isToday ? 'border border-gray-500' : ''}
-            ${isSelected ? 'bg-blue-600 text-white' : ''}
-            ${isInRange ? 'bg-blue-100' : ''}
-            ${!isSelected && !isInRange ? 'hover:bg-gray-200' : ''}
-          `}
-                    onClick={() => handleDateClick(dateString)}
-                >
-                    {i}
-                </div>
-            );
-        }
-
-        return days;
-    };
-
-    // Handle date selection
-    const handleDateClick = (dateString) => {
-        if (!startDate || (startDate && endDate) || dateString < startDate) {
-            setStartDate(dateString);
-            setEndDate('');
-        } else if (dateString > startDate) {
-            setEndDate(dateString);
-        }
-    };
-
-    // Clear date selection
-    const clearDates = () => {
-        setStartDate('');
-        setEndDate('');
-    };
-
-    const displayValue = startDate || endDate
-        ? `${formatDateForDisplay(startDate)} ${endDate ? ' - ' + formatDateForDisplay(endDate) : ''}`
-        : 'Select date range';
-
-    const monthNames = [
-        'January', 'February', 'March', 'April', 'May', 'June',
-        'July', 'August', 'September', 'October', 'November', 'December'
-    ];
 
     const handleDateChange = (start, end) => {
         setStartDate(start);
@@ -551,9 +458,10 @@ const Overview = () => {
 
                     <button
                         onClick={handleDownload}
+                        disabled={dowloanding}
                         className="bg-black hover:bg-gray-700 text-white px-5 py-2 rounded text-sm"
                     >
-                        Download
+                        {dowloanding ? "Downloading..." : "Download"}
                     </button>
                 </div>
             </div>

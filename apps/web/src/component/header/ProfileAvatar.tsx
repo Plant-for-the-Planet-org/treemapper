@@ -26,7 +26,7 @@ const ProfileAvatar = ({
       flex items-center justify-center
     `}
       >
-        {User?.avatar ? (
+        {/* {User?.avatar ? (
           <img
             src={User.avatar}
             alt={altText}
@@ -34,7 +34,8 @@ const ProfileAvatar = ({
           />
         ) : (
           <Leaf className="text-green-600 w-5 h-5" />
-        )}
+        )} */}
+        <Leaf className="text-green-600 w-5 h-5" />
       </div>
     </div>
 

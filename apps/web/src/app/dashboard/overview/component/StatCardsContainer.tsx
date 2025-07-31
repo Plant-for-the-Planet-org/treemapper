@@ -38,9 +38,9 @@ const StatCard = ({ title, value, note, icon: Icon, changePercent, loading = fal
           <Icon size={16} className="text-gray-500" />
         </div>
       </div>
-      
+
       <p className="text-2xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
-      
+
       {/* Change indicator */}
       <div className="flex items-center gap-1">
         <div className={`flex items-center gap-1 px-2 py-1 rounded-full ${changeBgColor}`}>
@@ -95,44 +95,53 @@ const StatCardsContainer = ({ setTotalTrees }) => {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log("Fetching dashboard KPIs");
-      const response = await getDashboardKpis(accessToken || '', startDate, endDate, selectedProject?.uid || '');
+      const response = await getDashboardKpis(accessToken || '', selectedProject?.uid || '');
       console.log("Dashboard KPIs response", response);
 
       if (response && response.statusCode === 200 && response.data) {
-        const { totalTreesPlanted, totalAreaCovered, totalSpeciesPlanted, totalContributors } = response.data.kpis;
-        
+        const { totalTreesPlanted, totalAreaCovered, totalSpeciesPlanted, totalContributors, totalTreesPlantedChange, totalAreaCoveredChange, totalSpeciesPlantedChange, totalContributorsChange } = response.data.kpis;
+
         if (totalTreesPlanted) {
           setTotalTrees(totalTreesPlanted);
         }
 
         // Generate dummy change percentages for demo
         // In real implementation, you'd get these from your API
-        const generateChangePercent = () => (Math.random() - 0.5) * 30; // Random between -15% to +15%
+        const generateChangePercent = ({ value, type }) => {
+          if (type === 'no_change') {
+            return 0
+          }
+
+          if (value === null) {
+            return 0
+          }
+
+          return value
+        }
 
         setOverview([
           {
             title: "Trees Planted",
             value: formatNumber(Number(totalTreesPlanted)),
-            changePercent: generateChangePercent(),
+            changePercent: generateChangePercent(totalTreesPlantedChange),
             icon: Leaf
           },
           {
             title: "Species Planted",
             value: totalSpeciesPlanted,
-            changePercent: generateChangePercent(),
+            changePercent: generateChangePercent(totalSpeciesPlantedChange),
             icon: Sprout
           },
           {
             title: "Area Covered",
             value: `${formatNumber(Number(totalAreaCovered))} ha`,
-            changePercent: generateChangePercent(),
+            changePercent: generateChangePercent(totalAreaCoveredChange),
             icon: Map
           },
           {
             title: "Field Data Collectors",
             value: totalContributors,
-            changePercent: generateChangePercent(),
+            changePercent: generateChangePercent(totalContributorsChange),
             icon: Activity
           }
         ]);
@@ -160,7 +169,7 @@ const StatCardsContainer = ({ setTotalTrees }) => {
                 value={stat.value}
                 changePercent={stat.changePercent}
                 icon={stat.icon}
-                loading={loading} note={undefined}              />
+                loading={loading} note={undefined} />
             </div>
           ))
         )}

@@ -923,7 +923,7 @@ const HeaderWithFilters = ({
   const [showFilters, setShowFilters] = useState(false);
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4">
+    <div className="bg-white border-b border-gray-200 px-6 py-4 sticky top-0">
       <div className="space-y-4">
         {/* Header Top Row */}
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
@@ -1600,7 +1600,7 @@ const TreeMapperUI = () => {
       />
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex">
         {/* Left Sidebar - Intervention List */}
         <div className={`${sidebarCollapsed ? 'w-0 lg:w-16' : 'w-full md:w-96 lg:w-96'
           } bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out relative`}>
@@ -1632,7 +1632,7 @@ const TreeMapperUI = () => {
               </div>
 
               {/* Intervention List */}
-              <div className="flex-1 overflow-y-auto">
+              <div className="overflow-y-auto" style={{height:'86vh'}}>
                 {filteredInterventions.length === 0 && !loading ? (
                   <div className="p-6 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">

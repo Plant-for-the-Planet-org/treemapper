@@ -5,7 +5,7 @@ export const SiteManagementHeader = ({ onCreateSite, searchTerm, setSearchTerm, 
   <motion.div
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
-    className="sticky top-0 z-20 bg-white/95 backdrop-blur-sm border-b border-gray-200"
+    className="sticky top-0 bg-white/95 backdrop-blur-sm border-b border-gray-200"
   >
     <div className="px-6 py-4">
       <div className="flex justify-between items-start mb-4">

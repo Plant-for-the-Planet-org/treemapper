@@ -161,7 +161,7 @@ const RecentAdditionsComponent = () => {
       <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex justify-between items-center">
           <div>
-            <h2 className="text-lg font-semibold text-gray-800">Recent Additions</h2>
+            <h2 className="text-lg font-semibold text-gray-800">Recent Activity</h2>
             <p className="text-xs text-gray-500 mt-0.5">
               {pagination.total > 0
                 ? `${pagination.total} recent activities`

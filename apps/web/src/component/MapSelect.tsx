@@ -74,13 +74,12 @@ const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
       <button
         onClick={onSetCoordinates}
         type="button"
-        className={`w-full border-none py-2 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude == '' || manualCoords.longitude === ''
+        className={`w-full border-none py-2 px-3 text-white rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude == '' || manualCoords.longitude === ''
           ? 'bg-gray-400 cursor-not-allowed'
           : 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
           }`}
 
       >
-        <Target className="h-3 w-3" />
         Set Location
       </button>
     </div>

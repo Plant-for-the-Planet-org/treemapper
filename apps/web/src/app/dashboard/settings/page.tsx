@@ -1148,7 +1148,7 @@ const ProjectSettings = () => {
       )}
 
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm z-30 sticky top-0">
+      <div className="bg-white/80 backdrop-blur-sm sticky top-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <h1 className="text-2xl font-bold text-stone-900">Project Settings</h1>
@@ -1196,7 +1196,7 @@ const ProjectSettings = () => {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-30"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

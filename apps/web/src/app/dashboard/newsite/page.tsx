@@ -222,9 +222,6 @@ const LocationStatus = ({ geoJSON, area }) => {
                 </div>
                 <div>
                     <span className="block text-sm font-medium">Location selected</span>
-                    {area && (
-                        <span className="block text-xs text-green-600">Area: {area}</span>
-                    )}
                 </div>
             </div>
         </motion.div>

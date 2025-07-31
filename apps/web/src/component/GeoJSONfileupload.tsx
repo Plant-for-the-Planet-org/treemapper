@@ -402,7 +402,7 @@ export default function GeoJSONUpload({
                         <div className="space-y-2">
                             {uploadState.status === 'idle' && (
                                 <>
-                                    <h3 className="text-lg font-semibold text-gray-900">
+                                    <h3 className="text-md font-semibold text-gray-900">
                                         {isDragActive ? 'Drop your file here' : 'Choose file or drag & drop'}
                                     </h3>
                                     <p className="text-sm text-gray-600">
@@ -426,7 +426,7 @@ export default function GeoJSONUpload({
 
                             {uploadState.status === 'success' && (
                                 <>
-                                    <h3 className="text-lg font-semibold text-green-900">
+                                    <h3 className="text-md font-semibold text-green-900">
                                         File uploaded successfully!
                                     </h3>
                                     <div className="space-y-1">
@@ -449,7 +449,7 @@ export default function GeoJSONUpload({
 
                             {uploadState.status === 'error' && (
                                 <>
-                                    <h3 className="text-lg font-semibold text-red-900">
+                                    <h3 className="text-md font-semibold text-red-900">
                                         Upload failed
                                     </h3>
                                     <div className="space-y-1">
@@ -501,7 +501,7 @@ export default function GeoJSONUpload({
                         <div className="absolute inset-0 bg-green-500 bg-opacity-10 border-2 border-green-400 border-dashed rounded-xl flex items-center justify-center">
                             <div className="text-center">
                                 <Upload className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                                <p className="text-lg font-semibold text-green-700">
+                                <p className="text-md font-semibold text-green-700">
                                     Drop your file here
                                 </p>
                             </div>

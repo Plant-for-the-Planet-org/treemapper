@@ -292,8 +292,8 @@ export const getProjectMapData = async (token: string, pid: string) => {
 
 
 
-export const getDashboardKpis = async (token: string, start: string, end: string, pid: string) => {
-  const uri = `${getUrlApi.getDashboardKpis}/${pid}?startDate=${end}&endDate=${start}`
+export const getDashboardKpis = async (token: string, pid: string) => {
+  const uri = `${getUrlApi.getDashboardKpis}/${pid}`
   const result = await fetchGetCall(uri, token)
   return result
 }

@@ -720,7 +720,7 @@ const SpeciesSelector = ({
           <button
             type="button"
             onClick={() => setShowUnknownSpecies(true)}
-            className="px-6 py-3 bg-gradient-to-r from-amber-500 to-orange-500 text-white rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
+            className="px-6 py-3 bg-black text-white rounded-xl hover:from-amber-600 hover:to-orange-600 transition-all duration-200 shadow-lg hover:shadow-xl font-medium"
           >
             Unknown Species
           </button>
@@ -1454,9 +1454,6 @@ const InterventionCreator = ({ goBack }) => {
             </button>
             <div className="h-8 w-px bg-slate-200"></div>
             <div className="flex items-center gap-3">
-              <div className="p-3 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-2xl shadow-lg">
-                <TreePine className="w-6 h-6 text-white" />
-              </div>
               <div>
                 <h1 className="text-2xl font-bold bg-gradient-to-r from-slate-900 to-slate-600 bg-clip-text text-transparent">
                   Create New Intervention
@@ -1541,40 +1538,36 @@ const InterventionCreator = ({ goBack }) => {
             isOpen={startUpload !== null} onClose={() => { setStartUpload(null) }} onSuccess={goBack} formData={startUpload} image={formData.image} />
 
           {/* Form Actions */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-              <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (window.confirm('Are you sure you want to cancel? All changes will be lost.')) {
-                      window.history.back();
-                    }
-                  }}
-                  className="w-full sm:w-auto px-8 py-3 border-2 border-slate-300 text-slate-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-slate-400 transition-all duration-200"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="w-full sm:w-auto px-10 py-3 bg-gradient-to-r from-emerald-600 to-green-600 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                      Creating...
-                    </>
-                  ) : (
-                    <>
-                      <TreePine className="w-5 h-5" />
-                      Create Intervention
-                    </>
-                  )}
-                </button>
-              </div>
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8 ">
+            <div className="flex  sm:flex-row items-center justify-between gap-4">
+              <button
+                type="button"
+                onClick={() => {
+                  if (window.confirm('Are you sure you want to cancel? All changes will be lost.')) {
+                    window.history.back();
+                  }
+                }}
+                className="w-full sm:w-auto px-8 py-3 border-2 border-slate-300 text-slate-600 rounded-xl font-semibold hover:bg-gray-50 hover:border-slate-400 transition-all duration-200"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={isSubmitting}
+                className="cursor-pointer w-full sm:w-auto px-10 py-3 bg-green-700 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isSubmitting ? (
+                  <>
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                    Creating...
+                  </>
+                ) : (
+                  <>
+                    Create Intervention
+                  </>
+                )}
+              </button>
             </div>
 
             {/* Validation Summary */}
