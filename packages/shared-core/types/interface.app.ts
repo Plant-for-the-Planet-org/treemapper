@@ -105,6 +105,7 @@ export interface UserInterface {
   migratedAt?: string;
   primaryWorkspace: string | null;
   primaryProject: string | null;
+  workspace: 'admin' | 'owner' | 'member'
 }
 
 export interface ProjectWithUserRoleI {

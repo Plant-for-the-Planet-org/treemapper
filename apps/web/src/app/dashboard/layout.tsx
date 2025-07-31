@@ -21,7 +21,8 @@ const STANDALONE_ROUTES = [
   'newsite',
   'bulkupload',
   'new-intervention',
-  'onboarding'
+  'onboarding',
+  'workspace'
 ];
 
 // Consolidated loading states

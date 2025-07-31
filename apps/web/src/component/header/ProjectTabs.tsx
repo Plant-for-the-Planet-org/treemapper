@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronDown, ChevronRight, Plus, Folder } from 'lucide-react';
+import { ChevronDown, ChevronRight, Plus, Folder, Building } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ const ProjectDropdown = ({
   const { projects, selectProject, selectedProject, selectedWorkspce, setDefaultWorkspce, workspace } = useProjectStore((state) => state);
   const router = useRouter();
   const { accessToken } = useToken()
-
+  const User = useUserStore(state=>state.user)
 
 
   // Group projects by workspace and sort
@@ -283,16 +283,12 @@ const ProjectDropdown = ({
         <div className="flex flex-1 items-center justify-end">
           <div className="flex items-center gap-3">
             <NotificationBell />
-            {/* <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => { router.push('/dashboard/organization/settings') }}
-              className="p-2 h-auto text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md"
+            {User.workspace!=='member' && <button
+              onClick={() => router.push('/dashboard/workspace')}
+              className="cursor-pointer relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
             >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-2m-2 0H7m12 0V9a2 2 0 00-2-2H9a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2z" />
-              </svg>
-            </Button> */}
+              <Building size={24} />
+            </button>}
             <div className="h-6 w-px bg-gray-200"></div>
             <ProfileAvatar openProfileSetting={openProfileSetting} />
           </div>
