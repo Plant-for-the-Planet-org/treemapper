@@ -10,23 +10,11 @@ import {
 } from 'lucide-react';
 import UnifiedMapComponent from '@/component/MapSelect';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
+import { getSingleProjectDetails, updateProjectSettings } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
+import useProjectStore from '@shared-core/store/useProjectStore';
 
-// Mock implementations for demo
-const useToken = () => ({ accessToken: 'mock-token' });
-const useProjectStore = (selector) => selector({ selectedProject: { uid: 'mock-project' } });
-const getSingleProjectDetails = async () => ({ 
-  statusCode: 200, 
-  data: { 
-    projectName: 'Forest Restoration Project',
-    projectType: 'Restoration',
-    ecosystem: 'moist-forest',
-    target: 1000,
-    isPublic: true,
-    notifications: { progressUpdates: true, treeAdditions: false, newCollaborators: true }
-  } 
-});
-const updateProjectSettings = async () => ({ statusCode: 200 });
-const toast = { info: (msg) => console.log('Info:', msg), error: (msg) => console.log('Error:', msg) };
+
 
 // Enhanced Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange, disabled = false, size = 'default' }) => {

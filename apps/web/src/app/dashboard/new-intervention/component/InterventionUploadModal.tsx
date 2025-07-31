@@ -15,59 +15,73 @@ import {
 } from 'lucide-react';
 import { createNewIntervention, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
 
-const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, imageRef, accessToken }) => {
-    if (!isOpen) return null;
-
+const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, accessToken }) => {
     const [currentStep, setCurrentStep] = useState('form'); // 'form', 'uploading', 'success', 'error'
-    const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
-    const [selectedImage, setSelectedImage] = useState(null);
+    const [hasStartedUpload, setHasStartedUpload] = useState(false);
 
+    // Reset state when modal opens/closes
     useEffect(() => {
-        handleSubmit()
-    }, [])
-
+        if (isOpen && !hasStartedUpload) {
+            setCurrentStep('form');
+            setError('');
+            setHasStartedUpload(true);
+            // Start upload after a brief delay to allow the modal to render
+            const timer = setTimeout(() => {
+                handleSubmit();
+            }, 100);
+            return () => clearTimeout(timer);
+        } else if (!isOpen) {
+            // Reset when modal closes
+            setHasStartedUpload(false);
+            setCurrentStep('form');
+            setError('');
+        }
+    }, [isOpen]); // Only depend on isOpen
 
     const uploadImage = async () => {
         try {
+            if (!image) return { fileName: '', success: true }; // No image to upload
+
             // Get pre-signed URL
             const presignedResponse = await generatePreSignUrl(accessToken, {
                 fileName: String(new Date().getMilliseconds()),
                 fileType: image.type,
                 folder: 'tree'
-            })
+            });
 
             if (presignedResponse.statusCode !== 200 && presignedResponse.statusCode !== 201) {
                 throw new Error(presignedResponse.message || 'Failed to get upload URL');
             }
 
-            const response = await uploadViaAPI(image, presignedResponse.data.data.uploadUrl)
+            const response = await uploadViaAPI(image, presignedResponse.data.data.uploadUrl);
             if (response.success) {
                 return {
                     fileName: presignedResponse.data.data.fileName,
                     success: true
-                }
+                };
             } else {
-                throw 'Failed to upload image'
+                throw new Error('Failed to upload image');
             }
 
         } catch (error) {
             console.error('Image upload error:', error);
             return {
                 fileName: '',
-                success: false
-            }
+                success: false,
+                error: error.message || 'Image upload failed'
+            };
         }
     };
 
-    const uploadViaAPI = async (selectedImage: File, uploadUrl: string) => {
+    const uploadViaAPI = async (selectedImage, uploadUrl) => {
         try {
-            const formData = new FormData();
-            formData.append('file', selectedImage);
+            const formDataUpload = new FormData();
+            formDataUpload.append('file', selectedImage);
 
             const response = await fetch(`/api/upload-image?uploadUrl=${encodeURIComponent(uploadUrl)}`, {
                 method: 'PUT',
-                body: formData,
+                body: formDataUpload,
             });
 
             if (!response.ok) {
@@ -97,56 +111,50 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
         }
 
     };
-
     const handleSubmit = async () => {
-        setIsLoading(true);
-        setCurrentStep('uploading');
-        setError('');
-
         try {
-            let imageString = ''
+            setCurrentStep('uploading');
+            setError('');
+
+            let imageString = '';
             if (image) {
                 const result = await uploadImage();
                 if (!result.success) {
-                    throw 'Error occured while uploading image'
-                } else {
-                    imageString = result.fileName
+                    throw new Error(result.error || 'Error occurred while uploading image');
                 }
+                imageString = result.fileName;
             }
 
             const result = await submitIntervention(imageString);
             if (!result.success) {
-                throw result.message
+                throw new Error(result.message);
             }
+            
             setCurrentStep('success');
         } catch (error) {
-            setError(String(error) || 'An unexpected error occurred');
+            console.error('Submit error:', error);
+            setError(error.message || 'An unexpected error occurred');
             setCurrentStep('error');
-        } finally {
-            setIsLoading(false);
         }
     };
 
     const handleRetry = () => {
-        handleSubmit()
+        setError('');
+        handleSubmit();
     };
 
     const handleClose = () => {
         if (currentStep === 'uploading') return; // Prevent closing during upload
-
-        // Reset state
-        setCurrentStep('form');
-
-        setSelectedImage(null);
-        setError('');
         onClose();
     };
 
     const handleSuccessClose = () => {
-        handleClose();
         if (onSuccess) onSuccess();
+        onClose();
     };
 
+    // Don't render anything if modal is not open
+    if (!isOpen) return null;
 
     return (
         <AnimatePresence>
@@ -192,14 +200,14 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
 
                     {/* Content */}
                     <div className="p-6">
-                        {/* Form Step */}
-
-
                         {/* Uploading Step */}
                         {currentStep === 'uploading' && (
                             <div className="flex flex-col items-center justify-center py-12">
                                 <Loader2 className="w-12 h-12 text-green-600 animate-spin mb-4" />
                                 <h3 className="text-lg font-medium text-gray-900 mb-2">Uploading Intervention</h3>
+                                <p className="text-gray-600 text-center">
+                                    Please wait while we upload your intervention data...
+                                </p>
                             </div>
                         )}
 
@@ -226,12 +234,20 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
                                 <p className="text-red-600 text-center mb-6">{error}</p>
                             </div>
                         )}
+
+                        {/* Form Step (if you want to show a form before upload) */}
+                        {currentStep === 'form' && (
+                            <div className="flex flex-col items-center justify-center py-12">
+                                <Loader2 className="w-8 h-8 text-green-600 animate-spin mb-4" />
+                                <p className="text-gray-600 text-center">
+                                    Preparing upload...
+                                </p>
+                            </div>
+                        )}
                     </div>
 
                     {/* Footer */}
                     <div className="px-6 py-4 border-t border-gray-200 flex justify-end space-x-3">
-
-
                         {currentStep === 'success' && (
                             <button
                                 onClick={handleSuccessClose}
@@ -265,6 +281,5 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
         </AnimatePresence>
     );
 };
-
 
 export default InterventionUploadModal;

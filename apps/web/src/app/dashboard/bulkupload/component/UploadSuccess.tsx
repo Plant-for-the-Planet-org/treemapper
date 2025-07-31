@@ -87,15 +87,12 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
   const transformSpecies = (d) => {
     return d.map(record => ({
       clientId: generateUid('spc'),
-      scientificSpeciesId: null,
-      scientificSpeciesUid: null,
       speciesName: record.name,
       isUnknown: true,
       otherSpeciesName: record.name,
       count: record.count,
       createdAt: new Date(),
       updatedAt: new Date(),
-      deletedAt: null
     }));
   }
 

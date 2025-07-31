@@ -13,7 +13,7 @@ import { PrivacyToggle } from './components/PrivacyToggle';
 import { SelectField } from './components/SelectField';
 import { TextareaField } from './components/TextareaField';
 import { useToken } from '@/context/useTokenContext';
-import { generatePreSignUrl, getMyDetails, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
+import { generatePreSignUrl, getMyDetails, updateUserAvatar, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
 
 
 
@@ -39,13 +39,13 @@ const ProfileSettings = ({ goBack }) => {
     type: '',
     isPrivate: false
   });
-  
+
   const [file, setFile] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [validationErrors, setValidationErrors] = useState({});
   const [showSuccess, setShowSuccess] = useState(false);
-  
+
   const { accessToken } = useToken();
 
   useEffect(() => {
@@ -62,29 +62,29 @@ const ProfileSettings = ({ goBack }) => {
 
   const validateForm = () => {
     const errors = {};
-    
+
     if (!profile.firstname.trim()) {
       errors.firstname = 'First name is required';
     }
-    
+
     if (!profile.lastname.trim()) {
       errors.lastname = 'Last name is required';
     }
-    
+
     if (!profile.displayName.trim()) {
       errors.displayName = 'Display name is required';
     }
-    
+
     if (!profile.email.trim()) {
       errors.email = 'Email is required';
     } else if (!/\S+@\S+\.\S+/.test(profile.email)) {
       errors.email = 'Please enter a valid email address';
     }
-    
+
     if (profile.url && !/^https?:\/\/.+/.test(profile.url)) {
       errors.url = 'Please enter a valid URL starting with http:// or https://';
     }
-    
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -95,7 +95,7 @@ const ProfileSettings = ({ goBack }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-    
+
     // Clear validation error when user starts typing
     if (validationErrors[name]) {
       setValidationErrors(prev => ({
@@ -105,16 +105,18 @@ const ProfileSettings = ({ goBack }) => {
     }
   };
 
+
+
   const handleAvatarChange = async (e) => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setIsUploading(true);
       setFile(selectedFile);
-      
+
       // Create preview
       const previewUrl = URL.createObjectURL(selectedFile);
       setProfile(prev => ({ ...prev, image: previewUrl }));
-      
+
       // Simulate upload delay
       setTimeout(() => {
         setIsUploading(false);
@@ -123,32 +125,55 @@ const ProfileSettings = ({ goBack }) => {
   };
 
   const uploadViaAPI = async (selectedImage, uploadUrl) => {
-    // Mock upload function
-    return new Promise((resolve) => {
-      setTimeout(() => {
-        resolve({ success: true });
-      }, 1000);
-    });
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', selectedImage);
+
+      const response = await fetch(`/api/upload-image?uploadUrl=${encodeURIComponent(uploadUrl)}`, {
+        method: 'PUT',
+        body: formDataUpload,
+      });
+      console.log("klsdcosdc",response)
+      if (!response.ok) {
+        throw new Error('Upload failed');
+      }
+
+      const result = await response.json();
+      return result;
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
   };
+
+
 
   const uploadImage = async () => {
     try {
       if (!file) {
         throw 'Image Details not found';
       }
-      
+      console.log("SC","45")
       const presignedResponse = await generatePreSignUrl(accessToken, {
         fileName: String(new Date().getMilliseconds()),
         fileType: file?.type,
         folder: 'profile'
       });
+      console.log("SC","43")
 
       if (presignedResponse.statusCode !== 200 && presignedResponse.statusCode !== 201) {
         throw new Error(presignedResponse.message || 'Failed to get upload URL');
       }
+      console.log("SC","32")
 
       const response = await uploadViaAPI(file, presignedResponse.data.data.uploadUrl);
+      console.log("SDC", response)
       if (response.success) {
+      console.log("SC","56")
+
+        await updateUserAvatar(accessToken, {
+          avatarUrl: `${process.env.CDN}/production/profile/${presignedResponse.data.data.fileName}`
+        });
         return {
           fileName: presignedResponse.data.data.fileName,
           success: true
@@ -169,9 +194,9 @@ const ProfileSettings = ({ goBack }) => {
     if (!validateForm()) {
       return;
     }
-    
+
     setIsSaving(true);
-    
+
     try {
       let fileName = '';
       if (file) {
@@ -189,13 +214,12 @@ const ProfileSettings = ({ goBack }) => {
         payload['image'] = fileName;
       }
 
-      await updateUserDetails(accessToken, payload);
-      
+
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
       }, 3000);
-      
+
     } catch (error) {
       console.error('Save error:', error);
     } finally {
@@ -238,10 +262,10 @@ const ProfileSettings = ({ goBack }) => {
             </div>
 
             <div className="flex flex-col lg:flex-row gap-8">
-              <AvatarUpload 
+              <AvatarUpload
                 profile={profile}
                 onAvatarChange={handleAvatarChange}
-                isUploading={isUploading} generateAnimalAvatar={generateAnimalAvatar}              />
+                isUploading={isUploading} generateAnimalAvatar={generateAnimalAvatar} />
 
               <div className="flex-1 space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -250,24 +274,24 @@ const ProfileSettings = ({ goBack }) => {
                     name="firstname"
                     value={profile.firstname}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.firstname }} placeholder={undefined} readOnly={undefined}                  />
-                  
+                    validation={{ error: validationErrors.firstname }} placeholder={undefined} readOnly={undefined} />
+
                   <InputField
                     label="Last Name"
                     name="lastname"
                     value={profile.lastname}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.lastname }} placeholder={undefined} readOnly={undefined}                  />
-                  
+                    validation={{ error: validationErrors.lastname }} placeholder={undefined} readOnly={undefined} />
+
                   <div className="md:col-span-2">
                     <InputField
                       label="Display Name"
                       name="displayName"
                       value={profile.displayName}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.displayName }} placeholder={undefined} readOnly={undefined}                    />
+                      validation={{ error: validationErrors.displayName }} placeholder={undefined} readOnly={undefined} />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <InputField
                       label="Email"
@@ -275,9 +299,9 @@ const ProfileSettings = ({ goBack }) => {
                       type="email"
                       value={profile.email}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.email }} placeholder={undefined} readOnly={true}                    />
+                      validation={{ error: validationErrors.email }} placeholder={undefined} readOnly={true} />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <InputField
                       label="Website URL"
@@ -286,18 +310,18 @@ const ProfileSettings = ({ goBack }) => {
                       value={profile.url}
                       onChange={handleProfileChange}
                       placeholder="https://yourwebsite.com"
-                      validation={{ error: validationErrors.url }} readOnly={undefined}                    />
+                      validation={{ error: validationErrors.url }} readOnly={undefined} />
                   </div>
-                  
+
                   <div className="md:col-span-2">
                     <InputField
                       label="Profile Slug"
                       name="slug"
                       value={profile.slug}
                       readOnly
-                      validation={{ hint: "Your unique profile identifier" }} onChange={undefined} placeholder={undefined}                    />
+                      validation={{ hint: "Your unique profile identifier" }} onChange={undefined} placeholder={undefined} />
                   </div>
-                  
+
                   {/* <div className="md:col-span-2">
                     <SelectField
                       label="Account Type"
@@ -316,7 +340,7 @@ const ProfileSettings = ({ goBack }) => {
                   name="bio"
                   value={profile.bio}
                   onChange={handleProfileChange}
-                  placeholder="Tell us about yourself..." validation={undefined}                />
+                  placeholder="Tell us about yourself..." validation={undefined} />
               </div>
             </div>
           </div>
@@ -331,7 +355,7 @@ const ProfileSettings = ({ goBack }) => {
             <PrivacyToggle profile={profile} onChange={handleProfileChange} />
           </div>
 
-          <ActionButtons 
+          <ActionButtons
             onSave={handleSave}
             isSaving={isSaving}
             onCancel={handleCancel}

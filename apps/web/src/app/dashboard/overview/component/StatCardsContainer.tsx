@@ -116,6 +116,10 @@ const StatCardsContainer = ({ setTotalTrees }) => {
             return 0
           }
 
+          if(!Number(value)){
+            return 0
+          }
+
           return value
         }
 

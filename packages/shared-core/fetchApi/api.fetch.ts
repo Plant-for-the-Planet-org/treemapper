@@ -132,7 +132,7 @@ export const getMyWorkspaceProjects = async (token: string) => {
 }
 
 export const getSingleProjectDetails = async (token: string, prid: string) => {
-  const uri = `${getUrlApi.projects}/${prid}`
+  const uri = `${getUrlApi.singleproject}/${prid}`
   const result = await fetchGetCall(uri, token)
   return result
 }

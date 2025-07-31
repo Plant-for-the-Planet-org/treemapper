@@ -1224,7 +1224,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
             />
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            {/* <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
               <Button variant="outline" onClick={() => setShowLocationDialog(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
                 Update Location
@@ -1237,7 +1237,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Species
               </Button>
-            </div>
+            </div> */}
           </CardContent>
         )}
       </Card>

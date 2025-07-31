@@ -110,6 +110,7 @@ const SpeciesManagementDashboard = () => {
 
   useEffect(() => {
     fetchProjectSpecies();
+    setSelectedUnknownSpecies([])
   }, [selectedProject]);
 
   const fetchProjectSpecies = async () => {
@@ -237,20 +238,36 @@ const SpeciesManagementDashboard = () => {
     }
     await updateSpciesFav(accessToken, { fav: fav }, selectedProject.uid, uid)
   };
-
   const handleToggleDisabled = async (uid, dis) => {
-    const updateSpecies = (speciesList) =>
-      speciesList.map(species =>
-        species.uid === uid ? { ...species, disabled: !species.disabled, updatedAt: new Date().toISOString() } : species
-      );
+    // Find if the species is in scientific or unknown species
+    const isScientificSpecies = scientificSpecies.some(species => species.uid === uid);
+    const isUnknownSpecies = unknownSpecies.some(species => species.uid === uid);
 
-    setScientificSpecies(updateSpecies);
-    setUnknownSpecies(updateSpecies);
+    if (isScientificSpecies) {
+      setScientificSpecies(prev =>
+        prev.map(species =>
+          species.uid === uid
+            ? { ...species, isDisabled: !species.isDisabled, updatedAt: new Date().toISOString() }
+            : species
+        )
+      );
+    }
+
+    if (isUnknownSpecies) {
+      setUnknownSpecies(prev =>
+        prev.map(species =>
+          species.uid === uid
+            ? { ...species, isDisabled: !species.isDisabled, updatedAt: new Date().toISOString() }
+            : species
+        )
+      );
+    }
 
     if (selectedSpecies?.uid === uid) {
-      setSelectedSpecies({ ...selectedSpecies, disabled: !selectedSpecies.disabled });
+      setSelectedSpecies({ ...selectedSpecies, isDisabled: !selectedSpecies.isDisabled });
     }
-    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, uid)
+
+    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, uid);
   };
 
   const handleImageUpload = (e) => {
@@ -524,12 +541,19 @@ const SpeciesManagementDashboard = () => {
 
   // Bulk operations
   const handleCheckboxChange = (uid) => {
-    setSelectedUnknownSpecies(prev =>
-      prev.includes(uid)
+    console.log('Checkbox clicked for UID:', uid);
+    console.log('Current selected:', selectedUnknownSpecies);
+
+    setSelectedUnknownSpecies(prev => {
+      const newSelection = prev.includes(uid)
         ? prev.filter(id => id !== uid)
-        : [...prev, uid]
-    );
+        : [...prev, uid];
+
+      console.log('New selection:', newSelection);
+      return newSelection;
+    });
   };
+
 
   const handleClearSelection = () => {
     setSelectedUnknownSpecies([]);
@@ -633,8 +657,8 @@ const SpeciesManagementDashboard = () => {
                   onToggleFavorite={handleToggleFavorite}
                   onToggleDisabled={handleToggleDisabled}
                   isUnknown={species.isUnknown}
-                  showCheckbox={species.isUnknown}
-                  isChecked={selectedUnknownSpecies.includes(species.uid)}
+                  showCheckbox={species.isUnknown} // Only show checkbox for unknown species
+                  isChecked={selectedUnknownSpecies.includes(species.uid)} // This should work correctly now
                   onCheckboxChange={handleCheckboxChange}
                 />
               ))}
@@ -824,13 +848,13 @@ const SpeciesManagementDashboard = () => {
                     <Trash2 size={14} />
                     Delete
                   </button> : null}
-                  <button
+                  {selectedSpecies.isUnknown ? null : <button
                     onClick={handleStartEdit}
                     className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
                   >
                     <Edit2 size={14} />
                     Edit
-                  </button>
+                  </button>}
                 </>
               )}
             </div>

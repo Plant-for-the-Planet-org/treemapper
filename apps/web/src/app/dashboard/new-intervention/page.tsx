@@ -42,6 +42,7 @@ import { getSciencetificSpecies, getUserProjectSites } from '@shared-core/fetchA
 import ProjectMap from './component/InterventionSelectMap'
 import GeoJSONFileUpload from '@/component/GeoJSONfileupload'
 import InterventionUploadModal from './component/InterventionUploadModal';
+import { useRouter } from 'next/navigation';
 
 // Validation configuration
 const VALIDATION_CONFIG = {
@@ -1265,7 +1266,7 @@ const InterventionCreator = ({ goBack }) => {
   const [fetchingSites] = useState(false);
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
-
+  const router = useRouter()
   useEffect(() => {
     if (selectedProject) {
       fetchAllSites()
@@ -1539,13 +1540,16 @@ const InterventionCreator = ({ goBack }) => {
 
           <InterventionUploadModal
             accessToken={accessToken}
-            imageRef={fileInputRef}
-            isOpen={startUpload !== null} onClose={() => { setStartUpload(null) }} onSuccess={goBack} formData={startUpload} image={formData.image} />
+            isOpen={startUpload !== null}
+            onClose={() => { setStartUpload(null), router.back() }}
+            onSuccess={goBack}
+            formData={startUpload}
+            image={formData.image} />
 
           {/* Form Actions */}
-          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8 ">
-            <div className="flex  sm:flex-row items-center justify-between gap-4">
-              <button
+          <div className=" ">
+            <div className="flex  sm:flex-row items-center justify-end gap-4">
+              {/* <button
                 type="button"
                 onClick={() => {
                   if (window.confirm('Are you sure you want to cancel? All changes will be lost.')) {
@@ -1556,7 +1560,7 @@ const InterventionCreator = ({ goBack }) => {
                 disabled={isSubmitting}
               >
                 Cancel
-              </button>
+              </button> */}
               <button
                 type="submit"
                 disabled={isSubmitting}
