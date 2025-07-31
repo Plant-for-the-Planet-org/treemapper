@@ -676,8 +676,7 @@ LIMIT ${limit} OFFSET ${offset}
     // Main query to get interventions with related data
     const interventionsData = await this.drizzleService.db
       .select({
-        // Intervention data
-        intervention: {
+        interventionD: {
           id: intervention.id,
           uid: intervention.uid,
           hid: intervention.hid,
@@ -735,8 +734,9 @@ LIMIT ${limit} OFFSET ${offset}
       .orderBy(desc(intervention.interventionStartDate));
 
     // Get child interventions for each intervention
-    const interventionIds = interventionsData.map(i => i.intervention.id);
-
+    const interventionIds = interventionsData
+      .filter(i => i.interventionD !== null)
+      .map(i => i.interventionD.id);
     const childInterventions = interventionIds.length > 0 ? await this.drizzleService.db
       .select({
         parentId: intervention.parentInterventionId,
@@ -799,17 +799,17 @@ LIMIT ${limit} OFFSET ${offset}
 
     // Transform the data into the export format
     const exportedInterventions: any[] = interventionsData.map(data => {
-      const { intervention, project, site, user } = data;
-      if (!intervention) {
+      const { interventionD, project, site, user } = data;
+      if (!interventionD) {
         return null
       }
       return {
         // Basic Information
-        interventionId: intervention.uid,
-        humanReadableId: intervention.hid,
-        interventionType: intervention.type,
-        status: intervention.status || 'active',
-        isPrivate: intervention.isPrivate,
+        interventionId: interventionD.uid,
+        humanReadableId: interventionD.hid,
+        interventionType: interventionD.type,
+        status: interventionD.status || 'active',
+        isPrivate: interventionD.isPrivate,
 
         // Required createdBy property
         createdBy: user
@@ -820,33 +820,33 @@ LIMIT ${limit} OFFSET ${offset}
           : null,
 
         // Dates and Timeline
-        registrationDate: intervention.registrationDate.toISOString(),
-        interventionStartDate: intervention.interventionStartDate.toISOString(),
-        interventionEndDate: intervention.interventionEndDate.toISOString(),
-        createdAt: intervention.createdAt.toISOString(),
-        lastUpdatedAt: intervention.updatedAt.toISOString(),
+        registrationDate: interventionD.registrationDate.toISOString(),
+        interventionStartDate: interventionD.interventionStartDate.toISOString(),
+        interventionEndDate: interventionD.interventionEndDate.toISOString(),
+        createdAt: interventionD.createdAt.toISOString(),
+        lastUpdatedAt: interventionD.updatedAt.toISOString(),
 
         // Location and Geography
-        location: intervention.originalGeometry || null,
-        deviceLocation: intervention.deviceLocation,
+        location: interventionD.originalGeometry || null,
+        deviceLocation: interventionD.deviceLocation,
 
         // Tree and Species Information
-        totalTreeCount: intervention.treeCount || 0,
-        sampleTreeCount: intervention.sampleTreeCount || 0,
-        speciesPlanted: (intervention.species as any[])?.map(species => ({
+        totalTreeCount: interventionD.treeCount || 0,
+        sampleTreeCount: interventionD.sampleTreeCount || 0,
+        speciesPlanted: (interventionD.species as any[])?.map(species => ({
           speciesId: species.uid,
           scientificSpeciesId: species.scientificSpeciesId,
           speciesName: species.speciesName || 'Unknown',
           isUnknownSpecies: species.isUnknown || false,
           otherSpeciesName: species.otherSpeciesName,
           treeCount: species.count || 0,
-          createdAt: species.createdAt || intervention.createdAt.toISOString(),
+          createdAt: species.createdAt || interventionD.createdAt.toISOString(),
         })) || [],
 
         // Capture Information
-        captureMode: intervention.captureMode,
-        captureStatus: intervention.captureStatus,
-        imageUrl: intervention.image || '',
+        captureMode: interventionD.captureMode,
+        captureStatus: interventionD.captureStatus,
+        imageUrl: interventionD.image || '',
 
         // Project and Site Context
         project: project ? {
@@ -860,7 +860,7 @@ LIMIT ${limit} OFFSET ${offset}
         } : null,
 
         // Associated Trees
-        trees: (treesByIntervention.get(intervention.id) || []).map(tree => ({
+        trees: (treesByIntervention.get(interventionD.id) || []).map(tree => ({
           treeId: tree.uid,
           humanReadableId: tree.hid,
           tag: tree.tag,
@@ -875,14 +875,14 @@ LIMIT ${limit} OFFSET ${offset}
         })),
 
         // Audit Information
-        isFlagged: intervention.flag || false,
-        flagReasons: intervention.flagReason as any[] || [],
+        isFlagged: interventionD.flag || false,
+        flagReasons: interventionD.flagReason as any[] || [],
 
         // Migration Information
-        isMigrated: intervention.migratedIntervention || false,
+        isMigrated: interventionD.migratedIntervention || false,
 
         // Metadata
-        additionalMetadata: intervention.metadata,
+        additionalMetadata: interventionD.metadata,
       };
     });
 
