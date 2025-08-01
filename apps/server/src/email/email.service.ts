@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as handlebars from 'handlebars';
 import axios from 'axios';
+import { EMAIL_TEMPLATES } from './templates';
 
 @Injectable()
 export class EmailService {
@@ -176,11 +177,11 @@ export class EmailService {
   }): Promise<boolean> {
     try {
       // Load template
-      const templatePath = path.join(this.emailTemplatesDir, `${templateName}.hbs`);
-      const template = fs.readFileSync(templatePath, 'utf8');
+      // const templatePath = path.join(this.emailTemplatesDir, `${templateName}.hbs`);
+      // const template = fs.readFileSync(templatePath, 'utf8');
 
       // Compile template with Handlebars
-      const compiledTemplate = handlebars.compile(template);
+      const compiledTemplate = handlebars.compile(EMAIL_TEMPLATES.PROJECT_INVITE);
       const html = compiledTemplate(context);
 
       // Send email using SMTP if transporter is configured, otherwise use API
