@@ -10,6 +10,8 @@ import {
     HttpCode,
     ValidationPipe,
     HttpException,
+    Param,
+    Put,
 } from '@nestjs/common';
 import {
     ApiTags,
@@ -74,10 +76,23 @@ export class WorkspaceController {
         return await this.workspaceService.clearServerCache(user);
     }
 
-    // @Get()
-    // async findAllByUser(@Req() req: AuthenticatedRequest): Promise<UserOrganizationResponseDto[]> {
-    //     return this.organizationsService.findAllByUser(req.user.id);
-    // }
+
+
+    @Get('/members')
+    async findUsers(@CurrentUser() user: User): Promise<any[]> {
+        return await this.workspaceService.findUsers(user);
+    }
+
+    @Put('/impersonate/:person')
+    async impoersonateUser(@Param('person') person: string, @CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.startImpersonation(person, user);
+    }
+
+    @Put('/impersonate/exit')
+    async impoersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.impersonationexit(user);
+    }
+
 
     // Additional endpoints you might want to add later:
 

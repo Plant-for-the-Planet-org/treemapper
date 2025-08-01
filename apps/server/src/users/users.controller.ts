@@ -32,6 +32,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
+import { user } from 'src/database/schema';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -41,6 +42,7 @@ export class UsersController {
 
   @Get('me')
   async getProfile(@CurrentUser() users: User) {
+    console.log("IOPSDC", users)
     return {
       uid: users.uid,
       email: users.email,
@@ -59,9 +61,13 @@ export class UsersController {
       migratedAt: users.migratedAt,
       existingPlanetUser: users.existingPlanetUser,
       primaryWorkspace: users.primaryWorkspace,
-      primaryProject: users.primaryProject
+      primaryProject: users.primaryProject,
+      workspace: users.workspace,
+      impersonated: users.impersonate !== null ? true : null
     }
   }
+
+
 
 
   @Post('onboarding')
@@ -73,6 +79,8 @@ export class UsersController {
   async updateUserAvatar(@Body() avatarDto: AvatarDTO, @CurrentUser() user: User,) {
     return await this.usersService.updateUserAvatar(avatarDto.avatarUrl, user);
   }
+
+
 
 
   //   // @ApiExcludeEndpoint()

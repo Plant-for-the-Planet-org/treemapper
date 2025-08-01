@@ -153,6 +153,116 @@ export class WorkspaceService {
       };
     }
   }
+
+  async findUsers(userData: User) {
+    try {
+      if (!userData.primaryWorkspace) {
+        throw new Error('No workspace set');
+      }
+
+      if (userData.workspace === 'member') {
+        throw new Error('Not permitted');
+      }
+
+      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspace);
+      if (!workspaceId) {
+        throw new Error('No workspace found');
+      }
+      const users = await this.drizzle.db
+        .select({
+          uid: workspaceMember.uid,
+          role: workspaceMember.role,
+          status: workspaceMember.status,
+          joinedAt: workspaceMember.joinedAt,
+          invitedAt: workspaceMember.invitedAt,
+          lastActiveAt: workspaceMember.lastActiveAt,
+          userUid: user.uid,
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          displayName: user.displayName,
+          image: user.image,
+          slug: user.slug,
+          type: user.type,
+          country: user.country,
+          isActive: user.isActive,
+          lastLoginAt: user.lastLoginAt,
+          locale: user.locale,
+        })
+        .from(workspaceMember)
+        .leftJoin(user, eq(workspaceMember.userId, user.id))
+        .where(eq(workspaceMember.workspaceId, workspaceId));
+
+      return users;
+
+    } catch (error) {
+      console.error('Error finding workspace users:', error);
+      throw error;
+    }
+  }
+
+  async startImpersonation(person: string, userData: User) {
+    console.log("SDC workspaceId", person)
+    try {
+      if (!userData.primaryWorkspace) {
+        throw new Error('No workspace set');
+      }
+
+      if (userData.workspace === 'member') {
+        throw new Error('Not permitted');
+      }
+
+      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspace);
+      if (!workspaceId) {
+        throw new Error('No workspace found');
+      }
+      console.log("SDC workspaceId", workspaceId)
+
+      const personDetails = await this.drizzle.db
+        .select({ id: user.id, auth: user.auth0Id })
+        .from(user)
+        .where(eq(user.uid, person))
+        .limit(1)
+      console.log("SDC", personDetails)
+      if (personDetails.length === 0) {
+        throw 'no person found'
+      }
+      const impoersonateWorked = await this.drizzle.db
+        .update(user)
+        .set({ impersonate: personDetails[0].auth })
+        .where(eq(user.id, userData.id))
+        .then(res => res[0])
+      if (impoersonateWorked) {
+        await this.userCacheService.invalidateUser(user)
+        return true
+      } else {
+        return false
+      }
+    } catch (error) {
+      return false
+    }
+  }
+
+  async impersonationexit(userData: any) {
+    try {
+
+      const impoersonateWorked = await this.drizzle.db
+        .update(user)
+        .set({ impersonate: null })
+        .where(eq(user.uid, userData.impersonate))
+        .then(res => res[0])
+      if (impoersonateWorked) {
+        return true
+      } else {
+        return false
+      }
+    } catch (error) {
+      console.log("SDC",error)
+      return false
+    }
+  }
+
+  
   //   /**
   //    * Get all organizations that a user belongs to
   //    */

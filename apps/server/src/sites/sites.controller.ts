@@ -16,8 +16,8 @@ import {
 import { ProjectRoles } from './decorators/project-roles.decorator';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
-import { SiteService } from './sites.service';
-import { CreateSiteDto, QuerySitesDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dto';
+import { GrantAccessDto, RevokeAccessDto, SiteService } from './sites.service';
+import { CreateSiteDto, QuerySitesDto, UpdateSiteDto } from './dto/site.dto';
 import { Membership } from 'src/projects/decorators/membership.decorator';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 
@@ -36,26 +36,22 @@ export class SiteController {
     @Body() createSiteDto: CreateSiteDto,
     @Req() req: any
   ) {
-
     const site = await this.siteService.createSite(
       membership,
       createSiteDto,
     );
-
     return site
   }
 
   @Get()
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
   async getAllSites(
     @Membership() membership: ProjectGuardResponse,
     @Query() queryDto: QuerySitesDto,
   ) {
-    // All project members can view sites
     const result = await this.siteService.getAllSitesByProject(
       membership);
-
     return result;
   }
 
@@ -79,6 +75,59 @@ export class SiteController {
       message: 'Site updated successfully',
       data: site,
     };
+  }
+
+  @Get(':siteUid/members')
+  async getSiteMembers(@Param('siteUid') siteUid: string) {
+    try {
+      const members = await this.siteService.getSiteMembers(siteUid);
+      return {
+        statusCode: HttpStatus.OK,
+        data: members
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * POST /sites/:siteUid/access/grant
+   * Grant site access to a specific contributor/observer
+   */
+  @Post(':siteUid/access/grant')
+  async grantSiteAccess(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: GrantAccessDto
+  ) {
+    try {
+      const result = await this.siteService.grantSiteAccess(siteUid, dto);
+      return {
+        statusCode: HttpStatus.OK,
+        message: result.message
+      };
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * DELETE /sites/:siteUid/access/revoke
+   * Revoke site access from a specific contributor/observer
+   */
+  @Delete(':siteUid/access/revoke')
+  async revokeSiteAccess(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: RevokeAccessDto
+  ) {
+    try {
+      const result = await this.siteService.revokeSiteAccess(siteUid, dto);
+      return {
+        statusCode: HttpStatus.OK,
+        message: result.message
+      };
+    } catch (error) {
+      throw error;
+    }
   }
 
 

@@ -12,140 +12,121 @@
     }
     
     body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-      line-height: 1.6;
-      color: #2D3748;
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      padding: 20px 10px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+      line-height: 1.5;
+      color: #37352F;
+      background-color: #FAFAFA;
+      padding: 40px 20px;
     }
     
     .email-container {
-      max-width: 680px;
+      max-width: 600px;
       margin: 0 auto;
-      background: #ffffff;
-      border-radius: 16px;
+      background: #FFFFFF;
+      border-radius: 8px;
+      border: 1px solid #E9E9E7;
       overflow: hidden;
-      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
     }
     
     .header {
-      position: relative;
-      background: linear-gradient(135deg, #1a5f3f 0%, #2d8659 50%, #38a169 100%);
-      color: white;
-      padding: 0;
-      overflow: hidden;
-      height: 280px;
-    }
-    
-    .header-bg {
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-image: url('https://images.unsplash.com/photo-1441974231531-c6227db76b6e?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
-      background-size: cover;
-      background-position: center;
-      opacity: 0.3;
-    }
-    
-    .header-content {
-      position: relative;
-      z-index: 2;
-      padding: 60px 40px 40px;
-      text-align: center;
+      background: #FFFFFF;
+      padding: 40px 40px 24px;
+      border-bottom: 1px solid #F1F1EF;
     }
     
     .logo {
-      width: 64px;
-      height: 64px;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      margin: 0 auto 24px;
+      width: 40px;
+      height: 40px;
+      background: #2F7D32;
+      border-radius: 6px;
+      margin-bottom: 24px;
       display: flex;
       align-items: center;
       justify-content: center;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
     }
     
     .logo svg {
-      width: 32px;
-      height: 32px;
+      width: 20px;
+      height: 20px;
       fill: white;
     }
     
     .header h1 {
-      font-size: 32px;
-      font-weight: 700;
+      font-size: 24px;
+      font-weight: 600;
+      color: #37352F;
       margin-bottom: 8px;
-      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
     }
     
     .header p {
       font-size: 16px;
-      opacity: 0.9;
+      color: #6F6E69;
       font-weight: 400;
     }
     
     .content {
-      padding: 48px 40px;
+      padding: 32px 40px;
     }
     
     .greeting {
-      font-size: 18px;
-      color: #2D3748;
+      font-size: 16px;
+      color: #37352F;
       margin-bottom: 32px;
     }
     
-    .invitation-card {
-      background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
-      border-radius: 12px;
-      padding: 32px;
-      margin-bottom: 32px;
-      border-left: 4px solid #38a169;
+    .invitation-section {
+      margin-bottom: 40px;
     }
     
     .invitation-text {
       font-size: 16px;
-      line-height: 1.7;
+      line-height: 1.6;
+      color: #37352F;
       margin-bottom: 24px;
     }
     
+    .project-highlight {
+      background: #F8F8F7;
+      border: 1px solid #E9E9E7;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin: 24px 0;
+    }
+    
     .project-name {
-      color: #1a5f3f;
-      font-weight: 600;
+      color: #2F7D32;
+      font-weight: 500;
     }
     
     .role-badge {
       display: inline-block;
-      background: linear-gradient(135deg, #38a169 0%, #2d8659 100%);
+      background: #2F7D32;
       color: white;
-      padding: 6px 16px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 600;
-      margin: 0 4px;
+      padding: 4px 12px;
+      border-radius: 4px;
+      font-size: 13px;
+      font-weight: 500;
+      margin-left: 8px;
     }
     
     .permissions-section {
-      margin: 32px 0;
+      margin-bottom: 40px;
     }
     
-    .permissions-title {
-      font-size: 18px;
-      font-weight: 600;
-      color: #2D3748;
-      margin-bottom: 16px;
+    .section-title {
+      font-size: 16px;
+      font-weight: 500;
+      color: #37352F;
+      margin-bottom: 20px;
       display: flex;
       align-items: center;
     }
     
-    .permissions-title svg {
-      width: 20px;
-      height: 20px;
+    .section-title svg {
+      width: 16px;
+      height: 16px;
       margin-right: 8px;
-      fill: #38a169;
+      fill: #6F6E69;
     }
     
     .permissions-list {
@@ -155,145 +136,129 @@
     }
     
     .permissions-list li {
-      padding: 12px 0;
-      border-bottom: 1px solid #e2e8f0;
+      padding: 8px 0;
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       font-size: 15px;
-      color: #4a5568;
-    }
-    
-    .permissions-list li:last-child {
-      border-bottom: none;
+      color: #37352F;
+      line-height: 1.5;
     }
     
     .permissions-list li::before {
-      content: "✓";
-      color: #38a169;
+      content: "•";
+      color: #6F6E69;
       font-weight: bold;
       margin-right: 12px;
-      width: 20px;
-      height: 20px;
-      background: #f0fff4;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 12px;
-    }
-    
-    .expiry-notice {
-      background: #fef5e7;
-      border: 1px solid #f6e05e;
-      border-radius: 8px;
-      padding: 16px;
-      margin: 24px 0;
-      display: flex;
-      align-items: center;
-    }
-    
-    .expiry-notice svg {
-      width: 20px;
-      height: 20px;
-      fill: #d69e2e;
-      margin-right: 12px;
+      margin-top: 2px;
       flex-shrink: 0;
     }
     
-    .expiry-notice p {
-      color: #744210;
+    .expiry-section {
+      background: #FDF4E6;
+      border: 1px solid #F5E6C8;
+      border-radius: 6px;
+      padding: 16px 20px;
+      margin-bottom: 40px;
+      display: flex;
+      align-items: flex-start;
+    }
+    
+    .expiry-section svg {
+      width: 16px;
+      height: 16px;
+      fill: #B8860B;
+      margin-right: 12px;
+      margin-top: 2px;
+      flex-shrink: 0;
+    }
+    
+    .expiry-section p {
+      color: #8B4513;
       font-size: 14px;
       margin: 0;
+      line-height: 1.4;
     }
     
     .cta-section {
-      text-align: center;
-      margin: 40px 0;
+      margin-bottom: 32px;
     }
     
     .cta-button {
       display: inline-block;
-      background: linear-gradient(135deg, #38a169 0%, #2d8659 100%);
-      color: white;
+      background: #2F7D32;
+      color: white !important;
       text-decoration: none;
-      padding: 16px 32px;
-      border-radius: 8px;
-      font-weight: 600;
-      font-size: 16px;
-      transition: all 0.2s ease;
-      box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+      padding: 12px 24px;
+      border-radius: 6px;
+      font-weight: 500;
+      font-size: 15px;
+      transition: background-color 0.2s ease;
+      border: none;
+      cursor: pointer;
     }
     
     .cta-button:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 8px 15px -3px rgba(0, 0, 0, 0.1);
+      background: #1B5E20;
+      color: white !important;
+    }
+    
+    .cta-button:visited {
+      color: white !important;
+    }
+    
+    .cta-button:active {
+      color: white !important;
     }
     
     .decline-text {
-      margin-top: 24px;
-      color: #718096;
+      margin-top: 20px;
+      color: #6F6E69;
       font-size: 14px;
-      text-align: center;
     }
     
-    .forest-image {
-      width: 100%;
-      height: 120px;
-      background-image: url('https://images.unsplash.com/photo-1574263867128-f0197b11ca7d?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80');
-      background-size: cover;
-      background-position: center;
-      border-radius: 8px;
+    .divider {
+      height: 1px;
+      background: #F1F1EF;
       margin: 32px 0;
-      position: relative;
-      overflow: hidden;
-    }
-    
-    .forest-image::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(45deg, rgba(56, 161, 105, 0.1) 0%, rgba(45, 134, 89, 0.1) 100%);
     }
     
     .footer {
-      background: #f7fafc;
-      padding: 32px 40px;
+      background: #FAFAFA;
+      padding: 24px 40px;
       text-align: center;
-      border-top: 1px solid #e2e8f0;
+      border-top: 1px solid #F1F1EF;
     }
     
     .footer p {
-      color: #718096;
+      color: #6F6E69;
       font-size: 13px;
-      margin: 0;
+      margin: 4px 0;
+      line-height: 1.4;
     }
     
     @media (max-width: 640px) {
       body {
-        padding: 10px 5px;
+        padding: 20px 10px;
       }
       
-      .header-content {
-        padding: 40px 24px 24px;
-      }
-      
-      .header h1 {
-        font-size: 24px;
+      .header {
+        padding: 32px 24px 20px;
       }
       
       .content {
-        padding: 32px 24px;
-      }
-      
-      .invitation-card {
-        padding: 24px 20px;
+        padding: 24px 24px;
       }
       
       .footer {
-        padding: 24px 20px;
+        padding: 20px 24px;
+      }
+      
+      .project-highlight {
+        padding: 12px 16px;
+      }
+      
+      .expiry-section {
+        padding: 12px 16px;
       }
     }
   </style>
@@ -301,74 +266,70 @@
 <body>
   <div class="email-container">
     <div class="header">
-      <div class="header-bg"></div>
-      <div class="header-content">
-        <div class="logo">
-          <svg viewBox="0 0 24 24">
-            <path d="M12,2A10,10 0 0,0 2,12A10,10 0 0,0 12,22A10,10 0 0,0 22,12A10,10 0 0,0 12,2M12,4A8,8 0 0,1 20,12A8,8 0 0,1 12,20A8,8 0 0,1 4,12A8,8 0 0,1 12,4M12,8A4,4 0 0,0 8,12A4,4 0 0,0 12,16A4,4 0 0,0 16,12A4,4 0 0,0 12,8Z"/>
-          </svg>
-        </div>
-        <h1>You're Invited!</h1>
-        <p>Join our TreeMapper community</p>
-      </div>
+      <h1>Project Invitation</h1>
+      <p>You've been invited to collaborate</p>
     </div>
     
     <div class="content">
       <div class="greeting">
-        <p>Hello there! 👋</p>
+        <p>Hi there,</p>
       </div>
       
-      <div class="invitation-card">
+      <div class="invitation-section">
         <div class="invitation-text">
-          <p><strong>{{inviterName}}</strong> has invited you to collaborate on the <span class="project-name">{{projectName}}</span> project as a <span class="role-badge">{{role}}</span>.</p>
+          <p><strong>{{inviterName}}</strong> has invited you to join the <span class="project-name">{{projectName}}</span> project.</p>
         </div>
-      </div>      
+        
+        <div class="project-highlight">
+          <p>Your role: <span class="role-badge">{{role}}</span></p>
+        </div>
+      </div>
+      
       <div class="permissions-section">
-        <div class="permissions-title">
+        <div class="section-title">
           <svg viewBox="0 0 24 24">
-            <path d="M12,1L3,5V11C3,16.55 6.84,21.74 12,23C17.16,21.74 21,16.55 21,11V5L12,1M12,7C13.4,7 14.8,8.6 14.8,10V11H16V16H8V11H9.2V10C9.2,8.6 10.6,7 12,7M12,8.2C11.2,8.2 10.4,8.7 10.4,10V11H13.6V10C13.6,8.7 12.8,8.2 12,8.2Z"/>
+            <path d="M12,17A2,2 0 0,0 14,15C14,13.89 13.1,13 12,13A2,2 0 0,0 10,15A2,2 0 0,0 12,17M18,8A2,2 0 0,1 20,10V20A2,2 0 0,1 18,22H6A2,2 0 0,1 4,20V10C4,8.89 4.9,8 6,8H7V6A5,5 0 0,1 12,1A5,5 0 0,1 17,6V8H18M12,3A3,3 0 0,0 9,6V8H15V6A3,3 0 0,0 12,3Z"/>
           </svg>
-          Your Role Permissions
+          What you can do
         </div>
         
         <ul class="permissions-list">
           {{#if (eq role "Admin")}}
-          <li>Manage project settings and configurations</li>
-          <li>Invite and manage team members</li>
-          <li>Add and edit sites, species, and tree data</li>
-          <li>Access comprehensive analytics and reports</li>
-          <li>Export and share project data</li>
+          <li>Manage project settings and team members</li>
+          <li>Add and edit all forest data</li>
+          <li>Access analytics and generate reports</li>
+          <li>Export project data</li>
           {{else if (eq role "Contributor")}}
           <li>Add and edit sites, species, and tree data</li>
-          <li>View project analytics and insights</li>
+          <li>View project analytics</li>
+          <li>Use field data collection tools</li>
           <li>Collaborate with team members</li>
-          <li>Access field data collection tools</li>
           {{else}}
           <li>View all project data and insights</li>
-          <li>Access read-only reports and analytics</li>
-          <li>Follow project progress and updates</li>
+          <li>Access reports and analytics</li>
+          <li>Track project progress</li>
           {{/if}}
         </ul>
       </div>
       
-      <div class="expiry-notice">
+      <div class="expiry-section">
         <svg viewBox="0 0 24 24">
-          <path d="M13,3A9,9 0 0,0 4,12H1L4.96,16.03L9,12H6A7,7 0 0,1 13,5A7,7 0 0,1 20,12A7,7 0 0,1 13,19C11.07,19 9.32,18.21 8.06,16.94L6.64,18.36C8.27,20 10.5,21 13,21A9,9 0 0,0 22,12A9,9 0 0,0 13,3Z"/>
+          <path d="M12,20A8,8 0 0,0 20,12A8,8 0 0,0 12,4A8,8 0 0,0 4,12A8,8 0 0,0 12,20M12,2A10,10 0 0,1 22,12A10,10 0 0,1 12,22C6.47,22 2,17.5 2,12A10,10 0 0,1 12,2M12.5,7V12.25L17,14.92L16.25,16.15L11,13V7H12.5Z"/>
         </svg>
-        <p><strong>Time sensitive:</strong> This invitation expires on <strong>{{expiryDate}}</strong></p>
+        <p><strong>Invitation expires:</strong> {{expiryDate}}</p>
       </div>
       
       <div class="cta-section">
-        <a href="{{inviteUrl}}" class="cta-button">Accept Invitation & Get Started</a>
+        <a href="{{inviteUrl}}" class="cta-button">Accept invitation</a>
         <div class="decline-text">
-          <p>Not interested? No worries - you can simply ignore this email.</p>
+          <p>Not interested? You can safely ignore this email.</p>
         </div>
       </div>
     </div>
     
     <div class="footer">
-      <p>🌲 This email was sent automatically by TreeMapper App</p>
-      <p>Please do not reply to this email. For support, visit our help center.</p>
+      <p>TreeMapper Forest Management</p>
+      <p>This is an automated message. Please don't reply to this email.</p>
     </div>
   </div>
 </body>

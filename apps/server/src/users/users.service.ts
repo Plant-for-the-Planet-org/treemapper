@@ -47,7 +47,9 @@ export class UsersService {
         flag: user.flag,
         flagReason: user.flagReason,
         primaryWorkspace: user.primaryWorkspace,
-        primaryProject: user.primaryProject
+        primaryProject: user.primaryProject,
+        workspace: user.workspace,
+        impersonate: user.impersonate
     } as const;
 
     private generateSlug(name: string): string {
@@ -69,7 +71,16 @@ export class UsersService {
                 .where(and(eq(user.auth0Id, auth0Id), isNull(user.deletedAt)))
                 .limit(1);
             if (existingUser.length > 0) {
-                await this.userCacheService.setUserByAuth({ ...existingUser[0] }, auth0Id);
+                if (existingUser[0].workspace !== 'member' && existingUser[0].impersonate !== null) {
+                    const impersonatedUser = await this.drizzleService.db
+                        .select(this.FULL_USER_SELECT)
+                        .from(user)
+                        .where(and(eq(user.auth0Id, existingUser[0].impersonate), isNull(user.deletedAt)))
+                        .limit(1);
+                    // await this.userCacheService.setUserByAuth({ ...impersonatedUser[0] }, auth0Id);
+
+                    return { ...impersonatedUser[0], impersonate: existingUser[0].uid }
+                }
                 return existingUser[0];
             }
             const userData = await this.drizzleService.db
@@ -88,6 +99,7 @@ export class UsersService {
             await this.userCacheService.setUserByAuth({ ...userData[0] }, auth0Id);
             return userData[0]
         } catch (error) {
+            console.log("ddfd", error)
             throw error;
         }
     }
