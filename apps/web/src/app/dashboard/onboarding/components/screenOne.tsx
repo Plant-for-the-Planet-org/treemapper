@@ -1,11 +1,12 @@
 import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Check, Users, Building, Target, ArrowRight } from 'lucide-react';
+import { Check, Users, Building, Target, ArrowRight, Lock, BeakerIcon, Beaker, FlaskConical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import Image from 'next/image';
 
 
 export const ScreenOne = ({ onNext }) => {
@@ -21,14 +22,21 @@ export const ScreenOne = ({ onNext }) => {
       title: 'Plant-for-the-Planet Platform',
       subtitle: 'To contribute to global reforestation efforts with transparent data sharing.',
       description: 'Data is shared publicly',
-      icon: <Users className="w-5 h-5" />,
+      icon: <Image
+        src="/pftp-logo.svg"
+        alt="TreeMapper Logo"
+        width={80}
+        height={80}
+        priority
+        className="w-5 h-5"
+      />,
     },
     {
       id: 'private',
       title: 'Personal/Organization Use',
       subtitle: 'Use TreeMapper for my Company/City/Personal use.',
       description: 'Data is kept private to you',
-      icon: <Building className="w-5 h-5" />,
+      icon: <Lock className="w-5 h-5" />,
       recommended: true
 
     },
@@ -37,7 +45,7 @@ export const ScreenOne = ({ onNext }) => {
       title: 'Trying It Out',
       subtitle: 'Explore all features of TreeMapper',
       description: 'Data auto deletes on 30 days of inactivity.',
-      icon: <Target className="w-5 h-5" />
+      icon: <FlaskConical className="w-5 h-5" />
     }
   ];
 
@@ -127,7 +135,7 @@ export const ScreenOne = ({ onNext }) => {
               <Card
                 key={plan.id}
                 className={`cursor-pointer transition-all hover:shadow-md relative ${formData.selectedPlan === plan.id
-                  ? 'ring-2 ring-green-500 border-green-500'
+                  ? 'ring-2 ring-green-700 border-green-700'
                   : 'hover:border-gray-300'
                   }`}
                 onClick={() => handlePlanSelect(plan.id)}
@@ -135,7 +143,7 @@ export const ScreenOne = ({ onNext }) => {
                 {plan.recommended && (
                   <Badge
                     variant="default"
-                    className="absolute -top-2 left-4 bg-green-600 z-10"
+                    className="absolute -top-2 left-4 bg-green-700 z-10"
                   >
                     Recommended
                   </Badge>

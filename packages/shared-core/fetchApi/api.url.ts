@@ -61,6 +61,8 @@ export const getUrlApi = {
   getOverviewGraph: `${baseUrl}/analytics/planting-overview`,
   getDashboardRecentAddition: `${baseUrl}/analytics/recent-additions`,
   getMyOrgs: `${baseUrl}/organizations`,
+  getSiteMembers: `${baseUrl}/projects`,
+  getWrokspaceMembers: `${baseUrl}/workspace/members`,
 } as const;
 
 export const patchUrlApi = {
@@ -83,7 +85,10 @@ export const putUrlApi = {
   updatePrjSpecies: `${baseUrl}/project-species`,
   updateSiteData: `${baseUrl}/projects`,
   avatarUpdate: `${baseUrl}/users/avatar`,
-  updateFavSpecies:`${baseUrl}/project-species`,
+  updateFavSpecies: `${baseUrl}/project-species`,
+  impersonateUser: `${baseUrl}/workspace/impersonate`,
+  impersonateUserExit: `${baseUrl}/workspace/impersonate/exit`,
+
 
 } as const;
 

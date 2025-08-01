@@ -466,11 +466,12 @@ const Overview = () => {
                 </div>
             </div>
             <StatCardsContainer setTotalTrees={setTotalTrees} />
-            {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
             <div className="px-4 py-6">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="h-full flex">
+                    <div className="h-full flex" style={{ flexDirection: 'column' }}>
+                        {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
                         <TreePlantingChart />
+
                     </div>
                     <div className="h-full flex">
                         <RecentAdditionsComponent />

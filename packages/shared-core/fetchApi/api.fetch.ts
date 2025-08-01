@@ -395,3 +395,28 @@ export const updateDisbaleSpecies = async (token: string, params: any, prjId: st
   const result = await fetchPutCall(uri, params, token);
   return result;
 };
+
+export const getallstieMembers = async (token: string, prjId: string, site: string) => {
+  const uri = `${getUrlApi.getSiteMembers}/${prjId}/sites/${site}/members`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const getWorkspaceMembers = async (token: string) => {
+  const uri = `${getUrlApi.getWrokspaceMembers}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const startImpersonationWork = async (token: string, person: string) => {
+  const uri = `${putUrlApi.impersonateUser}/${person}`;
+  const result = await fetchPutCall(uri, {}, token);
+  return result;
+};
+
+
+export const exitImpersonationWork = async (token: string) => {
+  const uri = `${putUrlApi.impersonateUser}/exit`;
+  const result = await fetchPutCall(uri, {}, token);
+  return result;
+};

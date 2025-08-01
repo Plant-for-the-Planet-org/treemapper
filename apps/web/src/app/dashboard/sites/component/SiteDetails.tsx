@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
-import { Save, X, Edit3, Trash2, MapPin, User, Calendar, Clock, AreaChart, FileText } from "lucide-react";
+import { Save, X, Edit3, Trash2, MapPin, User, Calendar, Clock, AreaChart, FileText, Users, UsersRound } from "lucide-react";
 import { InfoCard } from "./InfoCard";
 import SiteViewer from '@/component/DisplayGeoJSONMap';
 
 
-export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit, onSave, onCancel, onDelete }) => (
+export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit, onSave, onCancel, onDelete, siteAccessModal,setSiteAccessModal }) => (
   <motion.div
     initial={{ opacity: 0, x: 20 }}
     animate={{ opacity: 1, x: 0 }}
@@ -63,14 +63,14 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
               >
                 <Edit3 className="w-4 h-4" />
               </motion.button>
-              {/* <motion.button
+              <motion.button
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
-                onClick={onDelete}
-                className="bg-red-500/80 hover:bg-red-600 p-2 rounded-lg transition-colors"
+                onClick={()=>{setSiteAccessModal(true)}}
+                className="bg-white/20 hover:bg-white/30 p-2 rounded-lg transition-colors"
               >
-                <Trash2 className="w-4 h-4" />
-              </motion.button> */}
+                <UsersRound className="w-4 h-4" />
+              </motion.button>
             </>
           )}
         </div>

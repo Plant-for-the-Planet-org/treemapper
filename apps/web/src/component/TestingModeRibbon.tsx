@@ -6,13 +6,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'react-toastify';
 import Spinner from '@/component/Spinner';
 
-export const TestingModeRibbon = ({ onDisableClick,  }: { onDisableClick: () => void }) => {
-  const skewAngle = 20;
-  const   topText = "", 
-  topStrong = "Explore",
-  bottomText = "", 
-  bottomStrong = "Mode",
-  position = "bottom-[10vh]"
+export const TestingModeRibbon = ({ onDisableClick, mode }: { onDisableClick: () => void, mode: string, }) => {
+  const skewAngle = 16;
+  const topText = "",
+    topStrong = mode === 'impersonation' ? 'Impersonation' : "Development",
+    bottomText = "",
+    bottomStrong = "Mode",
+    position = "bottom-[20vh]"
   const growAnimation = {
     initial: {
       width: 0,
@@ -46,7 +46,7 @@ export const TestingModeRibbon = ({ onDisableClick,  }: { onDisableClick: () => 
         initial="initial"
         animate="animate"
       >
-        <span 
+        <span
           className="block"
           style={{
             transform: `skewY(-${skewAngle}deg) rotateZ(${skewAngle}deg)`
@@ -68,7 +68,7 @@ export const TestingModeRibbon = ({ onDisableClick,  }: { onDisableClick: () => 
         animate="animate"
         transition={{ delay: 0.2 }}
       >
-        <span 
+        <span
           className="block"
           style={{
             transform: `skewY(${skewAngle}deg) rotateZ(-${skewAngle}deg)`
@@ -83,15 +83,15 @@ export const TestingModeRibbon = ({ onDisableClick,  }: { onDisableClick: () => 
 
 
 
-const RibbonAward = ({ 
-  topText = "This", 
+const RibbonAward = ({
+  topText = "This",
   topStrong = "site",
-  bottomText = "is", 
+  bottomText = "is",
   bottomStrong = "okay",
   position = "top-[70px] left-0"
 }) => {
   const skewAngle = 20;
-  
+
   const growAnimation = {
     initial: {
       width: 0,
@@ -125,7 +125,7 @@ const RibbonAward = ({
         initial="initial"
         animate="animate"
       >
-        <span 
+        <span
           className="block"
           style={{
             transform: `skewY(-${skewAngle}deg) rotateZ(${skewAngle}deg)`
@@ -147,7 +147,7 @@ const RibbonAward = ({
         animate="animate"
         transition={{ delay: 0.2 }}
       >
-        <span 
+        <span
           className="block"
           style={{
             transform: `skewY(${skewAngle}deg) rotateZ(-${skewAngle}deg)`
@@ -161,14 +161,16 @@ const RibbonAward = ({
 };
 
 // Disable Testing Mode Modal
-export const DisableTestingModeModal = ({ 
-  isOpen, 
-  onClose, 
-  onConfirm 
-}: { 
-  isOpen: boolean; 
-  onClose: () => void; 
+export const DisableTestingModeModal = ({
+  isOpen,
+  onClose,
+  onConfirm,
+  mode
+}: {
+  isOpen: boolean;
+  onClose: () => void;
   onConfirm: () => Promise<void>;
+  mode: string
 }) => {
   const [isDisabling, setIsDisabling] = useState(false);
 
@@ -202,13 +204,13 @@ export const DisableTestingModeModal = ({
             className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 overflow-hidden"
           >
             {/* Header */}
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 px-6 py-4 text-white">
+            <div className="bg-gradient-to-r from-green-800 to-green-700 px-6 py-4 text-white">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 bg-white/20 rounded-full">
                     <AlertTriangle size={20} />
                   </div>
-                  <h2 className="text-lg font-semibold">Disable Explore Mode</h2>
+                  <h2 className="text-lg font-semibold">{mode === 'impersonation' ? "Exit Impersonation" : "Disable Explore Mode"}</h2>
                 </div>
                 <button
                   onClick={onClose}
@@ -224,15 +226,15 @@ export const DisableTestingModeModal = ({
             <div className="p-6">
               <div className="mb-6">
                 <p className="text-gray-700 mb-4 leading-relaxed">
-                  Are you sure you want to disable Explore Mode?
+                  Are you sure you want to {mode === 'impersonation' ? "exit Impersonation Mode?" : "disable Explore Mode?"}
                 </p>
                 <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
                   <div className="flex gap-3">
                     <AlertTriangle size={16} className="text-orange-600 mt-0.5 flex-shrink-0" />
                     <div className="text-sm text-orange-800">
-                      <p className="font-medium mb-1">Important:</p>
+                      <p className="font-medium mb-1">Note:</p>
                       <p>
-                        Any data generated while in Explore Mode will remain here and will not be uploaded to production. You can re-enter Explore Mode anytime via Settings.
+                        {mode === 'impersonation' ? "You can find this impersonation session details in worspace impersonation history." : "Any data generated while in Explore Mode will remain here and will not be uploaded to production. You can re-enter Explore Mode anytime via Settings."}
                       </p>
                     </div>
                   </div>
@@ -251,16 +253,16 @@ export const DisableTestingModeModal = ({
                 <button
                   onClick={handleConfirm}
                   disabled={isDisabling}
-                  className="flex-1 px-4 py-2.5 bg-gradient-to-r from-orange-500 to-red-500 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
+                  className="flex-1 px-4 py-2.5 bg-green-700 text-white rounded-lg hover:from-orange-600 hover:to-red-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed font-medium flex items-center justify-center gap-2"
                 >
                   {isDisabling ? (
                     <>
                       <Spinner />
-                      Disabling...
+                      {mode === 'impersonation' ? "Exiting..." : ' Disabling...'}
                     </>
-                  ) : (
-                    'Yes, Disable'
-                  )}
+                  ) :
+                    mode === 'impersonation' ? "Yes Exit" : 'Yes, Disable'
+                  }
                 </button>
               </div>
             </div>

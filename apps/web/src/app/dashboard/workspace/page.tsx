@@ -1,265 +1,14 @@
 'use client'
 
-const ImpersonationSection = () => {
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [impersonationHistory] = useState<ImpersonationRecord[]>(mockImpersonationHistory);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
 
-  const searchUsers = (query: string) => {
-    setSearchQuery(query);
-    if (query.length > 2) {
-      setIsSearching(true);
-      // Simulate API call
-      setTimeout(() => {
-        const results = mockUsers.filter(user => 
-          user.displayName.toLowerCase().includes(query.toLowerCase()) ||
-          user.email.toLowerCase().includes(query.toLowerCase())
-        );
-        setSearchResults(results);
-        setIsSearching(false);
-      }, 300);
-    } else {
-      setSearchResults([]);
-    }
-  };
-
-  const startImpersonation = () => {
-    if (selectedUser) {
-      console.log('Starting impersonation for user:', selectedUser);
-      setShowConfirmModal(false);
-      setSelectedUser(null);
-      setSearchQuery('');
-      setSearchResults([]);
-    }
-  };
-
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Impersonation Mode</CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
-              Search Users
-            </label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
-                placeholder="Search by name or email..."
-                value={searchQuery}
-                onChange={(e: any) => searchUsers(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            
-            {isSearching && (
-              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
-                <RefreshCw className="h-4 w-4 animate-spin" />
-                Searching...
-              </div>
-            )}
-
-            {searchResults.length > 0 && (
-              <div className="mt-2 border border-gray-200 rounded-lg bg-white shadow-sm max-h-60 overflow-y-auto">
-                {searchResults.map((user) => (
-                  <div
-                    key={user.id}
-                    className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
-                    onClick={() => {
-                      setSelectedUser(user);
-                      setShowConfirmModal(true);
-                    }}
-                  >
-                    <Avatar
-                      src={user.image}
-                      alt={user.displayName}
-                      fallback={user.displayName.split(' ').map(n => n[0]).join('')}
-                      className="h-8 w-8"
-                    />
-                    <div className="flex-1">
-                      <div className="font-medium text-sm">{user.displayName}</div>
-                      <div className="text-xs text-gray-500">{user.email}</div>
-                    </div>
-                    <div className="text-right">
-                      <Badge variant="outline" className="text-xs">
-                        {user.type}
-                      </Badge>
-                      <div className="text-xs text-gray-500 mt-1">
-                        {user.projectCount} projects
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        </div>
-
-        <div className="border-t pt-6">
-          <h4 className="font-medium text-gray-900 mb-4">Impersonation History</h4>
-          <div className="space-y-3">
-            {impersonationHistory.map((record) => (
-              <div key={record.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <div className="flex-shrink-0">
-                  <UserCheck className="h-4 w-4 text-gray-500" />
-                </div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-medium text-sm">{record.adminUser.displayName}</span>
-                    <span className="text-gray-500 text-sm">impersonated</span>
-                    <span className="font-medium text-sm">{record.targetUser.displayName}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-xs text-gray-500">
-                    <span className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      {new Date(record.startedAt).toLocaleString()}
-                    </span>
-                    <span>Duration: {record.duration}</span>
-                  </div>
-                </div>
-              </div>
-            ))}
-            
-            {impersonationHistory.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                No impersonation history found.
-              </div>
-            )}
-          </div>
-        </div>
-      </CardContent>
-
-      <ConfirmationModal
-        isOpen={showConfirmModal}
-        onClose={() => setShowConfirmModal(false)}
-        onConfirm={startImpersonation}
-        title="Start Impersonation"
-        description={`Are you sure you want to impersonate ${selectedUser?.displayName}? This action will be logged for audit purposes.`}
-        confirmText="Start Impersonation"
-        isDestructive={false}
-      />
-    </Card>
-  );
-};
-
-// Main Workspace Settings Component
-const WorkspaceSettings = () => {
-  const [activeSection, setActiveSection] = useState('general');
-  const [currentUser] = useState(mockMembers[1].user); // Current user is admin
-
-  const sections = [
-    { id: 'general', label: 'General Settings', icon: Settings },
-    { id: 'members', label: 'Member Management', icon: Users },
-    { id: 'projects', label: 'Project Management', icon: FolderOpen },
-    { id: 'security', label: 'Security & Access', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
-    { id: 'activity', label: 'Activity & Audit', icon: Activity },
-    { id: 'data', label: 'Data Management', icon: Database },
-    { id: 'impersonation', label: 'Impersonation', icon: UserCheck }
-  ];
-
-  const renderActiveSection = () => {
-    switch (activeSection) {
-      case 'general':
-        return <GeneralSettingsSection />;
-      case 'members':
-        return <MemberManagementSection />;
-      case 'projects':
-        return <ProjectManagementSection />;
-      case 'security':
-        return <SecurityAccessSection />;
-      case 'notifications':
-        return <NotificationsCommunicationSection />;
-      case 'activity':
-        return <ActivityAuditSection />;
-      case 'data':
-        return <DataManagementSection />;
-      case 'impersonation':
-        return <ImpersonationSection />;
-      default:
-        return <GeneralSettingsSection />;
-    }
-  };
-
-  return (
-    <div className="bg-gray-50">
-      <div className="flex">
-        {/* Sidebar */}
-        <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
-          <div className="p-6 border-b border-gray-200">
-            <h1 className="text-xl font-semibold text-gray-900">Workspace Settings</h1>
-            <p className="text-sm text-gray-600 mt-1">{mockWorkspace.name}</p>
-          </div>
-          
-          <nav className="p-4">
-            <ul className="space-y-1">
-              {sections.map((section) => {
-                const Icon = section.icon;
-                return (
-                  <li key={section.id}>
-                    <button
-                      onClick={() => setActiveSection(section.id)}
-                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
-                        activeSection === section.id
-                          ? 'bg-[#007A49] text-white'
-                          : 'text-gray-700 hover:bg-gray-100'
-                      }`}
-                    >
-                      <Icon className="h-4 w-4" />
-                      {section.label}
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          </nav>
-
-          {/* User Info */}
-          <div className="absolute bottom-0 left-0 right-0 w-64 p-4 border-t border-gray-200 bg-white">
-            <div className="flex items-center gap-3">
-              <Avatar
-                src={currentUser.image}
-                alt={currentUser.displayName}
-                fallback={currentUser.displayName.split(' ').map(n => n[0]).join('')}
-                className="h-8 w-8"
-              />
-              <div className="flex-1 min-w-0">
-                <div className="font-medium text-sm text-gray-900 truncate">
-                  {currentUser.displayName}
-                </div>
-                <div className="text-xs text-gray-500">
-                  Workspace Admin
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Main Content */}
-        <div className="flex-1 p-6">
-          <div className="max-w-4xl mx-auto">
-            {renderActiveSection()}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-export default WorkspaceSettings;
-                      import React, { useState, useEffect } from 'react';
-import { 
-  Settings, 
-  Users, 
-  FolderOpen, 
-  Shield, 
-  Bell, 
-  Activity, 
+import React, { useState, useEffect } from 'react';
+import {
+  Settings,
+  Users,
+  FolderOpen,
+  Shield,
+  Bell,
+  Activity,
   Database,
   UserCheck,
   Save,
@@ -286,6 +35,10 @@ import {
   ArrowRight,
   ChevronDown
 } from 'lucide-react';
+import { useToken } from '@/context/useTokenContext';
+import useProjectStore from '@shared-core/store/useProjectStore';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { getWorkspaceMembers, startImpersonationWork } from '@shared-core/fetchApi/api.fetch';
 
 // TypeScript Interfaces based on schema
 interface User {
@@ -519,7 +272,7 @@ const Button = ({ children, variant = 'default', size = 'default', className = '
     sm: 'h-9 px-3',
     lg: 'h-11 px-8'
   };
-  
+
   return (
     <button
       type={type}
@@ -556,7 +309,7 @@ const Textarea = ({ className = '', placeholder, value, onChange, rows = 3, ...p
 
 const Select = ({ children, value, onValueChange, placeholder }: any) => {
   const [isOpen, setIsOpen] = useState(false);
-  
+
   return (
     <div className="relative">
       <button
@@ -623,7 +376,7 @@ const Badge = ({ children, variant = 'default', className = '' }: any) => {
     success: 'bg-green-100 text-green-900',
     warning: 'bg-yellow-100 text-yellow-900'
   };
-  
+
   return (
     <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${variants[variant]} ${className}`}>
       {children}
@@ -645,7 +398,7 @@ const Avatar = ({ src, alt, fallback, className = '' }: any) => (
 
 const Modal = ({ isOpen, onClose, children, title }: any) => {
   if (!isOpen) return null;
-  
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div className="fixed inset-0 bg-black/50" onClick={onClose} />
@@ -670,8 +423,8 @@ const ConfirmationModal = ({ isOpen, onClose, onConfirm, title, description, con
         <Button variant="outline" onClick={onClose}>
           Cancel
         </Button>
-        <Button 
-          variant={isDestructive ? 'destructive' : 'primary'} 
+        <Button
+          variant={isDestructive ? 'destructive' : 'primary'}
           onClick={onConfirm}
         >
           {confirmText}
@@ -690,21 +443,21 @@ const GeneralSettingsSection = () => {
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
-    
+
     if (!workspace.name.trim()) {
       newErrors.name = 'Workspace name is required';
     }
-    
+
     if (!workspace.slug.trim()) {
       newErrors.slug = 'Workspace slug is required';
     } else if (!/^[a-z0-9-]+$/.test(workspace.slug)) {
       newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
-    
+
     if (workspace.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workspace.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -1630,7 +1383,7 @@ const DataManagementSection = () => {
           <div className="space-y-4">
             <h4 className="font-medium text-gray-900">Export Data</h4>
             <p className="text-sm text-gray-600">Download workspace data in various formats</p>
-            <Button 
+            <Button
               onClick={() => setShowExportModal(true)}
               className="flex items-center gap-2"
             >
@@ -1648,7 +1401,7 @@ const DataManagementSection = () => {
                   <CheckCircle className="h-3 w-3 mr-1" />
                   Complete
                 </Badge>
-              </div>  
+              </div>
               <div className="flex items-center justify-between">
                 <span className="text-sm">Members</span>
                 <Badge variant="success">
@@ -1683,7 +1436,7 @@ const DataManagementSection = () => {
                 <ArrowRight className="h-4 w-4 ml-2" />
               </Button>
             </div>
-            
+
             <div className="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
               <div className="flex items-center gap-3">
                 <AlertTriangle className="h-5 w-5 text-red-600" />
@@ -1743,3 +1496,280 @@ const DataManagementSection = () => {
     </Card>
   );
 };
+
+const ImpersonationSection = ({ token, goHome }) => {
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isSearching, setIsSearching] = useState(false);
+  const [searchResults, setSearchResults] = useState<User[]>([]);
+  const [impersonationHistory] = useState<ImpersonationRecord[]>(mockImpersonationHistory);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+  const [workspaceUser, setWorksapceUser] = useState([])
+  const [error, setError] = useState('')
+  useEffect(() => {
+    fetchWorkspaceUser()
+  }, [])
+
+  const fetchWorkspaceUser = async () => {
+    setIsSearching(true);
+    try {
+      const resp = await getWorkspaceMembers(token)
+      if (resp.statusCode === 200) {
+        setWorksapceUser(resp.data)
+
+      }
+      throw ''
+    } catch (error) {
+      setError("not able to fetch users")
+    } finally {
+      setIsSearching(false);
+    }
+  }
+
+
+  const searchUsers = (query: string) => {
+    setSearchQuery(query);
+    if (query.length < 1) {
+      setSearchResults([])
+      return
+    }
+    const results = workspaceUser.filter(user =>
+      user.displayName.toLowerCase().includes(query.toLowerCase()) ||
+      user.email.toLowerCase().includes(query.toLowerCase())
+    );
+    setSearchResults(results)
+  };
+
+  const startImpersonation = async () => {
+    if (selectedUser) {
+      setShowConfirmModal(false);
+      setSelectedUser(null);
+      setSearchQuery('');
+      setSearchResults([]);
+      setIsSearching(true)
+      const resp = await startImpersonationWork(token, selectedUser.userUid)
+      if (resp.statusCode == 200) {
+        goHome()
+      }
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Impersonation Mode</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        <div className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Search Users
+            </label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search by name or email..."
+                value={searchQuery}
+                onChange={(e: any) => searchUsers(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
+            {isSearching && (
+              <div className="flex items-center gap-2 mt-2 text-sm text-gray-500">
+                <RefreshCw className="h-4 w-4 animate-spin" />
+                Searching...
+              </div>
+            )}
+
+            {searchResults.length > 0 && (
+              <div className="mt-2 border border-gray-200 rounded-lg bg-white shadow-sm max-h-60 overflow-y-auto">
+                {searchResults.map((user) => (
+                  <div
+                    key={user.id}
+                    className="flex items-center gap-3 p-3 hover:bg-gray-50 cursor-pointer border-b last:border-b-0"
+                    onClick={() => {
+                      setSelectedUser(user);
+                      setShowConfirmModal(true);
+                    }}
+                  >
+                    <Avatar
+                      src={user.image}
+                      alt={user.displayName}
+                      fallback={user.displayName.split(' ').map(n => n[0]).join('')}
+                      className="h-8 w-8"
+                    />
+                    <div className="flex-1">
+                      <div className="font-medium text-sm">{user.displayName}</div>
+                      <div className="text-xs text-gray-500">{user.email}</div>
+                    </div>
+                    <div className="text-right">
+                      <Badge variant="outline" className="text-xs">
+                        {user.type}
+                      </Badge>
+                      <div className="text-xs text-gray-500 mt-1">
+                        {user.projectCount} projects
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="border-t pt-6">
+          <h4 className="font-medium text-gray-900 mb-4">Impersonation History</h4>
+          <div className="space-y-3">
+            {impersonationHistory.map((record) => (
+              <div key={record.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex-shrink-0">
+                  <UserCheck className="h-4 w-4 text-gray-500" />
+                </div>
+                <div className="flex-1">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-medium text-sm">{record.adminUser.displayName}</span>
+                    <span className="text-gray-500 text-sm">impersonated</span>
+                    <span className="font-medium text-sm">{record.targetUser.displayName}</span>
+                  </div>
+                  <div className="flex items-center gap-4 text-xs text-gray-500">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(record.startedAt).toLocaleString()}
+                    </span>
+                    <span>Duration: {record.duration}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+
+            {impersonationHistory.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                No impersonation history found.
+              </div>
+            )}
+          </div>
+        </div>
+      </CardContent>
+
+      <ConfirmationModal
+        isOpen={showConfirmModal}
+        onClose={() => setShowConfirmModal(false)}
+        onConfirm={startImpersonation}
+        title="Start Impersonation"
+        description={`Are you sure you want to impersonate ${selectedUser?.displayName}? This action will be logged for audit purposes.`}
+        confirmText="Start Impersonation"
+        isDestructive={false}
+      />
+    </Card>
+  );
+};
+
+// Main Workspace Settings Component
+const WorkspaceSettings = () => {
+  const [activeSection, setActiveSection] = useState('general');
+  const { accessToken } = useToken()
+  const User = useUserStore(state => state.user)
+  const sections = [
+    { id: 'general', label: 'General Settings', icon: Settings },
+    { id: 'members', label: 'Member Management', icon: Users },
+    { id: 'projects', label: 'Project Management', icon: FolderOpen },
+    { id: 'security', label: 'Security & Access', icon: Shield },
+    { id: 'notifications', label: 'Notifications', icon: Bell },
+    { id: 'activity', label: 'Activity & Audit', icon: Activity },
+    { id: 'data', label: 'Data Management', icon: Database },
+    { id: 'impersonation', label: 'Impersonation', icon: UserCheck }
+  ];
+  const goHome = () => {
+    window.location.replace('/')
+    window.location.reload()
+  }
+  const renderActiveSection = () => {
+    switch (activeSection) {
+      case 'general':
+        return <GeneralSettingsSection />;
+      case 'members':
+        return <MemberManagementSection />;
+      case 'projects':
+        return <ProjectManagementSection />;
+      case 'security':
+        return <SecurityAccessSection />;
+      case 'notifications':
+        return <NotificationsCommunicationSection />;
+      case 'activity':
+        return <ActivityAuditSection />;
+      case 'data':
+        return <DataManagementSection />;
+      case 'impersonation':
+        return <ImpersonationSection token={accessToken} goHome={goHome} />;
+      default:
+        return <GeneralSettingsSection />;
+    }
+  };
+
+  return (
+    <div className="bg-gray-50">
+      <div className="flex">
+        {/* Sidebar */}
+        <div className="w-64 bg-white border-r border-gray-200 min-h-screen">
+          <div className="p-6 border-b border-gray-200">
+            <h1 className="text-xl font-semibold text-gray-900">Workspace Settings</h1>
+            <p className="text-sm text-gray-600 mt-1">{mockWorkspace.name}</p>
+          </div>
+
+          <nav className="p-4">
+            <ul className="space-y-1">
+              {sections.map((section) => {
+                const Icon = section.icon;
+                return (
+                  <li key={section.id}>
+                    <button
+                      onClick={() => setActiveSection(section.id)}
+                      className={`w-full flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg transition-colors ${activeSection === section.id
+                        ? 'bg-[#007A49] text-white'
+                        : 'text-gray-700 hover:bg-gray-100'
+                        }`}
+                    >
+                      <Icon className="h-4 w-4" />
+                      {section.label}
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          </nav>
+
+          {/* User Info */}
+          <div className="absolute bottom-0 left-0 right-0 w-64 p-4 border-t border-gray-200 bg-white">
+            <div className="flex items-center gap-3">
+              <Avatar
+                src={User.image}
+                alt={User.displayName}
+                fallback={User.displayName.split(' ').map(n => n[0]).join('')}
+                className="h-8 w-8"
+              />
+              <div className="flex-1 min-w-0">
+                <div className="font-medium text-sm text-gray-900 truncate">
+                  {User.displayName}
+                </div>
+                <div className="text-xs text-gray-500">
+                  Workspace Admin
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Main Content */}
+        <div className="flex-1 p-6">
+          <div className="max-w-4xl mx-auto">
+            {renderActiveSection()}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default WorkspaceSettings;

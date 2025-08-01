@@ -42,7 +42,7 @@ const ForestProgressComponent = ({ target = 0, treeCount = 0 }) => {
   const milestone = getMilestoneReward();
 
   return (
-    <div className="w-full px-4">
+    <div className="w-full pb-4">
       <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 overflow-hidden">
         {/* Header */}
         <div className="flex items-center justify-between mb-3">
@@ -70,7 +70,7 @@ const ForestProgressComponent = ({ target = 0, treeCount = 0 }) => {
         </div>
 
         {/* Progress Section */}
-        <div className="space-y-2">
+        <div className="space-y-4">
           {/* Progress Bar */}
           <div className="relative">
             <div className="w-full bg-gray-100 rounded-full h-2 overflow-hidden">

@@ -309,7 +309,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className='parent'>
         <div className="app-container">
           <div className="app-content">
-            <TestingModeManager devMode={orgType === 'dev'} />
+            <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {showHeader && (
               <DashboardHeaderWeb
                 token={accessToken}

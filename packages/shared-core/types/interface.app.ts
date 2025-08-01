@@ -106,6 +106,7 @@ export interface UserInterface {
   primaryWorkspace: string | null;
   primaryProject: string | null;
   workspace: 'admin' | 'owner' | 'member'
+  impersonated: boolean | null
 }
 
 export interface ProjectWithUserRoleI {

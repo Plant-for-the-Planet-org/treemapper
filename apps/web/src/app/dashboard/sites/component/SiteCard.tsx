@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { AreaChart, User, Calendar, Clock } from "lucide-react";
+import { AreaChart, User, Calendar } from "lucide-react";
 
 export const SiteCard = ({ site, isSelected, onSelect }) => {
   const getStatusConfig = (status) => {
@@ -12,8 +12,119 @@ export const SiteCard = ({ site, isSelected, onSelect }) => {
     return configs[status] || configs.default;
   };
 
-  const statusConfig = getStatusConfig(site.status);
+  // Generate initials from display name
+  const getInitials = (name) => {
+    if (!name) return '??';
+    return name
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase())
+      .slice(0, 2)
+      .join('');
+  };
 
+  // Generate random light background color for initials
+  const getRandomBgColor = (name) => {
+    const colors = [
+      'bg-blue-100', 'bg-green-100', 'bg-yellow-100', 'bg-purple-100', 
+      'bg-pink-100', 'bg-indigo-100', 'bg-red-100', 'bg-orange-100'
+    ];
+    if (!name) return colors[0];
+    const hash = name.split('').reduce((a, b) => a + b.charCodeAt(0), 0);
+    return colors[hash % colors.length];
+  };
+
+  // Get corresponding text color for the background
+  const getTextColor = (bgColor) => {
+    const colorMap = {
+      'bg-blue-100': 'text-blue-700',
+      'bg-green-100': 'text-green-700',
+      'bg-yellow-100': 'text-yellow-700',
+      'bg-purple-100': 'text-purple-700',
+      'bg-pink-100': 'text-pink-700',
+      'bg-indigo-100': 'text-indigo-700',
+      'bg-red-100': 'text-red-700',
+      'bg-orange-100': 'text-orange-700'
+    };
+    return colorMap[bgColor] || 'text-gray-700';
+  };
+
+  // Render member avatars with overlap
+  const renderMemberAvatars = () => {
+    if (!site.member || site.member.totalCount === 0) return null;
+
+    const { totalCount, avatars } = site.member;
+
+    // Single member case - show only avatar
+    if (totalCount === 1) {
+      const member = avatars[0];
+      const bgColor = getRandomBgColor(member.displayName);
+      const textColor = getTextColor(bgColor);
+
+      return (
+        <div className="flex items-center">
+          <div className="w-6 h-6 rounded-full border-2 border-white overflow-hidden">
+            {member.image ? (
+              <img 
+                src={member.image} 
+                alt={member.displayName}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className={`w-full h-full ${bgColor} ${textColor} flex items-center justify-center text-xs font-medium`}>
+                {getInitials(member.displayName)}
+              </div>
+            )}
+          </div>
+        </div>
+      );
+    }
+
+    // Multiple members case
+    const showCount = Math.min(totalCount === 5 ? 4 : totalCount - 1, 4);
+    const remainingCount = totalCount - showCount;
+
+    return (
+      <div className="flex items-center">
+        {/* Avatar stack */}
+        <div className="flex items-center -space-x-2">
+          {avatars.slice(0, showCount).map((member, index) => {
+            const bgColor = getRandomBgColor(member.displayName);
+            const textColor = getTextColor(bgColor);
+            
+            return (
+              <div 
+                key={member.uid} 
+                className="w-6 h-6 rounded-full border-2 border-white overflow-hidden relative"
+                style={{ zIndex: showCount - index }}
+              >
+                {member.image ? (
+                  <img 
+                    src={member.image} 
+                    alt={member.displayName}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <div className={`w-full h-full ${bgColor} ${textColor} flex items-center justify-center text-xs font-medium`}>
+                    {getInitials(member.displayName)}
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Plus count */}
+        {remainingCount > 0 && (
+          <div className="ml-1 w-6 h-6 rounded-full bg-gray-100 border-2 border-white flex items-center justify-center">
+            <span className="text-xs font-medium text-gray-600">+{remainingCount}</span>
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const statusConfig = getStatusConfig(site.status);
+  
   return (
     <motion.div
       layout
@@ -61,10 +172,7 @@ export const SiteCard = ({ site, isSelected, onSelect }) => {
           <Calendar className="w-3 h-3" />
           <span>{site.createdAt}</span>
         </div>
-        <div className="flex items-center gap-1">
-          <Clock className="w-3 h-3" />
-          <span>{site.lastUpdate}</span>
-        </div>
+        {renderMemberAvatars()}
       </div>
     </motion.div>
   );

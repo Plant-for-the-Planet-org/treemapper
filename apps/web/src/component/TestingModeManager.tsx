@@ -1,9 +1,12 @@
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { TestingModeRibbon, DisableTestingModeModal } from "./TestingModeRibbon";
+import { exitImpersonationWork } from "@shared-core/fetchApi/api.fetch";
+import { useToken } from "@/context/useTokenContext";
 
-export const TestingModeManager = ({ devMode }: { devMode: boolean }) => {
+export const TestingModeManager = ({ mode }) => {
     const [showModal, setShowModal] = useState(false);
+    const { accessToken } = useToken()
     // Placeholder API call
     const disableTestingMode = async () => {
         // TODO: Implement API call to disable testing mode
@@ -21,12 +24,22 @@ export const TestingModeManager = ({ devMode }: { devMode: boolean }) => {
     };
 
     const handleDisableTestingMode = async () => {
+        if (mode === 'impersonation') {
+            const resp = await exitImpersonationWork(accessToken)
+            if (resp.statusCode !== 200 || resp.statusCode !== 201) {
+                throw ''
+            }
+            if (resp) {
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
+            return
+        }
         try {
             await disableTestingMode();
             toast.success('Preview mode disabled successfully!');
             setShowModal(false);
-
-            // Reload the page after successful disable
             setTimeout(() => {
                 window.location.reload();
             }, 1000);
@@ -35,13 +48,14 @@ export const TestingModeManager = ({ devMode }: { devMode: boolean }) => {
         }
     };
 
-    if (!devMode) return null;
+    if (!mode || mode === '') return null;
 
     return (
         <>
-            <TestingModeRibbon onDisableClick={() => setShowModal(true)} />
+            <TestingModeRibbon onDisableClick={() => setShowModal(true)} mode={mode} />
             <DisableTestingModeModal
                 isOpen={showModal}
+                mode={mode}
                 onClose={() => setShowModal(false)}
                 onConfirm={handleDisableTestingMode}
             />

@@ -13,6 +13,7 @@ import { SiteDetails } from './component/SiteDetails';
 import { SiteManagementHeader } from './component/SiteManagementHeader';
 import { SitesList } from './component/SitesList';
 import { useRouter } from 'next/navigation';
+import SiteAccessModal from './component/SiteAccess';
 
 const SiteManagementPage = () => {
   const [sites, setSites] = useState([]);
@@ -26,7 +27,7 @@ const SiteManagementPage = () => {
   const selectedProject = useProjectStore(state => state.selectedProject);
   const { accessToken } = useToken();
   const router = useRouter()
-
+  const [siteAccessModal, setSiteAccessModal] = useState(false)
   useEffect(() => {
     if (isEditing && selectedSite) {
       setEditedSite({ ...selectedSite });
@@ -79,7 +80,6 @@ const SiteManagementPage = () => {
           ? sentences.slice(0, 2).join('. ').trim() + '.'
           : desc;
       };
-
       return {
         name: item.name,
         id: item.uid,
@@ -91,7 +91,8 @@ const SiteManagementPage = () => {
         area: areaLabel(item.originalGeometry),
         treeCapacity: null,
         image: null,
-        geometry: item.originalGeometry
+        geometry: item.originalGeometry,
+        member: item.members
       };
     });
   };
@@ -168,6 +169,8 @@ const SiteManagementPage = () => {
                 onEdit={handleEdit}
                 onSave={handleSave}
                 onCancel={handleCancel}
+                setSiteAccessModal={setSiteAccessModal}
+                siteAccessModal={siteAccessModal}
                 onDelete={() => setShowDeleteModal(true)}
               />
             ) : (
@@ -176,7 +179,7 @@ const SiteManagementPage = () => {
           </div>
         </div>
       </div>
-
+      <SiteAccessModal isOpen={siteAccessModal} setIsOpen={setSiteAccessModal} site={selectedSite}/>
       <DeleteModal
         isOpen={showDeleteModal}
         site={selectedSite}

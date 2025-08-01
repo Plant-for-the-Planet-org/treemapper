@@ -20,12 +20,12 @@ const ShimmerCard = () => {
   );
 };
 
-const StatCard = ({ title, value, note, icon: Icon, changePercent, loading = false }) => {
+const StatCard = ({ title, value, note, icon: Icon, changePercent, loading = false, vf }) => {
   if (loading) {
     return <ShimmerCard />;
   }
-
-  const isPositive = changePercent >= 0;
+  console.log("RTYUI", vf)
+  const isPositive = vf === 'decrease' ? false : true
   const ChangeIcon = isPositive ? TrendingUp : TrendingDown;
   const changeColor = isPositive ? 'text-green-600' : 'text-red-600';
   const changeBgColor = isPositive ? 'bg-green-50' : 'bg-red-50';
@@ -62,25 +62,29 @@ const StatCardsContainer = ({ setTotalTrees }) => {
       title: "Trees Planted",
       value: "0",
       changePercent: 0,
-      icon: Leaf
+      icon: Leaf,
+      vf: ''
     },
     {
       title: "Species Planted",
       value: "0",
       changePercent: 0,
-      icon: Sprout
+      icon: Sprout,
+      vf: ''
     },
     {
       title: "Area Covered",
       value: "0 ha",
       changePercent: 0,
-      icon: Map
+      icon: Map,
+      vf: ''
     },
     {
       title: "Field Data Collectors",
       value: "0",
       changePercent: 0,
-      icon: Activity
+      icon: Activity,
+      vf: ''
     }
   ]);
 
@@ -108,44 +112,53 @@ const StatCardsContainer = ({ setTotalTrees }) => {
         // Generate dummy change percentages for demo
         // In real implementation, you'd get these from your API
         const generateChangePercent = ({ value, type }) => {
+          console.log("UOIP",type)
+          let p = 0
           if (type === 'no_change') {
-            return 0
+            p = 0
           }
 
           if (value === null) {
-            return 0
+            p = 0
           }
 
-          if(!Number(value)){
-            return 0
+          if (!Number(value)) {
+            return { vf:'', value:0 }
           }
 
-          return value
+          return { vf: p === 0 ? '' : type, value }
         }
-
+        console.log("CVBHJK<", generateChangePercent(totalTreesPlantedChange).value)
         setOverview([
           {
             title: "Trees Planted",
             value: formatNumber(Number(totalTreesPlanted)),
-            changePercent: generateChangePercent(totalTreesPlantedChange),
+            changePercent: generateChangePercent(totalTreesPlantedChange).value,
+            vf: generateChangePercent(totalTreesPlantedChange).vf,
             icon: Leaf
           },
           {
             title: "Species Planted",
             value: totalSpeciesPlanted,
-            changePercent: generateChangePercent(totalSpeciesPlantedChange),
+            changePercent: generateChangePercent(totalSpeciesPlantedChange).value,
+            vf: generateChangePercent(totalSpeciesPlantedChange).vf,
+
             icon: Sprout
           },
           {
             title: "Area Covered",
             value: `${formatNumber(Number(totalAreaCovered))} ha`,
-            changePercent: generateChangePercent(totalAreaCoveredChange),
+            changePercent: generateChangePercent(totalAreaCoveredChange).value,
+            vf: generateChangePercent(totalAreaCoveredChange).vf,
+
             icon: Map
           },
           {
             title: "Field Data Collectors",
             value: totalContributors,
-            changePercent: generateChangePercent(totalContributorsChange),
+            changePercent: generateChangePercent(totalContributorsChange).value,
+            vf: generateChangePercent(totalContributorsChange).vf,
+
             icon: Activity
           }
         ]);
@@ -173,7 +186,8 @@ const StatCardsContainer = ({ setTotalTrees }) => {
                 value={stat.value}
                 changePercent={stat.changePercent}
                 icon={stat.icon}
-                loading={loading} note={undefined} />
+                loading={loading} note={undefined}
+                vf={stat.vf} />
             </div>
           ))
         )}
