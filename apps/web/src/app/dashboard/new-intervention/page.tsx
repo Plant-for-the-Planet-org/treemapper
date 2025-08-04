@@ -860,7 +860,7 @@ const SpeciesSelector = ({
                 type="button"
                 onClick={handleAddUnknownSpecies}
                 disabled={!unknownSpeciesName.trim()}
-                className="flex-1 px-4 py-3 bg-gradient-to-r from-emerald-500 to-green-600 text-white rounded-xl hover:from-emerald-600 hover:to-green-700 disabled:from-slate-300 disabled:to-slate-400 transition-all duration-200 font-medium"
+                className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
               >
                 Add Species
               </button>
@@ -870,7 +870,8 @@ const SpeciesSelector = ({
                   setShowUnknownSpecies(false);
                   setUnknownSpeciesName('');
                 }}
-                className="flex-1 px-4 py-3 bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 transition-all duration-200 font-medium"
+                
+                className="bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
               >
                 Cancel
               </button>

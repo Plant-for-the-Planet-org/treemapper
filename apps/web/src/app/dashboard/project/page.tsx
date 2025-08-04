@@ -404,7 +404,7 @@ export function CreateProjectUI() {
     };
 
     if (pageLoading) {
-        return <div className='h-full w-full flex justify-center align-center'><Spinner /></div>
+        return <div style={{display:'flex', height: "100%", width: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}><Spinner /></div>
     }
 
     return (

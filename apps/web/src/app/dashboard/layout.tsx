@@ -13,6 +13,7 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails, updateUserAvatar } from '@shared-core/fetchApi/api.fetch';
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
+import { ToastContainer } from 'react-toastify';
 
 
 const STANDALONE_ROUTES = [
@@ -320,6 +321,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className='parent'>
         <div className="app-container">
           <div className="app-content">
+            <ToastContainer
+              position="top-right"
+              autoClose={4000}
+              hideProgressBar={false}
+              newestOnTop
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="light"
+              limit={3} // Limit number of toasts
+              closeButton={true}
+            />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {showHeader && (
               <DashboardHeaderWeb

@@ -285,7 +285,7 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
 const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFileName, loading, validationErrors }) => (
   <div className="space-y-8">
     <div>
-      <h2 className="text-3xl font-bold text-stone-900 mb-2">General Settings</h2>
+      <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Settings</h2>
       <p className="text-stone-600">Configure your project's basic information and settings.</p>
     </div>
 
@@ -1139,7 +1139,6 @@ const ProjectSettings = () => {
       <div className="bg-white/80 backdrop-blur-sm sticky top-0">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
-            <h1 className="text-2xl font-bold text-stone-900">Project Settings</h1>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="lg:hidden p-2 rounded-lg text-stone-600 hover:bg-stone-100 transition-colors duration-200"

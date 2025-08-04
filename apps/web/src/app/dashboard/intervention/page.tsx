@@ -934,18 +934,6 @@ const HeaderWithFilters = ({
             >
               <Menu className="h-5 w-5 text-gray-600" />
             </button>
-
-            <div>
-              <h1 className="text-2xl font-semibold text-gray-900">
-                Project Interventions
-              </h1>
-              {error && (
-                <p className="text-red-600 text-sm mt-1 flex items-center">
-                  <AlertCircle className="w-4 h-4 mr-1" />
-                  {error}
-                </p>
-              )}
-            </div>
           </div>
 
           {/* Desktop Actions */}

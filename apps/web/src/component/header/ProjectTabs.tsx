@@ -44,7 +44,7 @@ const ProjectDropdown = ({
   const { projects, selectProject, selectedProject, selectedWorkspce, setDefaultWorkspce, workspace } = useProjectStore((state) => state);
   const router = useRouter();
   const { accessToken } = useToken()
-  const User = useUserStore(state=>state.user)
+  const User = useUserStore(state => state.user)
 
 
   // Group projects by workspace and sort
@@ -139,17 +139,10 @@ const ProjectDropdown = ({
             {selectedProject ? (
               <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
                 <span className="font-medium text-gray-900 truncate text-sm w-full block">
-                  {selectedProject.name}
-                </span>
-                <div className="flex items-center gap-2 mt-0.5">
-                  <span className="text-xs text-gray-500 truncate">
-                    {selectedProject.workspace.name}
+                  {selectedProject.name}  <span className="text-xs text-gray-500 capitalize">
+                    ({selectedProject.userRole})
                   </span>
-                  <span className="text-xs text-gray-400">•</span>
-                  <span className="text-xs text-gray-500 capitalize">
-                    {selectedProject.userRole}
                   </span>
-                </div>
               </div>
             ) : (
               <div className="flex flex-col items-start min-w-0 flex-1">
@@ -283,7 +276,7 @@ const ProjectDropdown = ({
         <div className="flex flex-1 items-center justify-end">
           <div className="flex items-center gap-3">
             <NotificationBell />
-            {User.workspace!=='member' && <button
+            {User.workspace !== 'member' && <button
               onClick={() => router.push('/dashboard/workspace')}
               className="cursor-pointer relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
             >

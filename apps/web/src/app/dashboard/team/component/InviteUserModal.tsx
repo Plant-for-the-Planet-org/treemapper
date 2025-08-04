@@ -83,7 +83,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
               animate={{ scale: 1 }}
               transition={{ type: "spring", stiffness: 300, damping: 15 }}
             >
-              <CheckCircle className="w-16 h-16 text-green-500 mb-4" />
+              <CheckCircle className="w-16 h-16 text-green-800 mb-4" />
             </motion.div>
             <h3 className="text-xl font-semibold text-gray-800 mb-2">Invitation Sent!</h3>
             <p className="text-gray-600 text-center">
@@ -94,7 +94,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
           <>
             <div className="flex justify-between items-center border-b border-gray-200 p-4">
               <div className="flex items-center">
-                <UserPlus className="w-5 h-5 text-green-600 mr-2" />
+                <UserPlus className="w-5 h-5 text-green-800 mr-2" />
                 <h3 className="text-lg font-semibold text-gray-800">Invite member to the Project</h3>
               </div>
               <button
@@ -120,7 +120,7 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
                     onChange={(e) => setEmail(e.target.value)}
                     className={`block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'
                       } rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500`}
-                    placeholder="colleague@example.com"
+                    placeholder="colleague@domain.org"
                   />
                 </div>
                 {errors.email && (
@@ -179,8 +179,8 @@ const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
                   disabled={isSubmitting}
                   className={`px-4 py-2 rounded-md text-sm font-medium text-white 
                     ${isSubmitting
-                      ? 'bg-green-700 cursor-not-allowed'
-                      : 'bg-green-700 hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500'
+                      ? 'bg-green-800 cursor-not-allowed'
+                      : 'bg-green-800 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600'
                     } flex items-center`}
                 >
                   {isSubmitting ? 'Sending...' : 'Send invitation'}

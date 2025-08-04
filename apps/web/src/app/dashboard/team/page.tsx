@@ -287,158 +287,153 @@ const TeamsDashboard = () => {
     };
 
     return (
-        <div className="p-6 bg-white">
-            <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center">
-                <h1 className="text-2xl font-bold text-gray-900 mb-4 sm:mb-0">Team Members</h1>
-                <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4">
+        <div className="bg-white">
+            <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 sm:space-x-4 border-b border-gray-200 sticky top-0 pb-3 p-6" >
+                <div className="flex items-center" style={{ flex: 1 }}>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <Search size={18} className="text-gray-400" />
+                        </div>
+                        <input
+                            type="text"
+                            placeholder="Search by name or email"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
+                        />
+                    </div>
+                    {users && users.lenght > 0 && <button
+                        onClick={handleExportUsers}
+                        className="ml-4 flex items-center text-sm text-gray-600 hover:text-green-800"
+                    >
+                        Export all {users.length} users
+                        <Download size={16} className="ml-1" />
+                    </button>}
+                </div>
+                <>
                     <button
                         onClick={() => { setBulkInviteModal(true) }}
-                        className="flex items-center justify-center px-4 py-2 text-white rounded-md bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white  transition-colors"
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                     >
                         <Link size={18} className="mr-2" />
-                        Invite Link
+                        Bulk Invite
                     </button>
                     <button
                         onClick={handleInviteUser}
-                        className="flex items-center justify-center px-4 py-2 text-white rounded-md bg-[#007A49] hover:bg-green-800 transition-colors"
+                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                     >
                         <UserPlus size={18} className="mr-2" />
                         Invite User
                     </button>
-                </div>
+                </>
             </div>
 
-            {/* Controls section */}
-            <div className="flex flex-col mb-6 space-y-4 md:flex-row md:justify-between md:items-center md:space-y-0">
-                <div className="flex items-center">
-                    <span className="text-sm font-medium text-gray-500">Total Users: {users.length}</span>
-                    <button
-                        onClick={handleExportUsers}
-                        className="ml-4 flex items-center text-sm text-gray-600 hover:text-indigo-600"
-                    >
-                        <Download size={16} className="mr-1" />
-                        Export All
-                    </button>
-                </div>
 
-                <div className="relative">
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <Search size={18} className="text-gray-400" />
-                    </div>
-                    <input
-                        type="text"
-                        placeholder="Search by name or email"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
-                    />
-                </div>
-            </div>
-
-            {/* Table section */}
-            {loading ? <div style={{ marginTop: '30vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-                <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                        <tr>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                User
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <button
-                                    onClick={() => requestSort('role')}
-                                    className="flex items-center font-medium focus:outline-none"
-                                >
-                                    Role
-                                    {renderSortIndicator('role')}
-                                </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <button
-                                    onClick={() => requestSort('lastActive')}
-                                    className="flex items-center font-medium focus:outline-none"
-                                >
-                                    Last Active
-                                    {renderSortIndicator('lastActive')}
-                                </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <button
-                                    onClick={() => requestSort('joinedDate')}
-                                    className="flex items-center font-medium focus:outline-none"
-                                >
-                                    Joined Date
-                                    {renderSortIndicator('joinedDate')}
-                                </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                <button
-                                    onClick={() => requestSort('status')}
-                                    className="flex items-center font-medium focus:outline-none"
-                                >
-                                    Status
-                                    {renderSortIndicator('status')}
-                                </button>
-                            </th>
-                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                Actions
-                            </th>
-                        </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                        {sortedUsers.map((user) => (
-                            <tr key={user.uid} className="hover:bg-gray-50">
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <div className="flex items-center">
-                                        <div className="flex-shrink-0 h-10 w-10">
-                                            {user.avatar ? <img
-                                                className="h-10 w-10 rounded-full"
-                                                src={user.avatar}
-                                                alt={user.name}
-                                            /> : customImageGenerator(user.uid)}
-                                        </div>
-                                        <div className="ml-4">
-                                            <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                            <div className="text-sm text-gray-500">
-                                                {user.email}
+            <div className='p-6' style={{flex:1, display:'flex',flexDirection:'column', width:'full', height:'full'}}>
+                {loading ? <div style={{ marginTop: '40vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                    <table className="min-w-full divide-y divide-gray-200">
+                        <thead className="bg-gray-50">
+                            <tr>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    User
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <button
+                                        onClick={() => requestSort('role')}
+                                        className="flex items-center font-medium focus:outline-none"
+                                    >
+                                        Role
+                                        {renderSortIndicator('role')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <button
+                                        onClick={() => requestSort('lastActive')}
+                                        className="flex items-center font-medium focus:outline-none"
+                                    >
+                                        Last Active
+                                        {renderSortIndicator('lastActive')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <button
+                                        onClick={() => requestSort('joinedDate')}
+                                        className="flex items-center font-medium focus:outline-none"
+                                    >
+                                        Joined Date
+                                        {renderSortIndicator('joinedDate')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    <button
+                                        onClick={() => requestSort('status')}
+                                        className="flex items-center font-medium focus:outline-none"
+                                    >
+                                        Status
+                                        {renderSortIndicator('status')}
+                                    </button>
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                    Actions
+                                </th>
+                            </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                            {sortedUsers.map((user) => (
+                                <tr key={user.uid} className="hover:bg-gray-50">
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <div className="flex items-center">
+                                            <div className="flex-shrink-0 h-10 w-10">
+                                                {user.avatar ? <img
+                                                    className="h-10 w-10 rounded-full"
+                                                    src={user.avatar}
+                                                    alt={user.name}
+                                                /> : customImageGenerator(user.uid)}
+                                            </div>
+                                            <div className="ml-4">
+                                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
+                                                <div className="text-sm text-gray-500">
+                                                    {user.email}
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="text-sm text-gray-900">{user.role}</span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="text-sm text-gray-500">{getTimeSince(user.lastActive)}</span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className="text-sm text-gray-500">{user.status === 'Pending' ? "------------" : formatDate(user.joinedDate)}</span>
-                                </td>
-                                <td className="px-6 py-4 whitespace-nowrap">
-                                    <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                                        {user.status}
-                                    </span>
-                                </td>
-                                <td className="whitespace-nowrap text-right text-sm font-medium" style={{ width: '120px' }}>
-                                    <div className="flex justify-center">
-                                        <button
-                                            onClick={() => handleViewUser(user)}
-                                            className="text-indigo-600 hover:text-indigo-900"
-                                        >
-                                            <Eye size={18} />
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-900">{user.role}</span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500">{getTimeSince(user.lastActive)}</span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className="text-sm text-gray-500">{user.status === 'Pending' ? "------------" : formatDate(user.joinedDate)}</span>
+                                    </td>
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
+                                            {user.status}
+                                        </span>
+                                    </td>
+                                    <td className="whitespace-nowrap text-right text-sm font-medium" style={{ width: '120px' }}>
+                                        <div className="flex justify-center">
+                                            <button
+                                                onClick={() => handleViewUser(user)}
+                                                className="text-indigo-600 hover:text-indigo-900"
+                                            >
+                                                <Eye size={18} />
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
 
-                {sortedUsers.length === 0 && (
-                    <div className="text-center py-12">
-                        <p className="text-gray-500">No users found matching your search criteria.</p>
-                    </div>
-                )}
-            </div>}
+                    {sortedUsers.length === 0 && (
+                        <div className="text-center py-12">
+                            <p className="text-gray-500">No users found matching your search criteria.</p>
+                        </div>
+                    )}
+                </div>}
+            </div>
             <AnimatePresence>
                 <BulkInvitationModal
                     isOpen={bulkInviteModal}

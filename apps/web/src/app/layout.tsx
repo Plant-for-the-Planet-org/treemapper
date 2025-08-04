@@ -5,7 +5,6 @@ import "./globals.css";
 import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
-import { ToastContainer } from 'react-toastify';
 
 
 const openSans = Open_Sans({
@@ -50,20 +49,6 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ToastContainer
-          position="top-right"
-          autoClose={4000}
-          hideProgressBar={false}
-          newestOnTop
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="light"
-          limit={3} // Limit number of toasts
-          closeButton={true}
-        />
         <ResponsiveDashboardWrapper>
           <Auth0Provider>
             {/* <SharedQueryProvider> */}
