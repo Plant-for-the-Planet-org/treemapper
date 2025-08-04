@@ -25,6 +25,7 @@
     "server:dev": "turbo dev --filter=server",
     "server:build": "turbo build --filter=server",
     "server:start": "turbo start --filter=server",
+    "sync-server": "node syncServer.js",
     "dev:fullstack": "concurrently \"turbo dev --filter=web\" \"turbo dev --filter=server\""
   },
   "engines": {
