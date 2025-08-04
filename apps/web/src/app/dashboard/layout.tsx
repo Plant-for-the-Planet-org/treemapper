@@ -22,7 +22,8 @@ const STANDALONE_ROUTES = [
   'bulkupload',
   'new-intervention',
   'onboarding',
-  'workspace'
+  'workspace',
+  'select-workspace'
 ];
 
 // Consolidated loading states

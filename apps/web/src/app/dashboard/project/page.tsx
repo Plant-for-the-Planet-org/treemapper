@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus } from 'lucide-react';
 import ProjectMap from '@/component/MapSelect';
 import { toast } from 'react-toastify'
@@ -8,6 +8,7 @@ import { createNewProject } from '@shared-core/fetchApi/api.fetch';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
 import { useRouter } from 'next/navigation';
 import { useToken } from '@/context/useTokenContext';
+import { useSearchParams } from 'next/navigation';
 
 // Header Component
 const ProjectHeader = ({ onBack }) => {
@@ -86,18 +87,21 @@ const FormInput = ({
     icon: Icon,
     required = false,
     min,
-    rows
+    rows,
+    flex
 }) => {
     const isTextarea = type === 'textarea';
 
     return (
-        <div className="space-y-2">
+        <div 
+            className={`space-y-2 ${flex ? 'flex-1 flex flex-col' : ''}`}
+        >
             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
                 {label} {required && <span className="text-red-500">*</span>}
             </label>
-            <div className="relative">
+            <div className={`relative ${flex && isTextarea ? 'flex-1 flex flex-col' : ''}`}>
                 {Icon && (
-                    <div className={`absolute ${isTextarea ? 'top-3' : 'inset-y-0'} left-0 pl-3 flex items-${isTextarea ? 'start' : 'center'} pointer-events-none`}>
+                    <div className={`absolute ${isTextarea ? 'top-3' : 'inset-y-0'} left-0 pl-3 flex items-${isTextarea ? 'start' : 'center'} pointer-events-none z-10`}>
                         <Icon className="h-4 w-4 text-gray-400" />
                     </div>
                 )}
@@ -108,8 +112,8 @@ const FormInput = ({
                         value={value}
                         onChange={onChange}
                         required={required}
-                        rows={rows || 4}
-                        className={`${Icon ? 'pl-10' : ''} block w-full rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2.5 transition-colors resize-none placeholder-gray-400`}
+                        rows={flex ? undefined : (rows || 4)} // Remove rows when flex is true
+                        className={`${Icon ? 'pl-10' : ''} block w-full ${flex ? 'flex-1 h-full min-h-[6rem]' : ''} rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2.5 transition-colors resize-none placeholder-gray-400`}
                         placeholder={placeholder}
                     />
                 ) : (
@@ -129,11 +133,10 @@ const FormInput = ({
         </div>
     );
 };
-
 // Project Details Form Component
-const ProjectDetailsForm = ({ formData, onChange, projectTypes }) => {
+const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, loading }) => {
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 h-full" style={{ display: 'flex', flexDirection: 'column'}}>
             <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Project Details</h2>
                 <div className="space-y-4">
@@ -185,9 +188,11 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes }) => {
                         placeholder="Describe your project goals and methods..."
                         icon={Info}
                         rows={4}
+                        flex={true}
                     />
                 </div>
             </div>
+            <ProjectFooter agreeTerms={undefined} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
         </div>
     );
 };
@@ -198,8 +203,8 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
         <div className="h-full flex flex-col">
             <div className="mb-4">
                 <h2 className="text-lg font-medium text-gray-900 mb-2">Project Location</h2>
-                <p className="text-xs text-gray-600">
-                    Select your project area using the map or upload a location file.
+                <p className="text-md text-gray-600">
+                    Select the point location where this project belongs. You can later create sites (polygons) within the project for your tree planting and other interventions.
                 </p>
             </div>
 
@@ -213,12 +218,12 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
                 </div>
 
                 <div className="space-y-3">
-                    <GeoJSONUpload
+                    {/* <GeoJSONUpload
                         onGeoJSONChange={onGeoJSONChange}
                         maxAreaHa={500}
                         className="text-xs"
                         allowedGeometryTypes='point'
-                    />
+                    /> */}
 
                     {finalGeoJSON && (
                         <div className="bg-green-50 border border-green-200 rounded-lg p-3">
@@ -241,49 +246,27 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
 // Footer Component
 const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) => {
     return (
-        <div className="bg-white border-t border-gray-200 px-6 py-4">
-            <div className="flex items-center justify-between">
-                <div className="flex items-start gap-3">
-                    <input
-                        id="agreeTerms"
-                        name="agreeTerms"
-                        type="checkbox"
-                        checked={agreeTerms}
-                        onChange={onAgreeTermsChange}
-                        required
-                        className="h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded mt-0.5"
-                    />
-                    <div className="text-xs">
-                        <label htmlFor="agreeTerms" className="font-medium text-gray-700 cursor-pointer">
-                            I agree to the terms and conditions
-                        </label>
-                        <p className="text-gray-500 mt-0.5">
-                            Confirm that all information is accurate.
-                        </p>
+        <div className="flex" style={{ alignItems: 'flex-center', justifyContent: 'flex-end' }}>
+            <button
+                type="submit"
+                disabled={!agreeTerms || loading}
+                onClick={onSubmit}
+                className={`px-12 py-3.5 rounded-lg font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
+                    ? 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
+                    : 'bg-gray-400 cursor-not-allowed'
+                    }`}
+            >
+                {loading ? (
+                    <div className="flex items-center gap-2">
+                        <Loader2Icon className="animate-spin h-5 w-5" />
+                        Creating...
                     </div>
-                </div>
-
-                <button
-                    type="submit"
-                    disabled={!agreeTerms || loading}
-                    onClick={onSubmit}
-                    className={`px-8 py-3.5 rounded-lg font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
-                        ? 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
-                        : 'bg-gray-400 cursor-not-allowed'
-                        }`}
-                >
-                    {loading ? (
-                        <div className="flex items-center gap-2">
-                            <Loader2Icon className="animate-spin h-5 w-5" />
-                            Creating...
-                        </div>
-                    ) : (
-                        <div className="flex items-center gap-2">
-                            Create Project
-                        </div>
-                    )}
-                </button>
-            </div>
+                ) : (
+                    <div className="flex items-center gap-2">
+                        Create Project
+                    </div>
+                )}
+            </button>
         </div>
     );
 };
@@ -303,6 +286,21 @@ export function CreateProjectUI() {
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const { accessToken } = useToken()
+    const searchParams = useSearchParams();
+
+    useEffect(() => {
+        const name = searchParams.get('name');
+        const type = searchParams.get('type');
+        if (!name) {
+            router.replace('/dashboard/select-workspace')
+        }
+        setFormData({
+            ...formData,
+            projectName: name,
+        })
+    }, [])
+
+
 
     const projectTypes = [
         {
@@ -414,21 +412,9 @@ export function CreateProjectUI() {
             <ProjectHeader onBack={router.back} />
 
             {/* Main Content */}
-            <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
-                {/* Left Panel - Project Details */}
-                <div className="w-full lg:w-1/2 lg:border-r border-gray-200 bg-white">
-                    <div className="h-full overflow-y-auto p-6">
-                        <ProjectDetailsForm
-                            formData={formData}
-                            onChange={handleInputChange}
-                            projectTypes={projectTypes}
-                        />
-                    </div>
-                </div>
-
-                {/* Right Panel - Map */}
+            <div className="flex-1 flex flex-col lg:flex-row-reverse overflow-hidden">
                 <div className="w-full lg:w-1/2 bg-gray-50">
-                    <div className="h-full p-6">
+                    <div className="h-[60vh] md:h-[45vh] lg:h-full p-6">
                         <MapSection
                             finalGeoJSON={finalGeoJSON}
                             updateGeoJSON={updateGeoJSON}
@@ -436,15 +422,28 @@ export function CreateProjectUI() {
                         />
                     </div>
                 </div>
+
+                <div className="w-full lg:w-1/2 lg:border-r border-gray-200 bg-white">
+                    <div className="h-full overflow-y-auto p-6">
+                        <ProjectDetailsForm
+                            formData={formData}
+                            onChange={handleInputChange}
+                            handleSubmit={handleSubmit}
+                            loading={loading}
+                            projectTypes={projectTypes}
+                        />
+                    </div>
+                </div>
+
             </div>
 
             {/* Footer */}
-            <ProjectFooter
+            {/* <ProjectFooter
                 agreeTerms={agreeTerms}
                 onAgreeTermsChange={() => setAgreeTerms(!agreeTerms)}
                 onSubmit={handleSubmit}
                 loading={loading}
-            />
+            /> */}
         </div>
     );
 }

@@ -8,12 +8,14 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 
-export const ScreenOne = ({ onNext, setupProject, forProject }) => {
+
+export const ScreenOne = ({ onNext }) => {
   const [formData, setFormData] = useState({
     projectName: '',
     selectedPlan: ''
   });
   const [errors, setErrors] = useState({});
+
   const plans = [
     {
       id: 'public',
@@ -35,7 +37,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
       subtitle: 'Use TreeMapper for my Company/City/Personal use.',
       description: 'Data is kept private to you',
       icon: <Lock className="w-5 h-5" />,
-      recommended: true
+      recommended: false
 
     },
     {
@@ -75,13 +77,6 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
   }, [formData.projectName, formData.selectedPlan, errors.projectName]);
 
   const handleSubmit = useCallback(() => {
-    if (formData.selectedPlan !== 'private' || forProject) {
-      setupProject({
-        projectName: formData.projectName,
-        selectedPlan: formData.selectedPlan
-      })
-      return;
-    }
     if (canProceed()) {
       onNext(formData);
     }
@@ -97,15 +92,12 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
     >
       {/* Header */}
       <div className="text-center space-y-2">
-        {forProject ? <h1 className="text-3xl font-bold text-gray-900">Select workspace for your project</h1> : <h1 className="text-3xl font-bold text-gray-900">Get started with TreeMapper</h1>}
+        <h1 className="text-3xl font-bold text-gray-900">Select workspace for your project</h1>
       </div>
 
       {/* Project Name Card */}
       <Card>
         <CardContent className="space-y-4">
-          <CardDescription>
-            Choose a name for your project
-          </CardDescription>
           <div className="space-y-2">
             <Label htmlFor="projectName">Project Name</Label>
             <Input
@@ -121,13 +113,11 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
             )}
           </div>
         </CardContent>
-        <CardHeader>
-          {!forProject && <CardTitle className="text-lg">What brings you to TreeMapper?</CardTitle>}
+
+        <CardContent className="space-y-4">
           <CardDescription>
             Choose one that best fits your needs
           </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {plans.map((plan) => (
               <Card
