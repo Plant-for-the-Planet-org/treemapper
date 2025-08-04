@@ -5,6 +5,9 @@ node_modules/
 **/node_modules/
 packages/*/node_modules/
 
+scripts/
+
+
 # Expo
 .expo/
 dist/
