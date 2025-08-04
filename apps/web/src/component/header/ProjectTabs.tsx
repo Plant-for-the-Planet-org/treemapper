@@ -139,7 +139,7 @@ const ProjectDropdown = ({
             {selectedProject ? (
               <div className="flex flex-col items-start min-w-0 flex-1 overflow-hidden">
                 <span className="font-medium text-gray-900 truncate text-sm w-full block">
-                  {selectedProject.projectName}
+                  {selectedProject.name}
                 </span>
                 <div className="flex items-center gap-2 mt-0.5">
                   <span className="text-xs text-gray-500 truncate">
@@ -245,7 +245,7 @@ const ProjectDropdown = ({
                                       "font-medium text-sm truncate w-full",
                                       project.uid === selectedProject?.uid ? "text-green-900" : "text-gray-800"
                                     )}>
-                                      {project.projectName}
+                                      {project.name}
                                     </span>
                                     <span className="text-xs text-gray-500 capitalize">
                                       {project.userRole}

@@ -26,7 +26,6 @@ const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDat
     const [previewEndDate, setPreviewEndDate] = useState('');
     const dropdownRef = useRef(null);
     const isLargeScreen = useMediaQuery('(min-width: 768px)');
-
     // Predefined date ranges
     const dateRanges = [
         { label: 'Today', getValue: () => ({ start: new Date(), end: new Date() }) },
@@ -374,6 +373,7 @@ const Overview = () => {
     const Target = useProjectStore(state => state.selectedProject?.target)
     const userRole = useProjectStore(state => state.selectedProject?.userRole)
     const selectedProject = useProjectStore(state => state.selectedProject?.uid)
+    return null;
 
     const getMonthRange = () => {
         const now = new Date();

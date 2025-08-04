@@ -80,15 +80,15 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   const updateAvater = async () => {
     if (User && !User.image && user.picture) {
-      await updateUserAvatar(accessToken, { avatarUrl: user.picture })
+      await updateUserAvatar(accessToken, { avatarUrl: user.picture, firstName: user.name || '' })
     }
   }
 
   const setDefaultProjectAndWorkspace = useCallback(() => {
-    if (!User?.primaryProject || !User?.primaryWorkspace) return;
+    if (!User?.primaryProjectUid || !User?.primaryWorkspaceUid) return;
 
-    const defaultProject = projects.find(p => p.uid === User.primaryProject);
-    const defaultWorkspace = workspace.find(w => w.uid === User.primaryWorkspace);
+    const defaultProject = projects.find(p => p.uid === User.primaryProjectUid);
+    const defaultWorkspace = workspace.find(w => w.uid === User.primaryWorkspaceUid);
 
     if (defaultProject && !selectedProject) {
       selectProject(defaultProject);
@@ -134,14 +134,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       useUserStore.getState().setUser(userData);
 
       // Step 2: Check if user needs onboarding
-      if (!userData.primaryWorkspace) {
+      if (!userData.primaryWorkspaceUid) {
         router.push('/dashboard/onboarding');
         setAppState('success');
         return;
       }
 
       // Step 3: Create personal project if needed
-      if (!userData.primaryProject) {
+      if (!userData.primaryProjectUid) {
         await createPersonalProject();
         // Refresh user data after creating project
         const updatedUserData = await fetchUserDetails();

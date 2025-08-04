@@ -103,8 +103,8 @@ export interface UserInterface {
   isActive: boolean;
   createdAt: string;
   migratedAt?: string;
-  primaryWorkspace: string | null;
-  primaryProject: string | null;
+  primaryWorkspaceUid: string | null;
+  primaryProjectUid: string | null;
   workspace: 'admin' | 'owner' | 'member'
   impersonated: boolean | null
 }
@@ -114,12 +114,12 @@ export interface ProjectWithUserRoleI {
   createdById: number;
   slug: string;
   purpose: string | null;
-  projectName: string;
-  projectType: string | null;
+  name: string;
+  type: string | null;
   ecosystem: string | null;
-  projectScale: string | null;
+  scale: string | null;
   target: number | null;
-  projectWebsite: string | null;
+  website: string | null;
   description: string | null;
   classification: string | null;
   image: string | null;
