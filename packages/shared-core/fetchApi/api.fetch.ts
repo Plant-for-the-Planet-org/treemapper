@@ -378,8 +378,8 @@ export const removePrjSpecies = async (token: string, projectGuiD: string, speci
   return result;
 };
 
-export const removeInviteLink = async (token: string, projectGuiD: string, memberGuid: string) => {
-  const uri = `${patchUrlApi.deleteLink}/${projectGuiD}/invites/${memberGuid}/link`;
+export const removeInviteLink = async (token: string, projectGuiD: string, linkUid: string) => {
+  const uri = `${patchUrlApi.deleteLink}/${projectGuiD}/invites/${linkUid}/link`;
   const result = await fetchPatchCall(uri, {}, token);
   return result;
 };

@@ -173,7 +173,7 @@ const TeamsDashboard = () => {
     const getStatusColor = (status) => {
         switch (status) {
             case 'Active':
-                return 'bg-green-100 text-green-800';
+                return 'bg-green-700 text-white';
             case 'Suspended':
                 return 'bg-red-100 text-red-800';
             case 'Pending Invitation':
@@ -302,9 +302,9 @@ const TeamsDashboard = () => {
                             className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
                         />
                     </div>
-                    {users && users.lenght > 0 && <button
+                    {users && users.length > 0 && <button
                         onClick={handleExportUsers}
-                        className="ml-4 flex items-center text-sm text-gray-600 hover:text-green-800"
+                        className="cursor-pointer ml-4 flex items-center text-sm text-gray-600 hover:text-green-800"
                     >
                         Export all {users.length} users
                         <Download size={16} className="ml-1" />
@@ -327,8 +327,6 @@ const TeamsDashboard = () => {
                     </button>
                 </>
             </div>
-
-
             <div className='p-6' style={{flex:1, display:'flex',flexDirection:'column', width:'full', height:'full'}}>
                 {loading ? <div style={{ marginTop: '40vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                     <table className="min-w-full divide-y divide-gray-200">
@@ -416,7 +414,7 @@ const TeamsDashboard = () => {
                                         <div className="flex justify-center">
                                             <button
                                                 onClick={() => handleViewUser(user)}
-                                                className="text-indigo-600 hover:text-indigo-900"
+                                                className="text-gray-600 hover:text-gray-900  cursor-pointer"
                                             >
                                                 <Eye size={18} />
                                             </button>

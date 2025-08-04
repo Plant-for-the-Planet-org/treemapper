@@ -4,6 +4,7 @@ import { expireInvite, removeProjectMember, updateUserRole } from '@shared-core/
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { toast } from 'react-toastify';
+import avatar from 'animal-avatar-generator'
 
 const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
   const [currentRole, setCurrentRole] = useState('');
@@ -15,8 +16,18 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
   const { accessToken } = useToken()
   const selectedProject = useProjectStore((state) => state.selectedProject);
 
+  console.log("SDC", user)
+
   function capitalize(str) {
     return str.charAt(0).toLowerCase() + str.slice(1);
+  }
+
+  const customImageGenerator = (id) => {
+    const svg = avatar(id, { size: 100 })
+    return <div
+      className="w-24 h-24 rounded-full overflow-hidden"
+      dangerouslySetInnerHTML={{ __html: svg }}
+    />
   }
 
   // Reset state when user changes or modal opens
@@ -165,9 +176,9 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
   return (
     <>
       {/* Main Modal */}
-      <div className="fixed inset-0 z-50 bg-gray bg-opacity-50 flex items-center justify-center p-4" style={{zIndex:1000}}>
+      <div className="fixed inset-0 z-50 bg-gray bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
         {showConfirmModal && (
-          <div className="fixed inset-0 z-60 bg-black bg-opacity-60 flex items-center justify-center p-4" style={{ zIndex: 20 }}>
+          <div className="fixed inset-0 bg-black/10 bg-opacity-10  backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ zIndex: 20 }}>
             <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
               <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
                 <AlertCircle className="w-8 h-8 text-red-600" />
@@ -226,7 +237,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
             {/* Top section: Avatar + Name */}
             <div className="flex items-center space-x-6">
               <div className="relative">
-                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-lg" style={gradientStyle}
+                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-lg"
                 >
                   {user.avatar ? (
                     <img
@@ -234,18 +245,19 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                       alt={user.name}
                       className="w-full h-full object-cover"
                     />
-                  ) : (
-                    <span className="text-2xl font-bold text-white">
-                      {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                    </span>
-                  )}
+                  ) : user.uid ? customImageGenerator(user.uid)
+                    : (
+                      <span className="text-2xl font-bold text-white">
+                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                      </span>
+                    )}
                 </div>
-                <span
+                {/* <span
                   className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white shadow-lg flex items-center justify-center ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
                     }`}
                 >
                   <div className="w-2 h-2 rounded-full bg-white opacity-90"></div>
-                </span>
+                </span> */}
               </div>
               <div className="flex-1">
                 <h3 className="text-2xl font-bold text-gray-900 mb-1">{user.name}</h3>
@@ -264,7 +276,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h4>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <InfoItem icon={Mail} label="Email Address" value={user.email} />
-                <InfoItem icon={Calendar} label="Member Since" value={formatDate(user.joinedDate)} />
+                <InfoItem icon={Calendar} label={user && user.status !== "Pending" ? "Member Since" : "Invited At"} value={formatDate(user.joinedDate)} />
                 {user.invitedBy && <InfoItem icon={User} label="Invited By" value={user.invitedBy} />}
                 {user.lastActive && <InfoItem icon={Clock} label="Last Activity" value={formatDate(user.lastActive)} />}
               </div>
@@ -286,7 +298,7 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                   >
                     <option value="admin">Admin - Full access and management</option>
                     <option value="contributor">Contributor - Can edit and create</option>
-                    <option value="observer">Observre - Can review the project</option>
+                    <option value="observer">Observer - Can review the project</option>
                   </select>
 
                   {isEdited && !saveSuccess && (
@@ -321,14 +333,21 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                     </div>
 
                     <div className="flex items-center gap-3">
-                      <button
+                      {isRemoving ? <button
                         disabled={isRemoving}
                         onClick={confirmRemove}
-                        className="inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors"
+                        className={`inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors`}
                       >
                         <X className="w-4 h-4 mr-2" />
                         {isRemoving ? 'Removing user' : ' Discard Invitation'}
-                      </button>
+                      </button> : <button
+                        disabled={isRemoving}
+                        onClick={confirmRemove}
+                        className={`inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors`}
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        {isRemoving ? 'Removing user' : ' Discard Invitation'}
+                      </button>}
                     </div>
                   </div>
                 </div>

@@ -227,7 +227,7 @@ export default function ProjectInviteModal() {
   const statusDisplay = getStatusDisplay();
   const canInteract = status === 'pending' && !isExpired;
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex justify-center items-center z-50 p-4" style={{ zIndex: 1000 }}>
+    <div className="fixed inset-0 bg-black/20 bg-opacity-40  backdrop-blur-sm flex justify-center items-center z-50 p-4" style={{ zIndex: 1000 }}>
       {
         loading ?
           <div className="flex items-center justify-center h-full">
@@ -331,14 +331,14 @@ export default function ProjectInviteModal() {
                 <>
                   <button
                     onClick={handleDecline}
-                    className="inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
+                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 transition-colors"
                   >
                     <XCircle size={18} className="mr-2 text-red-500" />
                     Decline
                   </button>
                   <button
                     onClick={handleAccept}
-                    className="inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
+                    className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-800 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors"
                   >
                     <CheckCircle size={18} className="mr-2" />
                     Accept Invitation

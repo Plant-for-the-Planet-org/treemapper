@@ -14,6 +14,7 @@ import { getMyWorkspaceProjects, createNewPersonalProject, getMyDetails, updateU
 import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
+import ProjectInviteModal from '@/component/ProjectInviteModal';
 
 
 const STANDALONE_ROUTES = [
@@ -336,6 +337,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               closeButton={true}
             />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
+            <ProjectInviteModal/>
             {showHeader && (
               <DashboardHeaderWeb
                 token={accessToken}
