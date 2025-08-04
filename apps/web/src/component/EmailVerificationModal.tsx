@@ -2,11 +2,14 @@
 import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, AlertCircle } from 'lucide-react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 
 const EmailVerificationModal = () => {
     const [isOpen, setIsOpen] = useState(false);
+    const [isLoggingOut, setIsLoggingOut] = useState(false);
     const searchParams = useSearchParams();
+    const router = useRouter();
+
     useEffect(() => {
         // Check if verification=required parameter exists in URL
         const verificationRequired = searchParams.get('verification') === 'required';
@@ -17,14 +20,14 @@ const EmailVerificationModal = () => {
     }, [searchParams]);
 
     const handleClose = () => {
-        setIsOpen(false);
-        // Optionally clear the URL parameter when closing
-        if (searchParams.get('verification') === 'required') {
-            const url = new URL(window.location.href);
-            url.searchParams.delete('verification');
-            const returnTo = encodeURIComponent(window.location.origin);
-            window.location.href = `/api/auth/logout?returnTo=${returnTo}&federated`;
-        }
+        setIsLoggingOut(true);
+        // Use window.location for complete logout to ensure federated logout works
+        window.location.href = '/api/auth/logout';
+    };
+
+    const handleTryAgain = () => {
+        // Force fresh login
+        window.location.href = '/api/auth/login?prompt=login';
     };
 
     return (
@@ -45,11 +48,9 @@ const EmailVerificationModal = () => {
                         animate={{ opacity: 1, scale: 1, y: 0 }}
                         exit={{ opacity: 0, scale: 0.9, y: 20 }}
                         transition={{ type: "spring", duration: 0.5 }}
-                        className="fixed left-1/3 top-1/4 w-full max-w-md z-50"
+                        className="fixed left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full max-w-md z-50 px-4"
                     >
                         <div className="bg-white rounded-2xl shadow-2xl p-6 sm:p-8 relative">
-                            {/* Close button */}
-
                             {/* Icon */}
                             <motion.div
                                 initial={{ scale: 0 }}
@@ -103,9 +104,17 @@ const EmailVerificationModal = () => {
                                 >
                                     <button
                                         onClick={handleClose}
-                                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                                        disabled={isLoggingOut}
+                                        className="px-4 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        Login with other account
+                                        {isLoggingOut ? 'Logging out...' : 'Login with different account'}
+                                    </button>
+                                    
+                                    <button
+                                        onClick={handleTryAgain}
+                                        className="px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium"
+                                    >
+                                        Try again
                                     </button>
                                 </motion.div>
                             </motion.div>

@@ -11,6 +11,7 @@ import { MobileAppSection } from './MobileAppSection';
 import { MobileLogo } from './MobileLogo';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
+import EmailVerificationModal from '@/component/EmailVerificationModal';
 
 
 export default function LoginContent() {
@@ -78,7 +79,7 @@ export default function LoginContent() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-green-50/30">
       <BackgroundDecorations />
-
+      <EmailVerificationModal />
       <div className="relative min-h-screen flex">
         <BrandingSection features={features} />
 

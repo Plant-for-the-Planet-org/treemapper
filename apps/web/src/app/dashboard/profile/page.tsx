@@ -133,7 +133,6 @@ const ProfileSettings = ({ goBack }) => {
         method: 'PUT',
         body: formDataUpload,
       });
-      console.log("klsdcosdc",response)
       if (!response.ok) {
         throw new Error('Upload failed');
       }
@@ -153,23 +152,23 @@ const ProfileSettings = ({ goBack }) => {
       if (!file) {
         throw 'Image Details not found';
       }
-      console.log("SC","45")
+      console.log("SC", "45")
       const presignedResponse = await generatePreSignUrl(accessToken, {
         fileName: String(new Date().getMilliseconds()),
         fileType: file?.type,
         folder: 'profile'
       });
-      console.log("SC","43")
+      console.log("SC", "43")
 
       if (presignedResponse.statusCode !== 200 && presignedResponse.statusCode !== 201) {
         throw new Error(presignedResponse.message || 'Failed to get upload URL');
       }
-      console.log("SC","32")
+      console.log("SC", "32")
 
       const response = await uploadViaAPI(file, presignedResponse.data.data.uploadUrl);
       console.log("SDC", response)
       if (response.success) {
-      console.log("SC","56")
+        console.log("SC", "56")
 
         await updateUserAvatar(accessToken, {
           avatarUrl: `${process.env.CDN}/production/profile/${presignedResponse.data.data.fileName}`
@@ -228,7 +227,6 @@ const ProfileSettings = ({ goBack }) => {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('orgId');
     window.location.href = '/api/auth/logout';
   };
 
