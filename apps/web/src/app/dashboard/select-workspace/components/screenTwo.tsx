@@ -137,7 +137,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
           </div>
 
           {/* Demo Call */}
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <Label>Would you like a demo call from us?</Label>
             <RadioGroup
               value={formData.wantsDemo}
@@ -153,7 +153,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
                 <Label htmlFor="demo-no">No</Label>
               </div>
             </RadioGroup>
-          </div>
+          </div> */}
 
           {/* Primary Goal */}
           <div className="space-y-2">

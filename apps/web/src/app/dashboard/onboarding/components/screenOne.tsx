@@ -7,8 +7,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
+import Spinner from '@/component/Spinner';
 
-export const ScreenOne = ({ onNext, setupProject, forProject }) => {
+export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
   const [formData, setFormData] = useState({
     projectName: '',
     selectedPlan: ''
@@ -35,7 +36,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
       subtitle: 'Use TreeMapper for my Company/City/Personal use.',
       description: 'Data is kept private to you',
       icon: <Lock className="w-5 h-5" />,
-      recommended: true
+      recommended: !forProject ? true : false
 
     },
     {
@@ -182,10 +183,12 @@ export const ScreenOne = ({ onNext, setupProject, forProject }) => {
       <div className="flex justify-end">
         <Button
           onClick={handleSubmit}
-          disabled={!canProceed()}
+          disabled={!canProceed() || loading}
           className="bg-gray-900 hover:bg-gray-800 cursor-pointer"
         >
-          Next
+          {loading ? <>
+            Processing
+            <Spinner /></> : 'Next'}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>

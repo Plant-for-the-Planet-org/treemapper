@@ -137,7 +137,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
           </div>
 
           {/* Demo Call */}
-          <div className="space-y-3">
+          {/* <div className="space-y-3">
             <Label>Would you like a demo call from us?</Label>
             <RadioGroup
               value={formData.wantsDemo}
@@ -153,7 +153,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
                 <Label htmlFor="demo-no">No</Label>
               </div>
             </RadioGroup>
-          </div>
+          </div> */}
 
           {/* Primary Goal */}
           <div className="space-y-2">
@@ -182,19 +182,31 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
           <ChevronLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-
-        <Button
-          onClick={handleSubmit}
-          disabled={!canContinue() || loading}
-          className="bg-gray-900 hover:bg-gray-800 cursor-pointer"
-        >
-          {loading ? <>
-            Processing
-            <Spinner />
-          </> : <>
-            {hasAnyInput() ? 'Continue to Dashboard' : 'Skip and Continue'}
-            <ArrowRight className="w-4 h-4 ml-2" /></>}
-        </Button>
+        <div>
+          {!loading && <Button
+            onClick={handleSubmit}
+            disabled={!canContinue() || loading}
+            className="bg-gray-900 hover:bg-gray-800 cursor-pointer mr-5"
+          >
+            {loading ? <>
+              Processing
+              <Spinner />
+            </> : <>
+              Skip</>}
+          </Button>}
+          <Button
+            onClick={handleSubmit}
+            disabled={loading && !hasAnyInput()}
+            className={`hover:bg-gray-${hasAnyInput()?'800':'300'} bg-gray-${hasAnyInput()?'900':'300'}`}
+          >
+            {loading ? <>
+              Processing
+              <Spinner />
+            </> : <>
+              Submit
+              <ArrowRight className="w-4 h-4 ml-2" /></>}
+          </Button>
+        </div>
       </div>
     </motion.div>
   );

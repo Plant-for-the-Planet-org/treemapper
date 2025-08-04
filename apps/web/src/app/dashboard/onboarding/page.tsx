@@ -10,7 +10,7 @@ import { useToken } from '@/context/useTokenContext'
 import { useRouter } from 'next/navigation';
 import { useUserStore } from '@shared-core/store/useUserStore';
 
-const Onboarding = ({forProject}) => {
+const Onboarding = ({ forProject }) => {
   const [currentScreen, setCurrentScreen] = useState(1);
   const [loading, setLoading] = useState(false)
   const router = useRouter()
@@ -58,7 +58,7 @@ const Onboarding = ({forProject}) => {
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      router.replace(`/dashboard/project?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`)
+      window.location.href = `/dashboard?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`
     } catch (error) {
       console.log("SD", error)
       toast.error("Something went wrong")
@@ -76,6 +76,7 @@ const Onboarding = ({forProject}) => {
               onNext={handleScreenOneNext}
               setupProject={handleOnboardingComplete}
               forProject={forProject}
+              loading={loading}
             />
           )}
           {currentScreen === 2 && (

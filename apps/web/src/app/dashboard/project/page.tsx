@@ -9,6 +9,7 @@ import GeoJSONUpload from '@/component/GeoJSONfileupload';
 import { useRouter } from 'next/navigation';
 import { useToken } from '@/context/useTokenContext';
 import { useSearchParams } from 'next/navigation';
+import Spinner from '@/component/Spinner';
 
 // Header Component
 const ProjectHeader = ({ onBack }) => {
@@ -93,7 +94,7 @@ const FormInput = ({
     const isTextarea = type === 'textarea';
 
     return (
-        <div 
+        <div
             className={`space-y-2 ${flex ? 'flex-1 flex flex-col' : ''}`}
         >
             <label htmlFor={name} className="block text-sm font-medium text-gray-700">
@@ -136,7 +137,7 @@ const FormInput = ({
 // Project Details Form Component
 const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, loading }) => {
     return (
-        <div className="space-y-6 h-full" style={{ display: 'flex', flexDirection: 'column'}}>
+        <div className="space-y-6 h-full" style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
                 <h2 className="text-lg font-medium text-gray-900 mb-4">Project Details</h2>
                 <div className="space-y-4">
@@ -192,7 +193,7 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                     />
                 </div>
             </div>
-            <ProjectFooter agreeTerms={undefined} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
+            <ProjectFooter agreeTerms={true} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
         </div>
     );
 };
@@ -287,13 +288,15 @@ export function CreateProjectUI() {
     const router = useRouter()
     const { accessToken } = useToken()
     const searchParams = useSearchParams();
-
+    const [pageLoading, setPageLoading] = useState(true)
     useEffect(() => {
         const name = searchParams.get('name');
         const type = searchParams.get('type');
         if (!name) {
             router.replace('/dashboard/select-workspace')
+            return
         }
+        setPageLoading(false)
         setFormData({
             ...formData,
             projectName: name,
@@ -355,12 +358,6 @@ export function CreateProjectUI() {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        // if (!finalGeoJSON) {
-        //     toast.warning('Please select a location on the map or upload a location file.');
-        //     return;
-        // }
-
         const payLoad = {
             "projectName": formData.projectName,
             "projectType": formData.projectType,
@@ -388,7 +385,7 @@ export function CreateProjectUI() {
             const response = await createNewProject(accessToken, payLoad);
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
-                router.back();
+                router.replace('/dashboard');
                 setTimeout(() => {
                     window.location.reload();
                 }, 500);
@@ -405,6 +402,10 @@ export function CreateProjectUI() {
             toast.error('Error creating project. Please try again.');
         }
     };
+
+    if (pageLoading) {
+        return <div className='h-full w-full flex justify-center align-center'><Spinner /></div>
+    }
 
     return (
         <div className="min-h-full flex flex-col bg-gray-50">

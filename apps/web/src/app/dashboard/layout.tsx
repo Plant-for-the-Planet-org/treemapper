@@ -60,7 +60,17 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       router.push('/login');
       return
     }
-  }, [user, tokenLoading, router]);
+    handleNav()
+  }, [user, tokenLoading, router, searchParams]);
+
+  const handleNav = () => {
+    const name = searchParams.get('name');
+    const type = searchParams.get('type');
+    if (name) {
+      router.replace(`/dashboard/project?name=${name}&type=${type}`)
+      return
+    }
+  }
 
   // Set default project and workspace when data is available
   useEffect(() => {
