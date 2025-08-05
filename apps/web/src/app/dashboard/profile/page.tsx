@@ -30,8 +30,8 @@ const ProfileSettings = ({ goBack }) => {
   const [profile, setProfile] = useState({
     displayName: '',
     email: '',
-    firstname: '',
-    lastname: '',
+    firstName: '',
+    lastName: '',
     bio: '',
     image: '',
     slug: '',
@@ -63,12 +63,12 @@ const ProfileSettings = ({ goBack }) => {
   const validateForm = () => {
     const errors = {};
 
-    if (!profile.firstname.trim()) {
-      errors.firstname = 'First name is required';
+    if (!profile.firstName.trim()) {
+      errors.firstName = 'First name is required';
     }
 
-    if (!profile.lastname.trim()) {
-      errors.lastname = 'Last name is required';
+    if (!profile.lastName.trim()) {
+      errors.lastName = 'Last name is required';
     }
 
     if (!profile.displayName.trim()) {
@@ -152,24 +152,18 @@ const ProfileSettings = ({ goBack }) => {
       if (!file) {
         throw 'Image Details not found';
       }
-      console.log("SC", "45")
       const presignedResponse = await generatePreSignUrl(accessToken, {
         fileName: String(new Date().getMilliseconds()),
         fileType: file?.type,
         folder: 'profile'
       });
-      console.log("SC", "43")
 
       if (presignedResponse.statusCode !== 200 && presignedResponse.statusCode !== 201) {
         throw new Error(presignedResponse.message || 'Failed to get upload URL');
       }
-      console.log("SC", "32")
 
       const response = await uploadViaAPI(file, presignedResponse.data.data.uploadUrl);
-      console.log("SDC", response)
       if (response.success) {
-        console.log("SC", "56")
-
         await updateUserAvatar(accessToken, {
           avatarUrl: `${process.env.CDN}/production/profile/${presignedResponse.data.data.fileName}`
         });
@@ -213,7 +207,7 @@ const ProfileSettings = ({ goBack }) => {
         payload['image'] = fileName;
       }
 
-
+      await updateUserDetails(accessToken,payload)
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -269,17 +263,17 @@ const ProfileSettings = ({ goBack }) => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <InputField
                     label="First Name"
-                    name="firstname"
-                    value={profile.firstname}
+                    name="firstName"
+                    value={profile.firstName}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.firstname }} placeholder={undefined} readOnly={undefined} />
+                    validation={{ error: validationErrors.firstName }} placeholder={undefined} readOnly={undefined} />
 
                   <InputField
                     label="Last Name"
-                    name="lastname"
-                    value={profile.lastname}
+                    name="lastName"
+                    value={profile.lastName}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.lastname }} placeholder={undefined} readOnly={undefined} />
+                    validation={{ error: validationErrors.lastName }} placeholder={undefined} readOnly={undefined} />
 
                   <div className="md:col-span-2">
                     <InputField

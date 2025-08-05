@@ -31,13 +31,13 @@ const getActivityValue = (activity) => {
     case 'species':
       return activity.details?.speciesName || '';
     case 'member':
-      return activity.details?.memberName || '';
+      return ''; // Remove duplicate member name display
     default:
       return '';
   }
 };
 
-// User Avatar component
+// User Avatar component  
 const UserAvatar = ({ user, index }) => {
   if (!user.image) {
     return customImageGenerator(user.uid)
@@ -138,7 +138,7 @@ const RecentAdditionsComponent = () => {
 
   if (error) {
     return (
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[580px] max-w-4xl w-full flex flex-col">
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[10vh] max-h-[50vh] max-w-4xl w-full flex flex-col">
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center text-red-600">
             <p className="text-gray-900 text-sm font-medium mb-2">Error loading activities</p>
@@ -156,7 +156,7 @@ const RecentAdditionsComponent = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-100 h-[580px] max-w-4xl w-full flex flex-col">
+    <div className="bg-white rounded-xl shadow-sm border border-gray-100 min-h-[20vh] max-h-[50vh] max-w-4xl w-full flex flex-col">
       {/* Header - Fixed */}
       <div className="px-5 py-4 border-b border-gray-100 flex-shrink-0">
         <div className="flex justify-between items-center">

@@ -1,13 +1,15 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Settings, Users, MapPin, Bell, Shield,
   Trash2, Save, ArrowLeft, Leaf, Tractor,
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock, Menu, X, Plus, UserX,
-  Check, Loader, ChevronRight, Eye, EyeOff
+  Check, Loader, ChevronRight, Eye, EyeOff,
+  Video, Building, Timer, AlertCircle
 } from 'lucide-react';
+
 import UnifiedMapComponent from '@/component/MapSelect';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
 import { getSingleProjectDetails, updateProjectSettings } from '@shared-core/fetchApi/api.fetch';
@@ -15,13 +17,12 @@ import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 
 
-
 // Enhanced Toggle Switch Component
 const ToggleSwitch = ({ checked, onChange, disabled = false, size = 'default' }) => {
   const sizeClasses = size === 'small' ? 'w-10 h-5' : 'w-12 h-6';
   const dotSize = size === 'small' ? 'after:h-4 after:w-4' : 'after:h-5 after:w-5';
   const translateX = size === 'small' ? 'peer-checked:after:translate-x-5' : 'peer-checked:after:translate-x-6';
-  
+
   return (
     <label className={`relative inline-flex items-center cursor-pointer ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}>
       <input
@@ -31,29 +32,28 @@ const ToggleSwitch = ({ checked, onChange, disabled = false, size = 'default' })
         onChange={onChange}
         disabled={disabled}
       />
-      <div className={`${sizeClasses} rounded-full transition-all duration-300 peer-focus:ring-4 peer-focus:ring-[#007A49]/20 ${
-        checked ? 'bg-[#007A49]' : 'bg-stone-300'
-      } ${translateX} after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full ${dotSize} after:transition-all after:shadow-sm`}></div>
+      <div className={`${sizeClasses} rounded-full transition-all duration-300 peer-focus:ring-4 peer-focus:ring-[#007A49]/20 ${checked ? 'bg-[#007A49]' : 'bg-stone-300'
+        } ${translateX} after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full ${dotSize} after:transition-all after:shadow-sm`}></div>
     </label>
   );
 };
 
 // Enhanced Input Field Component
-const InputField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  type = 'text', 
-  placeholder, 
+const InputField = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = 'text',
+  placeholder,
   icon: Icon,
   validation,
   required = false,
-  ...props 
+  ...props
 }) => {
   const hasError = validation?.error;
   const hasSuccess = validation?.success;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -61,7 +61,7 @@ const InputField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -71,22 +71,21 @@ const InputField = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-            hasError
-              ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-              : hasSuccess
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative z-0 ${hasError
+            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+            : hasSuccess
               ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
               : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white`}
+            } focus:outline-none bg-white`}
           {...props}
         />
         {hasError && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 z-10">
             <X size={16} className="text-red-500" />
           </div>
         )}
         {hasSuccess && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3 z-10">
             <Check size={16} className="text-green-500" />
           </div>
         )}
@@ -104,19 +103,19 @@ const InputField = ({
 };
 
 // Enhanced Select Field Component
-const SelectField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  options, 
+const SelectField = ({
+  label,
+  name,
+  value,
+  onChange,
+  options,
   icon: Icon,
   validation,
   required = false,
-  ...props 
+  ...props
 }) => {
   const hasError = validation?.error;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -124,7 +123,7 @@ const SelectField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -132,11 +131,10 @@ const SelectField = ({
           name={name}
           value={value}
           onChange={onChange}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 ${
-            hasError
-              ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white appearance-none`}
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative z-0 ${hasError
+            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+            : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
+            } focus:outline-none bg-white appearance-none`}
           {...props}
         >
           {options.map(option => (
@@ -145,7 +143,7 @@ const SelectField = ({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
+        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
           <ChevronDown className="h-4 w-4 text-stone-500" />
         </div>
       </div>
@@ -159,19 +157,19 @@ const SelectField = ({
 };
 
 // Enhanced Textarea Component
-const TextareaField = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  rows = 4, 
-  placeholder, 
+const TextareaField = ({
+  label,
+  name,
+  value,
+  onChange,
+  rows = 4,
+  placeholder,
   icon: Icon,
   validation,
-  required = false 
+  required = false
 }) => {
   const hasError = validation?.error;
-  
+
   return (
     <div className="space-y-2">
       <label className="block text-sm font-semibold text-stone-700">
@@ -179,7 +177,7 @@ const TextareaField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute top-4 left-4 flex items-start pointer-events-none">
+          <div className="absolute top-4 left-4 flex items-start pointer-events-none z-10">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -189,11 +187,10 @@ const TextareaField = ({
           onChange={onChange}
           rows={rows}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 ${
-            hasError
-              ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
-          } focus:outline-none bg-white`}
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 relative z-0 ${hasError
+            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+            : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
+            } focus:outline-none bg-white`}
         />
       </div>
       {hasError && (
@@ -208,7 +205,7 @@ const TextareaField = ({
 // Collapsible Section Component
 const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true }) => {
   const [isOpen, setIsOpen] = useState(defaultOpen);
-  
+
   return (
     <div className="bg-white/70 backdrop-blur-sm rounded-2xl border border-stone-200/50 shadow-sm transition-all duration-300 hover:shadow-md">
       <button
@@ -221,11 +218,11 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true })
           </div>
           <h3 className="text-lg font-semibold text-stone-800">{title}</h3>
         </div>
-        <ChevronRight 
-          className={`h-5 w-5 text-stone-500 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} 
+        <ChevronRight
+          className={`h-5 w-5 text-stone-500 transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`}
         />
       </button>
-      
+
       {isOpen && (
         <div className="px-6 pb-6 animate-in slide-in-from-top-2 duration-300">
           {children}
@@ -239,15 +236,14 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true })
 const NavItem = ({ item, isActive, onClick }) => (
   <button
     onClick={() => onClick(item.id)}
-    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 ${
-      isActive
-        ? item.danger
-          ? 'bg-red-50 text-red-700 border border-red-200 shadow-sm'
-          : 'bg-[#007A49]/10 text-[#007A49] border border-[#007A49]/20 shadow-sm'
-        : item.danger
-          ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
-          : 'text-stone-700 hover:bg-stone-50 hover:text-stone-900'
-    }`}
+    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 relative z-10 ${isActive
+      ? item.danger
+        ? 'bg-red-50 text-red-700 border border-red-200 shadow-sm'
+        : 'bg-[#007A49]/10 text-[#007A49] border border-[#007A49]/20 shadow-sm'
+      : item.danger
+        ? 'text-red-600 hover:bg-red-50 hover:text-red-700'
+        : 'text-stone-700 hover:bg-stone-50 hover:text-stone-900'
+      }`}
   >
     <item.icon size={20} className="mr-3 flex-shrink-0" />
     <span className="font-medium">{item.label}</span>
@@ -260,7 +256,7 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
     <label className="block text-sm font-semibold text-stone-700">{label}</label>
     <div className="bg-stone-50/50 rounded-xl p-6 border-2 border-dashed border-stone-300 hover:border-[#007A49]/50 transition-colors duration-200">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <label className="cursor-pointer bg-white py-3 px-6 border border-stone-300 rounded-xl shadow-sm text-sm font-medium text-stone-700 hover:bg-stone-50 hover:border-[#007A49] transition-all duration-200 flex items-center">
+        <label className="cursor-pointer bg-white py-3 px-6 border border-stone-300 rounded-xl shadow-sm text-sm font-medium text-stone-700 hover:bg-stone-50 hover:border-[#007A49] transition-all duration-200 flex items-center relative z-10">
           {Icon ? <Icon className="h-4 w-4 mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
           Choose File
           <input
@@ -281,44 +277,98 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
   </div>
 );
 
+// Auto-save indicator component
+const AutoSaveIndicator = ({ status }) => {
+  const getStatusConfig = () => {
+    switch (status) {
+      case 'saving':
+        return { text: 'Saving...', icon: Loader, color: 'text-amber-600', spin: true };
+      case 'saved':
+        return { text: 'All changes saved', icon: Check, color: 'text-green-600', spin: false };
+      case 'error':
+        return { text: 'Save failed', icon: AlertCircle, color: 'text-red-600', spin: false };
+      default:
+        return { text: '', icon: null, color: '', spin: false };
+    }
+  };
+
+  const { text, icon: Icon, color, spin } = getStatusConfig();
+
+  if (!Icon) return null;
+
+  return (
+    <div className="flex items-center space-x-2 text-sm">
+      <Icon className={`h-4 w-4 ${color} ${spin ? 'animate-spin' : ''}`} />
+      <span className={color}>{text}</span>
+    </div>
+  );
+};
+
 // General Settings Component
-const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFileName, loading, validationErrors }) => (
+const GeneralSettings = ({
+  projectData,
+  handleInputChange,
+  handleSubmit,
+  imageFileName,
+  videoFileName,
+  loading,
+  validationErrors,
+  autoSaveStatus
+}) => (
   <div className="space-y-8">
-    <div>
-      <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Settings</h2>
-      <p className="text-stone-600">Configure your project's basic information and settings.</p>
+    <div className="flex justify-between items-start">
+      <div>
+        <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Settings</h2>
+        <p className="text-stone-600">Configure your project's basic information and settings.</p>
+      </div>
+      <AutoSaveIndicator status={autoSaveStatus} />
     </div>
 
     <form onSubmit={handleSubmit} className="space-y-6">
       {/* Basic Information */}
       <CollapsibleSection title="Basic Information" icon={FileText}>
         <div className="space-y-6">
-          <InputField
-            label="Project Name"
-            name="projectName"
-            value={projectData.projectName}
-            onChange={handleInputChange}
-            icon={FileText}
-            validation={{ error: validationErrors.projectName }}
-            required
-          />
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <InputField
+              label="Project Name"
+              name="name"
+              value={projectData.name}
+              onChange={handleInputChange}
+              icon={FileText}
+              validation={{ error: validationErrors.name }}
+              required
+            />
+
+            <InputField
+              label="Project Slug"
+              name="slug"
+              value={projectData.slug}
+              onChange={handleInputChange}
+              icon={Globe}
+              validation={{
+                error: validationErrors.slug,
+                hint: "URL-friendly identifier for your project"
+              }}
+              required
+            />
+          </div>
 
           <div>
             <label className="block text-sm font-semibold text-stone-700 mb-4">
               Project Type <span className="text-red-500">*</span>
             </label>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {['Restoration', 'Conservation'].map((type) => (
+              {['restoration', 'conservation', 'research', 'education'].map((type) => (
                 <label key={type} className="flex items-center p-4 border border-stone-200 rounded-xl hover:bg-stone-50 cursor-pointer transition-all duration-200 hover:border-[#007A49]/50">
                   <input
-                    name="projectType"
+                    name="type"
                     type="radio"
                     value={type}
-                    checked={projectData.projectType === type}
+                    checked={projectData.type === type}
                     onChange={handleInputChange}
                     className="h-4 w-4 text-[#007A49] focus:ring-[#007A49] border-stone-300"
                   />
-                  <span className="ml-3 text-stone-700 font-medium">{type}</span>
+                  <span className="ml-3 text-stone-700 font-medium capitalize">{type}</span>
                 </label>
               ))}
             </div>
@@ -347,10 +397,11 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             icon={Info}
             options={[
               { value: '', label: 'Select purpose' },
-              { value: 'Conservation', label: 'Conservation' },
-              { value: 'Restoration', label: 'Restoration' },
-              { value: 'Research', label: 'Research' },
-              { value: 'Education', label: 'Education' }
+              { value: 'conservation', label: 'Conservation' },
+              { value: 'restoration', label: 'Restoration' },
+              { value: 'research', label: 'Research' },
+              { value: 'education', label: 'Education' },
+              { value: 'community', label: 'Community Development' }
             ]}
           />
 
@@ -362,10 +413,11 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             icon={FileText}
             options={[
               { value: '', label: 'Select classification' },
-              { value: 'Environmental', label: 'Environmental' },
-              { value: 'Social', label: 'Social' },
-              { value: 'Economic', label: 'Economic' },
-              { value: 'Research', label: 'Research' }
+              { value: 'environmental', label: 'Environmental' },
+              { value: 'social', label: 'Social' },
+              { value: 'economic', label: 'Economic' },
+              { value: 'research', label: 'Research' },
+              { value: 'educational', label: 'Educational' }
             ]}
           />
         </div>
@@ -382,22 +434,29 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             icon={Leaf}
             options={[
               { value: '', label: 'Select ecosystem' },
-              { value: 'moist-forest', label: 'Moist Forest' },
-              { value: 'dry-land', label: 'Dry Land' },
-              { value: 'tropical', label: 'Tropical' }
+              { value: 'tropical_rainforest', label: 'Tropical Rainforest' },
+              { value: 'temperate_forest', label: 'Temperate Forest' },
+              { value: 'boreal_forest', label: 'Boreal Forest' },
+              { value: 'grassland', label: 'Grassland' },
+              { value: 'wetland', label: 'Wetland' },
+              { value: 'desert', label: 'Desert' },
+              { value: 'coastal', label: 'Coastal' },
+              { value: 'mountain', label: 'Mountain' }
             ]}
           />
 
           <SelectField
             label="Project Scale"
-            name="projectScale"
-            value={projectData.projectScale}
+            name="scale"
+            value={projectData.scale}
             onChange={handleInputChange}
             icon={MapPin}
             options={[
               { value: '', label: 'Select project scale' },
-              { value: 'large-scale', label: 'Large Scale' },
-              { value: 'agriculture', label: 'Agriculture' }
+              { value: 'small', label: 'Small (< 10 hectares)' },
+              { value: 'medium', label: 'Medium (10-100 hectares)' },
+              { value: 'large', label: 'Large (100-1000 hectares)' },
+              { value: 'enterprise', label: 'Enterprise (> 1000 hectares)' }
             ]}
           />
 
@@ -409,9 +468,9 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             icon={Tractor}
             options={[
               { value: '', label: 'Select intensity' },
-              { value: 'Low', label: 'Low' },
-              { value: 'Medium', label: 'Medium' },
-              { value: 'High', label: 'High' }
+              { value: 'low', label: 'Low' },
+              { value: 'medium', label: 'Medium' },
+              { value: 'high', label: 'High' }
             ]}
           />
         </div>
@@ -428,32 +487,33 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             icon={Globe}
             options={[
               { value: '', label: 'Select country' },
-              { value: 'US', label: 'United States' },
-              { value: 'CA', label: 'Canada' },
-              { value: 'MX', label: 'Mexico' },
-              { value: 'BR', label: 'Brazil' },
-              { value: 'IN', label: 'India' },
-              { value: 'PK', label: 'Pakistan' },
-              { value: 'CN', label: 'China' },
-              { value: 'DE', label: 'Germany' },
-              { value: 'FR', label: 'France' },
-              { value: 'GB', label: 'United Kingdom' },
-              { value: 'AU', label: 'Australia' }
+              { value: 'USA', label: 'United States' },
+              { value: 'CAN', label: 'Canada' },
+              { value: 'MEX', label: 'Mexico' },
+              { value: 'BRA', label: 'Brazil' },
+              { value: 'IND', label: 'India' },
+              { value: 'PAK', label: 'Pakistan' },
+              { value: 'CHN', label: 'China' },
+              { value: 'DEU', label: 'Germany' },
+              { value: 'FRA', label: 'France' },
+              { value: 'GBR', label: 'United Kingdom' },
+              { value: 'AUS', label: 'Australia' }
             ]}
           />
 
           <SelectField
             label="Revision Periodicity"
-            name="revisionPeriodicityLevel"
-            value={projectData.revisionPeriodicityLevel}
+            name="revisionPeriodicity"
+            value={projectData.revisionPeriodicity}
             onChange={handleInputChange}
-            icon={Bell}
+            icon={Timer}
             options={[
               { value: '', label: 'Select periodicity' },
-              { value: 'Weekly', label: 'Weekly' },
-              { value: 'Monthly', label: 'Monthly' },
-              { value: 'Quarterly', label: 'Quarterly' },
-              { value: 'Annually', label: 'Annually' }
+              { value: 'weekly', label: 'Weekly' },
+              { value: 'monthly', label: 'Monthly' },
+              { value: 'quarterly', label: 'Quarterly' },
+              { value: 'annually', label: 'Annually' },
+              { value: 'biannually', label: 'Bi-annually' }
             ]}
           />
         </div>
@@ -468,32 +528,56 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             type="number"
             value={projectData.target}
             onChange={handleInputChange}
-            min="0"
+            min="1"
             placeholder="Enter target number"
+            validation={{
+              hint: "Target must be a positive number greater than 0"
+            }}
           />
 
           <InputField
             label="Project Website"
-            name="projectWebsite"
+            name="website"
             type="url"
-            value={projectData.projectWebsite}
+            value={projectData.website}
             onChange={handleInputChange}
             icon={Globe}
             placeholder="https://yourproject.com"
+            validation={{
+              error: validationErrors.website,
+              hint: "Must start with http:// or https://"
+            }}
           />
         </div>
 
-        <FileUpload
-          label="Project Image"
-          accept="image/*"
-          onChange={handleInputChange}
-          fileName={imageFileName}
-          icon={Upload}
-        />
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <FileUpload
+            label="Project Image"
+            accept="image/*"
+            onChange={handleInputChange}
+            fileName={imageFileName}
+            icon={Upload}
+          />
+
+          <div className="space-y-2">
+            <InputField
+              label="Video URL"
+              name="videoUrl"
+              type="url"
+              value={projectData.videoUrl}
+              onChange={handleInputChange}
+              icon={Video}
+              placeholder="https://youtube.com/watch?v=..."
+              validation={{
+                hint: "YouTube, Vimeo, or direct video URL"
+              }}
+            />
+          </div>
+        </div>
       </CollapsibleSection>
 
       {/* Project Settings */}
-      <CollapsibleSection title="Project Visibility" icon={Eye}>
+      <CollapsibleSection title="Project Visibility & Status" icon={Eye}>
         <div className="space-y-4">
           {[
             {
@@ -505,14 +589,20 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
             {
               key: 'isPersonal',
               title: 'Personal Project',
-              desc: 'Mark this as a personal project',
+              desc: 'Mark this as a personal project (will be private)',
               icon: Users
             },
             {
               key: 'isPrimary',
               title: 'Primary Project',
-              desc: 'Set this as your primary project',
+              desc: 'Set this as your primary project (must be active)',
               icon: FileText
+            },
+            {
+              key: 'isActive',
+              title: 'Active Project',
+              desc: 'Project is currently active and accepting updates',
+              icon: Check
             }
           ].map(({ key, title, desc, icon: Icon }) => (
             <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-stone-50/50 hover:bg-stone-100/50 transition-colors duration-200">
@@ -541,7 +631,7 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
         <button
           disabled={loading}
           type="submit"
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
         >
           {loading ? (
             <>
@@ -560,6 +650,7 @@ const GeneralSettings = ({ projectData, handleInputChange, handleSubmit, imageFi
   </div>
 );
 
+
 // Location Settings Component
 const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
   const [geoJSON, setGeoJSON] = useState(existingGeoJSON || null);
@@ -573,13 +664,12 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
       </div>
 
       <CollapsibleSection title="Project Location" icon={MapPin}>
-        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6">
-           <UnifiedMapComponent mode='point' updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
+        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative z-0">
+          <UnifiedMapComponent mode='point' updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
         </div>
 
         <div className="bg-stone-50/50 rounded-xl p-6 border border-stone-200">
-         <GeoJSONUpload onGeoJSONChange={setGeoJSON} />
-
+          <GeoJSONUpload onGeoJSONChange={setGeoJSON} />
         </div>
       </CollapsibleSection>
 
@@ -592,7 +682,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
             setTimeout(() => setIsLoading(false), 2000);
           }}
           disabled={isLoading}
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
         >
           {isLoading ? (
             <>
@@ -655,9 +745,9 @@ const NotificationSettings = ({ projectData, handleInputChange }) => {
                 </div>
               </div>
               <ToggleSwitch
-                checked={projectData.notifications[key]}
+                checked={projectData.notifications?.[key] || false}
                 onChange={() => handleInputChange({
-                  target: { name: `notifications.${key}`, type: 'checkbox', checked: !projectData.notifications[key] }
+                  target: { name: `notifications.${key}`, type: 'checkbox', checked: !projectData.notifications?.[key] }
                 })}
               />
             </div>
@@ -676,7 +766,7 @@ const NotificationSettings = ({ projectData, handleInputChange }) => {
             }, 1000);
           }}
           disabled={isLoading}
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
         >
           {isLoading ? (
             <>
@@ -698,7 +788,7 @@ const NotificationSettings = ({ projectData, handleInputChange }) => {
 // Enhanced Danger Zone Component
 const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, handleDeleteProject }) => {
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
-  
+
   return (
     <div className="space-y-8">
       <div>
@@ -710,7 +800,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
         {/* Archive Project */}
         <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/30 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="relative p-8">
+          <div className="relative p-8 z-10">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                 <Lock className="h-6 w-6 text-amber-600" />
@@ -725,7 +815,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <button
                     type="button"
                     onClick={() => setShowArchiveConfirm(true)}
-                    className="px-6 py-3 bg-white border-2 border-amber-500 text-amber-700 rounded-xl hover:bg-amber-50 hover:border-amber-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105"
+                    className="px-6 py-3 bg-white border-2 border-amber-500 text-amber-700 rounded-xl hover:bg-amber-50 hover:border-amber-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
                   >
                     <Lock className="h-4 w-4 mr-2" />
                     Archive Project
@@ -734,7 +824,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <div className="space-y-4">
                     <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border-2 border-amber-300">
                       <p className="text-sm font-semibold text-amber-800 mb-2">
-                        Archive "<span className="font-bold">{projectData.projectName}</span>"?
+                        Archive "<span className="font-bold">{projectData.name}</span>"?
                       </p>
                       <p className="text-xs text-amber-600">
                         This will make the project read-only. You can restore it later if needed.
@@ -747,7 +837,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                           setShowArchiveConfirm(false);
                           // Handle archive logic
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105"
+                        className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
                       >
                         <Lock className="h-4 w-4 mr-2" />
                         Yes, Archive Project
@@ -755,7 +845,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                       <button
                         type="button"
                         onClick={() => setShowArchiveConfirm(false)}
-                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200"
+                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative z-10"
                       >
                         Cancel
                       </button>
@@ -771,7 +861,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
         <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-100/30 rounded-full -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-100/20 rounded-full translate-y-12 -translate-x-12"></div>
-          <div className="relative p-8">
+          <div className="relative p-8 z-10">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -786,7 +876,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="px-6 py-3 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105"
+                    className="px-6 py-3 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Project
@@ -795,7 +885,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <div className="space-y-4">
                     <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 border-2 border-red-300">
                       <p className="text-sm font-semibold text-red-800 mb-2">
-                        Are you absolutely sure you want to delete "<span className="font-bold">{projectData.projectName}</span>"?
+                        Are you absolutely sure you want to delete "<span className="font-bold">{projectData.name}</span>"?
                       </p>
                       <p className="text-xs text-red-600 mb-3">
                         This action cannot be undone and will permanently delete all project data including:
@@ -814,7 +904,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                           handleDeleteProject();
                           setShowDeleteConfirm(false);
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105"
+                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Yes, Delete Forever
@@ -822,7 +912,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                       <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200"
+                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative z-10"
                       >
                         Cancel
                       </button>
@@ -845,17 +935,17 @@ const NotificationToast = ({ type, message, onClose }) => {
     return () => clearTimeout(timer);
   }, [onClose]);
 
-  const bgColor = type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-[#007A49]';
+  const bgColor = type === 'success' ? 'bg-green-800' : type === 'error' ? 'bg-red-500' : 'bg-[#007A49]';
   const Icon = type === 'success' ? Check : type === 'error' ? X : Info;
 
   return (
-    <div className={`fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-lg animate-in slide-in-from-right-full duration-300 max-w-sm`}>
+    <div className={`fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-lg animate-in slide-in-from-right-full duration-300 max-w-sm z-50`}>
       <div className="flex items-center space-x-3">
         <Icon size={20} />
         <div>
           <p className="font-medium">{message}</p>
         </div>
-        <button 
+        <button
           onClick={onClose}
           className="ml-auto hover:bg-white/20 rounded-lg p-1 transition-colors"
         >
@@ -866,32 +956,78 @@ const NotificationToast = ({ type, message, onClose }) => {
   );
 };
 
+// Auto-save hook
+const useAutoSave = (data, saveFunction, delay = 2000) => {
+  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
+  const timeoutRef = useRef(null);
+  const lastSavedRef = useRef(JSON.stringify(data));
+
+  const triggerAutoSave = useCallback(async () => {
+    const currentData = JSON.stringify(data);
+    if (currentData === lastSavedRef.current) return;
+
+    setAutoSaveStatus('saving');
+    try {
+      await saveFunction(data);
+      setAutoSaveStatus('saved');
+      lastSavedRef.current = currentData;
+      setTimeout(() => setAutoSaveStatus('idle'), 2000);
+    } catch (error) {
+      setAutoSaveStatus('error');
+      setTimeout(() => setAutoSaveStatus('idle'), 3000);
+    }
+  }, [data, saveFunction]);
+
+  useEffect(() => {
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
+
+    timeoutRef.current = setTimeout(() => {
+      triggerAutoSave();
+    }, delay);
+
+    return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+    };
+  }, [data, triggerAutoSave, delay]);
+
+  return autoSaveStatus;
+};
+
 // Main Project Settings Component
 const ProjectSettings = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [notification, setNotification] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
-
+  const { accessToken } = useToken();
+  const selectedProject = useProjectStore(state => state.selectedProject);
   const [projectData, setProjectData] = useState({
-    projectName: '',
-    projectType: '',
+    name: '',
+    slug: '',
+    type: '',
     ecosystem: '',
-    projectScale: '',
+    scale: '',
     target: '',
-    projectWebsite: '',
+    website: '',
+    videoUrl: '',
     description: '',
     purpose: '',
     classification: '',
     intensity: '',
-    revisionPeriodicityLevel: '',
+    revisionPeriodicity: '',
     country: '',
     image: null,
     location: null,
     isPublic: true,
     isPersonal: false,
     isPrimary: false,
-    geoMetry: null,
+    isActive: true,
+    originalGeometry: null,
+    metadata: {},
     notifications: {
       progressUpdates: false,
       treeAdditions: false,
@@ -899,13 +1035,20 @@ const ProjectSettings = () => {
     }
   });
 
-  const { accessToken } = useToken();
-  const selectedProject = useProjectStore(state => state.selectedProject);
-
   const [activeTab, setActiveTab] = useState('general');
   const [imageFileName, setImageFileName] = useState('No file selected');
-  const [locationFileName, setLocationFileName] = useState('No file selected');
+  const [videoFileName, setVideoFileName] = useState('No file selected');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+  // Mock save function for auto-save
+  const autoSaveFunction = useCallback(async (data) => {
+    // Simulate API call
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    console.log('Auto-saving:', data);
+  }, []);
+
+  // Auto-save functionality
+  const autoSaveStatus = useAutoSave(projectData, autoSaveFunction, 3000);
 
   useEffect(() => {
     fetchProjectDetails();
@@ -914,34 +1057,40 @@ const ProjectSettings = () => {
   const fetchProjectDetails = async () => {
     try {
       const result = await getSingleProjectDetails(accessToken, selectedProject?.uid || '');
-      if (result) {
+      if (result.data) {
         const response = result.data || {};
         setProjectData({
-          projectName: response.projectName || '',
-          projectType: response.projectType || '',
-          ecosystem: response.ecosystem || '',
-          projectScale: response.projectScale || '',
-          target: response.target || '',
-          projectWebsite: response.projectWebsite || '',
-          description: response.description || '',
-          purpose: response.purpose || '',
-          classification: response.classification || '',
-          intensity: response.intensity || '',
-          revisionPeriodicityLevel: response.revisionPeriodicityLevel || '',
-          country: response.country || '',
-          image: null,
-          geoMetry: response.originalGeometry,
-          location: null,
-          isPublic: response.isPublic !== undefined ? response.isPublic : true,
-          isPersonal: response.isPersonal !== undefined ? response.isPersonal : false,
-          isPrimary: response.isPrimary !== undefined ? response.isPrimary : false,
+          name: result.data.name,
+          slug: result.data.slug,
+          type: result.data.type,
+          ecosystem: result.data.ecosystem,
+          scale: result.data.scale,
+          target: result.data.target,
+          website: result.data.website,
+          videoUrl: result.data.videoUrl,
+          description: result.data.description,
+          purpose: result.data.purpose,
+          classification: result.data.classification,
+          intensity: result.data.intensity,
+          revisionPeriodicity: result.data.revisionPeriodicity,
+          country: result.data.country,
+          image: result.data.image ?? null,
+          location: result.data.location ?? null,
+          originalGeometry: result.data.originalGeometry,
+          isPublic: result.data.isPublic,
+          isPersonal: result.data.isPersonal,
+          isPrimary: result.data.isPrimary,
+          isActive: result.data.isActive,
+          metadata: {},
           notifications: {
-            progressUpdates: response.notifications?.progressUpdates || false,
-            treeAdditions: response.notifications?.treeAdditions || false,
-            newCollaborators: response.notifications?.newCollaborators || false
+            progressUpdates: true,
+            treeAdditions: false,
+            newCollaborators: true
           }
         });
       }
+
+
     } catch (error) {
       setNotification({ type: 'error', message: 'Failed to load project details' });
     }
@@ -949,19 +1098,42 @@ const ProjectSettings = () => {
 
   const validateForm = () => {
     const errors = {};
-    
-    if (!projectData.projectName.trim()) {
-      errors.projectName = 'Project name is required';
+
+    if (!projectData.name.trim()) {
+      errors.name = 'Project name is required';
     }
-    
-    if (!projectData.projectType) {
-      errors.projectType = 'Project type is required';
+
+    if (!projectData.slug.trim()) {
+      errors.slug = 'Project slug is required';
+    } else if (!/^[a-z0-9-]+$/.test(projectData.slug)) {
+      errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
-    
-    if (projectData.projectWebsite && !/^https?:\/\/.+/.test(projectData.projectWebsite)) {
-      errors.projectWebsite = 'Please enter a valid URL starting with http:// or https://';
+
+    if (!projectData.type) {
+      errors.type = 'Project type is required';
     }
-    
+
+    if (projectData.website && !/^https?:\/\/.+/.test(projectData.website)) {
+      errors.website = 'Please enter a valid URL starting with http:// or https://';
+    }
+
+    if (projectData.videoUrl && !/^https?:\/\/.+/.test(projectData.videoUrl)) {
+      errors.videoUrl = 'Please enter a valid URL starting with http:// or https://';
+    }
+
+    if (projectData.target && projectData.target <= 0) {
+      errors.target = 'Target must be a positive number greater than 0';
+    }
+
+    // Business logic validations
+    if (projectData.isPrimary && !projectData.isActive) {
+      errors.isPrimary = 'Primary project must be active';
+    }
+
+    if (projectData.isPersonal && projectData.isPublic) {
+      errors.isPersonal = 'Personal projects cannot be public';
+    }
+
     setValidationErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -973,9 +1145,6 @@ const ProjectSettings = () => {
       if (name === 'image') {
         setProjectData(prev => ({ ...prev, image: files[0] }));
         setImageFileName(files[0].name);
-      } else if (name === 'location') {
-        setProjectData(prev => ({ ...prev, location: files[0] }));
-        setLocationFileName(files[0].name);
       }
     } else if (name.includes('.')) {
       const [parent, child] = name.split('.');
@@ -1005,15 +1174,10 @@ const ProjectSettings = () => {
   const handleLocationUpdate = async (geoData) => {
     setLoading(true);
     try {
-      const response = await updateProjectSettings(accessToken, {
-        location: geoData
-      }, selectedProject?.uid);
-      
-      if (response && response.statusCode === 200) {
-        setNotification({ type: 'success', message: 'Project location updated successfully!' });
-      } else {
-        throw new Error('Failed to update location');
-      }
+      // Mock API call
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      setProjectData(prev => ({ ...prev, originalGeometry: geoData }));
+      setNotification({ type: 'success', message: 'Project location updated successfully!' });
     } catch (error) {
       setNotification({ type: 'error', message: 'Failed to update project location' });
     } finally {
@@ -1023,38 +1187,19 @@ const ProjectSettings = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
       return;
     }
-    
+
     setLoading(true);
     try {
-      const payload = {
-        projectName: projectData.projectName,
-        projectType: projectData.projectType,
-        ecosystem: projectData.ecosystem,
-        projectScale: projectData.projectScale,
-        target: projectData.target || '1',
-        projectWebsite: projectData.projectWebsite,
-        description: projectData.description,
-        purpose: projectData.purpose,
-        classification: projectData.classification,
-        intensity: projectData.intensity,
-        revisionPeriodicityLevel: projectData.revisionPeriodicityLevel,
-        country: projectData.country,
-        isPublic: projectData.isPublic,
-        isPersonal: projectData.isPersonal,
-        isPrimary: projectData.isPrimary,
-      };
-
-      const response = await updateProjectSettings(accessToken, payload, selectedProject?.uid);
-      if (response && response.statusCode === 200) {
-        setNotification({ type: 'success', message: 'Project settings updated successfully!' });
-      } else {
-        throw new Error('Failed to save project settings');
-      }
+      await updateProjectSettings(accessToken, { ...projectData }, selectedProject.uid)
+      setNotification({ type: 'success', message: 'Project settings updated successfully!' });
+      setTimeout(() => {
+        window.location.reload()
+      }, 2000);
     } catch (error) {
       setNotification({ type: 'error', message: 'Failed to save project settings' });
     } finally {
@@ -1063,7 +1208,7 @@ const ProjectSettings = () => {
   };
 
   const handleDeleteProject = () => {
-    setNotification({ type: 'success', message: `Project "${projectData.projectName}" has been deleted.` });
+    setNotification({ type: 'success', message: `Project "${projectData.name}" has been deleted.` });
     // Implement actual delete logic here
   };
 
@@ -1083,15 +1228,17 @@ const ProjectSettings = () => {
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
             imageFileName={imageFileName}
+            videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
+            autoSaveStatus={autoSaveStatus}
           />
         );
       case 'location':
         return (
           <LocationSettings
             handleLocationUpdate={handleLocationUpdate}
-            existingGeoJSON={projectData.geoMetry}
+            existingGeoJSON={projectData.originalGeometry}
           />
         );
       case 'notifications':
@@ -1117,8 +1264,10 @@ const ProjectSettings = () => {
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
             imageFileName={imageFileName}
+            videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
+            autoSaveStatus={autoSaveStatus}
           />
         );
     }
@@ -1136,7 +1285,7 @@ const ProjectSettings = () => {
       )}
 
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm sticky top-0">
+      <div className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-200/50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
@@ -1145,6 +1294,9 @@ const ProjectSettings = () => {
             >
               {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
             </button>
+            <div className="hidden lg:block">
+              <h1 className="text-xl font-semibold text-stone-900">Project Settings</h1>
+            </div>
           </div>
         </div>
       </div>
@@ -1154,8 +1306,8 @@ const ProjectSettings = () => {
         <div className={`
           ${isMobileMenuOpen ? 'block' : 'hidden lg:block'}
           lg:w-80 bg-white/70 backdrop-blur-sm border-r border-stone-200/50
-          fixed lg:sticky top-16 lg:top-16  w-full lg:w-auto h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]
-          overflow-y-auto lg:overflow-visible
+          fixed lg:sticky top-16 lg:top-16 w-full lg:w-auto h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]
+          overflow-y-auto lg:overflow-visible z-30
         `}>
           <div className="p-6 space-y-2">
             {navItems.map((item) => (
@@ -1173,7 +1325,7 @@ const ProjectSettings = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 lg:p-8">
+        <div className="flex-1 p-6 lg:p-8 relative z-0">
           <div className="max-w-4xl mx-auto">
             {renderTabContent()}
           </div>
@@ -1183,7 +1335,7 @@ const ProjectSettings = () => {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-20"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

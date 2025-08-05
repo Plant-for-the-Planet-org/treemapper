@@ -373,7 +373,6 @@ const Overview = () => {
     const Target = useProjectStore(state => state.selectedProject?.target)
     const userRole = useProjectStore(state => state.selectedProject?.userRole)
     const selectedProject = useProjectStore(state => state.selectedProject?.uid)
-    return null;
 
     const getMonthRange = () => {
         const now = new Date();
