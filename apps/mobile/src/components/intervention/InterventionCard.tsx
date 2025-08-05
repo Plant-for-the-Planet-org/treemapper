@@ -52,7 +52,7 @@ const InterventionCard = (props: Props) => {
       {!item.is_complete && <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.deleteHandler(item) }}>
         <BinIcon width={19} height={19} fill={"tomato"} />
       </TouchableOpacity>}
-      {item.is_complete && item.status !== 'PENDING_DATA_UPLOAD' ? <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.openEditModal(item) }}>
+      {item.is_complete && item.status == 'PENDING_DATA_UPLOAD' ? <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.openEditModal(item) }}>
         <PenIcon width={25} height={30} />
       </TouchableOpacity> : null}
     </View></View>

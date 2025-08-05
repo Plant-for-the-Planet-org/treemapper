@@ -23,11 +23,6 @@ const HomeMapView = () => {
     (state: RootState) => state.userState.type,
   )
 
-  const email = useSelector(
-    (state: RootState) => state.userState.email,
-  )
-
-
 
 
   const toggleFilterModal = () => {
@@ -52,17 +47,17 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker low stopAutoFocus={userType === 'tpo'} />
+      <UserlocationMarker low stopAutoFocus={userType === 'tpo'}/>
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}
       />
-      {email!=='' && <ProjectModal
+      <ProjectModal
         isVisible={showProjectModal}
         toggleModal={toggleProjectModal}
-      />}
+      />
       {showCarousel && <CarouselModal />}
-      <MapAttribution />
+      <MapAttribution/>
     </View>
   )
 }

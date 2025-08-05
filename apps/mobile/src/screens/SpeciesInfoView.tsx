@@ -1,4 +1,4 @@
-import { StyleSheet, ScrollView, Text, View } from 'react-native'
+import { StyleSheet, ScrollView } from 'react-native'
 import React, { useEffect } from 'react'
 import Header from 'src/components/common/Header'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
@@ -15,7 +15,7 @@ import { AvoidSoftInput, AvoidSoftInputView } from 'react-native-avoid-softinput
 import i18next from 'i18next'
 
 const SpeciesInfoView = () => {
-  const route = useRoute<RoteProp<RootStackParamList, 'SpeciesInfo'>>()
+  const route = useRoute<RouteProp<RootStackParamList, 'SpeciesInfo'>>()
   const specieData = useObject<IScientificSpecies>(
     RealmSchema.ScientificSpecies,
     route.params.guid,
@@ -29,18 +29,11 @@ const SpeciesInfoView = () => {
     };
   })
 
-  const RigthComponent = () => {
-    if(specieData.editable){
-      return null
-    }
-    return (<View style={{ width: 100, height: 40, justifyContent: 'center', alignItems: 'center', backgroundColor: Colors.LIGHT_PRIMARY, borderRadius: 40, marginRight:20 }}><Text style={{fontWeight:"600",color:"#262626"}}>Read Only</Text></View>)
-  }
-
   return (
     <SafeAreaView style={styles.container}>
       <AvoidSoftInputView>
         <ScrollView>
-          <Header label={i18next.t("label.back")} rightComponent={<RigthComponent />} />
+          <Header label={i18next.t("label.back")} />
           <SpeciesInfoHeader item={specieData} />
           <SpecieInfoImageSection item={specieData} />
           <SpecieInfoDetailSection item={specieData} />

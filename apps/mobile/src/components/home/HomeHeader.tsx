@@ -53,10 +53,10 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType === 'gen') {
+    if (userType === 'tpo' && !projectAdded) {
       handleProjects()
     }
-  }, [userType])
+  }, [userType, projectAdded, expiringAt])
 
 
   useEffect(() => {
@@ -206,7 +206,7 @@ const HomeHeader = (props: Props) => {
   const handleProjects = async () => {
     const { response, success } = await getAllProjects()
     if (success && response) {
-      const result = await addAllProjects(response.data)
+      const result = await addAllProjects(response)
       if (result) {
         dispatch(updateProjectState(true))
         addNewLog({
@@ -242,7 +242,7 @@ const HomeHeader = (props: Props) => {
       <SpeciesSync />
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
-      {userType && userType === 'gen' ? (
+      {userType && userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}

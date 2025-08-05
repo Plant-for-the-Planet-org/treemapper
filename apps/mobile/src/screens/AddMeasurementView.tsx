@@ -94,7 +94,7 @@ const AddMeasurement = () => {
     }
     // Ensure there is at most one decimal point
   };
-
+  
 
 
 
@@ -106,13 +106,19 @@ const AddMeasurement = () => {
     setHeightErrorMessage(heightErrorMessage)
     setWidthErrorMessage(diameterErrorMessage)
     let isTagIdValid = false;
-    if (tagEnable) {
-      if (tagId.length === 0) {
+    if(tagEnable){
+      if(tagId.length===0){
         setTagIdErrorMessage(i18next.t('label.select_species_tag_id_required'));
-      } else {
-        isTagIdValid = true
+      }else{
+        const regex = /^[a-zA-Z0-9]+$/;
+        const isValidId = regex.test(tagId) 
+        if(!isValidId){
+          setTagIdErrorMessage(i18next.t('Please input a valid id.'));
+        }else{
+          isTagIdValid = true
+        }
       }
-    } else {
+    }else{
       setTagIdErrorMessage('');
       isTagIdValid = true;
     }
@@ -129,11 +135,11 @@ const AddMeasurement = () => {
 
 
 
-  const acceptOptimalAlert = () => {
+  const acceptOptimalAlert=()=>{
     setShowOptimalAlert(false)
   }
 
-  const rejectOptimalAlert = () => {
+  const rejectOptimalAlert=()=>{
     setShowOptimalAlert(false)
     submitDetails();
   }

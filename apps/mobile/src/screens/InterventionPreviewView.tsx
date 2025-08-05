@@ -88,7 +88,7 @@ const InterventionPreviewView = () => {
 
 
   const showInitialToast = () => {
-    if (UserType === 'gen' && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
+    if (UserType === 'tpo' && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
       toast.show("Project not assign")
     }
   }
@@ -182,7 +182,7 @@ const InterventionPreviewView = () => {
 
 
   const navigateToNext = async () => {
-    if (UserType === 'gen' && !InterventionData.project_id) {
+    if (UserType === 'tpo' && !InterventionData.project_id) {
       toast.show("Please assign project")
       return
     }

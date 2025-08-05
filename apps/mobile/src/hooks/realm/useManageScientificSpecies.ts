@@ -6,7 +6,6 @@ import useLogManagement from './useLogManagement'
 
 interface ServerSpeciesSync {
   "aliases": string
-  "commonName":string
   "description": null | string
   "id": string
   "image": null | string
@@ -122,12 +121,11 @@ const useManageScientificSpecies = () => {
             scientificName: specie.scientificName || '',
             isUserSpecies: true,
             isUploaded: true,
-            aliases: specie.commonName || '',
+            aliases: specie.aliases || '',
             image: specie.image || '',
             description: specie.description || '',
             isUpdated: true,
-            specieId: specie.id || '',
-            editable: false
+            specieId: specie.id || ''
           }
           realm.create(
             RealmSchema.ScientificSpecies,

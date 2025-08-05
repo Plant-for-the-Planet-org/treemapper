@@ -8,7 +8,8 @@ const useProjectManagement = () => {
   const addAllProjects = async (projectData: any[]): Promise<boolean> => {
     try {
       realm.write(() => {
-        projectData.forEach((properties: any) => {
+        projectData.forEach((project: any) => {
+          const { properties } = project
           const sites = []
           const projectData: any = {
             allowDonations: properties.allowDonations,
@@ -22,7 +23,7 @@ const useProjectManagement = () => {
             slug: properties.slug,
             treeCost: properties.treeCost,
             sites: [],
-            geometry: JSON.stringify(properties.geometry),
+            geometry: JSON.stringify(project.geometry),
             purpose: properties.purpose,
             intensity: properties.intensity || 0,
             frequency: properties.revisionPeriodicityLevel || 'low',
@@ -82,7 +83,7 @@ const useProjectManagement = () => {
   const addNewSite = async (projectID: string, siteData: any): Promise<boolean> => {
     try {
       realm.write(() => {
-        const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, projectID)
+        const projectData =  realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects,projectID)
         const existingSites = [...projectData.sites]
         existingSites.push(siteData)
         projectData.sites = existingSites

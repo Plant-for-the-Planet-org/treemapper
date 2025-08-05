@@ -1,8 +1,8 @@
 import { getUrlApi, postUrlApi } from './api.url';
 import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
 
-export const uploadIntervention = async (params: any, pid: string) => {
-  const uri = `${postUrlApi.uploadIntervention}/${pid}/intervention/mobile`;
+export const uploadIntervention = async (params: any) => {
+  const uri = `${postUrlApi.uploadIntervention}`;
   const result = await fetchPostCall(uri, params);
   return result;
 };
@@ -38,12 +38,6 @@ export const getUserDetails = async () => {
   return result;
 };
 
-export const getSignedUrl = async (params: any) => {
-  const uri = `${postUrlApi.getSignedUrl}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
 
 export const getAllProjects = async () => {
   const uri = `${getUrlApi.getAllProjects}`;
@@ -60,14 +54,6 @@ export const getAreaName = async (coords: number[],) => {
 
 export const getUserSpecies = async () => {
   const uri = `${getUrlApi.userSpecies}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
-
-
-export const getProjectSpecies = async (pid:string) => {
-  const uri = `${getUrlApi.getProjectSpecies}/${pid}`;
   const result = await fetchGetCall(uri, true);
   return result;
 };
@@ -125,38 +111,4 @@ export const createNewSite = async (pid: string, params: any) => {
   const uri = `${postUrlApi.createNewSite}/${pid}/sites`
   const result = await fetchPostCall(uri, params);
   return result;
-};
-
-export const updateServerInvImage = async (params: any) => {
-  const uri = `${postUrlApi.updateInvImage}`
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
-
-export const uploadFileToPresignedUrl = async (filePath, presignedUrl) => {
-  try {
-    // Read the file as a blob/buffer
-    const response = await fetch(filePath);
-    const blob = await response.blob();
-    
-    // Upload to presigned URL
-    const uploadResponse = await fetch(presignedUrl, {
-      method: 'PUT',
-      body: blob,
-      headers: {
-        'Content-Type': blob.type || 'application/octet-stream',
-      },
-    });
-
-    if (uploadResponse.ok) {
-      return true;
-    } else {
-      console.error('Upload failed:', uploadResponse.status);
-      return false;
-    }
-  } catch (error) {
-    console.error('Error uploading file:', error);
-    return false;
-  }
 };

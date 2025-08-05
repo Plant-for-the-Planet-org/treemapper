@@ -7,7 +7,6 @@ import * as FileSystem from 'expo-file-system';
 import { FormElement } from "src/types/interface/form.interface";
 import { updateFilePath } from "./fileSystemHelper";
 import sampleTreeBase64 from '../../../assets/images/base64/sampleTree'
-import { v4 as uuid } from 'uuid'
 
 
 const postTimeConvertor = (t: number) => {
@@ -25,6 +24,7 @@ const getImageAsBase64 = async (fileUri: string) => {
         return sampleTreeBase64;
     }
 };
+
 
 
 export const postDataConvertor = (d: InterventionData[]) => {
@@ -133,11 +133,11 @@ export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPaylo
             if (TreeDetails.sloc_id === '') {
                 return null
             }
+            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
             const body = {
-                imageFile: updateFilePath(TreeDetails.image_url),
+                imageFile: `data:image/png;base64,${base64Image}`,
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
-                imageId: uuid(),
-                serverId: TreeDetails.sloc_id
+                imageId: TreeDetails.image_data.coordinateID
             };
             return { pData: body, message: '', fixRequired: "NO", error: "" }
         } catch (error) {
@@ -193,15 +193,15 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
-        if (uType === 'gen' && !d.project_id) {
+        if (uType === 'tpo' && !d.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'gen' && d.project_id) {
+        if (uType === 'tpo' && d.project_id) {
             postData.plantProject = d.project_id
         }
 
-        if (uType === 'gen' && d.site_id && d.site_id !== 'other') {
+        if (uType === 'tpo' && d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {
@@ -267,15 +267,15 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         postData.interventionStartDate = postTimeConvertor(d.plantation_date)
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-        if (uType === 'gen' && !i.project_id) {
+        if (uType === 'tpo' && !i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'gen' && i.project_id) {
+        if (uType === 'tpo' && i.project_id) {
             postData.plantProject = i.project_id
         }
 
-        if (uType === 'gen' && i.site_id && i.site_id !== 'other') {
+        if (uType === 'tpo' && i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {

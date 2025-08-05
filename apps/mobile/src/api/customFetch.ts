@@ -22,7 +22,6 @@ const defaultHeaders = {
 
 const fetchCall = async (method: string, uri: string, params: any = null, authRequire: boolean = true) => {
   try {
-    console.log("URI", uri)
     const token = store.getState().appState.accessToken;
     if (!token && authRequire) {
       throw new Error('No access token available');

@@ -173,7 +173,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>{i18next.t('label.type')}</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
-        {userType === 'gen' && status !== 'SYNCED' ? (
+        {userType === 'tpo' && status !== 'SYNCED' ? (
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
@@ -182,7 +182,7 @@ const InterventionBasicInfo = (props: Props) => {
             <Text style={styles.cardLabel}>{project_name || "No Project assigned"}</Text>
           </Pressable>
         ) : null}
-        {userType === 'gen' && status !== 'SYNCED'?(
+        {userType === 'tpo' && status !== 'SYNCED'?(
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>

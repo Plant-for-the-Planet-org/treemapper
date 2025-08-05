@@ -4,8 +4,6 @@ import {
   Text,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
 } from 'react-native'
 import Modal from 'react-native-modal'
 import { Colors, Typography } from 'src/utils/constants'
@@ -16,6 +14,8 @@ import SpeciesIcon from 'assets/images/svg/SpeciesIcon.svg'
 import { InputOutlineMethods } from 'react-native-input-outline/lib/typescript/components/InputOutline'
 import i18next from 'src/locales/index'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
+import { AvoidSoftInputView } from 'react-native-avoid-softinput'
+
 interface TreeCountModalProps {
   showTreeCountModal: boolean
   setShowTreeCountModal: any
@@ -32,11 +32,8 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
   const [treeCount, setTreeCount] = useState('')
   const inputRef = React.useRef<InputOutlineMethods>(null)
   const [errorMessage, setErrorMessage] = useState('')
-
-
   useEffect(() => {
     setTreeCount('')
-    setErrorMessage('')
     if (showTreeCountModal) {
       setTimeout(() => {
         inputRef?.current?.focus()
@@ -52,6 +49,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
     onPressTreeCountNextBtn(treeCount)
   }
 
+
   const isValidNumberString = (input: string) => {
     const regex = /^\d+(\.\d+)?$/;
     if (regex.test(input)) {
@@ -61,7 +59,6 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
       setErrorMessage("Please input valid Tree count")
     }
   }
-
   const returnButtonColor = () => {
     if (errorMessage.length || treeCount.length === 0) {
       return Colors.GRAY_BACKDROP
@@ -69,73 +66,54 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
     return Colors.NEW_PRIMARY
   }
 
-  
 
   return (
-    <Modal 
-      style={styles.container}
+    <Modal style={styles.container}
       isVisible={showTreeCountModal}
-      onBackdropPress={() => {}}
-      avoidKeyboard={true}
-      useNativeDriverForBackdrop={true}
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'position' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
-        style={styles.keyboardAvoidingView}
-      >
-        <View style={styles.sectionWrapper}>
-          <View style={styles.wrapper}>
-            <View style={styles.headerWrapper}>
-              <SpeciesIcon />
-              <Text style={styles.headerLabel}>{i18next.t("label.total_trees")}</Text>
-              <View style={styles.divider} />
-              <Ionicons
-                name={'close'}
-                size={30}
-                color={Colors.TEXT_COLOR}
-                onPress={() => {
-                  setShowTreeCountModal(null)
-                }}
+      onBackdropPress={() => { }}>
+      <AvoidSoftInputView
+        avoidOffset={0}
+        showAnimationDuration={200}
+        style={styles.sectionWrapper}>
+        <View style={styles.wrapper}>
+          <View style={styles.headerWrapper}>
+            <SpeciesIcon />
+            <Text style={styles.headerLabel}>{i18next.t("label.total_trees")}</Text>
+            <View style={styles.divider} />
+            <Ionicons
+              name={'close'}
+              size={30}
+              color={Colors.TEXT_COLOR}
+              onPress={() => {
+                setShowTreeCountModal(null)
+              }}
+            />
+          </View>
+          {activeSpecie && <Text style={styles.note}>{i18next.t('label.how_many')}  <Text style={styles.speciesLabel}>{activeSpecie.aliases.length
+            ? activeSpecie.aliases
+            : activeSpecie.scientificName}</Text>{i18next.t("label.did_you_plant")}</Text>}
+          <View style={styles.inputWrapper}>
+            <View style={styles.input}>
+              <InputOutline
+                style={styles.inputHolder}
+                ref={inputRef}
+                placeholder={'Tree Count'}
+                activeColor={Colors.NEW_PRIMARY}
+                inactiveColor={Colors.GRAY_TEXT}
+                placeholderTextColor={Colors.GRAY_TEXT}
+                fontSize={scaleFont(16)}
+                onChangeText={isValidNumberString}
+                keyboardType='numeric'
+                error={errorMessage.length > 0 ? errorMessage : null}
+                fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
               />
             </View>
-            {activeSpecie && (
-              <Text style={styles.note}>
-                {i18next.t('label.how_many')}  
-                <Text style={styles.speciesLabel}>
-                  {activeSpecie.aliases.length
-                    ? activeSpecie.aliases
-                    : activeSpecie.scientificName}
-                </Text>
-                {i18next.t("label.did_you_plant")}
-              </Text>
-            )}
-            <View style={styles.inputWrapper}>
-              <View style={styles.input}>
-                <InputOutline
-                  style={styles.inputHolder}
-                  ref={inputRef}
-                  placeholder={'Tree Count'}
-                  activeColor={Colors.NEW_PRIMARY}
-                  inactiveColor={Colors.GRAY_TEXT}
-                  placeholderTextColor={Colors.GRAY_TEXT}
-                  fontSize={scaleFont(16)}
-                  onChangeText={isValidNumberString}
-                  keyboardType='numeric'
-                  error={errorMessage.length > 0 ? errorMessage : null}
-                  fontFamily={Typography.FONT_FAMILY_SEMI_BOLD}
-                />
-              </View>
-              <TouchableOpacity 
-                style={[styles.button, { backgroundColor: returnButtonColor()}]} 
-                onPress={handlePressNext}
-              >
-                <Text style={styles.btnLabel}>{i18next.t("label.continue")}</Text>
-              </TouchableOpacity>
-            </View>
+            <TouchableOpacity style={[styles.button, { backgroundColor: returnButtonColor()}]} onPress={handlePressNext}>
+              <Text style={styles.btnLabel}>{i18next.t("label.continue")}</Text>
+            </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </AvoidSoftInputView>
     </Modal>
   )
 }
@@ -147,13 +125,9 @@ const styles = StyleSheet.create({
     flex: 1,
     margin: 0,
     padding: 0,
-    justifyContent: 'flex-end',
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-    justifyContent: 'flex-end',
   },
   sectionWrapper: {
+    flex: 1,
     justifyContent: 'flex-end'
   },
   wrapper: {
@@ -162,7 +136,7 @@ const styles = StyleSheet.create({
     paddingBottom: 20,
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    minHeight: 200, // Ensure minimum height
+    bottom: 0
   },
   headerWrapper: {
     width: '100%',
@@ -186,8 +160,7 @@ const styles = StyleSheet.create({
     color: Colors.DARK_TEXT,
     fontSize: scaleFont(18),
     marginLeft: 15,
-    paddingRight: 10,
-    marginTop: 10,
+    paddingRight: 10
   },
   inputWrapper: {
     width: '100%',

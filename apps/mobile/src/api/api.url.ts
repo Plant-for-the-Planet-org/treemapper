@@ -1,9 +1,9 @@
-const baseUrl = "api"
+const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
 
-const https = 'http://'
+const https = 'https://'
 
 export const postUrlApi = {
-  uploadIntervention: `${https}${baseUrl}/app/projects`,
+  uploadIntervention: `${https}${baseUrl}/treemapper/interventions`,
   imageUpload: `${https}${baseUrl}/treemapper/interventions`,
   remeasurement: `${https}${baseUrl}/treemapper/interventions`,
   skipRemeasurement: `${https}${baseUrl}/treemapper/interventions`,
@@ -12,23 +12,20 @@ export const postUrlApi = {
   updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,
   signupService: `${https}${baseUrl}/app/profile`,
   updateProjectInF: `${https}${baseUrl}/app/projects`,
-  createNewSite: `${https}${baseUrl}/app/projects`,
-  deleteAccount: `${https}${baseUrl}/app/profile`,
-  getSignedUrl: `${https}${baseUrl}/app/presigned-url`,
-  updateInvImage: `${https}${baseUrl}/app/image/intervention`,
+  createNewSite:`${https}${baseUrl}/app/projects`,
+  deleteAccount:`${https}${baseUrl}/app/profile`,
 };
 
 export const getUrlApi = {
   getBaseUrl: `${https}${baseUrl}`,
   getBaseTestUrl: `${https}${baseUrl}`,
   getUserDetails: `${https}${baseUrl}/app/profile`,
-  getProjectSpecies: `${https}${baseUrl}/app/species`,
   getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
-  getAllProjects: `${https}${baseUrl}/app/projects`,
+  getAllProjects: `${https}${baseUrl}/app/profile/projects?_scope=extended`,
   userSpecies: `${https}${baseUrl}/treemapper/species`,
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
   getSingleLocationDetail: `${https}${baseUrl}/treemapper/plantLocations`,
-  getAllSpeciesAchieve: `https://app.plant-for-the-planet.org/treemapper/scientificSpeciesArchive`,
+  getAllSpeciesAchieve: `${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
   getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
 

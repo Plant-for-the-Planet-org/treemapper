@@ -16,9 +16,8 @@ import RotatingView from '../common/RotatingView';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
-
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { getSignedUrl, remeasurement, skipRemeasurement, updateServerInvImage, uploadFileToPresignedUrl, uploadIntervention } from 'src/api/api.fetch';
+import { remeasurement, skipRemeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -33,7 +32,7 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(2)
+    const [retryCount, setRetryCount] = useState(10)
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
@@ -125,9 +124,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData, pData.plantProject);
-            if (success && response?.data.hid && response?.data.id) {
-                await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.hid && response?.id) {
+                await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -163,11 +162,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData, pData.plantProject);
-            if (success && response?.data.id && response?.data.hid) {
-                const result = await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.id && response?.hid) {
+                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
-                    await updateTreeStatus(el.p2Id, response.data.singleTreeResult.hid, response.data.singleTreeResult.id, el.nextStatus, response.data.id);
+                    await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
                 }
             } else {
                 addNewLog({
@@ -263,9 +262,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData, pData.plantProject);
-            if (success && response?.data.hid && response?.data.id) {
-                await updateTreeStatus(el.p2Id, response.data.hid, response.data.id, el.nextStatus, pData.parent);
+            const { response, success } = await uploadIntervention(pData);
+            if (success && response?.hid && response?.id && response.coordinates) {
+                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, pData.parent, response.coordinates);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -285,26 +284,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         }
     };
 
-    const getImageMimeType = async (imagePath) => {
-        try {
-            // Get extension and convert to MIME type
-            const extension = imagePath.split('.').pop().toLowerCase();
-            const mimeTypes = {
-                'jpg': 'image/jpeg',
-                'jpeg': 'image/jpeg',
-                'png': 'image/png',
-                'gif': 'image/gif',
-                'webp': 'image/webp',
-                'bmp': 'image/bmp',
-            };
-
-            return mimeTypes[extension] || 'image/unknown';
-        } catch (error) {
-            console.error('Error getting file type:', error);
-            return null;
-        }
-    };
-
     const handleTreeImage = async (el) => {
         try {
             const { pData, fixRequired, error, message } = await getPostBody(el, uType);
@@ -320,31 +299,20 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const imagetype = await getImageMimeType(pData.imageFile);
-            const signedUrl = await getSignedUrl({
-                fileName: pData.imageId,
-                fileType: imagetype,
-                folder: "tree"
-            })
-
-            if (signedUrl.response && signedUrl.response.data) {
-                const resultImageUpload = await uploadFileToPresignedUrl(pData.imageFile, signedUrl.response.data.data.uploadUrl)
-                await updateServerInvImage({
-                    image: signedUrl.response.data.data.fileName,
-                    treeId: pData.serverId
+            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+                imageFile: pData.imageFile
+            });
+            if (success && response.status === "complete") {
+                const cdnImage = response.image || ''
+                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Image Upload API response error',
+                    logLevel: 'error',
+                    statusCode: '',
                 })
-                if (resultImageUpload) {
-                    await updateTreeImageStatus(el.p2Id, el.p1Id);
-                } else {
-                    addNewLog({
-                        logType: 'DATA_SYNC',
-                        message: 'Image Upload API response error',
-                        logLevel: 'error',
-                        statusCode: '',
-                    })
-                }
             }
-
         } catch (error) {
             addNewLog({
                 logType: 'DATA_SYNC',

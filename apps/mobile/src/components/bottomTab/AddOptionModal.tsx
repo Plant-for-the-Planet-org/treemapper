@@ -70,7 +70,7 @@ const AddOptionModal = (props: Props) => {
   }, [props.visible])
 
   const checkWhetherProjectIsSelected = () => {
-    if (userType === 'gen' && currentProject.projectId === '' && props.visible) {
+    if (userType === 'tpo' && currentProject.projectId === '' && props.visible) {
       toggleModal()
       return false
     }
@@ -102,7 +102,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.project_sites'),
       coming_soon: false,
       onPress: () => {
-        if (userType !== 'gen') {
+        if (userType !== 'tpo') {
           toast.hideAll()
           toast.show("Please login from RO account")
           props.setVisible(false)

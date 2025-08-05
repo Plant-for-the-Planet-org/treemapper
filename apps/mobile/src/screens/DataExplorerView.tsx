@@ -1,149 +1,47 @@
-import { StyleSheet, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
-
+import { StyleSheet, Text, View } from 'react-native'
+import React from 'react'
+import ExploreBackDrop from 'assets/images/svg/ExploreBackDrop.svg'
+import Header from 'src/components/common/Header'
+import { Colors, Typography } from 'src/utils/constants'
+import CustomButton from 'src/components/common/CustomButton'
+import { scaleSize } from 'src/utils/constants/mixins'
+import ExternalLinkIcon from 'assets/images/svg/ExternalLinkIcon.svg'
 import { SafeAreaView } from 'react-native-safe-area-context'
-// import ProjectDropdown from 'src/components/dataExplore/ProjectDropDown'
-// import ProjectDropdown from 'dashboard/pages/dashboardHeader/DashboardHeaderNative'
-import ProjectDropdown from '../components/dataExplore/ProjectDropDown'
-
-import { useSelector } from 'react-redux'
-import { RootState } from '../store'
-import Header from '../components/common/Header'
-import NotificationProfileBar from '../components/dataExplore/NotificationProfileBar'
-import HorizontalTabs, { TabData } from '../components/dataExplore/HorizontalTabs'
-import Overview from '../components/dataExplore/Overview'
-import { Ionicons } from '@expo/vector-icons'
-import SitesList from '../components/dataExplore/SiteList'
-import TeamMemberHome from '../components/dataExplore/TeamMemberHome'
-
-
-
-
+import openWebView from 'src/utils/helpers/appHelper/openWebView'
+import i18next from 'src/locales/index'
 
 const DataExplorerView = () => {
-  const [selectedProject, setSelectedProject] = useState('Project 1');
-  const [notificationCount, setNotificationCount] = useState(5);
-  const [selectedTab, setSelectedTab] = useState<TabData | null>();
 
-  const handleNotificationPress = () => {
-    console.log('Notification pressed');
-    // Navigate to notifications screen
-    // navigation.navigate('Notifications');
-  };
+  const openLink = () => {
+    openWebView('https://web.plant-for-the-planet.org/en/profile/treemapper/data-explorer');
 
-  const handleProfilePress = () => {
-    console.log('Profile pressed');
-    // Navigate to profile screen
-    // navigation.navigate('Profile');
-  };
+  }
 
-  const handleDownloadPress = () => {
-    console.log('Download pressed');
-    // Handle download functionality
-  };
-
-
-  // Sample tabs data
-  const tabsData: TabData[] = [
-    {
-      id: 1,
-      title: 'Overview',
-      icon: 'home-outline',
-      component: 'OverviewComponent',
-    },
-    {
-      id: 2,
-      title: 'Sites',
-      icon: 'analytics-outline',
-      component: 'AnalyticsComponent',
-    },
-    {
-      id: 3,
-      title: 'Team',
-      icon: 'document-text-outline',
-      component: 'Team',
-    },
-    {
-      id: 4,
-      title: 'Settings',
-      icon: 'settings-outline',
-      component: 'SettingsComponent',
-    },
-    {
-      id: 5,
-      title: 'Users',
-      icon: 'people-outline',
-      component: 'UsersComponent',
-    },
-    {
-      id: 6,
-      title: 'Notifications',
-      icon: 'notifications-outline',
-      component: 'NotificationsComponent',
-    },
-  ];
-
-  const handleTabChange = (tabData: TabData, index: number) => {
-    setSelectedTab(tabData);
-    console.log('Selected tab:', tabData, 'Index:', index);
-
-    // Here you can handle your content rendering logic
-    // For example, update state, navigate, or trigger other actions
-  };
-
-  const renderContent = () => {
-    if (!selectedTab) return null;
-
-    // This is where you would render your actual components
-    // based on the selected tab
-    switch (selectedTab.component) {
-      case 'OverviewComponent':
-        return <Overview />
-      case 'AnalyticsComponent':
-        return <SitesList />
-      case 'Team':
-        return <TeamMemberHome />
-      case 'SettingsComponent':
-        return null
-      case 'UsersComponent':
-        return null
-      case 'NotificationsComponent':
-        return null
-      default:
-        return null
-    }
-  };
-
-
-  const appToken = useSelector((state: RootState) => state.appState.accessToken)
   return (
-    <SafeAreaView>
-      <Header label='Dashboard' height={50} bgColor='#efefef' />
+    <SafeAreaView style={styles.wrapper} edges={['top']}>
+      <Header label="Data Explorer" />
       <View style={styles.container}>
-        <View style={styles.headerContainer}>
-          <View style={styles.leftSection}>
-            <ProjectDropdown token={`${appToken}`} />
-          </View>
-          <View style={styles.rightSection}>
-            <NotificationProfileBar
-              notificationCount={notificationCount}
-              onNotificationPress={handleNotificationPress}
-              onProfilePress={handleProfilePress}
-              style={styles.notificationProfileBar}
-            />
-          </View>
-        </View>
-        <HorizontalTabs
-          tabs={tabsData}
-          onTabChange={handleTabChange}
-          style={styles.tabsContainer}
-          initialSelectedIndex={0}
-        />
-
-        <View style={styles.contentContainer}>
-          {renderContent()}
-        </View>
+        <ExploreBackDrop />
+        <Text style={styles.header}>{i18next.t("label.explore_tile")}</Text>
+        <Text style={styles.section}>
+          {i18next.t("label.learn_note_explore")}
+        </Text>
+        <Text style={styles.section}>
+          {i18next.t("label.explore_download_note")}
+        </Text>
+        <Text>
+          {'\n'}
+        </Text>
+        <Text style={styles.section}> {i18next.t("label.explore_available")}</Text>
+        <Text style={styles.section}>{i18next.t("label.best_desktop")}</Text>
       </View>
+      <CustomButton
+        label={i18next.t("label.explore_now")}
+        containerStyle={styles.btnContainer}
+        pressHandler={openLink}
+        loading={false}
+        leftIcon={<ExternalLinkIcon width={25} height={25} />}
+      />
     </SafeAreaView>
   )
 }
@@ -151,31 +49,33 @@ const DataExplorerView = () => {
 export default DataExplorerView
 
 const styles = StyleSheet.create({
+  wrapper: {
+    flex: 1,
+    backgroundColor: Colors.WHITE
+  },
   container: {
-    paddingHorizontal: 10,
-    width: '100%',
-    height: '100%'
-  },
-  headerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  leftSection: {
-    flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  rightSection: {
     flex: 1,
-    alignItems: 'flex-end',
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: Colors.BACKDROP_COLOR
   },
-  tabsContainer: {
-    marginTop: 10
+  header: {
+    fontSize: 18,
+    color: Colors.DARK_TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    marginBottom: 10
   },
-  contentContainer: {
-    flex: 1,
+  section: {
+    fontSize: 12,
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    marginBottom: 10
+  },
+  btnContainer: {
     width: '100%',
-    height: '100%',
+    height: scaleSize(70),
+    position: 'absolute',
+    bottom: 30,
   },
-  notificationProfileBar: {}
+
 })

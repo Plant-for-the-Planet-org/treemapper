@@ -91,7 +91,7 @@ const LoginButton = () => {
       return
     }
     if (success && response) {
-      loginAndUpdateDetails(response.data)
+      loginAndUpdateDetails(response)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
       addNewLog({
@@ -110,6 +110,7 @@ const LoginButton = () => {
     try {
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
+      console.log("OPIPOIP,", JSON.stringify(result, null, 2))
       if (!result.success) {
         dispatch(updateWebAuthLoading(false))
         Snackbar.show({
@@ -127,6 +128,7 @@ const LoginButton = () => {
         await handleLogout()
       }
     } catch (err) {
+      console.log("OPIPOIP, err", JSON.stringify(err, null, 2))
       dispatch(updateWebAuthLoading(false))
       addNewLog({
         logType: 'USER',
@@ -141,13 +143,11 @@ const LoginButton = () => {
   const handleLogout = async () => {
     try {
       await logoutUser()
+      dispatch(resetProjectState())
       dispatch(updateUserLogin(false))
       dispatch(resetUserDetails())
       dispatch(logoutAppUser())
       dispatch(updateNewIntervention())
-      setTimeout(() => {
-        dispatch(resetProjectState())
-      }, 1000);
     } catch (error) {
       console.log("Error occurred while logout")
     }

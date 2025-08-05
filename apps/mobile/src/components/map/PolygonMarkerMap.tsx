@@ -26,7 +26,6 @@ import AlertModal from '../common/AlertModal'
 import PolygonTracker from './PolygonTracker'
 import { Feature } from '@turf/helpers'
 import bbox from '@turf/bbox'
-import { useRealm } from '@realm/react'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -59,11 +58,9 @@ const PolygonMarkerMap = (props: Props) => {
     (state: RootState) => state.userState.type,
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const { updateInterventionLocation, saveInterventionLocation } = useInterventionManagement()
+  const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
-  const realm = useRealm()
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
-  const previousData = realm.objectForPrimaryKey('Intervention', form_id);
 
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
@@ -87,17 +84,6 @@ const PolygonMarkerMap = (props: Props) => {
       handleCamera()
     }
   }, [currentUserLocation])
-
-  useEffect(() => {
-    checkForExistingCoords()
-  }, [])
-
-  const checkForExistingCoords = async () => {
-    if (previousData && previousData.location && previousData.location.coordinates) {
-      const result = JSON.parse(previousData.location.coordinates)
-      setCoordinates(result)
-    }
-  }
 
   const handleCameraView = () => {
     if (cameraRef?.current) {
@@ -162,7 +148,6 @@ const PolygonMarkerMap = (props: Props) => {
         errorHaptic()
       }
       setCoordinates([...coordinates, centerCoordinates])
-      savePolygon([...coordinates, centerCoordinates])
       setCurrentCoordinate(prevState => ({
         id: String.fromCharCode(prevState.id.charCodeAt(0) + 1),
         index: prevState.index++,
@@ -216,14 +201,9 @@ const PolygonMarkerMap = (props: Props) => {
     }
   }
 
-  const savePolygon = async (c) => {
-    const data = makeInterventionGeoJson('Point', c, form_id)
-    await saveInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
-  }
-
   const proceedTrackComplete = async () => {
     // setCoordinates([...finalCoordinates])
-    console.log("SDsd", trackingGeoJSON)
+    console.log("SDsd",trackingGeoJSON)
     const data = makeInterventionGeoJson('Point', trackingGeoJSON[0], form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
@@ -409,10 +389,10 @@ const PolygonMarkerMap = (props: Props) => {
             label={trackingState === 'complete' ? "Continue" : "Complete"}
             containerStyle={styles.btnWrapper}
             pressHandler={() => {
-              if (trackingState !== 'complete') {
+              if(trackingState!=='complete'){
                 setTrackingState('complete')
               }
-              if (trackingState === 'complete' && trackingGeoJSON) {
+              if(trackingState==='complete' && trackingGeoJSON){
                 proceedTrackComplete()
               }
             }}

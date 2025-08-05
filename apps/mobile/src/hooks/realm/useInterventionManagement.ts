@@ -11,7 +11,6 @@ import { useToast } from 'react-native-toast-notifications'
 import { useDispatch } from 'react-redux'
 import RNFS from 'react-native-fs';
 import { updateImageSize } from 'src/store/slice/appStateSlice'
-import { v4 as uuid } from 'uuid'
 
 const useInterventionManagement = () => {
   const realm = useRealm()
@@ -387,35 +386,6 @@ const useInterventionManagement = () => {
     }
   };
 
-    const saveInterventionLocation = async (interventionID: string, location: { type: string, coordinates: string }, isEntireSite: boolean): Promise<boolean> => {
-    try {
-      realm.write(() => {
-        const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
-        intervention.location_type = location.type
-        intervention.location = location
-        intervention.entire_site = isEntireSite
-        intervention.last_updated_at = Date.now()
-      });
-      addNewLog({
-        logType: 'INTERVENTION',
-        message: `Location saved for Intervention-${interventionID}(${isEntireSite ? 'Entire Site' : location.type})`,
-        logLevel: 'info',
-        statusCode: ''
-      })
-      return true
-    } catch (error) {
-      addNewLog({
-        logType: 'INTERVENTION',
-        message: 'Error occurred while saving intervention location',
-        logLevel: 'error',
-        statusCode: '',
-        logStack: JSON.stringify(error)
-      })
-      return false;
-    }
-  };
-
-
   const updateInterventionPlantedSpecies = async (interventionID: string, species: PlantedSpecies, isEdit: boolean): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -670,7 +640,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  const updateTreeStatus = async (tree_id: string, hid: string, sloc_id: string, status: INTERVENTION_STATUS, parent_id: string): Promise<boolean> => {
+  const updateTreeStatus = async (tree_id: string, hid: string, sloc_id: string, status: INTERVENTION_STATUS, parent_id: string, coordinates: any): Promise<boolean> => {
     try {
       realm.write(() => {
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, tree_id);
@@ -680,7 +650,7 @@ const useInterventionManagement = () => {
         treeDetails.status = status
         treeDetails.image_data = {
           ...treeDetails.image_data,
-          coordinateID: uuid(),
+          coordinateID: coordinates[0].id,
           isImageUploaded: false,
         }
       });
@@ -766,7 +736,7 @@ const useInterventionManagement = () => {
     }
   }
 
-  const updateTreeImageStatus = async (tree_id: string, interventionId: string): Promise<boolean> => {
+  const updateTreeImageStatus = async (tree_id: string, interventionId: string, cdnImage: string): Promise<boolean> => {
     try {
       let imagePath = ''
       realm.write(() => {
@@ -776,6 +746,7 @@ const useInterventionManagement = () => {
           ...treeDetails.image_data,
           isImageUploaded: true,
         }
+        treeDetails.cdn_image_url = cdnImage
         imagePath = treeDetails.image_url
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
         const filterTrees = intervention.sample_trees.filter(el => el.tree_id !== tree_id)
@@ -950,7 +921,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { saveInterventionLocation,addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
 }
 
 export default useInterventionManagement

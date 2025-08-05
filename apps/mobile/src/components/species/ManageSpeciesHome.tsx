@@ -10,7 +10,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
-import { getProjectSpecies } from 'src/api/api.fetch'
+import { getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
@@ -38,14 +38,13 @@ const ManageSpeciesHome = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
-  const {  isLoggedIn } = useSelector((state: RootState) => state.appState)
-  const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
+  const { userSpecies, isLoggedIn } = useSelector((state: RootState) => state.appState)
 
   useEffect(() => {
-    if (isLoggedIn && currentProject.projectId) {
+    if (!userSpecies && isLoggedIn) {
       setTimeout(() => {
         syncUserSpecies()
-      }, 300);
+      }, 3000);
     }
   }, [])
 
@@ -57,9 +56,9 @@ const ManageSpeciesHome = (props: Props) => {
   const syncUserSpecies = async () => {
     setLoading(true)
     try {
-      const { response, success } = await getProjectSpecies(currentProject.projectId)
-      if (success) {
-        const result = await addUserSpecies(response.data)
+      const {response, success} = await getUserSpecies()
+      if (success && response.length > 0) {
+        const result = await addUserSpecies(response)
         if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
@@ -91,7 +90,7 @@ const ManageSpeciesHome = (props: Props) => {
       data={userFavSpecies}
       renderItem={({ item }) => renderSpecieCard(item)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav} />}
+      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav}/>}
       ListEmptyComponent={<EmptyManageSpeciesList />}
       refreshControl={
         <RefreshControl
