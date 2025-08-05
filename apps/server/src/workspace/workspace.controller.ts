@@ -40,7 +40,6 @@ interface AuthenticatedRequest extends Request {
 @Controller('workspace')
 export class WorkspaceController {
     constructor(private readonly workspaceService: WorkspaceService) { }
-
     @Post()
     async createNewWorkspace(
         @Body() createOrganizationDto: CreateNewWorkspaceDto,
@@ -53,6 +52,7 @@ export class WorkspaceController {
     }
 
 
+
     @Post('/primary')
     async setPrimaryOrg(
         @Body() createOrganizationDto: SelectOrganizationDto,
@@ -62,19 +62,16 @@ export class WorkspaceController {
     }
 
 
-    @Post('cache')
-    cacheWorkspace(@CurrentUser() user: User) {
-        return this.workspaceService.cacheWorkspace(user);
-    }
 
 
-    @Post('cache/clear')
-    async clearServerCache(@CurrentUser() user: User,) {
-        if (user.type !== 'superadmin') {
-            throw 'Not permitted'
-        }
-        return await this.workspaceService.clearServerCache(user);
-    }
+
+    // @Post('cache/clear')
+    // async clearServerCache(@CurrentUser() user: User,) {
+    //     if (user.type !== 'superadmin') {
+    //         throw 'Not permitted'
+    //     }
+    //     return await this.workspaceService.clearServerCache(user);
+    // }
 
 
 
@@ -92,25 +89,4 @@ export class WorkspaceController {
     async impoersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
         return await this.workspaceService.impersonationexit(user);
     }
-
-
-    // Additional endpoints you might want to add later:
-
-    // @Get(':uid')
-    // @ApiOperation({
-    //   summary: 'Get organization by UID',
-    //   description: 'Returns organization details by UID'
-    // })
-    // @ApiResponse({
-    //   status: HttpStatus.OK,
-    //   description: 'Organization found',
-    //   type: OrganizationResponseDto,
-    // })
-    // @ApiResponse({
-    //   status: HttpStatus.NOT_FOUND,
-    //   description: 'Organization not found',
-    // })
-    // async findByUid(@Param('uid') uid: string): Promise<OrganizationResponseDto> {
-    //   return this.organizationsService.findByUid(uid);
-    // }
 }

@@ -28,12 +28,10 @@ export class WorkspaceService {
         const workspaceInsResult = await tx
           .insert(workspace)
           .values({
-            // Ensure 'uid' exists in your workspace schema's insert model
             uid: generateUid('work'),
             name: createWorkspaceDto.name,
             slug: slug,
             createdById: userId,
-            // Only allow valid types
             type: (['platform', 'private', 'development', 'premium'].includes(createWorkspaceDto.type)
               ? createWorkspaceDto.type
               : 'private') as 'platform' | 'private' | 'development' | 'premium'
@@ -78,12 +76,12 @@ export class WorkspaceService {
           .limit(1);
         if (existingProject.length > 0 && existingWorksapce.length > 0) {
           await tx.update(user)
-            .set({ primaryWorkspace: createOrgDto.workspaceUid, primaryProject: createOrgDto.projectUid })
+            .set({ primaryWorkspaceUid: createOrgDto.workspaceUid, primaryProjectUid: createOrgDto.projectUid })
             .where(eq(user.id, userData.id))
           await this.userCacheService.refreshAuthUser({
             ...userData,
-            primaryWorkspace: createOrgDto.workspaceUid,
-            primaryProject: createOrgDto.projectUid
+            primaryWorkspaceUid: createOrgDto.workspaceUid,
+            primaryProjectUid: createOrgDto.projectUid
           });
         }
       });
@@ -109,7 +107,7 @@ export class WorkspaceService {
   }
 
 
-  async cacheWorkspace(userData: User) {
+  async cacheWorkspace() {
     try {
       const workspacesResult = await this.drizzle.db
         .select({
@@ -117,7 +115,6 @@ export class WorkspaceService {
           id: workspace.id,
         })
         .from(workspace)
-        .where(eq(workspace.createdById, userData.id));
 
       if (workspacesResult.length === 0) {
         return "no workspaces found";
@@ -138,6 +135,8 @@ export class WorkspaceService {
       };
     }
   }
+
+
   async clearServerCache(userData: User) {
     try {
       await this.projectCacheService.clearServerCache();
@@ -156,15 +155,11 @@ export class WorkspaceService {
 
   async findUsers(userData: User) {
     try {
-      if (!userData.primaryWorkspace) {
+      if (!userData.primaryWorkspaceUid) {
         throw new Error('No workspace set');
       }
 
-      if (userData.workspace === 'member') {
-        throw new Error('Not permitted');
-      }
-
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspace);
+      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
       if (!workspaceId) {
         throw new Error('No workspace found');
       }
@@ -178,15 +173,14 @@ export class WorkspaceService {
           lastActiveAt: workspaceMember.lastActiveAt,
           userUid: user.uid,
           email: user.email,
-          firstname: user.firstname,
-          lastname: user.lastname,
+          firstName: user.firstName,
+          lastName: user.lastName,
           displayName: user.displayName,
           image: user.image,
           slug: user.slug,
           type: user.type,
           country: user.country,
           isActive: user.isActive,
-          lastLoginAt: user.lastLoginAt,
           locale: user.locale,
         })
         .from(workspaceMember)
@@ -202,42 +196,28 @@ export class WorkspaceService {
   }
 
   async startImpersonation(person: string, userData: User) {
-    console.log("SDC workspaceId", person)
     try {
-      if (!userData.primaryWorkspace) {
+      if (!userData.primaryWorkspaceUid) {
         throw new Error('No workspace set');
       }
 
-      if (userData.workspace === 'member') {
-        throw new Error('Not permitted');
-      }
 
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspace);
+      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
       if (!workspaceId) {
         throw new Error('No workspace found');
       }
-      console.log("SDC workspaceId", workspaceId)
 
       const personDetails = await this.drizzle.db
-        .select({ id: user.id, auth: user.auth0Id })
+        .select()
         .from(user)
         .where(eq(user.uid, person))
         .limit(1)
-      console.log("SDC", personDetails)
+
       if (personDetails.length === 0) {
         throw 'no person found'
       }
-      const impoersonateWorked = await this.drizzle.db
-        .update(user)
-        .set({ impersonate: personDetails[0].auth })
-        .where(eq(user.id, userData.id))
-        .then(res => res[0])
-      if (impoersonateWorked) {
-        await this.userCacheService.invalidateUser(user)
-        return true
-      } else {
-        return false
-      }
+
+      return await this.userCacheService.refreshAuthUser({ ...personDetails[0], auth0Id: userData.auth0Id, impersonated: true })
     } catch (error) {
       return false
     }
@@ -245,24 +225,14 @@ export class WorkspaceService {
 
   async impersonationexit(userData: any) {
     try {
-
-      const impoersonateWorked = await this.drizzle.db
-        .update(user)
-        .set({ impersonate: null })
-        .where(eq(user.uid, userData.impersonate))
-        .then(res => res[0])
-      if (impoersonateWorked) {
-        return true
-      } else {
-        return false
-      }
+      await this.userCacheService.invalidateUser(userData)
+      return true
     } catch (error) {
-      console.log("SDC",error)
       return false
     }
   }
 
-  
+
   //   /**
   //    * Get all organizations that a user belongs to
   //    */

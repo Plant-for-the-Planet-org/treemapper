@@ -5,29 +5,15 @@
     {
       "idx": 0,
       "version": "7",
-      "when": 1753918726795,
-      "tag": "0000_mature_chimera",
+      "when": 1754377402460,
+      "tag": "0000_keen_thena",
       "breakpoints": true
     },
     {
       "idx": 1,
       "version": "7",
-      "when": 1753958479595,
-      "tag": "0001_flat_marrow",
-      "breakpoints": true
-    },
-    {
-      "idx": 2,
-      "version": "7",
-      "when": 1754021783445,
-      "tag": "0002_nervous_skaar",
-      "breakpoints": true
-    },
-    {
-      "idx": 3,
-      "version": "7",
-      "when": 1754021877313,
-      "tag": "0003_low_moondragon",
+      "when": 1754380639473,
+      "tag": "0001_giant_bedlam",
       "breakpoints": true
     }
   ]

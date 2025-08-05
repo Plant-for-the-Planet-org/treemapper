@@ -1,13 +1,12 @@
 import { Injectable, ConflictException, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
 import { project, projectMember, survey, user, workspace, workspaceMember } from '../database/schema';
-import { CreateSurvey } from './dto/create-user.dto';
+import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PublicUser, User } from './entities/user.entity';
+import { User } from './entities/user.entity';
 import { eq, and, isNull } from 'drizzle-orm';
 import { generateUid } from 'src/util/uidGenerator';
 import { UserCacheService } from '../cache/user-cache.service';
-import { CACHE_KEYS, CACHE_TTL } from '../cache/cache-keys';
 import { R2Service } from 'src/common/services/r2.service';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
@@ -26,8 +25,8 @@ export class UsersService {
         uid: user.uid,
         auth0Id: user.auth0Id,
         email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
+        firstName: user.firstName,
+        lastName: user.lastName,
         displayName: user.displayName,
         image: user.image,
         slug: user.slug,
@@ -38,7 +37,6 @@ export class UsersService {
         bio: user.bio,
         locale: user.locale,
         isActive: user.isActive,
-        lastLoginAt: user.lastLoginAt,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
         deletedAt: user.deletedAt,
@@ -46,10 +44,9 @@ export class UsersService {
         existingPlanetUser: user.existingPlanetUser,
         flag: user.flag,
         flagReason: user.flagReason,
-        primaryWorkspace: user.primaryWorkspace,
-        primaryProject: user.primaryProject,
-        workspace: user.workspace,
-        impersonate: user.impersonate
+        primaryWorkspaceUid: user.primaryWorkspaceUid,
+        primaryProjectUid: user.primaryProjectUid,
+        workspaceRole: user.workspaceRole,
     } as const;
 
     private generateSlug(name: string): string {
@@ -71,16 +68,6 @@ export class UsersService {
                 .where(and(eq(user.auth0Id, auth0Id), isNull(user.deletedAt)))
                 .limit(1);
             if (existingUser.length > 0) {
-                if (existingUser[0].workspace !== 'member' && existingUser[0].impersonate !== null) {
-                    const impersonatedUser = await this.drizzleService.db
-                        .select(this.FULL_USER_SELECT)
-                        .from(user)
-                        .where(and(eq(user.auth0Id, existingUser[0].impersonate), isNull(user.deletedAt)))
-                        .limit(1);
-                    // await this.userCacheService.setUserByAuth({ ...impersonatedUser[0] }, auth0Id);
-
-                    return { ...impersonatedUser[0], impersonate: existingUser[0].uid }
-                }
                 return existingUser[0];
             }
             const userData = await this.drizzleService.db
@@ -99,7 +86,6 @@ export class UsersService {
             await this.userCacheService.setUserByAuth({ ...userData[0] }, auth0Id);
             return userData[0]
         } catch (error) {
-            console.log("ddfd", error)
             throw error;
         }
     }
@@ -179,7 +165,7 @@ export class UsersService {
                         workspaceId,
                         createdById: userData.id,
                         slug: projectSlug,
-                        projectName: surveyDetails.projectName,
+                        name: surveyDetails.projectName,
                         isPrimary: true,
                         isPersonal: true,
                         isActive: true,
@@ -210,8 +196,8 @@ export class UsersService {
 
                 await tx.update(user)
                     .set({
-                        primaryWorkspace: workspaceExists[0].uid,
-                        primaryProject: newProject.uid,
+                        primaryWorkspaceUid: workspaceExists[0].uid,
+                        primaryProjectUid: newProject.uid,
                         updatedAt: now,
                     })
                     .where(eq(user.id, userData.id));
@@ -224,14 +210,12 @@ export class UsersService {
 
             await this.userCacheService.refreshAuthUser({
                 ...userData,
-                primaryWorkspace: result.workspaceUid,
-                primaryProject: result.projectUid,
+                primaryWorkspaceUid: result.workspaceUid,
+                primaryProjectUid: result.projectUid,
             });
             return true;
         } catch (error) {
-            console.log('Error during onboarding:', error);
             await this.userCacheService.invalidateUser(userData);
-            // Re-throw known exceptions
             if (error instanceof BadRequestException ||
                 error instanceof InternalServerErrorException) {
                 throw error;
@@ -286,7 +270,6 @@ export class UsersService {
 
     async generateR2Url(dto: CreatePresignedUrlDto): Promise<any> {
         try {
-            console.log("SC", process.env.IS_PRODUCTION)
             if (!dto.fileName || !dto.fileType) {
                 throw new BadRequestException('fileName and fileType are required');
             }
@@ -297,7 +280,7 @@ export class UsersService {
             const result = await this.r2Service.generatePresignedUrl({
                 fileName: dto.fileName,
                 fileType: dto.fileType,
-                folder: `${process.env.IS_PRODUCTION ? "production" : "development"}/${dto.folder}`,
+                folder: `${process.env.IS_PRODUCTION === 'true' ? "production" : "development"}/${dto.folder}`,
             });
             return {
                 success: true,
@@ -311,11 +294,15 @@ export class UsersService {
         }
     }
 
-    async updateUserAvatar(avatar: string, userData: User): Promise<Boolean> {
+    async updateUserAvatar(userPayload: AvatarDTO, userData: User): Promise<Boolean> {
+        let payload: { firstName?: string, lastName?: string } = {};
+        if (userPayload.firstName) payload.firstName = userPayload.firstName;
+        if (userPayload.lastName) payload.lastName = userPayload.lastName;
         const result = await this.drizzleService.db
             .update(user)
             .set({
-                image: avatar,
+                image: userPayload.avatarUrl,
+                ...payload,
                 updatedAt: new Date(),
             })
             .where(eq(user.id, userData.id))
@@ -326,7 +313,7 @@ export class UsersService {
         if (result.length === 0) {
             throw new BadRequestException(`User with ID ${userData.id} not found`);
         }
-        await this.userCacheService.refreshAuthUser({ ...userData, image: avatar });
+        await this.userCacheService.refreshAuthUser({ ...userData, image: userPayload.avatarUrl });
         return true;
     }
 
@@ -386,6 +373,9 @@ export class UsersService {
         return updateData;
     }
 
+        async invalidateMyCache(user: User,) {
+        return await this.userCacheService.invalidateUser(user);
+    }
 
     //   async findByEmail(email: string): Promise<User | null> {
     //     const cacheKey = CACHE_KEYS.USER.BY_EMAIL(email);

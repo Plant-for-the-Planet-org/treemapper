@@ -101,33 +101,16 @@ export class InterventionSpeciesDto {
 
 export class CreateInterventionDto {
 
-  @IsOptional()
   @IsEnum(InterventionType)
   type: InterventionType;
-
-  @IsOptional()
-  @IsString()
-  captureMode?: string;
-
-  @IsOptional()
-  @IsObject()
-  deviceLocation?: any;
-
 
   @IsOptional()
   @IsGeoJSON({ message: 'Invalid GeoJSON format' })
   geometry?: any;
 
   @IsOptional()
-  @IsDateString()
-  registrationDate: string;
-
-  @IsOptional()
   @IsObject()
   metadata?: any;
-
-  @IsString()
-  plantProject?: string;
 
   @IsOptional()
   @IsString()
@@ -144,7 +127,6 @@ export class CreateInterventionDto {
   @IsOptional()
   @IsArray()
   plantedSpecies: any[]
-
 
   @IsOptional()
   @IsNumber()

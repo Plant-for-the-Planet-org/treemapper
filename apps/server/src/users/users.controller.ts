@@ -30,7 +30,7 @@ import { UserQueryDto } from './dto/user-query.dto';
 import { UserResponseDto } from './dto/user-response.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
-import { User } from './entities/user.entity';
+import { ExtendedUser, User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { user } from 'src/database/schema';
 
@@ -39,15 +39,13 @@ import { user } from 'src/database/schema';
 @ApiBearerAuth()
 export class UsersController {
   constructor(private readonly usersService: UsersService) { }
-
   @Get('me')
-  async getProfile(@CurrentUser() users: User) {
-    console.log("IOPSDC", users)
+  async getProfile(@CurrentUser() users: ExtendedUser) {
     return {
       uid: users.uid,
       email: users.email,
-      firstname: users.firstname,
-      lastname: users.lastname,
+      firstName: users.firstName,
+      lastName: users.lastName,
       displayName: users.displayName,
       image: users.image,
       slug: users.slug,
@@ -60,14 +58,17 @@ export class UsersController {
       isActive: users.isActive,
       migratedAt: users.migratedAt,
       existingPlanetUser: users.existingPlanetUser,
-      primaryWorkspace: users.primaryWorkspace,
-      primaryProject: users.primaryProject,
-      workspace: users.workspace,
-      impersonated: users.impersonate !== null ? true : null
+      primaryWorkspaceUid: users.primaryWorkspaceUid,
+      primaryProjectUid: users.primaryProjectUid,
+      workspace: users.workspaceRole,
+      impersonated: users.impersonated ? true : false
     }
   }
 
-
+  @Put('avatar')
+  async updateUserAvatar(@Body() avatarDto: AvatarDTO, @CurrentUser() user: User,) {
+    return await this.usersService.updateUserAvatar(avatarDto, user);
+  }
 
 
   @Post('onboarding')
@@ -75,19 +76,6 @@ export class UsersController {
     return await this.usersService.onBoardUser(createSurveyDto, user);
   }
 
-  @Put('avatar')
-  async updateUserAvatar(@Body() avatarDto: AvatarDTO, @CurrentUser() user: User,) {
-    return await this.usersService.updateUserAvatar(avatarDto.avatarUrl, user);
-  }
-
-
-
-
-  //   // @ApiExcludeEndpoint()
-  //   @Put('migrated')
-  //   async migrated(@CurrentUser() user: User) {
-  //     return await this.usersService.migrateSuccess(user.id);
-  //   }
 
   @Post('presign-url')
   async getSignedUrl(
@@ -104,7 +92,19 @@ export class UsersController {
     return await this.usersService.update(user.id, updateUserDto);
   }
 
+  @Post('invalidate/cache')
+  async invalidateMyCache(@CurrentUser() user: User,) {
+    return await this.usersService.invalidateMyCache(user);
+  }
 
+
+  @Patch(':id')
+  async update(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    return await this.usersService.update(id, updateUserDto);
+  }
 
 
   //   @Get('stats')
@@ -123,19 +123,7 @@ export class UsersController {
   //     return await this.usersService.findByuid(guid);
   //   }
 
-  //   @Get(':id')
-  //   async findOne(@Param('id', ParseIntPipe) id: number) {
-  //     return await this.usersService.findOne(id);
-  //   }
 
-
-  //   @Patch(':id')
-  //   async update(
-  //     @Param('id', ParseIntPipe) id: number,
-  //     @Body() updateUserDto: UpdateUserDto,
-  //   ) {
-  //     return await this.usersService.update(id, updateUserDto);
-  //   }
 
   //   @Patch(':id/deactivate')
   //   async deactivate(@Param('id', ParseIntPipe) id: number) {

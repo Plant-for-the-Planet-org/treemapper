@@ -57,12 +57,12 @@ export class AnalyticsController {
   }
 
 
-  @Get(':id/map')
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  async getProjectMapData(@Membership() membership: any): Promise<any> {
-    return this.analyticsService.getProjectMapData(membership.projectId);
-  }
+  // @Get(':id/map')
+  // @ProjectRoles('owner', 'admin')
+  // @UseGuards(ProjectPermissionsGuard)
+  // async getProjectMapData(@Membership() membership: any): Promise<any> {
+  //   return this.analyticsService.getProjectMapData(membership.projectId);
+  // }
 
   
   @Post('/:id/export')

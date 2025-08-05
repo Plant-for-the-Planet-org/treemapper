@@ -76,15 +76,12 @@ export class R2Service {
         },
       });
 
-      // Generate presigned URL (expires in 5 minutes)
-      const expiresIn = 600; // 5 minutes
+      const expiresIn = 1800; // 5 minutes
       const uploadUrl = await getSignedUrl(this.s3Client, command, {
         expiresIn,
       });
 
-      // Construct the final public URL
       const fileUrl = `${this.publicUrl}/${key}`;
-
       return {
         uploadUrl,
         fileUrl,

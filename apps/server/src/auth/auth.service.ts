@@ -1,6 +1,6 @@
 import { Injectable, Logger, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from '../users/users.service';
-import { User } from 'src/users/entities/user.entity';
+import { ExtendedUser, User } from 'src/users/entities/user.entity';
 
 @Injectable()
 export class AuthService {
@@ -10,7 +10,7 @@ export class AuthService {
     private usersService: UsersService,
   ) { }
 
-async validateUser(auth0Id: string, email: string, name: string): Promise<User> {
+async validateUser(auth0Id: string, email: string, name: string): Promise<ExtendedUser> {
   try {
     let user = await this.usersService.findByAuth0Id(auth0Id);
     if (!user) {

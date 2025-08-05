@@ -22,7 +22,7 @@ export class EmailService {
 
   constructor(private configService: ConfigService) {
     // Setup email configuration from environment
-    this.frontendUrl = this.configService.get<string>('CLIENT_URL') || '';
+    this.frontendUrl = this.configService.get<string>('DASHBOARD_URL') || '';
     this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'noreply@treemapper.app');
     this.emailTemplatesDir = path.join(process.cwd(), 'src/notification/templates');
     this.apiUrl = this.configService.get<string>('PLUNK_URL') || '';

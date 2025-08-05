@@ -87,6 +87,14 @@ export class AvatarDTO {
   @IsString()
   avatarUrl: string;
 
+  @IsOptional()
+  @IsString()
+  firstName: string;
+
+  @IsOptional()
+  @IsString()
+  lastName: string;
+
 }
 
 export class CreateSurvey {

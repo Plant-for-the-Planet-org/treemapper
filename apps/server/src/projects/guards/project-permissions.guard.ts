@@ -16,14 +16,12 @@ export class ProjectPermissionsGuard implements CanActivate {
     if (!roles) {
       return true;
     }
-
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
     const projectUid = request.params?.id
     if (!userId || !projectUid) {
       return false;
     }
-
     let membership = await this.projectCacheService.getUserProject(projectUid, userId);
     if (!membership) {
       membership = await this.projectsService.getMemberRoleFromUid(projectUid, userId);
@@ -31,9 +29,7 @@ export class ProjectPermissionsGuard implements CanActivate {
     if (!membership) {
       throw new ForbiddenException('You do not have access to this project');
     }
-
     const hasPermission = roles.includes(membership.role);
-
     if (!hasPermission) {
       throw new ForbiddenException(`You need one of these roles: ${roles.join(', ')} to access this resource`);
     }

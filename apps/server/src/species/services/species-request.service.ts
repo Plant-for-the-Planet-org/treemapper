@@ -96,7 +96,7 @@ export class SpeciesRequestService {
           },
           project: {
             id: project.id,
-            projectName: project.projectName,
+            projectName: project.name,
           },
         })
         .from(speciesRequest)
@@ -124,40 +124,40 @@ export class SpeciesRequestService {
     };
   }
 
-  async getRequestById(id: number) {
-    const request = await this.drizzle.db
-      .select({
-        id: speciesRequest.id,
-        uid: speciesRequest.uid,
-        scientificName: speciesRequest.scientificName,
-        commonName: speciesRequest.commonName,
-        description: speciesRequest.description,
-        requestReason: speciesRequest.requestReason,
-        gbifId: speciesRequest.gbifId,
-        status: speciesRequest.status,
-        adminNotes: speciesRequest.adminNotes,
-        reviewedAt: speciesRequest.reviewedAt,
-        createdAt: speciesRequest.createdAt,
-        requestedBy: {
-          id: user.id,
-          name: user.displayName,
-          email: user.email,
-        },
-        project: {
-          id: project.id,
-          projectName: project.projectName,
-        },
-      })
-      .from(speciesRequest)
-      .leftJoin(user, eq(speciesRequest.requestedById, user.id))
-      .leftJoin(project, eq(speciesRequest.projectId, project.id))
-      .where(eq(speciesRequest.id, id))
-      .limit(1);
+  // async getRequestById(id: number) {
+  //   const request = await this.drizzle.db
+  //     .select({
+  //       id: speciesRequest.id,
+  //       uid: speciesRequest.uid,
+  //       scientificName: speciesRequest.scientificName,
+  //       commonName: speciesRequest.commonName,
+  //       description: speciesRequest.description,
+  //       requestReason: speciesRequest.requestReason,
+  //       gbifId: speciesRequest.gbifId,
+  //       status: speciesRequest.status,
+  //       adminNotes: speciesRequest.adminNotes,
+  //       reviewedAt: speciesRequest.reviewedAt,
+  //       createdAt: speciesRequest.createdAt,
+  //       requestedBy: {
+  //         id: user.id,
+  //         name: user.displayName,
+  //         email: user.email,
+  //       },
+  //       project: {
+  //         id: project.id,
+  //         projectName: project.projectName,
+  //       },
+  //     })
+  //     .from(speciesRequest)
+  //     .leftJoin(user, eq(speciesRequest.requestedById, user.id))
+  //     .leftJoin(project, eq(speciesRequest.projectId, project.id))
+  //     .where(eq(speciesRequest.id, id))
+  //     .limit(1);
 
-    if (!request.length) {
-      throw new NotFoundException('Species request not found');
-    }
+  //   if (!request.length) {
+  //     throw new NotFoundException('Species request not found');
+  //   }
 
-    return request[0];
-  }
+  //   return request[0];
+  // }
 }

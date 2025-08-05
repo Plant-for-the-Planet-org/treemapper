@@ -62,39 +62,47 @@ export class SiteService {
   async createSite(
     membership: ProjectGuardResponse,
     createSiteDto: CreateSiteDto,
-  ) {
-    let locationValue: any = null;
-    if (createSiteDto.location) {
-      try {
-        const geometry = this.getGeoJSONForPostGIS(createSiteDto.location);
-        locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
-      } catch (error) {
-        return {
-          message: 'Invalid GeoJSON provided',
-          statusCode: 400,
-          error: "invalid_geojson",
-          data: null,
-          code: 'invalid_project_geojson',
-        };
+  ): Promise<any> {
+    try {
+      let locationValue: any = null;
+      if (createSiteDto.location) {
+        try {
+          const geometry = this.getGeoJSONForPostGIS(createSiteDto.location);
+          locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+        } catch (error) {
+          return {
+            message: 'Invalid GeoJSON provided',
+            statusCode: 400,
+            error: "invalid_geojson",
+            data: null,
+            code: 'invalid_project_geojson',
+          };
+        }
       }
-    }
-    const [newSite] = await this.drizzleService.db
-      .insert(site)
-      .values({
-        uid: generateUid('site'),
-        projectId: membership.projectId,
-        createdById: membership.userId,
-        name: createSiteDto.name,
-        description: createSiteDto.description,
-        location: locationValue,
-        originalGeometry: createSiteDto.location,
-        status: createSiteDto.status || 'barren',
-        metadata: createSiteDto.metadata,
-      })
-      .returning();
+      const [newSite] = await this.drizzleService.db
+        .insert(site)
+        .values({
+          uid: generateUid('site'),
+          projectId: membership.projectId,
+          createdById: membership.userId,
+          name: createSiteDto.name,
+          description: createSiteDto.description,
+          location: locationValue,
+          originalGeometry: createSiteDto.location,
+          status: createSiteDto.status || 'barren',
+          metadata: createSiteDto.metadata,
+        })
+        .returning();
 
-    return this.getSiteById(newSite.id);
+      if (!newSite) {
+        throw 'No Site Created'
+      }
+      return newSite
+    } catch (error) {
+      return null
+    }
   }
+
 
   async getAllSitesByProject(membership: ProjectGuardResponse) {
     // Admin/Owner roles have full access - return all sites
@@ -109,11 +117,6 @@ export class SiteService {
           metadata: site.metadata,
           createdAt: site.createdAt,
           updatedAt: site.updatedAt,
-          project: {
-            uid: project.uid,
-            name: project.projectName,
-            slug: project.slug,
-          },
           createdBy: {
             uid: user.uid,
             name: user.displayName,
@@ -122,10 +125,8 @@ export class SiteService {
         })
         .from(site)
         .where(eq(site.projectId, membership.projectId))
-        .leftJoin(project, eq(site.projectId, project.id))
         .leftJoin(user, eq(site.createdById, user.id));
 
-      // Add member information to each site
       const sitesWithMembers = await this.addMemberInfoToSites(siteData);
       return sitesWithMembers;
     }
@@ -148,11 +149,6 @@ export class SiteService {
             metadata: site.metadata,
             createdAt: site.createdAt,
             updatedAt: site.updatedAt,
-            project: {
-              uid: project.uid,
-              name: project.projectName,
-              slug: project.slug,
-            },
             createdBy: {
               uid: user.uid,
               name: user.displayName,
@@ -184,11 +180,6 @@ export class SiteService {
             metadata: site.metadata,
             createdAt: site.createdAt,
             updatedAt: site.updatedAt,
-            project: {
-              uid: project.uid,
-              name: project.projectName,
-              slug: project.slug,
-            },
             createdBy: {
               uid: user.uid,
               name: user.displayName,
@@ -235,7 +226,6 @@ export class SiteService {
 
   // Helper method to get site member information
   private async getSiteMembersInfo(siteUid: string) {
-    // Get all project members who have access to this site
     const allMembers = await this.drizzleService.db
       .select({
         uid: user.uid,
@@ -282,7 +272,6 @@ export class SiteService {
   }
 
    async getSiteMembers(siteUid: string): Promise<SiteMemberResponse[]> {
-    // First, verify the site exists and get project info
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
@@ -314,177 +303,18 @@ export class SiteService {
       .innerJoin(user, eq(projectMember.userId, user.id))
       .where(eq(projectMember.projectId, projectId));
 
-    // Transform to response format with access calculation
     return members.map(member => ({
       id: member.id,
       uid: member.uid,
       name: member.name,
       email: member.email,
-      avatar: member.avatar || null,
+      avatar: member.avatar || '',
       role: member.role,
       hasAccess: this.calculateSiteAccess(member.role, member.siteAccess, member.restrictedSites, siteUid)
     }));
   }
 
-  /**
-   * POST /sites/:siteUid/access/grant
-   * Grant site access to a specific contributor/observer
-   */
-  async grantSiteAccess(siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
-    // Verify site exists
-    const siteData = await this.drizzleService.db
-      .select({
-        id: site.id,
-        projectId: site.projectId,
-      })
-      .from(site)
-      .where(eq(site.uid, siteUid))
-      .limit(1);
-
-    if (siteData.length === 0) {
-      throw new NotFoundException('Site not found');
-    }
-
-    // Find the project member
-    const member = await this.drizzleService.db
-      .select({
-        id: projectMember.id,
-        projectRole: projectMember.projectRole,
-        siteAccess: projectMember.siteAccess,
-        restrictedSites: projectMember.restrictedSites,
-      })
-      .from(projectMember)
-      .innerJoin(user, eq(projectMember.userId, user.id))
-      .where(
-        and(
-          eq(projectMember.projectId, siteData[0].projectId),
-          eq(user.uid, dto.memberUid)
-        )
-      )
-      .limit(1);
-
-    if (member.length === 0) {
-      throw new NotFoundException('Project member not found');
-    }
-
-    const memberData = member[0];
-
-    // Check if member is admin/owner (they already have default access)
-    if (memberData.projectRole === 'admin' || memberData.projectRole === 'owner') {
-      throw new BadRequestException('Admins and owners have default access to all sites');
-    }
-
-    // Check if member already has access
-    const currentAccess = this.calculateSiteAccess(
-      memberData.projectRole,
-      memberData.siteAccess,
-      memberData.restrictedSites,
-      siteUid
-    );
-
-    if (currentAccess) {
-      throw new BadRequestException('Member already has access to this site');
-    }
-
-    // Grant access: add site to restrictedSites and set siteAccess to limited_access
-    const currentRestrictedSites = memberData.restrictedSites || [];
-    const updatedRestrictedSites = [...currentRestrictedSites, siteUid];
-
-    await this.drizzleService.db
-      .update(projectMember)
-      .set({
-        siteAccess: 'limited_access',
-        restrictedSites: updatedRestrictedSites,
-        updatedAt: new Date(),
-      })
-      .where(eq(projectMember.id, memberData.id));
-
-    return { message: 'Site access granted successfully' };
-  }
-
-  /**
-   * DELETE /sites/:siteUid/access/revoke
-   * Revoke site access from a specific contributor/observer
-   */
-  async revokeSiteAccess(siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
-    // Verify site exists
-    const siteData = await this.drizzleService.db
-      .select({
-        id: site.id,
-        projectId: site.projectId,
-      })
-      .from(site)
-      .where(eq(site.uid, siteUid))
-      .limit(1);
-
-    if (siteData.length === 0) {
-      throw new NotFoundException('Site not found');
-    }
-
-    // Find the project member
-    const member = await this.drizzleService.db
-      .select({
-        id: projectMember.id,
-        projectRole: projectMember.projectRole,
-        siteAccess: projectMember.siteAccess,
-        restrictedSites: projectMember.restrictedSites,
-      })
-      .from(projectMember)
-      .innerJoin(user, eq(projectMember.userId, user.id))
-      .where(
-        and(
-          eq(projectMember.projectId, siteData[0].projectId),
-          eq(user.uid, dto.memberUid)
-        )
-      )
-      .limit(1);
-
-    if (member.length === 0) {
-      throw new NotFoundException('Project member not found');
-    }
-
-    const memberData = member[0];
-
-    // Check if member is admin/owner
-    if (memberData.projectRole === 'admin' || memberData.projectRole === 'owner') {
-      throw new BadRequestException('Cannot revoke access from admins and owners');
-    }
-
-    // Check if member has access to revoke
-    const currentAccess = this.calculateSiteAccess(
-      memberData.projectRole,
-      memberData.siteAccess,
-      memberData.restrictedSites,
-      siteUid
-    );
-
-    if (!currentAccess) {
-      throw new BadRequestException('Member does not have access to this site');
-    }
-
-    // Revoke access: remove site from restrictedSites
-    const currentRestrictedSites = memberData.restrictedSites || [];
-    const updatedRestrictedSites = currentRestrictedSites.filter(uid => uid !== siteUid);
-
-    // If no restricted sites left, set siteAccess to deny_all
-    const newSiteAccess = updatedRestrictedSites.length > 0 ? 'limited_access' : 'deny_all';
-
-    await this.drizzleService.db
-      .update(projectMember)
-      .set({
-        siteAccess: newSiteAccess,
-        restrictedSites: updatedRestrictedSites,
-        updatedAt: new Date(),
-      })
-      .where(eq(projectMember.id, memberData.id));
-
-    return { message: 'Site access revoked successfully' };
-  }
-
-  /**
-   * Helper method to calculate if a member has access to a specific site
-   */
-  private calculateSiteAccess(
+    private calculateSiteAccess(
     role: string,
     siteAccess: string,
     restrictedSites: string[] | null,
@@ -508,213 +338,353 @@ export class SiteService {
     }
   }
 
+  
 
-  async getSiteByUid(projectId: number, siteUid: string) {
+  async grantSiteAccess(siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
     const siteData = await this.drizzleService.db
-      .select({
-        uid: site.uid,
-        name: site.name,
-        description: site.description,
-        status: site.status,
-        originalGeometry: site.originalGeometry,
-        metadata: site.metadata,
-        createdAt: site.createdAt,
-        updatedAt: site.updatedAt,
-        project: {
-          uid: project.uid,
-          projectName: project.projectName,
-          slug: project.slug,
-        },
-        createdBy: {
-          uid: user.uid,
-          name: user.displayName,
-          email: user.email,
-        }
-      })
-      .from(site)
-      .leftJoin(project, eq(site.projectId, project.id))
-      .leftJoin(user, eq(site.createdById, user.id))
-      .where(
-        and(
-          eq(site.uid, siteUid),
-          eq(site.projectId, projectId)
-        )
-      )
-      .limit(1);
-
-    if (!siteData.length) {
-      throw new NotFoundException('Site not found');
-    }
-
-    return siteData[0];
-  }
-
-  private async getSiteById(siteId: number) {
-    const siteData = await this.drizzleService.db
-      .select({
-        uid: site.uid,
-        name: site.name,
-        description: site.description,
-        status: site.status,
-        originalGeometry: site.originalGeometry,
-        metadata: site.metadata,
-        createdAt: site.createdAt,
-        updatedAt: site.updatedAt,
-        project: {
-          uid: project.uid,
-          projectName: project.projectName,
-          slug: project.slug,
-        },
-        createdBy: {
-          uid: user.uid,
-          name: user.displayName,
-          email: user.email,
-        }
-      })
-      .from(site)
-      .leftJoin(project, eq(site.projectId, project.id))
-      .leftJoin(user, eq(site.createdById, user.id))
-      .where(eq(site.id, siteId))
-      .limit(1);
-
-    if (!siteData.length) {
-      throw new NotFoundException('Site not found');
-    }
-
-    return siteData[0];
-  }
-
-  async updateSite(
-    projectId: number,
-    siteUid: string,
-    updateSiteDto: UpdateSiteDto
-  ) {
-    // First verify site exists and belongs to project
-    const existingSite = await this.drizzleService.db
-      .select({ id: site.id })
-      .from(site)
-      .where(
-        and(
-          eq(site.uid, siteUid),
-          eq(site.projectId, projectId)
-        )
-      )
-      .limit(1);
-
-    if (!existingSite.length) {
-      throw new NotFoundException('Site not found');
-    }
-
-    const updateData: any = {
-      updatedAt: new Date(),
-    };
-
-    if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
-    if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
-
-    await this.drizzleService.db
-      .update(site)
-      .set(updateData)
-      .where(eq(site.id, existingSite[0].id));
-
-    return '';
-  }
-
-  async updateSiteImages(
-    projectId: number,
-    siteUid: string,
-    updateImagesDto: UpdateSiteImagesDto
-  ) {
-    // First verify site exists and belongs to project
-    const existingSite = await this.drizzleService.db
-      .select({ id: site.id })
-      .from(site)
-      .where(
-        and(
-          eq(site.uid, siteUid),
-          eq(site.projectId, projectId)
-        )
-      )
-      .limit(1);
-
-    if (!existingSite.length) {
-      throw new NotFoundException('Site not found');
-    }
-
-    const updateData: any = {
-      updatedAt: new Date(),
-    };
-
-    if (updateImagesDto.image !== undefined) updateData.image = updateImagesDto.image;
-    if (updateImagesDto.imageCdn !== undefined) updateData.imageCdn = updateImagesDto.imageCdn;
-    if (updateImagesDto.allImages !== undefined) updateData.allImages = updateImagesDto.allImages;
-
-    await this.drizzleService.db
-      .update(site)
-      .set(updateData)
-      .where(eq(site.id, existingSite[0].id));
-
-    return this.getSiteById(existingSite[0].id);
-  }
-
-  async deleteSite(projectId: number, siteUid: string) {
-    // First verify site exists and belongs to project
-    const existingSite = await this.drizzleService.db
       .select({
         id: site.id,
-        name: site.name
+        projectId: site.projectId,
       })
       .from(site)
+      .where(eq(site.uid, siteUid))
+      .limit(1);
+
+    if (siteData.length === 0) {
+      throw new NotFoundException('Site not found');
+    }
+
+    const member = await this.drizzleService.db
+      .select({
+        id: projectMember.id,
+        projectRole: projectMember.projectRole,
+        siteAccess: projectMember.siteAccess,
+        restrictedSites: projectMember.restrictedSites,
+      })
+      .from(projectMember)
+      .innerJoin(user, eq(projectMember.userId, user.id))
       .where(
         and(
-          eq(site.uid, siteUid),
-          eq(site.projectId, projectId)
+          eq(projectMember.projectId, siteData[0].projectId),
+          eq(user.uid, dto.memberUid)
         )
       )
       .limit(1);
 
-    if (!existingSite.length) {
+    if (member.length === 0) {
+      throw new NotFoundException('Project member not found');
+    }
+
+    const memberData = member[0];
+
+    if (memberData.projectRole === 'admin' || memberData.projectRole === 'owner') {
+      throw new BadRequestException('Admins and owners have default access to all sites');
+    }
+
+    const currentAccess = this.calculateSiteAccess(
+      memberData.projectRole,
+      memberData.siteAccess,
+      memberData.restrictedSites,
+      siteUid
+    );
+
+    if (currentAccess) {
+      throw new BadRequestException('Member already has access to this site');
+    }
+
+    const currentRestrictedSites = memberData.restrictedSites || [];
+    const updatedRestrictedSites = [...currentRestrictedSites, siteUid];
+
+    await this.drizzleService.db
+      .update(projectMember)
+      .set({
+        siteAccess: 'limited_access',
+        restrictedSites: updatedRestrictedSites,
+        updatedAt: new Date(),
+      })
+      .where(eq(projectMember.id, memberData.id));
+
+    return { message: 'Site access granted successfully' };
+  }
+
+  async revokeSiteAccess(siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
+    // Verify site exists
+    const siteData = await this.drizzleService.db
+      .select({
+        id: site.id,
+        projectId: site.projectId,
+      })
+      .from(site)
+      .where(eq(site.uid, siteUid))
+      .limit(1);
+
+    if (siteData.length === 0) {
       throw new NotFoundException('Site not found');
     }
 
-    // Soft delete by setting deletedAt
-    await this.drizzleService.db
-      .update(site)
-      .set({
-        deletedAt: new Date(),
-        updatedAt: new Date(),
-      })
-      .where(eq(site.id, existingSite[0].id));
-
-    return {
-      message: `Site "${existingSite[0].name}" has been successfully deleted`,
-      siteUid,
-    };
-  }
-
-  async getsitetats(projectId: number) {
-    const stats = await this.drizzleService.db
+    const member = await this.drizzleService.db
       .select({
-        status: site.status,
-        count: count(),
+        id: projectMember.id,
+        projectRole: projectMember.projectRole,
+        siteAccess: projectMember.siteAccess,
+        restrictedSites: projectMember.restrictedSites,
       })
-      .from(site)
+      .from(projectMember)
+      .innerJoin(user, eq(projectMember.userId, user.id))
       .where(
         and(
-          eq(site.projectId, projectId),
-          // Exclude soft-deleted site
+          eq(projectMember.projectId, siteData[0].projectId),
+          eq(user.uid, dto.memberUid)
         )
       )
-      .groupBy(site.status);
+      .limit(1);
 
-    const totalsite = stats.reduce((sum, stat) => sum + stat.count, 0);
+    if (member.length === 0) {
+      throw new NotFoundException('Project member not found');
+    }
 
-    return {
-      total: totalsite,
-      byStatus: stats.reduce((acc, stat) => {
-        acc[stat.status || 'unknown'] = stat.count;
-        return acc;
-      }, {} as Record<string, number>),
-    };
+    const memberData = member[0];
+
+    if (memberData.projectRole === 'admin' || memberData.projectRole === 'owner') {
+      throw new BadRequestException('Cannot revoke access from admins and owners');
+    }
+
+    const currentAccess = this.calculateSiteAccess(
+      memberData.projectRole,
+      memberData.siteAccess,
+      memberData.restrictedSites,
+      siteUid
+    );
+
+    if (!currentAccess) {
+      throw new BadRequestException('Member does not have access to this site');
+    }
+
+    const currentRestrictedSites = memberData.restrictedSites || [];
+    const updatedRestrictedSites = currentRestrictedSites.filter(uid => uid !== siteUid);
+
+    const newSiteAccess = updatedRestrictedSites.length > 0 ? 'limited_access' : 'deny_all';
+    await this.drizzleService.db
+      .update(projectMember)
+      .set({
+        siteAccess: newSiteAccess,
+        restrictedSites: updatedRestrictedSites,
+        updatedAt: new Date(),
+      })
+      .where(eq(projectMember.id, memberData.id));
+
+    return { message: 'Site access revoked successfully' };
   }
+
+
+
+
+  // async getSiteByUid(projectId: number, siteUid: string) {
+  //   const siteData = await this.drizzleService.db
+  //     .select({
+  //       uid: site.uid,
+  //       name: site.name,
+  //       description: site.description,
+  //       status: site.status,
+  //       originalGeometry: site.originalGeometry,
+  //       metadata: site.metadata,
+  //       createdAt: site.createdAt,
+  //       updatedAt: site.updatedAt,
+  //       project: {
+  //         uid: project.uid,
+  //         projectName: project.projectName,
+  //         slug: project.slug,
+  //       },
+  //       createdBy: {
+  //         uid: user.uid,
+  //         name: user.displayName,
+  //         email: user.email,
+  //       }
+  //     })
+  //     .from(site)
+  //     .leftJoin(project, eq(site.projectId, project.id))
+  //     .leftJoin(user, eq(site.createdById, user.id))
+  //     .where(
+  //       and(
+  //         eq(site.uid, siteUid),
+  //         eq(site.projectId, projectId)
+  //       )
+  //     )
+  //     .limit(1);
+
+  //   if (!siteData.length) {
+  //     throw new NotFoundException('Site not found');
+  //   }
+
+  //   return siteData[0];
+  // }
+
+  // private async getSiteById(siteId: number) {
+  //   const siteData = await this.drizzleService.db
+  //     .select({
+  //       uid: site.uid,
+  //       name: site.name,
+  //       description: site.description,
+  //       status: site.status,
+  //       originalGeometry: site.originalGeometry,
+  //       metadata: site.metadata,
+  //       createdAt: site.createdAt,
+  //       updatedAt: site.updatedAt,
+  //       project: {
+  //         uid: project.uid,
+  //         projectName: project.projectName,
+  //         slug: project.slug,
+  //       },
+  //       createdBy: {
+  //         uid: user.uid,
+  //         name: user.displayName,
+  //         email: user.email,
+  //       }
+  //     })
+  //     .from(site)
+  //     .leftJoin(project, eq(site.projectId, project.id))
+  //     .leftJoin(user, eq(site.createdById, user.id))
+  //     .where(eq(site.id, siteId))
+  //     .limit(1);
+
+  //   if (!siteData.length) {
+  //     throw new NotFoundException('Site not found');
+  //   }
+
+  //   return siteData[0];
+  // }
+
+  // async updateSite(
+  //   projectId: number,
+  //   siteUid: string,
+  //   updateSiteDto: UpdateSiteDto
+  // ) {
+  //   // First verify site exists and belongs to project
+  //   const existingSite = await this.drizzleService.db
+  //     .select({ id: site.id })
+  //     .from(site)
+  //     .where(
+  //       and(
+  //         eq(site.uid, siteUid),
+  //         eq(site.projectId, projectId)
+  //       )
+  //     )
+  //     .limit(1);
+
+  //   if (!existingSite.length) {
+  //     throw new NotFoundException('Site not found');
+  //   }
+
+  //   const updateData: any = {
+  //     updatedAt: new Date(),
+  //   };
+
+  //   if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
+  //   if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
+
+  //   await this.drizzleService.db
+  //     .update(site)
+  //     .set(updateData)
+  //     .where(eq(site.id, existingSite[0].id));
+
+  //   return '';
+  // }
+
+  // async updateSiteImages(
+  //   projectId: number,
+  //   siteUid: string,
+  //   updateImagesDto: UpdateSiteImagesDto
+  // ) {
+  //   // First verify site exists and belongs to project
+  //   const existingSite = await this.drizzleService.db
+  //     .select({ id: site.id })
+  //     .from(site)
+  //     .where(
+  //       and(
+  //         eq(site.uid, siteUid),
+  //         eq(site.projectId, projectId)
+  //       )
+  //     )
+  //     .limit(1);
+
+  //   if (!existingSite.length) {
+  //     throw new NotFoundException('Site not found');
+  //   }
+
+  //   const updateData: any = {
+  //     updatedAt: new Date(),
+  //   };
+
+  //   if (updateImagesDto.image !== undefined) updateData.image = updateImagesDto.image;
+  //   if (updateImagesDto.imageCdn !== undefined) updateData.imageCdn = updateImagesDto.imageCdn;
+  //   if (updateImagesDto.allImages !== undefined) updateData.allImages = updateImagesDto.allImages;
+
+  //   await this.drizzleService.db
+  //     .update(site)
+  //     .set(updateData)
+  //     .where(eq(site.id, existingSite[0].id));
+
+  //   return this.getSiteById(existingSite[0].id);
+  // }
+
+  // async deleteSite(projectId: number, siteUid: string) {
+  //   // First verify site exists and belongs to project
+  //   const existingSite = await this.drizzleService.db
+  //     .select({
+  //       id: site.id,
+  //       name: site.name
+  //     })
+  //     .from(site)
+  //     .where(
+  //       and(
+  //         eq(site.uid, siteUid),
+  //         eq(site.projectId, projectId)
+  //       )
+  //     )
+  //     .limit(1);
+
+  //   if (!existingSite.length) {
+  //     throw new NotFoundException('Site not found');
+  //   }
+
+  //   // Soft delete by setting deletedAt
+  //   await this.drizzleService.db
+  //     .update(site)
+  //     .set({
+  //       deletedAt: new Date(),
+  //       updatedAt: new Date(),
+  //     })
+  //     .where(eq(site.id, existingSite[0].id));
+
+  //   return {
+  //     message: `Site "${existingSite[0].name}" has been successfully deleted`,
+  //     siteUid,
+  //   };
+  // }
+
+  // async getsitetats(projectId: number) {
+  //   const stats = await this.drizzleService.db
+  //     .select({
+  //       status: site.status,
+  //       count: count(),
+  //     })
+  //     .from(site)
+  //     .where(
+  //       and(
+  //         eq(site.projectId, projectId),
+  //         // Exclude soft-deleted site
+  //       )
+  //     )
+  //     .groupBy(site.status);
+
+  //   const totalsite = stats.reduce((sum, stat) => sum + stat.count, 0);
+
+  //   return {
+  //     total: totalsite,
+  //     byStatus: stats.reduce((acc, stat) => {
+  //       acc[stat.status || 'unknown'] = stat.count;
+  //       return acc;
+  //     }, {} as Record<string, number>),
+  //   };
+  // }
 }

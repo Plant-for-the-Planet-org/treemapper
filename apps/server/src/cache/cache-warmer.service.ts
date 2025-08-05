@@ -21,8 +21,8 @@ export class CacheWarmerService {
             .select({
                 uid: users.uid,
                 email: users.email,
-                firstname: users.firstname,
-                lastname: users.lastname,
+                firstname: users.firstName,
+                lastname: users.lastName,
                 displayName: users.displayName,
                 image: users.image,
                 slug: users.slug,
@@ -39,7 +39,6 @@ export class CacheWarmerService {
             .where(
                 and(
                     eq(users.isActive, true),
-                    gte(users.lastLoginAt, new Date(Date.now() - 7 * 24 * 60 * 60 * 1000))
                 )
             );
 

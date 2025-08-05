@@ -62,15 +62,15 @@ export class InterventionsController {
   }
 
 
-  @Delete(':id/:intervention')
-  @ProjectRoles('owner', 'admin', 'contributor')
-  @UseGuards(ProjectPermissionsGuard)
-  async delete(
-    @Param('intervention') intervention: string,
-    @Membership() membership: ProjectGuardResponse,
-  ) {
-    return this.interventionsService.deleteIntervention(intervention, membership);
-  }
+  // @Delete(':id/:intervention')
+  // @ProjectRoles('owner', 'admin', 'contributor')
+  // @UseGuards(ProjectPermissionsGuard)
+  // async delete(
+  //   @Param('intervention') intervention: string,
+  //   @Membership() membership: ProjectGuardResponse,
+  // ) {
+  //   return this.interventionsService.deleteIntervention(intervention, membership);
+  // }
 
 
 

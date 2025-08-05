@@ -1,1 +1,0 @@
-ALTER TABLE "user" ALTER COLUMN "impersonate" SET DATA TYPE text;

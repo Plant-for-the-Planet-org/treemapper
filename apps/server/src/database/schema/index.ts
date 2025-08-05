@@ -115,11 +115,11 @@ export const entityEnum = pgEnum('entity_type', [
 export const projectRoleEnum = pgEnum('project_role', ['owner', 'admin', 'contributor', 'observer']);
 export const inviteStatusEnum = pgEnum('invite_status', ['pending', 'accepted', 'declined', 'expired', 'discarded']);
 export const imageUploadDeviceEnum = pgEnum('image_upload_device', ['web', 'mobile']);
-export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation']);
+export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation', 'planning']);
 export const siteAccessEnum = pgEnum('site_access', ['all_sites', 'deny_all', 'read_only', 'limited_access']);
 export const speciesRequestStatusEnum = pgEnum('species_request_status', ['pending', 'approved', 'rejected']);
 export const interventionDiscriminatorEnum = pgEnum('intervention_discriminator', ['plot', 'intervention']);
-export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown']);
+export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown','web-upload']);
 export const captureStatusEnum = pgEnum('capture_status', ['complete', 'partial', 'incomplete']);
 export const notificationTypeEnum = pgEnum('notification_type', ['project', 'site', 'member', 'intervention', 'tree', 'species', 'user', 'invite', 'system', 'other']);
 export const workspaceRoleEnum = pgEnum('workspace_role', [
@@ -259,19 +259,18 @@ export const user = pgTable('user', {
   uid: text('uid').notNull().unique(),
   auth0Id: text('auth0_id').notNull().unique(),
   email: text('email').notNull().unique(),
-  firstname: text('firstname'),
-  lastname: text('lastname'),
+  firstName: text('first_name'),
+  lastName: text('last_name'),
   displayName: text('display_name').notNull(),
-  primaryWorkspace: text('primary_workspace').references(() => workspace.uid),
-  primaryProject: text('primary_project').references(() => project.uid),
+  primaryWorkspaceUid: text('primary_workspace_uid'),
+  primaryProjectUid: text('primary_project_uid'),
   image: text('image'),
   slug: text('slug').unique().notNull(),
   type: userTypeEnum('type').default('individual'),
   country: char('country', { length: 3 }),
-  website: text('url'),
+  website: text('website'),
   isPrivate: boolean('is_private').default(false).notNull(),
   isActive: boolean('is_active').default(true).notNull(),
-  lastLoginAt: timestamp('last_login_at', { withTimezone: true }).defaultNow(),
   bio: text('bio'),
   locale: text('locale').default('en'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
@@ -281,12 +280,12 @@ export const user = pgTable('user', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   migratedAt: timestamp('migrated_at', { withTimezone: true }),
   existingPlanetUser: boolean('existing_planet_user').default(false),
-  workspace: workspaceRoleEnum('role').notNull().default('member'),
-  impersonate: text('impersonate')
-}, (table) => ({
+  workspaceRole: workspaceRoleEnum('workspace_role').default('member'),
+}, () => ({
   emailFormat: check('email_format', sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
-  slugFormat: check('slug_format', sql`slug ~* '^[a-z0-9-]+$' AND length(slug) >= 3`),
 }));
+
+
 
 export const workspace = pgTable('workspace', {
   id: serial('id').primaryKey(),
@@ -295,7 +294,7 @@ export const workspace = pgTable('workspace', {
   slug: text('slug').notNull().unique(),
   type: workspaceTypeEnum('type').notNull(),
   description: text('description'),
-  image: text('logo'),
+  image: text('image'),
   primaryColor: text('primary_color'),
   secondaryColor: text('secondary_color'),
   email: text('email'),
@@ -309,9 +308,8 @@ export const workspace = pgTable('workspace', {
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   metadata: jsonb('metadata'),
 }, (table) => ({
-  nameIdx: index('workspace_name_idx').on(table.name),
-  slugIdx: index('workspace_slug_idx').on(table.slug),
-  typeIdx: index('workspace_type_idx').on(table.type),
+  slugFormat: check('slug_format', sql`slug ~* '^[a-z0-9-]+$' AND length(slug) >= 3`),
+  emailFormat: check('email_format', sql`email IS NULL OR email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
   createdByIdx: index('workspace_created_by_idx').on(table.createdById),
 }));
 
@@ -324,14 +322,19 @@ export const workspaceMember = pgTable('workspace_member', {
   status: memberStatusEnum('status').default('active'),
   joinedAt: timestamp('joined_at', { withTimezone: true }).defaultNow().notNull(),
   invitedAt: timestamp('invited_at', { withTimezone: true }),
-  invitedById: integer('invited_by_id').references(() => user.id, { onDelete: 'cascade' }),
+  invitedById: integer('invited_by_id').references(() => user.id, { onDelete: 'set null' }),
   lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   metadata: jsonb('metadata'),
 }, (table) => ({
-  workspaceIdx: index('workspace_members_idx').on(table.workspaceId),
+  uniqueMembership: unique('unique_workspace_membership').on(table.workspaceId, table.userId),
+  workspaceIdx: index('workspace_members_workspace_idx').on(table.workspaceId),
   userIdx: index('workspace_members_user_idx').on(table.userId),
+  joinedAfterInvited: check('joined_after_invited',
+    sql`invited_at IS NULL OR joined_at >= invited_at`),
+  activeStatusLogic: check('active_status_logic',
+    sql`status != 'active' OR joined_at IS NOT NULL`),
 }));
 
 export const survey = pgTable('survey', {
@@ -366,14 +369,30 @@ export const image = pgTable('image', {
   deviceType: imageUploadDeviceEnum('device_type').notNull(),
   isPrimary: boolean('is_primary').default(false),
   isPrivate: boolean('is_private').default(false),
+  storageProvider: text('storage_provider').default('r2'),
+  storagePath: text('storage_path'),
+  thumbnailPath: text('thumbnail_path'),
+  compressionRatio: decimal('compression_ratio', { precision: 4, scale: 2 }),
+  uploadedById: integer('uploaded_by_id').references(() => user.id, { onDelete: 'set null' }),
+  altText: text('alt_text'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  entityId: index('entityId_images__id_idx').on(table.entityId),
+  entityTypeEntityIdIdx: index('image_entity_lookup_idx').on(table.entityType, table.entityId),
+  primaryImageIdx: index('image_primary_idx').on(table.entityType, table.entityId, table.isPrimary)
+    .where(sql`is_primary = true AND deleted_at IS NULL`),
   sizePositive: check('size_positive', sql`size IS NULL OR size > 0`),
-  dimensionsPositive: check('dimensions_positive', sql`(width IS NULL OR width > 0) AND (height IS NULL OR height > 0)`),
-  reasonableFileSize: check('reasonable_file_size', sql`size IS NULL OR size <= 104857600`), // 100MB limit
+  dimensionsPositive: check('dimensions_positive',
+    sql`(width IS NULL OR width > 0) AND (height IS NULL OR height > 0)`),
+  reasonableFileSize: check('reasonable_file_size',
+    sql`size IS NULL OR size <= 104857600`),
+  primaryImageLogic: check('primary_image_logic',
+    sql`is_primary = false OR (is_primary = true AND deleted_at IS NULL)`),
+  validMimeType: check('valid_mime_type',
+    sql`mime_type IS NULL OR mime_type ~* '^image\/(jpeg|jpg|png|gif|webp|svg\+xml)$'`),
+  filenameRequired: check('filename_required',
+    sql`filename IS NOT NULL AND length(trim(filename)) > 0`)
 }));
 
 export const notifications = pgTable('notifications', {
@@ -396,21 +415,29 @@ export const notifications = pgTable('notifications', {
   sentAt: timestamp('sent_at'),
   deliveredAt: timestamp('delivered_at'),
   image: text('image'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  batchId: text('batch_id'),
+  retryCount: integer('retry_count').default(0),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  userIdIdx: index('notifications_user_id_idx').on(table.userId),
-  typeIdx: index('notifications_type_idx').on(table.type),
-  isReadIdx: index('notifications_is_read_idx').on(table.isRead),
-  isArchivedIdx: index('notifications_is_archived_idx').on(table.isArchived),
-  priorityIdx: index('notifications_priority_idx').on(table.priority),
-  scheduledForIdx: index('notifications_scheduled_for_idx').on(table.scheduledFor),
-  expiresAtIdx: index('notifications_expires_at_idx').on(table.expiresAt),
-  userUnreadIdx: index('notifications_user_unread_idx').on(table.userId, table.isRead),
-  userCategoryIdx: index('notifications_user_category_idx').on(table.userId, table.category),
-  unreadNotificationsIdx: index('notifications_unread_idx').on(table.userId).where(sql`is_read = false AND is_archived = false`),
+  userUnreadActiveIdx: index('notifications_user_unread_active_idx')
+    .on(table.userId, table.isRead, table.isArchived)
+    .where(sql`is_read = false AND is_archived = false`),
+  userNotificationsIdx: index('notifications_user_list_idx').on(table.userId, table.createdAt),
+  scheduledProcessingIdx: index('notifications_scheduled_processing_idx')
+    .on(table.scheduledFor)
+    .where(sql`scheduled_for IS NOT NULL AND sent_at IS NULL`),
+  validPriority: check('valid_priority',
+    sql`priority IN ('low', 'normal', 'high', 'urgent')`),
+  scheduledInFuture: check('scheduled_in_future',
+    sql`scheduled_for IS NULL OR scheduled_for >= created_at`),
+  expiresAfterCreation: check('expires_after_creation',
+    sql`expires_at IS NULL OR expires_at > created_at`),
+  deliveredAfterSent: check('delivered_after_sent',
+    sql`delivered_at IS NULL OR sent_at IS NULL OR delivered_at >= sent_at`),
+  retryCountValid: check('retry_count_valid',
+    sql`retry_count >= 0 AND retry_count <= 10`),
 }));
-
 
 export const auditLog = pgTable('audit_log', {
   id: serial('id').primaryKey(),
@@ -425,35 +452,25 @@ export const auditLog = pgTable('audit_log', {
   oldValues: jsonb('old_values'),
   newValues: jsonb('new_values'),
   changedFields: text('changed_fields').array(),
-  description: text('description'),
-  source: text('source').default('web'), // 'web', 'mobile', 'api', 'system', 'migration'
-  userAgent: text('user_agent'),
+  source: text('source').default('web'),
   ipAddress: text('ip_address'),
-  sessionId: text('session_id'),
-  requestId: text('request_id'),
-  reason: text('reason'),
-  metadata: jsonb('metadata'),
   occurredAt: timestamp('occurred_at', { withTimezone: true }).defaultNow().notNull(),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
-  // Performance indexes
-  entityIdx: index('audit_log_entity_idx').on(table.entityType, table.entityId),
-  userIdx: index('audit_log_user_idx').on(table.userId),
-  workspaceIdx: index('audit_log_workspace_idx').on(table.workspaceId),
-  projectIdx: index('audit_log_project_idx').on(table.projectId),
-  actionIdx: index('audit_log_action_idx').on(table.action),
-  occurredAtIdx: index('audit_log_occurred_at_idx').on(table.occurredAt),
-
-  // Composite indexes for common queries
-  entityTimeIdx: index('audit_log_entity_time_idx').on(table.entityType, table.entityId, table.occurredAt),
-  userTimeIdx: index('audit_log_user_time_idx').on(table.userId, table.occurredAt),
-  workspaceTimeIdx: index('audit_log_workspace_time_idx').on(table.workspaceId, table.occurredAt),
-
-  // JSONB indexes for change tracking
-  changedFieldsIdx: index('audit_log_changed_fields_gin_idx').using('gin', table.changedFields),
-  oldValuesIdx: index('audit_log_old_values_gin_idx').using('gin', table.oldValues),
-  newValuesIdx: index('audit_log_new_values_gin_idx').using('gin', table.newValues),
-}));
+  entityAuditIdx: index('audit_log_entity_audit_idx')
+    .on(table.entityType, table.entityId, table.occurredAt),
+  userActivityIdx: index('audit_log_user_activity_idx')
+    .on(table.userId, table.occurredAt)
+    .where(sql`user_id IS NOT NULL`),
+  workspaceAuditIdx: index('audit_log_workspace_audit_idx')
+    .on(table.workspaceId, table.occurredAt)
+    .where(sql`workspace_id IS NOT NULL`),
+  validEntityId: check('valid_entity_id',
+    sql`length(trim(entity_id)) > 0`),
+  validSource: check('valid_source',
+    sql`source IN ('web', 'mobile', 'api', 'system', 'migration')`),
+  occurredAtNotFuture: check('occurred_at_not_future',
+    sql`occurred_at <= NOW()`),
+}))
 
 
 
@@ -463,85 +480,131 @@ export const project = pgTable('project', {
   createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   workspaceId: integer('workspace_id').notNull().references(() => workspace.id, { onDelete: 'cascade' }),
   slug: text('slug').notNull().unique(),
-  purpose: text('purpose'),
-  projectName: text('project_name').notNull(),
-  projectType: text('project_type'),
-  ecosystem: text('ecosystem'),
-  projectScale: text('project_scale'),
-  target: integer('target'),
-  projectWebsite: text('project_website'),
+  name: text('name').notNull(),
   description: text('description'),
+  purpose: text('purpose'),
+  type: text('type'),
+  ecosystem: text('ecosystem'),
+  scale: text('scale'),
   classification: text('classification'),
+  target: integer('target'),
+  originalGeometry: jsonb('original_geometry'),
+  website: text('website'),
   image: text('image'),
   videoUrl: text('video_url'),
   country: char('country', { length: 3 }),
   location: geometryWithGeoJSON(4326)('location'),
-  originalGeometry: jsonb('original_geometry'),
-  latitude: doublePrecision('latitude'),
-  longitude: doublePrecision('longitude'),
-  url: text('url'),
   isActive: boolean('is_active').notNull().default(true),
   isPublic: boolean('is_public').default(true).notNull(),
   isPrimary: boolean('is_primary').default(false).notNull(),
   isPersonal: boolean('is_personal').default(false).notNull(),
   intensity: text('intensity'),
-  revisionPeriodicityLevel: text('revision_periodicity_level'),
-  metadata: jsonb('metadata'),
+  revisionPeriodicity: text('revision_periodicity'),
   migratedProject: boolean('migrated_project').default(false),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  locationIdx: index('projects_location_gist_idx').using('gist', table.location),
-  createdByIdIdx: index('project_created_by_id_idx').on(table.createdById),
-  workspaceIdx: index('projects_workpsace_by_idx').on(table.workspaceId),
+  workspaceProjectsIdx: index('project_workspace_active_idx')
+    .on(table.workspaceId, table.isActive, table.isPublic),
+  userProjectsIdx: index('project_user_projects_idx')
+    .on(table.createdById, table.isActive),
+  locationIdx: index('project_location_gist_idx').using('gist', table.location),
   targetPositive: check('target_positive', sql`target IS NULL OR target > 0`),
-  latitudeRange: check('latitude_range', sql`latitude IS NULL OR (latitude >= -90 AND latitude <= 90)`),
-  longitudeRange: check('longitude_range', sql`longitude IS NULL OR (longitude >= -180 AND longitude <= 180)`),
+  validIntensity: check('valid_intensity',
+    sql`intensity IS NULL OR intensity IN ('low', 'medium', 'high')`),
+  validScale: check('valid_scale',
+    sql`scale IS NULL OR scale IN ('small', 'medium', 'large', 'enterprise')`),
+  websiteFormat: check('website_format',
+    sql`website IS NULL OR website ~* '^https?://'`),
+  primaryProjectLogic: check('primary_project_logic',
+    sql`is_primary = false OR (is_primary = true AND is_active = true)`),
+  publicProjectLogic: check('public_project_logic',
+    sql`is_personal = false OR is_public = false`),
+  flaggedProjectReason: check('flagged_project_reason',
+    sql`flag = false OR flag_reason IS NOT NULL`),
 }));
+
 
 export const projectMember = pgTable('project_member', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id),
-  userId: integer('user_id').notNull().references(() => user.id),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
   invitedAt: timestamp('invited_at', { withTimezone: true }),
+  invitedById: integer('invited_by_id').references(() => user.id, { onDelete: 'set null' }),
   joinedAt: timestamp('joined_at', { withTimezone: true }),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
-  bulkInviteId: integer('bulk_invite_id').references(() => bulkInvite.id),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true }),
+  status: memberStatusEnum('status').default('active'),
   siteAccess: siteAccessEnum('site_access').default('all_sites').notNull(),
   restrictedSites: text('restricted_sites').array().default([]),
+  bulkInviteId: integer('bulk_invite_id').references(() => bulkInvite.id, { onDelete: 'set null' }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }), // 🔧 ADD: Soft delete
 }, (table) => ({
   uniqueMember: unique('unique_project_member').on(table.projectId, table.userId),
-  projectIdIdx: index('project_members_project_idx').on(table.projectId),
-  userIdIdx: index('project_members_user_idx').on(table.userId),
-  projectRoleIdx: index('project_members_role_idx').on(table.projectRole),
+  projectMembersIdx: index('project_members_active_idx')
+    .on(table.projectId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  userProjectsIdx: index('project_members_user_active_idx')
+    .on(table.userId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  joinedAfterInvited: check('joined_after_invited',
+    sql`invited_at IS NULL OR joined_at IS NULL OR joined_at >= invited_at`),
+  activeMemberJoined: check('active_member_joined',
+    sql`status != 'active' OR joined_at IS NOT NULL`),
+  inviterNotSelf: check('inviter_not_self',
+    sql`invited_by_id IS NULL OR invited_by_id != user_id`),
+  restrictedSitesValidAccess: check('restricted_sites_valid_access',
+    sql`site_access != 'limited_access' OR array_length(restricted_sites, 1) > 0`),
 }));
 
 export const bulkInvite = pgTable('bulk_invite', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
-  projectId: integer('project_id').notNull().references(() => project.id),
-  restriction: text('restriction').array().default([]),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  emailDomainRestrictions: text('email_domain_restrictions').array().default([]),
   message: text('message'),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
-  invitedById: integer('invited_by_id').notNull().references(() => user.id),
-  discardedBy: integer('discarded_by').references(() => user.id),
+  invitedById: integer('invited_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  discardedById: integer('discarded_by_id').references(() => user.id, { onDelete: 'set null' }),
+  discardedAt: timestamp('discarded_at', { withTimezone: true }),
   status: inviteStatusEnum('status').notNull().default('pending'),
   token: uuid('token').defaultRandom().notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+  maxUses: integer('max_uses').default(100),
+  currentUses: integer('current_uses').default(0),
+  totalInvitesSent: integer('total_invites_sent').default(0),
+  totalAccepted: integer('total_accepted').default(0),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
 }, (table) => ({
-  projectBulkIdIdx: index('project_bulk_invites_project_idx').on(table.projectId),
-  deletedAtIdx: index('project_bulk_invites_deleted_at_idx').on(table.deletedAt),
+  projectActiveInvitesIdx: index('bulk_invite_project_active_idx')
+    .on(table.projectId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  tokenLookupIdx: index('bulk_invite_token_active_idx')
+    .on(table.token, table.status)
+    .where(sql`status = 'pending' AND deleted_at IS NULL`),
+  expiresInFuture: check('expires_in_future',
+    sql`expires_at > created_at`),
+  maxUsesPositive: check('max_uses_positive',
+    sql`max_uses IS NULL OR max_uses > 0`),
+  currentUsesValid: check('current_uses_valid',
+    sql`current_uses >= 0 AND (max_uses IS NULL OR current_uses <= max_uses)`),
+  analyticsValid: check('analytics_valid',
+    sql`total_invites_sent >= 0 AND total_accepted >= 0 AND total_accepted <= total_invites_sent`),
+  expiredOrDiscardedNotPending: check('expired_or_discarded_not_pending',
+    sql`(status != 'expired' OR expires_at <= NOW()) AND (status != 'discarded' OR discarded_by_id IS NOT NULL)`),
+  discardedHasTimestamp: check('discarded_has_timestamp',
+    sql`discarded_by_id IS NULL OR discarded_at IS NOT NULL`),
+  validEmailDomains: check('valid_email_domains',
+    sql`array_length(email_domain_restrictions, 1) IS NULL OR array_length(email_domain_restrictions, 1) > 0`),
 }));
 
 
@@ -552,26 +615,52 @@ export const site = pgTable('site', {
   name: text('name').notNull(),
   description: text('description'),
   location: geometryWithGeoJSON(4326)('location'),
-  originalGeometry: jsonb('original_geometry'),
-  latitude: doublePrecision('latitude'),
-  image: text('image'),
-  longitude: doublePrecision('longitude'),
   area: doublePrecision('area'),
-  status: siteStatusEnum('status').default('planting'),
-  createdById: integer('created_by_id').notNull().references(() => user.id),
-  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  status: siteStatusEnum('status').default('planning'),
+  soilType: text('soil_type'),
+  elevation: doublePrecision('elevation'),
+  slope: doublePrecision('slope'),
+  aspect: text('aspect'),
+  waterAccess: boolean('water_access').default(false),
+  accessibility: text('accessibility'),
+  plannedPlantingDate: timestamp('planned_planting_date', { withTimezone: true }),
+  actualPlantingDate: timestamp('actual_planting_date', { withTimezone: true }),
+  expectedTreeCount: integer('expected_tree_count'),
+  image: text('image'),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  migratedSite: boolean('migrated_site').default(false),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
-  deletedAt: timestamp('deleted_at', { withTimezone: true }),
   metadata: jsonb('metadata'),
-  migratedSite: boolean('migrated_site').default(false),
+  originalGeometry: jsonb('original_geometry'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  projectIdIdx: index('sites_project_id_idx').on(table.projectId),
-  locationIdx: index('sites_location_gist_idx').using('gist', table.location),
+  projectSitesIdx: index('site_project_active_idx')
+    .on(table.projectId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  locationIdx: index('site_location_gist_idx').using('gist', table.location),
+  createdByIdx: index('site_created_by_idx').on(table.createdById),
   areaPositive: check('area_positive', sql`area IS NULL OR area > 0`),
-  latitudeRange: check('latitude_range', sql`latitude IS NULL OR (latitude >= -90 AND latitude <= 90)`),
-  longitudeRange: check('longitude_range', sql`longitude IS NULL OR (longitude >= -180 AND longitude <= 180)`),
+  elevationRange: check('elevation_range',
+    sql`elevation IS NULL OR (elevation >= -500 AND elevation <= 9000)`),
+  slopeRange: check('slope_range',
+    sql`slope IS NULL OR (slope >= 0 AND slope <= 90)`),
+  validAspect: check('valid_aspect',
+    sql`aspect IS NULL OR aspect IN ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')`),
+  validAccessibility: check('valid_accessibility',
+    sql`accessibility IS NULL OR accessibility IN ('easy', 'moderate', 'difficult')`),
+  validSoilType: check('valid_soil_type',
+    sql`soil_type IS NULL OR soil_type IN ('clay', 'sand', 'loam', 'rocky', 'peat', 'mixed')`),
+  expectedTreeCountPositive: check('expected_tree_count_positive',
+    sql`expected_tree_count IS NULL OR expected_tree_count > 0`),
+  actualAfterPlanned: check('actual_after_planned',
+    sql`planned_planting_date IS NULL OR actual_planting_date IS NULL OR actual_planting_date >= planned_planting_date`),
+  plantedSiteHasDate: check('planted_site_has_date',
+    sql`status != 'planted' OR actual_planting_date IS NOT NULL`),
+  flaggedSiteReason: check('flagged_site_reason',
+    sql`flag = false OR flag_reason IS NOT NULL`),
 }));
 
 
@@ -582,73 +671,164 @@ export const projectInvites = pgTable('project_invite', {
   email: text('email').notNull(),
   message: text('message'),
   projectRole: projectRoleEnum('project_role').notNull().default('contributor'),
-  invitedById: integer('invited_by_id').notNull().references(() => user.id),
-  discardedBy: integer('discarded_by').references(() => user.id),
+  invitedById: integer('invited_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  discardedById: integer('discarded_by_id').references(() => user.id, { onDelete: 'set null' }),
+  discardedAt: timestamp('discarded_at', { withTimezone: true }),
   status: inviteStatusEnum('status').notNull().default('pending'),
   token: uuid('token').defaultRandom().notNull().unique(),
   expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
   acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+  sentAt: timestamp('sent_at', { withTimezone: true }),
+  deliveredAt: timestamp('delivered_at', { withTimezone: true }),
+  retryCount: integer('retry_count').default(0),
+  inviteHash: text('invite_hash'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
-  updatedAt: timestamp('updated_at', { withTimezone: true })
-    .defaultNow()
-    .notNull()
-    .$onUpdate(() => new Date()),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
-  projectIdIdx: index('project_invites_project_idx').on(table.projectId),
-  emailIdx: index('project_invites_email_idx').on(table.email),
-  projectStatusIdx: index('project_invites_project_status_idx').on(table.projectId, table.status),
-  acceptedBeforeExpiry: check('accepted_before_expiry', sql`accepted_at IS NULL OR accepted_at <= expires_at`),
-  expiresInFuture: check('expires_in_future', sql`expires_at > created_at`),
+  projectInvitesIdx: index('project_invite_project_status_idx')
+    .on(table.projectId, table.status),
+  tokenLookupIdx: index('project_invite_token_active_idx')
+    .on(table.token, table.status)
+    .where(sql`status = 'pending'`),
+  inviterIdx: index('project_invite_inviter_idx')
+    .on(table.invitedById, table.createdAt),
+  acceptedBeforeExpiry: check('accepted_before_expiry',
+    sql`accepted_at IS NULL OR accepted_at <= expires_at`),
+  expiresInFuture: check('expires_in_future',
+    sql`expires_at > created_at`),
+  validEmail: check('valid_email',
+    sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
+  acceptedStatusHasTimestamp: check('accepted_status_has_timestamp',
+    sql`status != 'accepted' OR accepted_at IS NOT NULL`),
+  discardedStatusHasDetails: check('discarded_status_has_details',
+    sql`status != 'discarded' OR (discarded_by_id IS NOT NULL AND discarded_at IS NOT NULL)`),
+  expiredStatusAfterExpiry: check('expired_status_after_expiry',
+    sql`status != 'expired' OR expires_at <= NOW()`),
+  retryCountValid: check('retry_count_valid',
+    sql`retry_count >= 0 AND retry_count <= 5`), // Max 5 retry attempts
+  deliveredAfterSent: check('delivered_after_sent',
+    sql`delivered_at IS NULL OR sent_at IS NULL OR delivered_at >= sent_at`),
 }));
-
 
 export const scientificSpecies = pgTable('scientific_species', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   scientificName: text('scientific_name').notNull().unique(),
   commonName: text('common_name'),
+  kingdom: text('kingdom').default('Plantae'),
+  phylum: text('phylum').default('Tracheophyta'),
+  class: text('class').default('Magnoliopsida'),
+  order: text('order'),
   family: text('family'),
   genus: text('genus'),
+  species: text('species'),
+  subspecies: text('subspecies'),
+  cultivar: text('cultivar'),
+  habitat: text('habitat').array().default([]),
+  nativeRegions: text('native_regions').array().default([]),
+  climateZones: text('climate_zones').array().default([]),
+  soilTypes: text('soil_types').array().default([]),
+  drainagePreference: text('drainage_preference'),
+  phTolerance: text('ph_tolerance'),
+  saltTolerance: text('salt_tolerance'),
+  matureHeight: doublePrecision('mature_height'),
+  matureWidth: doublePrecision('mature_width'),
+  growthRate: text('growth_rate'),
+  lifespan: integer('lifespan'),
+  rootSystem: text('root_system'),
+  lightRequirement: text('light_requirement'),
+  waterRequirement: text('water_requirement'),
+  temperatureMinimum: doublePrecision('temperature_minimum'),
+  temperatureMaximum: doublePrecision('temperature_maximum'),
+  frostTolerance: boolean('frost_tolerance').default(false),
+  droughtTolerance: boolean('drought_tolerance').default(false),
+  conservationStatus: text('conservation_status'),
+  isNative: boolean('is_native').default(true),
+  isInvasive: boolean('is_invasive').default(false),
+  isEndangered: boolean('is_endangered').default(false),
+  isProtected: boolean('is_protected').default(false),
+  wildlifeValue: text('wildlife_value'),
+  pollinatorFriendly: boolean('pollinator_friendly').default(false),
+  carbonSequestration: text('carbon_sequestration'),
+  erosionControl: boolean('erosion_control').default(false),
+  windbreakSuitability: boolean('windbreak_suitability').default(false),
+  bestPlantingMonths: integer('best_planting_months').array().default([]),
+  propagationMethod: text('propagation_method').array().default([]),
+  seedTreatment: text('seed_treatment'),
+  plantingSpacing: doublePrecision('planting_spacing'),
+  companionSpecies: text('companion_species').array().default([]),
   description: text('description'),
   image: text('image'),
+  additionalImages: text('additional_images').array().default([]),
   gbifId: text('gbif_id'),
+  iplantId: text('iucn_id'),
+  wikipediaUrl: text('wikipedia_url'),
+  dataQuality: text('data_quality').default('pending'),
+  verifiedById: integer('verified_by_id').references(() => user.id, { onDelete: 'set null' }),
+  verifiedAt: timestamp('verified_at', { withTimezone: true }),
+  dataSource: text('data_source'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
   metadata: jsonb('metadata'),
 }, (table) => ({
-  scientificNameIdx: index('scientific_species_name_idx').on(table.scientificName),
-  uidIdx: index('scientific_species_uid_idx').on(table.uid),
+  scientificNameIdx: index('species_scientific_name_idx').on(table.scientificName),
+  commonNameIdx: index('species_common_name_idx').on(table.commonName),
+  familyGenusIdx: index('species_family_genus_idx').on(table.family, table.genus),
+  habitatClimateIdx: index('species_habitat_climate_idx').using('gin', table.habitat, table.climateZones),
+  soilDrainageIdx: index('species_soil_drainage_idx').on(table.soilTypes, table.drainagePreference),
+  conservationNativeIdx: index('species_conservation_native_idx')
+    .on(table.conservationStatus, table.isNative, table.isEndangered),
+  growthSizeIdx: index('species_growth_size_idx')
+    .on(table.growthRate, table.matureHeight, table.lifespan),
+  matureHeightPositive: check('mature_height_positive',
+    sql`mature_height IS NULL OR mature_height > 0`),
+  matureWidthPositive: check('mature_width_positive',
+    sql`mature_width IS NULL OR mature_width > 0`),
+  lifespanPositive: check('lifespan_positive',
+    sql`lifespan IS NULL OR lifespan > 0`),
+  plantingSpacingPositive: check('planting_spacing_positive',
+    sql`planting_spacing IS NULL OR planting_spacing > 0`),
+  validTemperatureRange: check('valid_temperature_range',
+    sql`temperature_minimum IS NULL OR temperature_maximum IS NULL OR temperature_minimum <= temperature_maximum`),
+  validGrowthRate: check('valid_growth_rate',
+    sql`growth_rate IS NULL OR growth_rate IN ('slow', 'moderate', 'fast')`),
+  validLightRequirement: check('valid_light_requirement',
+    sql`light_requirement IS NULL OR light_requirement IN ('full-sun', 'partial-shade', 'full-shade', 'adaptable')`),
+  validWaterRequirement: check('valid_water_requirement',
+    sql`water_requirement IS NULL OR water_requirement IN ('low', 'moderate', 'high')`),
+  validDataQuality: check('valid_data_quality',
+    sql`data_quality IN ('verified', 'pending', 'draft')`),
+  validConservationStatus: check('valid_conservation_status',
+    sql`conservation_status IS NULL OR conservation_status IN ('LC', 'NT', 'VU', 'EN', 'CR', 'EW', 'EX', 'DD')`),
+  verifiedHasVerifier: check('verified_has_verifier',
+    sql`data_quality != 'verified' OR (verified_by_id IS NOT NULL AND verified_at IS NOT NULL)`),
+  nativeNotInvasive: check('native_not_invasive',
+    sql`NOT (is_native = true AND is_invasive = true)`),
+  validPlantingMonths: check('valid_planting_months',
+    sql`array_length(best_planting_months, 1) IS NULL OR (array_length(best_planting_months, 1) <= 12 AND best_planting_months <@ ARRAY[1,2,3,4,5,6,7,8,9,10,11,12])`),
 }));
-
 
 export const projectSpecies = pgTable('project_species', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
-  scientificSpeciesId: integer('scientific_species_id').notNull().references(() => scientificSpecies.id),
-  scientificSpeciesUid: text('scientific_species_uid'),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  scientificSpeciesId: integer('scientific_species_id').references(() => scientificSpecies.id, { onDelete: 'set null' }),
   isUnknown: boolean('is_unknown').default(false).notNull(),
-  speciesName: text('species_name'),
-  isNativeSpecies: boolean('is_native_species').default(false),
-  isEndangered: boolean('is_endangered').default(false),
-  isDisabled: boolean('is_disabled').default(false),
-  projectId: integer('project_id').notNull().references(() => project.id),
-  addedById: integer('added_by_id').notNull().references(() => user.id),
+  speciesName:text('species_name'),
   commonName: text('common_name'),
   image: text('image'),
-  description: text('description'),
   notes: text('notes'),
   favourite: boolean('favourite').default(false).notNull(),
+  isDisabled: boolean('is_disabled').default(false),
+  addedById: integer('added_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  metadata:jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  metadata: jsonb('metadata'),
 }, (table) => ({
-  uniqueProjectSpecies: uniqueIndex('unique_project_species').on(table.projectId, table.scientificSpeciesId),
-  scientificSpeciesIdx: index('project_species_scientific_species_idx').on(table.scientificSpeciesId),
-  projectIdx: index('project_species_projects_idx').on(table.projectId),
-  addedByIdx: index('project_species_added_by_idx').on(table.addedById),
-  nativeSpeciesIdx: index('project_species_native_idx').on(table.isNativeSpecies),
+  uniqueProjectSpecies: unique('unique_project_species').on(table.projectId, table.scientificSpeciesId),
+  scientificSpeciesIdIdx: index('scientific_species_id_Idx').on(table.scientificSpeciesId)
 }));
 
 
@@ -658,165 +838,230 @@ export const speciesRequest = pgTable('species_request', {
   scientificName: text('scientific_name').notNull(),
   commonName: text('common_name'),
   description: text('description'),
-  requestReason: text('request_reason'),
+  requestReason: text('request_reason').notNull(),
+  family: text('family'),
+  habitat: text('habitat'),
+  nativeRegion: text('native_region'),
+  conservationStatus: text('conservation_status'),
   gbifId: text('gbif_id'),
+  wikipediaUrl: text('wikipedia_url'),
+  sourceUrl: text('source_url'),
   requestedById: integer('requested_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
-  projectId: integer('project_id').references(() => project.id),
+  projectId: integer('project_id').references(() => project.id, { onDelete: 'cascade' }),
+  urgency: text('urgency').default('normal'),
   status: speciesRequestStatusEnum('status').notNull().default('pending'),
-  reviewedById: integer('reviewed_by_id').references(() => user.id),
-  adminNotes: text('admin_notes'),
+  reviewedById: integer('reviewed_by_id').references(() => user.id, { onDelete: 'set null' }),
   reviewedAt: timestamp('reviewed_at', { withTimezone: true }),
+  adminNotes: text('admin_notes'),
+  rejectionReason: text('rejection_reason'),
+  createdSpeciesId: integer('created_species_id').references(() => scientificSpecies.id),
+  duplicateOfRequestId: integer('duplicate_of_request_id').references(() => speciesRequest.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  requestedByIdx: index('species_requests_requested_by_idx').on(table.requestedById)
+  adminReviewQueueIdx: index('species_request_review_queue_idx')
+    .on(table.status, table.urgency, table.createdAt)
+    .where(sql`status = 'pending'`),
+  userRequestsIdx: index('species_request_user_idx')
+    .on(table.requestedById, table.status, table.createdAt),
+  projectRequestsIdx: index('species_request_project_idx')
+    .on(table.projectId, table.status)
+    .where(sql`project_id IS NOT NULL`),
+  scientificNameDuplicateIdx: index('species_request_duplicate_idx')
+    .on(table.scientificName, table.status)
+    .where(sql`status IN ('pending', 'approved')`),
 }));
 
 export const intervention = pgTable('intervention', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   hid: text('hid').notNull().unique(),
-  discr: interventionDiscriminatorEnum('discr').notNull().default('intervention'),
-  userId: integer('user_id').notNull().references(() => user.id),
-  projectId: integer('project_id').notNull().references(() => project.id),
-  projectSiteId: integer('project_site_id').references(() => site.id),
-  parentInterventionId: integer('parent_intervention_id').references(() => intervention.id),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  siteId: integer('site_id').references(() => site.id, { onDelete: 'set null' }),
   type: interventionTypeEnum('type').notNull(),
+  status: interventionStatusEnum('status').default('planned'),
   idempotencyKey: text('idempotency_key').unique().notNull(),
-  captureMode: captureModeEnum('capture_mode').notNull().default('unknown'),
-  captureStatus: captureStatusEnum('capture_status').notNull().default('complete'),
   registrationDate: timestamp('registration_date', { withTimezone: true }).notNull(),
   interventionStartDate: timestamp('intervention_start_date', { withTimezone: true }).notNull(),
   interventionEndDate: timestamp('intervention_end_date', { withTimezone: true }).notNull(),
   location: geometryWithGeoJSON(4326)('location'),
-  originalGeometry: jsonb('original_geometry'),
-  latitude: doublePrecision('latitude'),
-  longitude: doublePrecision('longitude'),
   area: doublePrecision('area'),
+  totalTreeCount: integer('total_tree_count').default(0),
+  totalSampleTreeCount: integer('total_sample_tree_count').default(0),
+  captureMode: captureModeEnum('capture_mode').notNull().default('on-site'),
+  captureStatus: captureStatusEnum('capture_status').notNull().default('complete'),
   deviceLocation: jsonb('device_location'),
-  treeCount: integer('tree_count').default(0),
-  sampleTreeCount: integer('sample_tree_count').default(0),
-  interventionStatus: interventionStatusEnum('intervention_status').default('active'),
+  originalGeometry: jsonb('original_geometry'),
   description: text('description'),
   image: text('image'),
   isPrivate: boolean('is_private').default(false).notNull(),
-  species: jsonb('species').$type<InterventionSpeciesEntry[]>().default([]),
-  metadata: jsonb('metadata'),
+  flag: boolean('flag').default(false),
+  editedAt: timestamp('edited_at', { withTimezone: true }),
+  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+  migratedIntervention: boolean('migrated_intervention').default(false),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
-  flag: boolean('flag').default(false),
-  hasRecords: boolean('has_records').default(false),
-  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  migratedIntervention: boolean('migrated_intervention').default(false),
 }, (table) => ({
-  projectIdx: index('interventions_project_idx').on(table.projectId),
-  projectSiteIdx: index('interventions_project_site_idx').on(table.projectSiteId),
-  parentIdx: index('parent_idx').on(table.uid),
-  userIdx: index('interventions_user_idx').on(table.userId),
-  typeIdx: index('interventions_type_idx').on(table.type),
-  speciesGinIdx: index('interventions_species_gin_idx').using('gin', table.species),
-  interventionStartDateIdx: index('interventions_start_date_idx').on(table.interventionStartDate),
-  projectDateRangeIdx: index('interventions_project_date_range_idx').on(table.projectId, table.interventionStartDate),
-  areaPositive: check('area_positive', sql`area IS NULL OR area >= 0`),
-  treeCountNonNegative: check('tree_count_non_negative', sql`tree_count >= 0`),
-  sampleTreeCountNonNegative: check('sample_tree_count_non_negative', sql`sample_tree_count >= 0`),
+  projectDateRangeIdx: index('intervention_project_date_range_idx')
+    .on(table.projectId, table.interventionStartDate, table.status)
+    .where(sql`deleted_at IS NULL`),
+  projectTypeStatusIdx: index('intervention_project_type_status_idx')
+    .on(table.projectId, table.type, table.status)
+    .where(sql`deleted_at IS NULL`),
+  locationIdx: index('intervention_location_gist_idx').using('gist', table.location),
+  userInterventionsIdx: index('intervention_user_idx')
+    .on(table.userId, table.interventionEndDate)
+    .where(sql`deleted_at IS NULL`),
   validDateRange: check('valid_date_range', sql`intervention_start_date <= intervention_end_date`),
+  areaPositive: check('area_positive', sql`area IS NULL OR area >= 0`),
+  treeCountsNonNegative: check('tree_counts_non_negative',
+    sql`total_tree_count >= 0 AND total_sample_tree_count >= 0`),
+  flaggedHasReason: check('flagged_has_reason',
+    sql`flag = false OR flag_reason IS NOT NULL`),
+  registrationNotFuture: check('registration_not_future',
+    sql`registration_date <= NOW()`),
+}));
+
+export const interventionSpecies = pgTable('intervention_species', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  interventionId: integer('intervention_id').notNull().references(() => intervention.id, { onDelete: 'cascade' }),
+  scientificSpeciesId: integer('scientific_species_id').references(() => scientificSpecies.id, { onDelete: 'set null' }),
+  isUnknown: boolean('is_unknown').default(false).notNull(),
+  speciesName: text('species_name'),
+  speciesCount: integer('species_count').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+}, (table) => ({
+  interventionSpeciesIdx: index('intervention_species_intervention_idx').on(table.interventionId),
+  unknownSpeciesLogic: check('unknown_species_logic',
+    sql`(is_unknown = false AND scientific_species_id IS NOT NULL) OR (is_unknown = true AND scientific_species_id IS NULL)`),
+  speciesCountPositive: check('species_count_positive', sql`species_count > 0`),
 }));
 
 export const tree = pgTable('tree', {
   id: serial('id').primaryKey(),
   hid: text('hid').notNull().unique(),
   uid: text('uid').notNull().unique(),
-  interventionId: integer('intervention_id').references(() => intervention.id),
-  interventionSpeciesId: text('intervention_species_id'),
-  speciesName: text('species_name'),
-  isUnknown: boolean('is_unknown').default(false),
-  createdById: integer('created_by_id').notNull().references(() => user.id),
+  interventionId: integer('intervention_id').notNull().references(() => intervention.id, { onDelete: 'cascade' }),
+  interventionSpeciesId: integer('intervention_species_id').notNull().references(() => interventionSpecies.id, { onDelete: 'restrict' }),
+  speciesName:text('species_name'),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
   tag: text('tag'),
   treeType: treeTypeEnum('tree_type').default('sample'),
+  location: geometryWithGeoJSON(4326)('location'),
   altitude: decimal('altitude', { precision: 8, scale: 2 }),
   accuracy: decimal('accuracy', { precision: 6, scale: 2 }),
-  location: geometryWithGeoJSON(4326)('location'),
-  originalGeometry: jsonb('original_geometry'),
-  latitude: doublePrecision('latitude'),
-  longitude: doublePrecision('longitude'),
-  height: doublePrecision('height'),
-  width: doublePrecision('width'),
+  latitude: doublePrecision('latitude').notNull(),
+  longitude: doublePrecision('longitude').notNull(),
+  currentHeight: doublePrecision('current_height'),
+  currentWidth: doublePrecision('current_width'),
+  currentHealthScore: integer('current_health_score'),
   status: treeStatusEnum('status').default('alive').notNull(),
   statusReason: text('status_reason'),
+  statusChangedAt: timestamp('status_changed_at', { withTimezone: true }),
   plantingDate: timestamp('planting_date', { withTimezone: true }),
   lastMeasurementDate: timestamp('last_measurement_date', { withTimezone: true }),
   nextMeasurementDate: timestamp('next_measurement_date', { withTimezone: true }),
   image: text('image'),
+  remeasured: boolean().default(false),
+  flag: boolean('flag').default(false),
+  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
-  metadata: jsonb('metadata'),
-  flag: boolean('flag').default(false),
-  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
 }, (table) => ({
-  interventionIdx: index('trees_intervention_idx').on(table.interventionId),
-  createdByIdx: index('trees_created_by_idx').on(table.createdById),
-  statusIdx: index('trees_status_idx').on(table.status),
-  typeIdx: index('trees_type_idx').on(table.treeType),
-  plantingDateIdx: index('trees_planting_date_idx').on(table.plantingDate),
-  lastMeasurementIdx: index('trees_last_measurement_idx').on(table.lastMeasurementDate),
-  locationIdx: index('trees_location_gist_idx').using('gist', table.location),
-  heightPositive: check('height_positive', sql`height IS NULL OR height >= 0`),
-  widthPositive: check('width_positive', sql`width IS NULL OR width >= 0`),
-  altitudeRange: check('altitude_range', sql`altitude IS NULL OR (altitude >= -500 AND altitude <= 9000)`), // meters
+  remeasuredIdx:index('tree_intervention_remeasured_idx')
+    .on(table.interventionId, table.remeasured),
+  interventionTreesIdx: index('tree_intervention_status_idx')
+    .on(table.interventionId, table.status)
+    .where(sql`deleted_at IS NULL`),
+  speciesTreesIdx: index('tree_species_idx')
+    .on(table.interventionSpeciesId, table.status),
+  measurementScheduleIdxmeasurementScheduleIdx: index('tree_measurement_schedule_idx')
+    .on(table.nextMeasurementDate, table.status)
+    .where(sql`next_measurement_date IS NOT NULL AND status = 'alive' AND deleted_at IS NULL`),
+  healthMonitoringIdx: index('tree_health_monitoring_idx')
+    .on(table.currentHealthScore, table.lastMeasurementDate)
+    .where(sql`current_health_score IS NOT NULL AND deleted_at IS NULL`),
+  heightWidthPositive: check('height_width_positive',
+    sql`(current_height IS NULL OR current_height >= 0) AND (current_width IS NULL OR current_width >= 0)`),
+  altitudeRange: check('altitude_range',
+    sql`altitude IS NULL OR (altitude >= -500 AND altitude <= 9000)`),
   accuracyPositive: check('accuracy_positive', sql`accuracy IS NULL OR accuracy >= 0`),
+  healthScoreRange: check('health_score_range',
+    sql`current_health_score IS NULL OR (current_health_score >= 0 AND current_health_score <= 100)`),
+  deadTreeHasReason: check('dead_tree_has_reason',
+    sql`status != 'dead' OR status_reason IS NOT NULL`),
+  statusChangedAtLogic: check('status_changed_at_logic',
+    sql`status_changed_at IS NULL OR status_changed_at <= NOW()`),
+  measurementDateLogic: check('measurement_date_logic',
+    sql`last_measurement_date IS NULL OR next_measurement_date IS NULL OR next_measurement_date > last_measurement_date`),
 }));
+
 
 export const treeRecord = pgTable('tree_record', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
   treeId: integer('tree_id').notNull().references(() => tree.id, { onDelete: 'cascade' }),
-  recordedById: integer('recorded_by_id').notNull().references(() => user.id),
+  recordedById: integer('recorded_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
   recordType: recordTypeEnum('record_type').notNull(),
-  recordedAt: timestamp('recorded_at', { withTimezone: true }).defaultNow().notNull(),
-  image: text('image'),
+  recordedAt: timestamp('recorded_at', { withTimezone: true }).notNull(),
   height: doublePrecision('height'),
   width: doublePrecision('width'),
   healthScore: integer('health_score'),
   vitalityScore: integer('vitality_score'),
-  structuralIntegrity: text('structural_integrity'),
   previousStatus: treeStatusEnum('previous_status'),
   newStatus: treeStatusEnum('new_status'),
   statusReason: text('status_reason'),
   findings: text('findings'),
-  findingsSeverity: text('findings_severity'), // Low, Medium, High, Critical
-  findingsComments: text('findings_comments'),
+  findingsSeverity: text('findings_severity'),
   notes: text('notes'),
+  priorityLevel: text('priority_level'),
   weatherConditions: jsonb('weather_conditions'),
   soilConditions: jsonb('soil_conditions'),
-  surroundingVegetation: text('surrounding_vegetation'),
   pestsObserved: jsonb('pests_observed'),
   diseasesObserved: jsonb('diseases_observed'),
   damageObserved: jsonb('damage_observed'),
   growthRate: decimal('growth_rate', { precision: 6, scale: 3 }),
   leafDensity: text('leaf_density'),
   fruitingStatus: text('fruiting_status'),
+  surroundingVegetation: text('surrounding_vegetation'),
   recommendedActions: jsonb('recommended_actions'),
-  priorityLevel: text('priority_level'),
-  isPublic: boolean('is_public').default(true).notNull(),
+  image: text('image'),
   deviceLocation: jsonb('device_location'),
-  metadata: jsonb('metadata'),
+  isPublic: boolean('is_public').default(true).notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  treeIdIdx: index('tree_records_tree_id_idx').on(table.treeId),
-  recordedByIdx: index('tree_records_recorded_by_idx').on(table.recordedById),
-  healthScoreRange: check('health_score_range', sql`health_score IS NULL OR (health_score >= 0 AND health_score <= 100)`),
-  vitalityScoreRange: check('vitality_score_range', sql`vitality_score IS NULL OR (vitality_score >= 0 AND vitality_score <= 100)`),
-  heightPositive: check('height_positive', sql`height IS NULL OR height >= 0`),
-  widthPositive: check('width_positive', sql`width IS NULL OR width >= 0`),
+  treeLatestRecordIdx: index('tree_record_latest_idx')
+    .on(table.treeId, table.recordedAt)
+    .where(sql`deleted_at IS NULL`),
+  priorityRecordsIdx: index('tree_record_priority_idx')
+    .on(table.priorityLevel, table.recordedAt)
+    .where(sql`priority_level IN ('high', 'urgent') AND deleted_at IS NULL`),
+  healthTrendsIdx: index('tree_record_health_trends_idx')
+    .on(table.treeId, table.healthScore, table.recordedAt)
+    .where(sql`health_score IS NOT NULL AND deleted_at IS NULL`),
+  healthVitalityRange: check('health_vitality_range',
+    sql`(health_score IS NULL OR (health_score >= 0 AND health_score <= 100)) AND (vitality_score IS NULL OR (vitality_score >= 0 AND vitality_score <= 100))`),
+  measurementsPositive: check('measurements_positive',
+    sql`(height IS NULL OR height >= 0) AND (width IS NULL OR width >= 0)`),
   recordedAtNotFuture: check('recorded_at_not_future', sql`recorded_at <= NOW()`),
+  statusChangeLogic: check('status_change_logic',
+    sql`(previous_status IS NULL AND new_status IS NULL) OR (previous_status IS NOT NULL AND new_status IS NOT NULL)`),
+  validSeverity: check('valid_severity',
+    sql`findings_severity IS NULL OR findings_severity IN ('low', 'medium', 'high', 'critical')`),
+  validPriority: check('valid_priority',
+    sql`priority_level IS NULL OR priority_level IN ('low', 'normal', 'high', 'urgent')`),
 }));
-export const userRelations = relations(user, ({ one, many }) => ({
+
+
+export const userRelations = relations(user, ({ many }) => ({
   projectMemberships: many(projectMember),
   createdProjects: many(project, { relationName: 'createdBy' }),
   addedProjectSpecies: many(projectSpecies, { relationName: 'addedBy' }),
@@ -828,21 +1073,147 @@ export const userRelations = relations(user, ({ one, many }) => ({
   interventions: many(intervention, { relationName: 'userInterventions' }),
   notifications: many(notifications),
   migrations: many(migration),
-  primaryWorkspace: one(workspace, {
-    fields: [user.primaryWorkspace],
-    references: [workspace.uid],
-  }),
-  primaryProject: one(project, {
-    fields: [user.primaryProject],
-    references: [project.uid],
-  }),
   speciesRequests: many(speciesRequest, { relationName: 'requestedBy' }),
   reviewedSpeciesRequests: many(speciesRequest, { relationName: 'reviewedBy' }),
   workspaceMemberships: many(workspaceMember),
   createdWorkspaces: many(workspace, { relationName: 'createdBy' }),
   sentWorkspaceInvites: many(workspaceMember, { relationName: 'invitedBy' }),
   surveys: many(survey),
+
+  verifiedSpecies: many(scientificSpecies, { relationName: 'verifiedBy' }),
+  uploadedImages: many(image, { relationName: 'uploadedBy' }),
 }));
+
+export const scientificSpeciesRelations = relations(scientificSpecies, ({ one, many }) => ({
+  projectSpecies: many(projectSpecies),
+  interventionSpecies: many(interventionSpecies),
+  verifiedBy: one(user, {
+    fields: [scientificSpecies.verifiedById],
+    references: [user.id],
+    relationName: 'verifiedBy',
+  }),
+}));
+
+
+export const interventionSpeciesRelations = relations(interventionSpecies, ({ one, many }) => ({
+  intervention: one(intervention, {
+    fields: [interventionSpecies.interventionId],
+    references: [intervention.id],
+  }),
+  scientificSpecies: one(scientificSpecies, {
+    fields: [interventionSpecies.scientificSpeciesId],
+    references: [scientificSpecies.id],
+  }),
+  trees: many(tree),
+}));
+
+
+export const interventionRelations = relations(intervention, ({ one, many }) => ({
+  project: one(project, {
+    fields: [intervention.projectId],
+    references: [project.id],
+  }),
+  site: one(site, {
+    fields: [intervention.siteId],
+    references: [site.id],
+  }),
+  user: one(user, {
+    fields: [intervention.userId],
+    references: [user.id],
+    relationName: 'userInterventions',
+  }),
+
+
+  trees: many(tree),
+  species: many(interventionSpecies),
+}));
+
+
+export const treeRelations = relations(tree, ({ one, many }) => ({
+  intervention: one(intervention, {
+    fields: [tree.interventionId],
+    references: [intervention.id],
+  }),
+  interventionSpecies: one(interventionSpecies, {
+    fields: [tree.interventionSpeciesId],
+    references: [interventionSpecies.id],
+  }),
+  createdBy: one(user, {
+    fields: [tree.createdById],
+    references: [user.id],
+    relationName: 'createdBy',
+  }),
+  records: many(treeRecord),
+}));
+
+
+export const imageRelations = relations(image, ({ one }) => ({
+  uploadedBy: one(user, {
+    fields: [image.uploadedById],
+    references: [user.id],
+    relationName: 'uploadedBy',
+  }),
+}));
+
+
+export const projectInviteRelations = relations(projectInvites, ({ one }) => ({
+  project: one(project, {
+    fields: [projectInvites.projectId],
+    references: [project.id],
+  }),
+  invitedBy: one(user, {
+    fields: [projectInvites.invitedById],
+    references: [user.id],
+    relationName: 'invitedBy',
+  }),
+  discardedBy: one(user, {
+    fields: [projectInvites.discardedById],
+    references: [user.id],
+  }),
+}));
+
+export const bulkInviteRelations = relations(bulkInvite, ({ one, many }) => ({
+  project: one(project, {
+    fields: [bulkInvite.projectId],
+    references: [project.id],
+  }),
+  invitedBy: one(user, {
+    fields: [bulkInvite.invitedById],
+    references: [user.id],
+    relationName: 'invitedBy',
+  }),
+  discardedBy: one(user, {
+    fields: [bulkInvite.discardedById],
+    references: [user.id],
+  }),
+  members: many(projectMember),
+}));
+
+export const speciesRequestRelations = relations(speciesRequest, ({ one }) => ({
+  requestedBy: one(user, {
+    fields: [speciesRequest.requestedById],
+    references: [user.id],
+    relationName: 'requestedBy',
+  }),
+  reviewedBy: one(user, {
+    fields: [speciesRequest.reviewedById],
+    references: [user.id],
+    relationName: 'reviewedBy',
+  }),
+  project: one(project, {
+    fields: [speciesRequest.projectId],
+    references: [project.id],
+  }),
+  createdSpecies: one(scientificSpecies, {
+    fields: [speciesRequest.createdSpeciesId],
+    references: [scientificSpecies.id],
+  }),
+  duplicateOf: one(speciesRequest, {
+    fields: [speciesRequest.duplicateOfRequestId],
+    references: [speciesRequest.id],
+  }),
+}));
+
 
 export const surveyRelations = relations(survey, ({ one }) => ({
   user: one(user, {
@@ -920,47 +1291,15 @@ export const projectMemberRelations = relations(projectMember, ({ one }) => ({
     fields: [projectMember.userId],
     references: [user.id],
   }),
+  invitedBy: one(user, { // 🔧 ADD: Missing relation
+    fields: [projectMember.invitedById],
+    references: [user.id],
+    relationName: 'invitedBy',
+  }),
   bulkInvite: one(bulkInvite, {
     fields: [projectMember.bulkInviteId],
     references: [bulkInvite.id],
   }),
-}));
-
-export const projectInviteRelations = relations(projectInvites, ({ one }) => ({
-  project: one(project, {
-    fields: [projectInvites.projectId],
-    references: [project.id],
-  }),
-  invitedBy: one(user, {
-    fields: [projectInvites.invitedById],
-    references: [user.id],
-    relationName: 'invitedBy',
-  }),
-  discardedBy: one(user, {
-    fields: [projectInvites.discardedBy],
-    references: [user.id],
-  }),
-}));
-
-export const bulkInviteRelations = relations(bulkInvite, ({ one, many }) => ({
-  project: one(project, {
-    fields: [bulkInvite.projectId],
-    references: [project.id],
-  }),
-  invitedBy: one(user, {
-    fields: [bulkInvite.invitedById],
-    references: [user.id],
-    relationName: 'invitedBy',
-  }),
-  discardedBy: one(user, {
-    fields: [bulkInvite.discardedBy],
-    references: [user.id],
-  }),
-  members: many(projectMember),
-}));
-
-export const scientificSpeciesRelations = relations(scientificSpecies, ({ many }) => ({
-  projectSpecies: many(projectSpecies),
 }));
 
 export const projectSpeciesRelations = relations(projectSpecies, ({ one }) => ({
@@ -979,23 +1318,6 @@ export const projectSpeciesRelations = relations(projectSpecies, ({ one }) => ({
   }),
 }));
 
-export const speciesRequestRelations = relations(speciesRequest, ({ one }) => ({
-  requestedBy: one(user, {
-    fields: [speciesRequest.requestedById],
-    references: [user.id],
-    relationName: 'requestedBy',
-  }),
-  reviewedBy: one(user, {
-    fields: [speciesRequest.reviewedById],
-    references: [user.id],
-    relationName: 'reviewedBy',
-  }),
-  project: one(project, {
-    fields: [speciesRequest.projectId],
-    references: [project.id],
-  }),
-}));
-
 export const siteRelations = relations(site, ({ one, many }) => ({
   project: one(project, {
     fields: [site.projectId],
@@ -1009,42 +1331,6 @@ export const siteRelations = relations(site, ({ one, many }) => ({
   interventions: many(intervention),
 }));
 
-export const interventionRelations = relations(intervention, ({ one, many }) => ({
-  project: one(project, {
-    fields: [intervention.projectId],
-    references: [project.id],
-  }),
-  projectSite: one(site, {
-    fields: [intervention.projectSiteId],
-    references: [site.id],
-  }),
-  user: one(user, {
-    fields: [intervention.userId],
-    references: [user.id],
-    relationName: 'userInterventions',
-  }),
-  parentIntervention: one(intervention, {
-    fields: [intervention.parentInterventionId],
-    references: [intervention.id],
-    relationName: 'parentIntervention',
-  }),
-  childInterventions: many(intervention, { relationName: 'parentIntervention' }),
-  trees: many(tree),
-}));
-
-export const treeRelations = relations(tree, ({ one, many }) => ({
-  intervention: one(intervention, {
-    fields: [tree.interventionId],
-    references: [intervention.id],
-  }),
-  createdBy: one(user, {
-    fields: [tree.createdById],
-    references: [user.id],
-    relationName: 'createdBy',
-  }),
-  records: many(treeRecord),
-}));
-
 export const treeRecordRelations = relations(treeRecord, ({ one }) => ({
   tree: one(tree, {
     fields: [treeRecord.treeId],
@@ -1055,11 +1341,6 @@ export const treeRecordRelations = relations(treeRecord, ({ one }) => ({
     references: [user.id],
     relationName: 'recordedBy',
   }),
-}));
-
-export const imageRelations = relations(image, ({ one }) => ({
-  // Note: entityId is generic, so no direct relation possible
-  // You'll need to handle this in your service layer based on entityType
 }));
 
 export const notificationsRelations = relations(notifications, ({ one }) => ({
