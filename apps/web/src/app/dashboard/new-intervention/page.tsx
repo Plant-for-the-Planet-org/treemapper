@@ -417,7 +417,7 @@ const ProjectSiteSelector = ({
           </label>
           <input
             type="text"
-            value={projects.projectName ? projects.projectName : 'No project available'}
+            value={projects.name ? projects.name : 'No project available'}
             disabled
             className="w-full px-4 py-3 border-2 rounded-xl bg-slate-100/80 text-slate-600 border-slate-200 cursor-not-allowed"
           />
@@ -870,7 +870,7 @@ const SpeciesSelector = ({
                   setShowUnknownSpecies(false);
                   setUnknownSpeciesName('');
                 }}
-                
+
                 className="bg-slate-200 text-slate-700 rounded-xl hover:bg-slate-300 px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
               >
                 Cancel
@@ -1381,15 +1381,14 @@ const InterventionCreator = ({ goBack }) => {
       payload.species = [{
         uid: species.uid,
         scientificSpeciesId: species.scientificSpeciesId || undefined,
-        scientificSpeciesUid: species.scientificSpeciesUid || undefined,
+        scientificSpeciesUid: species.scientificSpeciesId || undefined,
         speciesName: species.speciesName || species.otherSpeciesName,
-        isUnknown: species.isUnknown,
-        count: 1,
+        isUnknown: species.scientificSpeciesId ? false : true,
+        speciesCount: 1,
         otherSpeciesName: species.otherSpeciesName || null,
         createdAt: new Date(),
         updatedAt: new Date(),
       }];
-
       // Add tree details for single tree registration
       payload.tag = formData.treeDetails.tag;
       payload.height = formData.treeDetails.height ? parseFloat(formData.treeDetails.height) : null;
@@ -1398,17 +1397,14 @@ const InterventionCreator = ({ goBack }) => {
       // For multi-tree registration or other types that support multiple species
       payload.species = formData.species.map(species => ({
         uid: species.uid,
-        scientificSpeciesId: species.scientificSpeciesId,
-        scientificSpeciesUid: species.scientificSpeciesUid,
+        scientificSpeciesId: species.scientificSpeciesId || undefined,
+        scientificSpeciesUid: species.scientificSpeciesId || undefined,
         speciesName: species.speciesName || species.otherSpeciesName,
-        isUnknown: species.isUnknown,
-        otherSpeciesName: species.otherSpeciesName || null,
-        count: species.count,
-        createdAt: new Date(),
-        updatedAt: new Date(),
+        isUnknown: species.scientificSpeciesId ? false : true,
+        speciesCount: species.count
       }));
     }
-
+    console.log("IOSOIOS", payload)
     return payload;
   };
 
@@ -1474,7 +1470,7 @@ const InterventionCreator = ({ goBack }) => {
             <div className="mt-4 flex items-center gap-2 text-sm text-emerald-700 bg-emerald-50 px-4 py-3 rounded-xl border border-emerald-200/60">
               <Info className="w-4 h-4" />
               <span>
-                Adding intervention to: <strong>{selectedProject?.projectName}</strong>
+                Adding intervention to: <strong>{selectedProject?.name}</strong>
               </span>
             </div>
           )}

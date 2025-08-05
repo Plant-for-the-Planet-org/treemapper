@@ -1138,13 +1138,13 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
                 <p className="text-sm font-medium text-gray-700">Species</p>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4">
+              {intervention.type !== 'single-tree-registration' && <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
                   <TreePine className="h-5 w-5 text-gray-600" />
                   <span className="text-2xl font-semibold text-gray-900">{intervention.trees?.length || 0}</span>
                 </div>
                 <p className="text-sm font-medium text-gray-700">Sample Trees</p>
-              </div>
+              </div>}
 
               <div className="bg-gray-50 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-2">
@@ -1620,7 +1620,7 @@ const TreeMapperUI = () => {
               </div>
 
               {/* Intervention List */}
-              <div className="overflow-y-auto" style={{height:'86vh'}}>
+              <div className="overflow-y-auto" style={{ height: '86vh' }}>
                 {filteredInterventions.length === 0 && !loading ? (
                   <div className="p-6 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
