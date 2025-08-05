@@ -162,7 +162,7 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
                 <div className="p-6">
                   <div className="flex items-start justify-between mb-3">
                     <h3 className="text-lg font-semibold text-gray-900 leading-tight">
-                      {project.projectName}
+                      {project.name}
                     </h3>
                     {selectedProject?.uid === project.uid && (
                       <CheckCircle className="h-5 w-5 text-[#007A49] flex-shrink-0 ml-2" />
@@ -170,10 +170,10 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
                   </div>
 
                   <div className="space-y-2 mb-4">
-                    {project.projectType && <div className="flex items-center text-sm text-gray-600">
+                    {project.type && <div className="flex items-center text-sm text-gray-600">
                       <span className="font-medium mr-2">Type:</span>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium bg-[#007A49] bg-opacity-10 text-[#fff]`}>
-                        {project.projectType}
+                        {project.type}
                       </span>
                     </div>}
 

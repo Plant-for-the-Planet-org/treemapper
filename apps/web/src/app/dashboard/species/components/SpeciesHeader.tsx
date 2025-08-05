@@ -73,7 +73,7 @@ export const SpeciesHeader = ({
             </Button>
             <Button
               onClick={onAddSpecies}
-              className="flex items-center gap-2 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-800 transition-colors"
+              className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
             >
               <Plus size={14} />
               Add Species

@@ -156,7 +156,7 @@ const ProjectDropdown = ({
               isOpen && "rotate-180"
             )} />
           </Button>
-
+         {isOpen && <div className='h-[100vh] w-[100vw] z-50 absolute top-0' onClick={()=>{setIsOpen(false)}}/>}
           {/* Dropdown Content */}
           {isOpen && (
             <div className="absolute mt-1 w-full z-50 bg-white border border-gray-200/80 rounded-lg shadow-lg overflow-hidden">
@@ -174,7 +174,7 @@ const ProjectDropdown = ({
                   <span style={{ color: "white" }}>Create New Project</span>
                 </Button>
               </div>
-
+              
               {/* Workspace and Project List */}
               <div className="max-h-80 overflow-y-auto py-1 mr-2 pb-2">
                 {workspaceGroups.length > 0 ? (

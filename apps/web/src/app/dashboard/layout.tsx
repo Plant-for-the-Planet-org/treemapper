@@ -337,7 +337,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               closeButton={true}
             />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
-            <ProjectInviteModal/>
+            {currentSection === 'deafult' && <ProjectInviteModal />}
             {showHeader && (
               <DashboardHeaderWeb
                 token={accessToken}

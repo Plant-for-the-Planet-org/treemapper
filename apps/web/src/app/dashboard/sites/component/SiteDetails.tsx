@@ -11,7 +11,7 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
     className="bg-white rounded-xl border border-gray-200 overflow-hidden"
   >
     {/* Header */}
-    <div className="bg-gray-900 text-white p-6">
+    <div className="bg-green-800 text-white p-6">
       <div className="flex justify-between items-start">
         <div className="flex-1">
           {isEditing ? (

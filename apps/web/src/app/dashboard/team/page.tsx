@@ -313,14 +313,14 @@ const TeamsDashboard = () => {
                 <>
                     <button
                         onClick={() => { setBulkInviteModal(true) }}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+                        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                     >
                         <Link size={18} className="mr-2" />
                         Bulk Invite
                     </button>
                     <button
                         onClick={handleInviteUser}
-                        className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+                        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
                     >
                         <UserPlus size={18} className="mr-2" />
                         Invite User

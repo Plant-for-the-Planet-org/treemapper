@@ -44,7 +44,7 @@ export const SiteManagementHeader = ({ onCreateSite, searchTerm, setSearchTerm, 
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
           onClick={onCreateSite}
-          className="bg-gray-900 hover:bg-gray-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
+          className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
         >
           <Plus className="w-4 h-4" />
           Add Site

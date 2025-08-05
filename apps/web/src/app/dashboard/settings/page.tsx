@@ -61,7 +61,7 @@ const InputField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -71,7 +71,7 @@ const InputField = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative z-0 ${hasError
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative ${hasError
             ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
             : hasSuccess
               ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
@@ -80,12 +80,12 @@ const InputField = ({
           {...props}
         />
         {hasError && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 z-10">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <X size={16} className="text-red-500" />
           </div>
         )}
         {hasSuccess && (
-          <div className="absolute inset-y-0 right-0 flex items-center pr-3 z-10">
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <Check size={16} className="text-green-500" />
           </div>
         )}
@@ -123,7 +123,7 @@ const SelectField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none z-10">
+          <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -131,7 +131,7 @@ const SelectField = ({
           name={name}
           value={value}
           onChange={onChange}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative z-0 ${hasError
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative ${hasError
             ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
             : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
             } focus:outline-none bg-white appearance-none`}
@@ -143,7 +143,7 @@ const SelectField = ({
             </option>
           ))}
         </select>
-        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none z-10">
+        <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none">
           <ChevronDown className="h-4 w-4 text-stone-500" />
         </div>
       </div>
@@ -177,7 +177,7 @@ const TextareaField = ({
       </label>
       <div className="relative">
         {Icon && (
-          <div className="absolute top-4 left-4 flex items-start pointer-events-none z-10">
+          <div className="absolute top-4 left-4 flex items-start pointer-events-none">
             <Icon className="h-5 w-5 text-stone-400" />
           </div>
         )}
@@ -187,7 +187,7 @@ const TextareaField = ({
           onChange={onChange}
           rows={rows}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 relative z-0 ${hasError
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl resize-none transition-all duration-300 relative ${hasError
             ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
             : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
             } focus:outline-none bg-white`}
@@ -236,7 +236,7 @@ const CollapsibleSection = ({ title, icon: Icon, children, defaultOpen = true })
 const NavItem = ({ item, isActive, onClick }) => (
   <button
     onClick={() => onClick(item.id)}
-    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 relative z-10 ${isActive
+    className={`flex items-center w-full px-4 py-3 rounded-xl text-left transition-all duration-200 relative ${isActive
       ? item.danger
         ? 'bg-red-50 text-red-700 border border-red-200 shadow-sm'
         : 'bg-[#007A49]/10 text-[#007A49] border border-[#007A49]/20 shadow-sm'
@@ -256,7 +256,7 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
     <label className="block text-sm font-semibold text-stone-700">{label}</label>
     <div className="bg-stone-50/50 rounded-xl p-6 border-2 border-dashed border-stone-300 hover:border-[#007A49]/50 transition-colors duration-200">
       <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
-        <label className="cursor-pointer bg-white py-3 px-6 border border-stone-300 rounded-xl shadow-sm text-sm font-medium text-stone-700 hover:bg-stone-50 hover:border-[#007A49] transition-all duration-200 flex items-center relative z-10">
+        <label className="cursor-pointer bg-white py-3 px-6 border border-stone-300 rounded-xl shadow-sm text-sm font-medium text-stone-700 hover:bg-stone-50 hover:border-[#007A49] transition-all duration-200 flex items-center relative">
           {Icon ? <Icon className="h-4 w-4 mr-2" /> : <Upload className="h-4 w-4 mr-2" />}
           Choose File
           <input
@@ -631,7 +631,7 @@ const GeneralSettings = ({
         <button
           disabled={loading}
           type="submit"
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
         >
           {loading ? (
             <>
@@ -664,7 +664,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
       </div>
 
       <CollapsibleSection title="Project Location" icon={MapPin}>
-        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative z-0">
+        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative">
           <UnifiedMapComponent mode='point' updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
         </div>
 
@@ -682,7 +682,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
             setTimeout(() => setIsLoading(false), 2000);
           }}
           disabled={isLoading}
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
         >
           {isLoading ? (
             <>
@@ -766,7 +766,7 @@ const NotificationSettings = ({ projectData, handleInputChange }) => {
             }, 1000);
           }}
           disabled={isLoading}
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative z-10"
+          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
         >
           {isLoading ? (
             <>
@@ -800,7 +800,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
         {/* Archive Project */}
         <div className="relative overflow-hidden bg-gradient-to-br from-amber-50 to-orange-50 border-2 border-amber-200 rounded-2xl shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-amber-100/30 rounded-full -translate-y-16 translate-x-16"></div>
-          <div className="relative p-8 z-10">
+          <div className="relative p-8">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-amber-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                 <Lock className="h-6 w-6 text-amber-600" />
@@ -815,7 +815,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <button
                     type="button"
                     onClick={() => setShowArchiveConfirm(true)}
-                    className="px-6 py-3 bg-white border-2 border-amber-500 text-amber-700 rounded-xl hover:bg-amber-50 hover:border-amber-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
+                    className="px-6 py-3 bg-white border-2 border-amber-500 text-amber-700 rounded-xl hover:bg-amber-50 hover:border-amber-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                   >
                     <Lock className="h-4 w-4 mr-2" />
                     Archive Project
@@ -837,7 +837,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                           setShowArchiveConfirm(false);
                           // Handle archive logic
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
+                        className="px-6 py-3 bg-gradient-to-r from-amber-500 to-amber-600 text-white rounded-xl hover:from-amber-600 hover:to-amber-700 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                       >
                         <Lock className="h-4 w-4 mr-2" />
                         Yes, Archive Project
@@ -845,7 +845,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                       <button
                         type="button"
                         onClick={() => setShowArchiveConfirm(false)}
-                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative z-10"
+                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative"
                       >
                         Cancel
                       </button>
@@ -861,7 +861,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
         <div className="relative overflow-hidden bg-gradient-to-br from-red-50 to-rose-50 border-2 border-red-200 rounded-2xl shadow-sm">
           <div className="absolute top-0 right-0 w-32 h-32 bg-red-100/30 rounded-full -translate-y-16 translate-x-16"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-red-100/20 rounded-full translate-y-12 -translate-x-12"></div>
-          <div className="relative p-8 z-10">
+          <div className="relative p-8">
             <div className="flex items-start space-x-4">
               <div className="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center flex-shrink-0 shadow-sm">
                 <AlertTriangle className="h-6 w-6 text-red-600" />
@@ -876,7 +876,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   <button
                     type="button"
                     onClick={() => setShowDeleteConfirm(true)}
-                    className="px-6 py-3 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
+                    className="px-6 py-3 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
                     Delete Project
@@ -904,7 +904,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                           handleDeleteProject();
                           setShowDeleteConfirm(false);
                         }}
-                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative z-10"
+                        className="px-6 py-3 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-xl hover:from-red-700 hover:to-red-800 flex items-center justify-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                       >
                         <Trash2 className="h-4 w-4 mr-2" />
                         Yes, Delete Forever
@@ -912,7 +912,7 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                       <button
                         type="button"
                         onClick={() => setShowDeleteConfirm(false)}
-                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative z-10"
+                        className="px-6 py-3 bg-white border border-stone-300 text-stone-700 rounded-xl hover:bg-stone-50 flex items-center justify-center font-medium transition-all duration-200 relative"
                       >
                         Cancel
                       </button>
@@ -939,7 +939,7 @@ const NotificationToast = ({ type, message, onClose }) => {
   const Icon = type === 'success' ? Check : type === 'error' ? X : Info;
 
   return (
-    <div className={`fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-lg animate-in slide-in-from-right-full duration-300 max-w-sm z-50`}>
+    <div className={`z-40 fixed top-20 right-4 ${bgColor} text-white px-6 py-4 rounded-xl shadow-lg animate-in slide-in-from-right-full duration-300 max-w-sm`}>
       <div className="flex items-center space-x-3">
         <Icon size={20} />
         <div>
@@ -1197,9 +1197,6 @@ const ProjectSettings = () => {
     try {
       await updateProjectSettings(accessToken, { ...projectData }, selectedProject.uid)
       setNotification({ type: 'success', message: 'Project settings updated successfully!' });
-      setTimeout(() => {
-        window.location.reload()
-      }, 2000);
     } catch (error) {
       setNotification({ type: 'error', message: 'Failed to save project settings' });
     } finally {
@@ -1285,7 +1282,7 @@ const ProjectSettings = () => {
       )}
 
       {/* Header */}
-      <div className="bg-white/80 backdrop-blur-sm sticky top-0 z-40 border-b border-stone-200/50">
+      <div className="bg-white/80 backdrop-blur-sm sticky top-0  border-b border-stone-200/50">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <button
@@ -1307,7 +1304,7 @@ const ProjectSettings = () => {
           ${isMobileMenuOpen ? 'block' : 'hidden lg:block'}
           lg:w-80 bg-white/70 backdrop-blur-sm border-r border-stone-200/50
           fixed lg:sticky top-16 lg:top-16 w-full lg:w-auto h-[calc(100vh-4rem)] lg:h-[calc(100vh-4rem)]
-          overflow-y-auto lg:overflow-visible z-30
+          overflow-y-auto lg:overflow-visible
         `}>
           <div className="p-6 space-y-2">
             {navItems.map((item) => (
@@ -1325,7 +1322,7 @@ const ProjectSettings = () => {
         </div>
 
         {/* Main Content */}
-        <div className="flex-1 p-6 lg:p-8 relative z-0">
+        <div className="flex-1 p-6 lg:p-8">
           <div className="max-w-4xl mx-auto">
             {renderTabContent()}
           </div>
@@ -1335,7 +1332,7 @@ const ProjectSettings = () => {
       {/* Mobile overlay */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden z-20"
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm lg:hidden"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
