@@ -26,14 +26,12 @@ export const TestingModeManager = ({ mode }) => {
     const handleDisableTestingMode = async () => {
         if (mode === 'impersonation') {
             const resp = await exitImpersonationWork(accessToken)
-            if (resp.statusCode !== 200 || resp.statusCode !== 201) {
+            if (resp.statusCode !== 200 && resp.statusCode !== 201) {
                 throw ''
             }
-            if (resp) {
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1000);
-            }
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
             return
         }
         try {
