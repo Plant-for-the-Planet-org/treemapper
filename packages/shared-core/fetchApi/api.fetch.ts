@@ -420,3 +420,17 @@ export const exitImpersonationWork = async (token: string) => {
   const result = await fetchPutCall(uri, {}, token);
   return result;
 };
+
+
+export const grantSiteAccess = async (token: string, pid, siteId, memberId) => {
+  const uri = `${postUrlApi.grantSiteAccess}/${pid}/sites/${siteId}/access/grant`;
+  const result = await fetchPostCall(uri, { memberUid: memberId }, token);
+  return result;
+};
+
+
+export const revokeiteAccess = async (token: string, pid, siteId, memberId) => {
+  const uri = `${postUrlApi.revokeSiteAccess}/${pid}/sites/${siteId}/access/revoke`;
+  const result = await fetchPostCall(uri, { memberUid: memberId }, token);
+  return result;
+};

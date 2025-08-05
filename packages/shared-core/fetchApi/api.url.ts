@@ -37,6 +37,8 @@ export const postUrlApi = {
   createNewOrg: `${baseUrl}/organizations`,
   selectOrg: `${baseUrl}/workspace/primary`,
   onboarding: `${baseUrl}/users/onboarding`,
+  grantSiteAccess: `${baseUrl}/projects`,
+  revokeSiteAccess: `${baseUrl}/projects`,
 } as const;
 
 

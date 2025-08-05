@@ -250,9 +250,10 @@ const MapSection = ({
             </p>
         </div>
 
-        <div className="p-4 space-y-4">
+        <div className="p-4 space-y-4 h-full">
             {/* Map Container */}
-            <div className="w-full h-80 rounded-lg overflow-hidden border border-gray-200">
+            <div className="h-[60vh] md:h-[45vh] lg:h-[60%] border border-gray-200">
+
                 <ProjectMap
                     mode='polygon'
                     updateGeoJSON={onUpdateGeoJSON}
@@ -287,25 +288,7 @@ const SubmitSection = ({
         animate={{ opacity: 1, y: 0 }}
         className="space-y-4"
     >
-        <div className="bg-gray-50 rounded-lg p-4">
-            <div className="flex items-start gap-3">
-                <input
-                    id="agreeTerms"
-                    type="checkbox"
-                    checked={agreeTerms}
-                    onChange={onAgreeTermsChange}
-                    className="mt-0.5 h-4 w-4 text-green-600 focus:ring-green-500 border-gray-300 rounded"
-                />
-                <div className="text-sm">
-                    <label htmlFor="agreeTerms" className="font-medium text-gray-700 cursor-pointer">
-                        I agree to the terms and conditions
-                    </label>
-                    <p className="text-gray-500 text-xs mt-1">
-                        Confirm that all information is accurate and complies with platform guidelines.
-                    </p>
-                </div>
-            </div>
-        </div>
+
 
         <motion.button
             whileHover={canSubmit ? { y: -2 } : {}}
@@ -324,7 +307,7 @@ const SubmitSection = ({
                 </div>
             ) : (
                 <div className="flex items-center justify-center gap-2">
-                    <LandPlot className="h-4 w-4" />
+                    {/* <LandPlot className="h-4 w-4" /> */}
                     Create Site
                 </div>
             )}
@@ -340,7 +323,7 @@ export function CreateProjectUI() {
         aboutProject: '',
     });
 
-    const [agreeTerms, setAgreeTerms] = useState(false);
+    const [agreeTerms, setAgreeTerms] = useState(true);
     const [finalGeoJSON, setFinalGeoJSON] = useState(null);
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -461,52 +444,47 @@ export function CreateProjectUI() {
     const area = finalGeoJSON ? calculateFarmArea(finalGeoJSON) : null;
 
     return (
-        <div className="h-full w-full bg-gray-50">
-            <div className="h-full">
-                <CreateSiteHeader
-                    onGoBack={router.back}
-                    projectName={SelectedProject?.projectName}
-                />
-                <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-                    {/* Left Panel - Form */}
-                    <div className="p-6 overflow-y-auto scrollbar-hide">
-                        <form onSubmit={handleSubmit} className="w-full mx-auto space-y-8">
-                            <div>
-                                <h2 className="text-xl font-semibold text-gray-900 mb-2">Site Information</h2>
-                                <p className="text-sm text-gray-600 mb-6">
-                                    Provide basic details about your new site location and purpose.
-                                </p>
+        <div className="bg-gray-50" style={{paddingBottom:'0.7%'}}>
+            <CreateSiteHeader
+                onGoBack={router.back}
+                projectName={SelectedProject?.name}
+            />
+            <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
+                <div className="p-6">
+                    <form onSubmit={handleSubmit} className="w-full mx-auto space-y-8">
+                        <div>
+                            <h2 className="text-xl font-semibold text-gray-900 mb-2">Site Information</h2>
+                            <p className="text-sm text-gray-600 mb-6">
+                                Provide basic details about your new site location and purpose.
+                            </p>
 
-                                <FormSection
-                                    formData={formData}
-                                    onInputChange={handleInputChange}
-                                    errors={errors}
-                                    projectTypes={projectTypes}
-                                />
-                            </div>
+                            <FormSection
+                                formData={formData}
+                                onInputChange={handleInputChange}
+                                errors={errors}
+                                projectTypes={projectTypes}
+                            />
+                        </div>
 
-                            <div className="pt-6 border-t border-gray-200">
-                                <h3 className="text-lg font-semibold text-gray-900 mb-4">Review & Submit</h3>
-                                <SubmitSection
-                                    agreeTerms={agreeTerms}
-                                    onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
-                                    onSubmit={handleSubmit}
-                                    loading={loading}
-                                    canSubmit={canSubmit}
-                                />
-                            </div>
-                        </form>
-                    </div>
+                        <div className="pt-6 border-t border-gray-200">
+                            <SubmitSection
+                                agreeTerms={agreeTerms}
+                                onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
+                                onSubmit={handleSubmit}
+                                loading={loading}
+                                canSubmit={canSubmit}
+                            />
+                        </div>
+                    </form>
+                </div>
 
-                    {/* Right Panel - Map */}
-                    <div className="border-l border-gray-200 p-6">
-                        <MapSection
-                            geoJSON={finalGeoJSON}
-                            onUpdateGeoJSON={updateGeoJSON}
-                            onGeoJSONChange={handleGeoJSONChange}
-                            area={area}
-                        />
-                    </div>
+                <div className="border-l border-gray-200 p-6">
+                    <MapSection
+                        geoJSON={finalGeoJSON}
+                        onUpdateGeoJSON={updateGeoJSON}
+                        onGeoJSONChange={handleGeoJSONChange}
+                        area={area}
+                    />
                 </div>
             </div>
         </div>

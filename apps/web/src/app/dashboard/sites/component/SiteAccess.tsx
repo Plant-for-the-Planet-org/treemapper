@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { X, Users, Check, UserMinus, UserPlus, ChevronDown, Filter } from 'lucide-react';
-import { getallstieMembers } from '@shared-core/fetchApi/api.fetch';
+import { getallstieMembers, grantSiteAccess, revokeiteAccess } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore'
 
@@ -82,51 +82,30 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, loadin
 const siteAccessAPI = {
   async getMembers(token, prjId, siteUid) {
     const response = await getallstieMembers(token, prjId, siteUid)
-    if (response.statusCode!==200) {
+    if (response.statusCode !== 200) {
       throw new Error(response.message || 'Failed to fetch members');
     }
-
     return response.data.data;
   },
 
-  async grantAccess(siteUid, memberUid) {
-    const response = await fetch(`/api/sites/${siteUid}/access/grant`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ memberUid }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to grant access');
+  async grantAccess(siteUid, memberUid, selectedProjectUid, token) {
+    const response = await grantSiteAccess(token, selectedProjectUid, siteUid, memberUid)
+    if (response.statusCode !== 201 && response.statusCode !== 200) {
+      throw new Error(response.message || 'Failed to grant access');
     }
-
-    return response.json();
+    return response.data;
   },
 
-  async revokeAccess(siteUid, memberUid) {
-    const response = await fetch(`/api/sites/${siteUid}/access/revoke`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${localStorage.getItem('token')}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ memberUid }),
-    });
-
-    if (!response.ok) {
-      const error = await response.json();
-      throw new Error(error.message || 'Failed to revoke access');
+  async revokeAccess(siteUid, memberUid, selectedProjectUid, token) {
+    const response = await revokeiteAccess(token, selectedProjectUid, siteUid, memberUid)
+    if (response.statusCode !== 201 && response.statusCode !== 200) {
+      throw new Error(response.message || 'Failed to revoke access');
     }
-
-    return response.json();
+    return response.data;
   },
-};
+}
 
-export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
+export default function SiteAccessModal({ isOpen, setIsOpen, site, refreshData }) {
   const [members, setMembers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -150,7 +129,6 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
 
   // Fetch members when modal opens or site changes
   useEffect(() => {
-    console.log("FHBNSDMC", site, isOpen)
     if (isOpen && site?.id) {
       fetchMembers();
     }
@@ -218,8 +196,8 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
 
     try {
       if (confirmDialog.type === 'grant-access') {
-        await siteAccessAPI.grantAccess(site.uid, confirmDialog.member.uid);
-
+        await siteAccessAPI.grantAccess(site.id, confirmDialog.member.uid, selectedProject.uid, accessToken);
+        await refreshData()
         // Update local state
         setMembers(prev => prev.map(member =>
           member.uid === confirmDialog.member.uid
@@ -228,8 +206,8 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
         ));
 
       } else if (confirmDialog.type === 'revoke-access') {
-        await siteAccessAPI.revokeAccess(site.uid, confirmDialog.member.uid);
-
+        await siteAccessAPI.revokeAccess(site.id, confirmDialog.member.uid, selectedProject.uid, accessToken);
+        await refreshData()
         // Update local state
         setMembers(prev => prev.map(member =>
           member.uid === confirmDialog.member.uid
@@ -239,23 +217,23 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
 
       } else if (confirmDialog.type === 'add-all') {
         // Grant access to all contributors without access
-        const contributorsToAdd = members.filter(m =>
-          (m.role === 'contributor' || m.role === 'observer') && !m.hasAccess
-        );
+        // const contributorsToAdd = members.filter(m =>
+        //   (m.role === 'contributor' || m.role === 'observer') && !m.hasAccess
+        // );
 
-        // Execute all grant operations
-        await Promise.all(
-          contributorsToAdd.map(member =>
-            siteAccessAPI.grantAccess(site.uid, member.uid)
-          )
-        );
+        // // Execute all grant operations
+        // await Promise.all(
+        //   contributorsToAdd.map(member =>
+        //     siteAccessAPI.grantAccess(site.uid, member.uid)
+        //   )
+        // );
 
-        // Update local state
-        setMembers(prev => prev.map(member =>
-          (member.role === 'contributor' || member.role === 'observer')
-            ? { ...member, hasAccess: true }
-            : member
-        ));
+        // // Update local state
+        // setMembers(prev => prev.map(member =>
+        //   (member.role === 'contributor' || member.role === 'observer')
+        //     ? { ...member, hasAccess: true }
+        //     : member
+        // ));
       }
     } catch (err) {
       setError(err.message);
@@ -342,22 +320,17 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
             </div>
           </div>
         ) : (
-          <div className="p-6 space-y-6">
+          <div className="space-y-6">
             {/* Header with member count and add all button */}
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Users size={16} />
-                <span>{membersWithAccess} member{membersWithAccess !== 1 ? 's' : ''} have access</span>
-              </div>
-
-              <button
+              {/* <button
                 onClick={handleAddAllContributors}
                 disabled={loading}
                 className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2 disabled:opacity-50"
               >
                 <UserPlus size={14} />
                 Add All Contributors
-              </button>
+              </button> */}
             </div>
 
             {/* Error display */}
@@ -432,6 +405,11 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
                   </div>
                 )}
               </div>
+
+              <div className="flex items-center gap-2 text-sm text-gray-600 mr-2" style={{ flex: 1, justifyContent: 'flex-end' }}>
+                <Users size={16} />
+                <span>{membersWithAccess} member{membersWithAccess !== 1 ? 's' : ''} have access</span>
+              </div>
             </div>
 
             {/* Members Table */}
@@ -486,7 +464,6 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
                         <td className="px-4 py-4">
                           {member.hasAccess ? (
                             <div className="flex items-center gap-2 text-green-600">
-                              <Check size={16} />
                               <span className="text-sm">Has Access</span>
                             </div>
                           ) : (
@@ -509,7 +486,7 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site }) {
                             <button
                               onClick={() => handleGrantAccess(member)}
                               disabled={loading}
-                              className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
+                              className="cursor-pointer inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
                             >
                               <UserPlus size={12} />
                               Provide Access
