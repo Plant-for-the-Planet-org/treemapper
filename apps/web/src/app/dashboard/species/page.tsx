@@ -386,7 +386,7 @@ const SpeciesManagementDashboard = () => {
         if (resp.statusCode === 201 || resp.statusCode === 200) {
           toast.success("Species Added")
         } else {
-          toast.error("Failed to add species")
+          toast.error(resp.message || "Failed to add species")
         }
         setSelectedSpecies(null)
       } else {
