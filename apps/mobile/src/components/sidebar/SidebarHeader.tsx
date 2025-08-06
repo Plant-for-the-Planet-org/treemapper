@@ -21,7 +21,7 @@ const SidebarHeader = () => {
   const webAuthLoading = useSelector(
     (state: RootState) => state.tempState.webAuthLoading,
   )
-  const avatar = `https://${process.env.EXPO_PUBLIC_CDN_URL}/media/cache/profile/avatar/${image}`
+  const avatar = `${image}`
 
   const editHandler = () => {
     openWebView(`https://web.plant-for-the-planet.org/en/profile/edit`);

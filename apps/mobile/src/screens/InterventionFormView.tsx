@@ -64,7 +64,7 @@ const InterventionFormView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
-  const isTpoUser = userType === 'tpo'
+  const isTpoUser = userType === 'newuser'
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
@@ -114,7 +114,7 @@ const InterventionFormView = () => {
 
   const handleBounds = (pid, sid, isPoint) => {
     try {
-      if (userType !== 'tpo') return;
+      if (userType !== 'newuser') return;
   
       const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pid);
       if (!ProjectData) return;
@@ -154,7 +154,7 @@ const InterventionFormView = () => {
     InterventionJSON.site_name = projectSite.siteName
     InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
-    if (userType === 'tpo') {
+    if (userType === 'newuser') {
       handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
     }
     if (result) {
@@ -390,7 +390,7 @@ const InterventionFormView = () => {
   };
 
   const navigateToMarkerScreen = () => {
-    if (userType === 'tpo') {
+    if (userType === 'newuser') {
       handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
     }
     if (registerForm.location_type === 'Point') {

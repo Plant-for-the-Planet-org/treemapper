@@ -193,15 +193,15 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
-        if (uType === 'tpo' && !d.project_id) {
+        if (uType === 'newuser' && !d.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'tpo' && d.project_id) {
+        if (uType === 'newuser' && d.project_id) {
             postData.plantProject = d.project_id
         }
 
-        if (uType === 'tpo' && d.site_id && d.site_id !== 'other') {
+        if (uType === 'newuser' && d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {

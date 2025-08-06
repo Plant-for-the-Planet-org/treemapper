@@ -412,7 +412,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       {!isTracking && <ActiveMarkerIcon />}
-      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo'} />
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'newuser'} />
       }
       <AlertModal
         visible={trackerModal}

@@ -18,6 +18,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'i18next'
+import { getMobileHealth, getMobileUserDetails } from '../../api/api.fetch'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -43,6 +44,7 @@ const LoginButton = () => {
   }
 
   useEffect(() => {
+    healthCheck()
     if (error) {
       if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
@@ -56,6 +58,10 @@ const LoginButton = () => {
     }
   }, [error])
 
+  const healthCheck = async () => {
+    const response = await getMobileHealth()
+    console.log("This is Mobile Health response", response)
+  }
 
   useEffect(() => {
     if (user && buttonMounted) {
@@ -82,16 +88,10 @@ const LoginButton = () => {
       handleLogout()
       return
     }
-    const { response, success } = await getUserDetails()
-    if (success && response.signUpRequire) {
-      navigation.navigate('SignUpPage', {
-        email: user?.email,
-        accessToken: credentials.accessToken
-      })
-      return
-    }
-    if (success && response) {
-      loginAndUpdateDetails(response)
+
+    const { response } = await getMobileUserDetails()
+    if (response && response.data) {
+      loginAndUpdateDetails({...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true})
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
       addNewLog({
@@ -103,6 +103,28 @@ const LoginButton = () => {
       handleLogout()
       dispatch(updateWebAuthLoading(false))
     }
+
+    // const { response, success } = await getUserDetails()
+    // if (success && response.signUpRequire) {
+    //   navigation.navigate('SignUpPage', {
+    //     email: user?.email,
+    //     accessToken: credentials.accessToken
+    //   })
+    //   return
+    // }
+    // if (success && response) {
+    //   loginAndUpdateDetails(response)
+    // } else {
+    //   Bugsnag.notify("/app/profile failed to fetch user details")
+    //   addNewLog({
+    //     logType: 'USER',
+    //     message: "User details api failed to fetch data",
+    //     logLevel: 'error',
+    //     statusCode: '',
+    //   })
+    //   handleLogout()
+    //   dispatch(updateWebAuthLoading(false))
+    // }
   }
 
 
@@ -110,7 +132,6 @@ const LoginButton = () => {
     try {
       dispatch(updateWebAuthLoading(true))
       const result = await authorizeUser()
-      console.log("OPIPOIP,", JSON.stringify(result, null, 2))
       if (!result.success) {
         dispatch(updateWebAuthLoading(false))
         Snackbar.show({
@@ -128,7 +149,6 @@ const LoginButton = () => {
         await handleLogout()
       }
     } catch (err) {
-      console.log("OPIPOIP, err", JSON.stringify(err, null, 2))
       dispatch(updateWebAuthLoading(false))
       addNewLog({
         logType: 'USER',

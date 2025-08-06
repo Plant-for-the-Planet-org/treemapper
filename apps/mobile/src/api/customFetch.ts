@@ -21,6 +21,7 @@ const defaultHeaders = {
 }
 
 const fetchCall = async (method: string, uri: string, params: any = null, authRequire: boolean = true) => {
+  console.log("API URL", uri)
   try {
     const token = store.getState().appState.accessToken;
     if (!token && authRequire) {
@@ -58,6 +59,7 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     return { response: responseJson, success: true, status: response.status, extra: {} }
   } catch (err) {
+    console.log("Network Error", err)
     return { response: null, success: false, status: 500, extra: {} }
   }
 }

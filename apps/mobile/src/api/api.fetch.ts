@@ -1,5 +1,39 @@
-import { getUrlApi, postUrlApi } from './api.url';
+import { getUrlApi, postUrlApi, getUrlMobileApi, postUrlNewApi } from './api.url';
 import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
+
+
+export const getMobileHealth = async () => {
+  const uri = `${getUrlMobileApi.getMobileHealth}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+
+export const getMobileUserDetails = async () => {
+  const uri = `${getUrlMobileApi.getUserDetails}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+// export const getMobileUserSpecies = async () => {
+//   const uri = `${getUrlMobileApi.userSpecies}`;
+//   const result = await fetchGetCall(uri, true);
+//   return result;
+// };
+
+export const getAllMobileProjects = async () => {
+  const uri = `${getUrlMobileApi.getAllMobileProjects}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const uploadMobileIntervention = async (params: any) => {
+  const uri = `${postUrlNewApi.uploadMobileIntervention}/${params.plantProject}/intervention`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+
 
 export const uploadIntervention = async (params: any) => {
   const uri = `${postUrlApi.uploadIntervention}`;

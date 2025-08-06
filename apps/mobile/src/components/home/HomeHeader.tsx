@@ -23,6 +23,8 @@ import { SCALE_24 } from 'src/utils/constants/spacing'
 import SpeciesSync from '../common/SpeciesSync'
 import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import NetInfo from "@react-native-community/netinfo";
+import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
+import { updateUserDetails } from '../../store/slice/userStateSlice'
 
 interface Props {
   toggleFilterModal: () => void
@@ -53,7 +55,10 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType === 'tpo' && !projectAdded) {
+    // if (userType === 'tpo' && !projectAdded) {
+    //   handleProjects()
+    // }
+    if (userType == 'newuser') {
       handleProjects()
     }
   }, [userType, projectAdded, expiringAt])
@@ -69,12 +74,10 @@ const HomeHeader = (props: Props) => {
 
   const syncUserSpecies = async () => {
     try {
-      const { response, success } = await getUserSpecies()
-      if (success && response.length > 0) {
-        const result = await addUserSpecies(response)
-        if (result) {
-          dispatch(updateUserSpeciesadded(true))
-        }
+      const { response } = await getMobileUserDetails()
+      if (response && response.data) {
+        dispatch(updateUserDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true, type: 'newuser' }))
+        console.log("User details updated")
       }
     } catch (error) {
       console.log("error", error)
@@ -147,7 +150,8 @@ const HomeHeader = (props: Props) => {
 
   useEffect(() => {
     if (userType && !serverInterventionAdded && !isSyncing) {
-      addServerIntervention()
+      // addServerIntervention()
+      //TODO now
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
@@ -204,9 +208,9 @@ const HomeHeader = (props: Props) => {
 
 
   const handleProjects = async () => {
-    const { response, success } = await getAllProjects()
-    if (success && response) {
-      const result = await addAllProjects(response)
+    const { response } = await getAllMobileProjects()
+    if (response && response.data) {
+      const result = await addAllProjects(response.data)
       if (result) {
         dispatch(updateProjectState(true))
         addNewLog({
@@ -242,7 +246,7 @@ const HomeHeader = (props: Props) => {
       <SpeciesSync />
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />
-      {userType && userType === 'tpo' ? (
+      {userType && userType == 'newuser' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}

@@ -24,6 +24,7 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
+import { uploadMobileIntervention } from '../../api/api.fetch';
 interface Props {
     isLoggedIn: boolean
 }
@@ -124,7 +125,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData);
+            const { response, success } = await uploadMobileIntervention(pData);
             if (success && response?.hid && response?.id) {
                 await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
             } else {
@@ -149,6 +150,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const handleSingleTree = async (el) => {
         try {
             const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+
             if (fixRequired === 'PROJECT_ID_MISSING') {
                 await updateProjectIdMissing(el.p1Id)
                 addNewLog({
@@ -162,7 +164,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData);
+            const { response, success } = await uploadMobileIntervention(pData);
             if (success && response?.id && response?.hid) {
                 const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
                 if (result) {
@@ -262,7 +264,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadIntervention(pData);
+            const { response, success } = await uploadMobileIntervention(pData);
             if (success && response?.hid && response?.id && response.coordinates) {
                 await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, pData.parent, response.coordinates);
             } else {
@@ -299,20 +301,22 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
-                imageFile: pData.imageFile
-            });
-            if (success && response.status === "complete") {
-                const cdnImage = response.image || ''
-                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Image Upload API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            }
+            await updateTreeImageStatus(el.p2Id, el.p1Id, 'cdnImage');
+
+            // const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+            //     imageFile: pData.imageFile
+            // });
+            // if (success && response.status === "complete") {
+            //     const cdnImage = response.image || ''
+            //     await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
+            // } else {
+            //     addNewLog({
+            //         logType: 'DATA_SYNC',
+            //         message: 'Image Upload API response error',
+            //         logLevel: 'error',
+            //         statusCode: '',
+            //     })
+            // }
         } catch (error) {
             addNewLog({
                 logType: 'DATA_SYNC',
@@ -322,6 +326,43 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 logStack: JSON.stringify(error),
             })
         }
+        // try {
+        //     const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+        //     if (fixRequired !== 'NO') {
+        //         addNewLog({
+        //             logType: 'DATA_SYNC',
+        //             message: 'Intervention fix require ' + message,
+        //             logLevel: 'error',
+        //             statusCode: '',
+        //             logStack: JSON.stringify(error),
+        //         })
+        //     }
+        //     if (!pData) {
+        //         throw new Error("Not able to convert body");
+        //     }
+        //     const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+        //         imageFile: pData.imageFile
+        //     });
+        //     if (success && response.status === "complete") {
+        //         const cdnImage = response.image || ''
+        //         await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
+        //     } else {
+        //         addNewLog({
+        //             logType: 'DATA_SYNC',
+        //             message: 'Image Upload API response error',
+        //             logLevel: 'error',
+        //             statusCode: '',
+        //         })
+        //     }
+        // } catch (error) {
+        //     addNewLog({
+        //         logType: 'DATA_SYNC',
+        //         message: 'Image Upload API response error(Inside Catch)',
+        //         logLevel: 'error',
+        //         statusCode: '',
+        //         logStack: JSON.stringify(error),
+        //     })
+        // }
     };
 
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {

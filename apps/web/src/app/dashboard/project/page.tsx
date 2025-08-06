@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import { useToken } from '@/context/useTokenContext';
 import { useSearchParams } from 'next/navigation';
 import Spinner from '@/component/Spinner';
+import useProjectStore from '@shared-core/store/useProjectStore'
 
 // Header Component
 const ProjectHeader = ({ onBack }) => {
@@ -281,7 +282,7 @@ export function CreateProjectUI() {
         projectWebsite: '',
         aboutProject: '',
     });
-
+    const selectedProject = useProjectStore(s => s.selectedProject)
     const [agreeTerms, setAgreeTerms] = useState(false);
     const [finalGeoJSON, setFinalGeoJSON] = useState(null)
     const [loading, setLoading] = useState(false)
@@ -382,7 +383,7 @@ export function CreateProjectUI() {
 
         try {
             setLoading(true);
-            const response = await createNewProject(accessToken, payLoad);
+            const response = await createNewProject(accessToken, payLoad, selectedProject.uid);
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
                 router.replace('/dashboard');
@@ -404,7 +405,7 @@ export function CreateProjectUI() {
     };
 
     if (pageLoading) {
-        return <div style={{display:'flex', height: "100%", width: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}><Spinner /></div>
+        return <div style={{ display: 'flex', height: "100%", width: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}><Spinner /></div>
     }
 
     return (

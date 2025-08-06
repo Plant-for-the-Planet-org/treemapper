@@ -58,7 +58,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if (onlyRemeasurement && userType === 'tpo') {
+      if (onlyRemeasurement && userType === 'newuser') {
         return el.remeasurement_required === true
       }
       return el
@@ -70,7 +70,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+          key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -112,7 +112,7 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
     if (bounds.length === 0) {
-      if (userType !== 'tpo') {
+      if (userType !== 'newuser') {
         handleCamera()
       }
       return
@@ -177,7 +177,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+              key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -232,7 +232,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasurement_required && userType === 'tpo' ? 'remeasurement' : el.intervention_key,
+            key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)

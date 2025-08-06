@@ -327,6 +327,7 @@ export interface UserInterface {
   name: null | string
   slug: string
   type: string
+  newBackend: boolean
 }
 
 export interface InterventionLocation {

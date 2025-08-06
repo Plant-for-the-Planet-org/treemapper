@@ -15,21 +15,22 @@ const useProjectManagement = () => {
             allowDonations: properties.allowDonations,
             countPlanted: properties.countPlanted || 0,
             countTarget: properties.countTarget || 1,
-            country: properties.country,
-            currency: properties.currency,
+            country: properties.country || '',
+            currency: properties.currency || '',
             id: properties.id,
             image: properties.image ? properties.image : '',
             name: properties.name,
             slug: properties.slug,
             treeCost: properties.treeCost,
             sites: [],
-            geometry: JSON.stringify(project.geometry),
+            geometry: project.geometry !== null ? JSON.stringify(project.geometry) : '',
             purpose: properties.purpose,
             intensity: properties.intensity || 0,
             frequency: properties.revisionPeriodicityLevel || 'low',
           }
 
           for (const site of properties.sites) {
+            console.log("dc",site)
             sites.push({
               ...site,
               geometry: JSON.stringify(site.geometry),
@@ -83,7 +84,7 @@ const useProjectManagement = () => {
   const addNewSite = async (projectID: string, siteData: any): Promise<boolean> => {
     try {
       realm.write(() => {
-        const projectData =  realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects,projectID)
+        const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, projectID)
         const existingSites = [...projectData.sites]
         existingSites.push(siteData)
         projectData.sites = existingSites

@@ -366,7 +366,7 @@ const ReviewTreeDetails = () => {
     }
 
     const remeasurementIcon = () => {
-        if (type === 'tpo' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
+        if (type === 'newuser' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
             return <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
                 <RemeasurementIconScalable />
                 <Text style={styles.measureLabel}>Measure</Text>

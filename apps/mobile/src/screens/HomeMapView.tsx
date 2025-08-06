@@ -47,7 +47,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker low stopAutoFocus={userType === 'tpo'}/>
+      <UserlocationMarker low stopAutoFocus={userType === 'newuser'}/>
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}
