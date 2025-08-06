@@ -134,7 +134,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
               <Card
                 key={plan.id}
                 className={`cursor-pointer transition-all hover:shadow-md relative ${formData.selectedPlan === plan.id
-                  ? 'ring-2 ring-green-700 border-green-700'
+                  ? 'ring-2 ring-[#007A49] border-[#006B3F]'
                   : 'hover:border-gray-300'
                   }`}
                 onClick={() => handlePlanSelect(plan.id)}
@@ -142,34 +142,35 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
                 {plan.recommended && (
                   <Badge
                     variant="default"
-                    className="absolute -top-2 left-4 bg-green-700 z-10"
+                    className="absolute -top-2 left-4 bg-[#007A49] z-10"
                   >
                     Recommended
                   </Badge>
                 )}
                 <CardContent className="p-4 h-full">
                   <div className="flex flex-col space-y-3 h-full">
-                    <div className="flex items-center justify-between">
-                      <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id
-                        ? 'bg-green-100 text-green-600'
-                        : 'bg-gray-100 text-gray-600'
-                        }`}>
-                        {plan.icon}
+                    <>
+                      <div className="flex items-center justify-between">
+                        <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id
+                          ? 'bg-[#006B3F] text-[#fff]'
+                          : 'bg-gray-100 text-gray-600'
+                          }`}>
+                          {plan.icon}
+                        </div>
+                        {formData.selectedPlan === plan.id && (
+                          <Check className="w-5 h-5 text-[#007A49]" />
+                        )}
                       </div>
-                      {formData.selectedPlan === plan.id && (
-                        <Check className="w-5 h-5 text-green-600" />
-                      )}
-                    </div>
 
-                    <div className="flex-1">
-                      <h3 className="font-medium text-gray-900 text-sm leading-tight">
-                        {plan.title}
-                      </h3>
-                      <p className="text-xs text-gray-600 mt-1">{plan.subtitle}</p>
-                      <p className="text-xs text-gray-500 mt-2 leading-relaxed">
-                        {plan.description}
-                      </p>
-                    </div>
+                      <div className="flex-1">
+                        <h3 className="font-medium text-gray-900 text-sm leading-tight">
+                          {plan.title}
+                        </h3>
+                        <p className="text-xs text-gray-600 mt-1">{plan.subtitle}</p>
+                      </div></>
+                    <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+                      {plan.description}
+                    </p>
                   </div>
                 </CardContent>
               </Card>
@@ -188,7 +189,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
         >
           {loading ? <>
             Processing
-            <Spinner /></> : 'Next'}
+            <Spinner /></> : 'Continue'}
           <ArrowRight className="w-4 h-4 ml-2" />
         </Button>
       </div>

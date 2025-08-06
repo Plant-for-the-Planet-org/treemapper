@@ -168,9 +168,9 @@ const ProjectDropdown = ({
                     createNewProject();
                     setIsOpen(false);
                   }}
-                  className="w-full justify-start h-auto p-2.5 bg-gray-900 hover:bg-gray-800 cursor-pointer"
+                  className="w-full justify-center h-auto p-2.5 bg-[#007A49] hover:bg-[#006B3F] cursor-pointer align-center"
                 >
-                  <Plus className="w-4 h-4 mr-2.5 text-white" />
+                  <Plus className="w-4 h-4 text-white" />
                   <span style={{ color: "white" }}>Create New Project</span>
                 </Button>
               </div>

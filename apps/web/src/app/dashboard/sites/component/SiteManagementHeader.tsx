@@ -1,3 +1,4 @@
+import CustomButton from "@/component/CutsomButtom";
 import { motion } from "framer-motion";
 import { Plus, Search, Filter } from "lucide-react";
 
@@ -40,15 +41,10 @@ export const SiteManagementHeader = ({ onCreateSite, searchTerm, setSearchTerm, 
             </div>
           </div>
         </div>
-        <motion.button
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-          onClick={onCreateSite}
-          className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
-        >
-          <Plus className="w-4 h-4" />
+        <CustomButton onClick={onCreateSite}>
+          <Plus className="h-4 w-4 mr-2" />
           Add Site
-        </motion.button>
+        </CustomButton>
       </div>
 
 

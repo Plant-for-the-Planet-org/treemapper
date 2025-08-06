@@ -283,36 +283,27 @@ const SubmitSection = ({
     loading,
     canSubmit
 }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-4"
+
+    <button
+        type="submit"
+        disabled={!canSubmit || loading}
+        className={`w-full py-3 rounded-lg font-medium text-sm transition-all duration-200 ${canSubmit && !loading
+            ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer text-white shadow-md hover:shadow-lg'
+            : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+            }`}
     >
-
-
-        <motion.button
-            whileHover={canSubmit ? { y: -2 } : {}}
-            whileTap={canSubmit ? { scale: 0.98 } : {}}
-            type="submit"
-            disabled={!canSubmit || loading}
-            className={`w-full py-3 rounded-lg font-medium text-sm transition-all duration-200 ${canSubmit && !loading
-                ? 'bg-gray-900 hover:bg-gray-800 text-white shadow-md hover:shadow-lg'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-        >
-            {loading ? (
-                <div className="flex items-center justify-center gap-2">
-                    <Loader2 className="animate-spin h-4 w-4" />
-                    Creating Site...
-                </div>
-            ) : (
-                <div className="flex items-center justify-center gap-2">
-                    {/* <LandPlot className="h-4 w-4" /> */}
-                    Create Site
-                </div>
-            )}
-        </motion.button>
-    </motion.div>
+        {loading ? (
+            <div className="flex items-center justify-center gap-2">
+                <Loader2 className="animate-spin h-4 w-4" />
+                Creating Site...
+            </div>
+        ) : (
+            <div className="flex items-center justify-center gap-2">
+                {/* <LandPlot className="h-4 w-4" /> */}
+                Create Site
+            </div>
+        )}
+    </button>
 );
 
 // Main Component
@@ -444,13 +435,13 @@ export function CreateProjectUI() {
     const area = finalGeoJSON ? calculateFarmArea(finalGeoJSON) : null;
 
     return (
-        <div className="bg-gray-50" style={{paddingBottom:'0.7%'}}>
+        <div className="bg-gray-50">
             <CreateSiteHeader
                 onGoBack={router.back}
                 projectName={SelectedProject?.name}
             />
-            <div className="grid grid-cols-1 lg:grid-cols-2 h-full">
-                <div className="p-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 h-full" >
+                <div className="px-6 py-4">
                     <form onSubmit={handleSubmit} className="w-full mx-auto space-y-8">
                         <div>
                             <h2 className="text-xl font-semibold text-gray-900 mb-2">Site Information</h2>
@@ -466,15 +457,13 @@ export function CreateProjectUI() {
                             />
                         </div>
 
-                        <div className="pt-6 border-t border-gray-200">
-                            <SubmitSection
-                                agreeTerms={agreeTerms}
-                                onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
-                                onSubmit={handleSubmit}
-                                loading={loading}
-                                canSubmit={canSubmit}
-                            />
-                        </div>
+                        <SubmitSection
+                            agreeTerms={agreeTerms}
+                            onAgreeTermsChange={(e) => setAgreeTerms(e.target.checked)}
+                            onSubmit={handleSubmit}
+                            loading={loading}
+                            canSubmit={canSubmit}
+                        />
                     </form>
                 </div>
 

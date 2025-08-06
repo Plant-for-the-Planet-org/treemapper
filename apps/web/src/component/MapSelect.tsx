@@ -74,9 +74,9 @@ const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
       <button
         onClick={onSetCoordinates}
         type="button"
-        className={`w-full border-none py-2 px-3 text-white rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude == '' || manualCoords.longitude === ''
+        className={`w-full border-none  text-white px-5 py-2 rounded text-sm font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude == '' || manualCoords.longitude === ''
           ? 'bg-gray-400 cursor-not-allowed'
-          : 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
+          : 'bg-[#007A49] hover:bg-[#006B3F] shadow-sm hover:shadow-md'
           }`}
 
       >
@@ -107,7 +107,7 @@ const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing }) => {
               onClick={onComplete}
               disabled={polygonPoints.length < 3}
               className={`flex-1 border-none py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 ${polygonPoints.length >= 3
-                  ? 'bg-green-600 hover:bg-green-700 text-white hover:shadow-md'
+                  ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer text-white hover:shadow-md'
                   : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
             >

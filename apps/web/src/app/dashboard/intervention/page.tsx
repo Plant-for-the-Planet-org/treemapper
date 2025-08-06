@@ -955,7 +955,7 @@ const HeaderWithFilters = ({
               </Button>
             )}
 
-            <Button variant="primary" onClick={newIntervention}>
+            <Button  onClick={newIntervention}>
               <Plus className="h-4 w-4 mr-2" />
               New Intervention
             </Button>
@@ -1680,9 +1680,6 @@ const TreeMapperUI = () => {
           ) : (
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center max-w-md">
-                <div className="w-20 h-20 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-6">
-                  <Eye className="h-10 w-10 text-gray-400" />
-                </div>
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
                   Select an Intervention
                 </h3>
@@ -1691,7 +1688,7 @@ const TreeMapperUI = () => {
                   manage species data, update tree records, and access location mapping.
                 </p>
                 <div className="mt-6">
-                  <Button variant="primary" onClick={() => { router.push('/dashboard/new-intervention') }}>
+                  <Button variant="primary" onClick={() => { router.push('/dashboard/new-intervention') }} className='bg-[#007A49] hover:bg-[#006B3F]'>
                     <Plus className="h-4 w-4 mr-2" />
                     Create New Intervention
                   </Button>

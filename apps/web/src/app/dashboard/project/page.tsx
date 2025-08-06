@@ -248,13 +248,13 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
 // Footer Component
 const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) => {
     return (
-        <div className="flex" style={{ alignItems: 'flex-center', justifyContent: 'flex-end' }}>
+        <div className="flex" style={{ alignItems: 'flex-center', justifyContent: 'flex-start' }}>
             <button
                 type="submit"
                 disabled={!agreeTerms || loading}
                 onClick={onSubmit}
-                className={`px-12 py-3.5 rounded-lg font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
-                    ? 'bg-[#007A49] hover:bg-green-600 shadow-sm hover:shadow-md'
+                className={`px-12 py-2 rounded text-sm font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
+                    ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer shadow-sm hover:shadow-md'
                     : 'bg-gray-400 cursor-not-allowed'
                     }`}
             >

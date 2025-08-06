@@ -5,11 +5,9 @@ export const MobileAppSection: React.FC<MobileAppSectionProps> = ({ onPlayStoreC
   return (
     <div className="backdrop-blur-xl bg-white/50 border border-white/20 rounded-3xl shadow-xl p-6">
       <div className="flex items-center mb-4">
-        <div className="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-[#007A49] to-emerald-600 rounded-lg mr-3">
-          <Smartphone className="w-5 h-5 text-white" />
-        </div>
-        <div>
-          <h3 className="font-semibold text-gray-900" style={{margin:0, padding:0}}>Get the mobile app</h3>
+      
+        <div style={{display:'flex',flexDirection:'column',justifyContent:'center', alignItems:'center', width:"100%"}}>
+          <h3 className="font-semibold text-gray-900">Get the mobile app</h3>
           <p className="text-sm text-gray-600">Monitor restoration on the go, even offline</p>
         </div>
       </div>

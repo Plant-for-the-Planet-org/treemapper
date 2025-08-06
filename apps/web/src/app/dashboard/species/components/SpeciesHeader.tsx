@@ -3,6 +3,7 @@ import { Leaf, HelpCircle, Plus, Download, Search, Eye, EyeOff, Hash, ChevronDow
 import { MultiSelectDropdown } from "./MultiSelectDropdown";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import CustomButton from "@/component/CutsomButtom";
 
 export const SpeciesHeader = ({
   speciesCount,
@@ -32,8 +33,8 @@ export const SpeciesHeader = ({
       animate={{ opacity: 1, y: 0 }}
       className="bg-white border-b border-gray-200 sticky top-0"
     >
-      <div className="px-6 py-4">
-        <div className="flex justify-between items-center mb-4">
+      <div className="px-6 py-3">
+        <div className="flex justify-between items-center mb-2">
           <div className="flex items-center gap-4">
             <div className="relative flex-1 max-w-sm">
               <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
@@ -50,11 +51,11 @@ export const SpeciesHeader = ({
                 <Hash size={12} />
                 <span className="font-medium">{speciesCount}</span>
               </div>
-              <div className="flex items-center gap-1 px-2 py-1 bg-green-800 text-white rounded-md">
+              <div className="flex items-center gap-1 px-2 py-1 bg-[#007A49] text-white rounded-md">
                 <Leaf size={12} />
                 <span className="font-medium">{scientificCount}</span>
               </div>
-              <div className="flex items-center gap-1 px-2 py-1 bg-gray-600 text-white rounded-md">
+              <div className="flex items-center gap-1 px-2 py-1 bg-gray-500 text-white rounded-md">
                 <HelpCircle size={12} />
                 <span className="font-medium">{unknownCount}</span>
               </div>
@@ -71,20 +72,18 @@ export const SpeciesHeader = ({
               {showFilters ? 'Hide Filters' : 'Show Filters'}
               <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </Button>
-            <Button
-              onClick={onAddSpecies}
-              className="flex items-center gap-2 bg-green-700 hover:bg-green-800 text-white px-3 py-2 rounded-lg text-sm font-medium transition-colors"
-            >
+
+            <CustomButton variant="outline" onClick={onAddSpecies}>
               <Plus size={14} />
               Add Species
-            </Button>
-            <Button
-              onClick={onExport}
-              className="flex items-center gap-2 bg-gray-100 text-gray-700 px-3 py-2 rounded-lg text-sm font-medium hover:bg-gray-200 transition-colors"
-            >
+            </CustomButton>
+            <CustomButton onClick={onExport}>
               <Download size={14} />
               Export
-            </Button>
+            </CustomButton>
+
+
+
           </div>
         </div>
         {showFilters && <div style={{ display: 'flex', flex: 1, alignItems: 'center', justifyContent: 'space-between' }}>

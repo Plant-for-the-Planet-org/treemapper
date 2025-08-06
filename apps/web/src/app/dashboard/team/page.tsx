@@ -11,7 +11,9 @@ import {
     ChevronUp,
     ChevronDown,
     Filter,
-    Link
+    Link,
+    Plus,
+    Upload
 } from 'lucide-react';
 import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './component/InviteUserModal';
@@ -22,6 +24,7 @@ import useProjectStore from '@shared-core/store/useProjectStore';
 import Spinner from '@/component/Spinner';
 import avatar from 'animal-avatar-generator'
 import BulkInvitationModal from './component/BulkInviteModal';
+import CustomButton from '@/component/CutsomButtom';
 
 
 function transformData(data) {
@@ -288,7 +291,7 @@ const TeamsDashboard = () => {
 
     return (
         <div className="bg-white">
-            <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-center sm:space-y-0 sm:space-x-4 border-b border-gray-200 sticky top-0 pb-3 p-6" >
+            <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-top sm:space-y-0 sm:space-x-4 border-b border-gray-200 sticky top-0 pb-3 px-6 pt-3" >
                 <div className="flex items-center" style={{ flex: 1 }}>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -311,23 +314,18 @@ const TeamsDashboard = () => {
                     </button>}
                 </div>
                 <>
-                    <button
-                        onClick={() => { setBulkInviteModal(true) }}
-                        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
-                    >
-                        <Link size={18} className="mr-2" />
+                    <CustomButton variant="outline" onClick={() => { setBulkInviteModal(true) }}>
+                        <Upload className="h-4 w-4 mr-2" />
                         Bulk Invite
-                    </button>
-                    <button
-                        onClick={handleInviteUser}
-                        className="bg-green-700 hover:bg-green-800 text-white px-4 py-2 rounded-lg flex items-center gap-2 transition-colors text-sm font-medium"
-                    >
-                        <UserPlus size={18} className="mr-2" />
+                    </CustomButton>
+
+                    <CustomButton onClick={handleInviteUser}>
+                        <Plus className="h-4 w-4 mr-2" />
                         Invite User
-                    </button>
+                    </CustomButton>
                 </>
             </div>
-            <div className='p-6' style={{flex:1, display:'flex',flexDirection:'column', width:'full', height:'full'}}>
+            <div className='p-6' style={{ flex: 1, display: 'flex', flexDirection: 'column', width: 'full', height: 'full' }}>
                 {loading ? <div style={{ marginTop: '40vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
