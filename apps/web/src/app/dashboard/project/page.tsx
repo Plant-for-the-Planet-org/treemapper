@@ -248,12 +248,12 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
 // Footer Component
 const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) => {
     return (
-        <div className="flex" style={{ alignItems: 'flex-center', justifyContent: 'flex-start' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%'}}>
             <button
                 type="submit"
                 disabled={!agreeTerms || loading}
                 onClick={onSubmit}
-                className={`px-12 py-2 rounded text-sm font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
+                className={` py-2 px-22 rounded text-sm font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
                     ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer shadow-sm hover:shadow-md'
                     : 'bg-gray-400 cursor-not-allowed'
                     }`}
@@ -261,11 +261,11 @@ const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) =>
                 {loading ? (
                     <div className="flex items-center gap-2">
                         <Loader2Icon className="animate-spin h-5 w-5" />
-                        Creating...
+                        Updating...
                     </div>
                 ) : (
                     <div className="flex items-center gap-2">
-                        Create Project
+                        Update and Continue
                     </div>
                 )}
             </button>

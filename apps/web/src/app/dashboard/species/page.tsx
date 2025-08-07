@@ -85,10 +85,10 @@ const SpeciesManagementDashboard = () => {
     ...unknownSpecies.map(s => ({
       ...s,
       isUnknown: true,
-      type: 'unknown',
-      sources: ['intervention']
+      type: 'unknown'
     }))
   ];
+
 
   // Get unique intervention types for filter
   const interventionTypes = [...new Set([
@@ -116,18 +116,73 @@ const SpeciesManagementDashboard = () => {
   const fetchProjectSpecies = async () => {
     setLoading(true);
     if (!selectedProject?.uid) return;
+
     const response = await getProjectSpecies(accessToken || '', selectedProject?.uid);
     setLoading(false);
+
     if (response.statusCode !== 200) {
       toast.error(response.message || 'An error occurred while fetching species data.');
       return;
     }
 
-    // Update to handle new data structure
     const data = response.data || {};
-    setScientificSpecies(data.scientificSpecies || []);
-    setUnknownSpecies(data.unknownSpecies || []);
+
+    // Transform known species to match expected format
+    const transformedKnownSpecies = (data.knownSpecies || []).map(species => ({
+      ...species,
+      uid: species.scientificSpeciesId.toString(), // Convert to string for consistency
+      favourite: species.isFavourite,
+      interventionCount: species.interventionUsageCount,
+      totalCount: species.totalSpecimenCount,
+      isDisabled: species.isDisabled || false, // Add if missing
+
+      // Create sources array based on boolean flags
+      sources: [
+        ...(species.isInProjectSpecies ? ['project'] : []),
+        ...(species.interventionUsageCount > 0 ? ['intervention'] : [])
+      ],
+
+      // Map intervention types if available
+      interventionTypes: species.interventionTypes || [],
+
+      // Ensure all expected fields exist
+      description: species.description || species.projectSpeciesNotes || '',
+      isNativeSpecies: species.isNativeSpecies || false,
+      disabled: species.isDisabled || false,
+      notes: species.projectSpeciesNotes,
+
+      // Keep original API fields for reference
+      _originalData: species
+    }));
+
+    // Transform unknown species to match expected format
+    const transformedUnknownSpecies = (data.unknownSpecies || []).map(species => ({
+      ...species,
+      // Add missing fields that UI expects
+      favourite: false,
+      isDisabled: false,
+      disabled: false,
+      sources: ['intervention'],
+      interventionType: species.interventionType || 'unknown',
+      interventionTypes: species.interventionTypes || [],
+
+      // Map count fields
+      count: species.speciesCount,
+      totalCount: species.speciesCount,
+      interventionCount: 1, // Unknown species are from single interventions
+
+      // Ensure required fields
+      isNativeSpecies: false,
+      description: '',
+
+      // Keep original API fields
+      _originalData: species
+    }));
+
+    setScientificSpecies(transformedKnownSpecies);
+    setUnknownSpecies(transformedUnknownSpecies);
   };
+
 
   const searchSpeciesByName = async (searchTerm) => {
     setIsSearchingSpecies(true);
@@ -153,11 +208,11 @@ const SpeciesManagementDashboard = () => {
       field.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
-
     const matchesType = speciesTypeFilter === 'all' ||
       (speciesTypeFilter === 'scientific' && !species.isUnknown) ||
       (speciesTypeFilter === 'unknown' && species.isUnknown);
 
+    // Fix source filter logic
     const matchesSource = sourceFilter === 'all' ||
       (sourceFilter === 'project' && species.sources?.includes('project')) ||
       (sourceFilter === 'intervention' && species.sources?.includes('intervention')) ||
@@ -166,14 +221,16 @@ const SpeciesManagementDashboard = () => {
     const matchesInterventionType = interventionTypeFilter.length === 0 ||
       (species.interventionTypes && species.interventionTypes.some(type => interventionTypeFilter.includes(type))) ||
       (species.interventionType && interventionTypeFilter.includes(species.interventionType));
+
     return matchesSearch && matchesType && matchesSource && matchesInterventionType;
   });
 
+
   const sortedSpecies = [...filteredSpecies.filter(el => {
     if (showDisabled) {
-      return el
+      return el;
     }
-    return !el.isDisabled
+    return !el.isDisabled && !el.disabled; // Check both possible field names
   })].sort((a, b) => {
     switch (sortBy) {
       case 'name':
@@ -193,9 +250,10 @@ const SpeciesManagementDashboard = () => {
     }
   });
 
-  const totalSpeciesCount = allSpecies.length;
-  const scientificCount = scientificSpecies.length;
-  const unknownCount = unknownSpecies.length;
+
+const totalSpeciesCount = allSpecies.length;
+const scientificCount = scientificSpecies.length;
+const unknownCount = unknownSpecies.length;
 
   // Event handlers
   const handleSelectSpecies = (species) => {
@@ -230,46 +288,75 @@ const SpeciesManagementDashboard = () => {
   };
 
   const handleToggleFavorite = async (uid, fav) => {
-    setScientificSpecies(prev => prev.map(species =>
-      species.uid === uid ? { ...species, favourite: !species.favourite, updatedAt: new Date().toISOString() } : species
-    ));
+    // Find species in both arrays
+    const scientificIndex = scientificSpecies.findIndex(s => s.uid === uid);
+    const unknownIndex = unknownSpecies.findIndex(s => s.uid === uid);
+
+    if (scientificIndex !== -1) {
+      setScientificSpecies(prev => prev.map(species =>
+        species.uid === uid
+          ? { ...species, favourite: !species.favourite, updatedAt: new Date().toISOString() }
+          : species
+      ));
+    }
+
+    if (unknownIndex !== -1) {
+      setUnknownSpecies(prev => prev.map(species =>
+        species.uid === uid
+          ? { ...species, favourite: !species.favourite, updatedAt: new Date().toISOString() }
+          : species
+      ));
+    }
+
     if (selectedSpecies?.uid === uid) {
       setSelectedSpecies({ ...selectedSpecies, favourite: !selectedSpecies.favourite });
     }
-    await updateSpciesFav(accessToken, { fav: fav }, selectedProject.uid, uid)
-  };
-  const handleToggleDisabled = async (uid, dis) => {
-    // Find if the species is in scientific or unknown species
-    const isScientificSpecies = scientificSpecies.some(species => species.uid === uid);
-    const isUnknownSpecies = unknownSpecies.some(species => species.uid === uid);
 
-    if (isScientificSpecies) {
+    // Use the original scientificSpeciesId for API call if available
+    const species = scientificSpecies.find(s => s.uid === uid) || unknownSpecies.find(s => s.uid === uid);
+    const apiUid = species?._originalData?.scientificSpeciesId || uid;
+
+    await updateSpciesFav(accessToken, { fav: fav }, selectedProject.uid, apiUid);
+  };
+
+  const handleToggleDisabled = async (uid, dis) => {
+    const scientificIndex = scientificSpecies.findIndex(s => s.uid === uid);
+    const unknownIndex = unknownSpecies.findIndex(s => s.uid === uid);
+
+    if (scientificIndex !== -1) {
       setScientificSpecies(prev =>
         prev.map(species =>
           species.uid === uid
-            ? { ...species, isDisabled: !species.isDisabled, updatedAt: new Date().toISOString() }
+            ? { ...species, isDisabled: !species.isDisabled, disabled: !species.disabled, updatedAt: new Date().toISOString() }
             : species
         )
       );
     }
 
-    if (isUnknownSpecies) {
+    if (unknownIndex !== -1) {
       setUnknownSpecies(prev =>
         prev.map(species =>
           species.uid === uid
-            ? { ...species, isDisabled: !species.isDisabled, updatedAt: new Date().toISOString() }
+            ? { ...species, isDisabled: !species.isDisabled, disabled: !species.disabled, updatedAt: new Date().toISOString() }
             : species
         )
       );
     }
 
     if (selectedSpecies?.uid === uid) {
-      setSelectedSpecies({ ...selectedSpecies, isDisabled: !selectedSpecies.isDisabled });
+      setSelectedSpecies({
+        ...selectedSpecies,
+        isDisabled: !selectedSpecies.isDisabled,
+        disabled: !selectedSpecies.disabled
+      });
     }
 
-    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, uid);
-  };
+    // Use original ID for API call
+    const species = scientificSpecies.find(s => s.uid === uid) || unknownSpecies.find(s => s.uid === uid);
+    const apiUid = species?._originalData?.scientificSpeciesId || uid;
 
+    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, apiUid);
+  };
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -456,24 +543,25 @@ const SpeciesManagementDashboard = () => {
       return;
     }
 
-    // Flatten the data for CSV export
     const flattenedData = jsonData.map(species => ({
       'Scientific Name': species.scientificName || species.speciesName || '',
       'Common Name': species.commonName || '',
-      'Description': species.description || '',
+      'Description': species.description || species.notes || '',
       'Type': species.isUnknown ? 'Unknown' : 'Scientific',
       'Sources': species.sources ? species.sources.join(', ') : '',
-      'Total Count': species.totalCount || species.count || 0,
-      'Intervention Count': species.interventionCount || 0,
+      'Total Count': species.totalCount || species.count || species.totalSpecimenCount || 0,
+      'Intervention Count': species.interventionCount || species.interventionUsageCount || 0,
+      'Is In Project': species.isInProjectSpecies ? 'Yes' : 'No',
       'Is Native': species.isNativeSpecies ? 'Yes' : 'No',
-      'Is Favorite': species.favourite ? 'Yes' : 'No',
-      'Is Disabled': species.disabled ? 'Yes' : 'No',
+      'Is Favorite': species.favourite || species.isFavourite ? 'Yes' : 'No',
+      'Is Disabled': species.disabled || species.isDisabled ? 'Yes' : 'No',
       'Intervention HID': species.interventionHid || '',
+      'Intervention UIDs': species.interventionIds ? species.interventionIds.join(', ') : '',
       'Created At': species.createdAt || '',
       'Updated At': species.updatedAt || ''
     }));
 
-    // Convert to CSV
+    // Rest of CSV export logic remains the same...
     const headers = Object.keys(flattenedData[0]);
     const csvContent = [
       headers.join(','),
@@ -486,7 +574,6 @@ const SpeciesManagementDashboard = () => {
       )
     ].join('\n');
 
-    // Download
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);

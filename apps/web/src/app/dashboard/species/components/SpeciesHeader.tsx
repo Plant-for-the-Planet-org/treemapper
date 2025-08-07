@@ -110,14 +110,14 @@ export const SpeciesHeader = ({
               <option value="intervention">Intervention Only</option>
             </select>
 
-            <div className="min-w-[160px]">
+            {/* <div className="min-w-[160px]">
               <MultiSelectDropdown
                 options={interventionTypes.map(type => ({ value: type, label: type.replace(/-/g, ' ') }))}
                 selected={interventionTypeFilter}
                 onChange={setInterventionTypeFilter}
                 placeholder="Intervention Types"
               />
-            </div>
+            </div> */}
           </div>
           <div className="flex items-center justify-between gap-4">
 

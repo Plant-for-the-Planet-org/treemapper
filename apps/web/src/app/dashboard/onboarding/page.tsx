@@ -58,7 +58,7 @@ const Onboarding = ({ forProject }) => {
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      window.location.href = `/dashboard?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`
+      window.location.replace(`/dashboard?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`)
     } catch (error) {
       console.log("SD", error)
       toast.error("Something went wrong")

@@ -1,5 +1,26 @@
 import { motion } from "framer-motion";
-import { CheckSquare, Square, Leaf, Heart, EyeOff, Eye, TreePine, Users, LeafIcon } from "lucide-react";
+import { CheckSquare, Square, Leaf, Heart, EyeOff, Eye, TreePine, Users, LeafIcon, HelpCircle } from "lucide-react";
+
+const formatRelativeTime = (date) => {
+  const now = new Date();
+  const then = new Date(date);
+  const diffMs = now - then;
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
+  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+
+  if (diffMinutes < 5) return 'just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays === 1) return '1 day ago';
+  if (diffDays < 7) return `${diffDays} days ago`;
+  
+  return then.toLocaleDateString('en-US', { 
+    month: 'long', 
+    day: 'numeric', 
+    year: now.getFullYear() !== then.getFullYear() ? 'numeric' : undefined 
+  });
+};
 
 export const SpeciesCard = ({ 
   species, 
@@ -9,9 +30,10 @@ export const SpeciesCard = ({
   onToggleDisabled,
   isUnknown,
   showCheckbox,
-  isChecked, // This should be explicitly passed and calculated correctly
+  isChecked,
   onCheckboxChange
 }) => {
+  console.log("SDc",species)
   return (
     <motion.div
       layout
@@ -19,18 +41,17 @@ export const SpeciesCard = ({
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ y: -2 }}
       onClick={onClick}
-      className={`cursor-pointer border rounded-lg p-3 transition-all ${
+      className={`cursor-pointer border rounded-lg p-3 transition-all h-32 ${
         isSelected 
-          ? 'border-green-500 bg-green-50/50 shadow-sm' 
+          ? 'border-green-800 bg-green-[#007A49] shadow-sm' 
           : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-      } ${species.isDisabled ? 'opacity-60' : ''}`} // Fixed the condition here
+      } ${(species.isDisabled || species.disabled) ? 'opacity-60' : ''}`}
     >
-      <div className="flex items-start gap-3">
-        {/* {showCheckbox && (
+      <div className="flex items-start gap-3 h-full">
+        {showCheckbox && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              console.log('Checkbox button clicked for:', species.uid); // Debug log
               onCheckboxChange(species.uid);
             }}
             className="mt-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
@@ -41,9 +62,8 @@ export const SpeciesCard = ({
               <Square size={16} className="text-gray-400" />
             )}
           </button>
-        )} */}
+        )}
 
-        {/* Rest of the component remains the same */}
         <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           {species.image ? (
             <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${species.image}`} alt={species.commonName || species.speciesName} className="w-full h-full object-cover" />
@@ -54,7 +74,7 @@ export const SpeciesCard = ({
           )}
         </div>
 
-        <div className="flex-1 min-w-0">
+        <div className="flex-1 min-w-0 flex flex-col h-full">
           <div className="flex items-start justify-between">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1">
@@ -62,13 +82,14 @@ export const SpeciesCard = ({
                   {species.scientificName || species.speciesName}
                 </h3>
                 {isUnknown && (
-                  <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
-                    Unknown
-                  </span>
+                  <div className="flex items-center gap-1">
+                    <HelpCircle size={12} className="text-gray-400" />
+                    <span className="text-xs text-gray-500 italic">unknown</span>
+                  </div>
                 )}
               </div>
               <p className="text-xs text-gray-600 truncate">
-                {species.commonName || `Intervention: ${species.interventionHid}`}
+                {species.commonName || species.speciesName}
               </p>
             </div>
 
@@ -91,15 +112,15 @@ export const SpeciesCard = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleDisabled(species.uid, !species.isDisabled); // Fixed property name
+                  onToggleDisabled(species.uid, !(species.isDisabled || species.disabled));
                 }}
                 className={`p-1 rounded transition-colors ${
-                  species.isDisabled 
+                  (species.isDisabled || species.disabled)
                     ? 'text-gray-400 hover:text-gray-600' 
-                    : 'text-green-500 hover:text-green-600'
+                    : 'text-[#007A49] hover:text-[#006B3F]'
                 }`}
               >
-                {species.isDisabled ? <EyeOff size={12} /> : <Eye size={12} />}
+                {(species.isDisabled || species.disabled) ? <EyeOff size={12} /> : <Eye size={12} />}
               </button>
             </div>
           </div>
@@ -112,22 +133,16 @@ export const SpeciesCard = ({
 
           {/* Usage Stats */}
           <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-            {species.totalCount > 0 && (
+            {(species.totalCount > 0 || species.totalSpecimenCount > 0 || species.count > 0) && (
               <div className="flex items-center gap-1">
                 <TreePine size={10} />
-                <span>{species.totalCount} trees</span>
+                <span>{species.totalCount || species.totalSpecimenCount || species.count} trees</span>
               </div>
             )}
-            {species.interventionCount > 0 && (
+            {(species.interventionCount > 0 || species.interventionUsageCount > 0 || (isUnknown && 1)) && (
               <div className="flex items-center gap-1">
                 <LeafIcon size={10} />
-                <span>{species.interventionCount} interventions</span>
-              </div>
-            )}
-            {species.count && (
-              <div className="flex items-center gap-1">
-                <TreePine size={10} />
-                <span>{species.count} trees</span>
+                <span>{species.interventionCount || species.interventionUsageCount || (isUnknown ? 1 : 0)} interventions</span>
               </div>
             )}
           </div>
@@ -141,7 +156,7 @@ export const SpeciesCard = ({
                   className={`px-2 py-0.5 text-xs rounded-full ${
                     source === 'project' 
                       ? 'bg-blue-100 text-blue-700'
-                      : 'bg-green-100 text-green-700'
+                      : 'bg-[#007A49] text-white'
                   }`}
                 >
                   {source}
@@ -150,8 +165,8 @@ export const SpeciesCard = ({
             </div>
           )}
 
-          <div className="flex items-center justify-between mt-2 text-xs text-gray-400">
-            <span>Updated {new Date(species.updatedAt || species.createdAt).toLocaleDateString()}</span>
+          <div className="flex items-end justify-start mt-auto text-xs text-gray-400">
+            <span>Updated: {formatRelativeTime(species.updatedAt || species.createdAt)}</span>
           </div>
         </div>
       </div>

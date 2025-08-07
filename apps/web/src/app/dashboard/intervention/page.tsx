@@ -617,9 +617,6 @@ const InterventionCard = ({ intervention, isSelected, onClick }) => {
                 {intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </h3>
               <div className="flex flex-col gap-1 ml-2">
-                <Badge variant={getStatusVariant(intervention.interventionStatus)}>
-                  {intervention.interventionStatus}
-                </Badge>
                 <Badge variant={getCaptureStatusVariant(intervention.captureStatus)}>
                   {intervention.captureStatus}
                 </Badge>

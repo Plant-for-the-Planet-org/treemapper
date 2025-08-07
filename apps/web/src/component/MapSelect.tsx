@@ -161,7 +161,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   const [displayingUploadedGeoJSON, setDisplayingUploadedGeoJSON] = useState(false);
 
   // Control panel collapse states
-  const [isControlsCollapsed, setIsControlsCollapsed] = useState(false);
+  const [isControlsCollapsed, setIsControlsCollapsed] = useState(true);
 
   // Effect to handle uploaded GeoJSON
   useEffect(() => {
@@ -208,6 +208,8 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
       setIsControlsCollapsed(false);
     }
   }, [marker, polygonPoints.length]);
+
+  
 
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {

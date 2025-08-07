@@ -179,14 +179,14 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
           onClick={onBack}
           className='cursor-pointer'
         >
-          <ChevronLeft className="w-4 h-4 mr-2" />
+          <ChevronLeft className="w-4 h-4" />
           Back
         </Button>
         <div>
           {!loading && <Button
             onClick={handleSubmit}
             disabled={!canContinue() || loading}
-            className="bg-gray-900 hover:bg-gray-800 cursor-pointer mr-5"
+            className="bg-gray-900 hover:bg-gray-800 cursor-pointer mr-2 px-8"
           >
             {loading ? <>
               Processing
@@ -204,7 +204,7 @@ export const ScreenTwo = ({ onNext, onBack, loading }) => {
               <Spinner />
             </> : <>
               Submit
-              <ArrowRight className="w-4 h-4 ml-2" /></>}
+              <ArrowRight className="w-4 h-4 ml-1" color='#fff'/></>}
           </Button>
         </div>
       </div>
