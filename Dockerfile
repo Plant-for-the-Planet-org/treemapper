@@ -9,7 +9,7 @@ FROM base AS deps
 WORKDIR /app
 
 # Copy root package files
-COPY package.json
+COPY package.json yarn.lock ./
 COPY turbo.json ./
 
 # Copy all package.json files for workspace resolution
