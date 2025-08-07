@@ -336,15 +336,13 @@ export class ProjectsService {
     }
   }
 
-  async createNewProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
+  async updateNewProject(createProjectDto: CreateProjectDto, membership: ProjectGuardResponse, userData: User): Promise<any> {
     try {
       let locationValue: any = null;
       if (!userData.primaryWorkspaceUid) {
         throw new ForbiddenException('User does not have a primary workspace set');
       }
-      console.log("sd", userData.primaryWorkspaceUid)
       const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
-      console.log("sd", workspaceId)
       if (!workspaceId) {
         throw new NotFoundException('Workspace not found');
       }
@@ -374,6 +372,7 @@ export class ProjectsService {
           location: locationValue,
           originalGeometry: createProjectDto.location
         })
+        .where(eq(project.id, membership.projectId))
 
 
       return {
@@ -1220,7 +1219,7 @@ export class ProjectsService {
     }
   }
 
-   async getProjectSingleLinkStatus(token: string): Promise<ProjectInviteStatusResponse> {
+  async getProjectSingleLinkStatus(token: string): Promise<ProjectInviteStatusResponse> {
     try {
       const inviteResult = await this.drizzleService.db
         .select({
@@ -1463,9 +1462,9 @@ export class ProjectsService {
     }
   }
 
- 
 
-async findOne(projectId: number) {
+
+  async findOne(projectId: number) {
     try {
       const projectQuery = await this.drizzleService.db
         .select({
@@ -1526,266 +1525,266 @@ async findOne(projectId: number) {
     }
   }
 
- async updateProject(
-  projectId: number,
-  updateProjectDto: UpdateProjectDto,
-  userId: number
-): Promise<ServiceResponse> {
-  try {
-    // Prepare update data with proper cleaning
-    const updateData = await this.prepareUpdateData(updateProjectDto);
+  async updateProject(
+    projectId: number,
+    updateProjectDto: UpdateProjectDto,
+    userId: number
+  ): Promise<ServiceResponse> {
+    try {
+      // Prepare update data with proper cleaning
+      const updateData = await this.prepareUpdateData(updateProjectDto);
 
-    // If no valid data to update after cleaning, return early
-    if (Object.keys(updateData).length === 0) {
+      // If no valid data to update after cleaning, return early
+      if (Object.keys(updateData).length === 0) {
+        return {
+          message: 'No valid data provided for update',
+          statusCode: 400,
+          error: 'bad_request',
+          data: null,
+          code: 'no_update_data',
+        };
+      }
+
+      // Perform the update
+      const [updatedProject] = await this.drizzleService.db
+        .update(project)
+        .set(updateData)
+        .where(eq(project.id, projectId))
+        .returning();
+
+      if (!updatedProject) {
+        return {
+          message: 'Failed to update project',
+          statusCode: 500,
+          error: 'internal_server_error',
+          data: null,
+          code: 'project_update_failed',
+        };
+      }
+
       return {
-        message: 'No valid data provided for update',
-        statusCode: 400,
-        error: 'bad_request',
-        data: null,
-        code: 'no_update_data',
+        message: 'Project updated successfully',
+        statusCode: 200,
+        error: null,
+        data: updatedProject,
+        code: 'project_updated',
       };
-    }
-
-    // Perform the update
-    const [updatedProject] = await this.drizzleService.db
-      .update(project)
-      .set(updateData)
-      .where(eq(project.id, projectId))
-      .returning();
-
-    if (!updatedProject) {
+    } catch (error) {
+      console.error('Error updating project:', error);
       return {
         message: 'Failed to update project',
         statusCode: 500,
-        error: 'internal_server_error',
+        error: error.message || 'internal_server_error',
         data: null,
         code: 'project_update_failed',
       };
     }
-
-    return {
-      message: 'Project updated successfully',
-      statusCode: 200,
-      error: null,
-      data: updatedProject,
-      code: 'project_updated',
-    };
-  } catch (error) {
-    console.error('Error updating project:', error);
-    return {
-      message: 'Failed to update project',
-      statusCode: 500,
-      error: error.message || 'internal_server_error',
-      data: null,
-      code: 'project_update_failed',
-    };
   }
-}
 
-/**
- * Prepare update data by cleaning and transforming the DTO
- * @param updateProjectDto - The update DTO
- * @returns Promise<object>
- */
-private async prepareUpdateData(updateProjectDto: UpdateProjectDto): Promise<any> {
-  const updateData: any = {};
+  /**
+   * Prepare update data by cleaning and transforming the DTO
+   * @param updateProjectDto - The update DTO
+   * @returns Promise<object>
+   */
+  private async prepareUpdateData(updateProjectDto: UpdateProjectDto): Promise<any> {
+    const updateData: any = {};
 
-  // Define field mappings and their expected types/handlers
-  const fieldHandlers = {
-    // String fields
-    name: (value: any) => this.cleanStringValue(value),
-    slug: (value: any) => this.cleanStringValue(value),
-    description: (value: any) => this.cleanStringValue(value),
-    purpose: (value: any) => this.cleanStringValue(value),
-    type: (value: any) => this.cleanStringValue(value),
-    ecosystem: (value: any) => this.cleanStringValue(value),
-    scale: (value: any) => this.cleanStringValue(value),
-    classification: (value: any) => this.cleanStringValue(value),
-    website: (value: any) => this.cleanUrlValue(value),
-    videoUrl: (value: any) => this.cleanUrlValue(value),
-    image: (value: any) => this.cleanStringValue(value),
-    intensity: (value: any) => this.cleanStringValue(value),
-    revisionPeriodicity: (value: any) => this.cleanStringValue(value),
-    
-    // Integer fields
-    target: (value: any) => this.cleanIntegerValue(value),
-    
-    // Country code (3 character string)
-    country: (value: any) => this.cleanCountryCode(value),
-    
-    // Boolean fields
-    isActive: (value: any) => this.cleanBooleanValue(value),
-    isPublic: (value: any) => this.cleanBooleanValue(value),
-    isPersonal: (value: any) => this.cleanBooleanValue(value),
-    isPrimary: (value: any) => this.cleanBooleanValue(value),
-    
-    // JSON fields
-    metadata: (value: any) => this.cleanJsonValue(value),
-    originalGeometry: (value: any) => this.cleanJsonValue(value),
-    
-    // Special handling for location (PostGIS geometry)
-    location: (value: any) => this.handleLocationValue(value),
-  };
+    // Define field mappings and their expected types/handlers
+    const fieldHandlers = {
+      // String fields
+      name: (value: any) => this.cleanStringValue(value),
+      slug: (value: any) => this.cleanStringValue(value),
+      description: (value: any) => this.cleanStringValue(value),
+      purpose: (value: any) => this.cleanStringValue(value),
+      type: (value: any) => this.cleanStringValue(value),
+      ecosystem: (value: any) => this.cleanStringValue(value),
+      scale: (value: any) => this.cleanStringValue(value),
+      classification: (value: any) => this.cleanStringValue(value),
+      website: (value: any) => this.cleanUrlValue(value),
+      videoUrl: (value: any) => this.cleanUrlValue(value),
+      image: (value: any) => this.cleanStringValue(value),
+      intensity: (value: any) => this.cleanStringValue(value),
+      revisionPeriodicity: (value: any) => this.cleanStringValue(value),
 
-  // Process each field in the DTO
-  Object.keys(updateProjectDto).forEach(key => {
-    if (fieldHandlers[key]) {
-      const cleanedValue = fieldHandlers[key](updateProjectDto[key]);
-      if (cleanedValue !== null && cleanedValue !== undefined) {
-        updateData[key] = cleanedValue;
+      // Integer fields
+      target: (value: any) => this.cleanIntegerValue(value),
+
+      // Country code (3 character string)
+      country: (value: any) => this.cleanCountryCode(value),
+
+      // Boolean fields
+      isActive: (value: any) => this.cleanBooleanValue(value),
+      isPublic: (value: any) => this.cleanBooleanValue(value),
+      isPersonal: (value: any) => this.cleanBooleanValue(value),
+      isPrimary: (value: any) => this.cleanBooleanValue(value),
+
+      // JSON fields
+      metadata: (value: any) => this.cleanJsonValue(value),
+      originalGeometry: (value: any) => this.cleanJsonValue(value),
+
+      // Special handling for location (PostGIS geometry)
+      location: (value: any) => this.handleLocationValue(value),
+    };
+
+    // Process each field in the DTO
+    Object.keys(updateProjectDto).forEach(key => {
+      if (fieldHandlers[key]) {
+        const cleanedValue = fieldHandlers[key](updateProjectDto[key]);
+        if (cleanedValue !== null && cleanedValue !== undefined) {
+          updateData[key] = cleanedValue;
+        }
       }
-    }
-  });
+    });
 
-  // Always update the updatedAt timestamp
-  updateData.updatedAt = new Date();
+    // Always update the updatedAt timestamp
+    updateData.updatedAt = new Date();
 
-  return updateData;
-}
+    return updateData;
+  }
 
-/**
- * Clean string values - remove empty objects, null, undefined, empty strings
- */
-private cleanStringValue(value: any): string | null {
-  if (value === null || value === undefined || value === '' || 
+  /**
+   * Clean string values - remove empty objects, null, undefined, empty strings
+   */
+  private cleanStringValue(value: any): string | null {
+    if (value === null || value === undefined || value === '' ||
       (typeof value === 'object' && Object.keys(value).length === 0)) {
+      return null;
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      return trimmed.length > 0 ? trimmed : null;
+    }
+
     return null;
   }
-  
-  if (typeof value === 'string') {
-    const trimmed = value.trim();
-    return trimmed.length > 0 ? trimmed : null;
-  }
-  
-  return null;
-}
 
-/**
- * Clean URL values with basic validation
- */
-private cleanUrlValue(value: any): string | null {
-  const cleanedString = this.cleanStringValue(value);
-  if (!cleanedString) return null;
-  
-  // Basic URL validation
-  try {
-    new URL(cleanedString);
-    return cleanedString;
-  } catch {
-    // If it's not a valid URL but starts with http/https, return as is
-    if (cleanedString.startsWith('http://') || cleanedString.startsWith('https://')) {
+  /**
+   * Clean URL values with basic validation
+   */
+  private cleanUrlValue(value: any): string | null {
+    const cleanedString = this.cleanStringValue(value);
+    if (!cleanedString) return null;
+
+    // Basic URL validation
+    try {
+      new URL(cleanedString);
       return cleanedString;
+    } catch {
+      // If it's not a valid URL but starts with http/https, return as is
+      if (cleanedString.startsWith('http://') || cleanedString.startsWith('https://')) {
+        return cleanedString;
+      }
+      return null;
     }
-    return null;
   }
-}
 
-/**
- * Clean integer values
- */
-private cleanIntegerValue(value: any): number | null {
-  if (value === null || value === undefined || 
+  /**
+   * Clean integer values
+   */
+  private cleanIntegerValue(value: any): number | null {
+    if (value === null || value === undefined ||
       (typeof value === 'object' && Object.keys(value).length === 0)) {
-    return null;
-  }
-  
-  const num = Number(value);
-  if (isNaN(num) || !Number.isInteger(num) || num < 0) {
-    return null;
-  }
-  
-  return num;
-}
-
-/**
- * Clean country code (3 character string)
- */
-private cleanCountryCode(value: any): string | null {
-  const cleanedString = this.cleanStringValue(value);
-  if (!cleanedString) return null;
-  
-  // Country codes should be 3 characters
-  if (cleanedString.length === 3) {
-    return cleanedString.toUpperCase();
-  }
-  
-  return null;
-}
-
-/**
- * Clean boolean values
- */
-private cleanBooleanValue(value: any): boolean | null {
-  if (value === null || value === undefined || 
-      (typeof value === 'object' && Object.keys(value).length === 0)) {
-    return null;
-  }
-  
-  if (typeof value === 'boolean') {
-    return value;
-  }
-  
-  // Handle string representations
-  if (typeof value === 'string') {
-    const lower = value.toLowerCase().trim();
-    if (lower === 'true' || lower === '1') return true;
-    if (lower === 'false' || lower === '0') return false;
-  }
-  
-  // Handle numeric representations
-  if (typeof value === 'number') {
-    return value !== 0;
-  }
-  
-  return null;
-}
-
-/**
- * Clean JSON values
- */
-private cleanJsonValue(value: any): any | null {
-  if (value === null || value === undefined) {
-    return null;
-  }
-  
-  // If it's an empty object, return null
-  if (typeof value === 'object' && Object.keys(value).length === 0) {
-    return null;
-  }
-  
-  // If it's a valid object with data, return it
-  if (typeof value === 'object') {
-    return value;
-  }
-  
-  return null;
-}
-
-/**
- * Handle location/geometry data for PostGIS
- */
-private handleLocationValue(value: any): any | null {
-  if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) {
-    return null;
-  }
-  
-  try {
-    // Validate GeoJSON structure
-    if (value.type === 'Feature' && value.geometry) {
-      const geometry = this.getGeoJSONForPostGIS(value);
-      return sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
-    } else if (value.type && value.coordinates) {
-      // Direct geometry object
-      const geometry = this.getGeoJSONForPostGIS(value);
-      return sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+      return null;
     }
-    
-    return null;
-  } catch (error) {
-    console.error('Invalid GeoJSON provided:', error);
+
+    const num = Number(value);
+    if (isNaN(num) || !Number.isInteger(num) || num < 0) {
+      return null;
+    }
+
+    return num;
+  }
+
+  /**
+   * Clean country code (3 character string)
+   */
+  private cleanCountryCode(value: any): string | null {
+    const cleanedString = this.cleanStringValue(value);
+    if (!cleanedString) return null;
+
+    // Country codes should be 3 characters
+    if (cleanedString.length === 3) {
+      return cleanedString.toUpperCase();
+    }
+
     return null;
   }
-}
+
+  /**
+   * Clean boolean values
+   */
+  private cleanBooleanValue(value: any): boolean | null {
+    if (value === null || value === undefined ||
+      (typeof value === 'object' && Object.keys(value).length === 0)) {
+      return null;
+    }
+
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    // Handle string representations
+    if (typeof value === 'string') {
+      const lower = value.toLowerCase().trim();
+      if (lower === 'true' || lower === '1') return true;
+      if (lower === 'false' || lower === '0') return false;
+    }
+
+    // Handle numeric representations
+    if (typeof value === 'number') {
+      return value !== 0;
+    }
+
+    return null;
+  }
+
+  /**
+   * Clean JSON values
+   */
+  private cleanJsonValue(value: any): any | null {
+    if (value === null || value === undefined) {
+      return null;
+    }
+
+    // If it's an empty object, return null
+    if (typeof value === 'object' && Object.keys(value).length === 0) {
+      return null;
+    }
+
+    // If it's a valid object with data, return it
+    if (typeof value === 'object') {
+      return value;
+    }
+
+    return null;
+  }
+
+  /**
+   * Handle location/geometry data for PostGIS
+   */
+  private handleLocationValue(value: any): any | null {
+    if (!value || (typeof value === 'object' && Object.keys(value).length === 0)) {
+      return null;
+    }
+
+    try {
+      // Validate GeoJSON structure
+      if (value.type === 'Feature' && value.geometry) {
+        const geometry = this.getGeoJSONForPostGIS(value);
+        return sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+      } else if (value.type && value.coordinates) {
+        // Direct geometry object
+        const geometry = this.getGeoJSONForPostGIS(value);
+        return sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+      }
+
+      return null;
+    } catch (error) {
+      console.error('Invalid GeoJSON provided:', error);
+      return null;
+    }
+  }
 
 
   /**
@@ -1841,7 +1840,7 @@ private handleLocationValue(value: any): any | null {
 
 
 
-  
+
 
 
   // // async findAll(userId: number, primaryOrg: number) {
@@ -1899,18 +1898,18 @@ private handleLocationValue(value: any): any | null {
 
 
 
-  
-
-
-  
-
-  
 
 
 
 
 
-  
+
+
+
+
+
+
+
 
 
   // // async remove(projectId: number, userId: number) {

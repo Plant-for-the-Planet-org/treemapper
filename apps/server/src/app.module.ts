@@ -13,6 +13,7 @@ import { SitesModule } from './sites/sites.module';
 import { InterventionsModule } from './interventions/interventions.module';
 import { SpeciesModule } from './species/species.module';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { MobileModule } from './mobile/mobile.module';
 
 @Module({
   imports: [
@@ -29,10 +30,10 @@ import { AnalyticsModule } from './analytics/analytics.module';
     SitesModule,
     InterventionsModule,
     SpeciesModule,
-    AnalyticsModule
+    AnalyticsModule,
+    MobileModule,
     // MigrationModule,
     // NotificationModule,
-    // MobileModule,
   ],
   controllers: [AppController],
   providers: [AppService],

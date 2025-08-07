@@ -24,6 +24,9 @@ import { ProjectRoles } from '../../projects/decorators/project-roles.decorator'
 import { Membership } from '../../projects/decorators/membership.decorator';
 import { ProjectGuardResponse } from '../../projects/projects.service';
 
+
+
+
 @Controller('project-species')
 export class ProjectSpeciesController {
   constructor(private readonly userSpeciesService: ProjectSpeciesService) { }
@@ -47,23 +50,53 @@ export class ProjectSpeciesController {
   async getAll(
     @Membership() membership: ProjectGuardResponse,
   ) {
-    return this.userSpeciesService.getAll(membership);
+    return this.userSpeciesService.getProjectSpeciesAggregated(membership.projectId);
   }
 
-  // @Put('/:id/species/:species')
-  // @ProjectRoles('owner', 'admin', 'contributor', 'observer')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async update(
-  //   @Param('species') species: string,
-  //   @Membership() membership: ProjectGuardResponse,
-  //   @Body() updateDto: UpdateUserSpeciesDto,
-  // ) {
-  //   return this.userSpeciesService.update(
-  //     species,
-  //     membership,
-  //     updateDto,
-  //   );
-  // }
+  @Put('/:id/species/:species/fav')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async updateFavourite(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+    @Body() updateDto: { fav: boolean },
+  ) {
+    return this.userSpeciesService.updateFavourite(
+      species,
+      membership,
+      updateDto,
+    );
+  }
+
+  @Put('/:id/species/:species/disable')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async updateDisbale(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+    @Body() updateDto: { disable: boolean },
+  ) {
+    return this.userSpeciesService.updateDisbale(
+      species,
+      membership,
+      updateDto,
+    );
+  }
+
+  @Put('/:id/species/:species')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async update(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+    @Body() updateDto: UpdateUserSpeciesDto,
+  ) {
+    return this.userSpeciesService.update(
+      species,
+      membership,
+      updateDto,
+    );
+  }
 
   // @Delete('/:id/species/:species')
   // @ProjectRoles('owner', 'admin', 'contributor')
@@ -75,37 +108,9 @@ export class ProjectSpeciesController {
   //   return this.userSpeciesService.delete(species, membership);
   // }
 
-  // @Put('/:id/species/:species/fav')
-  // @ProjectRoles('owner', 'admin', 'contributor', 'observer')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async updateFavourite(
-  //   @Param('species') species: string,
-  //   @Membership() membership: ProjectGuardResponse,
-  //   @Body() updateDto: { fav: boolean },
-  // ) {
-  //   return this.userSpeciesService.updateFavourite(
-  //     species,
-  //     membership,
-  //     updateDto,
-  //   );
-  // }
 
-  // @Put('/:id/species/:species/disable')
-  // @ProjectRoles('owner', 'admin', 'contributor', 'observer')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async updateDisbale(
-  //   @Param('species') species: string,
-  //   @Membership() membership: ProjectGuardResponse,
-  //   @Body() updateDto: { disable: boolean },
-  // ) {
-  //   return this.userSpeciesService.updateDisbale(
-  //     species,
-  //     membership,
-  //     updateDto,
-  //   );
-  // }
 
-  
+
   // // @Get(':id')
   // // // @ProjectRoles('owner', 'admin', 'manager', 'contributor', 'observer', 'researcher')
   // // // @UseGuards(ProjectPermissionsGuard)

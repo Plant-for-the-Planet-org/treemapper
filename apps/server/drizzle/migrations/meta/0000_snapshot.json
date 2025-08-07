@@ -1,5 +1,5 @@
 {
-  "id": "b5532a96-b042-435e-a659-b84bc9e283c8",
+  "id": "5d1113d7-6bd2-4345-a870-1e88e4357c31",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -1196,6 +1196,12 @@
         },
         "species_name": {
           "name": "species_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "common_name": {
+          "name": "common_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false
@@ -4326,6 +4332,12 @@
         },
         "species_name": {
           "name": "species_name",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "common_name": {
+          "name": "common_name",
           "type": "text",
           "primaryKey": false,
           "notNull": false

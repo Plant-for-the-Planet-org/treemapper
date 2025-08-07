@@ -12,6 +12,54 @@ import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull } from 'drizzle-or
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 
+
+export interface KnownSpeciesResponse {
+  scientificSpeciesId: number;
+  scientificName: string;
+  commonName: string | null;
+  speciesName: string;
+  image: string | null;
+  
+  // Project species data
+  isInProjectSpecies: boolean;
+  isFavourite: boolean;
+  projectSpeciesNotes: string | null;
+  
+  // Intervention usage
+  interventionUsageCount: number;
+  totalSpecimenCount: number;
+  interventionIds: number[];
+  
+  // Additional metadata
+  createdAt: Date | null;
+  updatedAt: Date | null;
+}
+
+export interface UnknownSpeciesResponse {
+  uid: string;
+  speciesName: string | null;
+  commonName: string | null;
+  interventionId: number;
+  interventionUid: string;
+  interventionHid: string;
+  speciesCount: number;
+  image: string | null;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+export interface ProjectSpeciesAggregatedResponse {
+  knownSpecies: KnownSpeciesResponse[];
+  unknownSpecies: UnknownSpeciesResponse[];
+  summary: {
+    totalKnownSpecies: number;
+    totalUnknownSpecies: number;
+    totalProjectSpecies: number;
+    totalInterventionSpecies: number;
+  };
+}
+
+
 @Injectable()
 export class ProjectSpeciesService {
   constructor(
@@ -60,7 +108,7 @@ export class ProjectSpeciesService {
         speciesName: scientificSpeciesData.scientificName,
         isUnknown: false,
         commonName: createDto.commonName,
-        isDisabled: createDto.isNativeSpecies || false,
+        isDisabled: createDto.isDisbaledSpecies || false,
         notes: createDto.description,
         favourite: createDto.favourite || false,
         image: createDto.image || ''
@@ -69,448 +117,310 @@ export class ProjectSpeciesService {
     return newUserSpecies[0];
   }
 
-  async getAll(membership: ProjectGuardResponse): Promise<{
-    scientificSpecies: any[];
-    unknownSpecies: any[];
-    summary: {
-      totalProjectSpecies: number;
-      totalInterventionSpecies: number;
-      totalUnknownSpecies: number;
-      totalUniqueSpecies: number;
-    };
-  }> {
-    try {
-      // Get all data in parallel for better performance
-      const [projectSpeciesData, interventionSpeciesData, interventionSummaryData] = await Promise.all([
-        this.getProjectSpecies(membership.projectId, membership.userId),
-        this.getInterventionSpecies(membership.projectId),
-        this.getInterventionSpeciesSummary(membership.projectId)
-      ]);
-
-      // Process and aggregate the data
-      const { scientificSpecies, unknownSpecies } = this.aggregateSpeciesData(
-        projectSpeciesData,
-        interventionSpeciesData,
-        interventionSummaryData
-      );
-
-      // Calculate summary statistics
-      const summary = {
-        totalProjectSpecies: projectSpeciesData.length,
-        totalInterventionSpecies: interventionSummaryData.filter(s => !s.isUnknown).length,
-        totalUnknownSpecies: unknownSpecies.length,
-        totalUniqueSpecies: scientificSpecies.length + unknownSpecies.length,
-      };
-
-      return {
-        scientificSpecies,
-        unknownSpecies,
-        summary,
-      };
-    } catch (error) {
-      throw new BadRequestException(`Failed to fetch species data: ${error.message}`);
-    }
-  }
-
-  private async getProjectSpecies(projectId: number,userId:number) {
-    return this.drizzle.db
+ async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggregatedResponse> {
+    // Get all known species (with scientificSpeciesId) from both tables
+    const knownSpeciesQuery = await this.drizzle.db
       .select({
-        // Project species fields
-        uid: projectSpecies.uid,
-        scientificSpeciesId: projectSpecies.scientificSpeciesId,
-        isUnknown: projectSpecies.isUnknown,
-        speciesName: projectSpecies.speciesName,
-        commonName: projectSpecies.commonName,
-        image: projectSpecies.image,
-        notes: projectSpecies.notes,
-        favourite: projectSpecies.favourite,
-        isDisabled: projectSpecies.isDisabled,
-        createdAt: projectSpecies.createdAt,
-        updatedAt: projectSpecies.updatedAt,
-        addedByUid: user.uid,
-        addedByName: user.displayName,
-        addedByImage: user.image,
+        scientificSpeciesId: sql<number>`COALESCE(${projectSpecies.scientificSpeciesId}, ${interventionSpecies.scientificSpeciesId})`,
+        scientificName: scientificSpecies.scientificName,
+        
+        // Priority: project species common name first
+        commonName: sql<string>`COALESCE(${projectSpecies.commonName}, ${interventionSpecies.commonName})`,
+        speciesName: sql<string>`COALESCE(${projectSpecies.speciesName}, ${interventionSpecies.speciesName})`,
+        
+        // Project species data
+        projectSpeciesId: projectSpecies.id,
+        projectCommonName: projectSpecies.commonName,
+        projectSpeciesName: projectSpecies.speciesName,
+        isFavourite: sql<boolean>`COALESCE(${projectSpecies.favourite}, false)`,
+        projectSpeciesNotes: projectSpecies.notes,
+        projectSpeciesImage: projectSpecies.image,
+        projectSpeciesCreatedAt: projectSpecies.createdAt,
+        projectSpeciesUpdatedAt: projectSpecies.updatedAt,
+        
+      // Intervention data
+        interventionSpeciesId: interventionSpecies.id,
+        interventionCommonName: interventionSpecies.commonName,
+        interventionSpeciesName: interventionSpecies.speciesName,
+        interventionId: interventionSpecies.interventionId,
+        speciesCount: interventionSpecies.speciesCount,
+        interventionSpeciesCreatedAt: interventionSpecies.createdAt,
+        interventionSpeciesUpdatedAt: interventionSpecies.updatedAt,
       })
-      .from(projectSpecies)
-      .leftJoin(scientificSpecies, eq(projectSpecies.scientificSpeciesId, scientificSpecies.id))
-      .leftJoin(user, eq(projectSpecies.addedById, userId))
-      .where(
+      .from(scientificSpecies)
+      .leftJoin(
+        projectSpecies,
         and(
+          eq(projectSpecies.scientificSpeciesId, scientificSpecies.id),
           eq(projectSpecies.projectId, projectId),
           isNull(projectSpecies.deletedAt)
         )
       )
-      .orderBy(desc(projectSpecies.createdAt));
-  }
+      .leftJoin(
+        interventionSpecies,
+        and(
+          eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id),
+          isNotNull(interventionSpecies.scientificSpeciesId)
+        )
+      )
+      .leftJoin(
+        intervention,
+        and(
+          eq(intervention.id, interventionSpecies.interventionId),
+          eq(intervention.projectId, projectId),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .where(
+        sql`(${projectSpecies.id} IS NOT NULL OR ${interventionSpecies.id} IS NOT NULL)`
+      );
 
-  private async getInterventionSpecies(projectId: number) {
-    return this.drizzle.db
+    // Get unknown species separately
+    const unknownSpeciesQuery = await this.drizzle.db
       .select({
-        interventionSpeciesUid: interventionSpecies.uid,
-        interventionId: interventionSpecies.interventionId,
-        scientificSpeciesId: interventionSpecies.scientificSpeciesId,
-        isUnknown: interventionSpecies.isUnknown,
+        uid: interventionSpecies.uid,
         speciesName: interventionSpecies.speciesName,
-        speciesCount: interventionSpecies.speciesCount,
-        interventionSpeciesCreatedAt: interventionSpecies.createdAt,
-        scientificSpeciesUid: scientificSpecies.uid,
-        scientificName: scientificSpecies.scientificName,
-        commonName: scientificSpecies.commonName,
-        description: scientificSpecies.description,
-        image: scientificSpecies.image,
-        family: scientificSpecies.family,
-        genus: scientificSpecies.genus,
-        conservationStatus: scientificSpecies.conservationStatus,
-        isNative: scientificSpecies.isNative,
-        isInvasive: scientificSpecies.isInvasive,
-
-        // Intervention context
+        commonName: interventionSpecies.commonName,
+        interventionId: interventionSpecies.interventionId,
         interventionUid: intervention.uid,
         interventionHid: intervention.hid,
-        interventionType: intervention.type,
-        interventionStartDate: intervention.interventionStartDate,
-        interventionCreatedAt: intervention.createdAt,
+        speciesCount: interventionSpecies.speciesCount,
+        image: sql<string>`NULL`, // Unknown species typically don't have images
+        createdAt: interventionSpecies.createdAt,
+        updatedAt: interventionSpecies.updatedAt,
       })
       .from(interventionSpecies)
-      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
-      .leftJoin(intervention, eq(interventionSpecies.interventionId, intervention.id))
-      .where(
+      .innerJoin(
+        intervention,
         and(
+          eq(intervention.id, interventionSpecies.interventionId),
           eq(intervention.projectId, projectId),
           isNull(intervention.deletedAt)
         )
       )
-      .orderBy(desc(interventionSpecies.createdAt));
-  }
-
-  private async getInterventionSpeciesSummary(projectId: number) {
-    // Get aggregated intervention species data for summary counts
-    return this.drizzle.db
-      .select({
-        scientificSpeciesId: interventionSpecies.scientificSpeciesId,
-        scientificSpeciesUid: scientificSpecies.uid,
-        speciesName: interventionSpecies.speciesName,
-        isUnknown: interventionSpecies.isUnknown,
-        totalCount: sql<number>`sum(${interventionSpecies.speciesCount})::int`,
-        interventionCount: sql<number>`count(distinct ${interventionSpecies.interventionId})::int`,
-        interventionTypes: sql<string[]>`array_agg(distinct ${intervention.type})`,
-        firstUsedAt: sql<Date>`min(${intervention.interventionStartDate})`,
-        lastUsedAt: sql<Date>`max(${intervention.interventionStartDate})`,
-      })
-      .from(interventionSpecies)
-      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
-      .leftJoin(intervention, eq(interventionSpecies.interventionId, intervention.id))
       .where(
         and(
-          eq(intervention.projectId, projectId),
-          isNull(intervention.deletedAt)
+          eq(interventionSpecies.isUnknown, true),
+          isNull(interventionSpecies.scientificSpeciesId)
         )
-      )
-      .groupBy(
-        interventionSpecies.scientificSpeciesId,
-        scientificSpecies.uid,
-        interventionSpecies.speciesName,
-        interventionSpecies.isUnknown
       );
-  }
 
-  private aggregateSpeciesData(
-    projectSpeciesData: any[],
-    interventionSpeciesData: any[],
-    interventionSummaryData: any[]
-  ) {
-    const scientificSpeciesMap = new Map<string, any>();
-    const unknownSpeciesMap = new Map<string, any>();
-
-    // Process project species first
-    projectSpeciesData.forEach(projectSpecies => {
-      if (projectSpecies.isUnknown) {
-        // Handle unknown project species
-        const key = `custom_${projectSpecies.customSpeciesName}`;
-        unknownSpeciesMap.set(key, {
-          uid: projectSpecies.uid,
-          type: 'custom',
-          speciesName: projectSpecies.customSpeciesName,
-          commonName: projectSpecies.customCommonName,
-          image: projectSpecies.customImage || projectSpecies.image,
-          description: null,
-          notes: projectSpecies.notes,
-          isUnknown: true,
-          favourite: projectSpecies.favourite,
-          isDisabled: projectSpecies.isDisabled,
-          priority: projectSpecies.priority,
-          plannedQuantity: projectSpecies.plannedQuantity,
-          actualQuantity: projectSpecies.actualQuantity,
-          sources: ['project'],
-          sourceDetails: {
-            project: {
-              addedBy: {
-                uid: projectSpecies.addedByUid,
-                name: projectSpecies.addedByName,
-                image: projectSpecies.addedByImage,
-              },
-              addedAt: projectSpecies.createdAt,
-            }
-          },
-          interventionUsage: {
-            totalCount: 0,
-            interventionCount: 0,
-            interventionTypes: [],
-            firstUsedAt: null,
-            lastUsedAt: null,
-          },
-          createdAt: projectSpecies.createdAt,
-          updatedAt: projectSpecies.updatedAt,
-        });
-      } else if (projectSpecies.scientificSpeciesId) {
-        // Handle known scientific species from project
-        const key = projectSpecies.scientificSpeciesUid || `scientific_${projectSpecies.scientificSpeciesId}`;
-        scientificSpeciesMap.set(key, {
-          uid: projectSpecies.uid,
-          scientificSpeciesId: projectSpecies.scientificSpeciesId,
-          scientificSpeciesUid: projectSpecies.scientificSpeciesUid,
-          speciesName: projectSpecies.scientificName,
-          commonName: projectSpecies.commonName,
-          description: projectSpecies.description,
-          image: projectSpecies.image,
-          family: projectSpecies.family,
-          genus: projectSpecies.genus,
-          species: projectSpecies.species,
-          conservationStatus: projectSpecies.conservationStatus,
-          isNative: projectSpecies.isNative,
-          isInvasive: projectSpecies.isInvasive,
-          isUnknown: false,
-          favourite: projectSpecies.favourite,
-          isDisabled: projectSpecies.isDisabled,
-          priority: projectSpecies.priority,
-          plannedQuantity: projectSpecies.plannedQuantity,
-          actualQuantity: projectSpecies.actualQuantity,
-          notes: projectSpecies.notes,
-          sources: ['project'],
-          sourceDetails: {
-            project: {
-              addedBy: {
-                uid: projectSpecies.addedByUid,
-                name: projectSpecies.addedByName,
-                image: projectSpecies.addedByImage,
-              },
-              addedAt: projectSpecies.createdAt,
-            }
-          },
-          interventionUsage: {
-            totalCount: 0,
-            interventionCount: 0,
-            interventionTypes: [],
-            firstUsedAt: null,
-            lastUsedAt: null,
-          },
-          createdAt: projectSpecies.createdAt,
-          updatedAt: projectSpecies.updatedAt,
+    // Process known species aggregation
+    const knownSpeciesMap = new Map<number, KnownSpeciesResponse>();
+    
+    for (const row of knownSpeciesQuery) {
+      const scientificSpeciesId = row.scientificSpeciesId;
+      
+      if (!knownSpeciesMap.has(scientificSpeciesId)) {
+        // Initialize aggregated record
+        knownSpeciesMap.set(scientificSpeciesId, {
+          scientificSpeciesId,
+          scientificName: row.scientificName,
+          commonName: row.commonName,
+          speciesName: row.speciesName,
+          image: row.projectSpeciesImage || null,
+          
+          isInProjectSpecies: !!row.projectSpeciesId,
+          isFavourite: row.isFavourite,
+          projectSpeciesNotes: row.projectSpeciesNotes,
+          
+          interventionUsageCount: 0,
+          totalSpecimenCount: 0,
+          interventionIds: [],
+          createdAt: row.projectSpeciesCreatedAt || row.interventionSpeciesCreatedAt,
+          updatedAt: row.projectSpeciesUpdatedAt || row.interventionSpeciesUpdatedAt,
         });
       }
-    });
-
-    // Process intervention species summary
-    interventionSummaryData.forEach(summary => {
-      if (summary.isUnknown) {
-        // Handle unknown intervention species
-        const key = `intervention_${summary.speciesName}`;
-        if (!unknownSpeciesMap.has(key)) {
-          unknownSpeciesMap.set(key, {
-            uid: `intervention_${summary.speciesName}_${Date.now()}`,
-            type: 'intervention_unknown',
-            speciesName: summary.speciesName,
-            commonName: null,
-            image: '',
-            description: null,
-            notes: null,
-            isUnknown: true,
-            favourite: false,
-            isDisabled: false,
-            priority: null,
-            plannedQuantity: null,
-            actualQuantity: null,
-            sources: ['intervention'],
-            sourceDetails: {},
-            interventionUsage: {
-              totalCount: summary.totalCount,
-              interventionCount: summary.interventionCount,
-              interventionTypes: summary.interventionTypes,
-              firstUsedAt: summary.firstUsedAt,
-              lastUsedAt: summary.lastUsedAt,
-            },
-            createdAt: summary.firstUsedAt,
-            updatedAt: summary.lastUsedAt,
-          });
-        } else {
-          // Update existing unknown species with intervention data
-          const existing = unknownSpeciesMap.get(key);
-          if (!existing.sources.includes('intervention')) {
-            existing.sources.push('intervention');
-          }
-          existing.interventionUsage = {
-            totalCount: summary.totalCount,
-            interventionCount: summary.interventionCount,
-            interventionTypes: summary.interventionTypes,
-            firstUsedAt: summary.firstUsedAt,
-            lastUsedAt: summary.lastUsedAt,
-          };
-        }
-      } else {
-        // Handle known scientific species from interventions
-        const key = summary.scientificSpeciesUid || `scientific_${summary.scientificSpeciesId}`;
-
-        if (scientificSpeciesMap.has(key)) {
-          // Update existing scientific species with intervention data
-          const existing = scientificSpeciesMap.get(key);
-          if (!existing.sources.includes('intervention')) {
-            existing.sources.push('intervention');
-          }
-          existing.interventionUsage = {
-            totalCount: summary.totalCount,
-            interventionCount: summary.interventionCount,
-            interventionTypes: summary.interventionTypes,
-            firstUsedAt: summary.firstUsedAt,
-            lastUsedAt: summary.lastUsedAt,
-          };
-        } else {
-          // Create new entry for intervention-only scientific species
-          // Get the first intervention species record for this scientific species
-          const interventionSpecies = interventionSpeciesData.find(
-            item => item.scientificSpeciesId === summary.scientificSpeciesId && !item.isUnknown
-          );
-
-          if (interventionSpecies) {
-            scientificSpeciesMap.set(key, {
-              uid: `intervention_scientific_${summary.scientificSpeciesId}`,
-              scientificSpeciesId: summary.scientificSpeciesId,
-              scientificSpeciesUid: summary.scientificSpeciesUid,
-              speciesName: interventionSpecies.scientificName || summary.speciesName,
-              commonName: interventionSpecies.commonName,
-              description: interventionSpecies.description,
-              image: interventionSpecies.image,
-              family: interventionSpecies.family,
-              genus: interventionSpecies.genus,
-              conservationStatus: interventionSpecies.conservationStatus,
-              isNative: interventionSpecies.isNative,
-              isInvasive: interventionSpecies.isInvasive,
-              isUnknown: false,
-              favourite: false,
-              isDisabled: false,
-              priority: null,
-              plannedQuantity: null,
-              actualQuantity: null,
-              notes: null,
-              sources: ['intervention'],
-              sourceDetails: {},
-              interventionUsage: {
-                totalCount: summary.totalCount,
-                interventionCount: summary.interventionCount,
-                interventionTypes: summary.interventionTypes,
-                firstUsedAt: summary.firstUsedAt,
-                lastUsedAt: summary.lastUsedAt,
-              },
-              createdAt: summary.firstUsedAt,
-              updatedAt: summary.lastUsedAt,
-            });
-          }
-        }
+      
+      const species = knownSpeciesMap.get(scientificSpeciesId)!;
+      
+      // Update project species data if exists
+      if (row.projectSpeciesId && !species.isInProjectSpecies) {
+        species.isInProjectSpecies = true;
+        species.isFavourite = row.isFavourite;
+        species.projectSpeciesNotes = row.projectSpeciesNotes;
+        species.image = species.image || row.projectSpeciesImage;
       }
-    });
-
-    return {
-      scientificSpecies: Array.from(scientificSpeciesMap.values())
-        .sort((a, b) => {
-          // Sort by: favourites first, then by usage in interventions, then by creation date
-          if (a.favourite !== b.favourite) return b.favourite ? 1 : -1;
-          if (a.interventionUsage.totalCount !== b.interventionUsage.totalCount) {
-            return b.interventionUsage.totalCount - a.interventionUsage.totalCount;
-          }
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }),
-      unknownSpecies: Array.from(unknownSpeciesMap.values())
-        .sort((a, b) => {
-          // Sort by usage count first, then by creation date
-          if (a.interventionUsage.totalCount !== b.interventionUsage.totalCount) {
-            return b.interventionUsage.totalCount - a.interventionUsage.totalCount;
-          }
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        }),
-    };
-  }
-
-  // Additional helper method to get species by filter
-  async getSpeciesByFilter(
-    membership: ProjectGuardResponse,
-    filters: {
-      source?: 'project' | 'intervention' | 'both';
-      isUnknown?: boolean;
-      favourite?: boolean;
-      isDisabled?: boolean;
-      priority?: string;
-      search?: string;
-    } = {}
-  ) {
-    const allSpecies = await this.getAll(membership);
-
-    let filteredScientific = allSpecies.scientificSpecies;
-    let filteredUnknown = allSpecies.unknownSpecies;
-
-    // Apply filters
-    if (filters.source) {
-      const sourceFilter = (species: any) => {
-        if (filters.source === 'both') return species.sources.length > 1;
-        return species.sources.includes(filters.source);
-      };
-      filteredScientific = filteredScientific.filter(sourceFilter);
-      filteredUnknown = filteredUnknown.filter(sourceFilter);
-    }
-
-    if (filters.isUnknown !== undefined) {
-      if (filters.isUnknown) {
-        filteredScientific = [];
-      } else {
-        filteredUnknown = [];
+      
+      // Aggregate intervention data
+      if (row.interventionSpeciesId && row.interventionId) {
+        if (!species.interventionIds.includes(row.interventionId)) {
+          species.interventionIds.push(row.interventionId);
+          species.interventionUsageCount++;
+        }
+        species.totalSpecimenCount += row.speciesCount || 0;
       }
     }
 
-    if (filters.favourite !== undefined) {
-      filteredScientific = filteredScientific.filter(s => s.favourite === filters.favourite);
-      filteredUnknown = filteredUnknown.filter(s => s.favourite === filters.favourite);
-    }
+    const knownSpecies = Array.from(knownSpeciesMap.values());
+    const unknownSpecies: UnknownSpeciesResponse[] = unknownSpeciesQuery.map(row => ({
+      uid: row.uid,
+      speciesName: '',
+      commonName: row.speciesName,
+      interventionId: row.interventionId,
+      interventionUid: row.interventionUid,
+      interventionHid: row.interventionHid,
+      speciesCount: row.speciesCount,
+      image: row.image,
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }));
 
-    if (filters.isDisabled !== undefined) {
-      filteredScientific = filteredScientific.filter(s => s.isDisabled === filters.isDisabled);
-      filteredUnknown = filteredUnknown.filter(s => s.isDisabled === filters.isDisabled);
-    }
-
-    if (filters.priority) {
-      filteredScientific = filteredScientific.filter(s => s.priority === filters.priority);
-      filteredUnknown = filteredUnknown.filter(s => s.priority === filters.priority);
-    }
-
-    if (filters.search) {
-      const searchLower = filters.search.toLowerCase();
-      const searchFilter = (species: any) =>
-        species.speciesName?.toLowerCase().includes(searchLower) ||
-        species.commonName?.toLowerCase().includes(searchLower) ||
-        species.family?.toLowerCase().includes(searchLower) ||
-        species.genus?.toLowerCase().includes(searchLower);
-
-      filteredScientific = filteredScientific.filter(searchFilter);
-      filteredUnknown = filteredUnknown.filter(searchFilter);
-    }
+    // Calculate summary
+    const totalProjectSpecies = knownSpecies.filter(s => s.isInProjectSpecies).length;
+    const totalInterventionSpecies = knownSpecies.filter(s => s.interventionUsageCount > 0).length + unknownSpecies.length;
 
     return {
-      scientificSpecies: filteredScientific,
-      unknownSpecies: filteredUnknown,
+      knownSpecies,
+      unknownSpecies,
       summary: {
-        ...allSpecies.summary,
-        filteredScientificCount: filteredScientific.length,
-        filteredUnknownCount: filteredUnknown.length,
+        totalKnownSpecies: knownSpecies.length,
+        totalUnknownSpecies: unknownSpecies.length,
+        totalProjectSpecies,
+        totalInterventionSpecies,
       },
     };
   }
+
+  async updateFavourite(
+    speciesId: string,
+    membership: ProjectGuardResponse,
+    updateDto: { fav: boolean },
+  ) {
+    const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+    if (!existingSpecies) {
+      throw new NotFoundException('User species not found');
+    }
+
+    const updatedSpecies = await this.drizzle.db
+      .update(projectSpecies)
+      .set({
+        favourite: updateDto.fav,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(projectSpecies.id, existingSpecies.id),
+          eq(projectSpecies.projectId, membership.projectId),
+        ),
+      )
+      .returning();
+
+    if (!updatedSpecies.length) {
+      throw new NotFoundException('User species not found');
+    }
+    return false
+  }
+
+  async updateDisbale(
+    speciesId: string,
+    membership: ProjectGuardResponse,
+    updateDto: { disable: boolean },
+  ) {
+    try {
+      const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+      if (!existingSpecies) {
+        throw new NotFoundException('User species not found');
+      }
+
+      const updatedSpecies = await this.drizzle.db
+        .update(projectSpecies)
+        .set({
+          isDisabled: updateDto.disable,
+          updatedAt: new Date(),
+        })
+        .where(
+          and(
+            eq(projectSpecies.id, existingSpecies.id),
+            eq(projectSpecies.projectId, membership.projectId),
+          ),
+        )
+        .returning();
+      console.log("SDC", updatedSpecies)
+
+      if (!updatedSpecies.length) {
+        throw new NotFoundException('User species not found');
+      }
+      return false
+    } catch (error) {
+      console.log("SDC", error)
+    }
+  }
+
+
+  async getByUid(uid: string, projectId: number) {
+    const species = await this.drizzle.db
+      .select({
+        id: projectSpecies.id,
+        uid: projectSpecies.uid,
+        commonName: projectSpecies.commonName,
+        image: projectSpecies.image,
+        description: projectSpecies.notes,
+        notes: projectSpecies.notes,
+        favourite: projectSpecies.favourite,
+        createdAt: projectSpecies.createdAt,
+        updatedAt: projectSpecies.updatedAt,
+        scientificSpecies: {
+          id: scientificSpecies.id,
+          uid: scientificSpecies.uid,
+          scientificName: scientificSpecies.scientificName,
+          commonName: scientificSpecies.commonName,
+          description: scientificSpecies.description,
+          gbifId: scientificSpecies.gbifId,
+        },
+      })
+      .from(projectSpecies)
+      .leftJoin(scientificSpecies, eq(projectSpecies.scientificSpeciesId, scientificSpecies.id))
+      .where(
+        and(
+          eq(projectSpecies.uid, uid),
+          eq(projectSpecies.projectId, projectId),
+        ),
+      )
+      .limit(1);
+
+    if (!species.length) {
+      throw new NotFoundException('User species not found');
+    }
+
+    return species[0];
+  }
+
+
+  async update(
+    speciesId: string,
+    membership: ProjectGuardResponse,
+    updateDto: UpdateUserSpeciesDto,
+  ) {
+    const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+    if (!existingSpecies) {
+      throw new NotFoundException('User species not found');
+    }
+
+    const updatedSpecies = await this.drizzle.db
+      .update(projectSpecies)
+      .set({
+        ...updateDto,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          eq(projectSpecies.id, existingSpecies.id),
+          eq(projectSpecies.projectId, membership.projectId),
+        ),
+      )
+      .returning();
+
+    if (!updatedSpecies.length) {
+      throw new NotFoundException('User species not found');
+    }
+
+    return updatedSpecies[0]
+  }
+
+
+
+
 
 
 
@@ -537,139 +447,6 @@ export class ProjectSpeciesService {
   //     return { message: 'Species deleted successfully' };
   //   }
 
-  //   async getByUid(uid: string, projectId: number) {
-  //     const species = await this.drizzle.db
-  //       .select({
-  //         id: projectSpecies.id,
-  //         uid: projectSpecies.uid,
-  //         commonName: projectSpecies.commonName,
-  //         image: projectSpecies.image,
-  //         description: projectSpecies.description,
-  //         notes: projectSpecies.notes,
-  //         favourite: projectSpecies.favourite,
-  //         createdAt: projectSpecies.createdAt,
-  //         updatedAt: projectSpecies.updatedAt,
-  //         scientificSpecies: {
-  //           id: scientificSpecies.id,
-  //           uid: scientificSpecies.uid,
-  //           scientificName: scientificSpecies.scientificName,
-  //           commonName: scientificSpecies.commonName,
-  //           description: scientificSpecies.description,
-  //           gbifId: scientificSpecies.gbifId,
-  //         },
-  //       })
-  //       .from(projectSpecies)
-  //       .leftJoin(scientificSpecies, eq(projectSpecies.scientificSpeciesId, scientificSpecies.id))
-  //       .where(
-  //         and(
-  //           eq(projectSpecies.uid, uid),
-  //           eq(projectSpecies.projectId, projectId),
-  //         ),
-  //       )
-  //       .limit(1);
-
-  //     if (!species.length) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-
-  //     return species[0];
-  //   }
-
-  //   async update(
-  //     speciesId: string,
-  //     membership: ProjectGuardResponse,
-  //     updateDto: UpdateUserSpeciesDto,
-  //   ) {
-  //     const existingSpecies = await this.getByUid(speciesId, membership.projectId);
-  //     if (!existingSpecies) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-
-  //     const updatedSpecies = await this.drizzle.db
-  //       .update(projectSpecies)
-  //       .set({
-  //         ...updateDto,
-  //         updatedAt: new Date(),
-  //       })
-  //       .where(
-  //         and(
-  //           eq(projectSpecies.id, existingSpecies.id),
-  //           eq(projectSpecies.projectId, membership.projectId),
-  //         ),
-  //       )
-  //       .returning();
-
-  //     if (!updatedSpecies.length) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-
-  //     return updatedSpecies[0]
-  //   }
-
-  //   async updateFavourite(
-  //     speciesId: string,
-  //     membership: ProjectGuardResponse,
-  //     updateDto: { fav: boolean },
-  //   ) {
-  //     const existingSpecies = await this.getByUid(speciesId, membership.projectId);
-  //     if (!existingSpecies) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-
-  //     const updatedSpecies = await this.drizzle.db
-  //       .update(projectSpecies)
-  //       .set({
-  //         favourite: updateDto.fav,
-  //         updatedAt: new Date(),
-  //       })
-  //       .where(
-  //         and(
-  //           eq(projectSpecies.id, existingSpecies.id),
-  //           eq(projectSpecies.projectId, membership.projectId),
-  //         ),
-  //       )
-  //       .returning();
-
-  //     if (!updatedSpecies.length) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-  //     return false
-  //   }
-
-  //   async updateDisbale(
-  //     speciesId: string,
-  //     membership: ProjectGuardResponse,
-  //     updateDto: { disable: boolean },
-  //   ) {
-  //     try {
-  //       const existingSpecies = await this.getByUid(speciesId, membership.projectId);
-  //       if (!existingSpecies) {
-  //         throw new NotFoundException('User species not found');
-  //       }
-
-  //       const updatedSpecies = await this.drizzle.db
-  //         .update(projectSpecies)
-  //         .set({
-  //           isDisabled: updateDto.disable,
-  //           updatedAt: new Date(),
-  //         })
-  //         .where(
-  //           and(
-  //             eq(projectSpecies.id, existingSpecies.id),
-  //             eq(projectSpecies.projectId, membership.projectId),
-  //           ),
-  //         )
-  //         .returning();
-  //       console.log("SDC", updatedSpecies)
-
-  //       if (!updatedSpecies.length) {
-  //         throw new NotFoundException('User species not found');
-  //       }
-  //       return false
-  //     } catch (error) {
-  //       console.log("SDC", error)
-  //     }
-  //   }
 
 
 

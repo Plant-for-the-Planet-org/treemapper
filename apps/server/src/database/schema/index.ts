@@ -119,7 +119,7 @@ export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'bar
 export const siteAccessEnum = pgEnum('site_access', ['all_sites', 'deny_all', 'read_only', 'limited_access']);
 export const speciesRequestStatusEnum = pgEnum('species_request_status', ['pending', 'approved', 'rejected']);
 export const interventionDiscriminatorEnum = pgEnum('intervention_discriminator', ['plot', 'intervention']);
-export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown','web-upload']);
+export const captureModeEnum = pgEnum('capture_mode', ['on-site', 'off-site', 'external', 'unknown', 'web-upload']);
 export const captureStatusEnum = pgEnum('capture_status', ['complete', 'partial', 'incomplete']);
 export const notificationTypeEnum = pgEnum('notification_type', ['project', 'site', 'member', 'intervention', 'tree', 'species', 'user', 'invite', 'system', 'other']);
 export const workspaceRoleEnum = pgEnum('workspace_role', [
@@ -815,14 +815,14 @@ export const projectSpecies = pgTable('project_species', {
   projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
   scientificSpeciesId: integer('scientific_species_id').references(() => scientificSpecies.id, { onDelete: 'set null' }),
   isUnknown: boolean('is_unknown').default(false).notNull(),
-  speciesName:text('species_name'),
+  speciesName: text('species_name'),
   commonName: text('common_name'),
   image: text('image'),
   notes: text('notes'),
   favourite: boolean('favourite').default(false).notNull(),
   isDisabled: boolean('is_disabled').default(false),
   addedById: integer('added_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
-  metadata:jsonb('metadata'),
+  metadata: jsonb('metadata'),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -932,6 +932,7 @@ export const interventionSpecies = pgTable('intervention_species', {
   scientificSpeciesId: integer('scientific_species_id').references(() => scientificSpecies.id, { onDelete: 'set null' }),
   isUnknown: boolean('is_unknown').default(false).notNull(),
   speciesName: text('species_name'),
+  commonName: text('common_name'),
   speciesCount: integer('species_count').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -948,7 +949,8 @@ export const tree = pgTable('tree', {
   uid: text('uid').notNull().unique(),
   interventionId: integer('intervention_id').notNull().references(() => intervention.id, { onDelete: 'cascade' }),
   interventionSpeciesId: integer('intervention_species_id').notNull().references(() => interventionSpecies.id, { onDelete: 'restrict' }),
-  speciesName:text('species_name'),
+  speciesName: text('species_name'),
+  commonName: text('common_name'),
   createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
   tag: text('tag'),
   treeType: treeTypeEnum('tree_type').default('sample'),
@@ -974,7 +976,7 @@ export const tree = pgTable('tree', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
 }, (table) => ({
-  remeasuredIdx:index('tree_intervention_remeasured_idx')
+  remeasuredIdx: index('tree_intervention_remeasured_idx')
     .on(table.interventionId, table.remeasured),
   interventionTreesIdx: index('tree_intervention_status_idx')
     .on(table.interventionId, table.status)
