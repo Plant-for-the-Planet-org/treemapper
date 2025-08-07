@@ -117,7 +117,7 @@ export const SpeciesCard = ({
                 className={`p-1 rounded transition-colors ${
                   (species.isDisabled || species.disabled)
                     ? 'text-gray-400 hover:text-gray-600' 
-                    : 'text-[#007A49] hover:text-[#006B3F]'
+                  : 'text-[#007A49] hover:text-[#006B3F]'
                 }`}
               >
                 {(species.isDisabled || species.disabled) ? <EyeOff size={12} /> : <Eye size={12} />}

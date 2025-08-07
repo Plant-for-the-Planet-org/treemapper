@@ -833,16 +833,6 @@ const FiltersSection = ({
   return (
     <div className="space-y-4">
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input
-          type="text"
-          placeholder="Search by HID..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="pl-10"
-        />
-      </div>
 
       {/* Filter Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
@@ -935,6 +925,17 @@ const HeaderWithFilters = ({
 
           {/* Desktop Actions */}
           <div className="flex items-center gap-3">
+            <div className="relative" style={{position:'absolute',left:20, width:"20vw"}}>
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by HID..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+
             <Button
               variant="ghost"
               onClick={() => setShowFilters(!showFilters)}
@@ -952,7 +953,7 @@ const HeaderWithFilters = ({
               </Button>
             )}
 
-            <Button  onClick={newIntervention}>
+            <Button onClick={newIntervention}>
               <Plus className="h-4 w-4 mr-2" />
               New Intervention
             </Button>
@@ -1469,7 +1470,11 @@ const TreeMapperUI = () => {
     captureMode: '',
     projectSiteId: '',
     interventionStartDate: '',
-    flag: ''
+    registrationDate: '', // Added this
+    userId: '', // Added this
+    species: [], // Added this
+    flag: '',
+    sortOrder: 'desc' // Added this
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [pagination, setPagination] = useState({
@@ -1482,9 +1487,12 @@ const TreeMapperUI = () => {
   const [sites, setSites] = useState([]);
   const [hoveredTree, setHoveredTree] = useState(null);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+
+  // Remove the useMemo for filteredInterventions since we're now filtering on the server
   const filteredInterventions = useMemo(() => {
-    return interventions.sort((a, b) => new Date(b.registrationDate) - new Date(a.registrationDate));
+    return interventions; // Server already filters, just return as-is
   }, [interventions]);
+
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
   const observerRef = useRef();
@@ -1493,6 +1501,9 @@ const TreeMapperUI = () => {
   const interventionTypes = useMemo(() => {
     return [...new Set(interventions.map(i => i.type))];
   }, [interventions]);
+
+  // Debounced search
+  const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Fetch interventions data
   const fetchInterventionData = async (page = 1, append = false) => {
@@ -1505,16 +1516,27 @@ const TreeMapperUI = () => {
       const queryParams = {
         page,
         limit: pagination.limit,
-        ...filters,
-        searchHid: searchTerm
+        searchHid: debouncedSearchTerm || undefined,
+        // Apply all filters
+        type: filters.type || undefined,
+        captureMode: filters.captureMode || undefined,
+        projectSiteId: filters.projectSiteId ? parseInt(filters.projectSiteId) : undefined,
+        interventionStartDate: filters.interventionStartDate || undefined,
+        registrationDate: filters.registrationDate || undefined,
+        userId: filters.userId ? parseInt(filters.userId) : undefined,
+        species: filters.species && filters.species.length > 0 ? filters.species : undefined,
+        flag: filters.flag !== '' ? (filters.flag === 'true' || filters.flag === true) : undefined,
+        sortOrder: filters.sortOrder || 'desc'
       };
 
-      // Remove empty filters
+      // Remove empty/undefined filters
       Object.keys(queryParams).forEach(key => {
         if (queryParams[key] === '' || queryParams[key] === null || queryParams[key] === undefined) {
           delete queryParams[key];
         }
       });
+
+      console.log('Fetching with filters:', queryParams); // Debug log
 
       const response = await getProjectIntervention(accessToken || '', selectedProject.uid, queryParams);
 
@@ -1525,7 +1547,10 @@ const TreeMapperUI = () => {
           setInterventions(prev => [...prev, ...newInterventions]);
         } else {
           setInterventions(newInterventions);
-          if (!selectedIntervention && newInterventions.length > 0) {
+          // Reset selection if no interventions match filters
+          if (newInterventions.length === 0) {
+            setSelectedIntervention(null);
+          } else if (!selectedIntervention || !newInterventions.find(i => i.id === selectedIntervention.id)) {
             setSelectedIntervention(newInterventions[0]);
           }
         }
@@ -1534,36 +1559,133 @@ const TreeMapperUI = () => {
         setPagination(newPagination);
         setHasMore(newPagination.page < newPagination.totalPages);
       } else {
-        throw new Error('Failed to fetch interventions');
+        throw new Error(response?.message || 'Failed to fetch interventions');
       }
     } catch (error) {
       console.error('Error fetching interventions:', error);
       setError(error.message || 'Failed to fetch interventions');
+      if (!append) {
+        setInterventions([]);
+        setSelectedIntervention(null);
+      }
     } finally {
       setLoading(false);
     }
   };
 
+  // Initial load
   useEffect(() => {
     if (selectedProject) {
       fetchInterventionData();
     }
   }, [selectedProject]);
 
-  const handleDateChange = (date) => {
-    setFilters(prev => ({ ...prev, interventionStartDate: date }));
+  // Refetch when filters change
+  useEffect(() => {
+    if (selectedProject) {
+      setPagination(prev => ({ ...prev, page: 1 })); // Reset to page 1
+      fetchInterventionData(1, false); // Fetch from page 1, don't append
+    }
+  }, [filters, debouncedSearchTerm, selectedProject]);
+
+  // Custom hook for debouncing (if not already available)
+  function useDebounce(value, delay) {
+    const [debouncedValue, setDebouncedValue] = useState(value);
+
+    useEffect(() => {
+      const handler = setTimeout(() => {
+        setDebouncedValue(value);
+      }, delay);
+
+      return () => {
+        clearTimeout(handler);
+      };
+    }, [value, delay]);
+
+    return debouncedValue;
+  }
+
+  // Enhanced filter handlers
+  const handleFilterChange = (filterKey, value) => {
+    setFilters(prev => {
+      const newFilters = { ...prev, [filterKey]: value };
+      console.log('Filter changed:', filterKey, value, 'New filters:', newFilters); // Debug log
+      return newFilters;
+    });
   };
+
+  const handleDateChange = (date) => {
+    handleFilterChange('interventionStartDate', date);
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setFilters({
+      type: '',
+      captureMode: '',
+      projectSiteId: '',
+      interventionStartDate: '',
+      registrationDate: '',
+      userId: '',
+      species: [],
+      flag: '',
+      sortOrder: 'desc'
+    });
+    setSearchTerm('');
+  };
+
+  // Load more for pagination
+  const loadMore = () => {
+    if (hasMore && !loading) {
+      const nextPage = pagination.page + 1;
+      fetchInterventionData(nextPage, true);
+    }
+  };
+
+  // Intersection observer for infinite scroll
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          loadMore();
+        }
+      },
+      { threshold: 1.0 }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observer.unobserve(observerRef.current);
+      }
+    };
+  }, [hasMore, loading]);
 
   const handleInterventionUpdate = async (uid, updates) => {
     console.log('Updating intervention:', uid, updates);
     // Implement intervention update logic
+    // After update, refresh the current page
+    fetchInterventionData(pagination.page);
   };
 
   const handleInterventionDelete = async (uid) => {
     console.log('Deleting intervention:', uid);
     // Implement intervention delete logic
     setSelectedIntervention(null);
+    // Refresh after delete
+    fetchInterventionData(pagination.page);
   };
+
+  // Calculate active filter count for UI
+  const activeFilterCount = Object.values(filters).filter(value => {
+    if (Array.isArray(value)) {
+      return value.length > 0;
+    }
+    return value !== '' && value !== null && value !== undefined;
+  }).length + (searchTerm ? 1 : 0);
 
   return (
     <div className="bg-gray-50 flex flex-col h-screen">
@@ -1579,9 +1701,13 @@ const TreeMapperUI = () => {
         bulkUpload={() => { router.push('/dashboard/bulkupload') }}
         userRole={selectedProject?.userRole}
         handleDateChange={handleDateChange}
+        handleFilterChange={handleFilterChange} // Pass the new handler
+        clearAllFilters={clearAllFilters} // Pass clear function
+        activeFilterCount={activeFilterCount} // Pass active filter count
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         error={error}
+        loading={loading} // Pass loading state
       />
 
       {/* Main Content */}
@@ -1604,34 +1730,64 @@ const TreeMapperUI = () => {
               {/* Sidebar Header */}
               <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-900">Interventions</h2>
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-lg font-semibold text-gray-900">Interventions</h2>
+                    {activeFilterCount > 0 && (
+                      <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700 border-blue-200">
+                        {activeFilterCount} filter{activeFilterCount > 1 ? 's' : ''}
+                      </Badge>
+                    )}
+                  </div>
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="text-xs">
-                      {filteredInterventions.length}
+                      {pagination.total || filteredInterventions.length}
                     </Badge>
                     {loading && (
                       <Loader className="w-4 h-4 animate-spin text-[#007A49]" />
                     )}
                   </div>
                 </div>
+                
+                {/* Show active filters summary */}
+                {/* {activeFilterCount > 0 && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <button
+                      onClick={clearAllFilters}
+                      className="text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                    >
+                      Clear all filters
+                    </button>
+                  </div>
+                )} */}
               </div>
 
               {/* Intervention List */}
-              <div className="overflow-y-auto" style={{ height: '86vh' }}>
+              <div className="flex-1 overflow-y-auto">
                 {filteredInterventions.length === 0 && !loading ? (
                   <div className="p-6 text-center">
                     <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center mx-auto mb-4">
                       <Trees className="h-8 w-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {error ? 'Error Loading Interventions' : 'No Interventions Found'}
+                      {error ? 'Error Loading Interventions' : 
+                       activeFilterCount > 0 ? 'No Matching Interventions' : 'No Interventions Found'}
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      {error ? 'Please try again later.' : 'Try adjusting your search or filters.'}
+                      {error ? 'Please try again later.' : 
+                       activeFilterCount > 0 ? 'Try adjusting your search or filters.' : 
+                       'Create your first intervention to get started.'}
                     </p>
-                    {error && (
-                      <Button variant="primary" size="sm">
+                    {error ? (
+                      <Button variant="primary" size="sm" onClick={() => fetchInterventionData()}>
                         Retry
+                      </Button>
+                    ) : activeFilterCount > 0 ? (
+                      <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                        Clear Filters
+                      </Button>
+                    ) : (
+                      <Button variant="primary" size="sm" onClick={() => router.push('/dashboard/new-intervention')}>
+                        Create Intervention
                       </Button>
                     )}
                   </div>
@@ -1645,6 +1801,26 @@ const TreeMapperUI = () => {
                         onClick={() => setSelectedIntervention(intervention)}
                       />
                     ))}
+                    
+                    {/* Infinite scroll trigger */}
+                    {hasMore && (
+                      <div ref={observerRef} className="py-4 text-center">
+                        {loading ? (
+                          <Loader className="w-4 h-4 animate-spin text-[#007A49] mx-auto" />
+                        ) : (
+                          <p className="text-xs text-gray-500">Load more...</p>
+                        )}
+                      </div>
+                    )}
+                    
+                    {/* End of results indicator */}
+                    {!hasMore && filteredInterventions.length > 0 && (
+                      <div className="py-4 text-center">
+                        <p className="text-xs text-gray-400">
+                          Showing all {pagination.total} results
+                        </p>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -1658,8 +1834,13 @@ const TreeMapperUI = () => {
                 <Trees className="h-4 w-4 text-white" />
               </div>
               <div className="text-xs font-semibold text-gray-600 transform rotate-90 whitespace-nowrap">
-                {filteredInterventions.length}
+                {pagination.total || filteredInterventions.length}
               </div>
+              {activeFilterCount > 0 && (
+                <div className="w-4 h-4 bg-blue-500 rounded-full flex items-center justify-center">
+                  <span className="text-xs text-white font-bold">{activeFilterCount}</span>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -1678,13 +1859,21 @@ const TreeMapperUI = () => {
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center max-w-md">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  Select an Intervention
+                  {filteredInterventions.length === 0 && activeFilterCount > 0 
+                    ? 'No Matching Interventions' 
+                    : 'Select an Intervention'}
                 </h3>
-                <p className="text-gray-600 text-sm leading-relaxed">
-                  Choose an intervention from the sidebar to view detailed information,
-                  manage species data, update tree records, and access location mapping.
+                <p className="text-gray-600 text-sm leading-relaxed mb-6">
+                  {filteredInterventions.length === 0 && activeFilterCount > 0
+                    ? 'Try adjusting your search criteria or filters to find interventions.'
+                    : 'Choose an intervention from the sidebar to view detailed information, manage species data, update tree records, and access location mapping.'}
                 </p>
-                <div className="mt-6">
+                <div className="flex items-center justify-center gap-3">
+                  {filteredInterventions.length === 0 && activeFilterCount > 0 ? (
+                    <Button variant="outline" onClick={clearAllFilters}>
+                      Clear All Filters
+                    </Button>
+                  ) : null}
                   <Button variant="primary" onClick={() => { router.push('/dashboard/new-intervention') }} className='bg-[#007A49] hover:bg-[#006B3F]'>
                     <Plus className="h-4 w-4 mr-2" />
                     Create New Intervention

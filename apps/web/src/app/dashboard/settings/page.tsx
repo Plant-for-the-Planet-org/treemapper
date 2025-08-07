@@ -1052,7 +1052,7 @@ const ProjectSettings = () => {
 
   useEffect(() => {
     fetchProjectDetails();
-  }, []);
+  }, [selectedProject]);
 
   const fetchProjectDetails = async () => {
     try {
@@ -1188,10 +1188,10 @@ const ProjectSettings = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!validateForm()) {
-      setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
-      return;
-    }
+    // if (!validateForm()) {
+    //   setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
+    //   return;
+    // }
 
     setLoading(true);
     try {
