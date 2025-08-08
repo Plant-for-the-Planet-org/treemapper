@@ -124,6 +124,12 @@ export const getMyProjects = async (token: string) => {
   return result
 }
 
+export const getMyProjectMember = async (token: string,projectId: string) => {
+  const uri = `${getUrlApi.projectMemebers}/projectId`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 
 export const getMyWorkspaceProjects = async (token: string) => {
   const uri = `${getUrlApi.workspce}`
@@ -248,6 +254,20 @@ export const createBulkIntervention = async (token: string, params: any, prjId: 
   const result = await fetchPostCall(uri, params, token);
   return result;
 };
+
+
+
+export const updateInterventionSpecies = async (token: string, params: any, project, intervention, species) => {
+  const uri = `${putUrlApi.speicesDataUpdate}/${intervention}/${project}/${species}`
+  const result = await fetchPutCall(uri, params, token)
+  return result
+}
+
+export const ownerrhsipTranferCall = async (token: string, params: any, project, intervention) => {
+  const uri = `${putUrlApi.ownershipTransfer}/${intervention}/${project}}/owner`
+  const result = await fetchPutCall(uri, params, token)
+  return result
+}
 
 
 //notification

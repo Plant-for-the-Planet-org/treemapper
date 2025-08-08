@@ -52,7 +52,8 @@ import {
   Trash2,
   UserPlus,
   FileUp,
-  Settings
+  Settings,
+  Pen
 } from 'lucide-react';
 import { getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
@@ -60,6 +61,8 @@ import { useToken } from '@/context/useTokenContext';
 import { spec } from 'node:test/reporters';
 import { useRouter } from 'next/navigation';
 import MapDisplayComponent from './component/InterventionDisplayMap';
+import EditSpeciesModal from './component/SpeciesEditModal';
+import OwenrshipTransfer from './component/OwnershipTransferModal';
 // Mock API functions - replace with your actual API calls
 const mockApiCall = (delay = 1000) => new Promise(resolve => setTimeout(resolve, delay));
 
@@ -790,11 +793,9 @@ const TreeCard = ({ tree, onUpdate }) => {
   );
 };
 
-// Species Card Component
-const SpeciesCard = ({ species }) => {
-
+const SpeciesCard = ({ species, setEditSpecies, editSpecies }) => {
   return (
-    <Card className="hover:shadow-sm transition-shadow">
+    <Card className="hover:shadow-sm transition-shadow" onClick={() => { setEditSpecies(species) }}>
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -925,7 +926,7 @@ const HeaderWithFilters = ({
 
           {/* Desktop Actions */}
           <div className="flex items-center gap-3">
-            <div className="relative" style={{position:'absolute',left:20, width:"20vw"}}>
+            <div className="relative" style={{ position: 'absolute', left: 20, width: "20vw" }}>
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <Input
                 type="text"
@@ -980,7 +981,7 @@ const HeaderWithFilters = ({
 };
 
 // Intervention Details Component
-const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
+const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, selectedProject }) => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showSpeciesDialog, setShowSpeciesDialog] = useState(false);
@@ -992,6 +993,8 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
     trees: true,
     metadata: false
   });
+
+  const [eidtedSpecies, setEditSpecies] = useState(null)
 
   const toggleSection = (section) => {
     setExpandedSections(prev => ({
@@ -1249,7 +1252,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {intervention.species.map((species, index) => (
-                  <SpeciesCard key={species.uid || index} species={species} />
+                  <SpeciesCard key={species.uid || index} species={species} setEditSpecies={setEditSpecies} editSpecies={eidtedSpecies} />
                 ))}
               </div>
             </CardContent>
@@ -1368,6 +1371,17 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
         )}
       </Card>
 
+      <EditSpeciesModal
+        accessToken={accessToken}
+        // setSelectedSpecies={setEditSpecies}
+        // selectedSpecies={eidtedSpecies}
+        isOpen={eidtedSpecies !== null}
+        onClose={() => { setEditSpecies(null) }}
+        species={eidtedSpecies}
+        selectedProject={selectedProject}
+        interventionId={intervention.uid}
+      />
+
       {/* File Upload Dialogs */}
       <FileUploadDialog
         open={showLocationDialog}
@@ -1388,12 +1402,13 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete }) => {
       />
 
       {/* User Search Dialog */}
-      <UserSearchDialog
+      {/* <UserSearchDialog
         open={showOwnerDialog}
         onOpenChange={setShowOwnerDialog}
         onSelect={handleOwnerChange}
         currentOwner={intervention.createdBy}
-      />
+      /> */}
+      <OwenrshipTransfer isModalOpen={showOwnerDialog} setIsModalOpen={setShowOwnerDialog} intervention={intervention} owner={intervention.owner} handleTransferComplete={()=>{}} selectedProject={selectedProject.uid} token={accessToken} />
 
       {/* Species Management Placeholder */}
       <Dialog open={showSpeciesDialog} onOpenChange={setShowSpeciesDialog}>
@@ -1689,7 +1704,6 @@ const TreeMapperUI = () => {
 
   return (
     <div className="bg-gray-50 flex flex-col h-screen">
-      {/* Header */}
       <HeaderWithFilters
         filters={filters}
         setFilters={setFilters}
@@ -1707,16 +1721,13 @@ const TreeMapperUI = () => {
         sidebarCollapsed={sidebarCollapsed}
         setSidebarCollapsed={setSidebarCollapsed}
         error={error}
-        loading={loading} // Pass loading state
+        loading={loading}
       />
 
-      {/* Main Content */}
       <div className="flex-1 flex">
-        {/* Left Sidebar - Intervention List */}
         <div className={`${sidebarCollapsed ? 'w-0 lg:w-16' : 'w-full md:w-96 lg:w-96'
           } bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out relative`}>
 
-          {/* Collapse Button */}
           <button
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="hidden lg:flex absolute -right-3 top-6 z-10 w-6 h-6 bg-white border border-gray-200 rounded-full items-center justify-center hover:bg-gray-50 transition-all shadow-sm"
@@ -1727,7 +1738,6 @@ const TreeMapperUI = () => {
 
           {!sidebarCollapsed && (
             <>
-              {/* Sidebar Header */}
               <div className="px-6 py-4 border-b border-gray-100">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
@@ -1747,7 +1757,7 @@ const TreeMapperUI = () => {
                     )}
                   </div>
                 </div>
-                
+
                 {/* Show active filters summary */}
                 {/* {activeFilterCount > 0 && (
                   <div className="mt-2 flex items-center gap-2">
@@ -1761,7 +1771,6 @@ const TreeMapperUI = () => {
                 )} */}
               </div>
 
-              {/* Intervention List */}
               <div className="flex-1 overflow-y-auto">
                 {filteredInterventions.length === 0 && !loading ? (
                   <div className="p-6 text-center">
@@ -1769,13 +1778,13 @@ const TreeMapperUI = () => {
                       <Trees className="h-8 w-8 text-gray-400" />
                     </div>
                     <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      {error ? 'Error Loading Interventions' : 
-                       activeFilterCount > 0 ? 'No Matching Interventions' : 'No Interventions Found'}
+                      {error ? 'Error Loading Interventions' :
+                        activeFilterCount > 0 ? 'No Matching Interventions' : 'No Interventions Found'}
                     </h3>
                     <p className="text-gray-600 text-sm mb-4">
-                      {error ? 'Please try again later.' : 
-                       activeFilterCount > 0 ? 'Try adjusting your search or filters.' : 
-                       'Create your first intervention to get started.'}
+                      {error ? 'Please try again later.' :
+                        activeFilterCount > 0 ? 'Try adjusting your search or filters.' :
+                          'Create your first intervention to get started.'}
                     </p>
                     {error ? (
                       <Button variant="primary" size="sm" onClick={() => fetchInterventionData()}>
@@ -1801,8 +1810,7 @@ const TreeMapperUI = () => {
                         onClick={() => setSelectedIntervention(intervention)}
                       />
                     ))}
-                    
-                    {/* Infinite scroll trigger */}
+
                     {hasMore && (
                       <div ref={observerRef} className="py-4 text-center">
                         {loading ? (
@@ -1812,8 +1820,7 @@ const TreeMapperUI = () => {
                         )}
                       </div>
                     )}
-                    
-                    {/* End of results indicator */}
+
                     {!hasMore && filteredInterventions.length > 0 && (
                       <div className="py-4 text-center">
                         <p className="text-xs text-gray-400">
@@ -1827,7 +1834,6 @@ const TreeMapperUI = () => {
             </>
           )}
 
-          {/* Collapsed Sidebar */}
           {sidebarCollapsed && (
             <div className="hidden lg:flex flex-col items-center py-6 space-y-4">
               <div className="w-8 h-8 bg-[#007A49] rounded-lg flex items-center justify-center">
@@ -1845,7 +1851,6 @@ const TreeMapperUI = () => {
           )}
         </div>
 
-        {/* Right Panel - Details */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {selectedIntervention ? (
             <div className="flex-1 overflow-y-auto p-6">
@@ -1853,14 +1858,16 @@ const TreeMapperUI = () => {
                 intervention={selectedIntervention}
                 onUpdate={handleInterventionUpdate}
                 onDelete={handleInterventionDelete}
+                accessToken={accessToken}
+                selectedProject={selectedProject.uid}
               />
             </div>
           ) : (
             <div className="flex-1 flex items-center justify-center p-6">
               <div className="text-center max-w-md">
                 <h3 className="text-xl font-semibold text-gray-900 mb-3">
-                  {filteredInterventions.length === 0 && activeFilterCount > 0 
-                    ? 'No Matching Interventions' 
+                  {filteredInterventions.length === 0 && activeFilterCount > 0
+                    ? 'No Matching Interventions'
                     : 'Select an Intervention'}
                 </h3>
                 <p className="text-gray-600 text-sm leading-relaxed mb-6">

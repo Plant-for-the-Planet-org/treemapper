@@ -739,6 +739,7 @@ const unknownCount = unknownSpecies.length;
                 <SpeciesCard
                   key={species.uid}
                   species={species}
+                
                   isSelected={selectedSpecies?.uid === species.uid}
                   onClick={() => handleSelectSpecies(species)}
                   onToggleFavorite={handleToggleFavorite}

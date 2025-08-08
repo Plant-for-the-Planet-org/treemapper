@@ -49,13 +49,14 @@ export const getUrlApi = {
   projects: `${baseUrl}/projects/workspace`,
   singleproject: `${baseUrl}/projects`,
   workspce: `${baseUrl}/projects`,
+  projectMemebers: `${baseUrl}/projects/member`,
   inviteStatus: `${baseUrl}/projects/invites`,
   teamMembers: `${baseUrl}/projects`,
   searchSpeciesSci: `${baseUrl}/scientific-species/search`,
   projectSpecies: `${baseUrl}/project-species`,
   migrationStatus: `${baseUrl}/migration/status`,
   getProjectSites: `${baseUrl}/projects`,
-  getProjectIntervnetion: `${baseUrl}/interventions/projects`, // Note: typo in original
+  getProjectIntervnetion: `${baseUrl}/interventions/projects`,
   getMyNotification: `${baseUrl}/notifications`,
   getAllInviteLinks: `${baseUrl}/projects`,
   getDashboardKpis: `${baseUrl}/analytics/project-kpis`,
@@ -69,7 +70,7 @@ export const getUrlApi = {
 
 export const patchUrlApi = {
   userMigrated: `${baseUrl}/users/migrated`,
-  updateMemeberRole: `${baseUrl}/projects`, // Note: typo in original (Memeber)
+  updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
   deleteLink: `${baseUrl}/projects`,
   updateProjectSettings: `${baseUrl}/projects`,
@@ -90,8 +91,8 @@ export const putUrlApi = {
   updateFavSpecies: `${baseUrl}/project-species`,
   impersonateUser: `${baseUrl}/workspace/impersonate`,
   impersonateUserExit: `${baseUrl}/workspace/impersonate/exit`,
-
-
+  speicesDataUpdate: `${baseUrl}/interventions`,
+  ownershipTransfer: `${baseUrl}/interventions`,
 } as const;
 
 // Export the base URL for other modules that might need it

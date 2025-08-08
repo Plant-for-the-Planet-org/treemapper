@@ -105,7 +105,6 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                 restriction: uniqueDomains, // Now sending array
                 expiry: new Date(new Date().setFullYear(new Date().getFullYear() + 1))
             })
-            console.log("SDC", response.data.link)
             if (response && (response.statusCode == 200 || response.statusCode == 201)) {
                 const generatedLink = {
                     id: Date.now().toString(),
