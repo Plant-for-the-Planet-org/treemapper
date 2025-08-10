@@ -39,7 +39,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const User = useUserStore((state) => state.user);
-
+  const [inviteFound, setInviteFound] = useState(false)
   // Simplified state management
   const [appState, setAppState] = useState<LoadingState>('idle');
   const [retryCount, setRetryCount] = useState(3);
@@ -56,14 +56,16 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   // If there are query params (like project-invite), don't redirect
   const isRootDashboardPath = (pathname === '/dashboard' || pathname === '/dashboard/') && !searchParams.toString();
 
-  // Redirect to login if not authenticated
   useEffect(() => {
     if (!tokenLoading && !user) {
-      router.push('/login');
-      return
+      // Preserve current URL with parameters when redirecting to login
+      const currentPath = pathname + (searchParams.toString() ? `?${searchParams.toString()}` : '');
+      const returnTo = encodeURIComponent(currentPath);
+      router.push(`/login?returnTo=${returnTo}`);
+      return;
     }
-    handleNav()
-  }, [user, tokenLoading, router, searchParams]);
+    handleNav();
+  }, [user, tokenLoading, router, searchParams, pathname]);
 
   const handleNav = () => {
     const name = searchParams.get('name');
@@ -145,7 +147,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       // Step 1: Fetch user details
       const userData = await fetchUserDetails();
       useUserStore.getState().setUser(userData);
-
+      const projectInviteId = searchParams.get('project-invite');
+      const projectLinkInviteId = searchParams.get('project-link');
+      if (projectInviteId || projectLinkInviteId) {
+        setInviteFound(true)
+        return
+      }
       // Step 2: Check if user needs onboarding
       if (!userData.primaryWorkspaceUid) {
         router.push('/dashboard/onboarding');
@@ -337,7 +344,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               closeButton={true}
             />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
-            {currentSection === 'deafult' && <ProjectInviteModal />}
+            {inviteFound && <ProjectInviteModal />}
             {showHeader && (
               <DashboardHeaderWeb
                 token={accessToken}

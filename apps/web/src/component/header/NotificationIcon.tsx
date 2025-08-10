@@ -3,7 +3,7 @@ import {
   Bell, X, MessageSquare, Heart, UserPlus, Star, Settings, AlertCircle,
   Calendar, Clock, Tag, ExternalLink, Archive, Trash2
 } from 'lucide-react';
-import { getMyNotification, markNotificationRead } from '@shared-core/fetchApi/api.fetch';
+import { getMyNotification, markNotificationRead, markSingleNotificationRead } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from "@/context/useTokenContext";
 import NotificationIcon, { NotificationType } from './NotificationIcons';
 import { NotificationModal } from './NotificationModal';
@@ -16,13 +16,13 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 
 
 const NotificationsPanel = () => {
- const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Array<any>>([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const User = useUserStore((state) => state.user);
   useEffect(() => {
-    if(User && User.primaryProject){
+    if (User && User.primaryProjectUid) {
       fetchAllNotification()
     }
   }, [User])
@@ -42,18 +42,21 @@ const NotificationsPanel = () => {
     await markNotificationRead(accessToken || '')
   };
 
-  const markAsRead = (id) => {
+  const markAsRead = async (id) => {
     setNotifications(notifications.map(n => n.id === id ? { ...n, isRead: true } : n));
+    await markSingleNotificationRead(accessToken, id)
   };
 
   const removeNotification = (id) => {
     setNotifications(notifications.filter(n => n.id !== id));
   };
 
+
+
   const openNotificationModal = (notification) => {
     setSelectedNotification(notification);
     setIsModalOpen(true);
-    markAsRead(notification.id);
+    // markAsRead(notification.id);
   };
 
   const closeModal = () => {
@@ -71,6 +74,10 @@ const NotificationsPanel = () => {
         break;
       case 'delete':
         removeNotification(notificationId);
+        closeModal();
+        break;
+      case 'read':
+        markAsRead(notificationId)
         closeModal();
         break;
       case 'navigate':

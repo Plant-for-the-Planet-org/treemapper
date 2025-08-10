@@ -29,7 +29,8 @@ export default function ProjectInviteModal() {
           setLoading(false);
           return
         }
-        toast.error('Failed to fetch invite status. Please try again later.');
+        toast.error(response.message || 'Failed to fetch invite status. Please try again later.');
+        handleClose()
       }
 
       if (projectLinkInviteId) {
@@ -40,7 +41,8 @@ export default function ProjectInviteModal() {
           setLoading(false);
           return
         }
-        toast.error('Failed to fetch invite status. Please try again later.');
+        toast.error(response.message || 'Failed to fetch invite status. Please try again later.');
+        handleClose()
       }
 
       setLoading(false);

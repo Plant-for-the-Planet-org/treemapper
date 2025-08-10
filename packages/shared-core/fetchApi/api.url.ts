@@ -72,6 +72,8 @@ export const patchUrlApi = {
   userMigrated: `${baseUrl}/users/migrated`,
   updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
+  markRead: `${baseUrl}/notifications`,
+
   deleteLink: `${baseUrl}/projects`,
   updateProjectSettings: `${baseUrl}/projects`,
   userDetails: `${baseUrl}/users/me`,

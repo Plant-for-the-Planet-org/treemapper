@@ -326,7 +326,7 @@ const TeamsDashboard = () => {
                 </>
             </div>
             <div className='p-6' style={{ flex: 1, display: 'flex', flexDirection: 'column', width: 'full', height: 'full' }}>
-                {loading ? <div style={{ marginTop: '40vh' }}><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                {loading ? null : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
