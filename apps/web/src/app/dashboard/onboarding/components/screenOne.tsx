@@ -152,7 +152,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
                     <>
                       <div className="flex items-center justify-between">
                         <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id
-                          ? 'bg-[#006B3F] text-[#fff]'
+                          ? 'bg-[#007A49] text-[#fff]'
                           : 'bg-gray-100 text-gray-600'
                           }`}>
                           {plan.icon}

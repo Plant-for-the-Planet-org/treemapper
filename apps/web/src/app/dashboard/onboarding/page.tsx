@@ -60,7 +60,6 @@ const Onboarding = ({ forProject }) => {
       }
       window.location.replace(`/dashboard?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`)
     } catch (error) {
-      console.log("SD", error)
       toast.error("Something went wrong")
       setLoading(false)
     }

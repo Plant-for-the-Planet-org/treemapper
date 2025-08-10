@@ -82,6 +82,7 @@ export const deleteUrlApi = {
   removeUser: `${baseUrl}/projects`,
   deletePrjSpecies: `${baseUrl}/project-species`,
   deletePrjIntervention: `${baseUrl}/interventions`,
+  deleteProject: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

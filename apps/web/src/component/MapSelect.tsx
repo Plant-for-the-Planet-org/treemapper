@@ -257,6 +257,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
+      
     } else if (mode === 'polygon') {
       // Polygon mode: add point to polygon
       if (!drawingPolygon) {

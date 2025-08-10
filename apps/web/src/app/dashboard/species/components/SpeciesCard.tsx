@@ -57,7 +57,7 @@ export const SpeciesCard = ({
             className="mt-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
           >
             {isChecked ? (
-              <CheckSquare size={16} className="text-blue-600" />
+              <CheckSquare size={16} className="text-[#007A49]" />
             ) : (
               <Square size={16} className="text-gray-400" />
             )}

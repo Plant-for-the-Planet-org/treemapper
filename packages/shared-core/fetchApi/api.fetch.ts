@@ -377,6 +377,14 @@ export const removeProjectMember = async (token: string, projectGuiD: string, me
 };
 
 
+export const deleteProject = async (token: string, projectGuiD:string) => {
+  const uri = `${deleteUrlApi.deleteProject}/${projectGuiD}`;
+  const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
+
+
 export const updateUserRole = async (token: string, prjId: string, memberId: string, params: any) => {
   const uri = `${patchUrlApi.updateMemeberRole}/${prjId}/members/${memberId}/role`;
   const result = await fetchPatchCall(uri, params, token);

@@ -12,9 +12,10 @@ import {
 
 import UnifiedMapComponent from '@/component/MapSelect';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
-import { getSingleProjectDetails, updateProjectSettings } from '@shared-core/fetchApi/api.fetch';
+import { deleteProject, getSingleProjectDetails, updateProjectSettings } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { toast } from 'react-toastify';
 
 
 // Enhanced Toggle Switch Component
@@ -1204,9 +1205,13 @@ const ProjectSettings = () => {
     }
   };
 
-  const handleDeleteProject = () => {
-    setNotification({ type: 'success', message: `Project "${projectData.name}" has been deleted.` });
-    // Implement actual delete logic here
+  const handleDeleteProject = async () => {
+    const response = await deleteProject(accessToken, selectedProject.uid);
+    if (response.statusCode !== 200 && response.statusCode !== 201) {
+      toast.error("Something went wrong")
+      return
+    }
+    window.location.reload()
   };
 
   const navItems = [

@@ -17,8 +17,8 @@ const authHandler = handleAuth({
     }
   }),
   // Use federated logout to clear both local and Auth0 sessions
-  logout: handleLogout({ 
-    returnTo: logoutUrl 
+  logout: handleLogout({
+    returnTo: process.env.AUTH0_BASE_URL || 'http://localhost:3000'
   }),
   callback: handleCallback({
     afterCallback: async (req, session, state) => {
@@ -28,19 +28,19 @@ const authHandler = handleAuth({
     // Handle callback errors
     onError: async (req, error) => {
       console.error('Auth0 callback error:', error);
-      
+
       // Check if it's an email verification error
       const url = new URL(req.url);
       const authError = url.searchParams.get('error');
       const errorDescription = url.searchParams.get('error_description');
-      
+
       if (authError === 'access_denied' && errorDescription === '401') {
         // Redirect to login with verification required parameter
         return NextResponse.redirect(
           new URL('/login?verification=required', process.env.AUTH0_BASE_URL)
         );
       }
-      
+
       // For other errors, redirect to login with generic error
       return NextResponse.redirect(
         new URL('/login?error=authentication_failed', process.env.AUTH0_BASE_URL)
@@ -52,35 +52,35 @@ const authHandler = handleAuth({
 export async function GET(req: NextRequest, context: { params: Promise<{ auth0: string[] }> }) {
   try {
     const resolvedParams = await context.params;
-    
+
     // Pre-check for callback errors before they hit the Auth0 handler
     if (resolvedParams.auth0.includes('callback')) {
       const url = new URL(req.url);
       const error = url.searchParams.get('error');
       const errorDescription = url.searchParams.get('error_description');
-      
+
       if (error === 'access_denied' && errorDescription === '401') {
         return NextResponse.redirect(
           new URL('/login?verification=required', process.env.AUTH0_BASE_URL)
         );
       }
     }
-    
+
     return authHandler(req, { params: resolvedParams });
   } catch (error) {
     console.error('Auth handler error:', error);
-    
+
     // Last resort error handling
     const url = new URL(req.url);
     const authError = url.searchParams.get('error');
     const errorDescription = url.searchParams.get('error_description');
-    
+
     if (authError === 'access_denied' && errorDescription === '401') {
       return NextResponse.redirect(
         new URL('/login?verification=required', process.env.AUTH0_BASE_URL)
       );
     }
-    
+
     return new Response('Internal Server Error', { status: 500 });
   }
 }

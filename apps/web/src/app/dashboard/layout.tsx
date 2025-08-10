@@ -342,6 +342,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               <DashboardHeaderWeb
                 token={accessToken}
                 {...navigationHandlers}
+                isLoading={appState === 'idle' || appState === 'loading'}
               />
             )}
             {renderMainContent()}

@@ -6,7 +6,7 @@ export const BulkActionBar = ({ selectedCount, onAssignSpecies, onClearSelection
     initial={{ opacity: 0, y: -20 }}
     animate={{ opacity: 1, y: 0 }}
     exit={{ opacity: 0, y: -20 }}
-    className="fixed top-0 left-0 right-0 z-40 bg-blue-600 text-white p-4 shadow-lg"
+    className="fixed top-0 left-0 right-0 z-40 bg-[#007A49] text-white p-4 shadow-lg"
   >
     <div className="flex items-center justify-between max-w-7xl mx-auto">
       <div className="flex items-center gap-3">
@@ -16,13 +16,13 @@ export const BulkActionBar = ({ selectedCount, onAssignSpecies, onClearSelection
       <div className="flex items-center gap-2">
         <button
           onClick={onAssignSpecies}
-          className="bg-white text-blue-600 px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
+          className="bg-white text-[#007A49] px-4 py-2 rounded-lg font-medium hover:bg-gray-100 transition-colors"
         >
           Assign Scientific Species
         </button>
         <button
           onClick={onClearSelection}
-          className="bg-blue-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-blue-400 transition-colors"
+          className="bg-green-700 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-800 transition-colors"
         >
           Clear Selection
         </button>
