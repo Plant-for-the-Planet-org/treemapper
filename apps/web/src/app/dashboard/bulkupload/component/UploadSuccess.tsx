@@ -96,20 +96,15 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
     }));
   }
 
-  function latLongToGeoJSON(latitude, longitude) {
-    return {
-      "type": "Feature",
-      "properties": {},
-      "geometry": {
-        "coordinates": [
-          Number(longitude),
-          Number(latitude),
-        ],
-        "type": "Point"
-      }
-    }
+function latLongToGeometry(latitude, longitude) {
+  return {
+    "type": "Point",
+    "coordinates": [
+      Number(longitude),
+      Number(latitude)
+    ]
   }
-
+}
 
   useEffect(() => {
     // Start upload when component mounts
@@ -158,7 +153,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
         animate={{ scale: 1 }}
         transition={{ delay: 0.2, type: "spring", stiffness: 200, damping: 10 }}
       >
-        <CheckCircle className="h-20 w-20 text-green-500 mx-auto mb-6" />
+        <CheckCircle className="h-20 w-20 text-[#007A49] mx-auto mb-6" />
       </motion.div>
 
       <motion.div

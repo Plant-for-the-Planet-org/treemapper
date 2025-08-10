@@ -8,13 +8,15 @@ import DataValidation from './component/DataValidation';
 import UploadSuccess from './component/UploadSuccess';
 import { ArrowLeft, CheckCircle } from 'lucide-react';
 import { useToken } from '@/context/useTokenContext'
+import { useRouter } from 'next/navigation';
 
-const Home = ({ goback }) => {
+const Home = () => {
     const { accessToken } = useToken()
     const [currentStep, setCurrentStep] = useState(1)
     const [fileData, setFileData] = useState([]);
     const [selectedProject, setSelectedProject] = useState({ name: '', id: '' });
     const [selectedSite, setSelectedSite] = useState({ name: '', id: '' });
+    const router = useRouter()
     const [steps, setSteps] = useState([
         { id: 1, name: 'Project', status: 'current' },
         { id: 2, name: 'Upload', status: 'upcoming' },
@@ -106,7 +108,7 @@ const Home = ({ goback }) => {
     return (
         <div className="bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 w-full h-full">
             <button
-                onClick={goback}
+                onClick={router.back}
                 className="pb-2 flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors group"
             >
                 <div className="rounded-lg group-hover:bg-gray-100 transition-colors">

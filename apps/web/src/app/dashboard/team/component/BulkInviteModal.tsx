@@ -281,7 +281,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                                 <button
                                     type="button"
                                     onClick={addDomainField}
-                                    className="mt-2 text-sm text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                                    className="mt-2 text-sm text-[#007A49] hover:text-green-700 flex items-center gap-1"
                                     disabled={isCreating}
                                 >
                                     <Plus className="w-3 h-3" />
@@ -296,7 +296,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                             <button
                                 onClick={generateInvitationLink}
                                 disabled={isCreating}
-                                className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
+                                className="w-full bg-[#007A49] hover:bg-[#006B3F]disabled:bg-blue-400 text-white font-medium py-3 px-4 rounded-lg transition-colors flex items-center justify-center gap-2"
                             >
                                 {isCreating ? (
                                     <>

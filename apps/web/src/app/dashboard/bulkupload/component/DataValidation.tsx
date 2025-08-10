@@ -495,7 +495,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
   if (isValidating) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="flex items-center justify-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -524,8 +524,8 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 min-w-full" style={{flex:1}}>
-      <div className="min-h-screen bg-gray-50 min-w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
+    <div className="bg-gray-50 min-w-full" style={{flex:1}}>
+      <div className="bg-gray-50 min-w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -546,7 +546,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
             onClick={() => onNext(validationResults.map(r => r.processedData), 3)}
             disabled={!canProceed}
             className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${canProceed
-                ? 'bg-gradient-to-r from-[#007A49] to-green-600 text-white shadow-lg hover:shadow-xl'
+                ? 'bg-[#007A49] hover:bg-[#006B3F] text-white shadow-lg hover:shadow-xl'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
           >
@@ -1174,7 +1174,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
             onClick={() => onNext(validationResults.map(r => r.processedData), 3)}
             disabled={!canProceed}
             className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${canProceed
-                ? 'bg-gradient-to-r from-[#007A49] to-green-600 text-white shadow-lg hover:shadow-xl'
+                ? 'bg-[#007A49] hover:bg-[#006B3F] text-white shadow-lg hover:shadow-xl'
                 : 'bg-gray-300 text-gray-500 cursor-not-allowed'
               }`}
           >
@@ -1199,7 +1199,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+              className="fixed inset-0  bg-black/10 bg-opacity-10  backdrop-blur-sm z-50 flex items-center justify-center z-50 p-4"
               onClick={() => setShowErrorModal(false)}
             >
               <motion.div

@@ -87,7 +87,7 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
 
 
   return (
-    <div className="w-full h-full relative">
+    <div className="w-full relative">
       <div>
         <h1 className="text-3xl font-bold text-gray-900">Select Project and Site</h1>
         {selectedProject && (
@@ -106,7 +106,7 @@ const SelectProjectSite = ({ onBack, accessToken, handleFinalSelection }) => {
                 }, 1)
               }
               }
-              className="flex items-center px-6 py-3 bg-[#007A49] text-white rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
+              className="flex items-center px-6 py-3 bg-[#007A49] hover:bg-[#006B3F] text-white rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors"
             >
               Continue
               <ArrowRight className="ml-2 h-4 w-4" />

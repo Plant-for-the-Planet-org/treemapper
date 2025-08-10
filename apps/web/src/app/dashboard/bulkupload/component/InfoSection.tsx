@@ -121,7 +121,7 @@ const InfoSection = (props: any) => {
     };
 
     return (
-        <div className="h-full w-full bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
+        <div className="w-full bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                 {/* Left Column - Instructions */}
                 <div className="space-y-6">
@@ -200,7 +200,7 @@ const InfoSection = (props: any) => {
                         {/* File Upload Area */}
                         <div
                             className={`relative border-2 border-dashed rounded-lg p-6 text-center hover:border-[#007A49] transition-colors ${dragActive ? 'border-[#007A49] bg-green-50' : 'border-gray-300'
-                                } ${selectedFile ? 'border-green-300 bg-green-50' : ''}`}
+                                } ${selectedFile ? 'border-[#007A49] bg-green-50' : ''}`}
                             onDragEnter={handleDrag}
                             onDragLeave={handleDrag}
                             onDragOver={handleDrag}
@@ -220,7 +220,7 @@ const InfoSection = (props: any) => {
                                     animate={{ opacity: 1, scale: 1 }}
                                     className="space-y-2"
                                 >
-                                    <CheckCircle className="mx-auto h-8 w-8 text-green-500" />
+                                    <CheckCircle className="mx-auto h-8 w-8 text-[#007A49]" />
                                     <div className="flex items-center justify-center space-x-2">
                                         <FileText className="h-4 w-4 text-gray-500" />
                                         <span className="text-sm font-medium text-gray-900">{selectedFile.name}</span>
@@ -271,7 +271,7 @@ const InfoSection = (props: any) => {
                                 <button
                                     onClick={handleConverion}
                                     disabled={loading}
-                                    className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#007A49] hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors">
+                                    className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-[#007A49] hover:bg-[#006B3F] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#007A49] transition-colors">
                                     {loading ? 'Processing' : <>
                                         Continue to Next Step
                                         <svg className="ml-2 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
