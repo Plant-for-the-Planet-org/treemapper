@@ -48,7 +48,7 @@ export const SpeciesCard = ({
       } ${(species.isDisabled || species.disabled) ? 'opacity-60' : ''}`}
     >
       <div className="flex items-start gap-3 h-full">
-        {showCheckbox && (
+        {/* {showCheckbox && (
           <button
             onClick={(e) => {
               e.stopPropagation();
@@ -62,7 +62,7 @@ export const SpeciesCard = ({
               <Square size={16} className="text-gray-400" />
             )}
           </button>
-        )}
+        )} */}
 
         <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           {species.image ? (

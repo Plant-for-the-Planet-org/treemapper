@@ -281,7 +281,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
                                 <button
                                     type="button"
                                     onClick={addDomainField}
-                                    className="mt-2 text-sm text-[#007A49] hover:text-green-700 flex items-center gap-1"
+                                    className="mt-2 text-sm text-[#006B3F] hover:text-green-700 flex items-center gap-1"
                                     disabled={isCreating}
                                 >
                                     <Plus className="w-3 h-3" />

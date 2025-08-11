@@ -107,8 +107,8 @@ const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing }) => {
               onClick={onComplete}
               disabled={polygonPoints.length < 3}
               className={`flex-1 border-none py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 ${polygonPoints.length >= 3
-                  ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer text-white hover:shadow-md'
-                  : 'bg-gray-300 text-gray-500 cursor-not-allowed'
+                ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer text-white hover:shadow-md'
+                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
             >
               <Check className="h-3 w-3" />
@@ -119,8 +119,8 @@ const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing }) => {
               onClick={onReset}
               disabled={polygonPoints.length === 0}
               className={`flex-1 border border-gray-300 py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 ${polygonPoints.length > 0
-                  ? 'text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-                  : 'text-gray-400 cursor-not-allowed'
+                ? 'text-gray-700 hover:bg-gray-50 hover:border-gray-400'
+                : 'text-gray-400 cursor-not-allowed'
                 }`}
             >
               <RotateCcw className="h-3 w-3" />
@@ -209,19 +209,16 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     }
   }, [marker, polygonPoints.length]);
 
-  
+
 
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [
-        polygonPoints.length >= 3
-          ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-          : polygonPoints.map(p => [p.longitude, p.latitude])
-      ]
-    }
+    type: 'Polygon',
+    coordinates: [
+      polygonPoints.length >= 3
+        ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+        : polygonPoints.map(p => [p.longitude, p.latitude])
+    ]
   };
 
   // Handle map click based on current mode
@@ -248,16 +245,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
       // Create and store Point GeoJSON
       const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [lngLat.lng, lngLat.lat]
-        }
+        type: 'Point',
+        coordinates: [lngLat.lng, lngLat.lat]
       };
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
-      
+
     } else if (mode === 'polygon') {
       // Polygon mode: add point to polygon
       if (!drawingPolygon) {
@@ -276,13 +270,10 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     if (polygonPoints.length >= 3) {
       setDrawingPolygon(false);
       const completedPolygonGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-          ]
-        }
+        type: 'Polygon',
+        coordinates: [
+          [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+        ]
       };
       setGeoJSON(completedPolygonGeoJSON);
       updateGeoJSON(completedPolygonGeoJSON);
@@ -336,12 +327,9 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
       // Create and store Point GeoJSON
       const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [lng, lat]
-        }
-      };
+        type: 'Point',
+        coordinates: [Number(lng), Number(lat)]
+      }
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
@@ -435,12 +423,10 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
 
               // Update GeoJSON for the dragged point
               const pointGeoJSON = {
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [event.lngLat.lng, event.lngLat.lat]
-                }
-              };
+                type: 'Point',
+                coordinates: [event.lngLat.lng, event.lngLat.lat]
+              }
+
 
               setGeoJSON(pointGeoJSON);
               updateGeoJSON(pointGeoJSON);
@@ -495,10 +481,10 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
               >
                 <div className="relative group">
                   <div className={`w-3 h-3 rounded-full border-2 border-white shadow-md transition-all duration-200 ${index === 0
-                      ? 'bg-red-500 w-4 h-4'
-                      : drawingPolygon
-                        ? 'bg-green-500 group-hover:scale-125'
-                        : 'bg-green-600'
+                    ? 'bg-red-500 w-4 h-4'
+                    : drawingPolygon
+                      ? 'bg-green-500 group-hover:scale-125'
+                      : 'bg-green-600'
                     }`} />
                   {index === 0 && polygonPoints.length > 1 && (
                     <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 bg-red-500 text-white text-xs px-1 py-0.5 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
@@ -548,15 +534,17 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
       </ControlPanel>
 
       {/* Status Indicator */}
-      {displayingUploadedGeoJSON && (
-        <div className="absolute top-4 right-4 bg-green-100 border border-green-300 text-green-800 px-3 py-2 rounded-lg shadow-md">
-          <div className="flex items-center gap-2 text-sm">
-            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span className="font-medium">Uploaded location displayed</span>
+      {
+        displayingUploadedGeoJSON && (
+          <div className="absolute top-4 right-4 bg-green-100 border border-green-300 text-green-800 px-3 py-2 rounded-lg shadow-md">
+            <div className="flex items-center gap-2 text-sm">
+              <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+              <span className="font-medium">Uploaded location displayed</span>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 };
 

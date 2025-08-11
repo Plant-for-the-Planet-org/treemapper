@@ -43,13 +43,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
 
   useEffect(() => {
-    if(interventionType==='single-tree-registration'){
+    if (interventionType === 'single-tree-registration') {
       setSelectionMode("point")
-    }else{
-        setSelectionMode("polygon")
+    } else {
+      setSelectionMode("polygon")
     }
   }, [interventionType])
-  
+
 
   // Effect to handle uploaded GeoJSON
   useEffect(() => {
@@ -81,17 +81,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
   // Polygon data as GeoJSON for drawing mode
   const drawingPolygonGeoJSON = {
-    type: 'Feature',
-    geometry: {
-      type: 'Polygon',
-      coordinates: [
-        polygonPoints.length >= 3
-          ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-          : polygonPoints.map(p => [p.longitude, p.latitude])
-      ]
-    }
-  };
-
+    type: 'Polygon',
+    coordinates: [
+      polygonPoints.length >= 3
+        ? [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+        : polygonPoints.map(p => [p.longitude, p.latitude])
+    ]
+  }
   // Handle map click based on current mode
   const handleMapClick = useCallback(event => {
     const { lngLat } = event;
@@ -116,12 +112,9 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
       // Create and store Point GeoJSON
       const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
           type: 'Point',
           coordinates: [lngLat.lng, lngLat.lat]
         }
-      };
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
@@ -143,16 +136,13 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
     if (polygonPoints.length >= 3) {
       setDrawingPolygon(false);
       const completedPolygonGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Polygon',
-          coordinates: [
-            [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-          ]
-        }
-      };
+        type: 'Polygon',
+        coordinates: [
+          [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+        ]
+      }
       setGeoJSON(completedPolygonGeoJSON);
-                updateGeoJSON(completedPolygonGeoJSON);
+      updateGeoJSON(completedPolygonGeoJSON);
 
     } else {
       alert('A polygon needs at least 3 points');
@@ -227,13 +217,9 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
       // Create and store Point GeoJSON
       const pointGeoJSON = {
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [lng, lat]
-        }
-      };
-
+        type: 'Point',
+        coordinates: [lng, lat]
+      }
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
     }
@@ -321,12 +307,9 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
 
               // Update GeoJSON for the dragged point
               const pointGeoJSON = {
-                type: 'Feature',
-                geometry: {
-                  type: 'Point',
-                  coordinates: [event.lngLat.lng, event.lngLat.lat]
-                }
-              };
+                type: 'Point',
+                coordinates: [event.lngLat.lng, event.lngLat.lat]
+              }
 
               setGeoJSON(pointGeoJSON);
             }}
@@ -504,7 +487,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType 
               <button
                 onClick={handleSetCoordinates}
                 type="button"
-                className={`w-full sm:w-auto ${manualCoords.latitude && manualCoords.longitude?'bg-green-800':'bg-gray-500'} text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors`}
+                className={`w-full sm:w-auto ${manualCoords.latitude && manualCoords.longitude ? 'bg-green-800' : 'bg-gray-500'} text-white border-none py-1 px-3 rounded text-sm cursor-pointer hover:bg-blue-600 transition-colors`}
               >
                 Set Location
               </button>
