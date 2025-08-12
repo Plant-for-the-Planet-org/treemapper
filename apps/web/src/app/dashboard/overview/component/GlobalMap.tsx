@@ -17,11 +17,7 @@ import {
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions } from '@shared-core/fetchApi/api.fetch';
 
-// Import maplibre-gl CSS - make sure this is in your _app.js or layout
-// import 'maplibre-gl/dist/maplibre-gl.css';
-
 // ==================== TYPES ====================
-
 interface MapIntervention {
     id: number;
     uid: string;
@@ -32,7 +28,7 @@ interface MapIntervention {
     interventionStartDate: string;
     interventionEndDate: string;
     location: GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon;
-    locationGeometryType: 'Point' | 'Polygon' | 'MultiPolygon';
+    locationGeometryType?: 'Point' | 'Polygon' | 'MultiPolygon';
     centroid?: GeoJSON.Point;
     area?: number;
     totalTreeCount: number;
@@ -99,13 +95,11 @@ interface MapError {
 }
 
 // ==================== UTILITY FUNCTIONS ====================
-
 const validateGeoJSONGeometry = (geometry: any): boolean => {
     try {
         if (!geometry || !geometry.type || !geometry.coordinates) {
             return false;
         }
-
         switch (geometry.type) {
             case 'Point':
                 return Array.isArray(geometry.coordinates) &&
@@ -114,20 +108,17 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
                     typeof geometry.coordinates[1] === 'number' &&
                     Math.abs(geometry.coordinates[0]) <= 180 &&
                     Math.abs(geometry.coordinates[1]) <= 90;
-
             case 'Polygon':
                 return Array.isArray(geometry.coordinates) &&
                     geometry.coordinates.length > 0 &&
                     Array.isArray(geometry.coordinates[0]) &&
                     geometry.coordinates[0].length >= 4;
-
             case 'MultiPolygon':
                 return Array.isArray(geometry.coordinates) &&
                     geometry.coordinates.length > 0 &&
                     geometry.coordinates.every((polygon: any) =>
                         Array.isArray(polygon) && polygon.length > 0
                     );
-
             default:
                 return false;
         }
@@ -138,6 +129,7 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
 
 const getInterventionColor = (type: string, status: string): string => {
     const colors = {
+        'single-tree-registration': '#10b981',
         'direct-seeding': '#10b981',
         'enrichment-planting': '#059669',
         'maintenance': '#0891b2',
@@ -145,9 +137,8 @@ const getInterventionColor = (type: string, status: string): string => {
         'removal-invasive-species': '#dc2626',
         default: '#6b7280',
     };
-
     const baseColor = colors[type as keyof typeof colors] || colors.default;
-    return status === 'completed' ? baseColor : `${baseColor}CC`;
+    return status === 'completed' || status === 'active' ? baseColor : `${baseColor}CC`;
 };
 
 const getTreeStatusColor = (status: string): string => {
@@ -175,20 +166,21 @@ const formatDate = (dateString: string): string => {
 
 const getMarkerPosition = (intervention: MapIntervention): [number, number] => {
     try {
-        if (intervention.locationGeometryType === 'Point') {
+        // Handle Point geometry
+        if (intervention.location.type === 'Point') {
             return intervention.location.coordinates as [number, number];
         }
-
-        // Use centroid if available, otherwise calculate with Turf
+        
+        // Use centroid if available
         if (intervention.centroid) {
             return intervention.centroid.coordinates as [number, number];
         }
-
-        // Fallback: calculate centroid with Turf
+        
+        // Calculate centroid for polygon geometries
         const centroid = turf.centroid(intervention.location as any);
         return centroid.geometry.coordinates as [number, number];
     } catch (error) {
-        console.warn('Failed to get marker position:', error);
+        console.warn('Failed to get marker position for intervention:', intervention.hid, error);
         return [0, 0];
     }
 };
@@ -202,7 +194,7 @@ const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => 
             };
         }
 
-        const validInterventions = interventions.filter(i =>
+        const validInterventions = interventions.filter(i => 
             validateGeoJSONGeometry(i.location)
         );
 
@@ -213,17 +205,51 @@ const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => 
             };
         }
 
-        // Create a feature collection for Turf
-        const features = validInterventions.map(intervention =>
-            turf.feature(intervention.location as any)
-        );
+        // Get all coordinates for bounds calculation
+        let allCoords: number[][] = [];
+        
+        validInterventions.forEach(intervention => {
+            if (intervention.location.type === 'Point') {
+                allCoords.push(intervention.location.coordinates as number[]);
+            } else {
+                // For polygons, use centroid
+                try {
+                    const centroid = turf.centroid(intervention.location as any);
+                    allCoords.push(centroid.geometry.coordinates);
+                } catch (error) {
+                    console.warn('Failed to calculate centroid for intervention:', intervention.hid);
+                }
+            }
+        });
 
-        const collection = turf.featureCollection(features);
-        const bbox = turf.bbox(collection);
+        if (allCoords.length === 0) {
+            return {
+                bounds: [-180, -85, 180, 85],
+                center: [0, 0],
+            };
+        }
+
+        // Calculate bounds from coordinates
+        const lngs = allCoords.map(coord => coord[0]);
+        const lats = allCoords.map(coord => coord[1]);
+        
+        const minLng = Math.min(...lngs);
+        const maxLng = Math.max(...lngs);
+        const minLat = Math.min(...lats);
+        const maxLat = Math.max(...lats);
+
+        // Add small padding
+        const lngPadding = (maxLng - minLng) * 0.1 || 0.01;
+        const latPadding = (maxLat - minLat) * 0.1 || 0.01;
 
         return {
-            bounds: bbox as [number, number, number, number],
-            center: [(bbox[0] + bbox[2]) / 2, (bbox[1] + bbox[3]) / 2],
+            bounds: [
+                minLng - lngPadding,
+                minLat - latPadding,
+                maxLng + lngPadding,
+                maxLat + latPadding
+            ],
+            center: [(minLng + maxLng) / 2, (minLat + maxLat) / 2],
         };
     } catch (error) {
         console.warn('Failed to calculate bounds:', error);
@@ -235,39 +261,43 @@ const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => 
 };
 
 // ==================== API FUNCTIONS ====================
-
 const fetchProjectInterventions = async (projectId: string, token: string): Promise<ApiResponse<ProjectMapResponse>> => {
     try {
         const response = await getAllMapInterevntions(token, projectId);
-
-        // Validate response structure
-        if (!Array.isArray(response.data.interventions)) {
-            throw {
-                type: 'api',
-                message: 'Invalid response format from server',
-                recoverable: false,
-            };
-        }
+        
+        // Process interventions - add locationGeometryType if missing
+        const processedInterventions = response.data.interventions.map((intervention: any) => ({
+            ...intervention,
+            locationGeometryType: intervention.locationGeometryType || intervention.location?.type || 'Point'
+        }));
 
         // Validate geometries
-        const validInterventions = response.data.interventions.filter((intervention: MapIntervention) => {
+        const validInterventions = processedInterventions.filter((intervention: MapIntervention) => {
             const isValid = validateGeoJSONGeometry(intervention.location);
             if (!isValid) {
-                console.warn(`Invalid geometry for intervention ${intervention.hid}`);
+                console.warn(`Invalid geometry for intervention ${intervention.hid}:`, intervention.location);
             }
             return isValid;
         });
 
+        console.log('Valid interventions loaded:', validInterventions.length);
+        console.log('Sample intervention:', validInterventions[0]);
+
+        // Calculate bounds from the interventions
+        const bounds = calculateBounds(validInterventions);
+        
+        console.log('Calculated bounds:', bounds);
+
         return {
-            ...response,
+            success: true,
             data: {
-                ...response.data,
                 interventions: validInterventions,
+                bounds: bounds,
+                totalInterventions: validInterventions.length,
             },
         };
     } catch (error: any) {
-        if (error.type) throw error;
-
+        console.error('Error fetching interventions:', error);
         throw {
             type: 'network',
             message: 'Failed to connect to server',
@@ -280,45 +310,13 @@ const fetchProjectInterventions = async (projectId: string, token: string): Prom
 const fetchInterventionTrees = async (interventionId: number): Promise<ApiResponse<InterventionTreesResponse>> => {
     try {
         const response = await fetch(`/api/interventions/${interventionId}/trees`);
-
         if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            throw {
-                type: response.status === 404 ? 'api' : 'api',
-                message: errorData.message || `HTTP ${response.status}: ${response.statusText}`,
-                recoverable: response.status >= 500,
-            };
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
-
         const data = await response.json();
-
-        if (!data.success || !data.data) {
-            throw {
-                type: 'api',
-                message: 'Invalid response format from server',
-                recoverable: false,
-            };
-        }
-
-        // Validate tree geometries
-        const validTrees = data.data.trees.filter((tree: MapTree) => {
-            const isValid = validateGeoJSONGeometry(tree.location);
-            if (!isValid) {
-                console.warn(`Invalid geometry for tree ${tree.hid}`);
-            }
-            return isValid;
-        });
-
-        return {
-            ...data,
-            data: {
-                ...data.data,
-                trees: validTrees,
-            },
-        };
+        return data;
     } catch (error: any) {
-        if (error.type) throw error;
-
+        console.error('Error fetching trees:', error);
         throw {
             type: 'network',
             message: 'Failed to load tree data',
@@ -328,8 +326,7 @@ const fetchInterventionTrees = async (interventionId: number): Promise<ApiRespon
     }
 };
 
-// ==================== ERROR COMPONENTS ====================
-
+// ==================== COMPONENTS ====================
 const ErrorDisplay: React.FC<{
     error: MapError;
     onRetry?: () => void;
@@ -345,46 +342,24 @@ const ErrorDisplay: React.FC<{
         <div className="p-4">
             <div className="flex items-start gap-3">
                 <div className="flex-shrink-0">
-                    {error.type === 'network' ? (
-                        <Wifi className="w-5 h-5 text-red-500" />
-                    ) : (
-                        <AlertCircle className="w-5 h-5 text-red-500" />
-                    )}
+                    <AlertCircle className="w-5 h-5 text-red-500" />
                 </div>
-
                 <div className="flex-1">
-                    <h3 className="font-medium text-gray-900 mb-1">
-                        {error.type === 'network' ? 'Connection Error' :
-                            error.type === 'permission' ? 'Access Denied' :
-                                error.type === 'mapbox' ? 'Map Error' :
-                                    error.type === 'geometry' ? 'Data Error' :
-                                        'Something went wrong'}
-                    </h3>
+                    <h3 className="font-medium text-gray-900 mb-1">Map Error</h3>
                     <p className="text-sm text-gray-600 mb-3">{error.message}</p>
-
                     <div className="flex gap-2">
                         {error.recoverable && onRetry && (
                             <button
                                 onClick={onRetry}
                                 className="inline-flex items-center gap-1 px-3 py-1.5 text-sm
-                         bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                                 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
                             >
                                 <RefreshCw className="w-3 h-3" />
                                 Retry
                             </button>
                         )}
-
-                        {onDismiss && (
-                            <button
-                                onClick={onDismiss}
-                                className="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 transition-colors"
-                            >
-                                Dismiss
-                            </button>
-                        )}
                     </div>
                 </div>
-
                 {onDismiss && (
                     <button
                         onClick={onDismiss}
@@ -398,9 +373,7 @@ const ErrorDisplay: React.FC<{
     </motion.div>
 );
 
-const LoadingDisplay: React.FC<{
-    message?: string;
-}> = ({ message = "Loading map..." }) => (
+const LoadingDisplay: React.FC<{ message?: string }> = ({ message = "Loading map..." }) => (
     <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-40">
         <div className="text-center">
             <Loader2 className="w-8 h-8 animate-spin text-gray-600 mx-auto mb-4" />
@@ -408,80 +381,6 @@ const LoadingDisplay: React.FC<{
         </div>
     </div>
 );
-
-// ==================== MAP COMPONENTS ====================
-
-const InterventionPolygonLayers: React.FC<{
-    interventions: MapIntervention[];
-    selectedInterventionId: number | null;
-    onInterventionClick: (intervention: MapIntervention) => void;
-}> = ({ interventions, selectedInterventionId, onInterventionClick }) => {
-    const polygonData = useMemo(() => {
-        const polygonFeatures = interventions
-            .filter(i => i.locationGeometryType !== 'Point' && validateGeoJSONGeometry(i.location))
-            .map(intervention => ({
-                type: 'Feature' as const,
-                properties: {
-                    id: intervention.id,
-                    type: intervention.type,
-                    status: intervention.status,
-                    hid: intervention.hid,
-                    color: getInterventionColor(intervention.type, intervention.status),
-                },
-                geometry: intervention.location,
-            }));
-
-        return {
-            type: 'FeatureCollection' as const,
-            features: polygonFeatures,
-        };
-    }, [interventions]);
-
-    const handleClick = useCallback((event: any) => {
-        const feature = event.features?.[0];
-        if (feature?.properties?.id) {
-            const intervention = interventions.find(i => i.id === feature.properties.id);
-            if (intervention) {
-                onInterventionClick(intervention);
-            }
-        }
-    }, [interventions, onInterventionClick]);
-
-    if (polygonData.features.length === 0) return null;
-
-    return (
-        <Source id="intervention-polygons" type="geojson" data={polygonData}>
-            <Layer
-                id="intervention-fill"
-                type="fill"
-                paint={{
-                    'fill-color': [
-                        'case',
-                        ['==', ['get', 'id'], selectedInterventionId || -1],
-                        ['get', 'color'],
-                        ['concat', ['get', 'color'], '40'],
-                    ],
-                    'fill-outline-color': ['get', 'color'],
-                }}
-                onClick={handleClick}
-            />
-            <Layer
-                id="intervention-border"
-                type="line"
-                paint={{
-                    'line-color': ['get', 'color'],
-                    'line-width': [
-                        'case',
-                        ['==', ['get', 'id'], selectedInterventionId || -1],
-                        3,
-                        2,
-                    ],
-                }}
-                onClick={handleClick}
-            />
-        </Source>
-    );
-};
 
 const InterventionMarker: React.FC<{
     intervention: MapIntervention;
@@ -497,11 +396,19 @@ const InterventionMarker: React.FC<{
 
     // Don't render if coordinates are invalid
     if (!lng || !lat || Math.abs(lng) > 180 || Math.abs(lat) > 90) {
+        console.warn(`Invalid coordinates for intervention ${intervention.hid}:`, lng, lat);
         return null;
     }
 
     return (
-        <Marker longitude={lng} latitude={lat} onClick={onClick}>
+        <Marker 
+            longitude={lng} 
+            latitude={lat} 
+            onClick={(e) => {
+                e.originalEvent.stopPropagation();
+                onClick();
+            }}
+        >
             <motion.div
                 className="cursor-pointer relative"
                 onMouseEnter={onMouseEnter}
@@ -510,15 +417,18 @@ const InterventionMarker: React.FC<{
                 transition={{ duration: 0.2 }}
             >
                 <div
-                    className={`rounded-full border-2 border-white shadow-lg ${isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
-                        }`}
+                    className={`rounded-full border-2 border-white shadow-lg ${
+                        isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                    }`}
                     style={{
                         backgroundColor: color,
                         width: size,
                         height: size,
                     }}
                 />
-                {intervention.locationGeometryType !== 'Point' && (
+                
+                {(intervention.locationGeometryType === 'Polygon' || 
+                  intervention.locationGeometryType === 'MultiPolygon') && (
                     <div
                         className="absolute -bottom-1 -right-1 w-3 h-3 bg-white rounded-full border border-gray-300 flex items-center justify-center"
                         title={`${intervention.locationGeometryType} geometry`}
@@ -526,18 +436,16 @@ const InterventionMarker: React.FC<{
                         <div className="w-1.5 h-1.5 bg-gray-600 rounded-sm"></div>
                     </div>
                 )}
+                
                 {isHovered && !isSelected && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         className="absolute -top-12 left-1/2 transform -translate-x-1/2 
-                       bg-gray-900 text-white text-xs px-2 py-1 rounded 
-                       whitespace-nowrap z-10"
+                               bg-gray-900 text-white text-xs px-2 py-1 rounded 
+                               whitespace-nowrap z-10"
                     >
-                        {intervention.hid} - {intervention.type}
-                        {intervention.locationGeometryType !== 'Point' && (
-                            <span className="ml-1 text-gray-300">({intervention.locationGeometryType})</span>
-                        )}
+                        {intervention.hid} - {intervention.type.replace(/-/g, ' ')}
                     </motion.div>
                 )}
             </motion.div>
@@ -553,7 +461,6 @@ const TreeMarker: React.FC<{
     const color = getTreeStatusColor(tree.status);
     const [lng, lat] = tree.location.coordinates as [number, number];
 
-    // Don't render if coordinates are invalid
     if (!lng || !lat || Math.abs(lng) > 180 || Math.abs(lat) > 90) {
         return null;
     }
@@ -569,8 +476,9 @@ const TreeMarker: React.FC<{
                     size={isSelected ? 20 : 16}
                     color={color}
                     fill={color}
-                    className={`drop-shadow-sm ${isSelected ? 'ring-2 ring-blue-500 ring-offset-1 rounded' : ''
-                        }`}
+                    className={`drop-shadow-sm ${
+                        isSelected ? 'ring-2 ring-blue-500 ring-offset-1 rounded' : ''
+                    }`}
                 />
             </motion.div>
         </Marker>
@@ -599,43 +507,33 @@ const InterventionPanel: React.FC<{
                 </button>
             </div>
             <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-600 capitalize">{intervention.type.replace('-', ' ')}</p>
+                <p className="text-sm text-gray-600 capitalize">
+                    {intervention.type.replace(/-/g, ' ')}
+                </p>
                 <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                    {intervention.locationGeometryType}
+                    {intervention.locationGeometryType || intervention.location.type}
                 </span>
             </div>
         </div>
-
         <div className="p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm">
                 <Activity size={16} className="text-gray-400" />
                 <span className="capitalize font-medium">{intervention.status}</span>
             </div>
-
             <div className="flex items-center gap-2 text-sm">
                 <Calendar size={16} className="text-gray-400" />
                 <span>{formatDate(intervention.interventionStartDate)}</span>
             </div>
-
             <div className="flex items-center gap-2 text-sm">
                 <Trees size={16} className="text-gray-400" />
-                <span>{intervention.totalTreeCount} trees planted</span>
+                <span>{intervention.totalTreeCount} trees</span>
             </div>
-
             {intervention.area && (
                 <div className="flex items-center gap-2 text-sm">
                     <Ruler size={16} className="text-gray-400" />
                     <span>{intervention.area.toFixed(2)} m²</span>
                 </div>
             )}
-
-            {intervention.locationGeometryType !== 'Point' && (
-                <div className="flex items-center gap-2 text-sm">
-                    <MapPin size={16} className="text-gray-400" />
-                    <span>Area-based intervention</span>
-                </div>
-            )}
-
             {intervention.description && (
                 <div className="pt-2 border-t border-gray-100">
                     <p className="text-sm text-gray-600">{intervention.description}</p>
@@ -671,11 +569,7 @@ const TreeTooltip: React.FC<{
             {tree.speciesName && (
                 <p className="text-sm text-gray-600">{tree.speciesName}</p>
             )}
-            {tree.commonName && (
-                <p className="text-xs text-gray-500">{tree.commonName}</p>
-            )}
         </div>
-
         <div className="p-4 space-y-3">
             <div className="flex items-center gap-2 text-sm">
                 <Activity size={16} className="text-gray-400" />
@@ -685,25 +579,16 @@ const TreeTooltip: React.FC<{
                     style={{ backgroundColor: getTreeStatusColor(tree.status) }}
                 />
             </div>
-
             {tree.currentHeight && (
                 <div className="flex items-center gap-2 text-sm">
                     <Ruler size={16} className="text-gray-400" />
                     <span>Height: {tree.currentHeight}cm</span>
                 </div>
             )}
-
             {tree.currentHealthScore && (
                 <div className="flex items-center gap-2 text-sm">
                     <Heart size={16} className="text-gray-400" />
                     <span>Health: {tree.currentHealthScore}/100</span>
-                </div>
-            )}
-
-            {tree.plantingDate && (
-                <div className="flex items-center gap-2 text-sm">
-                    <Calendar size={16} className="text-gray-400" />
-                    <span>Planted: {formatDate(tree.plantingDate)}</span>
                 </div>
             )}
         </div>
@@ -715,15 +600,12 @@ const MapLegend: React.FC<{
     treeCount: number;
 }> = ({ selectedIntervention, treeCount }) => (
     <div className="absolute bottom-[23%] left-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-100 p-3 max-w-[280px] z-20">
-        {/* Header */}
         <div className="flex items-center gap-2 mb-3">
             <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
             <h4 className="font-medium text-gray-800 text-sm">Legend</h4>
         </div>
-
-        {/* Legend Items */}
+        
         <div className="space-y-2">
-            {/* Interventions Section */}
             <div className="space-y-1.5">
                 <div className="flex items-center gap-2.5">
                     <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1 ring-emerald-500/20"></div>
@@ -741,11 +623,9 @@ const MapLegend: React.FC<{
                     <span className="text-xs text-gray-700">Polygon Areas</span>
                 </div>
             </div>
-
-            {/* Divider */}
+            
             <div className="border-t border-gray-100 my-2"></div>
-
-            {/* Trees Section */}
+            
             <div className="space-y-1.5">
                 <div className="flex items-center gap-2.5">
                     <Trees size={12} className="text-emerald-500" strokeWidth={2.5} />
@@ -761,8 +641,7 @@ const MapLegend: React.FC<{
                 </div>
             </div>
         </div>
-
-        {/* Selected Intervention Info */}
+        
         {selectedIntervention && (
             <div className="mt-3 pt-2 border-t border-gray-100 bg-gray-50/50 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">
                 <div className="flex items-center justify-between">
@@ -777,6 +656,7 @@ const MapLegend: React.FC<{
         )}
     </div>
 );
+
 const MapStats: React.FC<{
     interventions: MapIntervention[];
     selectedIntervention?: MapIntervention;
@@ -807,7 +687,6 @@ const MapStats: React.FC<{
 );
 
 // ==================== MAIN COMPONENT ====================
-
 const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId, token }) => {
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
@@ -827,11 +706,15 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         try {
             setIsLoading(true);
             setError(null);
-
+            console.log('Loading interventions for project:', projectId);
+            
             const response = await fetchProjectInterventions(projectId, token);
+            console.log('Interventions loaded:', response.data.interventions.length);
+            
             setInterventions(response.data.interventions);
             setBounds(response.data.bounds);
         } catch (error: any) {
+            console.error('Failed to load interventions:', error);
             setError(error);
         } finally {
             setIsLoading(false);
@@ -846,6 +729,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     useEffect(() => {
         if (mapRef && bounds && interventions.length > 0) {
             try {
+                console.log('Fitting map to bounds:', bounds);
                 mapRef.fitBounds(bounds.bounds, {
                     padding: 50,
                     duration: 1000,
@@ -856,10 +740,10 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         }
     }, [mapRef, bounds, interventions]);
 
-    // Handle intervention click
     const handleInterventionClick = useCallback(async (intervention: MapIntervention) => {
+        console.log('Intervention clicked:', intervention.hid);
+        
         if (mapState.selectedInterventionId === intervention.id) {
-            // Clicking the same intervention - deselect
             setMapState(prev => ({
                 ...prev,
                 selectedInterventionId: null,
@@ -870,108 +754,29 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             return;
         }
 
+        setMapState(prev => ({
+            ...prev,
+            selectedInterventionId: intervention.id,
+            isLoadingTrees: false, // Set to false since we don't have tree endpoint yet
+            selectedTreeId: null,
+            showTreeDetails: false,
+        }));
+
+        // Zoom to the intervention
         try {
-            setMapState(prev => ({
-                ...prev,
-                selectedInterventionId: intervention.id,
-                isLoadingTrees: true,
-                selectedTreeId: null,
-                showTreeDetails: false,
-            }));
-
-            const response = await fetchInterventionTrees(intervention.id);
-
-            if (response.success) {
-                setTrees(response.data.trees);
-
-                // Calculate optimal bounds including intervention and trees
-                let zoomBounds = bounds;
-
-                if (response.data.trees.length > 0) {
-                    try {
-                        // Create features for trees
-                        const treeFeatures = response.data.trees.map(tree =>
-                            turf.point(tree.location.coordinates)
-                        );
-
-                        // Add intervention feature
-                        const interventionFeature = turf.feature(intervention.location as any);
-
-                        // Combine all features
-                        const allFeatures = turf.featureCollection([
-                            interventionFeature,
-                            ...treeFeatures
-                        ]);
-
-                        const bbox = turf.bbox(allFeatures);
-
-                        // Add buffer to bounds
-                        const buffered = turf.bbox(
-                            turf.buffer(allFeatures, 0.1, { units: 'kilometers' })
-                        );
-
-                        zoomBounds = {
-                            bounds: buffered as [number, number, number, number],
-                            center: [(buffered[0] + buffered[2]) / 2, (buffered[1] + buffered[3]) / 2],
-                        };
-                    } catch (error) {
-                        console.warn('Failed to calculate combined bounds:', error);
-                        // Fallback to intervention bounds
-                        const interventionFeature = turf.feature(intervention.location as any);
-                        const bbox = turf.bbox(interventionFeature);
-                        const buffered = turf.bbox(
-                            turf.buffer(interventionFeature, 0.1, { units: 'kilometers' })
-                        );
-
-                        zoomBounds = {
-                            bounds: buffered as [number, number, number, number],
-                            center: [(buffered[0] + buffered[2]) / 2, (buffered[1] + buffered[3]) / 2],
-                        };
-                    }
-                } else {
-                    // No trees, just zoom to intervention
-                    try {
-                        const interventionFeature = turf.feature(intervention.location as any);
-                        const bbox = turf.bbox(interventionFeature);
-                        const buffered = turf.bbox(
-                            turf.buffer(interventionFeature, 0.1, { units: 'kilometers' })
-                        );
-
-                        zoomBounds = {
-                            bounds: buffered as [number, number, number, number],
-                            center: [(buffered[0] + buffered[2]) / 2, (buffered[1] + buffered[3]) / 2],
-                        };
-                    } catch (error) {
-                        console.warn('Failed to calculate intervention bounds:', error);
-                    }
-                }
-
-                // Zoom to calculated bounds
-                if (mapRef && zoomBounds) {
-                    try {
-                        mapRef.fitBounds(zoomBounds.bounds, {
-                            padding: 100,
-                            duration: 1000,
-                        });
-                    } catch (error) {
-                        console.warn('Failed to zoom to bounds:', error);
-                    }
-                }
+            const [lng, lat] = getMarkerPosition(intervention);
+            if (lng && lat) {
+                mapRef?.flyTo({
+                    center: [lng, lat],
+                    zoom: 16,
+                    duration: 1000,
+                });
             }
-        } catch (error: any) {
-            console.error('Failed to load trees:', error);
-            // Don't set global error for tree loading failures
-            setMapState(prev => ({
-                ...prev,
-                selectedInterventionId: intervention.id, // Keep selection
-                isLoadingTrees: false,
-            }));
-        } finally {
-            setMapState(prev => ({ ...prev, isLoadingTrees: false }));
+        } catch (error) {
+            console.warn('Failed to zoom to intervention:', error);
         }
-    }, [mapRef, mapState.selectedInterventionId, bounds]);
+    }, [mapRef, mapState.selectedInterventionId]);
 
-    // Handle tree click
     const handleTreeClick = useCallback((tree: MapTree) => {
         setMapState(prev => ({
             ...prev,
@@ -980,28 +785,14 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         }));
     }, []);
 
-    // Handle error retry
     const handleRetry = useCallback(() => {
         loadInterventions();
     }, [loadInterventions]);
 
-    // Handle error dismiss
     const handleErrorDismiss = useCallback(() => {
         setError(null);
     }, []);
 
-    // Handle map error
-    const handleMapError = useCallback((error: any) => {
-        console.error('Map error:', error);
-        setError({
-            type: 'mapbox',
-            message: 'Failed to load map. Please check your internet connection.',
-            details: error,
-            recoverable: true,
-        });
-    }, []);
-
-    // Get selected objects
     const selectedIntervention = useMemo(() =>
         interventions.find(i => i.id === mapState.selectedInterventionId),
         [interventions, mapState.selectedInterventionId]
@@ -1012,25 +803,22 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         [trees, mapState.selectedTreeId]
     );
 
+    // Debug information
+    useEffect(() => {
+        if (interventions.length > 0) {
+            console.log('Interventions loaded:', {
+                count: interventions.length,
+                bounds: bounds,
+                sample: interventions[0],
+                coordinates: interventions.map(i => getMarkerPosition(i))
+            });
+        }
+    }, [interventions, bounds]);
+
     if (isLoading) {
         return (
             <div className="relative w-full h-screen">
                 <LoadingDisplay message="Loading project map..." />
-            </div>
-        );
-    }
-
-    if (error && error.type === 'permission') {
-        return (
-            <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center max-w-md">
-                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Access Denied</h2>
-                    <p className="text-gray-600 mb-4">{error.message}</p>
-                    <p className="text-sm text-gray-500">
-                        Please contact your administrator if you believe you should have access to this project.
-                    </p>
-                </div>
             </div>
         );
     }
@@ -1063,46 +851,44 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     "name": "Tree Map",
                     "bearing": 0,
                     "pitch": 0,
-                    "zoom": 4,
-                    "center": [69.3451, 30.3753],
                     "sources": {
                         "imagery": {
                             "type": "raster",
                             "tiles": [
-                                "https://wayback.maptiles.arcgis.com/arcgis/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+                                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
                             ],
                             "tileSize": 256,
                             "minzoom": 0,
-                            "maxzoom": 24
+                            "maxzoom": 19
                         }
                     },
-                    "id": "Imagery",
                     "layers": [
                         {
-                            "id": "Imagery",
+                            "id": "imagery",
                             "type": "raster",
                             "source": "imagery",
                             "minzoom": 0,
-                            "maxzoom": 24,
+                            "maxzoom": 19,
                             "layout": { "visibility": "visible" }
                         }
                     ]
                 }}
                 initialViewState={{
-                    longitude: bounds?.center[0] || 0,
-                    latitude: bounds?.center[1] || 0,
-                    zoom: 2,
+                    longitude: bounds?.center[0] || -90.1366771,
+                    latitude: bounds?.center[1] || 18.6799582,
+                    zoom: bounds ? 12 : 10,
                 }}
                 style={{ width: '100%', height: '100%' }}
-                interactiveLayerIds={['intervention-fill', 'intervention-border']}
+                onError={(error) => {
+                    console.error('Map error:', error);
+                    setError({
+                        type: 'mapbox',
+                        message: 'Failed to load map tiles',
+                        details: error,
+                        recoverable: true,
+                    });
+                }}
             >
-                {/* Intervention Polygon Layers */}
-                <InterventionPolygonLayers
-                    interventions={interventions}
-                    selectedInterventionId={mapState.selectedInterventionId}
-                    onInterventionClick={handleInterventionClick}
-                />
-
                 {/* Intervention Markers */}
                 {interventions.map((intervention) => (
                     <InterventionMarker
@@ -1162,7 +948,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 )}
             </AnimatePresence>
 
-            {/* Trees Details Tooltip */}
+            {/* Tree Details Tooltip */}
             <AnimatePresence>
                 {selectedTree && mapState.showTreeDetails && (
                     <TreeTooltip
@@ -1196,6 +982,15 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 selectedIntervention={selectedIntervention}
                 treeCount={trees.length}
             />
+
+            {/* Debug Info (remove in production) */}
+            {process.env.NODE_ENV === 'development' && (
+                <div className="absolute bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded">
+                    <div>Interventions: {interventions.length}</div>
+                    <div>Bounds: {bounds ? `${bounds.center[0].toFixed(4)}, ${bounds.center[1].toFixed(4)}` : 'None'}</div>
+                    <div>Selected: {selectedIntervention?.hid || 'None'}</div>
+                </div>
+            )}
         </div>
     );
 };
