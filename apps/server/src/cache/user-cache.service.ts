@@ -29,7 +29,9 @@ export class UserCacheService {
         }
     }
 
-    async invalidateUser(user: User): Promise<void> {
+    async invalidateUser(user: {
+        auth0Id: string,
+    }): Promise<void> {
         await this.cacheService.delete(this.getUseAuthrKey(user.auth0Id));
     }
 }

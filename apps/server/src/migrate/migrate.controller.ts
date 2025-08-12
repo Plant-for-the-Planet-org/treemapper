@@ -1,58 +1,59 @@
-// import { Controller, Post, Get, Param, Body, UseGuards, Req, HttpException, HttpStatus, Headers } from '@nestjs/common';
-// import { MigrationCheckResult, MigrationService } from './migrate.service';
-// import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { Controller, Post, Get, Param, Body, UseGuards, Req, HttpException, HttpStatus, Headers } from '@nestjs/common';
+import { MigrationCheckResult, MigrationService } from './migrate.service';
+import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { User } from 'src/users/entities/user.entity';
 
-// @Controller('migration')
-// @UseGuards(JwtAuthGuard)
-// export class MigrationController {
-//   constructor(
-//     private readonly migrationService: MigrationService) { }
+@Controller('migration')
+@UseGuards(JwtAuthGuard)
+export class MigrationController {
+    constructor(
+        private readonly migrationService: MigrationService) { }
 
-//   @Post('start')
-//   async startMigration(@Body() body: { planetId: string }, @Req() req: any) {
-//     const authToken = req.headers.authorization?.replace('Bearer ', '');
+    @Post('start')
+    async startMigration(@Body() body: { planetId: string }, @Req() req: any, @CurrentUser() userData:User) {
+        const authToken = req.headers.authorization?.replace('Bearer ', '');
 
-//     if (!authToken) {
-//       throw new Error('Authorization token required');
-//     }
+        if (!authToken) {
+            throw new Error('Authorization token required');
+        }
 
-//     this.migrationService.startUserMigration(
-//       req.user.id,
-//       body.planetId,
-//       req.user.email,
-//       authToken
-//     ).catch(error => {
-//       console.error('Migration failed:', error);
-//     });
+        this.migrationService.startUserMigration(
+            body.planetId,
+            authToken,
+            userData
+        ).catch(error => {
+            console.error('Migration failed:', error);
+        });
 
-//     return {
-//       currentStep: "in_progress",
-//       updatedAt: Date.now(),
-//       userMigrated: false,
-//       projectMigrated: false,
-//       speciesMigrated: false,
-//       sitesMigrated: false,
-//       interventionMigrated: false,
-//       imagesMigrated: false
-//     };
-//   }
+        return {
+            currentStep: "in_progress",
+            updatedAt: Date.now(),
+            userMigrated: false,
+            projectMigrated: false,
+            speciesMigrated: false,
+            sitesMigrated: false,
+            interventionMigrated: false,
+            imagesMigrated: false
+        };
+    }
 
-//   @Get('check')
-//   async checkMigrationStatus(
-//     @Headers('authorization') authorization: string,
-//     @Req() req: any,
-//   ): Promise<MigrationCheckResult> {
-//     if (!authorization) {
-//       throw new HttpException(
-//         'Authorization header is required',
-//         HttpStatus.UNAUTHORIZED
-//       );
-//     }
-//     return await this.migrationService.checkUserInttc(authorization,req.user.id);
-//   }
+    @Get('check')
+    async checkMigrationStatus(
+        @Headers('authorization') authorization: string,
+        @Req() req: any,
+    ): Promise<MigrationCheckResult> {
+        if (!authorization) {
+            throw new HttpException(
+                'Authorization header is required',
+                HttpStatus.UNAUTHORIZED
+            );
+        }
+        return await this.migrationService.checkUserInttc(authorization, req.user.id);
+    }
 
-//   @Get('status')
-//   async getMigrationStatus(@Req() req) {
-//     return await this.migrationService.getMigrationStatus(req.user.id);
-//   }
-// }
+    @Get('status')
+    async getMigrationStatus(@Req() req) {
+        return await this.migrationService.getMigrationStatus(req.user.id);
+    }
+}

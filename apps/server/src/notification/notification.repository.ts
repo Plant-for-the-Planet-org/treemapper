@@ -1,26 +1,43 @@
 import { Injectable } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { notifications } from '../database/schema/index';
+import { notifications, user } from '../database/schema/index';
 import { eq, and, desc, count, sql, inArray, isNull, or } from 'drizzle-orm';
 import { CreateNotification, Notification } from '../notification/entity/notification.entity';
 import { NotificationQueryDto, NotificationStatsDto } from './dto/notification.dto';
 
 @Injectable()
 export class NotificationRepository {
-  constructor(private readonly drizzle: DrizzleService) {}
+  constructor(private readonly drizzle: DrizzleService) { }
 
-  async create(data: CreateNotification): Promise<Notification> {
-    const [notification] = await this.drizzle.db
-      .insert(notifications)
-      .values({
-        ...data,
-        uid: this.generateUid(),
-      })
-      .returning();
-    
-    return notification;
+  async create(data: any): Promise<any> {
+    try {
+      const [notification] = await this.drizzle.db
+        .insert(notifications)
+        .values({
+          uid: data.uid,
+          userId: data.userId,
+          type: data.type,
+          title: data.title,
+          message: data.message,
+          entityId: data.entityId,
+          priority: data.priority,
+          category: data.category,
+          actionUrl: data.actionUrl,
+          actionText: data.actionText,
+          scheduledFor: data.scheduledFor,
+          expiresAt: data.expiresAt,
+          deliveryMethod: data.deliveryMethod,
+          image: data.image,
+          batchId: data.batchId,
+        })
+        .returning();
+
+      return notification;
+    } catch (error) {
+      console.error('Error inserting notification:', error);
+      throw error;
+    }
   }
-
   async createMany(data: CreateNotification[]): Promise<Notification[]> {
     const notificationsWithUid = data.map(notification => ({
       ...notification,
@@ -65,7 +82,7 @@ export class NotificationRepository {
         .orderBy(desc(notifications.createdAt))
         .limit(limit)
         .offset(offset),
-      
+
       this.drizzle.db
         .select({ count: count() })
         .from(notifications)
@@ -98,14 +115,14 @@ export class NotificationRepository {
     return notification || null;
   }
 
-  async markAsRead(id: number): Promise<Notification> {
+  async markAsRead(id: number, userId: number): Promise<Notification> {
     const [notification] = await this.drizzle.db
       .update(notifications)
-      .set({ 
+      .set({
         isRead: true,
         updatedAt: new Date()
       })
-      .where(eq(notifications.id, id))
+      .where(and(eq(notifications.id, id),eq(notifications.userId, userId)))
       .returning();
 
     return notification;
@@ -114,7 +131,7 @@ export class NotificationRepository {
   async markAsArchived(id: number): Promise<Notification> {
     const [notification] = await this.drizzle.db
       .update(notifications)
-      .set({ 
+      .set({
         isArchived: true,
         updatedAt: new Date()
       })
@@ -127,7 +144,7 @@ export class NotificationRepository {
   async markAllAsRead(userId: number): Promise<void> {
     await this.drizzle.db
       .update(notifications)
-      .set({ 
+      .set({
         isRead: true,
         updatedAt: new Date()
       })
@@ -281,7 +298,7 @@ export class NotificationRepository {
   async markAsSent(ids: number[]): Promise<void> {
     await this.drizzle.db
       .update(notifications)
-      .set({ 
+      .set({
         sentAt: new Date(),
         updatedAt: new Date()
       })
@@ -289,7 +306,7 @@ export class NotificationRepository {
   }
 
   private generateUid(): string {
-    return Math.random().toString(36).substring(2, 15) + 
-           Math.random().toString(36).substring(2, 15);
+    return Math.random().toString(36).substring(2, 15) +
+      Math.random().toString(36).substring(2, 15);
   }
 }

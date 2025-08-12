@@ -27,6 +27,7 @@ import { Public } from '../auth/public.decorator';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { User } from 'src/users/entities/user.entity';
 import { Membership } from './decorators/membership.decorator';
+import { user } from 'src/database/schema';
 
 @Controller('projects')
 export class ProjectsController {
@@ -125,13 +126,13 @@ export class ProjectsController {
   }
 
   @Post('invites/decline')
-  declineInvite(@Body() declineInviteDto: DeclineInviteDto, @Req() req) {
-    return this.projectsService.declineInvite(declineInviteDto.token, req.user.email);
+  declineInvite(@Body() declineInviteDto: DeclineInviteDto, @CurrentUser() userData: User) {
+    return this.projectsService.declineInvite(declineInviteDto.token, userData.email, userData);
   }
 
   @Post('invites/accept')
-  acceptInvite(@Body() acceptInviteDto: AcceptInviteDto, @Req() req) {
-    return this.projectsService.acceptInvite(acceptInviteDto.token, req.user.id, req.user.email);
+  acceptInvite(@Body() acceptInviteDto: AcceptInviteDto, @CurrentUser() userData: User) {
+    return this.projectsService.acceptInvite(acceptInviteDto.token, userData.id, userData.email, userData);
   }
 
   @Patch(':id/members/:memberId/role')
@@ -156,8 +157,8 @@ export class ProjectsController {
 
 
   @Post('invites/accept/link')
-  acceptInviteLink(@Body() acceptInviteDto: AcceptInviteDto, @Req() req) {
-    return this.projectsService.acceptLinkInvite(acceptInviteDto.token, req.user.id, req.user.email);
+  acceptInviteLink(@Body() acceptInviteDto: AcceptInviteDto, @CurrentUser() userData: User) {
+    return this.projectsService.acceptLinkInvite(acceptInviteDto.token, userData.id, userData.email, userData);
   }
 
 
@@ -168,9 +169,9 @@ export class ProjectsController {
     @Param('id') id: string,
     @Param('memberId') memberId: string,
     @Membership() membership: any,
-    @Req() req,
+    @CurrentUser() userData: User,
   ) {
-    return this.projectsService.removeMember(id, memberId, membership, req.user.id);
+    return this.projectsService.removeMember(memberId, membership, userData);
   }
 
 
@@ -193,17 +194,10 @@ export class ProjectsController {
     return this.projectsService.updateProject(membership.projectId, updateProjectDto, membership.userId);
   }
 
-
-  // @Get()
-  // findAll(@Req() req) {
-  //   return this.projectsService.findAll(req.user.id, req.user.primaryOrg);
-  // }
-
-
-  // //   @Delete(':id')
-  // //   @ProjectRoles('owner')
-  // //   @UseGuards(ProjectPermissionsGuard)
-  // //   remove(@Param('id', ParseIntPipe) id: number, @Req() req) {
-  // //     return this.projectsService.remove(id, req.user.id);
-  // //   }
+  @Delete(':id')
+  @ProjectRoles('owner')
+  @UseGuards(ProjectPermissionsGuard)
+  remove(@Membership('id') member: ProjectGuardResponse, @CurrentUser() user) {
+    return this.projectsService.remove(member, user);
+  }
 }

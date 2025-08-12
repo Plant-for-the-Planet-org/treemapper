@@ -19,6 +19,7 @@ import { CACHE_KEYS, CACHE_TTL } from 'src/cache/cache-keys';
 import { CacheService } from 'src/cache/cache.service';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { UserCacheService } from 'src/cache/user-cache.service';
+import { AuditService } from 'src/audit/audit.service';
 
 export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string, siteAccess: string, restrictedSites: string[] | null }
 
@@ -90,7 +91,7 @@ export class ProjectsService {
     private notificationService: NotificationService,
     private projectCacheService: ProjectCacheService,
     private userCacheService: UserCacheService,
-
+    private auditLogsService: AuditService
   ) { }
 
 
@@ -194,9 +195,9 @@ export class ProjectsService {
           await this.userCacheService.refreshAuthUser({ ...userData, primaryWorkspaceUid: userData.primaryWorkspaceUid, primaryProjectUid: projectData.uid })
         this.notificationService.createNotification({
           userId: userData.id,
-          type: NotificationType.PROJECT_UPDATE,
-          title: 'Personal Project Created',
-          message: `Your personal project ${name} has been created successfully.`
+          type: NotificationType.MEMBER,
+          title: 'New Project Created',
+          message: `Your project ${name} has been created successfully.`
         }).catch(err => console.error('Notification failed:', err));
         return project;
       });
@@ -221,6 +222,63 @@ export class ProjectsService {
   }
 
 
+  async createMigrationProject(userData: User): Promise<any> {
+    const workspaceId = 1
+    try {
+      const result = await this.drizzleService.db.transaction(async (tx) => {
+        const [projectData] = await tx
+          .insert(project)
+          .values({
+            uid: generateUid('proj'),
+            createdById: userData.id,
+            workspaceId: workspaceId,
+            slug: `${this.generateSlug(userData.displayName)}-${Date.now()}`,
+            name: `${userData.displayName}'s personal project`,
+            isPersonal: true,
+          })
+          .returning();
+
+        await tx
+          .insert(projectMember)
+          .values({
+            uid: generateUid('projmem'),
+            projectId: projectData.id,
+            userId: userData.id,
+            projectRole: 'owner',
+            joinedAt: new Date(),
+          });
+        await tx.update(user)
+          .set({ primaryWorkspaceUid: userData.primaryWorkspaceUid, primaryProjectUid: projectData.uid })
+          .where(eq(user.id, userData.id)),
+          await this.userCacheService.refreshAuthUser({ ...userData, primaryWorkspaceUid: userData.primaryWorkspaceUid, primaryProjectUid: projectData.uid })
+        this.notificationService.createNotification({
+          userId: userData.id,
+          type: NotificationType.MEMBER,
+          title: 'New Project Created',
+          message: `Your personal project has been created successfully.`
+        }).catch(err => console.error('Notification failed:', err));
+        return project;
+      });
+      return {
+        message: 'Personal project created successfully',
+        statusCode: 201,
+        error: null,
+        data: result,
+        code: 'personal_project_created',
+      };
+
+    } catch (error) {
+      console.error('Error creating personal project:', error);
+      return {
+        message: 'Failed to create personal project',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'personal_project_creation_failed',
+      };
+    }
+  }
+
 
   async findProjectsAndWorkspace(userData: User) {
     try {
@@ -235,7 +293,8 @@ export class ProjectsService {
             description: project.description,
             createdAt: project.createdAt,
             updatedAt: project.updatedAt,
-            location: project.originalGeometry
+            location: project.originalGeometry,
+            deletedAt: project.deletedAt
           },
           projectRole: projectMember.projectRole,
           workspace: {
@@ -273,7 +332,7 @@ export class ProjectsService {
         statusCode: 200,
         error: null,
         data: {
-          projects: projectsResult.map(({ project, projectRole, workspace }) => ({
+          projects: projectsResult.filter(el => el.project.deletedAt === null).map(({ project, projectRole, workspace }) => ({
             ...project,
             userRole: projectRole,
             workspace: workspace
@@ -369,12 +428,18 @@ export class ProjectsService {
           type: createProjectDto.projectType ?? 'private',
           website: createProjectDto.projectWebsite ?? null,
           description: createProjectDto.description ?? null,
+          target: createProjectDto.target ? Number(createProjectDto.target) : null,
           location: locationValue,
           originalGeometry: createProjectDto.location
         })
         .where(eq(project.id, membership.projectId))
 
-
+      this.notificationService.createNotification({
+        userId: userData.id,
+        type: NotificationType.MEMBER,
+        title: 'New Project Created',
+        message: `Your project ${createProjectDto.projectName} has been created successfully.`
+      }).catch(err => console.error('Notification failed:', err));
       return {
         message: 'Project updated successfully',
         statusCode: 201,
@@ -472,7 +537,14 @@ export class ProjectsService {
         token: invitation.token,
         expiresAt: expiryDate,
       });
+      this.notificationService.createNotification(
+        {
+          userId: membership.userId,
+          type: NotificationType.INVITE,
+          title: 'Invite Sent',
+          message: `Project Invites sent to ${email}.`
 
+        })
       return {
         message: 'Invitation sent successfully',
         statusCode: 201,
@@ -578,7 +650,12 @@ export class ProjectsService {
           updatedAt: new Date()
         })
         .where(eq(projectInvites.id, invite.invite.id));
+      await this.auditLogsService.createAuditLog('project_invite', {
+        action: 'invite',
+        entityId: invite.invite.id,
 
+
+      })
       return {
         message: `Invitation discarded`,
         statusCode: 200,
@@ -817,7 +894,7 @@ export class ProjectsService {
 
 
 
-  async acceptInvite(token: string, userId: number, email: string) {
+  async acceptInvite(token: string, userId: number, email: string, userData: User) {
     try {
       const invite = await this.drizzleService.db
         .select({
@@ -848,6 +925,12 @@ export class ProjectsService {
           code: 'invitation_not_found',
         };
       }
+
+      await this.drizzleService.db.update(user).set({
+        primaryProjectUid: invite.project.uid,
+        primaryWorkspaceUid: invite.workspace.uid
+      }).where(eq(user.id, userId))
+
 
       if (new Date(invite.invite.expiresAt) < new Date()) {
         // await this.drizzleService.db TODO: Expire invite here
@@ -943,7 +1026,7 @@ export class ProjectsService {
 
         return membership;
       });
-
+      await this.userCacheService.invalidateUser(userData)
       return {
         message: `You have successfully joined ${invite.project.name}`,
         statusCode: 200,
@@ -968,7 +1051,7 @@ export class ProjectsService {
     }
   }
 
-  async declineInvite(token: string, email: string) {
+  async declineInvite(token: string, email: string, userData: User) {
     try {
       const invite = await this.drizzleService.db
         .select({
@@ -1005,7 +1088,14 @@ export class ProjectsService {
           updatedAt: new Date()
         })
         .where(eq(projectInvites.id, invite.invite.id));
+      this.notificationService.createNotification(
+        {
+          userId: invite.inviter.id,
+          type: NotificationType.INVITE,
+          title: 'Invitation Decline',
+          message: `Project Invites declined by ${email}.`
 
+        })
       return {
         message: `You have declined the invitation to join ${invite.project.name}`,
         statusCode: 200,
@@ -1105,6 +1195,12 @@ export class ProjectsService {
         )
         .returning();
 
+      await this.drizzleService.db.update(user).set({
+        primaryProjectUid: null,
+        primaryWorkspaceUid: null
+      }).where(eq(user.id, memberQuery[0].user.id))
+
+
       return {
         message: 'Member role updated successfully',
         statusCode: 200,
@@ -1129,7 +1225,7 @@ export class ProjectsService {
     }
   }
 
-  async removeMember(projectId: string, memberId: string, myMembership: ProjectGuardResponse, currentUserId: number) {
+  async removeMember(memberId: string, myMembership: ProjectGuardResponse, currentUser: User) {
     try {
 
 
@@ -1190,7 +1286,6 @@ export class ProjectsService {
         };
       }
 
-      // Remove member
       await this.drizzleService.db
         .delete(projectMember)
         .where(
@@ -1200,6 +1295,55 @@ export class ProjectsService {
           )
         );
 
+      const otherProjects = await this.drizzleService.db
+        .select({
+          projectUid: project.uid,
+          workspaceUid: workspace.uid,
+          isPrimary: project.isPrimary,
+          isPersonal: project.isPersonal,
+          updatedAt: project.updatedAt,
+          projectId: project.id
+        })
+        .from(projectMember)
+        .innerJoin(project, eq(project.id, projectMember.projectId))
+        .innerJoin(workspace, eq(workspace.id, project.workspaceId))
+        .where(
+          and(
+            eq(projectMember.userId, currentUser.id),
+            eq(project.isActive, true), // Only active projects
+            eq(projectMember.status, 'active'), // Only active memberships
+            isNull(project.deletedAt), // Not soft deleted
+            ne(project.id, myMembership.projectId) // Exclude the project being removed
+          )
+        )
+        .orderBy(
+          // Prioritize: primary projects first, then personal, then most recent
+          desc(project.isPrimary),
+          desc(project.isPersonal),
+          desc(project.updatedAt)
+        );
+
+      if (!otherProjects || otherProjects.length === 0) {
+        // No other projects, clear primary references
+        await this.drizzleService.db
+          .update(user)
+          .set({
+            primaryProjectUid: null,
+            primaryWorkspaceUid: null
+          })
+          .where(eq(user.id, currentUser.id));
+      } else {
+        // Set the highest priority project as primary
+        const newPrimaryProject = otherProjects[0];
+        await this.drizzleService.db
+          .update(user)
+          .set({
+            primaryWorkspaceUid: newPrimaryProject.workspaceUid,
+            primaryProjectUid: newPrimaryProject.projectUid
+          })
+          .where(eq(user.id, currentUser.id));
+      }
+      await this.userCacheService.invalidateUser({ auth0Id: memberToRemove.user.auth0Id })
       return {
         message: 'Member removed successfully',
         statusCode: 200,
@@ -1302,7 +1446,7 @@ export class ProjectsService {
     }
   }
 
-  async acceptLinkInvite(token: string, userId: number, email: string) {
+  async acceptLinkInvite(token: string, userId: number, email: string, userData: User) {
     try {
       // Get bulk invite with project and workspace details in single query
       const invite = await this.drizzleService.db
@@ -1437,6 +1581,21 @@ export class ProjectsService {
         return membership;
       });
 
+      await this.drizzleService.db.update(user).set({
+        primaryProjectUid: invite.project.uid,
+        primaryWorkspaceUid: invite.workspace.uid
+      }).where(eq(user.id, userId))
+
+      const existingInvite = await this.drizzleService.db.select().from(projectInvites).where(eq(projectInvites.email, email))
+      if (existingInvite) {
+        await this.drizzleService.db.update(projectInvites).set({
+          status: 'discarded',
+          discardedAt: new Date(),
+          discardedById: invite.inviter.id,
+          updatedAt: new Date()
+        })
+      }
+      await this.userCacheService.invalidateUser(userData)
       return {
         message: `You have successfully joined ${invite.project.name}`,
         statusCode: 200,
@@ -1835,6 +1994,87 @@ export class ProjectsService {
     }
   }
 
+  async remove(membership: ProjectGuardResponse, userData: User) {
+    try {
+      return await this.drizzleService.db.transaction(async (tx) => {
+        await tx
+          .update(project)
+          .set({
+            isActive: false,
+            deletedAt: new Date()
+          })
+          .where(eq(project.id, membership.projectId));
+
+        // Find other active projects where user is a member
+        const otherProjects = await tx
+          .select({
+            projectUid: project.uid,
+            workspaceUid: workspace.uid,
+            isPrimary: project.isPrimary,
+            isPersonal: project.isPersonal,
+            updatedAt: project.updatedAt
+          })
+          .from(project)
+          .innerJoin(projectMember, eq(projectMember.projectId, project.id))
+          .innerJoin(workspace, eq(workspace.id, project.workspaceId))
+          .where(
+            and(
+              eq(projectMember.userId, membership.userId),
+              eq(project.isActive, true),
+              ne(project.id, membership.projectId) // Exclude the deleted project
+            )
+          )
+          .orderBy(
+            // Priority order: primary projects first, then personal, then by most recent
+            desc(project.isPrimary),
+            desc(project.isPersonal),
+            desc(project.updatedAt)
+          );
+
+        if (!otherProjects || otherProjects.length === 0) {
+          // No other projects, clear primary references
+          await tx
+            .update(user)
+            .set({
+              primaryProjectUid: null,
+              primaryWorkspaceUid: null
+            })
+            .where(eq(user.id, membership.userId));
+        } else {
+          // Set the highest priority project as primary
+          const newPrimaryProject = otherProjects[0];
+          await tx
+            .update(user)
+            .set({
+              primaryWorkspaceUid: newPrimaryProject.workspaceUid,
+              primaryProjectUid: newPrimaryProject.projectUid
+            })
+            .where(eq(user.id, membership.userId));
+        }
+
+        // Always invalidate cache after transaction
+        await this.userCacheService.invalidateUser(userData);
+
+        return {
+          message: 'Project deleted successfully',
+          statusCode: 200,
+          error: null,
+          data: { success: true },
+          code: 'project_deleted',
+        };
+      });
+
+    } catch (error) {
+      console.error('Error deleting project:', error);
+      return {
+        message: 'Failed to delete project',
+        statusCode: 500,
+        error: error.message || "internal_server_error",
+        data: null,
+        code: 'project_delete_failed',
+      };
+    }
+  }
 
 
 
@@ -1912,47 +2152,6 @@ export class ProjectsService {
 
 
 
-  // // async remove(projectId: number, userId: number) {
-  // //   try {
-  // //     // Only owner can delete a project
-  // //     const membership = await this.getMemberRole(projectId, userId);
-
-  // //     if (!membership || membership.role !== 'owner') {
-  // //       return {
-  // //         message: 'Only the project owner can delete the project',
-  // //         statusCode: 403,
-  // //         error: "forbidden",
-  // //         data: null,
-  // //         code: 'delete_permission_denied',
-  // //       };
-  // //     }
-
-  // //     // Soft delete the project
-  // //     await this.drizzleService.db
-  // //       .update(projects)
-  // //       .set({
-  // //         isActive: false
-  // //       })
-  // //       .where(eq(projects.id, projectId));
-
-  // //     return {
-  // //       message: 'Project deleted successfully',
-  // //       statusCode: 200,
-  // //       error: null,
-  // //       data: { success: true },
-  // //       code: 'project_deleted',
-  // //     };
-  // //   } catch (error) {
-  // //     console.error('Error deleting project:', error);
-  // //     return {
-  // //       message: 'Failed to delete project',
-  // //       statusCode: 500,
-  // //       error: error.message || "internal_server_error",
-  // //       data: null,
-  // //       code: 'project_delete_failed',
-  // //     };
-  // //   }
-  // // }
 
   // // async getMembers(projectId: number) {
   // //   try {

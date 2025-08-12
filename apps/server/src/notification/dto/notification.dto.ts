@@ -3,18 +3,16 @@ import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export enum NotificationType {
-  PROJECT_INVITE = 'project_invite',
-  PROJECT_UPDATE = 'project_update',
-  TREE_MEASUREMENT_DUE = 'tree_measurement_due',
-  INTERVENTION_COMPLETED = 'intervention_completed',
-  SITE_STATUS_CHANGED = 'site_status_changed',
-  NEW_MEMBER_JOINED = 'new_member_joined',
-  SPECIES_ADDED = 'species_added',
-  IMAGE_UPLOADED = 'image_uploaded',
-  MILESTONE_REACHED = 'milestone_reached',
-  WEATHER_ALERT = 'weather_alert',
-  MAINTENANCE_REMINDER = 'maintenance_reminder',
-  SYSTEM_UPDATE = 'system_update'
+  PROJECT = 'project',
+  SITE = 'site',
+  MEMBER = 'member',
+  INTERVENTION = 'intervention',
+  TREE = 'tree',
+  SPECIES = 'species',
+  USER = 'user',
+  INVITE = 'invite',
+  SYSTEM = 'system',
+  OTHER = 'other'
 }
 
 export enum NotificationPriority {
@@ -57,55 +55,58 @@ export class CreateNotificationDto {
   @IsString()
   message: string;
 
-  @ApiPropertyOptional()
-  @IsOptional()
-  @IsString()
-  relatedEntityType?: string;
-
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Related entity ID' })
   @IsOptional()
   @IsInt()
-  relatedEntityId?: number;
+  entityId?: number;
 
-  @ApiPropertyOptional({ enum: NotificationPriority })
+  @ApiPropertyOptional({
+    enum: ['low', 'normal', 'high', 'urgent'],
+    description: 'Notification priority level'
+  })
   @IsOptional()
-  @IsEnum(NotificationPriority)
-  priority?: NotificationPriority;
+  @IsEnum(['low', 'normal', 'high', 'urgent'])
+  priority?: 'low' | 'normal' | 'high' | 'urgent';
 
-  @ApiPropertyOptional({ enum: NotificationCategory })
+  @ApiPropertyOptional({ description: 'Notification category' })
   @IsOptional()
-  @IsEnum(NotificationCategory)
-  category?: NotificationCategory;
+  @IsString()
+  category?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Action URL for the notification' })
   @IsOptional()
   @IsUrl()
   actionUrl?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Action button text' })
   @IsOptional()
   @IsString()
   actionText?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Schedule notification for future delivery' })
   @IsOptional()
   @IsDateString()
   scheduledFor?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Notification expiration date' })
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
 
-  @ApiPropertyOptional({ enum: DeliveryMethod })
+  @ApiPropertyOptional({ description: 'Delivery method' })
   @IsOptional()
-  @IsEnum(DeliveryMethod)
-  deliveryMethod?: DeliveryMethod;
+  @IsString()
+  deliveryMethod?: string;
 
-  @ApiPropertyOptional()
+  @ApiPropertyOptional({ description: 'Notification image URL' })
   @IsOptional()
-  @IsObject()
-  metadata?: Record<string, any>;
+  @IsString()
+  image?: string;
+
+  @ApiPropertyOptional({ description: 'Batch ID for grouped notifications' })
+  @IsOptional()
+  @IsString()
+  batchId?: string;
 }
 
 export class BulkCreateNotificationDto {

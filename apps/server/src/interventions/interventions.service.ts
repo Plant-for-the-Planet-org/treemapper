@@ -1,5 +1,5 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException } from '@nestjs/common';
-import { and, eq, desc, asc, like, gte, lte, inArray, sql, count, isNull, or } from 'drizzle-orm';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, HttpException, HttpStatus } from '@nestjs/common';
+import { and, eq, desc, asc, like, gte, lte, inArray, sql, count, isNull, or, ilike } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
 import {
   intervention,
@@ -10,6 +10,8 @@ import {
   user,
   interventionSpecies,
   scientificSpecies,
+  projectMember,
+  image,
 } from '../database/schema/index';
 import {
   InterventionResponseDto,
@@ -21,7 +23,13 @@ import {
   TreeDto,
   SortOrderEnum,
   InterventionType,
-  CaptureModeEnum
+  CaptureModeEnum,
+  UpdateInterventionSpeciesDto,
+  InterventionTreesResponse,
+  MapIntervention,
+  MapTree,
+  ProjectMapBounds,
+  ProjectMapResponse
 } from './dto/interventions.dto';
 import { generateUid } from 'src/util/uidGenerator';
 import { generateParentHID } from 'src/util/hidGenerator';
@@ -30,6 +38,39 @@ import { interventionConfigurationSeedData } from 'src/database/schema/intervent
 import { error } from 'console';
 
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
+
+
+
+// DTO for ownership transfer request
+export class TransferInterventionOwnershipDto {
+  newOwnerId: number;
+  reason?: string;
+  transferMessage?: string;
+  notifyNewOwner?: boolean = true;
+  notifyOldOwner?: boolean = true;
+}
+
+// Response interface
+interface OwnershipTransferResult {
+  intervention: {
+    id: number;
+    uid: string;
+    hid: string;
+    previousOwner: {
+      id: number;
+      displayName: string;
+      email: string;
+    };
+    newOwner: {
+      id: number;
+      displayName: string;
+      email: string;
+    };
+  };
+  transferredTreeCount: number;
+  changedFields: string[];
+  auditLogId?: number;
+}
 
 
 interface GeoJSONPointGeometry {
@@ -46,6 +87,12 @@ interface ExtractedCoordinates {
   latitude: number;
   longitude: number;
   altitude: number | null;
+}
+
+
+interface GeoJSONPoint {
+  type: 'Point';
+  coordinates: [number, number] | [number, number, number];
 }
 
 
@@ -105,6 +152,170 @@ export class InterventionsService {
     private drizzleService: DrizzleService,
   ) { }
 
+  async updateInterventionSpecies(
+    interventionId: string,
+    speciesId: string,
+    updateDto: UpdateInterventionSpeciesDto,
+    userId: number,
+  ) {
+    return await this.drizzleService.db.transaction(async (tx) => {
+      // 1. Validate intervention exists and user has access
+      const getInterventionId = await tx.select({ id: intervention.id }).from(intervention).where(eq(intervention.uid, interventionId)).limit(1)
+      if (!getInterventionId || getInterventionId.length == 0) {
+        throw 'No intervneiton found'
+      }
+
+      const getInterventionSpecies = await tx.select().from(interventionSpecies).where(eq(interventionSpecies.uid, speciesId)).limit(1)
+      if (!getInterventionSpecies || getInterventionSpecies.length == 0) {
+        throw 'No intervneiton found'
+      }
+      // 2. Validate intervention species exists
+
+
+      // 3. Validate new scientific species exists
+      const newSpeciesData = await this.validateScientificSpecies(
+        tx,
+        updateDto.scientificSpeciesId,
+      );
+
+      // 4. Count existing trees and get their HIDs
+      const treeData = await this.getTreeCountAndHids(tx, getInterventionSpecies[0].id);
+
+      // 5. Validate species count against tree count
+      if (updateDto.speciesCount < treeData.count) {
+        const error = new Error('Species count cannot be less than existing tree count') as any;
+        error.code = 'TREE_COUNT_EXCEEDS_SPECIES_COUNT';
+        error.currentTreeCount = treeData.count;
+        error.requestedSpeciesCount = updateDto.speciesCount;
+        error.treeHids = treeData.hids;
+        throw error;
+      }
+
+      // 6. Prepare old values for audit
+      const oldValues = {
+        scientificSpeciesId: getInterventionSpecies[0].scientificSpeciesId,
+        speciesName: getInterventionSpecies[0].speciesName,
+        commonName: getInterventionSpecies[0].commonName,
+        speciesCount: getInterventionSpecies[0].speciesCount,
+      };
+
+      // 7. Update intervention species
+      const updatedSpecies = await tx
+        .update(interventionSpecies)
+        .set({
+          scientificSpeciesId: updateDto.scientificSpeciesId,
+          speciesName: newSpeciesData.scientificName,
+          commonName: newSpeciesData.commonName,
+          speciesCount: updateDto.speciesCount,
+          updatedAt: new Date(),
+        })
+        .where(eq(interventionSpecies.id, getInterventionSpecies[0].id))
+        .returning();
+
+      // 8. Update all linked trees with new species data
+      if (treeData.count > 0) {
+        await tx
+          .update(tree)
+          .set({
+            speciesName: newSpeciesData.scientificName,
+            commonName: newSpeciesData.commonName,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(tree.interventionSpeciesId, getInterventionSpecies[0].id),
+              isNull(tree.deletedAt)
+            )
+          );
+      }
+
+      // 9. Update intervention timestamp
+      await tx
+        .update(intervention)
+        .set({
+          updatedAt: new Date(),
+        })
+        .where(eq(intervention.id, getInterventionId[0].id));
+
+      // 10. Create audit log
+      const newValues = {
+        scientificSpeciesId: updateDto.scientificSpeciesId,
+        speciesName: newSpeciesData.scientificName,
+        commonName: newSpeciesData.commonName,
+        speciesCount: updateDto.speciesCount,
+      };
+
+      const changedFields = this.getChangedFields(oldValues, newValues);
+
+      // await this.auditLogService.createAuditLog({
+      //   action: 'update',
+      //   entityType: 'intervention',
+      //   entityId: speciesId.toString(),
+      //   entityUid: currentSpecies.uid,
+      //   userId: userId,
+      //   workspaceId: null, // You might want to get this from intervention
+      //   projectId: interventionData.projectId,
+      //   oldValues,
+      //   newValues,
+      //   changedFields,
+      //   source: 'web',
+      // });
+
+      return {
+        interventionSpecies: updatedSpecies[0],
+        updatedTreeCount: treeData.count,
+        changedFields,
+      };
+    });
+  }
+
+
+  private async validateScientificSpecies(tx: any, scientificSpeciesId: number) {
+    const species = await tx
+      .select({
+        id: scientificSpecies.id,
+        scientificName: scientificSpecies.scientificName,
+        commonName: scientificSpecies.commonName,
+      })
+      .from(scientificSpecies)
+      .where(
+        and(
+          eq(scientificSpecies.id, scientificSpeciesId),
+          isNull(scientificSpecies.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!species.length) {
+      throw new HttpException(
+        'Scientific species not found',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    return species[0];
+  }
+
+  private async getTreeCountAndHids(tx: any, speciesId: number) {
+    const result = await tx
+      .select({
+        count: sql<number>`count(*)::int`,
+        hids: sql<string[]>`array_agg(${tree.hid})`,
+      })
+      .from(tree)
+      .where(
+        and(
+          eq(tree.interventionSpeciesId, speciesId),
+          isNull(tree.deletedAt)
+        )
+      );
+
+    return {
+      count: result[0]?.count || 0,
+      hids: result[0]?.hids || [],
+    };
+  }
+
 
 
 
@@ -148,50 +359,38 @@ export class InterventionsService {
     }
     return { treeCount, error: null }
   }
-  private extractCoordinatesFromGeoJSONTyped(geoJsonFeature: GeoJSONFeature): ExtractedCoordinates {
+  private extractCoordinatesFromPoint(pointGeometry: GeoJSONPoint): ExtractedCoordinates {
     // Validate that input exists
-    if (!geoJsonFeature) {
-      throw new Error('GeoJSON Feature is required');
+    if (!pointGeometry) {
+      throw new Error('Point geometry is required');
     }
 
-    // Validate that it's a Feature
-    if (geoJsonFeature.type !== 'Feature') {
-      throw new Error(`Expected GeoJSON type 'Feature', but received '${geoJsonFeature.type}'`);
-    }
-
-    // Validate that geometry exists
-    if (!geoJsonFeature.geometry) {
-      throw new Error('GeoJSON Feature must contain a geometry');
-    }
-
-    // Validate that geometry is a Point
-    if (geoJsonFeature.geometry.type !== 'Point') {
-      throw new Error(
-        `Expected GeoJSON Feature with Point geometry, but received '${geoJsonFeature.geometry.type}' geometry`
-      );
+    // Validate that it's a Point
+    if (pointGeometry.type !== 'Point') {
+      throw new Error(`Expected Point geometry, but received '${pointGeometry.type}'`);
     }
 
     // Validate coordinates exist and are valid
-    if (!geoJsonFeature.geometry.coordinates || !Array.isArray(geoJsonFeature.geometry.coordinates)) {
-      throw new Error('Invalid or missing coordinates in GeoJSON Point geometry');
+    if (!pointGeometry.coordinates || !Array.isArray(pointGeometry.coordinates)) {
+      throw new Error('Invalid or missing coordinates in Point geometry');
     }
 
-    const coordinates = geoJsonFeature.geometry.coordinates;
+    const coordinates = pointGeometry.coordinates;
 
-    // GeoJSON Point should have exactly 2 or 3 coordinates [longitude, latitude, altitude?]
+    // Point should have exactly 2 or 3 coordinates [longitude, latitude, altitude?]
     if (coordinates.length < 2) {
-      throw new Error('GeoJSON Point coordinates must contain at least longitude and latitude');
+      throw new Error('Point coordinates must contain at least longitude and latitude');
     }
 
     const [longitude, latitude, altitude = null] = coordinates;
 
-    // Validate coordinate ranges
+    // Validate coordinate types and ranges
     if (typeof longitude !== 'number' || longitude < -180 || longitude > 180) {
-      throw new Error(`Invalid longitude: ${longitude}. Must be between -180 and 180`);
+      throw new Error(`Invalid longitude: ${longitude}. Must be a number between -180 and 180`);
     }
 
     if (typeof latitude !== 'number' || latitude < -90 || latitude > 90) {
-      throw new Error(`Invalid latitude: ${latitude}. Must be between -90 and 90`);
+      throw new Error(`Invalid latitude: ${latitude}. Must be a number between -90 and 90`);
     }
 
     // Validate altitude if present
@@ -214,9 +413,8 @@ export class InterventionsService {
       let projectSiteId: null | number = null;
       const uid = generateUid('inv');
       const idempotencyKey = generateUid('idem')
-      const geometryType = createInterventionDto.geometry.type || 'Point';
-      const geometry = this.getGeoJSONForPostGIS(createInterventionDto.geometry);
-      const locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+      const cleanGeometry = this.getGeoJSONForPostGIS(createInterventionDto.geometry);
+      const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
       const { treeCount, error } = this.treeAndSpeciesCount(createInterventionDto)
       const transformedSpecies = createInterventionDto.species.map(el => {
         return {
@@ -271,12 +469,11 @@ export class InterventionsService {
         registrationDate: new Date(),
         interventionStartDate: new Date(createInterventionDto.interventionStartDate),
         interventionEndDate: new Date(createInterventionDto.interventionEndDate),
-        location: locationValue,
+        location: locationSQL,
         originalGeometry: createInterventionDto.geometry,
         captureMode: "web-upload" as CaptureModeEnum,
         captureStatus: CaptureStatus.COMPLETE,
         metadata: createInterventionDto.metadata || null,
-        geometryType: geometryType,
         image: createInterventionDto.image || null,
         totalTreeCount: treeCount
       }
@@ -291,8 +488,6 @@ export class InterventionsService {
         ...el,
         interventionId: result[0].id,
       }))
-      console.log("SCD", finalInterventionSpecies)
-
       const interventionSpecieData = await this.drizzleService.db
         .insert(interventionSpecies)
         .values(finalInterventionSpecies)
@@ -301,7 +496,7 @@ export class InterventionsService {
         throw 'Species creation failed'
       }
       if (createInterventionDto.type === 'single-tree-registration') {
-        const latlongDetails = this.extractCoordinatesFromGeoJSONTyped(createInterventionDto.geometry)
+        const latlongDetails = this.extractCoordinatesFromPoint(createInterventionDto.geometry)
         if (!latlongDetails.latitude || !latlongDetails.longitude) {
           throw 'Location issue'
         }
@@ -315,7 +510,7 @@ export class InterventionsService {
           tag: createInterventionDto.tag,
           treeType: 'single' as const,
           image: createInterventionDto.image || null,
-          location: locationValue,
+          location: locationSQL,
           originalGeometry: createInterventionDto.geometry,
           latitude: latlongDetails.latitude,
           longitude: latlongDetails.longitude,
@@ -331,6 +526,7 @@ export class InterventionsService {
         if (!singleResult) {
           throw new Error('Failed to create singleResult intervention');
         }
+        this.imageUpload('during', singleResult[0].id, 'tree', 'web', createInterventionDto.image, membership.userId)
       }
       return {} as InterventionResponseDto;
     } catch (error) {
@@ -338,6 +534,17 @@ export class InterventionsService {
     }
   }
 
+  async imageUpload(type, id, entity, device, filename, userId) {
+    await this.drizzleService.db.insert(image).values({
+      uid: generateUid('img'),
+      type: type,
+      entityId: id,
+      entityType: entity,
+      deviceType: device,
+      filename: filename,
+      uploadedById: userId
+    })
+  }
 
 
   async getProjectInterventions(
@@ -572,6 +779,7 @@ export class InterventionsService {
           flag: tree.flag,
           createdAt: tree.createdAt,
           updatedAt: tree.updatedAt,
+          migratedTree: tree.migratedTree
         },
         record: {
           id: treeRecord.id,
@@ -604,9 +812,7 @@ export class InterventionsService {
       .where(
         and(
           inArray(tree.interventionId, interventionIds),
-          isNull(tree.deletedAt),
-          // Only include trees that have measurement records
-          sql`${tree.lastMeasurementDate} IS NOT NULL`
+          isNull(tree.deletedAt)
         )
       )
       .orderBy(desc(treeRecord.recordedAt));
@@ -662,6 +868,7 @@ export class InterventionsService {
           plantingDate: treeData.plantingDate,
           lastMeasurementDate: treeData.lastMeasurementDate,
           nextMeasurementDate: treeData.nextMeasurementDate,
+          migratedTree: treeData.migratedTree,
           image: treeData.image,
           flag: treeData.flag,
           createdAt: treeData.createdAt,
@@ -689,6 +896,7 @@ export class InterventionsService {
           notes: recordData.notes,
           priorityLevel: recordData.priorityLevel,
           image: recordData.image,
+
           createdAt: recordData.createdAt,
         });
       }
@@ -836,7 +1044,7 @@ export class InterventionsService {
         });
 
         if (el.type === 'single-tree-registration') {
-          const latlongDetails = this.extractCoordinatesFromGeoJSONTyped(el.geometry);
+          const latlongDetails = this.extractCoordinatesFromPoint(el.geometry);
           if (!latlongDetails.latitude || !latlongDetails.longitude) {
             throw new BadRequestException(`Invalid coordinates for single tree intervention: ${interventionUid}`);
           }
@@ -1071,6 +1279,459 @@ export class InterventionsService {
     return results;
   }
 
+  async transferInterventionOwnership(
+    interventionId: number,
+    transferDto: TransferInterventionOwnershipDto,
+    requesterId: number,
+  ): Promise<OwnershipTransferResult> {
+    return await this.drizzleService.db.transaction(async (tx) => {
+      // 1. Validate intervention exists and get current data
+      const currentIntervention = await this.validateAndGetIntervention(
+        tx,
+        interventionId
+      );
+
+      // 2. Validate requester has permission to transfer ownership
+      await this.validateTransferPermission(
+        tx,
+        currentIntervention.projectId,
+        requesterId,
+        currentIntervention.userId
+      );
+
+      // 3. Validate new owner exists and has project access
+      const newOwner = await this.validateNewOwner(
+        tx,
+        transferDto.newOwnerId,
+        currentIntervention.projectId
+      );
+
+      // 4. Get current owner details for audit
+      const currentOwner = await this.getCurrentOwner(
+        tx,
+        currentIntervention.userId
+      );
+
+      // 5. Prevent self-transfer
+      if (currentIntervention.userId === transferDto.newOwnerId) {
+        throw new HttpException(
+          'Cannot transfer intervention to the same owner',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // 6. Count associated trees for audit purposes
+      const treeCount = await this.getAssociatedTreeCount(tx, interventionId);
+
+      // 7. Prepare audit data
+      const oldValues = {
+        userId: currentIntervention.userId,
+        ownerDisplayName: currentOwner.displayName,
+        ownerEmail: currentOwner.email,
+      };
+
+      const newValues = {
+        userId: transferDto.newOwnerId,
+        ownerDisplayName: newOwner.displayName,
+        ownerEmail: newOwner.email,
+      };
+
+      // 8. Update intervention ownership
+      const updatedIntervention = await tx
+        .update(intervention)
+        .set({
+          userId: transferDto.newOwnerId,
+          updatedAt: new Date(),
+          editedAt: new Date(), // Track when intervention was last edited
+        })
+        .where(eq(intervention.id, interventionId))
+        .returning();
+
+      // 9. Update associated trees ownership (if any)
+      if (treeCount > 0) {
+        await tx
+          .update(tree)
+          .set({
+            createdById: transferDto.newOwnerId,
+            updatedAt: new Date(),
+          })
+          .where(
+            and(
+              eq(tree.interventionId, interventionId),
+              isNull(tree.deletedAt)
+            )
+          );
+      }
+
+      // 10. Create audit log entry
+      const changedFields = this.getChangedFields(oldValues, newValues);
+
+      // Uncomment when audit service is available
+      // const auditEntry = await this.auditLogService.createAuditLog({
+      //   action: 'update',
+      //   entityType: 'intervention',
+      //   entityId: interventionId.toString(),
+      //   entityUid: currentIntervention.uid,
+      //   userId: requesterId,
+      //   workspaceId: null, // You might want to get this from project
+      //   projectId: currentIntervention.projectId,
+      //   oldValues,
+      //   newValues,
+      //   changedFields,
+      //   source: 'web',
+      // });
+
+      // 11. Send notifications (if enabled)
+      if (transferDto.notifyNewOwner || transferDto.notifyOldOwner) {
+        // await this.sendOwnershipTransferNotifications(
+        //   tx,
+        //   {
+        //     intervention: updatedIntervention[0],
+        //     currentOwner,
+        //     newOwner,
+        //     requester: requesterId,
+        //     reason: transferDto.reason,
+        //     message: transferDto.transferMessage,
+        //   },
+        //   {
+        //     notifyNew: transferDto.notifyNewOwner,
+        //     notifyOld: transferDto.notifyOldOwner,
+        //   }
+        // );
+      }
+
+      return {
+        intervention: {
+          id: updatedIntervention[0].id,
+          uid: updatedIntervention[0].uid,
+          hid: updatedIntervention[0].hid,
+          previousOwner: {
+            id: currentOwner.id,
+            displayName: currentOwner.displayName,
+            email: currentOwner.email,
+          },
+          newOwner: {
+            id: newOwner.id,
+            displayName: newOwner.displayName,
+            email: newOwner.email,
+          },
+        },
+        transferredTreeCount: treeCount,
+        changedFields,
+        // auditLogId: auditEntry?.id,
+      };
+    });
+  }
+
+  /**
+   * Validate intervention exists and is not deleted
+   */
+  private async validateAndGetIntervention(tx: any, interventionId: number) {
+    const interventionData = await tx
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        userId: intervention.userId,
+        projectId: intervention.projectId,
+        type: intervention.type,
+        status: intervention.status,
+      })
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.id, interventionId),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!interventionData.length) {
+      throw new HttpException(
+        'Intervention not found or has been deleted',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Prevent transfer of completed/cancelled interventions (optional business rule)
+    if (['completed', 'cancelled', 'failed'].includes(interventionData[0].status)) {
+      throw new HttpException(
+        `Cannot transfer ownership of ${interventionData[0].status} intervention`,
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return interventionData[0];
+  }
+
+  /**
+   * Validate that the requester has permission to transfer ownership
+   */
+  private async validateTransferPermission(
+    tx: any,
+    projectId: number,
+    requesterId: number,
+    currentOwnerId: number
+  ) {
+    // Check if requester is the current owner
+    const isCurrentOwner = requesterId === currentOwnerId;
+
+    // Check if requester has admin/owner role in project
+    const projectMembership = await tx
+      .select({
+        id: projectMember.id,
+        projectRole: projectMember.projectRole,
+      })
+      .from(projectMember)
+      .where(
+        and(
+          eq(projectMember.projectId, projectId),
+          eq(projectMember.userId, requesterId),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!projectMembership.length) {
+      throw new HttpException(
+        'Access denied: You are not a member of this project',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+
+    const hasAdminRights = ['owner', 'admin'].includes(projectMembership[0].projectRole);
+
+    // Allow transfer if user is current owner OR has admin rights
+    if (!isCurrentOwner && !hasAdminRights) {
+      throw new HttpException(
+        'Access denied: Only the current owner or project admins can transfer ownership',
+        HttpStatus.FORBIDDEN,
+      );
+    }
+  }
+
+  /**
+   * Validate new owner exists and has project access
+   */
+  private async validateNewOwner(tx: any, newOwnerId: number, projectId: number) {
+    // Check if new owner exists and is active
+    const newOwnerData = await tx
+      .select({
+        id: user.id,
+        displayName: user.displayName,
+        email: user.email,
+        isActive: user.isActive,
+      })
+      .from(user)
+      .where(
+        and(
+          eq(user.id, newOwnerId),
+          eq(user.isActive, true),
+          isNull(user.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!newOwnerData.length) {
+      throw new HttpException(
+        'New owner not found or is inactive',
+        HttpStatus.NOT_FOUND,
+      );
+    }
+
+    // Check if new owner has access to the project
+    const newOwnerProjectAccess = await tx
+      .select({
+        id: projectMember.id,
+        projectRole: projectMember.projectRole,
+        status: projectMember.status,
+      })
+      .from(projectMember)
+      .where(
+        and(
+          eq(projectMember.projectId, projectId),
+          eq(projectMember.userId, newOwnerId),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!newOwnerProjectAccess.length) {
+      throw new HttpException(
+        'New owner does not have access to this project',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    // Ensure new owner has at least contributor role
+    const allowedRoles = ['contributor', 'admin', 'owner'];
+    if (!allowedRoles.includes(newOwnerProjectAccess[0].projectRole)) {
+      throw new HttpException(
+        'New owner must have at least contributor role in the project',
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+
+    return newOwnerData[0];
+  }
+
+  /**
+   * Get current owner details
+   */
+  private async getCurrentOwner(tx: any, currentOwnerId: number) {
+    const currentOwnerData = await tx
+      .select({
+        id: user.id,
+        displayName: user.displayName,
+        email: user.email,
+      })
+      .from(user)
+      .where(eq(user.id, currentOwnerId))
+      .limit(1);
+
+    if (!currentOwnerData.length) {
+      throw new HttpException(
+        'Current owner not found',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    return currentOwnerData[0];
+  }
+
+  /**
+   * Count trees associated with the intervention
+   */
+  private async getAssociatedTreeCount(tx: any, interventionId: number): Promise<number> {
+    const result = await tx
+      .select({
+        count: sql<number>`count(*)::int`,
+      })
+      .from(tree)
+      .where(
+        and(
+          eq(tree.interventionId, interventionId),
+          isNull(tree.deletedAt)
+        )
+      );
+
+    return result[0]?.count || 0;
+  }
+
+  /**
+   * Send ownership transfer notifications
+   */
+  private async sendOwnershipTransferNotifications(
+    tx: any,
+    data: {
+      intervention: any;
+      currentOwner: any;
+      newOwner: any;
+      requester: number;
+      reason?: string;
+      message?: string;
+    },
+    options: {
+      notifyNew: boolean;
+      notifyOld: boolean;
+    }
+  ) {
+    const notifications = [];
+
+    // Notify new owner
+    if (options.notifyNew && data.newOwner.id !== data.requester) {
+      // notifications.push({
+      //   userId: data.newOwner.id,
+      //   type: 'intervention',
+      //   title: 'Intervention Ownership Transferred to You',
+      //   message: `You are now the owner of intervention ${data.intervention.hid}. ${data.message || ''}`,
+      //   entityId: data.intervention.id,
+      //   priority: 'normal',
+      //   actionUrl: `/interventions/${data.intervention.id}`,
+      //   actionText: 'View Intervention',
+      // });
+    }
+
+    // Notify previous owner (if they're not the requester)
+    if (options.notifyOld && data.currentOwner.id !== data.requester) {
+      // notifications.push({
+      //   userId: data.currentOwner.id,
+      //   type: 'intervention',
+      //   title: 'Intervention Ownership Transferred',
+      //   message: `Ownership of intervention ${data.intervention.hid} has been transferred to ${data.newOwner.displayName}. ${data.reason ? `Reason: ${data.reason}` : ''}`,
+      //   entityId: data.intervention.id,
+      //   priority: 'normal',
+      //   actionUrl: `/interventions/${data.intervention.id}`,
+      //   actionText: 'View Intervention',
+      // });
+    }
+
+    // Create notifications in database
+    for (const notification of notifications) {
+      // Uncomment when notification service is available
+      // await this.notificationService.create(notification);
+
+      // Or insert directly into notifications table:
+      // await tx.insert(notifications).values({
+      //   uid: generateUid(), // You'll need to implement this
+      //   ...notification,
+      // });
+    }
+  }
+
+  /**
+   * Get changed fields for audit log
+   */
+  private getChangedFields(oldValues: any, newValues: any): string[] {
+    const changedFields: string[] = [];
+
+    Object.keys(newValues).forEach((key) => {
+      if (oldValues[key] !== newValues[key]) {
+        changedFields.push(key);
+      }
+    });
+
+    return changedFields;
+  }
+
+  /**
+   * Bulk transfer multiple interventions (bonus method)
+   */
+  async bulkTransferInterventionOwnership(
+    interventionIds: number[],
+    transferDto: TransferInterventionOwnershipDto,
+    requesterId: number,
+  ): Promise<{
+    successful: OwnershipTransferResult[];
+    failed: { interventionId: number; error: string }[];
+  }> {
+    const results = {
+      successful: [] as OwnershipTransferResult[],
+      failed: [] as { interventionId: number; error: string }[],
+    };
+
+    // Process each intervention individually to handle partial failures
+    for (const interventionId of interventionIds) {
+      try {
+        const result = await this.transferInterventionOwnership(
+          interventionId,
+          transferDto,
+          requesterId
+        );
+        results.successful.push(result);
+      } catch (error) {
+        results.failed.push({
+          interventionId,
+          error: error.message || 'Unknown error occurred',
+        });
+      }
+    }
+
+    return results;
+  }
+
 
 
 
@@ -1100,4 +1761,378 @@ export class InterventionsService {
   //     return ''
   //   }
   // }
+
+
+  async searchProjectMembers(
+    projectId: number,
+    searchParams: any,
+  ): Promise<any> {
+
+  }
+  async getProjectMapInterventions(projectId: number): Promise<any> {
+    try {
+      // Validate projectId
+      if (!projectId || projectId <= 0) {
+        throw new Error('Invalid project ID provided');
+      }
+
+      console.log(`Fetching interventions for project: ${projectId}`);
+
+      let interventionsQuery;
+
+      try {
+        interventionsQuery = await this.drizzleService.db
+          .select({
+            id: intervention.id,
+            uid: intervention.uid,
+            hid: intervention.hid,
+            type: intervention.type,
+            status: intervention.status,
+            registrationDate: intervention.registrationDate,
+            interventionStartDate: intervention.interventionStartDate,
+            interventionEndDate: intervention.interventionEndDate,
+            // Ensure GeoJSON is properly formatted
+            location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${intervention.location})::json`,
+            // Clean up geometry type format
+            locationGeometryType: sql<string>`REPLACE(ST_GeometryType(${intervention.location}), 'ST_', '')`,
+            // Only calculate centroid for non-Point geometries
+            centroid: sql<GeoJSON.Point | null>`
+          CASE 
+            WHEN ST_GeometryType(${intervention.location}) = 'ST_Point' THEN NULL
+            ELSE ST_AsGeoJSON(ST_Centroid(${intervention.location}))::json
+          END
+        `,
+            area: intervention.area,
+            totalTreeCount: intervention.totalTreeCount,
+            totalSampleTreeCount: intervention.totalSampleTreeCount,
+            description: intervention.description,
+            image: intervention.image,
+          })
+          .from(intervention)
+          .where(
+            and(
+              eq(intervention.projectId, projectId),
+              isNull(intervention.deletedAt),
+              // Enhanced location validation
+              sql`${intervention.location} IS NOT NULL`,
+              sql`ST_IsValid(${intervention.location}) = true`,
+              // Ensure coordinates are within valid ranges
+              sql`ST_X(ST_Centroid(${intervention.location})) BETWEEN -180 AND 180`,
+              sql`ST_Y(ST_Centroid(${intervention.location})) BETWEEN -90 AND 90`
+            )
+          )
+          .orderBy(intervention.interventionStartDate);
+
+        console.log(`Found ${interventionsQuery.length} interventions for project ${projectId}`);
+
+        // Process and validate the results
+        const interventions: any[] = interventionsQuery
+          .map(row => {
+            try {
+              // Validate and process dates
+              const registrationDate = row.registrationDate instanceof Date
+                ? row.registrationDate.toISOString()
+                : new Date(row.registrationDate).toISOString();
+
+              const interventionStartDate = row.interventionStartDate instanceof Date
+                ? row.interventionStartDate.toISOString()
+                : new Date(row.interventionStartDate).toISOString();
+
+              const interventionEndDate = row.interventionEndDate instanceof Date
+                ? row.interventionEndDate.toISOString()
+                : new Date(row.interventionEndDate).toISOString();
+
+              // Validate location data
+              if (!row.location || typeof row.location !== 'object') {
+                console.warn(`Invalid location for intervention ${row.hid}:`, row.location);
+                return null;
+              }
+
+              // Ensure coordinates are valid numbers
+              if (row.location.type === 'Point') {
+                const [lng, lat] = row.location.coordinates;
+                if (typeof lng !== 'number' || typeof lat !== 'number' ||
+                  Math.abs(lng) > 180 || Math.abs(lat) > 90) {
+                  console.warn(`Invalid coordinates for intervention ${row.hid}:`, lng, lat);
+                  return null;
+                }
+              }
+
+              return {
+                ...row,
+                locationGeometryType: row.locationGeometryType as 'Point' | 'Polygon' | 'MultiPolygon',
+                registrationDate,
+                interventionStartDate,
+                interventionEndDate,
+                // Ensure numeric values
+                totalTreeCount: Number(row.totalTreeCount) || 0,
+                totalSampleTreeCount: Number(row.totalSampleTreeCount) || 0,
+                area: row.area ? Number(row.area) : null,
+              };
+            } catch (error) {
+              console.error(`Error processing intervention ${row.hid}:`, error);
+              return null;
+            }
+          })
+          .filter(Boolean); // Remove null entries
+
+        console.log(`Successfully processed ${interventions.length} valid interventions`);
+
+        if (interventions.length === 0) {
+          console.warn(`No valid interventions found for project ${projectId}`);
+          return {
+            interventions: [],
+            bounds: {
+              bounds: [-180, -85, 180, 85],
+              center: [0, 0],
+            },
+            totalInterventions: 0,
+          };
+        }
+
+        // Calculate bounds from all intervention locations
+        const bounds = this.calculateBounds(interventions);
+
+        console.log('Calculated bounds:', bounds);
+
+        return {
+          interventions,
+          bounds,
+          totalInterventions: interventions.length,
+        };
+
+      } catch (error) {
+        console.error('Error fetching project map interventions:', error);
+
+        // Re-throw with more context
+        throw new Error(`Failed to fetch map interventions for project ${projectId}: ${error.message}`);
+      }
+    } catch (e) {
+
+    }
+  }
+
+  private calculateBounds(interventions: any[]): {
+    bounds: [number, number, number, number];
+    center: [number, number];
+  } {
+    try {
+      if (interventions.length === 0) {
+        return {
+          bounds: [-180, -85, 180, 85],
+          center: [0, 0],
+        };
+      }
+
+      let minLng = Infinity;
+      let maxLng = -Infinity;
+      let minLat = Infinity;
+      let maxLat = -Infinity;
+
+      interventions.forEach(intervention => {
+        try {
+          let coords: number[] = [];
+
+          // Get coordinates based on geometry type
+          if (intervention.location.type === 'Point') {
+            coords = intervention.location.coordinates;
+          } else if (intervention.centroid && intervention.centroid.coordinates) {
+            coords = intervention.centroid.coordinates;
+          } else {
+            // Fallback: calculate centroid manually for polygons
+            if (intervention.location.type === 'Polygon' &&
+              intervention.location.coordinates &&
+              intervention.location.coordinates[0]) {
+              const ring = intervention.location.coordinates[0];
+              let lngSum = 0;
+              let latSum = 0;
+              ring.forEach((coord: number[]) => {
+                lngSum += coord[0];
+                latSum += coord[1];
+              });
+              coords = [lngSum / ring.length, latSum / ring.length];
+            }
+          }
+
+          if (coords.length >= 2) {
+            const [lng, lat] = coords;
+
+            // Validate coordinates
+            if (typeof lng === 'number' && typeof lat === 'number' &&
+              Math.abs(lng) <= 180 && Math.abs(lat) <= 90) {
+              minLng = Math.min(minLng, lng);
+              maxLng = Math.max(maxLng, lng);
+              minLat = Math.min(minLat, lat);
+              maxLat = Math.max(maxLat, lat);
+            } else {
+              console.warn(`Invalid coordinates in bounds calculation: ${lng}, ${lat}`);
+            }
+          }
+        } catch (error) {
+          console.warn(`Error processing intervention coordinates for bounds:`, intervention.hid, error);
+        }
+      });
+
+      // Check if we found any valid coordinates
+      if (!isFinite(minLng) || !isFinite(maxLng) || !isFinite(minLat) || !isFinite(maxLat)) {
+        console.warn('No valid coordinates found for bounds calculation');
+        return {
+          bounds: [-180, -85, 180, 85],
+          center: [0, 0],
+        };
+      }
+
+      // Add padding (10% of the range, minimum 0.001 degrees)
+      const lngPadding = Math.max((maxLng - minLng) * 0.1, 0.001);
+      const latPadding = Math.max((maxLat - minLat) * 0.1, 0.001);
+
+      const bounds: [number, number, number, number] = [
+        Math.max(minLng - lngPadding, -180),
+        Math.max(minLat - latPadding, -85),
+        Math.min(maxLng + lngPadding, 180),
+        Math.min(maxLat + latPadding, 85),
+      ];
+
+      const center: [number, number] = [
+        (minLng + maxLng) / 2,
+        (minLat + maxLat) / 2,
+      ];
+
+      return { bounds, center };
+
+    } catch (error) {
+      console.error('Error calculating bounds:', error);
+      return {
+        bounds: [-180, -85, 180, 85],
+        center: [0, 0],
+      };
+    }
+  }
+
+  /**
+   * Get all trees for a specific intervention
+   */
+  async getInterventionTrees(interventionId: number): Promise<InterventionTreesResponse> {
+    console.log("SDC", interventionId)
+    // Get intervention details
+    const interventionQuery = await this.drizzleService.db
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        status: intervention.status,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${intervention.location})::json`,
+        area: intervention.area,
+        totalTreeCount: intervention.totalTreeCount,
+        totalSampleTreeCount: intervention.totalSampleTreeCount,
+        description: intervention.description,
+        image: intervention.image,
+      })
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.id, interventionId),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!interventionQuery.length) {
+      throw new Error('Intervention not found');
+    }
+
+    const interventionData: any = {
+      ...interventionQuery[0],
+      registrationDate: interventionQuery[0].registrationDate.toISOString(),
+      interventionStartDate: interventionQuery[0].interventionStartDate.toISOString(),
+      interventionEndDate: interventionQuery[0].interventionEndDate.toISOString(),
+    };
+
+    // Get trees with species information
+    const treesQuery = await this.drizzleService.db
+      .select({
+        id: tree.id,
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        treeType: tree.treeType,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${tree.location})::json`,
+        status: tree.status,
+        currentHeight: tree.currentHeight,
+        currentWidth: tree.currentWidth,
+        currentHealthScore: tree.currentHealthScore,
+        plantingDate: tree.plantingDate,
+        lastMeasurementDate: tree.lastMeasurementDate,
+        image: tree.image,
+
+        // Species information
+        speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
+        commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+      })
+      .from(tree)
+      .leftJoin(
+        interventionSpecies,
+        eq(tree.interventionSpeciesId, interventionSpecies.id)
+      )
+      .leftJoin(
+        scientificSpecies,
+        eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id)
+      )
+      .where(
+        and(
+          eq(tree.interventionId, interventionId),
+          isNull(tree.deletedAt),
+          sql`${tree.location} IS NOT NULL` // Only include trees with valid locations
+        )
+      )
+      .orderBy(tree.tag);
+
+    const trees: any[] = treesQuery.map(row => ({
+      ...row,
+      plantingDate: row.plantingDate?.toISOString(),
+      lastMeasurementDate: row.lastMeasurementDate?.toISOString(),
+    }));
+
+    // Calculate bounds for trees with buffer around intervention
+    const treeBounds = this.calculateBounds(trees.map(t => t.location));
+
+    // Add buffer around the bounds for better viewing
+    const bufferedBounds = this.addBufferToBounds(treeBounds);
+
+    return {
+      trees,
+      intervention: interventionData,
+      bounds: bufferedBounds,
+    };
+  }
+
+
+
+  /**
+   * Add buffer around bounds for better map viewing
+   */
+  private addBufferToBounds(bounds: ProjectMapBounds): ProjectMapBounds {
+    const [minLng, minLat, maxLng, maxLat] = bounds.bounds;
+
+    // Calculate buffer as 10% of the span, minimum 0.001 degrees
+    const lngSpan = maxLng - minLng;
+    const latSpan = maxLat - minLat;
+    const lngBuffer = Math.max(lngSpan * 0.1, 0.001);
+    const latBuffer = Math.max(latSpan * 0.1, 0.001);
+
+    return {
+      bounds: [
+        minLng - lngBuffer,
+        minLat - latBuffer,
+        maxLng + lngBuffer,
+        maxLat + latBuffer,
+      ],
+      center: bounds.center,
+    };
+  }
 }
+

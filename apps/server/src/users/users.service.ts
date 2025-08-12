@@ -173,7 +173,6 @@ export class UsersService {
                         name: surveyDetails.projectName,
                         isPrimary: false,
                         isPersonal: false,
-                        isActive: false,
                         isPublic: false,
                         createdAt: now,
                         updatedAt: now,

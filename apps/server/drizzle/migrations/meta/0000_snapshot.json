@@ -1,5 +1,5 @@
 {
-  "id": "5d1113d7-6bd2-4345-a870-1e88e4357c31",
+  "id": "4a4abbe3-a896-4adb-be07-f9f58d9abc4f",
   "prevId": "00000000-0000-0000-0000-000000000000",
   "version": "7",
   "dialect": "postgresql",
@@ -36,7 +36,7 @@
         },
         "entity_id": {
           "name": "entity_id",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": true
         },
@@ -231,7 +231,7 @@
       "checkConstraints": {
         "valid_entity_id": {
           "name": "valid_entity_id",
-          "value": "length(trim(entity_id)) > 0"
+          "value": "entity_id > 0"
         },
         "valid_source": {
           "name": "valid_source",
@@ -747,32 +747,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "size_positive": {
-          "name": "size_positive",
-          "value": "size IS NULL OR size > 0"
-        },
-        "dimensions_positive": {
-          "name": "dimensions_positive",
-          "value": "(width IS NULL OR width > 0) AND (height IS NULL OR height > 0)"
-        },
-        "reasonable_file_size": {
-          "name": "reasonable_file_size",
-          "value": "size IS NULL OR size <= 104857600"
-        },
-        "primary_image_logic": {
-          "name": "primary_image_logic",
-          "value": "is_primary = false OR (is_primary = true AND deleted_at IS NULL)"
-        },
-        "valid_mime_type": {
-          "name": "valid_mime_type",
-          "value": "mime_type IS NULL OR mime_type ~* '^image/(jpeg|jpg|png|gif|webp|svg+xml)$'"
-        },
-        "filename_required": {
-          "name": "filename_required",
-          "value": "filename IS NOT NULL AND length(trim(filename)) > 0"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.intervention": {
@@ -1967,7 +1942,7 @@
         },
         "intensity": {
           "name": "intensity",
-          "type": "text",
+          "type": "integer",
           "primaryKey": false,
           "notNull": false
         },
@@ -2140,10 +2115,6 @@
           "name": "target_positive",
           "value": "target IS NULL OR target > 0"
         },
-        "valid_intensity": {
-          "name": "valid_intensity",
-          "value": "intensity IS NULL OR intensity IN ('low', 'medium', 'high')"
-        },
         "valid_scale": {
           "name": "valid_scale",
           "value": "scale IS NULL OR scale IN ('small', 'medium', 'large', 'enterprise')"
@@ -2155,10 +2126,6 @@
         "primary_project_logic": {
           "name": "primary_project_logic",
           "value": "is_primary = false OR (is_primary = true AND is_active = true)"
-        },
-        "public_project_logic": {
-          "name": "public_project_logic",
-          "value": "is_personal = false OR is_public = false"
         },
         "flagged_project_reason": {
           "name": "flagged_project_reason",
@@ -3783,48 +3750,7 @@
         }
       },
       "policies": {},
-      "checkConstraints": {
-        "area_positive": {
-          "name": "area_positive",
-          "value": "area IS NULL OR area > 0"
-        },
-        "elevation_range": {
-          "name": "elevation_range",
-          "value": "elevation IS NULL OR (elevation >= -500 AND elevation <= 9000)"
-        },
-        "slope_range": {
-          "name": "slope_range",
-          "value": "slope IS NULL OR (slope >= 0 AND slope <= 90)"
-        },
-        "valid_aspect": {
-          "name": "valid_aspect",
-          "value": "aspect IS NULL OR aspect IN ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')"
-        },
-        "valid_accessibility": {
-          "name": "valid_accessibility",
-          "value": "accessibility IS NULL OR accessibility IN ('easy', 'moderate', 'difficult')"
-        },
-        "valid_soil_type": {
-          "name": "valid_soil_type",
-          "value": "soil_type IS NULL OR soil_type IN ('clay', 'sand', 'loam', 'rocky', 'peat', 'mixed')"
-        },
-        "expected_tree_count_positive": {
-          "name": "expected_tree_count_positive",
-          "value": "expected_tree_count IS NULL OR expected_tree_count > 0"
-        },
-        "actual_after_planned": {
-          "name": "actual_after_planned",
-          "value": "planned_planting_date IS NULL OR actual_planting_date IS NULL OR actual_planting_date >= planned_planting_date"
-        },
-        "planted_site_has_date": {
-          "name": "planted_site_has_date",
-          "value": "status != 'planted' OR actual_planting_date IS NOT NULL"
-        },
-        "flagged_site_reason": {
-          "name": "flagged_site_reason",
-          "value": "flag = false OR flag_reason IS NOT NULL"
-        }
-      },
+      "checkConstraints": {},
       "isRLSEnabled": false
     },
     "public.species_request": {
@@ -4342,6 +4268,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "is_unknown": {
+          "name": "is_unknown",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false
+        },
         "created_by_id": {
           "name": "created_by_id",
           "type": "integer",
@@ -4368,6 +4300,12 @@
           "primaryKey": false,
           "notNull": false
         },
+        "original_geometry": {
+          "name": "original_geometry",
+          "type": "jsonb",
+          "primaryKey": false,
+          "notNull": false
+        },
         "altitude": {
           "name": "altitude",
           "type": "numeric(8, 2)",
@@ -4384,13 +4322,13 @@
           "name": "latitude",
           "type": "double precision",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "longitude": {
           "name": "longitude",
           "type": "double precision",
           "primaryKey": false,
-          "notNull": true
+          "notNull": false
         },
         "current_height": {
           "name": "current_height",
@@ -4456,6 +4394,13 @@
         },
         "remeasured": {
           "name": "remeasured",
+          "type": "boolean",
+          "primaryKey": false,
+          "notNull": false,
+          "default": false
+        },
+        "migrated_tree": {
+          "name": "migrated_tree",
           "type": "boolean",
           "primaryKey": false,
           "notNull": false,
@@ -5727,7 +5672,8 @@
         "site",
         "user",
         "intervention",
-        "tree"
+        "tree",
+        "species"
       ]
     },
     "public.image_type": {
@@ -5750,7 +5696,8 @@
       "schema": "public",
       "values": [
         "web",
-        "mobile"
+        "mobile",
+        "server"
       ]
     },
     "public.intervention_discriminator": {

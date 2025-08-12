@@ -65,14 +65,21 @@ export class WorkspaceController {
 
 
 
-    // @Post('cache/clear')
-    // async clearServerCache(@CurrentUser() user: User,) {
-    //     if (user.type !== 'superadmin') {
-    //         throw 'Not permitted'
-    //     }
-    //     return await this.workspaceService.clearServerCache(user);
-    // }
+    @Post('cache/clear')
+    async clearServerCache(@CurrentUser() user: User,) {
+        if (user.type !== 'superadmin') {
+            throw 'Not permitted'
+        }
+        return await this.workspaceService.clearServerCache(user);
+    }
 
+    @Post('cache/refresh')
+    async refreshWorkspace(@CurrentUser() user: User,) {
+        if (user.type !== 'superadmin') {
+            throw 'Not permitted'
+        }
+        return await this.workspaceService.cacheWorkspace();
+    }
 
 
     @Get('/members')

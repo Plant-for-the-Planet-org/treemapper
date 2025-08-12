@@ -6,7 +6,7 @@ import {
   ForbiddenException
 } from '@nestjs/common';
 import { DrizzleService } from '../../database/drizzle.service';
-import { intervention, interventionSpecies, projectSpecies, scientificSpecies, user } from '../../database/schema';
+import { image, intervention, interventionSpecies, projectSpecies, scientificSpecies, user } from '../../database/schema';
 import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
 import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull } from 'drizzle-orm';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
@@ -19,17 +19,17 @@ export interface KnownSpeciesResponse {
   commonName: string | null;
   speciesName: string;
   image: string | null;
-  
+
   // Project species data
   isInProjectSpecies: boolean;
   isFavourite: boolean;
   projectSpeciesNotes: string | null;
-  
+
   // Intervention usage
   interventionUsageCount: number;
   totalSpecimenCount: number;
   interventionIds: number[];
-  
+
   // Additional metadata
   createdAt: Date | null;
   updatedAt: Date | null;
@@ -114,173 +114,187 @@ export class ProjectSpeciesService {
         image: createDto.image || ''
       })
       .returning();
+    this.imageUpload('during', newUserSpecies[0].id, 'species', 'web', createDto.image, membership.userId)
+
     return newUserSpecies[0];
   }
 
- async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggregatedResponse> {
-    // Get all known species (with scientificSpeciesId) from both tables
-    const knownSpeciesQuery = await this.drizzle.db
-      .select({
-        scientificSpeciesId: sql<number>`COALESCE(${projectSpecies.scientificSpeciesId}, ${interventionSpecies.scientificSpeciesId})`,
-        scientificName: scientificSpecies.scientificName,
-        
-        // Priority: project species common name first
-        commonName: sql<string>`COALESCE(${projectSpecies.commonName}, ${interventionSpecies.commonName})`,
-        speciesName: sql<string>`COALESCE(${projectSpecies.speciesName}, ${interventionSpecies.speciesName})`,
-        
-        // Project species data
-        projectSpeciesId: projectSpecies.id,
-        projectCommonName: projectSpecies.commonName,
-        projectSpeciesName: projectSpecies.speciesName,
-        isFavourite: sql<boolean>`COALESCE(${projectSpecies.favourite}, false)`,
-        projectSpeciesNotes: projectSpecies.notes,
-        projectSpeciesImage: projectSpecies.image,
-        projectSpeciesCreatedAt: projectSpecies.createdAt,
-        projectSpeciesUpdatedAt: projectSpecies.updatedAt,
-        
+  async imageUpload(type, id, entity, device, filename, userId) {
+    await this.drizzle.db.insert(image).values({
+      uid: generateUid('img'),
+      type: type,
+      entityId: id,
+      entityType: entity,
+      deviceType: device,
+      filename: filename,
+      uploadedById: userId
+    })
+  }
+
+async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggregatedResponse> {
+  // Get all known species (with scientificSpeciesId) from both tables
+  const knownSpeciesQuery = await this.drizzle.db
+    .select({
+      scientificSpeciesId: sql<number>`COALESCE(${projectSpecies.scientificSpeciesId}, ${interventionSpecies.scientificSpeciesId})`,
+      scientificName: scientificSpecies.scientificName,
+
+      // Priority: project species common name first
+      commonName: sql<string>`COALESCE(${projectSpecies.commonName}, ${interventionSpecies.commonName})`,
+      speciesName: sql<string>`COALESCE(${projectSpecies.speciesName}, ${interventionSpecies.speciesName})`,
+
+      // Project species data
+      projectSpeciesId: projectSpecies.id,
+      projectCommonName: projectSpecies.commonName,
+      projectSpeciesName: projectSpecies.speciesName,
+      isFavourite: sql<boolean>`COALESCE(${projectSpecies.favourite}, false)`,
+      projectSpeciesNotes: projectSpecies.notes,
+      projectSpeciesImage: projectSpecies.image,
+      projectSpeciesCreatedAt: projectSpecies.createdAt,
+      projectSpeciesUpdatedAt: projectSpecies.updatedAt,
+
       // Intervention data
-        interventionSpeciesId: interventionSpecies.id,
-        interventionCommonName: interventionSpecies.commonName,
-        interventionSpeciesName: interventionSpecies.speciesName,
-        interventionId: interventionSpecies.interventionId,
-        speciesCount: interventionSpecies.speciesCount,
-        interventionSpeciesCreatedAt: interventionSpecies.createdAt,
-        interventionSpeciesUpdatedAt: interventionSpecies.updatedAt,
-      })
-      .from(scientificSpecies)
-      .leftJoin(
-        projectSpecies,
-        and(
-          eq(projectSpecies.scientificSpeciesId, scientificSpecies.id),
-          eq(projectSpecies.projectId, projectId),
-          isNull(projectSpecies.deletedAt)
-        )
+      interventionSpeciesId: interventionSpecies.id,
+      interventionCommonName: interventionSpecies.commonName,
+      interventionSpeciesName: interventionSpecies.speciesName,
+      interventionId: interventionSpecies.interventionId,
+      speciesCount: interventionSpecies.speciesCount,
+      interventionSpeciesCreatedAt: interventionSpecies.createdAt,
+      interventionSpeciesUpdatedAt: interventionSpecies.updatedAt,
+    })
+    .from(scientificSpecies)
+    .leftJoin(
+      projectSpecies,
+      and(
+        eq(projectSpecies.scientificSpeciesId, scientificSpecies.id),
+        eq(projectSpecies.projectId, projectId),
+        isNull(projectSpecies.deletedAt)
       )
-      .leftJoin(
-        interventionSpecies,
-        and(
-          eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id),
-          isNotNull(interventionSpecies.scientificSpeciesId)
-        )
+    )
+    .leftJoin(
+      intervention, // Join intervention table first
+      and(
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt)
       )
-      .leftJoin(
-        intervention,
-        and(
-          eq(intervention.id, interventionSpecies.interventionId),
-          eq(intervention.projectId, projectId),
-          isNull(intervention.deletedAt)
-        )
+    )
+    .leftJoin(
+      interventionSpecies, // Then join interventionSpecies through intervention
+      and(
+        eq(interventionSpecies.interventionId, intervention.id),
+        eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id),
+        isNotNull(interventionSpecies.scientificSpeciesId)
       )
-      .where(
-        sql`(${projectSpecies.id} IS NOT NULL OR ${interventionSpecies.id} IS NOT NULL)`
-      );
+    )
+    .where(
+      sql`(${projectSpecies.id} IS NOT NULL OR ${interventionSpecies.id} IS NOT NULL)`
+    );
 
-    // Get unknown species separately
-    const unknownSpeciesQuery = await this.drizzle.db
-      .select({
-        uid: interventionSpecies.uid,
-        speciesName: interventionSpecies.speciesName,
-        commonName: interventionSpecies.commonName,
-        interventionId: interventionSpecies.interventionId,
-        interventionUid: intervention.uid,
-        interventionHid: intervention.hid,
-        speciesCount: interventionSpecies.speciesCount,
-        image: sql<string>`NULL`, // Unknown species typically don't have images
-        createdAt: interventionSpecies.createdAt,
-        updatedAt: interventionSpecies.updatedAt,
-      })
-      .from(interventionSpecies)
-      .innerJoin(
-        intervention,
-        and(
-          eq(intervention.id, interventionSpecies.interventionId),
-          eq(intervention.projectId, projectId),
-          isNull(intervention.deletedAt)
-        )
+  // Get unknown species separately
+  const unknownSpeciesQuery = await this.drizzle.db
+    .select({
+      uid: interventionSpecies.uid,
+      speciesName: interventionSpecies.speciesName,
+      commonName: interventionSpecies.commonName,
+      interventionId: interventionSpecies.interventionId,
+      interventionUid: intervention.uid,
+      interventionHid: intervention.hid,
+      speciesCount: interventionSpecies.speciesCount,
+      image: sql<string>`NULL`, // Unknown species typically don't have images
+      createdAt: interventionSpecies.createdAt,
+      updatedAt: interventionSpecies.updatedAt,
+    })
+    .from(interventionSpecies)
+    .innerJoin(
+      intervention,
+      and(
+        eq(intervention.id, interventionSpecies.interventionId),
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt)
       )
-      .where(
-        and(
-          eq(interventionSpecies.isUnknown, true),
-          isNull(interventionSpecies.scientificSpeciesId)
-        )
-      );
+    )
+    .where(
+      and(
+        eq(interventionSpecies.isUnknown, true),
+        isNull(interventionSpecies.scientificSpeciesId)
+      )
+    );
 
-    // Process known species aggregation
-    const knownSpeciesMap = new Map<number, KnownSpeciesResponse>();
-    
-    for (const row of knownSpeciesQuery) {
-      const scientificSpeciesId = row.scientificSpeciesId;
-      
-      if (!knownSpeciesMap.has(scientificSpeciesId)) {
-        // Initialize aggregated record
-        knownSpeciesMap.set(scientificSpeciesId, {
-          scientificSpeciesId,
-          scientificName: row.scientificName,
-          commonName: row.commonName,
-          speciesName: row.speciesName,
-          image: row.projectSpeciesImage || null,
-          
-          isInProjectSpecies: !!row.projectSpeciesId,
-          isFavourite: row.isFavourite,
-          projectSpeciesNotes: row.projectSpeciesNotes,
-          
-          interventionUsageCount: 0,
-          totalSpecimenCount: 0,
-          interventionIds: [],
-          createdAt: row.projectSpeciesCreatedAt || row.interventionSpeciesCreatedAt,
-          updatedAt: row.projectSpeciesUpdatedAt || row.interventionSpeciesUpdatedAt,
-        });
-      }
-      
-      const species = knownSpeciesMap.get(scientificSpeciesId)!;
-      
-      // Update project species data if exists
-      if (row.projectSpeciesId && !species.isInProjectSpecies) {
-        species.isInProjectSpecies = true;
-        species.isFavourite = row.isFavourite;
-        species.projectSpeciesNotes = row.projectSpeciesNotes;
-        species.image = species.image || row.projectSpeciesImage;
-      }
-      
-      // Aggregate intervention data
-      if (row.interventionSpeciesId && row.interventionId) {
-        if (!species.interventionIds.includes(row.interventionId)) {
-          species.interventionIds.push(row.interventionId);
-          species.interventionUsageCount++;
-        }
-        species.totalSpecimenCount += row.speciesCount || 0;
-      }
+  // Process known species aggregation
+  const knownSpeciesMap = new Map<number, KnownSpeciesResponse>();
+
+  for (const row of knownSpeciesQuery) {
+    const scientificSpeciesId = row.scientificSpeciesId;
+
+    if (!knownSpeciesMap.has(scientificSpeciesId)) {
+      // Initialize aggregated record
+      knownSpeciesMap.set(scientificSpeciesId, {
+        scientificSpeciesId,
+        scientificName: row.scientificName,
+        commonName: row.commonName,
+        speciesName: row.speciesName,
+        image: row.projectSpeciesImage || null,
+
+        isInProjectSpecies: !!row.projectSpeciesId,
+        isFavourite: row.isFavourite,
+        projectSpeciesNotes: row.projectSpeciesNotes,
+
+        interventionUsageCount: 0,
+        totalSpecimenCount: 0,
+        interventionIds: [],
+        createdAt: row.projectSpeciesCreatedAt || row.interventionSpeciesCreatedAt,
+        updatedAt: row.projectSpeciesUpdatedAt || row.interventionSpeciesUpdatedAt,
+      });
     }
 
-    const knownSpecies = Array.from(knownSpeciesMap.values());
-    const unknownSpecies: UnknownSpeciesResponse[] = unknownSpeciesQuery.map(row => ({
-      uid: row.uid,
-      speciesName: '',
-      commonName: row.speciesName,
-      interventionId: row.interventionId,
-      interventionUid: row.interventionUid,
-      interventionHid: row.interventionHid,
-      speciesCount: row.speciesCount,
-      image: row.image,
-      createdAt: row.createdAt,
-      updatedAt: row.updatedAt,
-    }));
+    const species = knownSpeciesMap.get(scientificSpeciesId)!;
 
-    // Calculate summary
-    const totalProjectSpecies = knownSpecies.filter(s => s.isInProjectSpecies).length;
-    const totalInterventionSpecies = knownSpecies.filter(s => s.interventionUsageCount > 0).length + unknownSpecies.length;
+    // Update project species data if exists
+    if (row.projectSpeciesId && !species.isInProjectSpecies) {
+      species.isInProjectSpecies = true;
+      species.isFavourite = row.isFavourite;
+      species.projectSpeciesNotes = row.projectSpeciesNotes;
+      species.image = species.image || row.projectSpeciesImage;
+    }
 
-    return {
-      knownSpecies,
-      unknownSpecies,
-      summary: {
-        totalKnownSpecies: knownSpecies.length,
-        totalUnknownSpecies: unknownSpecies.length,
-        totalProjectSpecies,
-        totalInterventionSpecies,
-      },
-    };
+    // Aggregate intervention data
+    if (row.interventionSpeciesId && row.interventionId) {
+      if (!species.interventionIds.includes(row.interventionId)) {
+        species.interventionIds.push(row.interventionId);
+        species.interventionUsageCount++;
+      }
+      species.totalSpecimenCount += row.speciesCount || 0;
+    }
   }
+
+  const knownSpecies = Array.from(knownSpeciesMap.values());
+  const unknownSpecies: UnknownSpeciesResponse[] = unknownSpeciesQuery.map(row => ({
+    uid: row.uid,
+    speciesName: '',
+    commonName: row.speciesName,
+    interventionId: row.interventionId,
+    interventionUid: row.interventionUid,
+    interventionHid: row.interventionHid,
+    speciesCount: row.speciesCount,
+    image: row.image,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  }));
+
+  // Calculate summary
+  const totalProjectSpecies = knownSpecies.filter(s => s.isInProjectSpecies).length;
+  const totalInterventionSpecies = knownSpecies.filter(s => s.interventionUsageCount > 0).length + unknownSpecies.length;
+
+  return {
+    knownSpecies,
+    unknownSpecies,
+    summary: {
+      totalKnownSpecies: knownSpecies.length,
+      totalUnknownSpecies: unknownSpecies.length,
+      totalProjectSpecies,
+      totalInterventionSpecies,
+    },
+  };
+}
 
   async updateFavourite(
     speciesId: string,
@@ -410,6 +424,9 @@ export class ProjectSpeciesService {
         ),
       )
       .returning();
+    if (updateDto.image) {
+      this.imageUpload('during', updatedSpecies[0].id, 'species', 'web', updateDto.image, membership.userId)
+    }
 
     if (!updatedSpecies.length) {
       throw new NotFoundException('User species not found');

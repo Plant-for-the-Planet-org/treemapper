@@ -3,9 +3,9 @@ CREATE TYPE "public"."audit_entity" AS ENUM('user', 'workspace', 'workspace_memb
 CREATE TYPE "public"."capture_mode" AS ENUM('on-site', 'off-site', 'external', 'unknown', 'web-upload');--> statement-breakpoint
 CREATE TYPE "public"."capture_status" AS ENUM('complete', 'partial', 'incomplete');--> statement-breakpoint
 CREATE TYPE "public"."entity_type" AS ENUM('users', 'projects', 'interventions', 'species', 'sites', 'images');--> statement-breakpoint
-CREATE TYPE "public"."image_entity" AS ENUM('project', 'site', 'user', 'intervention', 'tree');--> statement-breakpoint
+CREATE TYPE "public"."image_entity" AS ENUM('project', 'site', 'user', 'intervention', 'tree', 'species');--> statement-breakpoint
 CREATE TYPE "public"."image_type" AS ENUM('before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record');--> statement-breakpoint
-CREATE TYPE "public"."image_upload_device" AS ENUM('web', 'mobile');--> statement-breakpoint
+CREATE TYPE "public"."image_upload_device" AS ENUM('web', 'mobile', 'server');--> statement-breakpoint
 CREATE TYPE "public"."intervention_discriminator" AS ENUM('plot', 'intervention');--> statement-breakpoint
 CREATE TYPE "public"."intervention_status" AS ENUM('planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled');--> statement-breakpoint
 CREATE TYPE "public"."intervention_type" AS ENUM('assisting-seed-rain', 'control-livestock', 'direct-seeding', 'enrichment-planting', 'fencing', 'fire-patrol', 'fire-suppression', 'firebreaks', 'generic-tree-registration', 'grass-suppression', 'liberating-regenerant', 'maintenance', 'marking-regenerant', 'multi-tree-registration', 'other-intervention', 'plot-plant-registration', 'removal-invasive-species', 'sample-tree-registration', 'single-tree-registration', 'soil-improvement', 'stop-tree-harvesting');--> statement-breakpoint
@@ -29,7 +29,7 @@ CREATE TABLE "audit_log" (
 	"uid" text NOT NULL,
 	"action" "audit_action" NOT NULL,
 	"entity_type" "audit_entity" NOT NULL,
-	"entity_id" text NOT NULL,
+	"entity_id" integer NOT NULL,
 	"entity_uid" text,
 	"user_id" integer,
 	"workspace_id" integer,
@@ -41,7 +41,7 @@ CREATE TABLE "audit_log" (
 	"ip_address" text,
 	"occurred_at" timestamp with time zone DEFAULT now() NOT NULL,
 	CONSTRAINT "audit_log_uid_unique" UNIQUE("uid"),
-	CONSTRAINT "valid_entity_id" CHECK (length(trim(entity_id)) > 0),
+	CONSTRAINT "valid_entity_id" CHECK (entity_id > 0),
 	CONSTRAINT "valid_source" CHECK (source IN ('web', 'mobile', 'api', 'system', 'migration')),
 	CONSTRAINT "occurred_at_not_future" CHECK (occurred_at <= NOW())
 );
@@ -102,13 +102,7 @@ CREATE TABLE "image" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
-	CONSTRAINT "image_uid_unique" UNIQUE("uid"),
-	CONSTRAINT "size_positive" CHECK (size IS NULL OR size > 0),
-	CONSTRAINT "dimensions_positive" CHECK ((width IS NULL OR width > 0) AND (height IS NULL OR height > 0)),
-	CONSTRAINT "reasonable_file_size" CHECK (size IS NULL OR size <= 104857600),
-	CONSTRAINT "primary_image_logic" CHECK (is_primary = false OR (is_primary = true AND deleted_at IS NULL)),
-	CONSTRAINT "valid_mime_type" CHECK (mime_type IS NULL OR mime_type ~* '^image/(jpeg|jpg|png|gif|webp|svg+xml)$'),
-	CONSTRAINT "filename_required" CHECK (filename IS NOT NULL AND length(trim(filename)) > 0)
+	CONSTRAINT "image_uid_unique" UNIQUE("uid")
 );
 --> statement-breakpoint
 CREATE TABLE "intervention" (
@@ -256,7 +250,7 @@ CREATE TABLE "project" (
 	"is_public" boolean DEFAULT true NOT NULL,
 	"is_primary" boolean DEFAULT false NOT NULL,
 	"is_personal" boolean DEFAULT false NOT NULL,
-	"intensity" text,
+	"intensity" integer,
 	"revision_periodicity" text,
 	"migrated_project" boolean DEFAULT false,
 	"flag" boolean DEFAULT false,
@@ -268,11 +262,9 @@ CREATE TABLE "project" (
 	CONSTRAINT "project_uid_unique" UNIQUE("uid"),
 	CONSTRAINT "project_slug_unique" UNIQUE("slug"),
 	CONSTRAINT "target_positive" CHECK (target IS NULL OR target > 0),
-	CONSTRAINT "valid_intensity" CHECK (intensity IS NULL OR intensity IN ('low', 'medium', 'high')),
 	CONSTRAINT "valid_scale" CHECK (scale IS NULL OR scale IN ('small', 'medium', 'large', 'enterprise')),
 	CONSTRAINT "website_format" CHECK (website IS NULL OR website ~* '^https?://'),
 	CONSTRAINT "primary_project_logic" CHECK (is_primary = false OR (is_primary = true AND is_active = true)),
-	CONSTRAINT "public_project_logic" CHECK (is_personal = false OR is_public = false),
 	CONSTRAINT "flagged_project_reason" CHECK (flag = false OR flag_reason IS NOT NULL)
 );
 --> statement-breakpoint
@@ -460,17 +452,7 @@ CREATE TABLE "site" (
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
 	"deleted_at" timestamp with time zone,
-	CONSTRAINT "site_uid_unique" UNIQUE("uid"),
-	CONSTRAINT "area_positive" CHECK (area IS NULL OR area > 0),
-	CONSTRAINT "elevation_range" CHECK (elevation IS NULL OR (elevation >= -500 AND elevation <= 9000)),
-	CONSTRAINT "slope_range" CHECK (slope IS NULL OR (slope >= 0 AND slope <= 90)),
-	CONSTRAINT "valid_aspect" CHECK (aspect IS NULL OR aspect IN ('N', 'NE', 'E', 'SE', 'S', 'SW', 'W', 'NW')),
-	CONSTRAINT "valid_accessibility" CHECK (accessibility IS NULL OR accessibility IN ('easy', 'moderate', 'difficult')),
-	CONSTRAINT "valid_soil_type" CHECK (soil_type IS NULL OR soil_type IN ('clay', 'sand', 'loam', 'rocky', 'peat', 'mixed')),
-	CONSTRAINT "expected_tree_count_positive" CHECK (expected_tree_count IS NULL OR expected_tree_count > 0),
-	CONSTRAINT "actual_after_planned" CHECK (planned_planting_date IS NULL OR actual_planting_date IS NULL OR actual_planting_date >= planned_planting_date),
-	CONSTRAINT "planted_site_has_date" CHECK (status != 'planted' OR actual_planting_date IS NOT NULL),
-	CONSTRAINT "flagged_site_reason" CHECK (flag = false OR flag_reason IS NOT NULL)
+	CONSTRAINT "site_uid_unique" UNIQUE("uid")
 );
 --> statement-breakpoint
 CREATE TABLE "species_request" (
@@ -526,14 +508,16 @@ CREATE TABLE "tree" (
 	"intervention_species_id" integer NOT NULL,
 	"species_name" text,
 	"common_name" text,
+	"is_unknown" boolean,
 	"created_by_id" integer NOT NULL,
 	"tag" text,
 	"tree_type" "tree_enum" DEFAULT 'sample',
 	"location" geometry(Geometry,4326),
+	"original_geometry" jsonb,
 	"altitude" numeric(8, 2),
 	"accuracy" numeric(6, 2),
-	"latitude" double precision NOT NULL,
-	"longitude" double precision NOT NULL,
+	"latitude" double precision,
+	"longitude" double precision,
 	"current_height" double precision,
 	"current_width" double precision,
 	"current_health_score" integer,
@@ -545,6 +529,7 @@ CREATE TABLE "tree" (
 	"next_measurement_date" timestamp with time zone,
 	"image" text,
 	"remeasured" boolean DEFAULT false,
+	"migrated_tree" boolean DEFAULT false,
 	"flag" boolean DEFAULT false,
 	"flag_reason" jsonb,
 	"created_at" timestamp with time zone DEFAULT now() NOT NULL,

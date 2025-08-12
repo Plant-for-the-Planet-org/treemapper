@@ -28,20 +28,20 @@ import {
   NotificationStatsDto
 } from './dto/notification.dto';
 import { Notification } from './entity/notification.entity';
+import { CurrentUser } from 'src/auth/current-user.decorator';
+import { User } from 'src/users/entities/user.entity';
 // import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard'; // Adjust import path
 
 @ApiTags('Notifications')
 @ApiBearerAuth()
-// @UseGuards(JwtAuthGuard) // Uncomment when you have auth guards
 @Controller('notifications')
 export class NotificationController {
-  constructor(private readonly notificationService: NotificationService) {}
+  constructor(private readonly notificationService: NotificationService) { }
 
   @Post()
-  @ApiOperation({ summary: 'Create a notification' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Notification created successfully' })
   async createNotification(
-    @Body() createNotificationDto: CreateNotificationDto
+    @Body() createNotificationDto: CreateNotificationDto,
+    @CurrentUser() userData: User,
   ): Promise<Notification> {
     return this.notificationService.createNotification(createNotificationDto);
   }
@@ -59,17 +59,16 @@ export class NotificationController {
   @ApiOperation({ summary: 'Get user notifications' })
   @ApiResponse({ status: HttpStatus.OK, description: 'Notifications retrieved successfully' })
   async getUserNotifications(
-    @Request() req: any, // Replace with proper request type
+    @CurrentUser() userData: User,
     @Query() query: NotificationQueryDto
   ) {
-    const userId = req.user?.id || 1; // Replace with actual user extraction logic
-    return this.notificationService.getUserNotifications(userId, query);
+    return this.notificationService.getUserNotifications(userData, query);
   }
 
   @Get('stats')
   @ApiOperation({ summary: 'Get notification statistics' })
-  @ApiResponse({ 
-    status: HttpStatus.OK, 
+  @ApiResponse({
+    status: HttpStatus.OK,
     description: 'Notification statistics retrieved successfully',
     type: NotificationStatsDto
   })
@@ -103,14 +102,10 @@ export class NotificationController {
   }
 
   @Patch(':id/read')
-  @ApiOperation({ summary: 'Mark notification as read' })
-  @ApiParam({ name: 'id', description: 'Notification ID' })
-  @ApiResponse({ status: HttpStatus.OK, description: 'Notification marked as read' })
-  @ApiResponse({ status: HttpStatus.NOT_FOUND, description: 'Notification not found' })
   async markAsRead(
-    @Param('id', ParseIntPipe) id: number
+    @Param('id', ParseIntPipe) id: number, @CurrentUser() userData: User
   ): Promise<Notification> {
-    return this.notificationService.markAsRead(id);
+    return this.notificationService.markAsRead(id,userData);
   }
 
   @Patch(':id/archive')

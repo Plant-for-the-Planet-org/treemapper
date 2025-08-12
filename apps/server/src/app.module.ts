@@ -14,6 +14,9 @@ import { InterventionsModule } from './interventions/interventions.module';
 import { SpeciesModule } from './species/species.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { MobileModule } from './mobile/mobile.module';
+import { NotificationModule } from './notification/notification.module';
+import { AuditModule } from './audit/audit.module';
+import { MigrationModule } from './migrate/migrate.module.ts';
 
 @Module({
   imports: [
@@ -32,8 +35,9 @@ import { MobileModule } from './mobile/mobile.module';
     SpeciesModule,
     AnalyticsModule,
     MobileModule,
-    // MigrationModule,
-    // NotificationModule,
+    NotificationModule,
+    AuditModule,
+    MigrationModule,
   ],
   controllers: [AppController],
   providers: [AppService],

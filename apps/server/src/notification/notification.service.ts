@@ -1,8 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { NotificationRepository } from './notification.repository';
-import { 
-  CreateNotificationDto, 
-  BulkCreateNotificationDto, 
+import {
+  CreateNotificationDto,
+  BulkCreateNotificationDto,
   NotificationQueryDto,
   NotificationType,
   NotificationPriority,
@@ -11,6 +11,7 @@ import {
 } from './dto/notification.dto';
 import { Notification } from './entity/notification.entity';
 import { generateUid } from 'src/util/uidGenerator';
+import { User } from 'src/users/entities/user.entity';
 
 export interface NotificationContext {
   projectId?: number;
@@ -27,20 +28,47 @@ export interface NotificationContext {
 export class NotificationService {
   constructor(
     private readonly notificationRepository: NotificationRepository,
-  ) {}
+  ) { }
 
   async createNotification(dto: CreateNotificationDto): Promise<any> {
-    // const notification = await this.notificationRepository.create({
-    //   ...dto,
-    //   priority: dto.priority || NotificationPriority.NORMAL,
-    //   deliveryMethod: dto.deliveryMethod || DeliveryMethod.IN_APP,
-    //   scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
-    //   expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
-    //   uid: ''
-    // });
+    try {
+      const notificationData = {
+        userId: dto.userId,
+        type: dto.type,
+        title: dto.title,
+        message: dto.message,
+        entityId: dto.entityId,
+        priority: dto.priority || 'normal' as const,
+        category: dto.category,
+        actionUrl: dto.actionUrl,
+        actionText: dto.actionText,
+        scheduledFor: dto.scheduledFor ? new Date(dto.scheduledFor) : undefined,
+        expiresAt: dto.expiresAt ? new Date(dto.expiresAt) : undefined,
+        deliveryMethod: dto.deliveryMethod,
+        image: dto.image,
+        batchId: dto.batchId,
+        uid: generateUid('noti'),
+      };
 
-    // // Emit event for real-time notifications
-    // return notification;
+      const notification = await this.notificationRepository.create(notificationData);
+
+      return {
+        message: 'Notification created successfully',
+        statusCode: 201,
+        error: null,
+        data: notification,
+        code: 'notification_created',
+      };
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      return {
+        message: 'Failed to create notification',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'notification_creation_failed',
+      };
+    }
   }
 
   async createBulkNotifications(dto: BulkCreateNotificationDto): Promise<Notification[]> {
@@ -64,29 +92,29 @@ export class NotificationService {
 
   // PROJECT COLLABORATION NOTIFICATIONS
 
-  async notifyProjectInvite(userId: number, context: NotificationContext): Promise<Notification> {
-    return this.createNotification({
-      userId,
-      type: NotificationType.PROJECT_INVITE,
-      title: 'Project Invitation',
-      message: `${context.actorUserName} invited you to join the project "${context.entityName}"`,
-      category: NotificationCategory.COLLABORATION,
-      priority: NotificationPriority.HIGH,
-      relatedEntityType: 'project',
-      relatedEntityId: context.projectId,
-      actionUrl: `/projects/${context.projectId}/invite`,
-      actionText: 'View Invitation',
-      metadata: {
-        projectId: context.projectId,
-        invitedBy: context.actorUserId,
-      }
-    });
+  async notifyProjectInvite(userId: number, context: NotificationContext): Promise<void> {
+    // return this.createNotification({
+    //   userId,
+    //   type: NotificationType.PROJECT_INVITE,
+    //   title: 'Project Invitation',
+    //   message: `${context.actorUserName} invited you to join the project "${context.entityName}"`,
+    //   category: NotificationCategory.COLLABORATION,
+    //   priority: NotificationPriority.HIGH,
+    //   relatedEntityType: 'project',
+    //   relatedEntityId: context.projectId,
+    //   actionUrl: `/projects/${context.projectId}/invite`,
+    //   actionText: 'View Invitation',
+    //   metadata: {
+    //     projectId: context.projectId,
+    //     invitedBy: context.actorUserId,
+    //   }
+    // });
   }
 
   async notifyNewMemberJoined(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.NEW_MEMBER_JOINED,
+      type: NotificationType.MEMBER,
       title: 'New Team Member',
       message: `${context.actorUserName} joined the project "${context.entityName}"`,
       category: NotificationCategory.COLLABORATION,
@@ -102,7 +130,7 @@ export class NotificationService {
   async notifyProjectUpdate(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.PROJECT_UPDATE,
+      type: NotificationType.MEMBER,
       title: 'Project Updated',
       message: `${context.actorUserName} updated the project "${context.entityName}"`,
       category: NotificationCategory.PROGRESS,
@@ -121,7 +149,7 @@ export class NotificationService {
   async notifyInterventionCompleted(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.INTERVENTION_COMPLETED,
+      type: NotificationType.MEMBER,
       title: 'Intervention Completed',
       message: `${context.actorUserName} completed an intervention at "${context.entityName}"`,
       category: NotificationCategory.PROGRESS,
@@ -144,7 +172,7 @@ export class NotificationService {
 
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.TREE_MEASUREMENT_DUE,
+      type: NotificationType.MEMBER,
       title: 'Tree Measurement Due',
       message: `Tree measurements are due for intervention at "${context.entityName}"`,
       category: NotificationCategory.MONITORING,
@@ -166,7 +194,7 @@ export class NotificationService {
   async notifySiteStatusChanged(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.SITE_STATUS_CHANGED,
+      type: NotificationType.MEMBER,
       title: 'Site Status Updated',
       message: `${context.actorUserName} changed the status of site "${context.entityName}"`,
       category: NotificationCategory.PROGRESS,
@@ -186,7 +214,7 @@ export class NotificationService {
   async notifySpeciesAdded(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.SPECIES_ADDED,
+      type: NotificationType.MEMBER,
       title: 'New Species Added',
       message: `${context.actorUserName} added a new species "${context.entityName}" to the project`,
       category: NotificationCategory.PROGRESS,
@@ -206,7 +234,7 @@ export class NotificationService {
   async notifyMilestoneReached(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.MILESTONE_REACHED,
+      type: NotificationType.MEMBER,
       title: 'Milestone Achieved! 🎉',
       message: `Great news! The project "${context.entityName}" has reached a new milestone`,
       category: NotificationCategory.PROGRESS,
@@ -226,7 +254,7 @@ export class NotificationService {
   async notifyMaintenanceReminder(userIds: number[], context: NotificationContext): Promise<Notification[]> {
     return this.createBulkNotifications({
       userIds,
-      type: NotificationType.MAINTENANCE_REMINDER,
+      type: NotificationType.MEMBER,
       title: 'Maintenance Required',
       message: `Scheduled maintenance is due for "${context.entityName}"`,
       category: NotificationCategory.MAINTENANCE,
@@ -245,8 +273,8 @@ export class NotificationService {
 
   // NOTIFICATION MANAGEMENT
 
-  async getUserNotifications(userId: number, query: NotificationQueryDto) {
-    return this.notificationRepository.findByUserId(userId, query);
+  async getUserNotifications(userData: User, query: NotificationQueryDto) {
+    return this.notificationRepository.findByUserId(userData.id, query);
   }
 
   async getNotificationById(id: number): Promise<Notification> {
@@ -257,16 +285,15 @@ export class NotificationService {
     return notification;
   }
 
-  async markAsRead(id: number): Promise<Notification> {
-    const notification = await this.getNotificationById(id);
-    const updated = await this.notificationRepository.markAsRead(id);
-        return updated;
+  async markAsRead(id: number, userData: User): Promise<Notification> {
+    const updated = await this.notificationRepository.markAsRead(id, userData.id);
+    return updated;
   }
 
   async markAsArchived(id: number): Promise<Notification> {
     const notification = await this.getNotificationById(id);
     const updated = await this.notificationRepository.markAsArchived(id);
-    
+
     return updated;
   }
 
@@ -278,7 +305,7 @@ export class NotificationService {
     return this.notificationRepository.getUnreadCount(userId);
   }
 
-  
+
 
   async getNotificationStats(userId: number) {
     return this.notificationRepository.getNotificationStats(userId);
@@ -288,7 +315,7 @@ export class NotificationService {
 
   async processScheduledNotifications(): Promise<void> {
     const scheduledNotifications = await this.notificationRepository.findScheduledNotifications();
-    
+
     if (scheduledNotifications.length > 0) {
       const notificationIds = scheduledNotifications.map(n => n.id);
       await this.notificationRepository.markAsSent(notificationIds);

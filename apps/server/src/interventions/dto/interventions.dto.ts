@@ -1,5 +1,5 @@
 // src/modules/interventions/dto/create-intervention.dto.ts
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsGeoJSON } from 'src/common/decorator/validation.decorators';
@@ -677,4 +677,225 @@ export interface PaginationDto {
 export interface GetProjectInterventionsResponseDto {
   intervention: InterventionDto[];
   pagination: PaginationDto;
+}
+
+
+export class UpdateInterventionSpeciesDto {
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive({ message: 'Scientific species ID must be a positive number' })
+  scientificSpeciesId: number;
+
+  @IsNumber()
+  @Type(() => Number)
+  @Min(1, { message: 'Species count must be at least 1' })
+  speciesCount: number;
+}
+
+export class TreeCountExceededError {
+  error: string;
+  message: string;
+  currentTreeCount: number;
+  requestedSpeciesCount: number;
+  treeHids: string[];
+}
+
+
+export class SearchMembersQueryDto {
+  @ApiProperty({
+    description: 'Search query (name or email)',
+    example: 'john',
+    minLength: 2,
+  })
+  @IsString({ message: 'Query must be a string' })
+  @Transform(({ value }) => value?.trim())
+  q: string;
+
+  @ApiProperty({
+    description: 'Maximum number of results',
+    example: 10,
+    default: 10,
+    minimum: 1,
+    maximum: 50,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber({}, { message: 'Limit must be a number' })
+  @Min(1, { message: 'Limit must be at least 1' })
+  @Max(50, { message: 'Limit cannot exceed 50' })
+  limit?: number = 10;
+
+  @ApiProperty({
+    description: 'User IDs to exclude from results',
+    example: [123, 456],
+    required: false,
+    type: [Number],
+  })
+  @IsOptional()
+  @IsArray({ message: 'Exclude must be an array' })
+  @Type(() => Number)
+  @IsNumber({}, { each: true, message: 'Each excluded ID must be a number' })
+  exclude?: number[] = [];
+
+  @ApiProperty({
+    description: 'Project roles to include',
+    example: ['owner', 'admin', 'contributor'],
+    required: false,
+    enum: ['owner', 'admin', 'contributor', 'observer'],
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray({ message: 'Roles must be an array' })
+  @IsString({ each: true, message: 'Each role must be a string' })
+  roles?: string[] = ['owner', 'admin', 'contributor', 'observer'];
+
+  @ApiProperty({
+    description: 'Only return active users',
+    example: true,
+    default: true,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean({ message: 'Active must be a boolean' })
+  active?: boolean = true;
+}
+
+export class ListMembersQueryDto {
+  @ApiProperty({
+    description: 'Project roles to include',
+    required: false,
+    enum: ['owner', 'admin', 'contributor', 'observer'],
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  roles?: string[] = ['owner', 'admin', 'contributor', 'observer'];
+
+  @ApiProperty({
+    description: 'Member status to include',
+    required: false,
+    enum: ['active', 'inactive', 'suspended', 'pending'],
+    isArray: true,
+  })
+  @IsOptional()
+  @IsArray()
+  @IsString({ each: true })
+  status?: string[] = ['active'];
+
+  @ApiProperty({
+    description: 'Number of results per page',
+    example: 20,
+    default: 20,
+    minimum: 1,
+    maximum: 100,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(1)
+  @Max(100)
+  limit?: number = 20;
+
+  @ApiProperty({
+    description: 'Number of results to skip',
+    example: 0,
+    default: 0,
+    minimum: 0,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  offset?: number = 0;
+
+  @ApiProperty({
+    description: 'Only return active users',
+    example: true,
+    default: true,
+    required: false,
+  })
+  @IsOptional()
+  @Type(() => Boolean)
+  @IsBoolean()
+  activeOnly?: boolean = true;
+}
+
+// types/map.ts
+
+export interface MapIntervention {
+  id: number;
+  uid: string;
+  hid: string;
+  type: string;
+  status: string;
+  registrationDate: string;
+  interventionStartDate: string;
+  interventionEndDate: string;
+  location: GeoJSON.Point;
+  area?: number;
+  totalTreeCount: number;
+  totalSampleTreeCount: number;
+  description?: string;
+  image?: string;
+}
+
+export interface MapTree {
+  id: number;
+  uid: string;
+  hid: string;
+  tag?: string;
+  treeType: string;
+  location: GeoJSON.Point;
+  status: string;
+  speciesName?: string;
+  commonName?: string;
+  currentHeight?: number;
+  currentWidth?: number;
+  currentHealthScore?: number;
+  plantingDate?: string;
+  lastMeasurementDate?: string;
+  image?: string;
+}
+
+export interface ProjectMapBounds {
+  bounds: [number, number, number, number]; // [minLng, minLat, maxLng, maxLat]
+  center: [number, number]; // [lng, lat]
+}
+
+export interface ProjectMapResponse {
+  interventions: MapIntervention[];
+  bounds: ProjectMapBounds;
+  totalInterventions: number;
+}
+
+export interface InterventionTreesResponse {
+  trees: MapTree[];
+  intervention: MapIntervention;
+  bounds: ProjectMapBounds;
+}
+
+// API Response wrapper
+export interface ApiResponse<T> {
+  success: boolean;
+  data: T;
+  message?: string;
+}
+
+// Map component state types
+export interface MapState {
+  selectedInterventionId: number | null;
+  hoveredInterventionId: number | null;
+  selectedTreeId: number | null;
+  isLoadingTrees: boolean;
+  showTreeDetails: boolean;
+}
+
+export interface TreeTooltipData {
+  tree: MapTree;
+  position: { x: number; y: number };
 }
