@@ -693,7 +693,7 @@ const TreeCard = ({ tree, onUpdate }) => {
           {tree.image && (
             <div className="mb-3 relative group">
               <img
-                src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/tree/${tree.image}`}
+                src={tree.migratedTree ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.image}` : `https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/tree/${tree.image}`}
                 alt={`Tree ${tree.tag || tree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
@@ -735,14 +735,14 @@ const TreeCard = ({ tree, onUpdate }) => {
               <div className="grid grid-cols-2 gap-3">
                 <EditableField
                   label="Height (m)"
-                  value={tree.height?.toString() || ''}
+                  value={tree.currentHeight?.toString() || ''}
                   type="number"
                   placeholder="0.0"
                   onSave={(value) => handleUpdateField('height', parseFloat(value))}
                 />
                 <EditableField
                   label="Width (m)"
-                  value={tree.width?.toString() || ''}
+                  value={tree.currentWidth?.toString() || ''}
                   type="number"
                   placeholder="0.0"
                   onSave={(value) => handleUpdateField('width', parseFloat(value))}
@@ -1408,7 +1408,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
         onSelect={handleOwnerChange}
         currentOwner={intervention.createdBy}
       /> */}
-      <OwenrshipTransfer isModalOpen={showOwnerDialog} setIsModalOpen={setShowOwnerDialog} intervention={intervention} owner={intervention.owner} handleTransferComplete={()=>{}} selectedProject={selectedProject.uid} token={accessToken} />
+      <OwenrshipTransfer isModalOpen={showOwnerDialog} setIsModalOpen={setShowOwnerDialog} intervention={intervention} owner={intervention.owner} handleTransferComplete={() => { }} selectedProject={selectedProject.uid} token={accessToken} />
 
       {/* Species Management Placeholder */}
       <Dialog open={showSpeciesDialog} onOpenChange={setShowSpeciesDialog}>
