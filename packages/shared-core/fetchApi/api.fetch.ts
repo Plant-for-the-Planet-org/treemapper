@@ -318,6 +318,20 @@ export const getProjectMapData = async (token: string, pid: string) => {
 
 
 
+export const getAllMapInterevntions = async (token: string, pid: string) => {
+  const uri = `${getUrlApi.getProjectMap}/${pid}/map/all`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+export const getAllTreeInterevntions = async (token: string, pid: string) => {
+  const uri = `${getUrlApi.getDashboardKpis}/${pid}/map/tree`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
+
 export const getDashboardKpis = async (token: string, pid: string) => {
   const uri = `${getUrlApi.getDashboardKpis}/${pid}`
   const result = await fetchGetCall(uri, token)

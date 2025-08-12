@@ -66,6 +66,9 @@ export const getUrlApi = {
   getMyOrgs: `${baseUrl}/organizations`,
   getSiteMembers: `${baseUrl}/projects`,
   getWrokspaceMembers: `${baseUrl}/workspace/members`,
+  getProjectMap:`${baseUrl}/interventions`,
+  getProjectTreeMap:`${baseUrl}/interventions`,
+
 } as const;
 
 export const patchUrlApi = {

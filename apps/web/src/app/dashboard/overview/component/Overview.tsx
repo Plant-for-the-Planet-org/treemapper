@@ -14,6 +14,8 @@ import ForestProgressComponent from './ForestProgressComponent';
 import { exportAllData } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { downloadJsonAsCsv } from '@shared-core/utils/reportHelper';
+import ChildTabs from './ChildTabs';
+import ProjectMap from './GlobalMap';
 
 const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDate }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -373,6 +375,9 @@ const Overview = () => {
     const Target = useProjectStore(state => state.selectedProject?.target)
     const userRole = useProjectStore(state => state.selectedProject?.userRole)
     const selectedProject = useProjectStore(state => state.selectedProject?.uid)
+    const projectRole = useProjectStore(state => state.selectedProject?.userRole)
+
+    const [selectedTab, setSelectedTab] = useState('overview')
 
     const getMonthRange = () => {
         const now = new Date();
@@ -445,7 +450,7 @@ const Overview = () => {
         <div className='w-full h-full pt-4'>
             <div className="flex justify-between items-center w-full mb-1 pl-5  pr-5">
                 <h1 className="text-3xl font-bold" style={{ letterSpacing: 1 }}>Dashboard</h1>
-                <div className="flex items-center gap-3">
+                {projectRole !== 'admin' && projectRole !== 'owner' ? null : <div className="flex items-center gap-3">
                     <div className="relative" ref={calendarRef}>
                         <AdvancedDateRangePicker
                             onDateChange={handleDateChange}
@@ -460,21 +465,23 @@ const Overview = () => {
                     >
                         {dowloanding ? "Downloading..." : "Download"}
                     </button>
-                </div>
+                </div>}
             </div>
-            <StatCardsContainer setTotalTrees={setTotalTrees} />
-            <div className="px-4 py-6">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    <div className="h-full flex" style={{ flexDirection: 'column' }}>
-                        {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
-                        <TreePlantingChart />
+            {projectRole !== 'admin' && projectRole !== 'owner' ? <ProjectMap projectId={selectedProject} token={accessToken} /> : <>     <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
+                {selectedTab === 'overview' ? <>
+                    <StatCardsContainer setTotalTrees={setTotalTrees} />
+                    <div className="px-4 py-6">
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div className="h-full flex" style={{ flexDirection: 'column' }}>
+                                {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
+                                <TreePlantingChart />
 
-                    </div>
-                    <div className="h-full flex">
-                        <RecentAdditionsComponent />
-                    </div>
-                </div>
-            </div>
+                            </div>
+                            <div className="h-full flex">
+                                <RecentAdditionsComponent />
+                            </div>
+                        </div>
+                    </div></> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
         </div>
     );
 };
