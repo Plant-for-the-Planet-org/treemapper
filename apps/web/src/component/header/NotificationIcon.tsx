@@ -112,15 +112,15 @@ const NotificationsPanel = () => {
 
   return (
     <>
-      <div className="relative">
+      <div className="relative z-30">
         {/* Notification Bell */}
         <button
           onClick={() => setIsOpen(!isOpen)}
-          className="relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
+          className="relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105 z-40"
         >
           <Bell size={24} />
           {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-green-700 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center font-semibold shadow-lg animate-pulse">
+            <span className="absolute -top-1 -right-1 bg-green-700 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center font-semibold shadow-lg">
               {unreadCount > 99 ? '99+' : unreadCount}
             </span>
           )}
@@ -130,7 +130,7 @@ const NotificationsPanel = () => {
         {isOpen && (
           <>
             <div
-              className="fixed inset-0 bg-black/50 bg-opacity-10 z-40"
+              className="fixed inset-0 bg-black/50 bg-opacity-10 z-10"
               onClick={() => setIsOpen(false)} // Add click handler to close
               style={{ width: '100vw', height: '100vh' }}
             />
