@@ -55,7 +55,7 @@ import {
   Settings,
   Pen
 } from 'lucide-react';
-import { getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
+import { deleteIntervention, getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
 import { spec } from 'node:test/reporters';
@@ -474,12 +474,11 @@ const UserSearchDialog = ({ open, onOpenChange, onSelect, currentOwner }) => {
 
     setIsSearching(true);
     try {
-      // Mock API call - replace with actual user search
-      await mockApiCall(500);
-      setSearchResults([
-        { id: 1, name: 'John Doe', email: 'john@example.com', avatar: null },
-        { id: 2, name: 'Jane Smith', email: 'jane@example.com', avatar: null },
-      ]);
+      const resoinse =
+        setSearchResults([
+          { id: 1, name: 'John Doe', email: 'john@example.com', avatar: null },
+          { id: 2, name: 'Jane Smith', email: 'jane@example.com', avatar: null },
+        ]);
     } catch (error) {
       console.error('Search failed:', error);
     } finally {
@@ -1022,8 +1021,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
   };
 
   const handleDelete = async () => {
-    console.log('Deleting intervention:', intervention.uid);
-    await mockApiCall();
+    await deleteIntervention(accessToken, selectedProject, intervention.uid)
     await onDelete?.(intervention.uid);
     setShowDeleteDialog(false);
   };
