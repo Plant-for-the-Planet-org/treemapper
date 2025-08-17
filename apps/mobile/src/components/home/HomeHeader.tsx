@@ -43,7 +43,7 @@ const HomeHeader = (props: Props) => {
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
 
-  
+
   const { isSyncing } = useSelector(
     (state: RootState) => state.syncState,
   )
@@ -66,7 +66,7 @@ const HomeHeader = (props: Props) => {
   const syncUserSpecies = async () => {
     try {
       const { response } = await getMobileUserDetails()
-      if (response && response.data) {
+    if (response && response.data) {
         dispatch(updateUserDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true, type: 'newuser' }))
         console.log("User details updated")
       }
@@ -204,9 +204,11 @@ const HomeHeader = (props: Props) => {
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
-      <NoProjectModal userType={userType} expiringAt={expiringAt}/>
-      <SpeciesSync />
-      <SyncIntervention isLoggedIn={isLoggedIn} />
+      <NoProjectModal userType={userType} expiringAt={expiringAt} />
+      <View style={{alignItems:'flex-start', gap:5}}>
+        <SpeciesSync />
+        <SyncIntervention isLoggedIn={isLoggedIn} />
+      </View>
       <View style={styles.sectionWrapper} />
       {userType && userType == 'newuser' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>

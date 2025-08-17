@@ -332,7 +332,6 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: Colors.WHITE,
     borderRadius: 10,
-    marginLeft: 5
   },
   label: {
     fontSize: 16,

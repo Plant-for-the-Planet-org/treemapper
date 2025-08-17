@@ -45,21 +45,17 @@ const NoProjectModal = ({
 
 
   const handleProjects = async () => {
-    console.log("userType, projectAdded, expiringAt", userType, projectAdded, expiringAt)
-
     const { response } = await getAllMobileProjects()
-    console.log("ASDC", response.data)
     if (response && response.data) {
       const result = await addAllProjects(response.data)
       if (result) {
         if (response.data.length > 0) {
           dispatch(updateCurrentProject({
             name: response.data[0].properties.name,
-            id: response.data[0].id
+            id: response.data[0].properties.uid
           }))
         }
         dispatch(updateProjectState(true))
-        dispatch(sele)
         addNewLog({
           logType: 'PROJECTS',
           message: "Project Fetched",

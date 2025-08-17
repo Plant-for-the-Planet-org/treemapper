@@ -165,6 +165,7 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
 }
 
 export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
+    console.log("SDcop", uType)
     try {
         const metaData = JSON.parse(d.meta_data);
         const additionalDataConvert = handleAdditionalData([...d.additional_data, ...d.form_data])
@@ -201,6 +202,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             postData.plantProject = d.project_id
         }
 
+
         if (uType === 'newuser' && d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
@@ -235,6 +237,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
 
 export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: string): BodyPayload => {
     try {
+        console.log("SDcop uType", uType)
         const metaData = JSON.parse(i.meta_data);
         const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
         const finalMeta = {
@@ -267,15 +270,16 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         postData.interventionStartDate = postTimeConvertor(d.plantation_date)
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-        if (uType === 'tpo' && !i.project_id) {
+
+        if (uType === 'newuser' && !i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'tpo' && i.project_id) {
+        if (uType === 'newuser' && i.project_id) {
             postData.plantProject = i.project_id
         }
 
-        if (uType === 'tpo' && i.site_id && i.site_id !== 'other') {
+        if (uType === 'newuser' && i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {

@@ -57,7 +57,7 @@ const InterventionPreviewView = () => {
   )
   const { saveIntervention, updateInterventionMetaData, resetIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
-
+  console.log("ILCJSD", InterventionData?.project_id)
   const scrollViewRef = useRef(null); // Reference for the ScrollView
   const childRefs = useRef([]);
 
@@ -106,7 +106,7 @@ const InterventionPreviewView = () => {
           const privateKey = formatString(el.key)
           updatedMetadata.private = {
             ...updatedMetadata.private, [privateKey]: {
-              "key":privateKey,
+              "key": privateKey,
               "originalKey": privateKey,
               "value": el.value,
               "label": el.key,
