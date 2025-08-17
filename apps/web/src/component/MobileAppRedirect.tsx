@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 
 interface MobileAppBannerProps {
@@ -38,7 +38,7 @@ const MobileAppBanner: React.FC<MobileAppBannerProps> = ({ inviteId, onClose, on
   );
 };
 
-const MobileAppRedirect: React.FC = () => {
+const MobileAppRedirectInner: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [isIOS, setIsIOS] = useState(false);
@@ -235,6 +235,15 @@ const MobileAppRedirect: React.FC = () => {
       onClose={handleCloseBanner}
       onOpenApp={handleOpenApp}
     />
+  );
+};
+
+// Wrapper component with Suspense boundary
+const MobileAppRedirect: React.FC = () => {
+  return (
+    <Suspense fallback={null}>
+      <MobileAppRedirectInner />
+    </Suspense>
   );
 };
 
