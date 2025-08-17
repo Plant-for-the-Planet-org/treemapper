@@ -25,6 +25,7 @@ import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import NetInfo from "@react-native-community/netinfo";
 import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
+import NoProjectModal from '../common/NoProjectModal'
 
 interface Props {
   toggleFilterModal: () => void
@@ -32,7 +33,6 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
-  const { addAllProjects } = useProjectManagement()
   const { addUserSpecies } = useManageScientificSpecies()
   const { logoutUser } = useAuthentication()
   const { toggleFilterModal, toggleProjectModal } = props
@@ -42,9 +42,8 @@ const HomeHeader = (props: Props) => {
   const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
-  const { projectAdded } = useSelector(
-    (state: RootState) => state.projectState,
-  )
+
+  
   const { isSyncing } = useSelector(
     (state: RootState) => state.syncState,
   )
@@ -54,14 +53,6 @@ const HomeHeader = (props: Props) => {
     navigation.navigate('HomeSideDrawer')
   }
 
-  useEffect(() => {
-    // if (userType === 'tpo' && !projectAdded) {
-    //   handleProjects()
-    // }
-    if (userType == 'newuser') {
-      handleProjects()
-    }
-  }, [userType, projectAdded, expiringAt])
 
 
   useEffect(() => {
@@ -207,42 +198,13 @@ const HomeHeader = (props: Props) => {
   }
 
 
-  const handleProjects = async () => {
-    const { response } = await getAllMobileProjects()
-    if (response && response.data) {
-      const result = await addAllProjects(response.data)
-      if (result) {
-        dispatch(updateProjectState(true))
-        addNewLog({
-          logType: 'PROJECTS',
-          message: "Project Fetched",
-          logLevel: 'info',
-          statusCode: '000',
-        })
-      } else {
-        dispatch(updateProjectError(true))
-        addNewLog({
-          logType: 'PROJECTS',
-          message: "Error while syncing project",
-          logLevel: 'error',
-          statusCode: '000',
-        })
-      }
-    } else {
-      addNewLog({
-        logType: 'PROJECTS',
-        message: "Project fetching failed (response error)",
-        logLevel: 'error',
-        statusCode: '400',
-      })
-    }
-  }
 
   return (
     <View style={styles.container}>
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
+      <NoProjectModal userType={userType} expiringAt={expiringAt}/>
       <SpeciesSync />
       <SyncIntervention isLoggedIn={isLoggedIn} />
       <View style={styles.sectionWrapper} />

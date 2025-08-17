@@ -55,9 +55,9 @@ export class MobileController {
 
   @Get('user/projects')
   async getMyProjects(
-    @Req() req: any,
+    @CurrentUser() userData: ExtendedUser,
   ): Promise<any> {
-    return await this.appservice.getProjectsAndSitesForUser(req.user.id);
+    return await this.appservice.getProjectsAndSitesForUser(userData);
   }
 
   //   @Get('species/:id')
@@ -77,15 +77,15 @@ export class MobileController {
   //   }
 
 
-    @Post('project/:id/intervention')
-    @ProjectRoles('owner', 'admin', 'contributor')
-    @UseGuards(ProjectPermissionsGuard)
-    async createNewInterventionWeb(
-      @Body() createInterventionDto: any,
-      @Membership() membership: any
-    ): Promise<InterventionResponseDto> {
-      return this.appservice.createNewInterventionMobile(createInterventionDto, membership);
-    }
+  @Post('project/:id/intervention')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createNewInterventionWeb(
+    @Body() createInterventionDto: any,
+    @Membership() membership: any
+  ): Promise<InterventionResponseDto> {
+    return this.appservice.createNewInterventionMobile(createInterventionDto, membership);
+  }
 
   //   @Post('image/intervention')
   //   async updateInterventionImage(

@@ -9,6 +9,7 @@ import { CaptureStatus } from 'src/interventions/interventions.service';
 import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies } from 'src/database/schema';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
+import { User } from 'src/users/entities/user.entity';
 
 export interface ProjectWithSitesResponse {
   id: string;
@@ -221,7 +222,7 @@ export class MobileService {
   }
 
 
-  async getProjectsAndSitesForUser(userId: number): Promise<ProjectWithSitesResponse[]> {
+  async getProjectsAndSitesForUser(userData: User): Promise<ProjectWithSitesResponse[]> {
     try {
       const userProjects = await this.drizzleService.db
         .select({
@@ -234,7 +235,7 @@ export class MobileService {
         .leftJoin(workspace, eq(project.workspaceId, workspace.id))
         .where(
           and(
-            eq(projectMember.userId, userId),
+            eq(projectMember.userId, userData.id),
             ne(projectMember.projectRole, 'observer'),
             eq(project.isActive, true),
             isNull(project.deletedAt),
@@ -254,8 +255,7 @@ export class MobileService {
         .from(site)
         .where(
           and(
-            // Use inArray for multiple project IDs (you'll need to import this from drizzle-orm)
-            // inArray(site.projectId, projectIds),
+            inArray(site.projectId, projectIds),
             isNull(site.deletedAt)
           )
         );

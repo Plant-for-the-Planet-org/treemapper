@@ -1,4 +1,4 @@
-const baseUrl = '192.168.0.103:3001/api'
+const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
 
 const https = 'http://'
 
@@ -33,6 +33,9 @@ export const getUrlApi = {
 
 export const postUrlNewApi = {
   uploadMobileIntervention: `${https}${baseUrl}/mobile/project`,
+  updateUserDetails: `${https}${baseUrl}/mobile/user/profile`,
+  createNewProject: `${https}${baseUrl}/mobile/project`,
+
   // imageUpload: `${https}${baseUrl}/treemapper/interventions`,
   // remeasurement: `${https}${baseUrl}/treemapper/interventions`,
   // skipRemeasurement: `${https}${baseUrl}/treemapper/interventions`,

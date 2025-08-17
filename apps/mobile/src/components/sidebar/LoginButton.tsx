@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { resetUserDetails, updateName, updateUserDetails } from 'src/store/slice/userStateSlice'
 import { logoutAppUser, updateNewIntervention, updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
-import { getUserDetails } from 'src/api/api.fetch'
+import { getUserDetails, updateApiUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
 import Snackbar from 'react-native-snackbar'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
@@ -19,6 +19,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'i18next'
 import { getMobileHealth, getMobileUserDetails } from '../../api/api.fetch'
+import EmailVerificationModal from '../common/EmailVerifcationModal'
 
 const LoginButton = () => {
   const webAuthLoading = useSelector(
@@ -29,6 +30,8 @@ const LoginButton = () => {
   const toast = useToast()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [buttonMounted, setButtonMounted] = useState(false)
+  const [showEmailModal, setShowEmailModal] = useState(false)
+
 
   function getFirstAndLastName(fullName) {
     // Split the full name into an array based on spaces
@@ -49,10 +52,11 @@ const LoginButton = () => {
       if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
           toast.show("Please confirm your email \nusing the link sent to your inbox.", {
-            duration: 10000,
+            duration: 2000,
             textStyle: { textAlign: 'center' },
-            placement: 'center'
+            placement: 'top'
           })
+          setShowEmailModal(true)
         }, 3000);
       }
     }
@@ -89,9 +93,22 @@ const LoginButton = () => {
       return
     }
 
+    const handleUpdateUserDetails = async (serverData, auth0Data) => {
+      if (serverData && !serverData.image && auth0Data) {
+        updateApiUserDetails({
+          image: auth0Data.picture || '',
+          firstName: auth0Data.givenName || '',
+          lastName: auth0Data.familyName || '',
+          name: auth0Data.name || ''
+        })
+      }
+
+    }
+
     const { response } = await getMobileUserDetails()
     if (response && response.data) {
-      loginAndUpdateDetails({...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true})
+      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true })
+      handleUpdateUserDetails(response.data, user)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
       addNewLog({
@@ -103,6 +120,8 @@ const LoginButton = () => {
       handleLogout()
       dispatch(updateWebAuthLoading(false))
     }
+
+
 
     // const { response, success } = await getUserDetails()
     // if (success && response.signUpRequire) {
@@ -191,6 +210,10 @@ const LoginButton = () => {
         loading={webAuthLoading}
         hideFadeIn
       />
+      <EmailVerificationModal isVisible={showEmailModal} onClose={() => { setShowEmailModal(false) }} onResendEmail={() => { }} onOkay={() => {
+        setShowEmailModal(false);
+        handleLogin()
+      }} />
     </View>
   )
 }

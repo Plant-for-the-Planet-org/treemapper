@@ -48,6 +48,7 @@ import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
+import CreateProjectScreen from './CreateProject'
 
 export default {
   HomeMapView: HomeMapView,
@@ -99,5 +100,6 @@ export default {
   SignUpView: SignUpView,
   PlantHistory:PlantHistory,
   ProjectSites:ProjectSites,
-  DeleteAccount: DeleteAccount
+  DeleteAccount: DeleteAccount,
+  CreateProject:CreateProjectScreen
 }
