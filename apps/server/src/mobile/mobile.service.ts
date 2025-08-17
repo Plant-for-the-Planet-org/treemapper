@@ -1,5 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
-import { and, desc, eq, isNull, ne, sql } from 'drizzle-orm';
+import { and, desc, eq, isNull, ne, sql, inArray } from 'drizzle-orm';
 // import { sites, projects, users, projectMembers, scientificSpecies, interventions, trees, images, projectSpecies } from '../database/schema'; // Adjust import path as needed
 import { generateUid } from 'src/util/uidGenerator';
 import { DrizzleService } from '../database/drizzle.service';
