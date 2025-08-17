@@ -5,7 +5,7 @@ import "./globals.css";
 import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
-
+import MobileAppRedirect from '@/components/MobileAppRedirect';
 
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -23,7 +23,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'TreeMapper Dashboard', // Fixed title that won't change
+  title: 'TreeMapper Dashboard',
   description: 'Manage and monitor your TreeMapper data',
   manifest: '/manifest.json',
   icons: {
@@ -35,9 +35,10 @@ export const metadata: Metadata = {
   },
   other: {
     'format-detection': 'telephone=no',
+    // Add iOS smart app banner
+    'apple-itunes-app': 'app-id=YOUR_APP_ID, app-argument=https://dev.treemapper.app/dashboard',
   }
 };
-
 
 export default function RootLayout({
   children,
@@ -46,9 +47,23 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={openSans.variable}>
+      <head>
+        {/* Apple App Site Association meta tag */}
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        
+        {/* Preconnect for performance */}
+        <link rel="preconnect" href="https://apps.apple.com" />
+        
+        {/* Universal Link verification */}
+        <link rel="apple-app-site-association" href="/.well-known/apple-app-site-association" />
+      </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
+        {/* Mobile App Redirect Component */}
+        <MobileAppRedirect />
+        
         <ResponsiveDashboardWrapper>
           <Auth0Provider>
             {/* <SharedQueryProvider> */}

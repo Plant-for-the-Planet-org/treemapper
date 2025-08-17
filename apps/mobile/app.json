@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "scheme": "treemapper",
     "splash": {
       "image": "./assets/splash.png",
       "resizeMode": "cover",
@@ -65,10 +66,18 @@
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
+      "associatedDomains": [
+        "applinks:dev.treemapper.app",
+        "applinks:treemapper.app"
+      ],
       "entitlements": {
         "aps-environment": "development",
         "com.apple.security.application-groups": [
           "group.org.pftp.treemapper.onesignal"
+        ],
+        "com.apple.developer.associated-domains": [
+          "applinks:dev.treemapper.app",
+          "applinks:treemapper.app"
         ]
       },
       "infoPlist": {
@@ -78,6 +87,12 @@
         "LSMinimumSystemVersion": "12.0",
         "UIBackgroundModes": [
           "remote-notification"
+        ],
+        "CFBundleURLTypes": [
+          {
+            "CFBundleURLName": "org.pftp.treemapper",
+            "CFBundleURLSchemes": ["treemapper"]
+          }
         ]
       }
     },
@@ -91,7 +106,24 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ],
-      "package": "org.pftp.treemapper"
+      "package": "org.pftp.treemapper",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "dev.treemapper.app"
+            },
+            {
+              "scheme": "https", 
+              "host": "treemapper.app"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"

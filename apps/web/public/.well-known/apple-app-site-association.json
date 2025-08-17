@@ -1,0 +1,22 @@
+{
+  "applinks": {
+    "details": [
+      {
+        "appIDs": [
+          "UYRJ8SA699.org.pftp.treemapper"
+        ],
+        "components": [
+          {
+            "/": "/dashboard*",
+            "comment": "Matches any URL with path that starts with /dashboard"
+          }
+        ]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": [
+      "UYRJ8SA699.org.pftp.treemapper"
+    ]
+  }
+}
