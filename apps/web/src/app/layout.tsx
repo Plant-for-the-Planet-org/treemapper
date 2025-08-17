@@ -5,7 +5,7 @@ import "./globals.css";
 import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
-import MobileAppRedirect from '@/components/MobileAppRedirect';
+import MobileAppRedirect from '@/component/MobileAppRedirect';
 
 const openSans = Open_Sans({
   subsets: ['latin'],
