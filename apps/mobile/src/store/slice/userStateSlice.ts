@@ -15,7 +15,6 @@ export const initialUserState: UserInterface = {
   name: '',
   slug: '',
   type: '',
-  newBackend: true
 }
 
 const userStateSlice = createSlice({

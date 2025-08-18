@@ -17,14 +17,14 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { remeasurement, skipRemeasurement, uploadIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { presingedUrl, remeasurement, skipRemeasurement, uploadInterventionImage, uploadMobileIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
-import { uploadMobileIntervention } from '../../api/api.fetch';
+import { generateUid } from 'src/utils/helpers/uidGenerator';
 interface Props {
     isLoggedIn: boolean
 }
@@ -33,7 +33,7 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(10)
+    const [retryCount, setRetryCount] = useState(4)
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
@@ -63,7 +63,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
 
     const showLogin = () => {
-        setRetryCount(10)
+        setRetryCount(4)
         if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -126,8 +126,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const { response, success } = await uploadMobileIntervention(pData);
-            if (success && response?.hid && response?.id) {
-                await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+            console.log("handleIntervention response", response)
+            if (success && response?.data.hid && response?.data.id) {
+                await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -150,7 +151,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const handleSingleTree = async (el) => {
         try {
             const { pData, fixRequired, error, message } = await getPostBody(el, uType);
-
             if (fixRequired === 'PROJECT_ID_MISSING') {
                 await updateProjectIdMissing(el.p1Id)
                 addNewLog({
@@ -165,10 +165,20 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const { response, success } = await uploadMobileIntervention(pData);
-            if (success && response?.id && response?.hid) {
-                const result = await updateInterventionStatus(el.p1Id, response.hid, response.id, el.nextStatus);
+            console.log("handleSingleTree response", response)
+            if (success && response?.data.id && response?.data.hid) {
+                const result = await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
                 if (result) {
-                    await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, response.id, response.coordinates);
+                    await updateTreeStatus(el.p2Id, response.data.singleTreeResult.hid, response.data.singleTreeResult.id, el.nextStatus, response.data.id, [
+                        {
+                            "image": "",
+                            "created": new Date(),
+                            "coordinateIndex": 0,
+                            "id": generateUid('img'),
+                            "updated": new Date(),
+                            "status": "pending"
+                        }
+                    ]);
                 }
             } else {
                 addNewLog({
@@ -265,8 +275,19 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
             const { response, success } = await uploadMobileIntervention(pData);
-            if (success && response?.hid && response?.id && response.coordinates) {
-                await updateTreeStatus(el.p2Id, response.hid, response.id, el.nextStatus, pData.parent, response.coordinates);
+            if (success && response?.data.hid && response?.data.id) {
+                await updateTreeStatus(el.p2Id, response.data.hid, response.data.id, el.nextStatus, pData.parent, [
+                    [
+                        {
+                            "image": "",
+                            "created": new Date(),
+                            "coordinateIndex": 0,
+                            "id": generateUid('img'),
+                            "updated": new Date(),
+                            "status": "pending"
+                        }
+                    ]
+                ]);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -285,10 +306,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             })
         }
     };
-
     const handleTreeImage = async (el) => {
         try {
+            console.log("handleTreeImage");
             const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+
             if (fixRequired !== 'NO') {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -296,75 +318,101 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     logLevel: 'error',
                     statusCode: '',
                     logStack: JSON.stringify(error),
-                })
+                });
             }
+
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            await updateTreeImageStatus(el.p2Id, el.p1Id, 'cdnImage');
 
-            // const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
-            //     imageFile: pData.imageFile
-            // });
-            // if (success && response.status === "complete") {
-            //     const cdnImage = response.image || ''
-            //     await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
-            // } else {
-            //     addNewLog({
-            //         logType: 'DATA_SYNC',
-            //         message: 'Image Upload API response error',
-            //         logLevel: 'error',
-            //         statusCode: '',
-            //     })
-            // }
+            // Get presigned URL
+            const presignedResponse = await presingedUrl({
+                fileName: String(new Date().getMilliseconds()),
+                fileType: 'image/jpg',
+                folder: 'tree'
+            });
+            console.log("presignedResponse", presignedResponse)
+
+            // Fixed: Check for success condition (was checking for failure)
+            if (presignedResponse.response.code !== 'success') {
+                throw new Error('Failed to get upload URL');
+            }
+
+            // Fixed: Swapped variable assignments (they were reversed)
+            const signedUrl = presignedResponse.response.data.data.uploadUrl;
+            const fileName = presignedResponse.response.data.data.fileName;
+
+            // Method 1: Using FormData (recommended for React Native)
+            const formData = new FormData();
+            formData.append('file', {
+                uri: el.imageUri, // Assuming el contains the image URI
+                type: 'image/jpg',
+                name: fileName || 'image.jpg',
+            });
+
+            // Upload using FormData
+            const uploadResponse = await fetch(signedUrl, {
+                method: 'PUT',
+                body: formData,
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                }
+            });
+
+            /* Alternative Method 2: Using raw buffer (if you have the file object)
+            
+            // Fixed: Properly handle the file buffer
+            let buffer;
+            if (el.file) {
+                // If you have a File object
+                buffer = await el.file.arrayBuffer();
+            } else if (el.imageUri) {
+                // If you have a URI, convert it to buffer
+                const response = await fetch(el.imageUri);
+                buffer = await response.arrayBuffer();
+            } else {
+                throw new Error("No image file or URI provided");
+            }
+    
+            const uploadResponse = await fetch(signedUrl, {
+                method: 'PUT',
+                body: buffer,
+                headers: {
+                    'Content-Type': 'image/jpg',
+                }
+            });
+            */
+
+            if (!uploadResponse.ok) {
+                throw new Error(`Upload failed with status: ${uploadResponse.status}`);
+            }
+
+            console.log("Image uploaded successfully");
+
+            // Uncommented and fixed the success handling
+            if (uploadResponse.ok) {
+                await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Image Upload API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                });
+            }
+
         } catch (error) {
+            console.log("handleTreeImage error", error);
             addNewLog({
                 logType: 'DATA_SYNC',
-                message: 'Image Upload API response error(Inside Catch)',
+                message: 'Image Upload API response error (Inside Catch)',
                 logLevel: 'error',
                 statusCode: '',
                 logStack: JSON.stringify(error),
-            })
+            });
+            return false; // Return false to indicate failure
         }
-        // try {
-        //     const { pData, fixRequired, error, message } = await getPostBody(el, uType);
-        //     if (fixRequired !== 'NO') {
-        //         addNewLog({
-        //             logType: 'DATA_SYNC',
-        //             message: 'Intervention fix require ' + message,
-        //             logLevel: 'error',
-        //             statusCode: '',
-        //             logStack: JSON.stringify(error),
-        //         })
-        //     }
-        //     if (!pData) {
-        //         throw new Error("Not able to convert body");
-        //     }
-        //     const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
-        //         imageFile: pData.imageFile
-        //     });
-        //     if (success && response.status === "complete") {
-        //         const cdnImage = response.image || ''
-        //         await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
-        //     } else {
-        //         addNewLog({
-        //             logType: 'DATA_SYNC',
-        //             message: 'Image Upload API response error',
-        //             logLevel: 'error',
-        //             statusCode: '',
-        //         })
-        //     }
-        // } catch (error) {
-        //     addNewLog({
-        //         logType: 'DATA_SYNC',
-        //         message: 'Image Upload API response error(Inside Catch)',
-        //         logLevel: 'error',
-        //         statusCode: '',
-        //         logStack: JSON.stringify(error),
-        //     })
-        // }
     };
-
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
         for (const el of d) {
             if (!isConnected) {

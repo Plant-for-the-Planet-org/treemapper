@@ -1,65 +1,67 @@
 const baseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT
+const mobileBaseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT_MOBILE
 
-const https = 'http://'
 
 export const postUrlApi = {
-  uploadIntervention: `${https}${baseUrl}/treemapper/interventions`,
-  imageUpload: `${https}${baseUrl}/treemapper/interventions`,
-  remeasurement: `${https}${baseUrl}/treemapper/interventions`,
-  skipRemeasurement: `${https}${baseUrl}/treemapper/interventions`,
-  updateSpecies: `${https}${baseUrl}/treemapper/species`,
-  addUserSpecies: `${https}${baseUrl}/treemapper/species`,
-  updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,
-  signupService: `${https}${baseUrl}/app/profile`,
-  updateProjectInF: `${https}${baseUrl}/app/projects`,
-  createNewSite: `${https}${baseUrl}/app/projects`,
-  deleteAccount: `${https}${baseUrl}/app/profile`,
+  uploadIntervention: `${baseUrl}/treemapper/interventions`,
+  imageUpload: `${baseUrl}/treemapper/interventions`,
+  remeasurement: `${baseUrl}/treemapper/interventions`,
+  skipRemeasurement: `${baseUrl}/treemapper/interventions`,
+  updateSpecies: `${baseUrl}/treemapper/species`,
+  addUserSpecies: `${baseUrl}/treemapper/species`,
+  updatePlantLocationData: `${baseUrl}/treemapper/interventions`,
+  signupService: `${baseUrl}/app/profile`,
+  updateProjectInF: `${baseUrl}/app/projects`,
+  createNewSite: `${baseUrl}/app/projects`,
+  deleteAccount: `${baseUrl}/app/profile`,
 };
 
 export const getUrlApi = {
-  getBaseUrl: `${https}${baseUrl}`,
-  getBaseTestUrl: `${https}${baseUrl}`,
-  getUserDetails: `${https}${baseUrl}/app/profile`,
-  getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
-  getAllProjects: `${https}${baseUrl}/app/profile/projects?_scope=extended`,
-  userSpecies: `${https}${baseUrl}/treemapper/species`,
+  getBaseUrl: `${baseUrl}`,
+  getBaseTestUrl: `${baseUrl}`,
+  getUserDetails: `${baseUrl}/app/profile`,
+  getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
+  getAllProjects: `${baseUrl}/app/profile/projects?_scope=extended`,
+  userSpecies: `${baseUrl}/treemapper/species`,
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
-  getSingleLocationDetail: `${https}${baseUrl}/treemapper/plantLocations`,
-  getAllSpeciesAchieve: `${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
+  getSingleLocationDetail: `${baseUrl}/treemapper/plantLocations`,
+  getAllSpeciesAchieve: `${baseUrl}/treemapper/scientificSpeciesArchive`,
   getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
 
 
 
 export const postUrlNewApi = {
-  uploadMobileIntervention: `${https}${baseUrl}/mobile/project`,
-  updateUserDetails: `${https}${baseUrl}/mobile/user/profile`,
-  createNewProject: `${https}${baseUrl}/mobile/project`,
+  uploadMobileIntervention: `${mobileBaseUrl}/mobile/project`,
+  updateUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
+  createNewProject: `${mobileBaseUrl}/mobile/project`,
+  uploadImageData: `${mobileBaseUrl}/mobile/image`,
+  awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
 
-  // imageUpload: `${https}${baseUrl}/treemapper/interventions`,
-  // remeasurement: `${https}${baseUrl}/treemapper/interventions`,
-  // skipRemeasurement: `${https}${baseUrl}/treemapper/interventions`,
-  // updateSpecies: `${https}${baseUrl}/treemapper/species`,
-  // addUserSpecies: `${https}${baseUrl}/treemapper/species`,
-  // updatePlantLocationData: `${https}${baseUrl}/treemapper/interventions`,
-  // signupService: `${https}${baseUrl}/app/profile`,
-  // updateProjectInF: `${https}${baseUrl}/app/projects`,
-  // createNewSite: `${https}${baseUrl}/app/projects`,
-  // deleteAccount: `${https}${baseUrl}/app/profile`,
+  // imageUpload: `${baseUrl}/treemapper/interventions`,
+  // remeasurement: `${baseUrl}/treemapper/interventions`,
+  // skipRemeasurement: `${baseUrl}/treemapper/interventions`,
+  // updateSpecies: `${baseUrl}/treemapper/species`,
+  // addUserSpecies: `${baseUrl}/treemapper/species`,
+  // updatePlantLocationData: `${baseUrl}/treemapper/interventions`,
+  // signupService: `${baseUrl}/app/profile`,
+  // updateProjectInF: `${baseUrl}/app/projects`,
+  // createNewSite: `${baseUrl}/app/projects`,
+  // deleteAccount: `${baseUrl}/app/profile`,
 };
 
 export const getUrlMobileApi = {
-  getMobileHealth: `${https}${baseUrl}/mobile/health`,
-  getUserDetails: `${https}${baseUrl}/mobile/user/profile`,
-  // userSpecies: `${https}${baseUrl}/mobile/user/species`,
-  getAllMobileProjects: `${https}${baseUrl}/mobile/user/projects`,
+  getMobileHealth: `${mobileBaseUrl}/mobile/health`,
+  getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
+  // userSpecies: `${baseUrl}/mobile/user/species`,
+  getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
 
-  // getBaseUrl: `${https}${baseUrl}`,
-  // getBaseTestUrl: `${https}${baseUrl}`,
-  // getAllPlantLocations: `${https}${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
+  // getBaseUrl: `${baseUrl}`,
+  // getBaseTestUrl: `${baseUrl}`,
+  // getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
   // getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
-  // getSingleLocationDetail: `${https}${baseUrl}/treemapper/plantLocations`,
-  // getAllSpeciesAchieve: `${https}${baseUrl}/treemapper/scientificSpeciesArchive`,
+  // getSingleLocationDetail: `${baseUrl}/treemapper/plantLocations`,
+  // getAllSpeciesAchieve: `${baseUrl}/treemapper/scientificSpeciesArchive`,
   // getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
 

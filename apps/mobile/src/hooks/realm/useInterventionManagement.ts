@@ -230,6 +230,44 @@ const useInterventionManagement = () => {
     }
   };
 
+  const updateInterventionsWithEmptyProjectIdWithCount = async (): Promise<{ success: boolean, count: number }> => {
+    try {
+      let updatedCount = 0;
+
+      realm.write(() => {
+        const interventionsWithEmptyProject = realm.objects<InterventionData>(RealmSchema.Intervention)
+          .filtered('(project_id == "" OR project_id == null) AND is_complete == true AND status == "PENDING_DATA_UPLOAD"');
+
+        updatedCount = interventionsWithEmptyProject.length;
+
+        // Update each intervention
+        for (const intervention of interventionsWithEmptyProject) {
+          intervention.is_complete = false;
+          intervention.status = 'INITIALIZED';
+          intervention.last_updated_at = Date.now();
+        }
+      });
+
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Updated ${updatedCount} interventions with empty project_id`,
+        logLevel: 'info',
+        statusCode: '',
+      });
+
+      return { success: true, count: updatedCount };
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occurred while updating interventions with empty project_id',
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      });
+      return { success: false, count: 0 };
+    }
+  };
+
   const saveIntervention = async (interventionID: string): Promise<boolean> => {
     try {
       realm.write(() => {
@@ -921,7 +959,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount }
 }
 
 export default useInterventionManagement

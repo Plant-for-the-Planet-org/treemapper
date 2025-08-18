@@ -264,12 +264,12 @@ const SpeciesSync = () => {
         downloadFile()
       }
     } else {
-      const oldSpeciesDB = await checkForMigrateSpecies()
-      if (oldSpeciesDB) {
-        await updateLocalSpeciesSync();
-        dispatch(updateSpeciesSyncStatus(true))
-        return
-      }
+      // const oldSpeciesDB = await checkForMigrateSpecies()
+      // if (oldSpeciesDB) {
+      //   await updateLocalSpeciesSync();
+      //   dispatch(updateSpeciesSyncStatus(true))
+      //   return
+      // }
       downloadFile()
     }
   }

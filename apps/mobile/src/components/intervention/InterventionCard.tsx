@@ -49,7 +49,7 @@ const InterventionCard = (props: Props) => {
       <TouchableOpacity style={styles.trayIconWrapper} onPress={exportInterventionData}>
         <ExportArrows />
       </TouchableOpacity>
-      {!item.is_complete && <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.deleteHandler(item) }}>
+      {item.is_complete && <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.deleteHandler(item) }}>
         <BinIcon width={19} height={19} fill={"tomato"} />
       </TouchableOpacity>}
       {item.is_complete && item.status == 'PENDING_DATA_UPLOAD' ? <TouchableOpacity style={styles.trayIconWrapper} onPress={() => { props.openEditModal(item) }}>

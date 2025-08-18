@@ -1,6 +1,9 @@
 import { getUrlApi, postUrlApi, getUrlMobileApi, postUrlNewApi } from './api.url';
 import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
 
+import * as FileSystem from 'expo-file-system';
+import { updateFilePath } from '../utils/helpers/fileSystemHelper'
+import sampleTreeBase64 from '../../assets/images/base64/sampleTree';
 
 export const getMobileHealth = async () => {
   const uri = `${getUrlMobileApi.getMobileHealth}`;
@@ -8,6 +11,11 @@ export const getMobileHealth = async () => {
   return result;
 };
 
+export const uploadInterventionImage = async (location_id: string, coordinate_id: string, params: any) => {
+  const uri = `${postUrlApi.imageUpload}/${location_id}/coordinates/${coordinate_id}`
+  const result = await fetchPutCall(uri, params);
+  return result;
+};
 
 export const getMobileUserDetails = async () => {
   const uri = `${getUrlMobileApi.getUserDetails}`;
@@ -54,9 +62,15 @@ export const uploadIntervention = async (params: any) => {
   return result;
 };
 
-export const uploadInterventionImage = async (location_id: string, coordinate_id: string, params: any) => {
-  const uri = `${postUrlApi.imageUpload}/${location_id}/coordinates/${coordinate_id}`
+
+export const uploadMobileInterventionImage = async (params) => {
+  const uri = `${postUrlNewApi.uploadImageData}`
   const result = await fetchPutCall(uri, params);
+  return result;
+};
+export const presingedUrl = async (params) => {
+  const uri = `${postUrlNewApi.awsSignedUrl}`
+  const result = await fetchPostCall(uri, params);
   return result;
 };
 
@@ -158,4 +172,188 @@ export const createNewSite = async (pid: string, params: any) => {
   const uri = `${postUrlApi.createNewSite}/${pid}/sites`
   const result = await fetchPostCall(uri, params);
   return result;
+};
+
+
+// Main function to get image as base64 (from your code)
+const getImageAsBase64 = async (fileUri: string): Promise<string> => {
+  try {
+    const base64 = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    return base64;
+  } catch (error) {
+    console.warn('Failed to read image file, using fallback:', error);
+    return sampleTreeBase64; // Fallback to default base64 image
+  }
+};
+
+// Enhanced version with better error handling and file validation
+const getImageAsBase64Enhanced = async (fileUri: string): Promise<{ success: boolean, data: string, error?: string }> => {
+  try {
+    // Check if file exists first
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+    if (!fileInfo.exists) {
+      return {
+        success: false,
+        data: sampleTreeBase64,
+        error: 'File does not exist'
+      };
+    }
+
+    const base64 = await FileSystem.readAsStringAsync(fileUri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    return {
+      success: true,
+      data: base64
+    };
+  } catch (error) {
+    console.warn('Failed to read image file:', error);
+    return {
+      success: false,
+      data: sampleTreeBase64,
+      error: error.message || 'Unknown error reading file'
+    };
+  }
+};
+
+// Function to get file info (size, exists, etc.)
+const getFileInfo = async (fileUri: string) => {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+    return {
+      exists: fileInfo.exists,
+      size: fileInfo.size || 0,
+      isDirectory: fileInfo.isDirectory || false,
+      modificationTime: fileInfo.modificationTime || 0,
+      uri: fileInfo.uri
+    };
+  } catch (error) {
+    console.error('Error getting file info:', error);
+    return {
+      exists: false,
+      size: 0,
+      isDirectory: false,
+      modificationTime: 0,
+      uri: fileUri
+    };
+  }
+};
+
+// Function to validate image file
+const validateImageFile = async (fileUri: string): Promise<{ isValid: boolean, error?: string }> => {
+  try {
+    const fileInfo = await FileSystem.getInfoAsync(fileUri);
+
+    if (!fileInfo.exists) {
+      return { isValid: false, error: 'File does not exist' };
+    }
+
+    // Check file size (optional - adjust limit as needed)
+    const maxSize = 10 * 1024 * 1024; // 10MB
+    if (fileInfo.size && fileInfo.size > maxSize) {
+      return { isValid: false, error: 'File size too large' };
+    }
+
+    // Check file extension
+    const validExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+    const fileExtension = fileUri.toLowerCase().split('.').pop();
+    if (!validExtensions.includes(`.${fileExtension}`)) {
+      return { isValid: false, error: 'Invalid file type' };
+    }
+
+    return { isValid: true };
+  } catch (error) {
+    return { isValid: false, error: error.message || 'Validation failed' };
+  }
+};
+
+// Updated upload function using your file system logic
+export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUrl: string) => {
+  try {
+    if (!uploadUrl) {
+      throw new Error('Upload URL is required');
+    }
+
+    if (!selectedImage) {
+      throw new Error('Selected image is required');
+    }
+
+    // Validate the image file first
+    const validation = await validateImageFile(selectedImage);
+    if (!validation.isValid) {
+      throw new Error(`Invalid image file: ${validation.error}`);
+    }
+
+    // Use your existing file path helper if needed
+    const processedPath = updateFilePath ? updateFilePath(selectedImage) : selectedImage;
+
+    // Get image as base64 using your existing logic
+    const base64Result = await getImageAsBase64Enhanced(processedPath);
+
+    if (!base64Result.success) {
+      throw new Error(`Failed to read image: ${base64Result.error}`);
+    }
+
+    // Convert base64 to binary for upload
+    const binaryData = atob(base64Result.data);
+    const bytes = new Uint8Array(binaryData.length);
+    for (let i = 0; i < binaryData.length; i++) {
+      bytes[i] = binaryData.charCodeAt(i);
+    }
+
+    // Determine content type
+    const getContentType = (filePath: string) => {
+      const extension = filePath.toLowerCase().split('.').pop();
+      switch (extension) {
+        case 'jpg':
+        case 'jpeg':
+          return 'image/jpeg';
+        case 'png':
+          return 'image/png';
+        case 'gif':
+          return 'image/gif';
+        case 'webp':
+          return 'image/webp';
+        default:
+          return 'image/jpeg';
+      }
+    };
+
+    // Get file info for headers
+    const fileInfo = await getFileInfo(processedPath);
+
+    // Make the upload request
+    const uploadResponse = await fetch(uploadUrl, {
+      method: 'PUT',
+      body: bytes,
+      headers: {
+        'Content-Type': getContentType(selectedImage),
+        'Content-Length': fileInfo.size.toString(),
+      }
+    });
+
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      throw new Error(`Upload failed with status: ${uploadResponse.status}, ${errorText}`);
+    }
+
+    return {
+      success: true,
+      message: 'Upload completed successfully',
+      fileSize: fileInfo.size,
+      fileName: selectedImage.split('/').pop()
+    };
+
+  } catch (error: any) {
+    console.error('Upload error:', error);
+    return {
+      success: false,
+      error: error.message || 'Upload failed',
+      details: error
+    };
+  }
 };

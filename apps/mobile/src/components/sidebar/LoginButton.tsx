@@ -107,7 +107,7 @@ const LoginButton = () => {
 
     const { response } = await getMobileUserDetails()
     if (response && response.data) {
-      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true })
+      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
       handleUpdateUserDetails(response.data, user)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")

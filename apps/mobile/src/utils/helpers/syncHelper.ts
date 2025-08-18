@@ -133,14 +133,15 @@ export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPaylo
             if (TreeDetails.sloc_id === '') {
                 return null
             }
-            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
             const body = {
-                imageFile: `data:image/png;base64,${base64Image}`,
+                imageFile: TreeDetails.image_url,
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
                 imageId: TreeDetails.image_data.coordinateID
             };
+            console.log("Here is the image data", body.imageId)
             return { pData: body, message: '', fixRequired: "NO", error: "" }
         } catch (error) {
+            console.log("Here is the error", error)
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
     }
@@ -165,7 +166,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
 }
 
 export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
-    console.log("SDcop", uType)
     try {
         const metaData = JSON.parse(d.meta_data);
         const additionalDataConvert = handleAdditionalData([...d.additional_data, ...d.form_data])
@@ -194,16 +194,15 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
-        if (uType === 'newuser' && !d.project_id) {
+        if (!d.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'newuser' && d.project_id) {
+        if (d.project_id) {
             postData.plantProject = d.project_id
         }
 
-
-        if (uType === 'newuser' && d.site_id && d.site_id !== 'other') {
+        if (d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {
@@ -237,7 +236,6 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
 
 export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: string): BodyPayload => {
     try {
-        console.log("SDcop uType", uType)
         const metaData = JSON.parse(i.meta_data);
         const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
         const finalMeta = {
@@ -270,16 +268,15 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         postData.interventionStartDate = postTimeConvertor(d.plantation_date)
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-
-        if (uType === 'newuser' && !i.project_id) {
+        if (!i.project_id) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (uType === 'newuser' && i.project_id) {
+        if (i.project_id) {
             postData.plantProject = i.project_id
         }
 
-        if (uType === 'newuser' && i.site_id && i.site_id !== 'other') {
+        if (i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {
@@ -391,4 +388,3 @@ export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPay
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
     }
 }
-

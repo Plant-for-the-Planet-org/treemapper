@@ -67,7 +67,7 @@ const HomeHeader = (props: Props) => {
     try {
       const { response } = await getMobileUserDetails()
     if (response && response.data) {
-        dispatch(updateUserDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', newBackend: true, type: 'newuser' }))
+        dispatch(updateUserDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', type: 'newuser' }))
         console.log("User details updated")
       }
     } catch (error) {
