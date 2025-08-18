@@ -6,7 +6,7 @@ const ChildTabs = ({selectedTab,setSelectedTab}) => {
     const tabs = [
         { id: 'overview', label: 'Overview' },
         { id: 'treeMap', label: 'Map' },
-        // { id: 'species', label: 'Species' },
+        { id: 'leaderboard', label: 'Leader Board' },
         // { id: 'geo', label: 'Geolocation' },
 
     ];

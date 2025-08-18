@@ -16,6 +16,7 @@ import { useToken } from '@/context/useTokenContext'
 import { downloadJsonAsCsv } from '@shared-core/utils/reportHelper';
 import ChildTabs from './ChildTabs';
 import ProjectMap from './GlobalMap';
+import ForestLeaderboard from '../../leaderboard/page';
 
 const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDate }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -481,7 +482,7 @@ const Overview = () => {
                                 <RecentAdditionsComponent />
                             </div>
                         </div>
-                    </div></> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
+                    </div></> : selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
         </div>
     );
 };

@@ -51,6 +51,36 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
     return `${prefix}_${randomPart}`;
   }
 
+  function latLongToGeoJSON(latitude, longitude) {
+    // Convert to numbers and validate
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+    
+    // Check if coordinates are valid numbers
+    if (isNaN(lat) || isNaN(lng)) {
+        console.warn('Invalid coordinates provided:', { latitude, longitude });
+        return null;
+    }
+    
+    // Validate coordinate ranges
+    if (lat < -90 || lat > 90) {
+        console.warn('Latitude out of valid range (-90 to 90):', lat);
+        return null;
+    }
+    
+    if (lng < -180 || lng > 180) {
+        console.warn('Longitude out of valid range (-180 to 180):', lng);
+        return null;
+    }
+    
+    // Return GeoJSON Point geometry
+    // Note: GeoJSON format is [longitude, latitude] (x, y order)
+    return {
+        type: "Point",
+        coordinates: [lng, lat]
+    };
+}
+
 
   const transformDataForUpload = (data) => {
     return data.map(record => {

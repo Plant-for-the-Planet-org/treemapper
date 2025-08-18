@@ -63,6 +63,7 @@ import { useRouter } from 'next/navigation';
 import MapDisplayComponent from './component/InterventionDisplayMap';
 import EditSpeciesModal from './component/SpeciesEditModal';
 import OwenrshipTransfer from './component/OwnershipTransferModal';
+import UnifiedMapComponent from '@/component/MapSelect';
 // Mock API functions - replace with your actual API calls
 const mockApiCall = (delay = 1000) => new Promise(resolve => setTimeout(resolve, delay));
 
@@ -404,6 +405,112 @@ const FileUploadDialog = ({ open, onOpenChange, title, accept, onUpload, descrip
           <p className="text-sm text-gray-600">{description}</p>
         )}
 
+        <div className="space-y-4">
+          <div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={accept}
+              onChange={handleFileSelect}
+              className="hidden"
+            />
+            <Button
+              variant="outline"
+              onClick={() => fileInputRef.current?.click()}
+              className="w-full justify-center"
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              Choose File
+            </Button>
+            {file && (
+              <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <FileUp className="h-4 w-4 text-gray-500" />
+                  <span className="text-sm text-gray-700">{file.name}</span>
+                  <span className="text-xs text-gray-500">
+                    ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                  </span>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-3">
+            <Button variant="outline" onClick={handleClose} className="flex-1">
+              Cancel
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleUpload}
+              disabled={!file || isUploading}
+              className="flex-1"
+            >
+              {isUploading ? (
+                <>
+                  <Loader className="h-4 w-4 mr-2 animate-spin" />
+                  Uploading...
+                </>
+              ) : (
+                'Upload'
+              )}
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
+
+const FileUploadMapDialog = ({intervention, open, onOpenChange, title, accept, onUpload, description }) => {
+  const [file, setFile] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
+
+  const handleFileSelect = (e) => {
+    const selectedFile = e.target.files?.[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+    }
+  };
+
+  const handleUpload = async () => {
+    if (!file) return;
+
+    setIsUploading(true);
+    try {
+      await onUpload(file);
+      setFile(null);
+      onOpenChange(false);
+    } catch (error) {
+      console.error('Upload failed:', error);
+      alert('Upload failed. Please try again.');
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleClose = () => {
+    setFile(null);
+    onOpenChange(false);
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogHeader>
+        <div className="flex items-center justify-between">
+          <DialogTitle>{title}</DialogTitle>
+          <Button variant="ghost" size="sm" onClick={handleClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
+      </DialogHeader>
+      <DialogContent className="space-y-4">
+        {description && (
+          <p className="text-sm text-gray-600">{description}</p>
+        )}
+        <div style={{ width: '100%', height: "50vh", backgroundColor: "red" }}>
+          <UnifiedMapComponent updateGeoJSON={()=>{}} uploadedGeoJSON={intervention.originalGeometry} mode={'point'} />
+        </div>
         <div className="space-y-4">
           <div>
             <input
@@ -1211,7 +1318,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
             />
 
             {/* Action Buttons */}
-            {/* <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
               <Button variant="outline" onClick={() => setShowLocationDialog(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
                 Update Location
@@ -1224,7 +1331,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Species
               </Button>
-            </div> */}
+            </div>
           </CardContent>
         )}
       </Card>
@@ -1381,10 +1488,11 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
       />
 
       {/* File Upload Dialogs */}
-      <FileUploadDialog
+      <FileUploadMapDialog
         open={showLocationDialog}
         onOpenChange={setShowLocationDialog}
         title="Update Location"
+        intervention={intervention}
         accept=".geojson,.kml,.json"
         description="Upload a GeoJSON or KML file to update the intervention location."
         onUpload={(file) => handleFileUpload('location', file)}
