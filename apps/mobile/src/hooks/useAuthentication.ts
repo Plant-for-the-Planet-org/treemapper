@@ -7,7 +7,7 @@ import useLogManagement from './realm/useLogManagement'
 
 
 const useAuthentication = () => {
-  const { authorize, getCredentials, clearSession, clearCredentials, user, error } = useAuth0()
+  const { authorize, getCredentials, clearSession, user, error } = useAuth0()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
   const { deleteAllProjects } = useProjectManagement()
   const { deleteAllUserSpecies } = useManageScientificSpecies()
@@ -22,7 +22,7 @@ const useAuthentication = () => {
   const logoutUser = () => {
     return new Promise((resolve, reject) => {
       clearSession()
-        .then(() => clearCredentials())
+        // .then(() => clearCredentials())
         .then(async () => {
           await deleteAllSyncedIntervention()
           await deleteAllProjects()

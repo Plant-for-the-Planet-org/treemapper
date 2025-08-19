@@ -110,8 +110,8 @@ const styles = StyleSheet.create({
   },
   labelContainer: {
     width: '100%',
-    paddingTop: '35%',
-    paddingLeft: '6.5%'
+    paddingTop: '43%',
+    paddingLeft: '6%'
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,

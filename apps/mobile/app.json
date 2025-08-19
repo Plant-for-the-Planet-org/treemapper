@@ -6,6 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
+    "newArchEnabled": false,
     "scheme": "treemapper",
     "splash": {
       "image": "./assets/splash.png",
@@ -61,11 +62,13 @@
       "expo-localization",
       "expo-secure-store",
       "expo-build-properties",
-      "expo-router"
+      "expo-router",
+      "expo-web-browser"
     ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
+      "deploymentTarget": "15.1",
       "associatedDomains": [
         "applinks:dev.treemapper.app",
         "applinks:treemapper.app"
@@ -91,7 +94,9 @@
         "CFBundleURLTypes": [
           {
             "CFBundleURLName": "org.pftp.treemapper",
-            "CFBundleURLSchemes": ["treemapper"]
+            "CFBundleURLSchemes": [
+              "treemapper"
+            ]
           }
         ]
       }
@@ -106,6 +111,8 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ],
+      "minSdkVersion": 24,
+      "compileSdkVersion": 35,
       "package": "org.pftp.treemapper",
       "intentFilters": [
         {
@@ -117,11 +124,14 @@
               "host": "dev.treemapper.app"
             },
             {
-              "scheme": "https", 
+              "scheme": "https",
               "host": "treemapper.app"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },

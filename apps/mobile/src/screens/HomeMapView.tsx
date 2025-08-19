@@ -12,6 +12,7 @@ import CarouselHeader from 'src/components/carousel/CarouselHeader'
 import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 import { StatusBar } from 'expo-status-bar'
 import MapAttribution from 'src/components/common/MapAttribution'
+import { SafeAreaView } from 'react-native-safe-area-context'
 const HomeMapView = () => {
 
   const [showFilterModal, setShowFilterModal] = useState(false)
@@ -35,30 +36,30 @@ const HomeMapView = () => {
 
 
   return (
-    <View style={[styles.container]}>
-      <StatusBar style={mainMapView === 'SATELLITE' ? 'light' : 'dark'} />
-      {showCarousel ? (
-        <CarouselHeader />
-      ) : (
-        <HomeHeader
-          toggleFilterModal={toggleFilterModal}
-          toggleProjectModal={toggleProjectModal}
+      <View style={[styles.container]}>
+        <StatusBar style={mainMapView === 'SATELLITE' ? 'light' : 'dark'} />
+        {showCarousel ? (
+          <CarouselHeader />
+        ) : (
+          <HomeHeader
+            toggleFilterModal={toggleFilterModal}
+            toggleProjectModal={toggleProjectModal}
+          />
+        )}
+        <DisplayMap />
+        <SatelliteIconWrapper />
+        <UserlocationMarker low stopAutoFocus={userType === 'newuser'} />
+        <FilterModal
+          isVisible={showFilterModal}
+          toggleModal={toggleFilterModal}
         />
-      )}
-      <DisplayMap />
-      <SatelliteIconWrapper />
-      <UserlocationMarker low stopAutoFocus={userType === 'newuser'}/>
-      <FilterModal
-        isVisible={showFilterModal}
-        toggleModal={toggleFilterModal}
-      />
-      <ProjectModal
-        isVisible={showProjectModal}
-        toggleModal={toggleProjectModal}
-      />
-      {showCarousel && <CarouselModal />}
-      <MapAttribution/>
-    </View>
+        <ProjectModal
+          isVisible={showProjectModal}
+          toggleModal={toggleProjectModal}
+        />
+        {showCarousel && <CarouselModal />}
+        <MapAttribution />
+      </View>
   )
 }
 

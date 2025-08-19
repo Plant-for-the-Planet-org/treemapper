@@ -51,7 +51,6 @@ const BottomTabIcon = (props: Props) => {
         ]}>
         {label}
       </Text>
-      <View style={styles.bottomBar}></View>
     </View>
   )
 }
@@ -62,22 +61,14 @@ const styles = StyleSheet.create({
   container: {
     alignItems: 'center',
     justifyContent: 'center',
-    height: '100%',
+    height:100,
+    bottom:-30,
     backgroundColor: "white"
-  },
-  iconWrapper: {
-    marginBottom: 5,
-    marginTop: 5
   },
   labelStyle: {
     fontFamily: Typography.FONT_FAMILY_BOLD,
     fontSize: 12,
+    paddingBottom:20,
+    paddingTop:3
   },
-  bottomBar: {
-    position: 'absolute',
-    bottom: -30,
-    height: 30,
-    width: '100%',
-    backgroundColor: 'white'
-  }
 })

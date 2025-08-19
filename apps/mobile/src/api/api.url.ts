@@ -37,32 +37,12 @@ export const postUrlNewApi = {
   createNewProject: `${mobileBaseUrl}/mobile/project`,
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
-
-  // imageUpload: `${baseUrl}/treemapper/interventions`,
-  // remeasurement: `${baseUrl}/treemapper/interventions`,
-  // skipRemeasurement: `${baseUrl}/treemapper/interventions`,
-  // updateSpecies: `${baseUrl}/treemapper/species`,
-  // addUserSpecies: `${baseUrl}/treemapper/species`,
-  // updatePlantLocationData: `${baseUrl}/treemapper/interventions`,
-  // signupService: `${baseUrl}/app/profile`,
-  // updateProjectInF: `${baseUrl}/app/projects`,
-  // createNewSite: `${baseUrl}/app/projects`,
-  // deleteAccount: `${baseUrl}/app/profile`,
 };
 
 export const getUrlMobileApi = {
   getMobileHealth: `${mobileBaseUrl}/mobile/health`,
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
-  // userSpecies: `${baseUrl}/mobile/user/species`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
-
-  // getBaseUrl: `${baseUrl}`,
-  // getBaseTestUrl: `${baseUrl}`,
-  // getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
-  // getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
-  // getSingleLocationDetail: `${baseUrl}/treemapper/plantLocations`,
-  // getAllSpeciesAchieve: `${baseUrl}/treemapper/scientificSpeciesArchive`,
-  // getNecessaryInventoryFromServer: "/treemapper/plantLocations?limit=4&filter=revision-pending&_scope=extended",
 };
 
 
