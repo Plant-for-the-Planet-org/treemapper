@@ -15,6 +15,11 @@ import { useQuery } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { handleFilter } from 'src/utils/constants/CountryDataFilter'
 import * as ExpoImage from 'expo-image';
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
 
 interface ProjectListProps {
   isSelectable?: boolean;
@@ -34,14 +39,25 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
+  console.log("pooppoop",allProjects)
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved
+  )
+  const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const handleProjectCreation = () => {
+    if (v3Approved) {
+      navigation.navigate('CreateProject')
+    } else {
+      openWebView(
+        `https://web.plant-for-the-planet.org/en/profile/projects/new-project`,
+      )
+    }
+  }
+
   const renderFooter = () => {
     return (
       <LargeButton
-        onPress={() =>
-          openWebView(
-            `https://web.plant-for-the-planet.org/en/profile/projects/new-project`,
-          )
-        }
+        onPress={handleProjectCreation}
         style={{ marginTop: 20 }}
         heading={i18next.t('label.add_new_project')}
         subHeading={i18next.t('label.add_new_project_desc')}
@@ -59,12 +75,13 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
           return (
             <TouchableProjectItem
               item={item}
+              v3Approved={v3Approved}
               onProjectPress={() => onProjectPress(item.id)}
               selectedProjectId={selectedProjectId}
             />
           )
         }
-        return <ProjectItem item={item} />
+        return <ProjectItem item={item} v3Approved={v3Approved}/>
       }}
       keyExtractor={(item: any) => item.id}
       style={styles.container}
@@ -74,9 +91,11 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
 
 const ProjectItem = ({
   item,
+  v3Approved,
   selectedProjectId,
 }: {
   item: any
+  v3Approved: boolean
   selectedProjectId?: string
 }) => {
   const isProjectSelected = selectedProjectId === item.id
@@ -84,7 +103,7 @@ const ProjectItem = ({
   if (country) {
     country = country[0].countryName
   }
-  if (item.purpose !== 'trees' && item.purpose !== 'conservation') {
+  if (v3Approved &&item.purpose !== 'trees' && item.purpose !== 'conservation') {
     return null
   }
   return (
@@ -133,10 +152,12 @@ const TouchableProjectItem = ({
   item,
   onProjectPress,
   selectedProjectId,
+  v3Approved
 }: {
   item: any
   onProjectPress: any
   selectedProjectId?: string
+  v3Approved: boolean
 }) => {
   return (
     <TouchableOpacity onPress={onProjectPress}>
@@ -152,10 +173,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.LIGHT_BORDER_COLOR,
     marginTop: 20,
+    overflow:'hidden'
   },
   image: {
-    width: '100%',
-    height: 160,
     borderRadius: 10,
     marginBottom: 10,
   },

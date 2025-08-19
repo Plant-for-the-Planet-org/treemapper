@@ -17,7 +17,8 @@ export interface AppInitialState {
   lastSyncDate: number,
   speciesLocalURL: string
   dataMigrated: boolean
-  updateAppCount: number
+  updateAppCount: number,
+  refetchProject: string,
   imageSize: number
 }
 

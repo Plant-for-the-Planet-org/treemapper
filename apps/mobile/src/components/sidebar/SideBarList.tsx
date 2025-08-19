@@ -23,6 +23,9 @@ const SideBarList = (props: Props) => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved
+  )
   const data: SideDrawerItem[] = [
     {
       label: i18next.t('label.manage_species'),
@@ -35,7 +38,7 @@ const SideBarList = (props: Props) => {
       label: i18next.t('label.manage_project'),
       screen: 'ManageProjects',
       icon: <ManageProjectIcon width={SCALE_24} height={SCALE_24} />,
-      visible: UserType === 'newuser',
+      visible: v3Approved,
       key: 'manage_projects'
     },
     {
@@ -71,7 +74,7 @@ const SideBarList = (props: Props) => {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
-      visible: isLoggedIn && UserType!=='newuser',
+      visible: isLoggedIn && UserType !== 'newuser',
       key: 'delete'
     },
     {

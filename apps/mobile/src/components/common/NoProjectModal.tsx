@@ -29,6 +29,9 @@ const NoProjectModal = ({
   const { currentProject, projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
+  const refetchProject = useSelector(
+    (state: RootState) => state.appState.refetchProject,
+  )
   const dispatch = useDispatch()
   const [shouldDisplayModal, setShouldDisplayModal] = useState(false)
   const { addAllProjects } = useProjectManagement()
@@ -36,10 +39,10 @@ const NoProjectModal = ({
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   useEffect(() => {
-    if (userType !== '') {
+  if (v3Approved) {
       handleProjects()
     }
-  }, [v3Approved, userType])
+  }, [v3Approved, userType, refetchProject])
 
 
   const handleProjects = async () => {
@@ -55,9 +58,11 @@ const NoProjectModal = ({
             name: response.data[0].properties.name,
             id: response.data[0].properties.uid
           }))
-        }
-        if (v3Approved) {
-          setShouldDisplayModal(true)
+        } else {
+          if (v3Approved) {
+            //CLEARPROJECT98899
+            setShouldDisplayModal(true)
+          }
         }
         dispatch(updateProjectState(true))
         addNewLog({

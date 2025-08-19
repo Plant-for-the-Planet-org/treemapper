@@ -203,7 +203,7 @@ const HomeHeader = (props: Props) => {
         <SyncIntervention isLoggedIn={isLoggedIn} />
       </View> */}
       <View style={styles.sectionWrapper} />
-      {userType && userType == 'newuser' ? (
+      {v3Approved ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}

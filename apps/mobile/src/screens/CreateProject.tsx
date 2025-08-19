@@ -17,15 +17,16 @@ import { createMobileProject } from 'src/api/api.fetch';
 import useProjectManagement from 'src/hooks/realm/useProjectManagement';
 import { updateProjectState } from 'src/store/slice/projectStateSlice';
 import { useDispatch } from 'react-redux';
+import { useToast } from 'react-native-toast-notifications';
 import { useNavigation } from '@react-navigation/native';
+import { updateRefetchProject } from 'src/store/slice/appStateSlice';
 
 const CreateProjectScreen = () => {
-    // Form state
     const [workspace, setWorkspace] = useState('');
     const [projectName, setProjectName] = useState('');
     const [projectType, setProjectType] = useState('');
     const [target, setTarget] = useState('');
-
+    const toast = useToast()
     const dispatch = useDispatch()
     const onBack = () => {
         navigation.goBack()
@@ -104,42 +105,39 @@ const CreateProjectScreen = () => {
         setIsLoading(true);
 
         try {
-            const projectData = {
+            let projectData: any = {
                 workspaceType: workspace,
                 name: projectName.trim(),
                 projectType,
-                target: target ? Number(target) : null,
             };
+
+            if (target.length > 0 && Number(target)) {
+                projectData["target"] = Number(target)
+            }
 
 
             // API call placeholder
             console.log('Creating project with data:', projectData);
 
             // Simulate API call
-            const response = await createMobileProject(projectData)
-            if (response.success) {
+            const { response } = await createMobileProject(projectData)
+            console.log("SDC",response)
+            if (response.code=='success') {
                 dispatch(updateProjectState(true))
+                setWorkspace('');
+                setProjectName('');
+                setProjectType('');
+                setTarget('');
+                setErrors({});
+                toast.show("Projet created successfully.")
+                dispatch(updateRefetchProject())
                 navigation.goBack()
+            } else {
+                toast.show("There was error creating project. If the issue persist please contact help support.")
             }
-            // Call the parent callback
-            if (onCreateProject) {
-                await onCreateProject(projectData);
-            }
-
-            // Reset form after successful creation
-            setWorkspace('');
-            setProjectName('');
-            setProjectType('');
-            setTarget('');
-            setErrors({});
 
         } catch (error) {
-            console.error('Failed to create project:', error);
-            Alert.alert(
-                'Error',
-                'Failed to create project. Please try again.',
-                [{ text: 'OK' }]
-            );
+            toast.show("There was error creating project. If the issue persist please contact help support.")
         } finally {
             setIsLoading(false);
         }

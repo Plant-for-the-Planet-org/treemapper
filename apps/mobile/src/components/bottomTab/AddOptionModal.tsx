@@ -49,6 +49,7 @@ const AddOptionModal = (props: Props) => {
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
   const userType = useSelector((state: RootState) => state.userState.type)
   const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   const dispatch = useDispatch()
   const opacity = useDerivedValue(() => {
@@ -65,12 +66,10 @@ const AddOptionModal = (props: Props) => {
 
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
-  useEffect(() => {
-    checkWhetherProjectIsSelected()
-  }, [props.visible])
+
 
   const checkWhetherProjectIsSelected = () => {
-    if (currentProject.projectId === '' && props.visible) {
+    if (currentProject.projectId === '' && props.visible && v3Approved) {
       toggleModal()
       return false
     }
@@ -78,11 +77,11 @@ const AddOptionModal = (props: Props) => {
   }
 
   const provideLocation = () => {
-      if (GPSLocation[0] === 0) {
-        userCurrentLocation().catch((error) => { // Use .catch() to handle errors
-          console.log("Error:", error); 
-        });
-      }
+    if (GPSLocation[0] === 0) {
+      userCurrentLocation().catch((error) => { // Use .catch() to handle errors
+        console.log("Error:", error);
+      });
+    }
   };
 
   const addOptions = [
@@ -187,33 +186,34 @@ const AddOptionModal = (props: Props) => {
     })
   }, [addOptions])
   const ProjectName = currentProject.projectName || ''
-  return (
-    <Animated.View
-      style={[
-        styles.container,
-        animatedStyles,
-      ]}>
-      <Animated.View style={{ zIndex: 10 }}><>
-        <View style={[styles.projectContainer, { paddingVertical: ProjectName ? 3 : 8 }]}>
-          {!!ProjectName && <Pressable style={styles.projectWrapper} onPress={toggleModal}>
-            <View style={styles.eyeIconWrapper}>
-              <EyeIcon />
-            </View>
-            <View style={styles.projectSection}>
-              <Text style={styles.projectLabel}>
-                {i18next.t('label.project')}
-              </Text>
-              <Text style={styles.projectName}>{ProjectName}</Text>
-            </View>
-            <View style={styles.projectDown}>
-              <View style={styles.divider} />
-              <DropDownIcon />
-            </View>
-          </Pressable>
-          }</View>
-        {calcComponents}</></Animated.View>
-    </Animated.View>
-  )
+
+    return (
+      <Animated.View
+        style={[
+          styles.container,
+          animatedStyles,
+        ]}>
+        <Animated.View style={{ zIndex: 10 }}><>
+          <View style={[styles.projectContainer, { paddingVertical: ProjectName ? 3 : 8 }]}>
+            {!!ProjectName && <Pressable style={styles.projectWrapper} onPress={toggleModal}>
+              <View style={styles.eyeIconWrapper}>
+                <EyeIcon />
+              </View>
+              <View style={styles.projectSection}>
+                <Text style={styles.projectLabel}>
+                  {i18next.t('label.project')}
+                </Text>
+                <Text style={styles.projectName}>{ProjectName}</Text>
+              </View>
+              <View style={styles.projectDown}>
+                <View style={styles.divider} />
+                <DropDownIcon />
+              </View>
+            </Pressable>
+            }</View>
+          {calcComponents}</></Animated.View>
+      </Animated.View>
+    )
 }
 
 export default AddOptionModal
