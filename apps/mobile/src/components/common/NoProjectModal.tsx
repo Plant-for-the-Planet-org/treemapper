@@ -21,30 +21,31 @@ import { RootStackParamList } from 'src/types/type/navigation.type';
 const { width } = Dimensions.get('window');
 
 const NoProjectModal = ({
-  userType,
-  expiringAt
+  v3Approved,
+  userType
 }) => {
+
   const [loading, setLoading] = useState(false)
   const { currentProject, projectAdded } = useSelector(
     (state: RootState) => state.projectState,
   )
   const dispatch = useDispatch()
-  const [shouldDisplayModal, setShouldDisplayModal] = useState(true)
+  const [shouldDisplayModal, setShouldDisplayModal] = useState(false)
   const { addAllProjects } = useProjectManagement()
   const { addNewLog } = useLogManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   useEffect(() => {
-    // if (userType === 'tpo' && !projectAdded) {
-    //   handleProjects()
-    // }
-    if (userType == 'newuser') {
+    if (userType !== '') {
       handleProjects()
     }
-  }, [userType, projectAdded, expiringAt])
+  }, [v3Approved, userType])
 
 
   const handleProjects = async () => {
+    if (!v3Approved && userType !== 'tpo') {
+      return
+    }
     const { response } = await getAllMobileProjects()
     if (response && response.data) {
       const result = await addAllProjects(response.data)
@@ -54,6 +55,9 @@ const NoProjectModal = ({
             name: response.data[0].properties.name,
             id: response.data[0].properties.uid
           }))
+        }
+        if (v3Approved) {
+          setShouldDisplayModal(true)
         }
         dispatch(updateProjectState(true))
         addNewLog({

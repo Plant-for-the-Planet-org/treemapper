@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import DisplayMap from 'src/components/map/DisplayMap'
 import HomeHeader from 'src/components/home/HomeHeader'
 import FilterModal from 'src/components/home/FilterModal'
@@ -13,6 +13,7 @@ import SatelliteIconWrapper from 'src/components/map/SatelliteIconWrapper'
 import { StatusBar } from 'expo-status-bar'
 import MapAttribution from 'src/components/common/MapAttribution'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { getMobileHealth } from 'src/api/api.fetch'
 const HomeMapView = () => {
 
   const [showFilterModal, setShowFilterModal] = useState(false)
@@ -24,6 +25,15 @@ const HomeMapView = () => {
     (state: RootState) => state.userState.type,
   )
 
+  useEffect(() => {
+    healthCheck()
+  }, [])
+
+
+  const healthCheck = async () => {
+    const response = await getMobileHealth()
+    console.log("This is Mobile Health response", response)
+  }
 
 
   const toggleFilterModal = () => {
@@ -36,30 +46,30 @@ const HomeMapView = () => {
 
 
   return (
-      <View style={[styles.container]}>
-        <StatusBar style={mainMapView === 'SATELLITE' ? 'light' : 'dark'} />
-        {showCarousel ? (
-          <CarouselHeader />
-        ) : (
-          <HomeHeader
-            toggleFilterModal={toggleFilterModal}
-            toggleProjectModal={toggleProjectModal}
-          />
-        )}
-        <DisplayMap />
-        <SatelliteIconWrapper />
-        <UserlocationMarker low stopAutoFocus={userType === 'newuser'} />
-        <FilterModal
-          isVisible={showFilterModal}
-          toggleModal={toggleFilterModal}
+    <View style={[styles.container]}>
+      <StatusBar style={mainMapView === 'SATELLITE' ? 'light' : 'dark'} />
+      {showCarousel ? (
+        <CarouselHeader />
+      ) : (
+        <HomeHeader
+          toggleFilterModal={toggleFilterModal}
+          toggleProjectModal={toggleProjectModal}
         />
-        <ProjectModal
-          isVisible={showProjectModal}
-          toggleModal={toggleProjectModal}
-        />
-        {showCarousel && <CarouselModal />}
-        <MapAttribution />
-      </View>
+      )}
+      <DisplayMap />
+      <SatelliteIconWrapper />
+      <UserlocationMarker low stopAutoFocus={userType === 'newuser'} />
+      <FilterModal
+        isVisible={showFilterModal}
+        toggleModal={toggleFilterModal}
+      />
+      <ProjectModal
+        isVisible={showProjectModal}
+        toggleModal={toggleProjectModal}
+      />
+      {showCarousel && <CarouselModal />}
+      <MapAttribution />
+    </View>
   )
 }
 

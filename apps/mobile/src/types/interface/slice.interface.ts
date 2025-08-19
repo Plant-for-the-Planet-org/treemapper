@@ -327,7 +327,7 @@ export interface UserInterface {
   name: null | string
   slug: string
   type: string
-  limitedFeature: boolean
+  v3Approved: boolean
 }
 
 export interface InterventionLocation {

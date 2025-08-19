@@ -18,7 +18,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'i18next'
-import { getMobileHealth, getMobileUserDetails } from '../../api/api.fetch'
+import { getMobileUserDetails } from '../../api/api.fetch'
 import EmailVerificationModal from '../common/EmailVerifcationModal'
 
 const LoginButton = () => {
@@ -47,7 +47,6 @@ const LoginButton = () => {
   }
 
   useEffect(() => {
-    healthCheck()
     if (error) {
       if (error.code === "unauthorized" || error.code === 'access_denied') {
         setTimeout(() => {
@@ -62,10 +61,7 @@ const LoginButton = () => {
     }
   }, [error])
 
-  const healthCheck = async () => {
-    const response = await getMobileHealth()
-    console.log("This is Mobile Health response", response)
-  }
+
 
   useEffect(() => {
     if (user && buttonMounted) {
@@ -92,25 +88,24 @@ const LoginButton = () => {
       handleLogout()
       return
     }
-
     const handleUpdateUserDetails = async (serverData, auth0Data) => {
       if (serverData && !serverData.image && auth0Data) {
         updateApiUserDetails({
           image: auth0Data.picture || '',
           firstName: auth0Data.givenName || '',
           lastName: auth0Data.familyName || '',
-          name: auth0Data.name || ''
+          name: auth0Data.name || '',
         })
       }
 
     }
-
     const { response } = await getMobileUserDetails()
     if (response && response.data) {
-      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
+      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || ''})
       handleUpdateUserDetails(response.data, user)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
+      toast.show("Something went wrong. If this continue please contact help and share the logs.")
       addNewLog({
         logType: 'USER',
         message: "User details api failed to fetch data",
@@ -120,30 +115,6 @@ const LoginButton = () => {
       handleLogout()
       dispatch(updateWebAuthLoading(false))
     }
-
-
-
-    // const { response, success } = await getUserDetails()
-    // if (success && response.signUpRequire) {
-    //   navigation.navigate('SignUpPage', {
-    //     email: user?.email,
-    //     accessToken: credentials.accessToken
-    //   })
-    //   return
-    // }
-    // if (success && response) {
-    //   loginAndUpdateDetails(response)
-    // } else {
-    //   Bugsnag.notify("/app/profile failed to fetch user details")
-    //   addNewLog({
-    //     logType: 'USER',
-    //     message: "User details api failed to fetch data",
-    //     logLevel: 'error',
-    //     statusCode: '',
-    //   })
-    //   handleLogout()
-    //   dispatch(updateWebAuthLoading(false))
-    // }
   }
 
 

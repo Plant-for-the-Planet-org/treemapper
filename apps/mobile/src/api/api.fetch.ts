@@ -7,7 +7,7 @@ import sampleTreeBase64 from '../../assets/images/base64/sampleTree';
 
 export const getMobileHealth = async () => {
   const uri = `${getUrlMobileApi.getMobileHealth}`;
-  const result = await fetchGetCall(uri, true);
+  const result = await fetchGetCall(uri, false);
   return result;
 };
 

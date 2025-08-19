@@ -38,7 +38,9 @@ const HomeHeader = (props: Props) => {
   const { toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const userType = useSelector((state: RootState) => state.userState.type)
+
   const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
@@ -56,33 +58,26 @@ const HomeHeader = (props: Props) => {
 
 
   useEffect(() => {
-    if (!userSpecies && isLoggedIn) {
-      setTimeout(() => {
-        syncUserSpecies()
-      }, 3000);
+    if (isLoggedIn) {
+      syncUserDetails()
+    }
+    const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
+    if (expiringAt && isExpired) {
+      refreshUser()  //REFRESH672
     }
   }, [isLoggedIn, expiringAt])
 
-  const syncUserSpecies = async () => {
+  const syncUserDetails = async () => {
     try {
       const { response } = await getMobileUserDetails()
-    if (response && response.data) {
-        dispatch(updateUserDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '', type: 'newuser' }))
+      if (response && response.data) {
+        dispatch(updateUserDetails({ ...response.data, image: response.data.image }))
         console.log("User details updated")
       }
     } catch (error) {
       console.log("error", error)
     }
   }
-
-  useEffect(() => {
-    const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
-    if (expiringAt && isExpired) {
-      refreshUser()
-    }
-  }, [expiringAt])
-
-
 
   const handleLogout = async () => {
     try {
@@ -96,8 +91,6 @@ const HomeHeader = (props: Props) => {
       console.log("Error occurred while logout")
     }
   }
-
-
 
   const refreshUser = async () => {
     const isConnected = await checkInternetConnectivity();
@@ -142,12 +135,12 @@ const HomeHeader = (props: Props) => {
   useEffect(() => {
     if (userType && !serverInterventionAdded && !isSyncing) {
       // addServerIntervention()
-      //TODO now
+      //TODO now // Server823
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
   //Remove this Intervention from Staging DB.
-  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
+  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"] //Server823
 
   const checkInternetConnectivity = async () => {
     const netInfo = await NetInfo.fetch();
@@ -204,11 +197,11 @@ const HomeHeader = (props: Props) => {
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
-      <NoProjectModal userType={userType} expiringAt={expiringAt} />
-      <View style={{alignItems:'flex-start', gap:5}}>
+      <NoProjectModal userType={userType} v3Approved={v3Approved} />
+      {/* <View style={{alignItems:'flex-start', gap:5}}>
         <SpeciesSync />
         <SyncIntervention isLoggedIn={isLoggedIn} />
-      </View>
+      </View> */}
       <View style={styles.sectionWrapper} />
       {userType && userType == 'newuser' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>

@@ -40,7 +40,7 @@ export const postUrlNewApi = {
 };
 
 export const getUrlMobileApi = {
-  getMobileHealth: `${mobileBaseUrl}/mobile/health`,
+  getMobileHealth: `${mobileBaseUrl}/health`,
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
 };

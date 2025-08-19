@@ -15,7 +15,7 @@ export const initialUserState: UserInterface = {
   name: '',
   slug: '',
   type: '',
-  limitedFeature: true
+  v3Approved: false
 }
 
 const userStateSlice = createSlice({
@@ -33,7 +33,7 @@ const userStateSlice = createSlice({
       state.lastName = action.payload.lastName
     },
     updateLimitedFeature(state, action: PayloadAction<boolean>) {
-      state.limitedFeature; action.payload
+      state.v3Approved; action.payload
     },
   },
 })
