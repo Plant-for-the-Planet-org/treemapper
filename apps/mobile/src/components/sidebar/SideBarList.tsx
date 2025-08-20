@@ -12,6 +12,8 @@ import BinIcon from 'assets/images/svg/BinIcon.svg'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import i18next from 'src/locales'
+import { Ionicons } from '@expo/vector-icons';
+
 import { SCALE_24 } from 'src/utils/constants/spacing'
 
 interface Props {
@@ -66,7 +68,7 @@ const SideBarList = (props: Props) => {
     {
       label: 'New Features',
       screen: 'TreeMapperFeaturesScreen',
-      icon: <DataExplorerIcon width={SCALE_24} height={SCALE_24} />,
+      icon: <Ionicons name={'leaf'} size={24} color="#007A49" />,
       visible: !v3Approved,
       key: 'features'
     },

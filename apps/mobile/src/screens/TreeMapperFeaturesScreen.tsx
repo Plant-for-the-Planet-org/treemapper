@@ -347,7 +347,7 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
           </AccordionSection>
 
           {/* Request Access Button */}
-         <View style={{flex:1, justifyContent:"flex-end",alignItems:'center', width:'100%'}}>
+         <View style={{flex:1, justifyContent:"flex-end",alignItems:'center', width:'100%', paddingBottom:50}}>
            <View style={styles.requestSection}>
             <TouchableOpacity
               style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
