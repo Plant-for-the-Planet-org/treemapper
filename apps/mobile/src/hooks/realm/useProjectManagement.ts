@@ -30,7 +30,6 @@ const useProjectManagement = () => {
           }
 
           for (const site of properties.sites) {
-            console.log("dc",site)
             sites.push({
               ...site,
               geometry: JSON.stringify(site.geometry),

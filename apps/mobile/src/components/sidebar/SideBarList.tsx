@@ -60,8 +60,15 @@ const SideBarList = (props: Props) => {
       label: i18next.t('label.data_explorer'),
       screen: 'DataExplorer',
       icon: <DataExplorerIcon width={SCALE_24} height={SCALE_24} />,
-      visible: true,
+      visible: v3Approved,
       key: 'data_explorer'
+    },
+    {
+      label: 'New Features',
+      screen: 'TreeMapperFeaturesScreen',
+      icon: <DataExplorerIcon width={SCALE_24} height={SCALE_24} />,
+      visible: !v3Approved,
+      key: 'features'
     },
     {
       label: i18next.t('label.activity_logs'),

@@ -69,7 +69,8 @@ const AddOptionModal = (props: Props) => {
 
 
   const checkWhetherProjectIsSelected = () => {
-    if (currentProject.projectId === '' && props.visible && v3Approved) {
+    const showProjectModal = v3Approved || userType==='tpo'
+    if (currentProject.projectId === '' && props.visible && showProjectModal) {
       toggleModal()
       return false
     }

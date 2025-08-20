@@ -19,7 +19,8 @@ export interface AppInitialState {
   dataMigrated: boolean
   updateAppCount: number,
   refetchProject: string,
-  imageSize: number
+  imageSize: number,
+  showNewAppModal: boolean
 }
 
 export interface SyncSlice {

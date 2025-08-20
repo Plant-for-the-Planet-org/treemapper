@@ -11,12 +11,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import useProjectManagement from 'src/hooks/realm/useProjectManagement';
-import { getAllMobileProjects } from 'src/api/api.fetch';
+import { getAllMobileProjects, getUserProjects } from 'src/api/api.fetch';
 import { updateProjectState, updateProjectError, updateCurrentProject } from 'src/store/slice/projectStateSlice';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
 import { useNavigation } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import { RootStackParamList } from 'src/types/type/navigation.type';
+import openWebView from 'src/utils/helpers/appHelper/openWebView';
 
 const { width } = Dimensions.get('window');
 
@@ -39,30 +40,26 @@ const NoProjectModal = ({
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   useEffect(() => {
-  if (v3Approved) {
+    if (v3Approved || userType === 'tpo') {
       handleProjects()
     }
   }, [v3Approved, userType, refetchProject])
 
 
   const handleProjects = async () => {
-    if (!v3Approved && userType !== 'tpo') {
-      return
-    }
-    const { response } = await getAllMobileProjects()
-    if (response && response.data) {
-      const result = await addAllProjects(response.data)
+    const { responseData, responseError } = await getUserProjects(v3Approved)
+    if (!responseError) {
+      if (responseData.length === 0) {
+        setShouldDisplayModal(true)
+        return;
+      }
+      const result = await addAllProjects(responseData)
       if (result) {
-        if (response.data.length > 0) {
+        if (responseData.length > 0) {
           dispatch(updateCurrentProject({
-            name: response.data[0].properties.name,
-            id: response.data[0].properties.uid
+            name: responseData[0].properties.name,
+            id: responseData[0].properties.uid
           }))
-        } else {
-          if (v3Approved) {
-            //CLEARPROJECT98899
-            setShouldDisplayModal(true)
-          }
         }
         dispatch(updateProjectState(true))
         addNewLog({
@@ -94,7 +91,13 @@ const NoProjectModal = ({
 
   const onCreateProject = () => {
     setShouldDisplayModal(false)
-    navigation.navigate('CreateProject')
+    if (v3Approved) {
+      navigation.navigate('CreateProject')
+    } else {
+      openWebView(
+        `https://web.plant-for-the-planet.org/en/profile/projects/new-project`,
+      )
+    }
   }
   return (
     <Modal

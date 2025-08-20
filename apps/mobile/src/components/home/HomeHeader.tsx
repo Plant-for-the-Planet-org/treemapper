@@ -26,6 +26,7 @@ import NetInfo from "@react-native-community/netinfo";
 import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import NoProjectModal from '../common/NoProjectModal'
+import NewAppModal from '../common/NewAppModal'
 
 interface Props {
   toggleFilterModal: () => void
@@ -44,7 +45,6 @@ const HomeHeader = (props: Props) => {
   const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
-
 
   const { isSyncing } = useSelector(
     (state: RootState) => state.syncState,
@@ -203,7 +203,7 @@ const HomeHeader = (props: Props) => {
         <SyncIntervention isLoggedIn={isLoggedIn} />
       </View> */}
       <View style={styles.sectionWrapper} />
-      {v3Approved ? (
+      {v3Approved || userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
           <HomeMapIcon
             onPress={toggleProjectModal}
@@ -217,6 +217,8 @@ const HomeHeader = (props: Props) => {
           width={SCALE_24} height={SCALE_24}
         />
       </Pressable>
+      <NewAppModal />
+
     </View>
   )
 }

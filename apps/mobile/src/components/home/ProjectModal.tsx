@@ -32,184 +32,142 @@ interface Props {
   toggleModal: () => void
 }
 
+interface DropdownItem {
+  label: string
+  value: string
+  index: number
+}
+
 const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { isVisible, toggleModal } = props
-  const [projectData, setProjectData] = useState<any>([])
-  const [projectSites, setProjectSites] = useState<any>([])
-
-  const [selectedProject, setSelectedProject] = useState<{
-    label: string
-    value: string
-    index: number
-  }>({
+  const [projects, setProjects] = useState<ProjectInterface[]>([])
+  const [selectedProject, setSelectedProject] = useState<DropdownItem>({
     label: '',
     value: '',
     index: 0,
   })
+  
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-
   const realm = useRealm()
+  const dispatch = useDispatch()
 
   const { currentProject, projectSite } = useSelector(
     (state: RootState) => state.projectState,
   )
-
   const { toggleProjectModal, lastProjectAdded } = useSelector(
     (state: RootState) => state.displayMapState,
   )
 
-  const dispatch = useDispatch()
+  // Memoized dropdown data
+  const projectDropdownData = useMemo(() => {
+    return projects.map((project, index) => ({
+      label: project.name,
+      value: project.id,
+      index
+    }))
+  }, [projects])
 
-  const projectDataDropDown = (data: any) => {
-    const ProjectData = data.map((el, i) => {
-      return {
-        label: el.name,
-        value: el.id,
-        index: i,
-      }
-    })
-    if (ProjectData.length > 0) {
-      setProjectData(() => ([...ProjectData]))
-      if (currentProject.projectId !== '') {
-        const indexOf = ProjectData.findIndex(obj => obj.value === currentProject.projectId);
-        if (indexOf >= 0) {
-          setSelectedProject(ProjectData[indexOf])
-          setProjectSites(data[indexOf].sites)
-        }
-      }
-    } else {
-      setProjectData([])
-      setProjectSites([])
+  // Current project sites
+  const currentProjectSites = useMemo(() => {
+    if (selectedProject.index >= 0 && projects[selectedProject.index]) {
+      return projects[selectedProject.index].sites || []
     }
-  }
+    return []
+  }, [selectedProject.index, projects])
 
-  const createNewProject = () => {
-    closeModal()
-    setTimeout(() => {
-      // Replace 'CreateProject' with your actual route name for creating projects
-      navigation.navigate('CreateProject' as any)
-    }, 300);
-  }
-
-  const createNewSite = () => {
-    closeModal()
-    setTimeout(() => {
-      navigation.navigate('ProjectSites')
-    }, 300);
-  }
-
-  const handelSiteSelection = (id: string, item: any) => {
-    dispatch(
-      updateProjectSite({
-        name: item.name,
-        id,
-      }),
-    )
-    closeModal()
-    if (!toggleProjectModal) {
-      const geometry = JSON.parse(item?.geometry)
-      const bounds = bbox(geometry)
-      dispatch(
-        updateMapBounds({
-          bounds: bounds,
-          key: 'DISPLAY_MAP',
-        }),
-      )
-    }
-  }
-
-  const handleProjectSelection = (data: {
-    label: string
-    value: string
-    index: number
-  }) => {
-    setSelectedProject(data)
-    dispatch(
-      updateCurrentProject({
-        name: data.label,
-        id: data.value,
-      }),
-    )
-    dispatch(
-      updateProjectSite({
-        name: '',
-        id: '',
-      }),
-    )
-    const allProjects = realm.objects(RealmSchema.Projects)
-    setProjectSites(allProjects[data.index].sites)
-  }
-
-  // Updated modal presentation with useCallback for better performance
-  const handlePresentModal = useCallback(() => {
-    if (bottomSheetModalRef.current) {
-      bottomSheetModalRef.current.present();
-    }
-  }, []);
-
-  const closeModal = useCallback(() => {
-    if (bottomSheetModalRef.current) {
-      bottomSheetModalRef.current.dismiss();
-    }
-    toggleModal()
-    dispatch(updateProjectModal(false))
-  }, [toggleModal, dispatch]);
-
-  useEffect(() => {
-    if (isVisible || toggleProjectModal || lastProjectAdded) {
-      const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
-      if (allProjects && allProjects.length > 0) {
-        projectDataDropDown(JSON.parse(JSON.stringify(allProjects)))
-      } else {
-        projectDataDropDown([])
-      }
-      // Add a small delay to ensure proper initialization
-      setTimeout(() => {
-        handlePresentModal()
-      }, 100);
-      dispatch(updateLastProject(0))
-    }
-  }, [isVisible, toggleProjectModal, lastProjectAdded, handlePresentModal])
-
-  useEffect(() => {
-    setTimeout(() => {
-      if (!currentProject.projectId) {
-        return
-      }
-      const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(
-        RealmSchema.Projects,
-        currentProject.projectId,
-      )
-      if (!ProjectData?.geometry) {
-        return
-      }
-      try {
-        if (!projectSite.siteId || projectSite.siteId === 'other') {
-          const { geoJSON } = makeInterventionGeoJson('Point', JSON.parse(ProjectData.geometry).coordinates[0], 'sd')
-          const bounds = bbox(geoJSON)
-          dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
-          return
-        }
-      } catch (error) {
-        console.log("Error", error)
-      }
-      const currentSiteData = ProjectData.sites.filter(
-        el => el.id === projectSite.siteId,
-      )
-      try {
-        const parsedGeometry = JSON.parse(currentSiteData[0].geometry)
-        const newCoords = getRandomPointInPolygon(parsedGeometry.coordinates[0])
-        const { geoJSON } = makeInterventionGeoJson('Point', [newCoords], 'sd')
+  // Centralized map bounds update function
+  const updateMapBoundsForGeometry = useCallback((geometry: string, coordinates?: number[]) => {
+    try {
+      if (coordinates) {
+        const { geoJSON } = makeInterventionGeoJson('Point', coordinates, 'sd')
         const bounds = bbox(geoJSON)
-        dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
-      } catch (error) {
-        console.log("Error", error)
+        dispatch(updateMapBounds({ bounds, key: 'DISPLAY_MAP' }))
+      } else {
+        const parsedGeometry = JSON.parse(geometry)
+        const bounds = bbox(parsedGeometry)
+        dispatch(updateMapBounds({ bounds, key: 'DISPLAY_MAP' }))
       }
-    }, 500);
+    } catch (error) {
+      console.log("Error updating map bounds:", error)
+    }
+  }, [dispatch])
+
+  // Load projects from Realm
+  const loadProjects = useCallback(() => {
+    const allProjects = realm.objects(RealmSchema.Projects).filtered('purpose != "funds"')
+    const projectsArray = JSON.parse(JSON.stringify(allProjects)) as ProjectInterface[]
+    setProjects(projectsArray)
+
+    // Set current project if it exists
+    if (currentProject.projectId && projectsArray.length > 0) {
+      const currentProjectIndex = projectsArray.findIndex(
+        project => project.id === currentProject.projectId
+      )
+      if (currentProjectIndex >= 0) {
+        setSelectedProject({
+          label: projectsArray[currentProjectIndex].name,
+          value: projectsArray[currentProjectIndex].id,
+          index: currentProjectIndex
+        })
+      }
+    }
+  }, [realm, currentProject.projectId])
+
+  // Modal handlers
+  const handlePresentModal = useCallback(() => {
+    bottomSheetModalRef.current?.present()
   }, [])
 
-  // Updated backdrop component
+  const closeModal = useCallback(() => {
+    bottomSheetModalRef.current?.dismiss()
+    toggleModal()
+    dispatch(updateProjectModal(false))
+  }, [toggleModal, dispatch])
+
+  // Navigation handlers
+  const createNewProject = useCallback(() => {
+    closeModal()
+    navigation.navigate('CreateProject' as any)
+  }, [closeModal, navigation])
+
+  const createNewSite = useCallback(() => {
+    closeModal()
+    navigation.navigate('ProjectSites')
+  }, [closeModal, navigation])
+
+  // Project selection handler
+  const handleProjectSelection = useCallback((selectedData: DropdownItem) => {
+    setSelectedProject(selectedData)
+    
+    dispatch(updateCurrentProject({
+      name: selectedData.label,
+      id: selectedData.value,
+    }))
+    
+    // Clear site selection when project changes
+    dispatch(updateProjectSite({
+      name: '',
+      id: '',
+    }))
+  }, [dispatch])
+
+  // Site selection handler
+  const handleSiteSelection = useCallback((siteId: string, site: any) => {
+    dispatch(updateProjectSite({
+      name: site.name,
+      id: siteId,
+    }))
+    
+    closeModal()
+    
+    // Update map bounds if not in project modal mode
+    if (!toggleProjectModal && site.geometry) {
+      updateMapBoundsForGeometry(site.geometry)
+    }
+  }, [closeModal, toggleProjectModal, updateMapBoundsForGeometry, dispatch])
+
+  // Backdrop component
   const backdropComponent = useCallback(
     ({ style }: BottomSheetBackdropProps) => (
       <Pressable
@@ -218,42 +176,103 @@ const ProjectModal = (props: Props) => {
       />
     ),
     [closeModal]
-  );
+  )
+
+  // Effect to handle modal visibility
+  useEffect(() => {
+    if (isVisible || toggleProjectModal || lastProjectAdded) {
+      loadProjects()
+      handlePresentModal()
+      if (lastProjectAdded) {
+        dispatch(updateLastProject(0))
+      }
+    }
+  }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, handlePresentModal, dispatch])
+
+  // Effect to handle initial map bounds update
+  useEffect(() => {
+    if (!currentProject.projectId) return
+
+    const currentProjectData = realm.objectForPrimaryKey<ProjectInterface>(
+      RealmSchema.Projects,
+      currentProject.projectId,
+    )
+
+    if (!currentProjectData?.geometry) return
+
+    try {
+      const parsedGeometry = JSON.parse(currentProjectData.geometry)
+      
+      if (!projectSite.siteId || projectSite.siteId === 'other') {
+        // Use project geometry
+        updateMapBoundsForGeometry('', parsedGeometry.coordinates[0])
+      } else {
+        // Use site geometry
+        const currentSiteData = currentProjectData.sites?.find(
+          site => site.id === projectSite.siteId
+        )
+        
+        if (currentSiteData?.geometry) {
+          const siteGeometry = JSON.parse(currentSiteData.geometry)
+          const randomPoint = getRandomPointInPolygon(siteGeometry.coordinates[0])
+          updateMapBoundsForGeometry('', [randomPoint])
+        }
+      }
+    } catch (error) {
+      console.log("Error processing project geometry:", error)
+    }
+  }, [currentProject.projectId, projectSite.siteId, realm, updateMapBoundsForGeometry])
 
   // Empty project list component
-  const emptyProjectListRender = () => {
-    return (
-      <View style={styles.emptyStateContainer}>
-        <Text style={styles.emptyStateTitle}>
-          {'No Projects Found'}
+  const emptyProjectListRender = () => (
+    <View style={styles.emptyStateContainer}>
+      <Text style={styles.emptyStateTitle}>
+        {'No Projects Found'}
+      </Text>
+      <Text style={styles.emptyStateMessage}>
+        'You haven't created any projects yet. Create your first project to get started.
+      </Text>
+      <TouchableOpacity style={styles.createButton} onPress={createNewProject}>
+        <AddIcon height={16} width={16} fill={Colors.WHITE} />
+        <Text style={styles.createButtonText}>
+          {'Create New Project'}
         </Text>
-        <Text style={styles.emptyStateMessage}>
-          'You haven\'t created any projects yet. Create your first project to get started.
-        </Text>
-        <TouchableOpacity style={styles.createButton} onPress={createNewProject}>
-          <AddIcon height={16} width={16} fill={Colors.WHITE} />
-          <Text style={styles.createButtonText}>
-            {'Create New Project'}
-          </Text>
-        </TouchableOpacity>
-      </View>
-    )
-  }
+      </TouchableOpacity>
+    </View>
+  )
 
   // Empty site list component
-  const emptySiteListRender = () => {
-    return (
-      <View style={styles.siteCard}>
-        <Text style={styles.siteCardLabel}>
-          {i18next.t('label.no_site_found') || 'No sites found for this project'}
-        </Text>
-        <View style={styles.divider} />
-        <TouchableOpacity style={styles.createSiteButton} onPress={createNewSite}>
-          <AddIcon height={12} width={12} fill={Colors.NEW_PRIMARY} />
-        </TouchableOpacity>
-      </View>
-    )
-  }
+  const emptySiteListRender = () => (
+    <View style={styles.siteCard}>
+      <Text style={styles.siteCardLabel}>
+        {i18next.t('label.no_site_found') || 'No sites found for this project'}
+      </Text>
+      <View style={styles.divider} />
+      <TouchableOpacity style={styles.createSiteButton} onPress={createNewSite}>
+        <AddIcon height={12} width={12} fill={Colors.NEW_PRIMARY} />
+      </TouchableOpacity>
+    </View>
+  )
+
+  // Site list item renderer
+  const renderSiteItem = useCallback(({ item, index }: { item: any, index: number }) => (
+    <TouchableOpacity
+      style={[
+        styles.siteCard,
+        {
+          borderBottomWidth: index < currentProjectSites.length - 1 ? 1 : 0,
+        },
+      ]}
+      key={item.id}
+      onPress={() => handleSiteSelection(item.id, item)}
+    >
+      <Text style={styles.siteCardLabel}>{item.name}</Text>
+      <View style={styles.divider} />
+      {projectSite.siteId === item.id &&(
+        <Entypo size={16} name="check" color={Colors.NEW_PRIMARY} />
+      )}
+    </TouchableOpacity>
+  ), [currentProjectSites.length, handleSiteSelection, projectSite.siteId, toggleProjectModal])
 
   return (
     <BottomSheetModal
@@ -283,14 +302,14 @@ const ProjectModal = (props: Props) => {
               </TouchableOpacity>
             </View>
 
-            {projectData.length === 0 ? (
+            {projects.length === 0 ? (
               emptyProjectListRender()
             ) : (
               <>
                 <Text style={styles.projectLabel}>{i18next.t('label.select_project')}</Text>
                 <CustomDropDownPicker
                   label={`${i18next.t("label.project")}`}
-                  data={projectData}
+                  data={projectDropdownData}
                   onSelect={handleProjectSelection}
                   selectedValue={selectedProject}
                   whiteBG
@@ -306,30 +325,10 @@ const ProjectModal = (props: Props) => {
 
                 <View style={styles.siteContainer}>
                   <FlatList
-                    data={projectSites}
+                    data={currentProjectSites}
                     indicatorStyle="white"
-                    renderItem={({ item, index }) => {
-                      return (
-                        <TouchableOpacity
-                          style={[
-                            styles.siteCard,
-                            {
-                              borderBottomWidth:
-                                index < projectSites.length - 1 ? 1 : 0,
-                            },
-                          ]}
-                          key={index}
-                          onPress={() => {
-                            handelSiteSelection(item.id, item)
-                          }}>
-                          <Text style={styles.siteCardLabel}>{item.name}</Text>
-                          <View style={styles.divider} />
-                          {projectSite.siteId === item.id && toggleProjectModal ? (
-                            <Entypo size={16} name="check" color={Colors.NEW_PRIMARY} />
-                          ) : null}
-                        </TouchableOpacity>
-                      )
-                    }}
+                    renderItem={renderSiteItem}
+                    keyExtractor={(item) => item.id}
                     style={styles.siteWrapper}
                     ListEmptyComponent={emptySiteListRender}
                     showsVerticalScrollIndicator={false}

@@ -49,6 +49,7 @@ import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
+import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
 
 export default {
   HomeMapView: HomeMapView,
@@ -101,5 +102,6 @@ export default {
   PlantHistory:PlantHistory,
   ProjectSites:ProjectSites,
   DeleteAccount: DeleteAccount,
+  TreeMapperFeaturesScreen:TreeMapperFeaturesScreen,
   CreateProject:CreateProjectScreen
 }

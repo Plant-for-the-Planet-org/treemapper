@@ -42,11 +42,10 @@ export const createMobileProject = async (params: any) => {
 //   return result;
 // };
 
-export const getAllMobileProjects = async () => {
-  const uri = `${getUrlMobileApi.getAllMobileProjects}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
+
+
+
+
 
 export const uploadMobileIntervention = async (params: any) => {
   const uri = `${postUrlNewApi.uploadMobileIntervention}/${params.plantProject}/intervention`;
@@ -99,12 +98,6 @@ export const getUserDetails = async () => {
   return result;
 };
 
-
-export const getAllProjects = async () => {
-  const uri = `${getUrlApi.getAllProjects}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
 
 
 export const getAreaName = async (coords: number[],) => {
@@ -356,4 +349,41 @@ export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUr
       details: error
     };
   }
+};
+
+//GET PROJECT
+
+export const getUserProjects = async (newBackend: boolean) => {
+  let result: { responseData: any, responseError: boolean }
+  if (newBackend) {
+    let { response, success } = await getAllMobileProjects()
+    if (success) {
+      result = { responseData: response.data, responseError: false }
+    } else {
+      result = { responseData: null, responseError: false }
+
+    }
+  } else {
+    let { response, success } = await getAllProjects()
+    if (success) {
+      result = { responseData: response, responseError: false }
+    } else {
+      result = { responseData: null, responseError: false }
+
+    }
+  }
+  return result
+}
+
+
+export const getAllMobileProjects = async () => {
+  const uri = `${getUrlMobileApi.getAllMobileProjects}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const getAllProjects = async () => {
+  const uri = `${getUrlApi.getAllProjects}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
 };
