@@ -69,7 +69,7 @@ const SideBarList = (props: Props) => {
       label: 'New Features',
       screen: 'TreeMapperFeaturesScreen',
       icon: <Ionicons name={'leaf'} size={24} color="#007A49" />,
-      visible: !v3Approved,
+      visible: !v3Approved && UserType!=='',
       key: 'features'
     },
     {

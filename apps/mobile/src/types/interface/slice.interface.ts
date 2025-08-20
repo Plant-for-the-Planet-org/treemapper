@@ -20,7 +20,8 @@ export interface AppInitialState {
   updateAppCount: number,
   refetchProject: string,
   imageSize: number,
-  showNewAppModal: boolean
+  showNewAppModal: boolean,
+  newFeatureRequest: boolean
 }
 
 export interface SyncSlice {

@@ -154,6 +154,14 @@ export const removeUserSpeciesToServer = async (id: any) => {
 };
 
 
+
+export const sendFeatureRequest = async () => {
+  const uri = `${postUrlNewApi.sendFeatureRequest}`;
+  const result = await fetchPostCall(uri, {});
+  return result;
+};
+
+
 export const updateServerSpeciesDetail = async (params: any, id: string) => {
   const uri = `${postUrlApi.addUserSpecies}/${id}`;
   const result = await fetchPutCall(uri, params);

@@ -12,14 +12,19 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
 import Header from 'src/components/common/Header';
+import { sendFeatureRequest } from 'src/api/api.fetch';
+import { useDispatch, useSelector } from 'react-redux';
+import { updateNewFeatureRequest } from 'src/store/slice/appStateSlice';
+import { RootState } from 'src/store';
 
 const TreeMapperFeaturesScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+  const dispatch = useDispatch()
+  const newFeatureRequest = useSelector((state: RootState) => state.appState.newFeatureRequest)
 
-  // Accordion states
   const [expandedSections, setExpandedSections] = useState({
     features: false,
     faq: false,
@@ -40,17 +45,9 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   const handleRequestAccess = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch('/api/v1/access-requests', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add your auth headers here
-          // 'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify({}),
-      });
-
-      if (response.ok) {
+      const response = await sendFeatureRequest()
+      if (response.success) {
+        dispatch(updateNewFeatureRequest())
         setShowSuccessModal(true);
       } else {
         throw new Error('Failed to send request');
@@ -260,9 +257,9 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   return (
     <SafeAreaView style={styles.container}>
       {/* Header */}
-     <Header label={'New Features'} />
+      <Header label={'New Features'} />
       <View style={{ flex: 1 }}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{minHeight:'100%'}}>
+        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ minHeight: '100%' }}>
           <View style={styles.introSection}>
             <Text style={styles.introTitle}>🌱 Welcome to TreeMapper Beta</Text>
             <Text style={styles.introText}>
@@ -347,24 +344,24 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
           </AccordionSection>
 
           {/* Request Access Button */}
-         <View style={{flex:1, justifyContent:"flex-end",alignItems:'center', width:'100%', paddingBottom:50}}>
-           <View style={styles.requestSection}>
-            <TouchableOpacity
-              style={[styles.requestButton, isLoading && styles.requestButtonDisabled]}
-              onPress={handleRequestAccess}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator size="small" color="white" />
-              ) : (
-                <>
-                  <Ionicons name="rocket-outline" size={20} color="white" />
-                  <Text style={styles.requestButtonText}>Request Access to Beta Features</Text>
-                </>
-              )}
-            </TouchableOpacity>
-          </View>
-         </View>
+          {newFeatureRequest ? null  :<View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
+            <View style={styles.requestSection}>
+              <TouchableOpacity
+                style={[styles.requestButton, isLoading || newFeatureRequest?styles.requestButtonDisabled:{}]}
+                onPress={handleRequestAccess}
+                disabled={isLoading || newFeatureRequest}
+              >
+                {isLoading ? (
+                  <ActivityIndicator size="small" color="white" />
+                ) : (
+                  <>
+                    <Ionicons name="rocket-outline" size={20} color="white" />
+                    <Text style={styles.requestButtonText}>{newFeatureRequest ? "Request Access to Beta Features" : "Request Access to Beta Features"}</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>}
         </ScrollView>
       </View>
       {/* Success Modal */}

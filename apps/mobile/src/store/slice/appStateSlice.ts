@@ -18,7 +18,8 @@ const initialState: AppInitialState = {
   updateAppCount: 10,
   imageSize: 0,
   refetchProject: '',
-  showNewAppModal: false
+  showNewAppModal: false,
+  newFeatureRequest: false
 }
 
 const appStateSlice = createSlice({
@@ -72,6 +73,9 @@ const appStateSlice = createSlice({
     updateNewAppModal(state) {
       state.showNewAppModal = true
     },
+    updateNewFeatureRequest(state) {
+      state.newFeatureRequest = true
+    },
     setUpdateAppCount(state) {
       if (state.updateAppCount > 0) {
         state.updateAppCount -= 1
@@ -91,6 +95,6 @@ const appStateSlice = createSlice({
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateNewAppModal } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateNewAppModal, updateNewFeatureRequest } = appStateSlice.actions
 
 export default appStateSlice.reducer
