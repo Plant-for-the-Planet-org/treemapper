@@ -27,6 +27,7 @@ import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import NoProjectModal from '../common/NoProjectModal'
 import NewAppModal from '../common/NewAppModal'
+import { useDeepLinking } from 'src/hooks/useDeeplink'
 
 interface Props {
   toggleFilterModal: () => void
@@ -55,7 +56,7 @@ const HomeHeader = (props: Props) => {
     navigation.navigate('HomeSideDrawer')
   }
 
-
+  // useDeepLinking()
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -198,7 +199,7 @@ const HomeHeader = (props: Props) => {
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
-      <View style={{alignItems:'flex-start', gap:5}}>
+      <View style={{ alignItems: 'flex-start', gap: 5 }}>
         <SpeciesSync />
         <SyncIntervention isLoggedIn={isLoggedIn} />
       </View>
