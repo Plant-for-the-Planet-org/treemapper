@@ -106,12 +106,6 @@ export const getAreaName = async (coords: number[],) => {
   return result;
 }
 
-export const getUserSpecies = async () => {
-  const uri = `${getUrlApi.userSpecies}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
 export const getAllSpeciesAchieve = async () => {
   const uri = `${getUrlApi.getAllSpeciesAchieve}`;
   const result = await fetchGetCall(uri, false);
@@ -392,6 +386,46 @@ export const getAllMobileProjects = async () => {
 
 export const getAllProjects = async () => {
   const uri = `${getUrlApi.getAllProjects}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+
+
+// Species
+
+export const getUserAllSpeceis = async (newBackend: boolean, id?: string) => {
+  let result: { responseData: any, responseError: boolean }
+  if (newBackend && id) {
+    let { response, success } = await getUserProjectSpecies(id)
+    if (success) {
+      result = { responseData: response.data, responseError: false }
+    } else {
+      result = { responseData: null, responseError: false }
+
+    }
+  } else {
+    let { response, success } = await getUserSpecies()
+    if (success) {
+      result = { responseData: response, responseError: false }
+    } else {
+      result = { responseData: null, responseError: false }
+
+    }
+  }
+  return result
+}
+
+
+
+export const getUserSpecies = async () => {
+  const uri = `${getUrlApi.userSpecies}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const getUserProjectSpecies = async (id: string) => {
+  const uri = `${getUrlMobileApi.getProjectSpecies}/${id}`;
   const result = await fetchGetCall(uri, true);
   return result;
 };

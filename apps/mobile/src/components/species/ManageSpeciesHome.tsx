@@ -10,7 +10,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
-import { getUserSpecies } from 'src/api/api.fetch'
+import { getUserAllSpeceis, getUserProjectSpecies, getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
 import { RefreshControl } from 'react-native'
@@ -22,6 +22,8 @@ interface Props {
   toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[]
   isManageSpecies: boolean
+  v3Approved: boolean
+  currentProjectUid: string
   handleSpeciesPress: (item: IScientificSpecies) => void
 }
 
@@ -30,7 +32,9 @@ const ManageSpeciesHome = (props: Props) => {
     toggleFavSpecies,
     userFavSpecies,
     isManageSpecies,
-    handleSpeciesPress
+    handleSpeciesPress,
+    v3Approved,
+    currentProjectUid
   } = props
   const [loading, setLoading] = useState(false)
 
@@ -41,10 +45,8 @@ const ManageSpeciesHome = (props: Props) => {
   const { userSpecies, isLoggedIn } = useSelector((state: RootState) => state.appState)
 
   useEffect(() => {
-    if (!userSpecies && isLoggedIn) {
-      setTimeout(() => {
-        syncUserSpecies()
-      }, 3000);
+    if (isLoggedIn) {
+      syncUserSpecies()
     }
   }, [])
 
@@ -56,9 +58,13 @@ const ManageSpeciesHome = (props: Props) => {
   const syncUserSpecies = async () => {
     setLoading(true)
     try {
-      const {response, success} = await getUserSpecies()
-      if (success && response.length > 0) {
-        const result = await addUserSpecies(response)
+      const { responseData, responseError } = await getUserAllSpeceis(v3Approved, currentProjectUid)
+      if (responseError) {
+        console.log("There was error gettting user species")
+        return
+      }
+      if (responseData.length > 0) {
+        const result = await addUserSpecies(responseData)
         if (result) {
           dispatch(updateUserSpeciesadded(true))
         }
@@ -90,7 +96,7 @@ const ManageSpeciesHome = (props: Props) => {
       data={userFavSpecies}
       renderItem={({ item }) => renderSpecieCard(item)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav}/>}
+      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav} />}
       ListEmptyComponent={<EmptyManageSpeciesList />}
       refreshControl={
         <RefreshControl

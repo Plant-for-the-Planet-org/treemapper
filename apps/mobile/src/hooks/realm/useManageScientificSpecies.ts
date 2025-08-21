@@ -114,6 +114,7 @@ const useManageScientificSpecies = () => {
 
   const addUserSpecies = async (item: ServerSpeciesSync[]) => {
     try {
+      console.log("addUserSpecies",item)
       realm.write(() => {
         item.forEach(specie => {
           const data = {
@@ -136,6 +137,7 @@ const useManageScientificSpecies = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
+      console.log("SDC,",error)
       addNewLog({
         logType: 'MANAGE_SPECIES',
         message: "Error occurred while adding user species.",

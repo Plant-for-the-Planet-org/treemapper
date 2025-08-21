@@ -42,7 +42,7 @@ const HomeHeader = (props: Props) => {
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const userType = useSelector((state: RootState) => state.userState.type)
 
-  const { lastServerInterventionpage, serverInterventionAdded, userSpecies, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
+  const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
 
