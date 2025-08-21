@@ -149,9 +149,9 @@ export const removeUserSpeciesToServer = async (id: any) => {
 
 
 
-export const sendFeatureRequest = async () => {
+export const sendFeatureRequest = async (token: string) => {
   const uri = `${postUrlNewApi.sendFeatureRequest}`;
-  const result = await fetchPostCall(uri, {});
+  const result = await fetchPostCall(uri, {token});
   return result;
 };
 

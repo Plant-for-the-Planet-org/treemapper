@@ -24,6 +24,7 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   const [errorMessage, setErrorMessage] = useState('');
   const dispatch = useDispatch()
   const newFeatureRequest = useSelector((state: RootState) => state.appState.newFeatureRequest)
+  const accessToken = useSelector((state: RootState) => state.appState.accessToken)
 
   const [expandedSections, setExpandedSections] = useState({
     features: false,
@@ -45,7 +46,7 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   const handleRequestAccess = async () => {
     setIsLoading(true);
     try {
-      const response = await sendFeatureRequest()
+      const response = await sendFeatureRequest(accessToken)
       if (response.success) {
         dispatch(updateNewFeatureRequest())
         setShowSuccessModal(true);
@@ -344,12 +345,12 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
           </AccordionSection>
 
           {/* Request Access Button */}
-          {newFeatureRequest ? null  :<View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
+          {newFeatureRequest ? null : <View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
             <View style={styles.requestSection}>
               <TouchableOpacity
-                style={[styles.requestButton, isLoading || newFeatureRequest?styles.requestButtonDisabled:{}]}
+                style={[styles.requestButton, isLoading || newFeatureRequest ? styles.requestButtonDisabled : {}]}
                 onPress={handleRequestAccess}
-                disabled={isLoading || newFeatureRequest}
+              // disabled={isLoading || newFeatureRequest}
               >
                 {isLoading ? (
                   <ActivityIndicator size="small" color="white" />
