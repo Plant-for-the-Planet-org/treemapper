@@ -57,6 +57,9 @@ const PolygonMarkerMap = (props: Props) => {
   const user = useSelector(
     (state: RootState) => state.userState.type,
   )
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved,
+  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
@@ -109,7 +112,7 @@ const PolygonMarkerMap = (props: Props) => {
     if (cameraRef?.current) {
       cameraRef.current.setCamera({
         centerCoordinate: [...currentUserLocation],
-        zoomLevel: 20,
+        zoomLevel: 15,
         animationDuration: 1000,
       })
     }
@@ -203,7 +206,7 @@ const PolygonMarkerMap = (props: Props) => {
 
   const proceedTrackComplete = async () => {
     // setCoordinates([...finalCoordinates])
-    console.log("SDsd",trackingGeoJSON)
+    console.log("SDsd", trackingGeoJSON)
     const data = makeInterventionGeoJson('Point', trackingGeoJSON[0], form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {
@@ -389,10 +392,10 @@ const PolygonMarkerMap = (props: Props) => {
             label={trackingState === 'complete' ? "Continue" : "Complete"}
             containerStyle={styles.btnWrapper}
             pressHandler={() => {
-              if(trackingState!=='complete'){
+              if (trackingState !== 'complete') {
                 setTrackingState('complete')
               }
-              if(trackingState==='complete' && trackingGeoJSON){
+              if (trackingState === 'complete' && trackingGeoJSON) {
                 proceedTrackComplete()
               }
             }}
@@ -412,7 +415,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       {!isTracking && <ActiveMarkerIcon />}
-      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'newuser'} />
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo' || v3Approved} />
       }
       <AlertModal
         visible={trackerModal}

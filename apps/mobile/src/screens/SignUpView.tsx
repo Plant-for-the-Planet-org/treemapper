@@ -192,7 +192,7 @@ const SignUpView = () => {
         // Organization-specific fields
         isValid = validateField(nameOfOrg, setNameError, 'label.enter_organisation_name') && isValid;
 
-        if (accountType === 'newuser') {
+        if (accountType === 'tpo') {
             isValid = validateField(city, setCityError, 'label.enter_city_name') && isValid;
             isValid = validateField(zipCode, setZipCodeError, 'label.enter_zipcode') && isValid;
             isValid = validateField(address, setAddressError, 'label.enter_address') && isValid;

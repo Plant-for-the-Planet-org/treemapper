@@ -24,6 +24,9 @@ const HomeMapView = () => {
   const userType = useSelector(
     (state: RootState) => state.userState.type,
   )
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved,
+  )
 
   useEffect(() => {
     healthCheck()
@@ -58,7 +61,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker low stopAutoFocus={userType === 'newuser'} />
+      <UserlocationMarker low stopAutoFocus={userType === 'tpo' || v3Approved} />
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}

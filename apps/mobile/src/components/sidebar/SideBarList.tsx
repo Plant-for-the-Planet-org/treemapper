@@ -83,7 +83,7 @@ const SideBarList = (props: Props) => {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
-      visible: isLoggedIn && UserType !== 'newuser',
+      visible: (isLoggedIn && UserType !== 'tpo') || (isLoggedIn && v3Approved),
       key: 'delete'
     },
     {

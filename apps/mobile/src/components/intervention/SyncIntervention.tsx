@@ -4,7 +4,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
-import { useQuery } from '@realm/react';
+import { useQuery, useRealm } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
 import { InterventionData, QuaeBody } from 'src/types/interface/slice.interface';
 import { useNavigation } from '@react-navigation/native';
@@ -34,13 +34,14 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
     const [retryCount, setRetryCount] = useState(4)
+    const realm = useRealm()
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus } = useInterventionManagement()
+    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
@@ -72,9 +73,24 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         }
     }
 
-    const startSyncingData = () => {
+    const checkForProjectId = async () => {
+        const invWithoutProjectId = realm.objects(RealmSchema.Intervention).filtered('status == "PENDING_DATA_UPLOAD" AND project_id == ""');
+        if (invWithoutProjectId && invWithoutProjectId.length > 0) {
+            toast.show(`${invWithoutProjectId.length} of the intervention don't have project assigned. Please assign them project from intervention tab.`)
+            await updateInterventionsWithEmptyProjectIdWithCount()
+            return false;
+        }
+        return true;
+
+    }
+
+    const startSyncingData = async () => {
         if (!isLoggedIn) {
             showLogin()
+            return
+        }
+        const canContinue = await checkForProjectId()
+        if (!canContinue) {
             return
         }
         if (!isSyncing) {

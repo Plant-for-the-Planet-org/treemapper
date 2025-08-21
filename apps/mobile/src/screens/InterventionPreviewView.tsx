@@ -43,6 +43,8 @@ const InterventionPreviewView = () => {
   const [loading, setLoading] = useState(true)
   const DeviceLocation = useSelector((state: RootState) => state.gpsState.user_location)
   const UserType = useSelector((state: RootState) => state.userState.type)
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
+
   const toast = useToast()
   const realm = useRealm()
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionPreview'>>()
@@ -88,7 +90,8 @@ const InterventionPreviewView = () => {
 
 
   const showInitialToast = () => {
-    if (UserType === 'newuser' && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
+    const canUse = v3Approved || UserType === 'tpo'
+    if (canUse && !!InterventionData && !InterventionData.project_id && InterventionData.status !== 'SYNCED') {
       toast.show("Project not assign")
     }
   }
@@ -182,7 +185,8 @@ const InterventionPreviewView = () => {
 
 
   const navigateToNext = async () => {
-    if (UserType === 'newuser' && !InterventionData.project_id) {
+    const canUse = v3Approved || UserType === 'tpo'
+    if (canUse && !InterventionData.project_id) {
       toast.show("Please assign project")
       return
     }
@@ -273,6 +277,7 @@ const InterventionPreviewView = () => {
         {InterventionData.location.coordinates.length > 0 && <InterventionArea data={InterventionData} />}
         <InterventionBasicInfo
           data={InterventionData}
+          v3Approved={v3Approved}
           userType={UserType}
         />
         {InterventionData.sample_trees.length > 0 && (

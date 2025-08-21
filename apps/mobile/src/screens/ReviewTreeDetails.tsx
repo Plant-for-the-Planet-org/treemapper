@@ -63,7 +63,8 @@ const ReviewTreeDetails = () => {
     const editTree = route.params?.interventionID
     const deleteTree = route.params?.deleteTree
     const synced = route.params?.synced;
-    const { country, type } = useSelector((state: RootState) => state.userState)
+    const { country, type , v3Approved} = useSelector((state: RootState) => state.userState)
+    
     const Country = country
     const [isError, setIsError] = useState<boolean>(false);
     const [showInputError, setShowInputError] = useState<boolean>(false);
@@ -366,7 +367,8 @@ const ReviewTreeDetails = () => {
     }
 
     const remeasurementIcon = () => {
-        if (type === 'newuser' && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
+        const canUse = type === 'tpo' || v3Approved
+        if (canUse && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
             return <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
                 <RemeasurementIconScalable />
                 <Text style={styles.measureLabel}>Measure</Text>

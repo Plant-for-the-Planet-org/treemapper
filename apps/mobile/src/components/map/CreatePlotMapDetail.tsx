@@ -95,7 +95,7 @@ const CreatePlotMapDetail = (props: Props) => {
   const handleCamera = () => {
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
+      zoomLevel: 15,
       animationDuration: 1000,
     })
   }

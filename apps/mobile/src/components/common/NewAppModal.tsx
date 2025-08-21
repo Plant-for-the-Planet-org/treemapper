@@ -11,6 +11,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateNewAppModal } from 'src/store/slice/appStateSlice';
+import { useNavigation } from '@react-navigation/native';
 
 const NewAppModal = () => {
     const [isVisible, setIsVisible] = useState(false);
@@ -21,15 +22,20 @@ const NewAppModal = () => {
     const { type, v3Approved } = useSelector(
         (state: RootState) => state.userState,
     )
-
+    const navigation = useNavigation()
 
     useEffect(() => {
         checkIfModalShouldShow();
-    }, []);
+    }, [type, v3Approved]);
 
     const checkIfModalShouldShow = async () => {
         if (!showNewAppModal && !v3Approved && type !== '') {
             setIsVisible(true)
+        } else {
+            if (!showNewAppModal && !v3Approved && type !== '') {
+                setIsVisible(false)
+                dispatch(updateNewAppModal())
+            }
         }
     };
 
@@ -39,9 +45,9 @@ const NewAppModal = () => {
     };
 
     const handleReadMore = () => {
-        // Replace with your actual URL
-        const url = 'https://your-website.com/beta-features';
-        Linking.openURL(url);
+        navigation.navigate("TreeMapperFeaturesScreen")
+        dispatch(updateNewAppModal())
+        setIsVisible(false)
     };
 
     return (

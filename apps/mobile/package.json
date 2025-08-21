@@ -72,7 +72,7 @@
     "react-i18next": "^15.0.1",
     "react-native": "0.79.5",
     "react-native-auth0": "^5.0.0-beta2",
-    "react-native-avoid-softinput": "^5.0.0",
+    "react-native-avoid-softinput": "^7.0.2",
     "react-native-bouncy-checkbox": "^4.0.0",
     "react-native-curved-bottom-bar": "^3.5.1",
     "react-native-draggable-flatlist": "^4.0.1",

@@ -73,7 +73,7 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
       onBackdropPress={() => { }}>
       <AvoidSoftInputView
         avoidOffset={0}
-        showAnimationDuration={200}
+        showAnimationDuration={0}
         style={styles.sectionWrapper}>
         <View style={styles.wrapper}>
           <View style={styles.headerWrapper}>

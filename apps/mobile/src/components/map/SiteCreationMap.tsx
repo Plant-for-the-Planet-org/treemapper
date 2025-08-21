@@ -75,7 +75,7 @@ const SiteCreationMap = (props: Props) => {
         if (cameraRef?.current) {
             cameraRef.current.setCamera({
                 centerCoordinate: [...currentUserLocation],
-                zoomLevel: 20,
+                zoomLevel: 15,
                 animationDuration: 1000,
             })
         }

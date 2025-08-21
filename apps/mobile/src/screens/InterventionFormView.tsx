@@ -64,7 +64,13 @@ const InterventionFormView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
-  const isTpoUser = userType === 'newuser'
+  const UserType = useSelector(
+    (state: RootState) => state.userState.type
+  )
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved
+  )
+  const isTpoUser = userType === 'tpo' || v3Approved
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {
@@ -114,17 +120,17 @@ const InterventionFormView = () => {
 
   const handleBounds = (pid, sid, isPoint) => {
     try {
-      if (userType !== 'newuser') return;
-  
+      if (isTpoUser) return;
+
       const ProjectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pid);
       if (!ProjectData) return;
-  
+
       const updateBounds = (geometry) => {
         const { geoJSON } = makeInterventionGeoJson('Point', [geometry], 'sd');
         const bounds = bbox(geoJSON);
         dispatch(updateMapBounds({ bounds, key: isPoint ? 'POINT_MAP' : 'POLYGON_MAP' }));
       };
-  
+
       if (!sid || sid === 'other') {
         if (!ProjectData.geometry) return;
         const coords = JSON.parse(ProjectData.geometry);
@@ -154,7 +160,7 @@ const InterventionFormView = () => {
     InterventionJSON.site_name = projectSite.siteName
     InterventionJSON.site_id = projectSite.siteId
     const result = await initializeIntervention(InterventionJSON)
-    if (userType === 'newuser') {
+    if (isTpoUser) {
       handleBounds(InterventionJSON.project_id, InterventionJSON.site_id, InterventionJSON.location_type === 'Point')
     }
     if (result) {
@@ -315,29 +321,29 @@ const InterventionFormView = () => {
     const metaData = {};
     if (locationName && locationName.length > 0) {
       metaData["location-name"] = {
-          "key": "location-name",
-          "originalKey":"location-name",
-          "value":locationName,
-          "label":"Location Name",
-          "type":"input",
-          "unit":"",
-          "visibility":"public",
-          "dataType":"string",
-          "elementType":"metaData"
+        "key": "location-name",
+        "originalKey": "location-name",
+        "value": locationName,
+        "label": "Location Name",
+        "type": "input",
+        "unit": "",
+        "visibility": "public",
+        "dataType": "string",
+        "elementType": "metaData"
       };
     }
     if (furtherInfo && furtherInfo.length > 0) {
       metaData["more-info"] = {
         "key": "more-info",
-        "originalKey":"more-info",
-        "value":furtherInfo,
-        "label":"More Info",
-        "type":"input",
-        "unit":"",
-        "visibility":"public",
-        "dataType":"string",
-        "elementType":"metaData"
-    };
+        "originalKey": "more-info",
+        "value": furtherInfo,
+        "label": "More Info",
+        "type": "input",
+        "unit": "",
+        "visibility": "public",
+        "dataType": "string",
+        "elementType": "metaData"
+      };
     }
     return metaData;
   };
@@ -390,7 +396,7 @@ const InterventionFormView = () => {
   };
 
   const navigateToMarkerScreen = () => {
-    if (userType === 'newuser') {
+    if (isTpoUser) {
       handleBounds(registerForm.project_id, registerForm.site_id, registerForm.location_type === 'Point')
     }
     if (registerForm.location_type === 'Point') {
@@ -424,7 +430,7 @@ const InterventionFormView = () => {
 
   if (!registerForm) {
     return (
-      <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.activityIndicator}/>
+      <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.activityIndicator} />
     )
   }
 
@@ -534,10 +540,10 @@ const styles = StyleSheet.create({
     height: '100%',
     width: '100%'
   },
-  activityIndicator:{
-    position:'absolute',
-    top:'40%',
-    left:'49%'
+  activityIndicator: {
+    position: 'absolute',
+    top: '40%',
+    left: '49%'
   },
   wrapperScrollView: {
     flexGrow: 1,

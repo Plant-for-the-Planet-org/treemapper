@@ -198,10 +198,10 @@ const HomeHeader = (props: Props) => {
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
-      {/* <View style={{alignItems:'flex-start', gap:5}}>
+      <View style={{alignItems:'flex-start', gap:5}}>
         <SpeciesSync />
         <SyncIntervention isLoggedIn={isLoggedIn} />
-      </View> */}
+      </View>
       <View style={styles.sectionWrapper} />
       {v3Approved || userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>

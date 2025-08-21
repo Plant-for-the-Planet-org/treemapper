@@ -36,9 +36,10 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const userType = useSelector(
-    (state: RootState) => state.userState.type,
+  const { type: userType, v3Approved } = useSelector(
+    (state: RootState) => state.userState,
   )
+
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { onlyRemeasurement, mainMapView, selectedIntervention, activeIndex, adjacentIntervention, showOverlay, activeInterventionIndex, interventionFilter, selectedFilters } = useSelector(
     (state: RootState) => state.displayMapState,
@@ -58,7 +59,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if (onlyRemeasurement && userType === 'newuser') {
+      if ((onlyRemeasurement && userType === 'tpo') && onlyRemeasurement && v3Approved) {
         return el.remeasurement_required === true
       }
       return el
@@ -70,7 +71,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
+          key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -99,12 +100,12 @@ const DisplayMap = () => {
   }, [currentUserLocation])
 
   const handleCamera = () => {
-    if(currentUserLocation && currentUserLocation.length>0 && currentUserLocation[0]===0){
+    if (currentUserLocation && currentUserLocation.length > 0 && currentUserLocation[0] === 0) {
       return
     }
     cameraRef.current.setCamera({
       centerCoordinate: [...currentUserLocation],
-      zoomLevel: 20,
+      zoomLevel: 15,
       animationDuration: 1000,
     })
   }
@@ -112,7 +113,7 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
     if (bounds.length === 0) {
-      if (userType !== 'newuser') {
+      if (userType !== 'tpo' || v3Approved) {
         handleCamera()
       }
       return
@@ -177,7 +178,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
+              key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -232,7 +233,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: el.remeasurement_required && userType === 'newuser' ? 'remeasurement' : el.intervention_key,
+            key: (el.remeasurement_required && userType === 'tpo') && (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)

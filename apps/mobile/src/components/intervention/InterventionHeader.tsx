@@ -72,7 +72,7 @@ const InterventionHeader = () => {
         <View style={styles.container}>
             <FreeUpSpaceButton handleCleanup={handleCleanup} imageSize={convertBytesToMb()} />
             {!dataMigrated && <InventoryMigration />}
-            {process.env.EXPO_PUBLIC_APP_ENV === 'staging' && <View style={styles.stagingWrapper}><Text style={styles.stagingLabel}>Staging Env</Text></View>}
+            {process.env.EXPO_PUBLIC_APP_ENV === 'staging' && <View style={styles.stagingWrapper}><Text style={styles.stagingLabel}>Development</Text></View>}
         </View>
     )
 }
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         position: 'absolute',
         right: '5%',
-        backgroundColor: '#FFBF00',
+        backgroundColor: '#00BFFF',
         top: '20%',
         borderRadius:8,
         paddingHorizontal:10,

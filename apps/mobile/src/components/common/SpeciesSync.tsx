@@ -35,6 +35,8 @@ const SpeciesSync = () => {
   const { speciesSync, speciesLocalURL, updateAppCount } = useSelector((state: RootState) => state.appState)
   const realm = useRealm()
   const dispatch = useDispatch()
+
+
   useEffect(() => {
     isSpeciesDownloaded()
   }, [speciesUpdatedAt])
