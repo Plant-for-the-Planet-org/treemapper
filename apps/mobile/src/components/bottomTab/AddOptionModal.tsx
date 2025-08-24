@@ -102,7 +102,7 @@ const AddOptionModal = (props: Props) => {
       title: i18next.t('label.project_sites'),
       coming_soon: false,
       onPress: () => {
-        if (userType !== 'tpo') {
+        if (userType !== 'tpo' && !v3Approved) {
           toast.hideAll()
           toast.show("Please login from RO account")
           props.setVisible(false)

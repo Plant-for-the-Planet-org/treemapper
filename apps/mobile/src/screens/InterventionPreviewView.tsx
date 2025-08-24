@@ -59,7 +59,6 @@ const InterventionPreviewView = () => {
   )
   const { saveIntervention, updateInterventionMetaData, resetIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
-  console.log("ILCJSD", InterventionData?.project_id)
   const scrollViewRef = useRef(null); // Reference for the ScrollView
   const childRefs = useRef([]);
 

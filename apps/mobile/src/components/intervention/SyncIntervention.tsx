@@ -39,6 +39,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const { syncRequired, isSyncing } = useSelector(
         (state: RootState) => state.syncState,
     )
+    const v3Approved = useSelector(
+        (state: RootState) => state.userState.v3Approved
+    )
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount } = useInterventionManagement()
@@ -74,6 +77,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     }
 
     const checkForProjectId = async () => {
+        if (uType !== 'tpo' && !v3Approved) {
+            return true
+        }
         const invWithoutProjectId = realm.objects(RealmSchema.Intervention).filtered('status == "PENDING_DATA_UPLOAD" AND project_id == ""');
         if (invWithoutProjectId && invWithoutProjectId.length > 0) {
             toast.show(`${invWithoutProjectId.length} of the intervention don't have project assigned. Please assign them project from intervention tab.`)

@@ -15,6 +15,7 @@ import { motion } from 'framer-motion';
 import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
+import MigrationModal from '@/component/MigrationModal';
 
 
 const STANDALONE_ROUTES = [
@@ -352,7 +353,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 isLoading={appState === 'idle' || appState === 'loading'}
               />
             )}
-            {renderMainContent()}
+            {/* {renderMainContent()} */}
+            <MigrationModal/>
           </div>
         </div>
       </div>
