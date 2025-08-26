@@ -110,14 +110,14 @@ export const postDataConvertor = (d: InterventionData[]) => {
     return quae
 }
 
-export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPayload> => {
+export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: boolean): Promise<BodyPayload> => {
     if (r.type === 'intervention') {
         const InterventionD = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertInterventionBody(JSON.parse(JSON.stringify(InterventionD)), uType)
+        return convertInterventionBody(JSON.parse(JSON.stringify(InterventionD)), projectRequire)
     }
     if (r.type === 'singleTree') {
         const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])), uType)
+        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])), projectRequire)
     }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -125,7 +125,7 @@ export const getPostBody = async (r: QuaeBody, uType: string): Promise<BodyPaylo
         if (Intervention.location_id === '') {
             return null
         }
-        return convertTreeToBody(Intervention, TreeDetails, uType)
+        return convertTreeToBody(Intervention, TreeDetails, projectRequire)
     }
     if (r.type === 'treeImage') {
         try {
@@ -165,7 +165,7 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
-export const convertInterventionBody = (d: InterventionData, uType: string): BodyPayload => {
+export const convertInterventionBody = (d: InterventionData, projectRequire: boolean): BodyPayload => {
     try {
         const metaData = JSON.parse(d.meta_data);
         const additionalDataConvert = handleAdditionalData([...d.additional_data, ...d.form_data])
@@ -194,15 +194,15 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
             registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
-        if (!d.project_id) {
+        if (!d.project_id && projectRequire) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (d.project_id) {
+        if (d.project_id && projectRequire) {
             postData.plantProject = d.project_id
         }
 
-        if (d.site_id && d.site_id !== 'other') {
+        if (d.site_id && d.site_id !== 'other' && projectRequire) {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {
@@ -234,7 +234,7 @@ export const convertInterventionBody = (d: InterventionData, uType: string): Bod
 
 }
 
-export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: string): BodyPayload => {
+export const convertTreeToBody = (i: InterventionData, d: SampleTree, projectRequire: boolean): BodyPayload => {
     try {
         const metaData = JSON.parse(i.meta_data);
         const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
@@ -268,15 +268,15 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, uType: str
         }
         postData.interventionStartDate = postTimeConvertor(d.plantation_date)
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-        if (!i.project_id) {
+        if (!i.project_id && projectRequire) {
             return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
         }
 
-        if (i.project_id) {
+        if (i.project_id && projectRequire) {
             postData.plantProject = i.project_id
         }
 
-        if (i.site_id && i.site_id !== 'other') {
+        if (i.site_id && i.site_id !== 'other' && projectRequire) {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {

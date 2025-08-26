@@ -46,7 +46,6 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     const response = await fetch(uri, options);
     const responseJson = await response.json();
-    console.log("NetworesponseJson", responseJson)
 
     if (response.status === 303) {
       return { response: { signUpRequire: true }, success: true, status: response.status, extra: {} }

@@ -53,7 +53,6 @@ export const getUrlMobileApi = {
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
   getProjectSpecies: `${mobileBaseUrl}/mobile/species`,
-
 };
 
 

@@ -4,6 +4,7 @@ import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './cu
 import * as FileSystem from 'expo-file-system';
 import { updateFilePath } from '../utils/helpers/fileSystemHelper'
 import sampleTreeBase64 from '../../assets/images/base64/sampleTree';
+import { generateUid } from 'src/utils/helpers/uidGenerator';
 
 export const getMobileHealth = async () => {
   const uri = `${getUrlMobileApi.getMobileHealth}`;
@@ -47,19 +48,6 @@ export const createMobileProject = async (params: any) => {
 
 
 
-export const uploadMobileIntervention = async (params: any) => {
-  const uri = `${postUrlNewApi.uploadMobileIntervention}/${params.plantProject}/intervention`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
-
-
-export const uploadIntervention = async (params: any) => {
-  const uri = `${postUrlApi.uploadIntervention}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
 
 
 export const uploadMobileInterventionImage = async (params) => {
@@ -151,7 +139,7 @@ export const removeUserSpeciesToServer = async (id: any) => {
 
 export const sendFeatureRequest = async (token: string) => {
   const uri = `${postUrlNewApi.sendFeatureRequest}`;
-  const result = await fetchPostCall(uri, {token});
+  const result = await fetchPostCall(uri, { token });
   return result;
 };
 
@@ -427,5 +415,68 @@ export const getUserSpecies = async () => {
 export const getUserProjectSpecies = async (id: string) => {
   const uri = `${getUrlMobileApi.getProjectSpecies}/${id}`;
   const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+
+
+//Post intervention
+
+export const uploadAllIntervention = async (params: any, newBackend: boolean,) => {
+  let result: { responseData: any, responseError: boolean }
+  if (newBackend) {
+    let { response, success } = await uploadMobileIntervention(params)
+    console.log("SDC",response)
+    if (success && response.data && response.data.id) {
+      result = {
+        responseData: {
+          parentHid: response.data.id,
+          parentId: response.data.id,
+          treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.id : '',
+          treeId: response.data.singleTreeResult ? response.data.singleTreeResult.hid : "",
+          coordinates: [{
+            "image": "",
+            "created": new Date(),
+            "coordinateIndex": 0,
+            "id": generateUid('img'),
+            "updated": new Date(),
+            "status": "pending"
+          }]
+        }, responseError: false
+      }
+    } else {
+      result = { responseData: null, responseError: true }
+    }
+  } else {
+    let { response, success } = await uploadIntervention(params)
+    console.log("This is the response", JSON.stringify(response, null, 2))
+    if (success && response.hid) {
+      result = {
+        responseData: {
+          parentHid: response.hid,
+          parentId: response.id,
+          treeHid: response.hid,
+          treeId: response.id,
+          coordinates: response.coordinates
+        }, responseError: false
+      }
+    } else {
+      result = { responseData: null, responseError: true }
+    }
+  }
+  return result
+}
+
+export const uploadMobileIntervention = async (params: any) => {
+  const uri = `${postUrlNewApi.uploadMobileIntervention}/${params.plantProject}/intervention`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+
+
+export const uploadIntervention = async (params: any) => {
+  const uri = `${postUrlApi.uploadIntervention}`;
+  const result = await fetchPostCall(uri, params);
   return result;
 };

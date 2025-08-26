@@ -37,17 +37,17 @@ const PreviewMap = (props: Props) => {
   const mapRef = useRef<MapLibreGL.MapView>(null)
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  
+
   // Check if the geoJSON is a point or polygon
-  const isPoint = geoJSON.features[0]?.geometry?.type === 'Point' || 
-                  intervention.location_type === 'Point'
+  const isPoint = geoJSON.features[0]?.geometry?.type === 'Point' ||
+    intervention.location_type === 'Point'
 
   const handleCamera = () => {
     if (!cameraRef.current) return;
 
     // Get the bounds of the geoJSON
     const bounds = bbox(geoJSON.features[0].geometry)
-    
+
     // First fit the camera to the bounds
     cameraRef.current.fitBounds(
       [bounds[0], bounds[1]],
@@ -55,28 +55,30 @@ const PreviewMap = (props: Props) => {
       20, // padding
       1000, // duration in ms
     )
-    
+
     // After fitting to bounds, we'll zoom out based on location type
     setTimeout(() => {
-      if (isPoint) {
-        // For points, zoom out to level 7
-        cameraRef.current.zoomTo(12, 4000) // 4000ms = 4 seconds animation
-      } else {
-        // For polygons, get current zoom and zoom out by 1 level
-        mapRef.current?.getZoom().then(currentZoom => {
-          const newZoom = Math.max(currentZoom - 1, 1) // Ensure we don't zoom out too far
-          cameraRef.current.zoomTo(newZoom, 4000) // 4000ms = 4 seconds animation
-        })
+      if (cameraRef.current) {
+        if (isPoint) {
+          // For points, zoom out to level 7
+          cameraRef.current.zoomTo(12, 4000) // 4000ms = 4 seconds animation
+        } else {
+          // For polygons, get current zoom and zoom out by 1 level
+          mapRef.current?.getZoom().then(currentZoom => {
+            const newZoom = Math.max(currentZoom - 1, 1) // Ensure we don't zoom out too far
+            cameraRef.current.zoomTo(newZoom, 4000) // 4000ms = 4 seconds animation
+          })
+        }
       }
     }, 1000) // Wait for the initial fitBounds to complete
   }
 
   const addAnotherTree = () => {
     const bounds = bbox(geoJSON)
-    dispatch(updateBoundary({ 
-      coord: JSON.parse(intervention.location.coordinates), 
-      id: uuid(), 
-      form_ID: intervention.form_id, 
+    dispatch(updateBoundary({
+      coord: JSON.parse(intervention.location.coordinates),
+      id: uuid(),
+      form_ID: intervention.form_id,
     }))
     dispatch(updateMapBounds({ bounds: bounds, key: 'POINT_MAP' }))
     navigation.navigate('PointMarker', { id: intervention.intervention_id })
@@ -87,11 +89,11 @@ const PreviewMap = (props: Props) => {
   }
 
   const viewTreeDetails = async (_i: number, d: SampleTree) => {
-    navigation.navigate("ReviewTreeDetails", { 
-      detailsCompleted: false, 
-      interventionID: d.tree_id, 
-      synced: true, 
-      id: d.intervention_id 
+    navigation.navigate("ReviewTreeDetails", {
+      detailsCompleted: false,
+      interventionID: d.tree_id,
+      synced: true,
+      id: d.intervention_id
     })
   }
 
@@ -105,8 +107,8 @@ const PreviewMap = (props: Props) => {
           logoEnabled={false}
           onDidFinishLoadingMap={handleCamera}
           styleURL={JSON.stringify(MapStyle)}>
-          <MapLibreGL.Camera 
-            ref={cameraRef} 
+          <MapLibreGL.Camera
+            ref={cameraRef}
             animationDuration={4000} // Ensure animations take at least 4 seconds
             animationMode={'flyTo'} // Use flyTo for smooth animation
           />
@@ -114,23 +116,23 @@ const PreviewMap = (props: Props) => {
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {intervention.location_type === 'Polygon' && !intervention.entire_site ? 
+          {intervention.location_type === 'Polygon' && !intervention.entire_site ?
             <MapMarkersCircle coordinates={JSON.parse(intervention.location.coordinates)} /> : null}
-          {has_sample_trees && 
-            <MapMarkers 
-              sampleTreeData={sampleTrees} 
-              hasSampleTree={has_sample_trees} 
-              onMarkerPress={viewTreeDetails} 
-              showNumber 
+          {has_sample_trees &&
+            <MapMarkers
+              sampleTreeData={sampleTrees}
+              hasSampleTree={has_sample_trees}
+              onMarkerPress={viewTreeDetails}
+              showNumber
             />}
         </MapLibreGL.MapView>
-        {showEdit && !isEntireSite ? 
+        {showEdit && !isEntireSite ?
           <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
             <PenIcon width={30} height={30} />
           </TouchableOpacity> : null}
 
-        {intervention && intervention.has_sample_trees && 
-         !intervention.is_complete && intervention.location.type !== 'Point' ? 
+        {intervention && intervention.has_sample_trees &&
+          !intervention.is_complete && intervention.location.type !== 'Point' ?
           <TouchableOpacity style={styles.plusIconWrapper} onPress={addAnotherTree}>
             <Text style={styles.sampleTreeLabel}>{i18next.t("label.sample_tree")}</Text>
             <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />

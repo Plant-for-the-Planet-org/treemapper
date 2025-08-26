@@ -35,7 +35,6 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
-  const { addUserSpecies } = useManageScientificSpecies()
   const { logoutUser } = useAuthentication()
   const { toggleFilterModal, toggleProjectModal } = props
   const { addNewIntervention } = useInterventionManagement()
@@ -56,7 +55,6 @@ const HomeHeader = (props: Props) => {
     navigation.navigate('HomeSideDrawer')
   }
 
-  // useDeepLinking()
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -64,7 +62,7 @@ const HomeHeader = (props: Props) => {
     }
     const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
     if (expiringAt && isExpired) {
-      refreshUser()  //REFRESH672
+      refreshUser()
     }
   }, [isLoggedIn, expiringAt])
 
@@ -140,8 +138,6 @@ const HomeHeader = (props: Props) => {
     }
   }, [userType, lastServerInterventionpage, expiringAt])
 
-  //Remove this Intervention from Staging DB.
-  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"] //Server823
 
   const checkInternetConnectivity = async () => {
     const netInfo = await NetInfo.fetch();
@@ -154,9 +150,6 @@ const HomeHeader = (props: Props) => {
       const { response, success } = await getServerIntervention(lastServerInterventionpage)
       if (success && response?.items) {
         for (let index = 0; index < response.count; index++) {
-          if (response.items[index] && deleteThis.includes(response.items[index].id)) {
-            continue;
-          }
           const element = convertInventoryToIntervention(response.items[index]);
           await addNewIntervention(element)
         }

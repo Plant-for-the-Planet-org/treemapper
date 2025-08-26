@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { presingedUrl, remeasurement, skipRemeasurement, uploadInterventionImage, uploadMobileIntervention } from 'src/api/api.fetch';
+import { presingedUrl, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage, uploadMobileIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -33,7 +33,7 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(4)
+    const [retryCount, setRetryCount] = useState(10)
     const realm = useRealm()
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
@@ -54,6 +54,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const uType = useSelector(
         (state: RootState) => state.userState.type,
     )
+    const projectRequire = v3Approved || uType === 'tpo'
+
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
@@ -67,7 +69,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
 
     const showLogin = () => {
-        setRetryCount(4)
+        setRetryCount(10)
         if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -96,6 +98,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             return
         }
         const canContinue = await checkForProjectId()
+        console.log("canContinue", canContinue)
         if (!canContinue) {
             return
         }
@@ -133,7 +136,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleIntervention = async (el) => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
             if (fixRequired === 'PROJECT_ID_MISSING') {
                 await updateProjectIdMissing(el.p1Id)
                 addNewLog({
@@ -147,10 +150,10 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadMobileIntervention(pData);
-            console.log("handleIntervention response", response)
-            if (success && response?.data.hid && response?.data.id) {
-                await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
+            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
+            console.log("responseData handleIntervention", responseData)
+            if (!responseError && responseData.parentHid && responseData.parentId) {
+                await updateInterventionStatus(el.p1Id, responseData.parentHid, responseData.parentId, el.nextStatus);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -172,7 +175,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleSingleTree = async (el) => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
             if (fixRequired === 'PROJECT_ID_MISSING') {
                 await updateProjectIdMissing(el.p1Id)
                 addNewLog({
@@ -186,21 +189,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadMobileIntervention(pData);
-            console.log("handleSingleTree response", response)
-            if (success && response?.data.id && response?.data.hid) {
-                const result = await updateInterventionStatus(el.p1Id, response.data.hid, response.data.id, el.nextStatus);
+            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
+            if (!responseError && responseData.treeId && responseData.parentId) {
+                const result = await updateInterventionStatus(el.p1Id, responseData.parentHid, responseData.parentId, el.nextStatus);
                 if (result) {
-                    await updateTreeStatus(el.p2Id, response.data.singleTreeResult.hid, response.data.singleTreeResult.id, el.nextStatus, response.data.id, [
-                        {
-                            "image": "",
-                            "created": new Date(),
-                            "coordinateIndex": 0,
-                            "id": generateUid('img'),
-                            "updated": new Date(),
-                            "status": "pending"
-                        }
-                    ]);
+                    await updateTreeStatus(el.p2Id, responseData.treeHid, responseData.treeId, el.nextStatus, responseData.parentId, responseData.coordinates);
                 }
             } else {
                 addNewLog({
@@ -282,7 +275,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
 
     const handleSampleTree = async (el) => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
             if (fixRequired !== 'NO') {
                 await updateTreeStatusFixRequire(el.p1Id, el.p2Id, fixRequired)
                 addNewLog({
@@ -296,20 +289,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
-            const { response, success } = await uploadMobileIntervention(pData);
-            if (success && response?.data.hid && response?.data.id) {
-                await updateTreeStatus(el.p2Id, response.data.hid, response.data.id, el.nextStatus, pData.parent, [
-                    [
-                        {
-                            "image": "",
-                            "created": new Date(),
-                            "coordinateIndex": 0,
-                            "id": generateUid('img'),
-                            "updated": new Date(),
-                            "status": "pending"
-                        }
-                    ]
-                ]);
+            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
+            console.log("responseData handleSampleTree", responseData)
+
+            if (!responseError && responseData.parentHid && responseData.parentId) {
+                await updateTreeStatus(el.p2Id, responseData.parentHid, responseData.parentId, el.nextStatus, pData.parent, responseData.coordinates);
             } else {
                 addNewLog({
                     logType: 'DATA_SYNC',
@@ -331,7 +315,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     const handleTreeImage = async (el) => {
         try {
             console.log("handleTreeImage");
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType);
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
 
             if (fixRequired !== 'NO') {
                 addNewLog({

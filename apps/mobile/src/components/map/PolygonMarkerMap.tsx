@@ -24,7 +24,6 @@ import UserlocationMarker from './UserlocationMarker'
 import i18next from 'i18next'
 import AlertModal from '../common/AlertModal'
 import PolygonTracker from './PolygonTracker'
-import { Feature } from '@turf/helpers'
 import bbox from '@turf/bbox'
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -274,7 +273,7 @@ const PolygonMarkerMap = (props: Props) => {
     setLatestCoords(e)
   }
 
-  const handleTrackComplete = (e: Feature) => {
+  const handleTrackComplete = (e: any) => {
     const bounds = bbox(e)
     {
       cameraRef.current.fitBounds(
