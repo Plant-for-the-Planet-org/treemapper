@@ -449,7 +449,6 @@ export const uploadAllIntervention = async (params: any, newBackend: boolean,) =
     }
   } else {
     let { response, success } = await uploadIntervention(params)
-    console.log("This is the response", JSON.stringify(response, null, 2))
     if (success && response.hid) {
       result = {
         responseData: {
