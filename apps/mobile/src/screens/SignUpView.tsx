@@ -248,6 +248,10 @@ const SignUpView = () => {
     };
 
     const submitDetails = async () => {
+        if(country.countryName===""){
+            showSnackbar("Please select a country")
+            return
+        }
         if (!validateFields()) {
             return;
         }

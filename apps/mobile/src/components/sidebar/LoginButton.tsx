@@ -101,7 +101,20 @@ const LoginButton = () => {
     }
     const { response } = await getMobileUserDetails()
     if (response && response.data) {
-      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || ''})
+      if (!response.data.v3Approved) {
+        const { response, success } = await getUserDetails()
+        if (success && response.signUpRequire) {
+          navigation.navigate('SignUpPage', {
+            email: user?.email,
+            accessToken: credentials.accessToken
+          })
+          return
+        }
+        if (!success) {
+          throw new Error("Failed to fetch user details")
+        }
+      }
+      loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
       handleUpdateUserDetails(response.data, user)
     } else {
       Bugsnag.notify("/app/profile failed to fetch user details")
