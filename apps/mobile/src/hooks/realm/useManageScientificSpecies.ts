@@ -137,7 +137,6 @@ const useManageScientificSpecies = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.log("SDC,",error)
       addNewLog({
         logType: 'MANAGE_SPECIES',
         message: "Error occurred while adding user species.",

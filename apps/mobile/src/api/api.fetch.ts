@@ -426,7 +426,6 @@ export const uploadAllIntervention = async (params: any, newBackend: boolean,) =
   let result: { responseData: any, responseError: boolean }
   if (newBackend) {
     let { response, success } = await uploadMobileIntervention(params)
-    console.log("SDC",response)
     if (success && response.data && response.data.id) {
       result = {
         responseData: {

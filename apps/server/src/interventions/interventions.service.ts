@@ -2013,7 +2013,6 @@ export class InterventionsService {
    * Get all trees for a specific intervention
    */
   async getInterventionTrees(interventionId: number): Promise<InterventionTreesResponse> {
-    console.log("SDC", interventionId)
     // Get intervention details
     const interventionQuery = await this.drizzleService.db
       .select({

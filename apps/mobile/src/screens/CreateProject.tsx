@@ -121,7 +121,6 @@ const CreateProjectScreen = () => {
 
             // Simulate API call
             const { response } = await createMobileProject(projectData)
-            console.log("SDC",response)
             if (response.code=='success') {
                 dispatch(updateProjectState(true))
                 setWorkspace('');

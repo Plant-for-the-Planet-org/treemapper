@@ -199,7 +199,6 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
     setGeneralError('');
 
     try {
-      console.log("SDC",species)
       const resp = await updateInterventionSpecies(accessToken, {
         scientificSpeciesId: selectedSpecies.id,
         speciesCount: count

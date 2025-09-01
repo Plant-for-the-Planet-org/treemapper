@@ -15,9 +15,6 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
   const [saveSuccess, setSaveSuccess] = useState(false);
   const { accessToken } = useToken()
   const selectedProject = useProjectStore((state) => state.selectedProject);
-
-  console.log("SDC", user)
-
   function capitalize(str) {
     return str.charAt(0).toLowerCase() + str.slice(1);
   }

@@ -350,14 +350,11 @@ async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggr
           ),
         )
         .returning();
-      console.log("SDC", updatedSpecies)
-
       if (!updatedSpecies.length) {
         throw new NotFoundException('User species not found');
       }
       return false
     } catch (error) {
-      console.log("SDC", error)
     }
   }
 
