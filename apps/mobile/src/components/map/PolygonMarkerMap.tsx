@@ -83,7 +83,7 @@ const PolygonMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (mapRender) {
-      handleCamera()
+      handleCamera2()
     }
   }, [currentUserLocation])
 
@@ -116,6 +116,19 @@ const PolygonMarkerMap = (props: Props) => {
       })
     }
   }
+
+    const handleCamera2 = () => {
+    if (currentUserLocation[0] === 0) {
+      return
+    }
+    if (cameraRef?.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        animationDuration: 1000,
+      })
+    }
+  }
+
 
   const handlePreviousPoint = () => {
     const updatedCoordinates = [...coordinates];

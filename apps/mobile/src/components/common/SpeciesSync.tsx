@@ -157,36 +157,36 @@ const SpeciesSync = () => {
       }
     };
   
-    const handleRemoveFromFav = async (element) => {
-      await removeUserSpeciesToServer(element.id);
-      await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
-    };
+    // const handleRemoveFromFav = async (element) => {
+    //   await removeUserSpeciesToServer(element.id);
+    //   await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
+    // };
   
     const handleEdit = async (element) => {
-      await updateServerSpeciesDetail({
-        "scientificSpecies": element.data.scientificSpecies,
-        "aliases": element.data.aliases || element.data.scientificSpecies,
-        "description": element.data.description,
-      }, element.id);
+      // await updateServerSpeciesDetail({
+      //   "scientificSpecies": element.data.scientificSpecies,
+      //   "aliases": element.data.aliases || element.data.scientificSpecies,
+      //   "description": element.data.description,
+      // }, element.id);
       await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id);
     };
   
-    for (const element of queeData) {
-      switch (element.type) {
-        case 'skip':
-          await handleSkip(element);
-          break;
-        case 'addToFav':
-          await handleAddToFav(element);
-          break;
-        case 'removeFromFav':
-          await handleRemoveFromFav(element);
-          break;
-        case 'edit':
-          await handleEdit(element);
-          break;
-      }
-    }
+    // for (const element of queeData) {
+    //   switch (element.type) {
+    //     case 'skip':
+    //       await handleSkip(element);
+    //       break;
+    //     case 'addToFav':
+    //       await handleAddToFav(element);
+    //       break;
+    //     case 'removeFromFav':
+    //       await handleRemoveFromFav(element);
+    //       break;
+    //     case 'edit':
+    //       await handleEdit(element);
+    //       break;
+    //   }
+    // }
   };
   
 

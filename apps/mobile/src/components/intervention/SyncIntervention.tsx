@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { presingedUrl, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage, uploadMobileIntervention } from 'src/api/api.fetch';
+import { presingedUrl, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -313,6 +313,10 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
         }
     };
     const handleTreeImage = async (el) => {
+        if (!v3Approved) {
+            await OldhandleTreeImage(el)
+            return
+        }
         try {
             console.log("handleTreeImage");
             const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
@@ -365,37 +369,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 }
             });
 
-            /* Alternative Method 2: Using raw buffer (if you have the file object)
-            
-            // Fixed: Properly handle the file buffer
-            let buffer;
-            if (el.file) {
-                // If you have a File object
-                buffer = await el.file.arrayBuffer();
-            } else if (el.imageUri) {
-                // If you have a URI, convert it to buffer
-                const response = await fetch(el.imageUri);
-                buffer = await response.arrayBuffer();
-            } else {
-                throw new Error("No image file or URI provided");
-            }
-    
-            const uploadResponse = await fetch(signedUrl, {
-                method: 'PUT',
-                body: buffer,
-                headers: {
-                    'Content-Type': 'image/jpg',
-                }
-            });
-            */
-
             if (!uploadResponse.ok) {
                 throw new Error(`Upload failed with status: ${uploadResponse.status}`);
             }
 
             console.log("Image uploaded successfully");
-
-            // Uncommented and fixed the success handling
             if (uploadResponse.ok) {
                 await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
             } else {
@@ -419,6 +397,48 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             return false; // Return false to indicate failure
         }
     };
+
+    const OldhandleTreeImage = async (el) => {
+        try {
+            const { pData, fixRequired, error, message } = await getPostBody(el, uType, v3Approved);
+            if (fixRequired !== 'NO') {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Intervention fix require ' + message,
+                    logLevel: 'error',
+                    statusCode: '',
+                    logStack: JSON.stringify(error),
+                })
+            }
+            if (!pData) {
+                throw new Error("Not able to convert body");
+            }
+            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
+                imageFile: pData.imageFile
+            });
+            if (success && response.status === "complete") {
+                const cdnImage = response.image || ''
+                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Image Upload API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Image Upload API response error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
         for (const el of d) {
             if (!isConnected) {

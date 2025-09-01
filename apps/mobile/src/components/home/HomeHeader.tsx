@@ -132,11 +132,10 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType && !serverInterventionAdded && !isSyncing) {
-      // addServerIntervention()
-      //TODO now // Server823
+    if (userType!=='' && !serverInterventionAdded && !isSyncing && isLoggedIn) {
+      addServerIntervention()
     }
-  }, [userType, lastServerInterventionpage, expiringAt])
+  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn])
 
 
   const checkInternetConnectivity = async () => {

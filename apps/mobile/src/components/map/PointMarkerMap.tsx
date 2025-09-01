@@ -76,7 +76,7 @@ const PointMarkerMap = (props: Props) => {
 
   useEffect(() => {
     if (mapRender) {
-      handleCamera()
+      handleCamera2()
     }
   }, [currentUserLocation])
 
@@ -99,6 +99,19 @@ const PointMarkerMap = (props: Props) => {
   }
 
   const handleCamera = () => {
+    if (currentUserLocation[0] === 0) {
+      return
+    }
+    if (cameraRef?.current) {
+      cameraRef.current.setCamera({
+        centerCoordinate: [...currentUserLocation],
+        zoomLevel: 15,
+        animationDuration: 1000,
+      })
+    }
+  }
+
+    const handleCamera2 = () => {
     if (currentUserLocation[0] === 0) {
       return
     }

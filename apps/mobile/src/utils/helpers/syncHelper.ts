@@ -127,7 +127,7 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
         }
         return convertTreeToBody(Intervention, TreeDetails, projectRequire)
     }
-    if (r.type === 'treeImage') {
+    if (r.type === 'treeImage' && projectRequire) {
         try {
             const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
             if (TreeDetails.sloc_id === '') {
@@ -145,6 +145,24 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
     }
+    if (r.type === 'treeImage' && !projectRequire) {
+        try {
+            const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+            if (TreeDetails.sloc_id === '') {
+                return null
+            }
+            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
+            const body = {
+                imageFile: `data:image/png;base64,${base64Image}`,
+                locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
+                imageId: TreeDetails.image_data.coordinateID
+            };
+            return { pData: body, message: '', fixRequired: "NO", error: "" }
+        } catch (error) {
+            return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
+        }
+    }
+
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
