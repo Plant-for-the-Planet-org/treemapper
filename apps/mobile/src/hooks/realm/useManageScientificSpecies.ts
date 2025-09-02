@@ -114,7 +114,6 @@ const useManageScientificSpecies = () => {
 
   const addUserSpecies = async (item: ServerSpeciesSync[]) => {
     try {
-      console.log("addUserSpecies",item)
       realm.write(() => {
         item.forEach(specie => {
           const data = {

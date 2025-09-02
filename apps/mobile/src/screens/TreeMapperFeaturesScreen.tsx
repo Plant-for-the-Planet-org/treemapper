@@ -46,7 +46,7 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   const handleRequestAccess = async () => {
     setIsLoading(true);
     try {
-      const response = await sendFeatureRequest(accessToken)
+      const response = await sendFeatureRequest()
       if (response.success) {
         dispatch(updateNewFeatureRequest())
         setShowSuccessModal(true);
@@ -350,14 +350,36 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
               <TouchableOpacity
                 style={[styles.requestButton, isLoading || newFeatureRequest ? styles.requestButtonDisabled : {}]}
                 onPress={handleRequestAccess}
-              // disabled={isLoading || newFeatureRequest}
+                disabled={isLoading || newFeatureRequest}
               >
                 {isLoading ? (
-                  <ActivityIndicator size="small" color="white" />
+                  <>
+                    <Text style={styles.requestButtonText}>Processing</Text>
+                    <ActivityIndicator size="small" color="white" /></>
                 ) : (
                   <>
                     <Ionicons name="rocket-outline" size={20} color="white" />
-                    <Text style={styles.requestButtonText}>{newFeatureRequest ? "Request Access to Beta Features" : "Request Access to Beta Features"}</Text>
+                    <Text style={styles.requestButtonText}>Request Access to Beta Features</Text>
+                  </>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>}
+
+          {!newFeatureRequest ? null : <View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
+            <View style={styles.requestSection}>
+              <TouchableOpacity
+                style={[styles.requestButton, styles.requestButtonDisabled]}
+                disabled={true}
+              >
+                {isLoading ? (
+                  <>
+                    <Text style={styles.requestButtonText}>Processing</Text>
+                    <ActivityIndicator size="small" color="white" /></>
+                ) : (
+                  <>
+                    <Ionicons name="hourglass" size={20} color="white" />
+                    <Text style={styles.requestButtonText}>You'r request is in process</Text>
                   </>
                 )}
               </TouchableOpacity>
@@ -614,7 +636,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   requestButtonDisabled: {
-    opacity: 0.7,
+    backgroundColor:'lightgray'
   },
   requestButtonText: {
     color: 'white',
