@@ -21,7 +21,6 @@ const defaultHeaders = {
 }
 
 const fetchCall = async (method: string, uri: string, params: any = null, authRequire: boolean = true) => {
-  console.log("API URL",method,":", uri)
   try {
     const token = store.getState().appState.accessToken;
     if (!token && authRequire) {
