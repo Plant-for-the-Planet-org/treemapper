@@ -203,6 +203,19 @@ const geometryWithGeoJSON = (srid?: number) =>
     },
   });
 
+export const migrationRequest = pgTable('migration_request', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  status: migrationStatusEnum('status').default('in_progress').notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  flag: boolean('flag').default(false),
+  flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+}, (table) => ({
+  migrationReqeuestIdIdx: index('migration_request_id_idx').on(table.userId)
+}))
+
 
 
 
@@ -282,6 +295,7 @@ export const user = pgTable('user', {
   migratedAt: timestamp('migrated_at', { withTimezone: true }),
   existingPlanetUser: boolean('existing_planet_user').default(false),
   workspaceRole: workspaceRoleEnum('workspace_role').default('member'),
+  v3ApprovedAt: timestamp('v3_approved_at', { withTimezone: true })
 }, () => ({
   emailFormat: check('email_format', sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
 }));
@@ -455,13 +469,7 @@ export const auditLog = pgTable('audit_log', {
     .where(sql`user_id IS NOT NULL`),
   workspaceAuditIdx: index('audit_log_workspace_audit_idx')
     .on(table.workspaceId, table.occurredAt)
-    .where(sql`workspace_id IS NOT NULL`),
-  validEntityId: check('valid_entity_id',
-    sql`entity_id > 0`),
-  validSource: check('valid_source',
-    sql`source IN ('web', 'mobile', 'api', 'system', 'migration')`),
-  occurredAtNotFuture: check('occurred_at_not_future',
-    sql`occurred_at <= NOW()`),
+    .where(sql`workspace_id IS NOT NULL`)
 }))
 
 
@@ -905,6 +913,8 @@ export const interventionSpecies = pgTable('intervention_species', {
   speciesCount: integer('species_count').notNull(),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+
 }, (table) => ({
   interventionSpeciesIdx: index('intervention_species_intervention_idx').on(table.interventionId),
   unknownSpeciesLogic: check('unknown_species_logic',
@@ -1047,6 +1057,7 @@ export const userRelations = relations(user, ({ many }) => ({
   interventions: many(intervention, { relationName: 'userInterventions' }),
   notifications: many(notifications),
   migrations: many(migration),
+  migrationRequest: many(migrationRequest),
   speciesRequests: many(speciesRequest, { relationName: 'requestedBy' }),
   reviewedSpeciesRequests: many(speciesRequest, { relationName: 'reviewedBy' }),
   workspaceMemberships: many(workspaceMember),
@@ -1202,6 +1213,13 @@ export const migrationRelations = relations(migration, ({ one, many }) => ({
     references: [user.id],
   }),
   logs: many(migrationLog),
+}));
+
+export const migrationRequestRelation = relations(migrationRequest, ({ one, many }) => ({
+  user: one(user, {
+    fields: [migrationRequest.userId],
+    references: [user.id],
+  }),
 }));
 
 export const migrationLogRelations = relations(migrationLog, ({ one }) => ({

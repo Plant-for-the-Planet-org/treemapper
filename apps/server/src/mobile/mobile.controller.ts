@@ -5,6 +5,7 @@ import {
   Body,
   UseGuards,
   Req,
+  Headers, Put
 } from '@nestjs/common';
 import { ProjectRoles } from './decorators/project-roles.decorator';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
@@ -26,56 +27,50 @@ import { UsersService } from 'src/users/users.service';
 export class MobileController {
   constructor(private readonly appservice: MobileService, private readonly usersService: UsersService,) { }
 
-  @Get('health')
-  async mobileHealthCheck() {
-    return "Mobile Api running"
-  }
-
 
   @Get('user/profile')
   async getUserDetails(
-    @CurrentUser() user: ExtendedUser,
+    @CurrentUser() userData: ExtendedUser,
+    @Headers('authorization') authorization: string,
   ): Promise<any> {
-    return {
-      country: '',
-      created: '',
-      displayName: user.displayName,
-      email: user.email,
-      firstName: user.firstName,
-      id: user.uid,
-      image: user.image,
-      isPrivate: false,
-      lastName: user.lastName,
-      locale: user.locale,
-      name: user.displayName,
-      slug: user.slug,
-      type: 'private',
-    };
+    return this.appservice.getUserDetails(userData, authorization)
+  }
+
+
+  @Post('user/profile')
+  async updateProfieDetails(
+    @CurrentUser() userData: User,
+    @Body() userBody: any,
+  ): Promise<InterventionResponseDto> {
+    return this.appservice.updateUserDetails(userBody, userData);
   }
 
   @Get('user/projects')
   async getMyProjects(
-    @CurrentUser() userData: ExtendedUser,
+    @Req() req: any,
   ): Promise<any> {
-    return await this.appservice.getProjectsAndSitesForUser(userData);
+    return await this.appservice.getProjectsAndSitesForUser(req.user.id);
   }
 
-  //   @Get('species/:id')
-  //   @ProjectRoles('owner', 'admin', 'contributor')
-  //   @UseGuards(ProjectPermissionsGuard)
-  //   async getProjectSpecies(
-  //     @Membership() membership: ProjectGuardResponse
-  //   ): Promise<any> {
-  //     return await this.appservice.getProjectSpecies(membership);
-  //   }
 
-  //   @Post('presigned-url')
-  //   async getSignedUrl(
-  //     @Body() dto: CreatePresignedUrlDto,
-  //     @CurrentUser() user: User) {
-  //     return await this.usersService.generateR2Url(dto);
-  //   }
+  @Post('project')
+  async createNewProject(
+    @Body() createInterventionDto: any,
+    @CurrentUser() userData: ExtendedUser
+  ): Promise<any> {
+    return this.appservice.createNewProject(createInterventionDto, userData);
+  }
 
+
+  @Post('site')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createNewSite(
+    @Body() createInterventionDto: any,
+    @Membership() membership: any
+  ): Promise<any> {
+    return this.appservice.createNewSite(createInterventionDto, membership.userId);
+  }
 
   @Post('project/:id/intervention')
   @ProjectRoles('owner', 'admin', 'contributor')
@@ -87,12 +82,33 @@ export class MobileController {
     return this.appservice.createNewInterventionMobile(createInterventionDto, membership);
   }
 
-  //   @Post('image/intervention')
-  //   async updateInterventionImage(
-  //     @Req() req: any,
-  //     @Body() imageData: any,
-  //   ): Promise<InterventionResponseDto> {
-  //     return this.appservice.updateInterventionImage(imageData, req.user.id);
-  //   }
 
+  @Post('signedurl')
+  async getSignedUrl(
+    @Body() dto: CreatePresignedUrlDto,
+    @CurrentUser() user: User) {
+    return await this.usersService.generateR2Url(dto);
+  }
+
+
+
+
+  @Get('species/:id')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getProjectSpecies(
+    @Membership() membership: ProjectGuardResponse
+  ): Promise<any> {
+    return await this.appservice.getFavoriteSpeciesInProject(membership.projectId);
+  }
+
+
+
+  @Post('request/features')
+  async requestMigration(
+    @Headers('authorization') authorization: string,
+    @CurrentUser() userData: any,
+  ): Promise<any> {
+    return await this.appservice.requestMigration(userData, authorization);
+  }
 }

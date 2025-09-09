@@ -1,6 +1,7 @@
 export const CACHE_KEYS = {
   USER: {
     BY_AUTH0_ID: (auth0Id: string) => `user:auth0:${auth0Id}`,
+    BY_AUTH0_MIGRATION: (auth0Id: string) => `user:migration:${auth0Id}`,
     BY_EMAIL: (email: string) => `user:email:${email}`,
     BY_ID: (id: number) => `user:id:${id}`,
     BY_UID: (uid: string) => `user:uid:${uid}`,

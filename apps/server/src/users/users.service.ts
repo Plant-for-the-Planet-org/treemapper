@@ -47,6 +47,7 @@ export class UsersService {
         primaryWorkspaceUid: user.primaryWorkspaceUid,
         primaryProjectUid: user.primaryProjectUid,
         workspaceRole: user.workspaceRole,
+        v3ApprovedAt: user.v3ApprovedAt
     } as const;
 
     private generateSlug(name: string): string {

@@ -8,4 +8,5 @@ export type PublicUser = Omit<User, 'auth0Id' | 'supportPin' | 'deletedAt' | 'id
 
 export type ExtendedUser = User & {
   impersonated?: boolean;
+  v3Approved?: boolean
 };

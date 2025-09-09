@@ -11,17 +11,15 @@ export class MigrationController {
         private readonly migrationService: MigrationService) { }
 
     @Post('start')
-    async startMigration(@Body() body: { planetId: string }, @Req() req: any, @CurrentUser() userData:User) {
-        const authToken = req.headers.authorization?.replace('Bearer ', '');
-
-        if (!authToken) {
-            throw new Error('Authorization token required');
+    async startMigration(@Body() body: { planetId: string, token: string }, @CurrentUser() userData: User) {
+        if (userData.type !== 'superadmin') {
+            throw new Error('No authorized to migrate user');
         }
-
+        if (!body.planetId) {
+            throw "Bad request"
+        }
         this.migrationService.startUserMigration(
-            body.planetId,
-            authToken,
-            userData
+            body.planetId
         ).catch(error => {
             console.error('Migration failed:', error);
         });

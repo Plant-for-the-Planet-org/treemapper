@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ConflictException, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ConflictException, HttpException, HttpStatus, ForbiddenException, InternalServerErrorException } from '@nestjs/common';
 import { and, eq, desc, asc, like, gte, lte, inArray, sql, count, isNull, or, ilike } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
 import {
@@ -710,7 +710,7 @@ export class InterventionsService {
       .from(intervention)
       .leftJoin(site, eq(intervention.siteId, site.id))
       .leftJoin(user, eq(intervention.userId, user.id))
-      .where(and(...whereConditions))
+      .where(and(...whereConditions, isNull(intervention.deletedAt)))
       .orderBy(
         sortOrder === SortOrderEnum.DESC
           ? desc(intervention.createdAt)
@@ -1767,8 +1767,87 @@ export class InterventionsService {
     projectId: number,
     searchParams: any,
   ): Promise<any> {
-
   }
+
+
+
+  async deleteMyIntervention(interventionUID: string) {
+    // Start transaction
+    return await this.drizzleService.db.transaction(async (tx) => {
+      try {
+        // 1. Find and validate intervention exists
+        const interventionData = await tx
+          .select()
+          .from(intervention)
+          .where(eq(intervention.uid, interventionUID))
+          .limit(1);
+
+        if (!interventionData || interventionData.length === 0) {
+          throw new NotFoundException('Intervention not found');
+        }
+
+        const interventionRecord = interventionData[0];
+
+        // 3. Check if already deleted
+        if (interventionRecord.deletedAt) {
+          throw new Error('Intervention is already deleted');
+        }
+
+        const deletedAt = new Date();
+        const interventionId = interventionRecord.id;
+
+        // 4. Soft delete intervention
+        await tx
+          .update(intervention)
+          .set({ deletedAt })
+          .where(eq(intervention.id, interventionId));
+
+        // 5. Soft delete intervention species
+        await tx
+          .update(interventionSpecies)
+          .set({ deletedAt })
+          .where(eq(interventionSpecies.interventionId, interventionId));
+
+        // 6. Soft delete related trees
+        await tx
+          .update(tree)
+          .set({ deletedAt })
+          .where(eq(tree.interventionId, interventionId));
+
+        // 7. Soft delete tree records (for trees in this intervention)
+        const treesToDelete = await tx
+          .select({ id: tree.id })
+          .from(tree)
+          .where(eq(tree.interventionId, interventionId));
+
+        if (treesToDelete.length > 0) {
+          const treeIds = treesToDelete.map(t => t.id);
+          await tx
+            .update(treeRecord)
+            .set({ deletedAt })
+            .where(inArray(treeRecord.treeId, treeIds));
+        }
+
+        return {
+          success: true,
+          message: 'Intervention deleted successfully'
+        };
+
+      } catch (error) {
+        // Re-throw known errors
+        if (error instanceof NotFoundException ||
+          error instanceof ForbiddenException) {
+          throw error;
+        }
+
+        // Log unexpected errors and throw internal server error
+        console.error('Error deleting intervention:', error);
+        throw new InternalServerErrorException('Failed to delete intervention');
+      }
+    });
+  }
+
+
   async getProjectMapInterventions(projectId: number): Promise<any> {
     try {
       // Validate projectId
@@ -2013,6 +2092,7 @@ export class InterventionsService {
    * Get all trees for a specific intervention
    */
   async getInterventionTrees(interventionId: number): Promise<InterventionTreesResponse> {
+    console.log("SDC", interventionId)
     // Get intervention details
     const interventionQuery = await this.drizzleService.db
       .select({

@@ -170,6 +170,15 @@ export class InterventionsController {
     }
   }
 
+  @Delete(':id/:interventionId')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async deleteMyIntervention(@Param('interventionId') interventionId: string, @Membership() membership: ProjectGuardResponse,) {
+    const data = await this.interventionsService.deleteMyIntervention(interventionId);
+    return data
+  }
+
+
   @Get(':id/map/all')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
