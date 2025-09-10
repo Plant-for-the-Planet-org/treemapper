@@ -29,7 +29,7 @@
     "dev:fullstack": "concurrently \"turbo dev --filter=web\" \"turbo dev --filter=server\""
   },
   "engines": {
-    "node": "23.x.x"
+    "node": "22.x.x"
   },
   "packageManager": "yarn@1.22.19",
   "workspaces": [
