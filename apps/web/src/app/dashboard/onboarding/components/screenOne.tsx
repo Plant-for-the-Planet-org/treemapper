@@ -21,6 +21,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       title: 'Plant-for-the-Planet Platform',
       subtitle: 'To contribute to global reforestation efforts with transparent data sharing.',
       description: 'Data is shared publicly',
+      recommended: true,
       icon: <Image
         src="/pftp-logo.svg"
         alt="TreeMapper Logo"
@@ -36,7 +37,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       subtitle: 'Use TreeMapper for my Company/City/Personal use.',
       description: 'Data is kept private to you',
       icon: <Lock className="w-5 h-5" />,
-      recommended: !forProject ? true : false
+      recommended: false
 
     },
     {
@@ -72,7 +73,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
   }, []);
 
   const canProceed = useCallback(() => {
-    return formData.projectName.trim() && !errors.projectName && formData.selectedPlan;
+    return formData.projectName.trim() && !errors.projectName && formData.selectedPlan && formData.selectedPlan !=='public';
   }, [formData.projectName, formData.selectedPlan, errors.projectName]);
 
   const handleSubmit = useCallback(() => {
@@ -102,7 +103,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       </div>
 
       {/* Project Name Card */}
-      <Card>
+      <Card >
         <CardContent className="space-y-4">
           <CardDescription>
             Choose a name for your project
@@ -134,7 +135,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
               <Card
                 key={plan.id}
                 className={`cursor-pointer transition-all hover:shadow-md relative ${formData.selectedPlan === plan.id
-                  ? 'ring-2 ring-[#007A49] border-[#006B3F]'
+                  ? plan.recommended===true?'ring-2 ring-[#808080] border-[#808080]': 'ring-2 ring-[#007A49] border-[#006B3F]'
                   : 'hover:border-gray-300'
                   }`}
                 onClick={() => handlePlanSelect(plan.id)}
@@ -142,23 +143,23 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
                 {plan.recommended && (
                   <Badge
                     variant="default"
-                    className="absolute -top-2 left-4 bg-[#007A49] z-10"
+                    className="absolute -top-2 left-4 bg-[#808080] z-10"
                   >
-                    Recommended
+                    Coming soon
                   </Badge>
                 )}
                 <CardContent className="p-4 h-full">
                   <div className="flex flex-col space-y-3 h-full">
                     <>
                       <div className="flex items-center justify-between">
-                        <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id
+                        <div className={`p-2 rounded-md ${formData.selectedPlan === plan.id && plan.recommended!==true
                           ? 'bg-[#007A49] text-[#fff]'
                           : 'bg-gray-100 text-gray-600'
                           }`}>
                           {plan.icon}
                         </div>
                         {formData.selectedPlan === plan.id && (
-                          <Check className="w-5 h-5 text-[#007A49]" />
+                          <Check className={`w-5 h-5 ${plan.recommended===true?'text-[#808080]':'text-[#007A49]'}`} />
                         )}
                       </div>
 

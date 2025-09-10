@@ -353,7 +353,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 isLoading={appState === 'idle' || appState === 'loading'}
               />
             )}
-            {/* {renderMainContent()} */}
+            {renderMainContent()}
             <MigrationModal/>
           </div>
         </div>

@@ -46,7 +46,6 @@ const ProjectDropdown = ({
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
 
-  console.log("SDcCD", selectedWorkspce)
   // Group projects by workspace and sort
   const groupedProjects = () => {
     const groups: { [key: string]: WorkspaceGroup } = {};
