@@ -1,5 +1,5 @@
 # Use Node.js 23 alpine
-FROM node:23-alpine AS base
+FROM node:22-alpine AS base
 
 # Install system dependencies once
 RUN apk add --no-cache libc6-compat
