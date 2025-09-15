@@ -8,6 +8,8 @@ import {
   ActivityIndicator,
   Alert,
   SafeAreaView,
+  StatusBar,
+  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Modal from 'react-native-modal';
@@ -16,18 +18,21 @@ import { sendFeatureRequest } from 'src/api/api.fetch';
 import { useDispatch, useSelector } from 'react-redux';
 import { updateNewFeatureRequest } from 'src/store/slice/appStateSlice';
 import { RootState } from 'src/store';
+import BackIcon from 'assets/images/svg/BackIcon.svg'
+
+const { width } = Dimensions.get('window');
 
 const TreeMapperFeaturesScreen = ({ navigation }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [showErrorModal, setShowErrorModal] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
-  const dispatch = useDispatch()
-  const newFeatureRequest = useSelector((state: RootState) => state.appState.newFeatureRequest)
-  const accessToken = useSelector((state: RootState) => state.appState.accessToken)
+  const dispatch = useDispatch();
+  const newFeatureRequest = useSelector((state: RootState) => state.appState.newFeatureRequest);
+  const accessToken = useSelector((state: RootState) => state.appState.accessToken);
 
   const [expandedSections, setExpandedSections] = useState({
-    features: false,
+    features: true,
     faq: false,
     whatsNext: false,
   });
@@ -39,16 +44,12 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     }));
   };
 
-  const handleBackPress = () => {
-    navigation.goBack();
-  };
-
   const handleRequestAccess = async () => {
     setIsLoading(true);
     try {
-      const response = await sendFeatureRequest()
+      const response = await sendFeatureRequest();
       if (response.success) {
-        dispatch(updateNewFeatureRequest())
+        dispatch(updateNewFeatureRequest());
         setShowSuccessModal(true);
       } else {
         throw new Error('Failed to send request');
@@ -65,7 +66,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 1,
       title: 'Role Management',
-      icon: 'people-outline',
+      icon: 'people',
+      color: '#007A49',
       description: 'Comprehensive user access control with workspace and project-level permissions.',
       details: [
         'Workspace roles: Owner, Admin, Member',
@@ -77,7 +79,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 2,
       title: 'Intervention Management',
-      icon: 'create-outline',
+      icon: 'create',
+      color: '#2E86C1',
       description: 'Advanced tools for managing and editing intervention data.',
       details: [
         'Edit existing intervention records',
@@ -89,7 +92,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 3,
       title: 'Audit Logging',
-      icon: 'document-text-outline',
+      icon: 'document-text',
+      color: '#8E44AD',
       description: 'Complete tracking of all changes and actions in your workspace.',
       details: [
         'Track all user actions and data changes',
@@ -101,7 +105,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 4,
       title: 'Email & Bulk Invitations',
-      icon: 'mail-outline',
+      icon: 'mail',
+      color: '#E67E22',
       description: 'Streamlined team collaboration with advanced invitation features.',
       details: [
         'Send bulk invitations to multiple users',
@@ -113,7 +118,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 5,
       title: 'Advanced Site Management',
-      icon: 'location-outline',
+      icon: 'location',
+      color: '#E74C3C',
       description: 'Enhanced site planning and status tracking capabilities.',
       details: [
         'Detailed site status tracking (planned, active, completed)',
@@ -125,7 +131,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 6,
       title: 'Tree Health Monitoring',
-      icon: 'leaf-outline',
+      icon: 'leaf',
+      color: '#27AE60',
       description: 'Comprehensive tree health assessment and tracking system.',
       details: [
         'Detailed health scoring (0-100 scale)',
@@ -137,7 +144,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 7,
       title: 'Notification System',
-      icon: 'notifications-outline',
+      icon: 'notifications',
+      color: '#F39C12',
       description: 'Real-time updates and alerts for important project activities.',
       details: [
         'Project milestone notifications',
@@ -149,7 +157,8 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     {
       id: 8,
       title: 'Analytics & KPIs',
-      icon: 'analytics-outline',
+      icon: 'analytics',
+      color: '#3498DB',
       description: 'Powerful insights and key performance indicators for your projects.',
       details: [
         'Tree survival and growth rates',
@@ -199,28 +208,36 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   ];
 
   const migrationData = [
-    'User profiles and workspace data',
-    'All project information and settings',
-    'Site locations and planning data',
-    'Tree records and measurement history',
-    'Species catalogs and project species',
-    'Intervention data and status',
-    'Images and documentation',
-    'Team member roles and permissions'
+    { text: 'User profiles and workspace data', icon: 'person-outline' },
+    { text: 'All project information and settings', icon: 'folder-outline' },
+    { text: 'Site locations and planning data', icon: 'map-outline' },
+    { text: 'Tree records and measurement history', icon: 'leaf-outline' },
+    { text: 'Species catalogs and project species', icon: 'library-outline' },
+    { text: 'Intervention data and status', icon: 'build-outline' },
+    { text: 'Images and documentation', icon: 'image-outline' },
+    { text: 'Team member roles and permissions', icon: 'people-outline' }
   ];
 
-  const AccordionSection = ({ title, icon, isExpanded, onToggle, children }) => (
+  const AccordionSection = ({ title, icon, isExpanded, onToggle, children, color = '#007A49' }) => (
     <View style={styles.accordionContainer}>
-      <TouchableOpacity style={styles.accordionHeader} onPress={onToggle}>
+      <TouchableOpacity
+        style={[styles.accordionHeader, { borderLeftColor: color, borderLeftWidth: 4 }]}
+        onPress={onToggle}
+        activeOpacity={0.7}
+      >
         <View style={styles.accordionHeaderLeft}>
-          <Ionicons name={icon} size={24} color="#007A49" />
+          <View style={[styles.iconContainer, { backgroundColor: `${color}15` }]}>
+            <Ionicons name={icon} size={20} color={color} />
+          </View>
           <Text style={styles.accordionTitle}>{title}</Text>
         </View>
-        <Ionicons
-          name={isExpanded ? 'chevron-up' : 'chevron-down'}
-          size={24}
-          color="#666"
-        />
+        <View style={[styles.chevronContainer, { backgroundColor: isExpanded ? `${color}10` : 'transparent' }]}>
+          <Ionicons
+            name={isExpanded ? 'chevron-up' : 'chevron-down'}
+            size={20}
+            color={color}
+          />
+        </View>
       </TouchableOpacity>
       {isExpanded && (
         <View style={styles.accordionContent}>
@@ -231,16 +248,20 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
   );
 
   const FeatureCard = ({ feature }) => (
-    <View style={styles.featureCard}>
+    <View style={[styles.featureCard, { borderLeftColor: feature.color }]}>
       <View style={styles.featureHeader}>
-        <Ionicons name={feature.icon} size={20} color="#007A49" />
+        <View style={[styles.featureIconContainer, { backgroundColor: `${feature.color}15` }]}>
+          <Ionicons name={feature.icon} size={24} color={feature.color} />
+        </View>
         <Text style={styles.featureTitle}>{feature.title}</Text>
       </View>
       <Text style={styles.featureDescription}>{feature.description}</Text>
       <View style={styles.featureDetails}>
         {feature.details.map((detail, index) => (
           <View key={index} style={styles.detailItem}>
-            <Text style={styles.bullet}>•</Text>
+            <View style={[styles.bulletContainer, { backgroundColor: `${feature.color}20` }]}>
+              <Text style={[styles.bullet, { color: feature.color }]}>•</Text>
+            </View>
             <Text style={styles.detailText}>{detail}</Text>
           </View>
         ))}
@@ -255,148 +276,200 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
     </View>
   );
 
+  const StepCard = ({ number, title, description, children, isLast }) => (
+    <View style={styles.stepCard}>
+      <View style={styles.stepHeader}>
+        <View style={styles.stepNumber}>
+          <Text style={styles.stepNumberText}>{number}</Text>
+        </View>
+        <View style={styles.stepTitleContainer}>
+          <Text style={styles.stepTitle}>{title}</Text>
+          {!isLast && <View style={styles.stepConnector} />}
+        </View>
+      </View>
+      <View style={styles.stepContent}>
+        <Text style={styles.stepDescription}>{description}</Text>
+        {children}
+      </View>
+    </View>
+  );
+
+  const RequestButton = ({ onPress, disabled, loading, requested }) => {
+    const getButtonContent = () => {
+      if (loading) {
+        return (
+          <>
+            <ActivityIndicator size="small" color="white" style={{ marginRight: 8 }} />
+            <Text style={styles.requestButtonText}>Processing...</Text>
+          </>
+        );
+      }
+
+      if (requested) {
+        return (
+          <>
+            <Ionicons name="hourglass" size={20} color="white" style={{ marginRight: 8 }} />
+            <Text style={styles.requestButtonText}>Request in Progress</Text>
+          </>
+        );
+      }
+
+      return (
+        <>
+          <Ionicons name="rocket" size={20} color="white" style={{ marginRight: 8 }} />
+          <Text style={styles.requestButtonText}>Request Beta Access</Text>
+        </>
+      );
+    };
+
+    return (
+      <TouchableOpacity
+        style={[
+          styles.requestButton,
+          (disabled || loading || requested) && styles.requestButtonDisabled
+        ]}
+        onPress={onPress}
+        disabled={disabled || loading || requested}
+        activeOpacity={0.8}
+      >
+        {getButtonContent()}
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Header */}
-      <Header label={'New Features'} />
-      <View style={{ flex: 1 }}>
-        <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false} contentContainerStyle={{ minHeight: '100%' }}>
-          <View style={styles.introSection}>
-            <Text style={styles.introTitle}>🌱 Welcome to TreeMapper Beta</Text>
-            <Text style={styles.introText}>
-              Experience enhanced forestry management with our comprehensive new features designed to streamline your reforestation projects.
-            </Text>
+      <StatusBar barStyle="dark-content" backgroundColor="#FFF" />
+      <ScrollView
+        style={styles.scrollView}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          <View style={{ width: '100%', position: 'absolute' }}>
+            <TouchableOpacity style={{
+              width: 50,
+              height: 50,
+              position: 'absolute',
+              zIndex: 100,
+              top: 20,
+              left: 20
+            }} onPress={() => { navigation.goBack() }}><BackIcon onPress={() => { navigation.goBack() }} /></TouchableOpacity>
           </View>
+          <View style={styles.heroIconContainer}>
+            <Text style={styles.heroIcon}>🌱</Text>
+          </View>
+          <Text style={styles.heroTitle}>TreeMapper Beta</Text>
+          <Text style={styles.heroSubtitle}>Next-Generation Forestry Management</Text>
+          <Text style={styles.heroDescription}>
+            Experience enhanced forestry management with comprehensive new features designed to streamline your reforestation projects and maximize impact.
+          </Text>
+        </View>
 
-          {/* New Features Accordion */}
+        {/* Features Section */}
+        <View style={{ flex: 1, paddingHorizontal: 20 }}>
           <AccordionSection
             title="New Features"
-            icon="sparkles-outline"
+            icon="sparkles"
             isExpanded={expandedSections.features}
             onToggle={() => toggleSection('features')}
+            color="#007A49"
           >
-            {features.map((feature) => (
-              <FeatureCard key={feature.id} feature={feature} />
-            ))}
+            <View style={styles.featuresGrid}>
+              {features.map((feature) => (
+                <FeatureCard key={feature.id} feature={feature} />
+              ))}
+            </View>
           </AccordionSection>
 
-          {/* FAQ Accordion */}
+          {/* FAQ Section */}
           <AccordionSection
             title="Frequently Asked Questions"
-            icon="help-circle-outline"
+            icon="help-circle"
             isExpanded={expandedSections.faq}
             onToggle={() => toggleSection('faq')}
+            color="#3498DB"
           >
-            {faqData.map((faq) => (
-              <FAQItem key={faq.id} faq={faq} />
-            ))}
+            <View style={styles.faqContainer}>
+              {faqData.map((faq) => (
+                <FAQItem key={faq.id} faq={faq} />
+              ))}
+            </View>
           </AccordionSection>
 
-          {/* What's Next Accordion */}
+          {/* Process Section */}
           <AccordionSection
             title="What's Next?"
-            icon="rocket-outline"
+            icon="rocket"
             isExpanded={expandedSections.whatsNext}
             onToggle={() => toggleSection('whatsNext')}
+            color="#8E44AD"
           >
-            <View style={styles.processStep}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>1</Text>
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>Personal Contact</Text>
-                <Text style={styles.stepDescription}>
-                  Someone from the TreeMapper team will connect with you to discuss your specific needs and setup requirements.
-                </Text>
-              </View>
-            </View>
+            <View style={styles.processContainer}>
+              <StepCard
+                number="1"
+                title="Personal Contact"
+                description="Someone from the TreeMapper team will connect with you to discuss your specific needs and setup requirements."
+              />
 
-            <View style={styles.processStep}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>2</Text>
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>Data Migration</Text>
-                <Text style={styles.stepDescription}>
-                  All your existing data will be seamlessly migrated to the new dashboard:
-                </Text>
-                <View style={styles.migrationList}>
+              <StepCard
+                number="2"
+                title="Data Migration"
+                description="All your existing data will be seamlessly migrated to the new dashboard:"
+              >
+                <View style={styles.migrationGrid}>
                   {migrationData.map((item, index) => (
                     <View key={index} style={styles.migrationItem}>
-                      <Ionicons name="checkmark-circle" size={16} color="#007A49" />
-                      <Text style={styles.migrationText}>{item}</Text>
+                      <View style={styles.migrationIconContainer}>
+                        <Ionicons name={item.icon} size={16} color="#007A49" />
+                      </View>
+                      <Text style={styles.migrationText}>{item.text}</Text>
                     </View>
                   ))}
                 </View>
-              </View>
-            </View>
+              </StepCard>
 
-            <View style={styles.processStep}>
-              <View style={styles.stepNumber}>
-                <Text style={styles.stepNumberText}>3</Text>
-              </View>
-              <View style={styles.stepContent}>
-                <Text style={styles.stepTitle}>Seamless Transition</Text>
-                <Text style={styles.stepDescription}>
-                  All new data registered through TreeMapper will automatically sync with your enhanced dashboard, ensuring continuous workflow.
-                </Text>
-              </View>
+              <StepCard
+                number="3"
+                title="Seamless Transition"
+                description="All new data registered through TreeMapper will automatically sync with your enhanced dashboard, ensuring continuous workflow."
+                isLast
+              />
             </View>
           </AccordionSection>
 
-          {/* Request Access Button */}
-          {newFeatureRequest ? null : <View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
-            <View style={styles.requestSection}>
-              <TouchableOpacity
-                style={[styles.requestButton, isLoading || newFeatureRequest ? styles.requestButtonDisabled : {}]}
-                onPress={handleRequestAccess}
-                disabled={isLoading || newFeatureRequest}
-              >
-                {isLoading ? (
-                  <>
-                    <Text style={styles.requestButtonText}>Processing</Text>
-                    <ActivityIndicator size="small" color="white" /></>
-                ) : (
-                  <>
-                    <Ionicons name="rocket-outline" size={20} color="white" />
-                    <Text style={styles.requestButtonText}>Request Access to Beta Features</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>}
+        </View>
 
-          {!newFeatureRequest ? null : <View style={{ flex: 1, justifyContent: "flex-end", alignItems: 'center', width: '100%', paddingBottom: 50 }}>
-            <View style={styles.requestSection}>
-              <TouchableOpacity
-                style={[styles.requestButton, styles.requestButtonDisabled]}
-                disabled={true}
-              >
-                {isLoading ? (
-                  <>
-                    <Text style={styles.requestButtonText}>Processing</Text>
-                    <ActivityIndicator size="small" color="white" /></>
-                ) : (
-                  <>
-                    <Ionicons name="hourglass" size={20} color="white" />
-                    <Text style={styles.requestButtonText}>You'r request is in process</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>}
-        </ScrollView>
+        {/* Bottom Spacer */}
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
+
+      {/* Fixed Bottom Button */}
+      <View style={styles.fixedButtonContainer}>
+        <RequestButton
+          onPress={handleRequestAccess}
+          disabled={isLoading || newFeatureRequest}
+          loading={isLoading}
+          requested={newFeatureRequest}
+        />
       </View>
+
       {/* Success Modal */}
       <Modal
         isVisible={showSuccessModal}
         animationIn="zoomIn"
         animationOut="zoomOut"
-        backdropOpacity={0.5}
+        animationInTiming={300}
+        animationOutTiming={200}
+        backdropOpacity={0.6}
         onBackdropPress={() => setShowSuccessModal(false)}
+        style={styles.modal}
       >
         <View style={styles.modalContent}>
-          <Ionicons name="checkmark-circle" size={60} color="#007A49" />
+          <View style={styles.modalIconContainer}>
+            <Ionicons name="checkmark-circle" size={60} color="#007A49" />
+          </View>
           <Text style={styles.modalTitle}>Request Sent Successfully!</Text>
           <Text style={styles.modalMessage}>
             Thank you for your interest! Someone from the TreeMapper team will contact you soon regarding access to the beta features.
@@ -404,6 +477,7 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
           <TouchableOpacity
             style={styles.modalButton}
             onPress={() => setShowSuccessModal(false)}
+            activeOpacity={0.8}
           >
             <Text style={styles.modalButtonText}>Got it</Text>
           </TouchableOpacity>
@@ -415,18 +489,22 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
         isVisible={showErrorModal}
         animationIn="zoomIn"
         animationOut="zoomOut"
-        backdropOpacity={0.5}
+        animationInTiming={300}
+        animationOutTiming={200}
+        backdropOpacity={0.6}
         onBackdropPress={() => setShowErrorModal(false)}
+        style={styles.modal}
       >
         <View style={styles.modalContent}>
-          <Ionicons name="alert-circle" size={60} color="#DC3545" />
+          <View style={styles.modalIconContainer}>
+            <Ionicons name="alert-circle" size={60} color="#E74C3C" />
+          </View>
           <Text style={styles.modalTitle}>Request Failed</Text>
-          <Text style={styles.modalMessage}>
-            {errorMessage}
-          </Text>
+          <Text style={styles.modalMessage}>{errorMessage}</Text>
           <TouchableOpacity
             style={[styles.modalButton, styles.errorButton]}
             onPress={() => setShowErrorModal(false)}
+            activeOpacity={0.8}
           >
             <Text style={styles.modalButtonText}>Try Again</Text>
           </TouchableOpacity>
@@ -439,190 +517,289 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FFF',
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: 'white',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5',
-  },
-  backButton: {
-    padding: 8,
-  },
-  headerTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#333',
-    textAlign: 'center',
-    marginRight: 40,
-  },
-  headerSpacer: {
-    width: 40,
+    backgroundColor: '#F8FAFB',
   },
   scrollView: {
     flex: 1,
   },
-  introSection: {
-    padding: 20,
-    backgroundColor: 'white',
-    marginBottom: 12,
+  scrollContent: {
+    paddingBottom: 100, // Space for fixed button
   },
-  introTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 12,
+
+  // Hero Section
+  heroSection: {
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 32,
+    alignItems: 'center',
+    marginBottom: 16,
+    marginTop: 50
   },
-  introText: {
+  heroIconContainer: {
+    width: 80,
+    height: 80,
+    backgroundColor: '#F0F8F4',
+    borderRadius: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  heroIcon: {
+    fontSize: 36,
+  },
+  heroTitle: {
+    fontSize: 28,
+    fontWeight: '700',
+    color: '#1A202C',
+    textAlign: 'center',
+    marginBottom: 4,
+  },
+  heroSubtitle: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: '#007A49',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  heroDescription: {
     fontSize: 16,
     lineHeight: 24,
-    color: '#666',
+    color: '#64748B',
+    textAlign: 'center',
+    maxWidth: '90%',
   },
+
+  // Accordion Sections
   accordionContainer: {
-    backgroundColor: 'white',
-    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    marginBottom: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
+
   },
   accordionHeader: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
+    paddingHorizontal: 20,
+    paddingVertical: 18,
+    backgroundColor: '#FFFFFF',
   },
   accordionHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
   },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
   accordionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
-    marginLeft: 12,
+    color: '#1A202C',
+  },
+  chevronContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   accordionContent: {
-    padding: 20,
-    paddingTop: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: '#FAFBFC',
+  },
+
+  // Features
+  featuresGrid: {
+    gap: 16,
+    marginTop: 10
   },
   featureCard: {
-    backgroundColor: '#F8F9FA',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
     borderLeftWidth: 4,
-    borderLeftColor: '#007A49',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
   },
   featureHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
-  },
-  featureTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginLeft: 10,
-  },
-  featureDescription: {
-    fontSize: 14,
-    color: '#666',
     marginBottom: 12,
   },
-  featureDetails: {
-    marginTop: 8,
-  },
-  detailItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 6,
-  },
-  bullet: {
-    color: '#007A49',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginRight: 8,
-    marginTop: 2,
-  },
-  detailText: {
-    fontSize: 13,
-    color: '#555',
-    flex: 1,
-    lineHeight: 18,
-  },
-  faqItem: {
-    marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#F0F0F0',
-  },
-  faqQuestion: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 8,
-  },
-  faqAnswer: {
-    fontSize: 14,
-    color: '#666',
-    lineHeight: 20,
-  },
-  processStep: {
-    flexDirection: 'row',
-    marginBottom: 24,
-    alignItems: 'flex-start',
-  },
-  stepNumber: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#007A49',
+  featureIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 16,
   },
-  stepNumberText: {
-    color: 'white',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  stepContent: {
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A202C',
     flex: 1,
   },
-  stepTitle: {
+  featureDescription: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+    marginBottom: 16,
+  },
+  featureDetails: {
+    gap: 8,
+  },
+  detailItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  bulletContainer: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+    marginTop: 1,
+  },
+  bullet: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  detailText: {
+    fontSize: 14,
+    color: '#4A5568',
+    flex: 1,
+    lineHeight: 20,
+  },
+
+  // FAQ
+  faqContainer: {
+    gap: 16,
+  },
+  faqItem: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 16,
+    borderLeftWidth: 3,
+    borderLeftColor: '#3498DB',
+  },
+  faqQuestion: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#333',
-    marginBottom: 6,
+    color: '#1A202C',
+    marginBottom: 8,
+  },
+  faqAnswer: {
+    fontSize: 14,
+    color: '#64748B',
+    lineHeight: 20,
+  },
+
+  // Process Steps
+  processContainer: {
+  },
+  stepCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    padding: 20,
+    position: 'relative',
+  },
+  stepHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  stepNumber: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#8E44AD',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 16,
+    zIndex: 2,
+  },
+  stepNumberText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '700',
+  },
+  stepTitleContainer: {
+    flex: 1,
+    position: 'relative',
+  },
+  stepTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1A202C',
+  },
+  stepConnector: {
+    position: 'absolute',
+    left: -28,
+    top: 40,
+    width: 2,
+    height: 40,
+    backgroundColor: '#E2E8F0',
+  },
+  stepContent: {
+    marginLeft: 56,
   },
   stepDescription: {
     fontSize: 14,
-    color: '#666',
+    color: '#64748B',
     lineHeight: 20,
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  migrationList: {
-    marginTop: 8,
+
+  // Migration Items
+  migrationGrid: {
+    width: '100%',
   },
   migrationItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 6,
+    backgroundColor: '#F0F8F4',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    width: '100%',
+    marginVertical: 5
+  },
+  migrationIconContainer: {
+    marginRight: 8,
   },
   migrationText: {
-    fontSize: 13,
-    color: '#555',
-    marginLeft: 8,
+    fontSize: 12,
+    color: '#2D3748',
     flex: 1,
   },
-  requestSection: {
-    padding: 20,
-    alignItems: 'center',
+
+  // Fixed Button
+  fixedButtonContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#FFFFFF',
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#E2E8F0',
   },
   requestButton: {
     backgroundColor: '#007A49',
@@ -630,62 +807,69 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 16,
-    paddingHorizontal: 24,
     borderRadius: 12,
-    width: '100%',
-    marginBottom: 12,
+    shadowColor: '#007A49',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
   },
   requestButtonDisabled: {
-    backgroundColor:'lightgray'
+    backgroundColor: '#CBD5E0',
+    shadowOpacity: 0.1,
   },
   requestButtonText: {
-    color: 'white',
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  requestNote: {
-    fontSize: 12,
-    color: '#999',
-    textAlign: 'center',
-  },
-  modalContent: {
-    backgroundColor: 'white',
-    borderRadius: 16,
-    padding: 24,
-    alignItems: 'center',
+
+  // Modals
+  modal: {
     margin: 20,
   },
+  modalContent: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+  },
+  modalIconContainer: {
+    marginBottom: 20,
+  },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#333',
-    marginTop: 16,
-    marginBottom: 12,
+    fontSize: 22,
+    fontWeight: '700',
+    color: '#1A202C',
     textAlign: 'center',
+    marginBottom: 12,
   },
   modalMessage: {
-    fontSize: 14,
-    color: '#666',
+    fontSize: 16,
+    color: '#64748B',
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
     marginBottom: 24,
   },
   modalButton: {
     backgroundColor: '#007A49',
-    paddingVertical: 12,
-    paddingHorizontal: 24,
-    borderRadius: 8,
-    minWidth: 100,
+    paddingVertical: 14,
+    paddingHorizontal: 32,
+    borderRadius: 10,
+    minWidth: 120,
     alignItems: 'center',
   },
   errorButton: {
-    backgroundColor: '#DC3545',
+    backgroundColor: '#E74C3C',
   },
   modalButtonText: {
-    color: 'white',
-    fontSize: 14,
+    color: '#FFFFFF',
+    fontSize: 16,
     fontWeight: '600',
+  },
+
+  bottomSpacer: {
+    height: 20,
   },
 });
 

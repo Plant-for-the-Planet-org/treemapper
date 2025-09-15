@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   },
   inputContainer: {
     width: '100%',
-    height: 50,
+    height: 70,
     justifyContent: 'center',
     alignItems: 'center',
     flexDirection: 'row',
@@ -99,7 +99,6 @@ const styles = StyleSheet.create({
   inputWrapper: {
     borderRadius: 10,
     width: '95%',
-    height: 50,
   },
   unitLabel: {
     color: Colors.GRAY_TEXT,
