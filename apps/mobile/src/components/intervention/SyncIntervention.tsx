@@ -348,6 +348,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error('Failed to get upload URL');
             }
 
+
             // Fixed: Swapped variable assignments (they were reversed)
             const signedUrl = presignedResponse.response.data.data.uploadUrl;
             const fileName = presignedResponse.response.data.data.fileName;
@@ -355,11 +356,11 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             // Method 1: Using FormData (recommended for React Native)
             const formData = new FormData();
             formData.append('file', {
-                uri: el.imageUri, // Assuming el contains the image URI
+                uri: pData.imageFile, // Assuming el contains the image URI
                 type: 'image/jpg',
                 name: fileName || 'image.jpg',
             });
-
+            console.log("formData", signedUrl);
             // Upload using FormData
             const uploadResponse = await fetch(signedUrl, {
                 method: 'PUT',
@@ -368,23 +369,10 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                     'Content-Type': 'multipart/form-data',
                 }
             });
-
             if (!uploadResponse.ok) {
                 throw new Error(`Upload failed with status: ${uploadResponse.status}`);
             }
-
-            console.log("Image uploaded successfully");
-            if (uploadResponse.ok) {
-                await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Image Upload API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                });
-            }
-
+            await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
         } catch (error) {
             console.log("handleTreeImage error", error);
             addNewLog({
