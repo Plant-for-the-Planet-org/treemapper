@@ -101,7 +101,6 @@ const TreeCountModal: React.FC<TreeCountModalProps> = ({
                 activeColor={Colors.NEW_PRIMARY}
                 inactiveColor={Colors.GRAY_TEXT}
                 placeholderTextColor={Colors.GRAY_TEXT}
-                fontSize={scaleFont(16)}
                 onChangeText={isValidNumberString}
                 keyboardType='numeric'
                 error={errorMessage.length > 0 ? errorMessage : null}
@@ -164,13 +163,12 @@ const styles = StyleSheet.create({
   },
   inputWrapper: {
     width: '100%',
-    height: 55,
+    height: 70,
     flexDirection: 'row',
     marginTop: 20,
   },
   input: {
     width: '60%',
-    height: '100%',
     marginHorizontal: 10,
   },
   speciesLabel: {

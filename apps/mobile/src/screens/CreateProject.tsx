@@ -6,7 +6,6 @@ import {
     TouchableOpacity,
     TextInput,
     ScrollView,
-    SafeAreaView,
     KeyboardAvoidingView,
     Platform,
     Alert,
@@ -20,6 +19,7 @@ import { useDispatch } from 'react-redux';
 import { useToast } from 'react-native-toast-notifications';
 import { useNavigation } from '@react-navigation/native';
 import { updateRefetchProject } from 'src/store/slice/appStateSlice';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const CreateProjectScreen = () => {
     const [workspace, setWorkspace] = useState('');
@@ -64,9 +64,9 @@ const CreateProjectScreen = () => {
     const validateForm = () => {
         const newErrors = {};
 
-        if (!workspace) {
-            newErrors.workspace = 'Please select a workspace';
-        }
+        // if (!workspace) {
+        //     newErrors.workspace = 'Please select a workspace';
+        // }
 
         if (!projectName.trim()) {
             newErrors.projectName = 'Project name is required';
@@ -106,7 +106,7 @@ const CreateProjectScreen = () => {
 
         try {
             let projectData: any = {
-                workspaceType: workspace,
+                workspaceType: 'private',
                 name: projectName.trim(),
                 projectType,
             };
@@ -178,7 +178,7 @@ const CreateProjectScreen = () => {
                     style={styles.scrollContainer}
                 >
                     {/* Workspace Dropdown */}
-                    <View style={[styles.fieldContainer, { zIndex: 100 }]}>
+                    {/* <View style={[styles.fieldContainer, { zIndex: 100 }]}>
                         <Text style={styles.label}>
                             Workspace <Text style={styles.required}>*</Text>
                         </Text>
@@ -201,7 +201,7 @@ const CreateProjectScreen = () => {
                             />
                         </View>
                         {errors.workspace && <Text style={styles.errorText}>{errors.workspace}</Text>}
-                    </View>
+                    </View> */}
 
                     {/* Project Name Input */}
                     <View style={styles.fieldContainer}>
