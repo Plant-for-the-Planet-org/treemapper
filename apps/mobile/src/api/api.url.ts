@@ -46,6 +46,8 @@ export const postUrlNewApi = {
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
   sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
+  remeasurement: `${baseUrl}/mobile/intervention`,
+
 };
 
 export const getUrlMobileApi = {
@@ -53,6 +55,7 @@ export const getUrlMobileApi = {
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
   getProjectSpecies: `${mobileBaseUrl}/mobile/species`,
+  getMobileInterventions: `${mobileBaseUrl}/mobile/project/interventions`,
 };
 
 

@@ -49,6 +49,24 @@ export const postDataConvertor = (d: InterventionData[]) => {
                     p2Id: el.sample_trees[0].tree_id,
                 })
             }
+            // if (el.sample_trees[0].status === 'REMEASUREMENT_DATA_UPLOAD') {
+            //     quae.push({
+            //         type: 'remeasurementData',
+            //         priority: 1,
+            //         nextStatus: 'SYNCED',
+            //         p1Id: el.intervention_id,
+            //         p2Id: el.sample_trees[0].tree_id,
+            //     })
+            // }
+            // if (el.sample_trees[0].status === 'REMEASUREMENT_EVENT_UPDATE') {
+            //     quae.push({
+            //         type: 'remeasurementStatus',
+            //         priority: 1,
+            //         nextStatus: 'SYNCED',
+            //         p1Id: el.intervention_id,
+            //         p2Id: el.sample_trees[0].tree_id,
+            //     })
+            // }
         } else {
             if (el.hid === '') {
                 quae.push({

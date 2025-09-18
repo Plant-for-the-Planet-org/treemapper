@@ -67,6 +67,12 @@ export const remeasurement = async (tree_id: string, params: any) => {
   return result;
 };
 
+export const remeasuremenMobile = async (tree_id: string, params: any) => {
+  const uri = `${postUrlNewApi.remeasurement}/${tree_id}/remeasure`
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
 export const deleteAccount = async () => {
   const uri = `${postUrlApi.deleteAccount}`
   const result = await fetchDeleteCall(uri);
@@ -154,6 +160,13 @@ export const updateServerSpeciesDetail = async (params: any, id: string) => {
 export const createNewSite = async (pid: string, params: any) => {
   const uri = `${postUrlApi.createNewSite}/${pid}/sites`
   const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+
+export const getMobileInterventions = async (page:string) => {
+  const uri = `${getUrlMobileApi.getMobileInterventions}?limit=4&page=${page}`;
+  const result = await fetchGetCall(uri, true);
   return result;
 };
 
@@ -431,8 +444,8 @@ export const uploadAllIntervention = async (params: any, newBackend: boolean,) =
         responseData: {
           parentHid: response.data.id,
           parentId: response.data.id,
-          treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.id : '',
-          treeId: response.data.singleTreeResult ? response.data.singleTreeResult.hid : "",
+          treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.hid : '',
+          treeId: response.data.singleTreeResult ? response.data.singleTreeResult.id : "",
           coordinates: [{
             "image": "",
             "created": new Date(),
@@ -478,3 +491,4 @@ export const uploadIntervention = async (params: any) => {
   const result = await fetchPostCall(uri, params);
   return result;
 };
+

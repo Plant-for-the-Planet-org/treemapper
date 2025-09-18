@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { presingedUrl, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { presingedUrl, remeasuremenMobile, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -220,7 +220,49 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
+
+            // if (v3Approved) {
+            //     await handleMobileRemeasurement(el)
+            //     return
+            // }
+
             const { success } = await remeasurement(treeID, pData);
+            if (success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
+            } else {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Remeasurement Tree API response error',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            }
+        } catch (error) {
+            addNewLog({
+                logType: 'DATA_SYNC',
+                message: 'Remeasurement error(Inside Catch)',
+                logLevel: 'error',
+                statusCode: '',
+                logStack: JSON.stringify(error),
+            })
+        }
+    };
+
+
+    const handleMobileRemeasurement = async (el) => {
+        try {
+            const { pData, historyID, treeID } = await getRemeasurementBody(el);
+            if (!pData) {
+                throw new Error("Not able to convert body");
+            }
+
+            const { success } = await remeasuremenMobile(treeID, {
+                "type": pData.type,
+                "eventDate": pData.eventDate,
+                height: pData.measurements.height,
+                width: pData.measurements.width,
+                "metadata": pData.metadata || {},
+            });
             if (success) {
                 await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
             } else {
@@ -471,7 +513,6 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 <RefreshIcon />
             </RotatingView>
             <Text style={styles.label}>{i18next.t("label.syncing")} • {interventionData.length} left</Text>
-            {/* <InfoIcon width={18} height={18} style={styles.infoIconWrapper} onPress={toggleInfo} /> */}
         </TouchableOpacity>
     )
 
