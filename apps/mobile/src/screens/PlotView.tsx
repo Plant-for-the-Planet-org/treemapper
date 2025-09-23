@@ -88,11 +88,15 @@ export default PlotView
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: Colors.WHITE
+    backgroundColor: Colors.BACKDROP_COLOR,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   wrapper: {
     flex: 1,
     backgroundColor: Colors.BACKDROP_COLOR,
+    justifyContent: 'center',
+    alignItems: 'center'
   },
   rightContainer: {
     width: 30,
