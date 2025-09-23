@@ -15,7 +15,8 @@ export const initialUserState: UserInterface = {
   name: '',
   slug: '',
   type: '',
-  v3Approved: false
+  v3Approved: false,
+  showPlotFeature: true
 }
 
 const userStateSlice = createSlice({
@@ -35,9 +36,12 @@ const userStateSlice = createSlice({
     updateLimitedFeature(state, action: PayloadAction<boolean>) {
       state.v3Approved; action.payload
     },
+    updatePlotFeature(state, action: PayloadAction<boolean>) {
+      state.showPlotFeature; action.payload
+    },
   },
 })
 
-export const { updateUserDetails, resetUserDetails, updateName, updateLimitedFeature } = userStateSlice.actions
+export const { updateUserDetails, resetUserDetails, updateName, updateLimitedFeature, updatePlotFeature } = userStateSlice.actions
 
 export default userStateSlice.reducer

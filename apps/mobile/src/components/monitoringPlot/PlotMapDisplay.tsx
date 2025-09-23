@@ -73,6 +73,11 @@ const PlotMapDisplay = (props: Props) => {
                 onDidFinishLoadingMap={setupMap}
                 styleURL={JSON.stringify(MapStyle)}>
                 <MapLibreGL.Camera ref={cameraRef} />
+                <MapLibreGL.UserLocation
+                    showsUserHeadingIndicator
+                    androidRenderMode="gps"
+                    minDisplacement={1}
+                />
                 {plotCoordinates.length > 0 && <PlotShapeSource geoJSON={{
                     "type": "FeatureCollection",
                     "features": [

@@ -56,7 +56,7 @@ const PlantPlotListModal = (props: Props) => {
     }
 
     useEffect(() => {
-        if (search.length === 0) {
+        if (search.length <3) {
             setPlantData([])
             return
         }
@@ -151,7 +151,8 @@ const styles = StyleSheet.create({
         width: '100%',
         backgroundColor: Colors.WHITE,
         alignItems: 'center',
-        flex: 1
+        flex: 1,
+        minHeight:500
     },
     headerWrapper: {
         height: 50,
@@ -221,10 +222,9 @@ const styles = StyleSheet.create({
         color: Colors.PLANET_BLACK,
     },
     emptyWrapper: {
-        flex: 1,
+
         justifyContent: 'center',
         alignItems: 'center',
-        marginTop: 100,
         paddingHorizontal: 50
     },
     emptyLabel: {

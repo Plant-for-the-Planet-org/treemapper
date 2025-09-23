@@ -1,4 +1,4 @@
-import { StyleSheet, Text, View, Dimensions, Pressable } from 'react-native'
+import { StyleSheet, Text, View, Dimensions, Pressable, Platform } from 'react-native'
 import React, { useState } from 'react'
 import AddOptionModal from './AddOptionModal'
 import Animated, {
@@ -12,6 +12,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import { ctaHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { Svg, Defs, Rect, Mask, Circle } from 'react-native-svg';
 import i18next from 'i18next'
+import { platform } from 'os'
 const windowWidth = Dimensions.get('window').width;
 
 const WrappedSvg = () => (
@@ -66,7 +67,7 @@ const AddBottomTabIcon = () => {
         </View>
         <AddOptionModal setVisible={setOpen} visible={open} />
       </Pressable>
-      <View style={styles.labelContainer}>
+      <View style={[styles.labelContainer, { marginTop: Platform.OS==='ios' ? '35%' : '10%' }]}>
         <Text
           style={[
             styles.labelStyle,

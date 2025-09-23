@@ -69,7 +69,7 @@ const NewDimensionModal = (props: Props) => {
     return (
         <Modal style={styles.container} isVisible={isVisible} onBackButtonPress={toogleModal} onBackdropPress={toogleModal}>
             <View style={styles.sectionWrapper}>
-                <Text style={styles.header}>{i18next.t('local.update_dimensions')}</Text>
+                <Text style={styles.header}>New Dimension</Text>
                 {shape === "RECTANGULAR" ? <>
                     <CustomTextInput
                         label={i18next.t('local.height')}
@@ -83,12 +83,12 @@ const NewDimensionModal = (props: Props) => {
                     />
                 </> :
                     <CustomTextInput
-                        label={i18next.t('local.radius')}
+                        label={"Radius"}
                         onChangeHandler={setDimensionRadius}
                         value={dimensionRadius}
                     />}
                 <CustomButton
-                    label={i18next.t('local.continue')}
+                    label={'Continue'}
                     containerStyle={styles.btnContainer}
                     pressHandler={handlePress}
                     hideFadeIn

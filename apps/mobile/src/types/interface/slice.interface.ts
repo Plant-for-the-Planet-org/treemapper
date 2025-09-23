@@ -331,6 +331,7 @@ export interface UserInterface {
   slug: string
   type: string
   v3Approved: boolean
+  showPlotFeature: boolean
 }
 
 export interface InterventionLocation {

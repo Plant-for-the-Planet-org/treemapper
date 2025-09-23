@@ -23,6 +23,7 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { useRealm } from '@realm/react'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import i18next from 'src/locales/index'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
@@ -35,6 +36,9 @@ const AddPlantDetailsPlotView = () => {
     const [height, setHeight] = useState('')
     const [width, setWidth] = useState('')
     const [isTreeAlive, setIsTreeAlive] = useState(true)
+    const [showDatePicker, setShowDatePicker] = useState(false)
+    const [showOtherDatePicker, setShowOtherDatePicker] = useState(false)
+
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
     const [speciesModal, setSpeciesModal] = useState(false)
@@ -170,11 +174,46 @@ const AddPlantDetailsPlotView = () => {
         await addPlantDetailsPlot(plotID, plantDetails)
         navigation.replace('CreatePlotMap', { id: plotID, plantId: plantDetails.plot_plant_id, markLocation: true })
     }
+    const toggleDatePicker = () => {
+        setShowDatePicker(prev => !prev)
+    }
+
+
+
+    const handleDateSelection = (n: number) => {
+        if (!n) {
+            setShowDatePicker(false)
+            return
+        }
+        setMeasurementDate(prevState => n)
+        setShowDatePicker(false)
+    }
+
+
+
+    const handleOtherDateSelection = (n: number) => {
+        if (!n) {
+            setShowOtherDatePicker(false)
+            return
+        }
+        setPlantingDate(prevState => n)
+        setShowOtherDatePicker(false)
+    }
+
+    const toggleOtherDatePicker = () => {
+        setShowOtherDatePicker(prev => !prev)
+    }
 
 
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Add Plant' />
+            {showDatePicker && <CustomDatePicker cb={handleDateSelection}
+                selectedData={measurementDate || Date.now()}
+            />}
+            {showOtherDatePicker && <CustomDatePicker cb={handleOtherDateSelection}
+                selectedData={plantingDate || Date.now()}
+            />}
             <ScrollView>
                 <AvoidSoftInputView
                     avoidOffset={20}
@@ -192,7 +231,7 @@ const AddPlantDetailsPlotView = () => {
                         {!isEdit && <InterventionDatePicker
                             placeHolder={i18next.t('label.measurement_date')}
                             value={measurementDate}
-                            callBack={setMeasurementDate}
+                            showPicker={toggleDatePicker}
                         />}
                         <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toggleSpeciesModal} />
                         {!isEdit && <>
@@ -215,11 +254,11 @@ const AddPlantDetailsPlotView = () => {
                                 selectHandler={setIsTreeAlive}
                                 value={isTreeAlive}
                             />
-                            <InterventionDatePicker
+                            {isPlanted && <InterventionDatePicker
                                 placeHolder={i18next.t('label.planting_date')}
                                 value={plantingDate}
-                                callBack={setPlantingDate}
-                            />
+                                showPicker={toggleOtherDatePicker}
+                            />}
                         </>}
 
                         <View style={styles.inputWrapper}>
