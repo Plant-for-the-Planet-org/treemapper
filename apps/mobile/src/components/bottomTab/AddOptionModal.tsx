@@ -108,7 +108,7 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.project_sites'),
-      coming_soon: false,
+      coming_soon: v3Approved ? true : false,
       onPress: () => {
         if (userType !== 'tpo' && !v3Approved) {
           toast.hideAll()
@@ -120,7 +120,7 @@ const AddOptionModal = (props: Props) => {
           props.setVisible(false)
         }
       },
-      disabled: false,
+      disabled: v3Approved ? true : false,
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,
