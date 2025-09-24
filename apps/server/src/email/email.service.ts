@@ -23,7 +23,7 @@ export class EmailService {
   constructor(private configService: ConfigService) {
     // Setup email configuration from environment
     this.frontendUrl = this.configService.get<string>('DASHBOARD_URL') || '';
-    this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'noreply@treemapper.app');
+    this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'treemapper-support@plant-for-the-planet.org');
     this.emailTemplatesDir = path.join(process.cwd(), 'src/notification/templates');
     this.apiUrl = this.configService.get<string>('PLUNK_URL') || '';
     this.apiToken = this.configService.get<string>('PLUNK_API_TOKEN') || '';
@@ -99,7 +99,7 @@ export class EmailService {
         memberId,
         userType: memberType,
         requestTime: new Date(),
-        token
+        token: ''
       },
     });
   }
@@ -214,7 +214,7 @@ export class EmailService {
       // Send email using SMTP if transporter is configured, otherwise use API
       if (this.transporter) {
         await this.transporter.sendMail({
-          from: this.configService.get<string>('EMAIL_FROM', 'noreply@treemapper.app'),
+          from: this.configService.get<string>('EMAIL_FROM', 'treemapper-support@plant-for-the-planet.org'),
           to,
           subject,
           html,

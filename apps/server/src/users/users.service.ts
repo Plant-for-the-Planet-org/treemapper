@@ -1,6 +1,6 @@
 import { Injectable, ConflictException, BadRequestException, Logger, InternalServerErrorException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { project, projectMember, survey, user, workspace, workspaceMember } from '../database/schema';
+import { image, intervention, project, projectMember, survey, user, workspace, workspaceMember } from '../database/schema';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { User } from './entities/user.entity';
@@ -321,6 +321,8 @@ export class UsersService {
         await this.userCacheService.refreshAuthUser({ ...userData, image: userPayload.avatarUrl });
         return true;
     }
+
+
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
         const payload = this.prepareUpdateData(updateUserDto);
