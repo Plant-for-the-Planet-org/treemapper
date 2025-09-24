@@ -9,7 +9,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement'
-import { getAllProjects, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
+import { getAllProjects, getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
 import { resetProjectState, updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -132,8 +132,11 @@ const HomeHeader = (props: Props) => {
   }
 
   useEffect(() => {
-    if (userType!=='' && !serverInterventionAdded && !isSyncing && isLoggedIn) {
+    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
       addServerIntervention()
+    }
+    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && v3Approved) {
+      addMobileServerIntervention()
     }
   }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn])
 
@@ -184,6 +187,45 @@ const HomeHeader = (props: Props) => {
   }
 
 
+  const addMobileServerIntervention = async () => {
+    try {
+      const { response, success } = await getMobileInterventions(lastServerInterventionpage === '' ? '1' : lastServerInterventionpage)
+      if (success && response.data && response?.data.items) {
+        for (let index = 0; index < response.data.items.length; index++) {
+          const element = convertInventoryToIntervention(response?.data.items[index]);
+          await addNewIntervention(element)
+        }
+        if (response?.data.items.length === 0 || response?.data.items.length < 4) {
+          dispatch(updateServerIntervention(true))
+          return;
+        }
+        const nextPage = lastServerInterventionpage === '' ? '2' : (parseInt(lastServerInterventionpage) + 1).toString()
+        console.log("Next page", lastServerInterventionpage, nextPage)
+        dispatch(updateLastServerIntervention(nextPage))
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Intervention fetched successfully",
+          logLevel: 'info',
+          statusCode: '000',
+        })
+      } else {
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: "Intervention fetched (Response error)",
+          logLevel: 'error',
+          statusCode: '000',
+        })
+      }
+    } catch (err) {
+      console.log("Error occurred", err)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Error while fetching intervention",
+        logLevel: 'error',
+        statusCode: '000',
+      })
+    }
+  }
 
   return (
     <View style={styles.container}>

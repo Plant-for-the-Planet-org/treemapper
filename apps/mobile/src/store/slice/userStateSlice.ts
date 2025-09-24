@@ -16,7 +16,7 @@ export const initialUserState: UserInterface = {
   slug: '',
   type: '',
   v3Approved: false,
-  showPlotFeature: true
+  showPlotFeature: false
 }
 
 const userStateSlice = createSlice({

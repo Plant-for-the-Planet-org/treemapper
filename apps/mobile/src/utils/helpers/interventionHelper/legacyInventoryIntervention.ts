@@ -232,61 +232,65 @@ const getEntireSiteCheck = (data: any) => {
 }
 
 export const convertInventoryToIntervention = (data: any): InterventionData => {
-    const extraData = interventionTittleSwitch(data.type);
-    const geometryData = getGeometry(data.geometry);
-    const invStartDate = data.plantDate ? data.plantDate : data.interventionStartDate
-    const sample_trees: SampleTree[] = []
-    const rData = remeasurementCalculator(data.nextMeasurementDate)
-    if (extraData.key !== 'single-tree-registration') {
-        data.sampleInterventions.forEach(element => {
-            sample_trees.push(singleTreeDetails(element))
-        });
-    } else {
-        sample_trees.push(singleTreeDetails(data))
+    try {
+        const extraData = interventionTittleSwitch(data.type);
+        const geometryData = getGeometry(data.geometry);
+        const invStartDate = data.plantDate ? data.plantDate : data.interventionStartDate
+        const sample_trees: SampleTree[] = []
+        const rData = remeasurementCalculator(data.nextMeasurementDate)
+        if (extraData.key !== 'single-tree-registration') {
+            data.sampleInterventions.forEach(element => {
+                sample_trees.push(singleTreeDetails(element))
+            });
+        } else {
+            sample_trees.push(singleTreeDetails(data))
+        }
+        const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
+        let remeasurement_required = rData.requireRemeasurement
+        const makeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
+        if (makeForRemeasurement) {
+            remeasurement_required = true
+        }
+        const finalData: InterventionData = {
+            intervention_id: data.id,
+            intervention_key: extraData.key,
+            intervention_title: extraData.title,
+            intervention_date: moment(invStartDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
+            project_id: data.plantProject || '',
+            project_name: "",
+            site_name: "",
+            location_type: geometryData.type,
+            location: geometryData,
+            has_species: false,
+            has_sample_trees: extraData.hasSampleTrees,
+            sample_trees: sample_trees,
+            is_complete: true,
+            site_id: data.plantProjectSite || '',
+            intervention_type: extraData.key,
+            form_data: [],
+            additional_data: [],
+            meta_data: metaData,
+            status: 'SYNCED',
+            hid: data.hid || '',
+            coords: {
+                type: 'Point',
+                coordinates: geometryData.geoSpatial
+            },
+            entire_site: getEntireSiteCheck(data.metadata || '{}'),
+            last_screen: "PREVIEW",
+            planted_species: setPlantedSpecies(data.plantedSpecies || []),
+            form_id: data.id,
+            image: "",
+            image_data: [],
+            location_id: data.id,
+            locate_tree: "",
+            remeasurement_required: extraData.key === 'single-tree-registration' ? false : remeasurement_required,
+            next_measurement_date: extraData.key === 'single-tree-registration' ? 0 : rData.d,
+            intervention_end_date: moment(data.interventionEndDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
+            fix_required: "NO"
+        }
+        return finalData
+    } catch (error) {
+        console.log("Error in converting inventory to intervention: ", error);
     }
-    const metaData = data.metadata ? checkAndConvertMetaData(data.metadata) : '{}'
-    let remeasurement_required = rData.requireRemeasurement
-    const makeForRemeasurement = sample_trees.some(obj => obj.remeasurement_requires === true);
-    if (makeForRemeasurement) {
-        remeasurement_required = true
-    }
-    const finalData: InterventionData = {
-        intervention_id: data.id,
-        intervention_key: extraData.key,
-        intervention_title: extraData.title,
-        intervention_date: moment(invStartDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
-        project_id: data.plantProject || '',
-        project_name: "",
-        site_name: "",
-        location_type: geometryData.type,
-        location: geometryData,
-        has_species: false,
-        has_sample_trees: extraData.hasSampleTrees,
-        sample_trees: sample_trees,
-        is_complete: true,
-        site_id: data.plantProjectSite || '',
-        intervention_type: extraData.key,
-        form_data: [],
-        additional_data: [],
-        meta_data: metaData,
-        status: 'SYNCED',
-        hid: data.hid || '',
-        coords: {
-            type: 'Point',
-            coordinates: geometryData.geoSpatial
-        },
-        entire_site: getEntireSiteCheck(data.metadata || '{}'),
-        last_screen: "PREVIEW",
-        planted_species: setPlantedSpecies(data.plantedSpecies || []),
-        form_id: data.id,
-        image: "",
-        image_data: [],
-        location_id: data.id,
-        locate_tree: "",
-        remeasurement_required: extraData.key === 'single-tree-registration' ? false : remeasurement_required,
-        next_measurement_date: extraData.key === 'single-tree-registration' ? 0 : rData.d,
-        intervention_end_date: moment(data.interventionEndDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
-        fix_required: "NO"
-    }
-    return finalData
 }

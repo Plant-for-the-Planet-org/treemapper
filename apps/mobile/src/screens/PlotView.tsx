@@ -66,19 +66,10 @@ const PlotView = () => {
   }
   return (
     <SafeAreaView style={styles.container}>
-      {showPlotFeature ? <>
-        <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
-        <View style={styles.wrapper}>
-          <PlotList data={[...plotData]} />
-        </View></> :
-        <>
-          <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} />
-          <View style={styles.wrapper}>
-            <ComingSoon />
-            <Text style={styles.mainLabel}>{i18next.t('label.plot_coming_soon')}</Text>
-            <Text style={styles.secondaryLabel}>{i18next.t('label.plot_coming_soon_note')}</Text>
-          </View></>
-      }
+      <Header label={i18next.t('label.monitoring_plot_header')} showBackIcon={false} rightComponent={renderIcon()} />
+      <View style={styles.wrapper}>
+        <PlotList data={[...plotData]} />
+      </View>
     </SafeAreaView>
   )
 }
@@ -89,14 +80,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: Colors.BACKDROP_COLOR,
-    justifyContent: 'center',
-    alignItems: 'center'
   },
   wrapper: {
     flex: 1,
     backgroundColor: Colors.BACKDROP_COLOR,
-    justifyContent: 'center',
-    alignItems: 'center'
   },
   rightContainer: {
     width: 30,

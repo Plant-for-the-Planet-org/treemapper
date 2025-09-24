@@ -92,10 +92,10 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <ChartIcon width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.monitoring_plot'),
-      coming_soon: showPlotFeature ? false : true,
+      coming_soon: !showPlotFeature ? false : true,
       onPress: () => {
         toast.hideAll()
-        if (!showPlotFeature) {
+        if (showPlotFeature) {
           toast.show(i18next.t('label.coming_soon'))
           props.setVisible(false)
         } else {

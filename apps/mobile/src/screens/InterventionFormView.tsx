@@ -217,7 +217,7 @@ const InterventionFormView = () => {
         value: 'other',
         index: 0,
       },])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0]?siteValidate[0].label:'', site_id: siteValidate && siteValidate[0]?siteValidate[0]:''.value }))
     } else {
       setProjectSites([
         {
@@ -231,7 +231,7 @@ const InterventionFormView = () => {
           index: 0,
         },
       ])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate[0].label, site_id: siteValidate[0].value }))
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0]?siteValidate[0].label:'', site_id: siteValidate && siteValidate[0]?siteValidate[0]:''.value }))
     }
   }
 
