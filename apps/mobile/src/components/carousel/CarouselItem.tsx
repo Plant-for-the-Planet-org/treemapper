@@ -9,6 +9,8 @@ import { SCALE_36 } from 'src/utils/constants/spacing'
 import InterventionIconSwitch from '../intervention/InterventionIconSwitch'
 import i18next from 'src/locales/index'
 import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
+import { useSelector } from 'react-redux';
+import { RootState } from 'src/store';
 
 interface Props {
   data: any
@@ -18,6 +20,8 @@ interface Props {
 
 const CarouselItem = (props: Props) => {
   const { data, onPress, remeasure } = props
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
+
   if (data?.tree_type) {
     const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : updateFilePath(data.image_url)
     const hasImage = uri.length > 0
@@ -38,11 +42,16 @@ const CarouselItem = (props: Props) => {
           {timestampToBasicDate(data.plantation_date)}
         </Text>
       </View>
-      {data.remeasurement_requires && data.status === 'SYNCED' ?<TouchableOpacity style={styles.nextButton} onPress={() => {
+      {/* {data.remeasurement_requires && data.status === 'SYNCED' ?<TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
-      </TouchableOpacity>: null}
+      </TouchableOpacity>: null} */}
+      {!v3Approved && data.remeasurement_requires && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+        remeasure(data.intervention_id, data.tree_id)
+      }}>
+        <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
+      </TouchableOpacity> : null}
     </TouchableOpacity>
   } else {
     return <TouchableOpacity style={styles.container} onPress={() => {
@@ -137,7 +146,7 @@ const styles = StyleSheet.create({
     right: 10,
     backgroundColor: Colors.NEW_PRIMARY,
     borderRadius: 12,
-    paddingHorizontal:10
+    paddingHorizontal: 10
   },
   nextButtonLabel: {
     fontSize: 12,

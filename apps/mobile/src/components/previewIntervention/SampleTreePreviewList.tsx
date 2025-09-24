@@ -92,7 +92,12 @@ const SampleTreePreviewList = (props: Props) => {
             }}>
               <BinIcon width={18} height={18} fill={Colors.TEXT_COLOR} />
             </TouchableOpacity> : null}
-            {(type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive) || (v3Approved && details.is_alive && details.status === 'SYNCED')? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+            {/* {(type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive) || (v3Approved && details.is_alive && details.status === 'SYNCED')? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
+              remeasurement(details.tree_id)
+            }}>
+              <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
+            </TouchableOpacity> : null} */}
+            {(type === 'tpo' && details.tree_type !== 'single' && details.status === 'SYNCED' && details.is_alive && !v3Approved)? <TouchableOpacity style={styles.editWrapperIcon} onPress={() => {
               remeasurement(details.tree_id)
             }}>
               <RemeasurementIcon width={30} height={30} fill={Colors.TEXT_COLOR} />
@@ -136,7 +141,7 @@ const SampleTreePreviewList = (props: Props) => {
                 <View style={styles.iconHolder}>
                   <WidthIcon width={20} height={20} />
                 </View>
-                <Text style={styles.iconLabel}> {convertMeasurements(details.specie_diameter,'cm', isNonISUCountry)} {isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}</Text>
+                <Text style={styles.iconLabel}> {convertMeasurements(details.specie_diameter, 'cm', isNonISUCountry)} {isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}</Text>
               </View>
             </View>
           </View>
