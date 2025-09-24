@@ -61,6 +61,12 @@ export const presingedUrl = async (params) => {
   return result;
 };
 
+export const mobileInterventionImageUplaod = async (params) => {
+  const uri = `${postUrlNewApi.interventionImage}`
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
 export const remeasurement = async (tree_id: string, params: any) => {
   const uri = `${postUrlApi.remeasurement}/${tree_id}/event`
   const result = await fetchPostCall(uri, params);
@@ -442,7 +448,7 @@ export const uploadAllIntervention = async (params: any, newBackend: boolean,) =
     if (success && response.data && response.data.id) {
       result = {
         responseData: {
-          parentHid: response.data.id,
+          parentHid: response.data.hid,
           parentId: response.data.id,
           treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.hid : '',
           treeId: response.data.singleTreeResult ? response.data.singleTreeResult.id : "",

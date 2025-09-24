@@ -154,7 +154,8 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
             const body = {
                 imageFile: TreeDetails.image_url,
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
-                imageId: TreeDetails.image_data.coordinateID
+                imageId: TreeDetails.image_data.coordinateID,
+                treeServerId: TreeDetails.sloc_id
             };
             console.log("Here is the image data", body.imageId)
             return { pData: body, message: '', fixRequired: "NO", error: "" }

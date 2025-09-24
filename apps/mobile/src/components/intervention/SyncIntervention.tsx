@@ -17,7 +17,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { presingedUrl, remeasuremenMobile, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 // import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
@@ -377,6 +377,8 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 throw new Error("Not able to convert body");
             }
 
+            console.log("Image Data", pData);
+
             // Get presigned URL
             const presignedResponse = await presingedUrl({
                 fileName: String(new Date().getMilliseconds()),
@@ -391,11 +393,9 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             }
 
 
-            // Fixed: Swapped variable assignments (they were reversed)
             const signedUrl = presignedResponse.response.data.data.uploadUrl;
             const fileName = presignedResponse.response.data.data.fileName;
 
-            // Method 1: Using FormData (recommended for React Native)
             const formData = new FormData();
             formData.append('file', {
                 uri: pData.imageFile, // Assuming el contains the image URI
@@ -407,13 +407,15 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
             const uploadResponse = await fetch(signedUrl, {
                 method: 'PUT',
                 body: formData,
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                }
             });
             if (!uploadResponse.ok) {
                 throw new Error(`Upload failed with status: ${uploadResponse.status}`);
             }
+            await mobileInterventionImageUplaod({
+                treeUid: pData.treeServerId,
+                filename: fileName,
+                mimeType: 'image/jpg',
+            });
             await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
         } catch (error) {
             console.log("handleTreeImage error", error);

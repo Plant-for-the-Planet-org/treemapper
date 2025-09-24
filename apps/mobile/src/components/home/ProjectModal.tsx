@@ -248,9 +248,9 @@ const ProjectModal = (props: Props) => {
         {i18next.t('label.no_site_found') || 'No sites found for this project'}
       </Text>
       <View style={styles.divider} />
-      <TouchableOpacity style={styles.createSiteButton} onPress={createNewSite}>
+      {/* <TouchableOpacity style={styles.createSiteButton} onPress={createNewSite}>
         <AddIcon height={12} width={12} fill={Colors.NEW_PRIMARY} />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
     </View>
   )
 
@@ -317,10 +317,10 @@ const ProjectModal = (props: Props) => {
 
                 <View style={styles.projectSiteWrapper}>
                   <Text style={styles.projectLabel}>{i18next.t('label.select_site')}</Text>
-                  <Pressable style={styles.addnewWrapper} onPress={createNewSite}>
+                  {/* <Pressable style={styles.addnewWrapper} onPress={createNewSite}>
                     <Text style={styles.addNewSite}>{i18next.t("label.add_new_site")}</Text>
                     <AddIcon height={12} width={12} fill={Colors.NEW_PRIMARY} />
-                  </Pressable>
+                  </Pressable> */}
                 </View>
 
                 <View style={styles.siteContainer}>

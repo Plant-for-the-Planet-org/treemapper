@@ -45,6 +45,7 @@ export const postUrlNewApi = {
   createNewProject: `${mobileBaseUrl}/mobile/project`,
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
+  interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,
   sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
   remeasurement: `${baseUrl}/mobile/intervention`,
 
