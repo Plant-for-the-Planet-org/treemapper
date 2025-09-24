@@ -33,7 +33,6 @@ export const SpeciesCard = ({
   isChecked,
   onCheckboxChange
 }) => {
-  console.log("SDc",species)
   return (
     <motion.div
       layout
