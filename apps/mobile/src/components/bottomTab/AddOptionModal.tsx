@@ -13,7 +13,7 @@ import Animated, {
 } from 'react-native-reanimated'
 
 import { StackNavigationProp } from '@react-navigation/stack'
-import React, { useEffect, useMemo } from 'react'
+import React, { useMemo } from 'react'
 import i18next from 'src/locales'
 import * as Colors from 'src/utils/constants/colors'
 import * as Typography from 'src/utils/constants/typography'

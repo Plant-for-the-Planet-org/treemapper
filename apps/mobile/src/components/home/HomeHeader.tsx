@@ -91,6 +91,9 @@ const HomeHeader = (props: Props) => {
     }
   }
 
+  const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
+
+
   const refreshUser = async () => {
     const isConnected = await checkInternetConnectivity();
     if (!isConnected) {
@@ -152,6 +155,9 @@ const HomeHeader = (props: Props) => {
       const { response, success } = await getServerIntervention(lastServerInterventionpage)
       if (success && response?.items) {
         for (let index = 0; index < response.count; index++) {
+          if (response.items[index] && deleteThis.includes(response.items[index].id)) {
+            continue;
+          }
           const element = convertInventoryToIntervention(response.items[index]);
           await addNewIntervention(element)
         }

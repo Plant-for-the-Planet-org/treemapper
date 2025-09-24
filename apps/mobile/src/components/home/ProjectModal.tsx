@@ -47,7 +47,7 @@ const ProjectModal = (props: Props) => {
     value: '',
     index: 0,
   })
-  
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const realm = useRealm()
   const dispatch = useDispatch()
@@ -139,12 +139,12 @@ const ProjectModal = (props: Props) => {
   // Project selection handler
   const handleProjectSelection = useCallback((selectedData: DropdownItem) => {
     setSelectedProject(selectedData)
-    
+
     dispatch(updateCurrentProject({
       name: selectedData.label,
       id: selectedData.value,
     }))
-    
+
     // Clear site selection when project changes
     dispatch(updateProjectSite({
       name: '',
@@ -158,9 +158,9 @@ const ProjectModal = (props: Props) => {
       name: site.name,
       id: siteId,
     }))
-    
+
     closeModal()
-    
+
     // Update map bounds if not in project modal mode
     if (!toggleProjectModal && site.geometry) {
       updateMapBoundsForGeometry(site.geometry)
@@ -183,9 +183,9 @@ const ProjectModal = (props: Props) => {
     if (isVisible || toggleProjectModal || lastProjectAdded) {
       loadProjects()
       handlePresentModal()
-      if (lastProjectAdded) {
-        dispatch(updateLastProject(0))
-      }
+      // if (lastProjectAdded) {
+      //   dispatch(updateLastProject(0))
+      // }
     }
   }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, handlePresentModal, dispatch])
 
@@ -202,20 +202,24 @@ const ProjectModal = (props: Props) => {
 
     try {
       const parsedGeometry = JSON.parse(currentProjectData.geometry)
-      
+
       if (!projectSite.siteId || projectSite.siteId === 'other') {
         // Use project geometry
-        updateMapBoundsForGeometry('', parsedGeometry.coordinates[0])
+        if (parsedGeometry && parsedGeometry.coordinates) {
+          updateMapBoundsForGeometry('', parsedGeometry.coordinates[0])
+        }
       } else {
         // Use site geometry
         const currentSiteData = currentProjectData.sites?.find(
           site => site.id === projectSite.siteId
         )
-        
+
         if (currentSiteData?.geometry) {
           const siteGeometry = JSON.parse(currentSiteData.geometry)
-          const randomPoint = getRandomPointInPolygon(siteGeometry.coordinates[0])
-          updateMapBoundsForGeometry('', [randomPoint])
+          if (siteGeometry && siteGeometry.coordinates) {
+            const randomPoint = getRandomPointInPolygon(siteGeometry.coordinates[0])
+            updateMapBoundsForGeometry('', [randomPoint])
+          }
         }
       }
     } catch (error) {
@@ -268,7 +272,7 @@ const ProjectModal = (props: Props) => {
     >
       <Text style={styles.siteCardLabel}>{item.name}</Text>
       <View style={styles.divider} />
-      {projectSite.siteId === item.id &&(
+      {projectSite.siteId === item.id && (
         <Entypo size={16} name="check" color={Colors.NEW_PRIMARY} />
       )}
     </TouchableOpacity>

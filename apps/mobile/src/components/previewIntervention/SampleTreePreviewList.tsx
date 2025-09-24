@@ -72,7 +72,7 @@ const SampleTreePreviewList = (props: Props) => {
   const hasDetails = sampleTress && sampleTress.length > 0
   const renderCard = () => {
     return sampleTress.map((details, i) => {
-      let uri = details.cdn_image_url ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : updateFilePath(details.image_url)
+      let uri = details.cdn_image_url ? v3Approved?`${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${details.cdn_image_url}`:`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${details.cdn_image_url}` : updateFilePath(details.image_url)
       if (details.cdn_image_url === '' && details.image_url === '') {
         uri = ''
       }

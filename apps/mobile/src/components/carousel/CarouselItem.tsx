@@ -23,7 +23,7 @@ const CarouselItem = (props: Props) => {
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   if (data?.tree_type) {
-    const uri = data.cdn_image_url ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : updateFilePath(data.image_url)
+    const uri = data.cdn_image_url ? v3Approved?`${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${data.cdn_image_url}`:`https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${data.cdn_image_url}` : updateFilePath(data.image_url)
     const hasImage = uri.length > 0
     return <TouchableOpacity style={styles.container} onPress={() => {
       onPress(data.intervention_id, data.tree_id)

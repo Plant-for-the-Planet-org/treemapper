@@ -122,7 +122,7 @@ const DisplayMap = () => {
       cameraRef.current.fitBounds(
         [bounds[0], bounds[1]],
         [bounds[2], bounds[3]],
-        50,
+        80,
         1000,
       )
     } else {
@@ -148,7 +148,10 @@ const DisplayMap = () => {
     )
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
-    getBoundsAndSetIntervention(bounds, intervention)
+    console.log(intervention)
+    if (intervention && intervention.intervention_type !== 'single-tree-registration') {
+      getBoundsAndSetIntervention(bounds, intervention)
+    }
     dispatch(updateMapBounds({ bounds: bounds, key: 'DISPLAY_MAP' }))
     dispatch(updateSelectedIntervention(JSON.stringify(intervention)))
   }

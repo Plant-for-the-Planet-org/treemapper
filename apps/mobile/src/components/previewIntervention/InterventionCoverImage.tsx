@@ -25,6 +25,8 @@ interface Props {
 
 const InterventionCoverImage = (props: Props) => {
   const { image, tag, interventionID, treeId, isCDN, showEdit, isLegacy } = props
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
+
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const imageDetails = useSelector((state: RootState) => state.cameraState)
   const { updateSampleTreeImage } = useInterventionManagement()
@@ -59,7 +61,7 @@ const InterventionCoverImage = (props: Props) => {
   }
 
 
-  const uri = isCDN ? `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
+  const uri = isCDN ? v3Approved ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/tree/${image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${image}` : image
   return (
     <View style={styles.container}>
       {uri.length > 0 && <View style={styles.wrapper}>
