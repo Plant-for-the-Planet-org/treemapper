@@ -7,7 +7,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Alert,
-  SafeAreaView,
   StatusBar,
   Dimensions,
 } from 'react-native';
@@ -19,6 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { updateNewFeatureRequest } from 'src/store/slice/appStateSlice';
 import { RootState } from 'src/store';
 import BackIcon from 'assets/images/svg/BackIcon.svg'
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width } = Dimensions.get('window');
 
@@ -517,7 +517,9 @@ const TreeMapperFeaturesScreen = ({ navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8FAFB',
+    // backgroundColor: '#F8FAFB',
+    backgroundColor: '#FFFFFF',
+
   },
   scrollView: {
     flex: 1,
@@ -529,10 +531,8 @@ const styles = StyleSheet.create({
   // Hero Section
   heroSection: {
     backgroundColor: '#FFFFFF',
-    paddingVertical: 32,
     alignItems: 'center',
     marginBottom: 16,
-    marginTop: 50
   },
   heroIconContainer: {
     width: 80,

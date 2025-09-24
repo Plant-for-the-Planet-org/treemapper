@@ -403,11 +403,20 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
                 name: fileName || 'image.jpg',
             });
             console.log("formData", signedUrl);
-            // Upload using FormData
+            // Upload using FormDat
             const uploadResponse = await fetch(signedUrl, {
                 method: 'PUT',
-                body: formData,
+                body: {
+                    uri: pData.imageFile,
+                    type: 'image/jpg',
+                    name: fileName || 'image.jpg',
+                },
+                headers: {
+                    'Content-Type': 'image/jpg', // Set the correct content type
+                },
             });
+
+
             if (!uploadResponse.ok) {
                 throw new Error(`Upload failed with status: ${uploadResponse.status}`);
             }
