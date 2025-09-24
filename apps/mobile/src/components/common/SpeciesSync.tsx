@@ -54,9 +54,9 @@ const SpeciesSync = () => {
       if (updateAppCount % 2 === 0) {
         checkForAppUpdate()
       }
-      if (updateAppCount % 3 === 0) {
-        handleSpeciesSync()
-      }
+      // if (updateAppCount % 3 === 0) {
+      //   handleSpeciesSync()
+      // }
       dispatch(setUpdateAppCount())
     }, 5000);
   }, [])
@@ -93,6 +93,42 @@ const SpeciesSync = () => {
       return false; // Error occurred
     }
   };
+
+    
+  // Show compulsory update alert (no cancel button)
+  const showCompulsoryUpdateAlert = (url: string) => {
+    Alert.alert(
+      "Update Required",
+      "A new version of the app is available. Please update to continue.",
+      [
+        {
+          text: 'Update',
+          onPress: () => { Linking.openURL(url) },
+        }
+      ],
+      { cancelable: false } // User cannot cancel the alert
+    );
+  };
+  
+  // Show optional update alert (with cancel button)
+  const showOptionalUpdateAlert = (url: string) => {
+    Alert.alert(
+      "Update Available",
+      "A new version of the app is available. Would you like to update?",
+      [
+        {
+          text: 'Cancel',
+          onPress: () => console.log('Cancel Pressed'),
+          style: 'cancel',
+        },
+        {
+          text: 'Update',
+          onPress: () => { Linking.openURL(url) },
+        }
+      ]
+    );
+  };
+
 
 
   const handleSpeciesSync = async () => {
@@ -192,40 +228,6 @@ const SpeciesSync = () => {
 
 
 
-  
-  // Show compulsory update alert (no cancel button)
-  const showCompulsoryUpdateAlert = (url: string) => {
-    Alert.alert(
-      "Update Required",
-      "A new version of the app is available. Please update to continue.",
-      [
-        {
-          text: 'Update',
-          onPress: () => { Linking.openURL(url) },
-        }
-      ],
-      { cancelable: false } // User cannot cancel the alert
-    );
-  };
-  
-  // Show optional update alert (with cancel button)
-  const showOptionalUpdateAlert = (url: string) => {
-    Alert.alert(
-      "Update Available",
-      "A new version of the app is available. Would you like to update?",
-      [
-        {
-          text: 'Cancel',
-          onPress: () => console.log('Cancel Pressed'),
-          style: 'cancel',
-        },
-        {
-          text: 'Update',
-          onPress: () => { Linking.openURL(url) },
-        }
-      ]
-    );
-  };
 
 
   const isSpeciesDownloaded = async () => {
