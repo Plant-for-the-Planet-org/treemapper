@@ -93,11 +93,11 @@ export const SpeciesCard = ({
             </div>
 
             <div className="flex items-center gap-1 ml-2">
-              {!isUnknown && (
+              {species.projectSpeciesUid && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
-                    onToggleFavorite(species.uid, !species.favourite);
+                    onToggleFavorite(species.uid, !species.favourite, species.projectSpeciesUid);
                   }}
                   className={`p-1 rounded transition-colors ${
                     species.favourite 
@@ -108,10 +108,10 @@ export const SpeciesCard = ({
                   <Heart size={12} fill={species.favourite ? 'currentColor' : 'none'} />
                 </button>
               )}
-              <button
+              {species.projectSpeciesUid && <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  onToggleDisabled(species.uid, !(species.isDisabled || species.disabled));
+                  onToggleDisabled(species.uid, !(species.isDisabled || species.disabled), species.projectSpeciesUid);
                 }}
                 className={`p-1 rounded transition-colors ${
                   (species.isDisabled || species.disabled)
@@ -120,7 +120,7 @@ export const SpeciesCard = ({
                 }`}
               >
                 {(species.isDisabled || species.disabled) ? <EyeOff size={12} /> : <Eye size={12} />}
-              </button>
+              </button>}
             </div>
           </div>
 

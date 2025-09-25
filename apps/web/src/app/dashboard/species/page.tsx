@@ -135,7 +135,7 @@ const SpeciesManagementDashboard = () => {
       interventionCount: species.interventionUsageCount,
       totalCount: species.totalSpecimenCount,
       isDisabled: species.isDisabled || false, // Add if missing
-
+      projectSpeciesUid: species.projectSpeciesUid || null,
       // Create sources array based on boolean flags
       sources: [
         ...(species.isInProjectSpecies ? ['project'] : []),
@@ -287,7 +287,7 @@ const SpeciesManagementDashboard = () => {
     setSearchResults([]);
   };
 
-  const handleToggleFavorite = async (uid, fav) => {
+  const handleToggleFavorite = async (uid, fav, psid) => {
     // Find species in both arrays
     const scientificIndex = scientificSpecies.findIndex(s => s.uid === uid);
     const unknownIndex = unknownSpecies.findIndex(s => s.uid === uid);
@@ -316,10 +316,10 @@ const SpeciesManagementDashboard = () => {
     const species = scientificSpecies.find(s => s.uid === uid) || unknownSpecies.find(s => s.uid === uid);
     const apiUid = species?._originalData?.scientificSpeciesId || uid;
 
-    await updateSpciesFav(accessToken, { fav: fav }, selectedProject.uid, apiUid);
+    await updateSpciesFav(accessToken, { fav: fav }, selectedProject.uid, psid);
   };
 
-  const handleToggleDisabled = async (uid, dis) => {
+  const handleToggleDisabled = async (uid, dis, psid) => {
     const scientificIndex = scientificSpecies.findIndex(s => s.uid === uid);
     const unknownIndex = unknownSpecies.findIndex(s => s.uid === uid);
 
@@ -355,7 +355,7 @@ const SpeciesManagementDashboard = () => {
     const species = scientificSpecies.find(s => s.uid === uid) || unknownSpecies.find(s => s.uid === uid);
     const apiUid = species?._originalData?.scientificSpeciesId || uid;
 
-    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, apiUid);
+    await updateDisbaleSpecies(accessToken, { disable: dis }, selectedProject.uid, psid);
   };
   const handleImageUpload = (e) => {
     const file = e.target.files[0];
@@ -373,6 +373,7 @@ const SpeciesManagementDashboard = () => {
     setEditForm({ ...selectedSpecies });
     setIsEditing(true);
   };
+
 
 
 
@@ -453,7 +454,7 @@ const SpeciesManagementDashboard = () => {
         payLoad['commonName'] = editForm.commonName;
       }
       if (editForm.description) {
-        payLoad['description'] = editForm.description;
+        payLoad['notes'] = editForm.description;
       }
       let fileName = ''
       if (imageDetails) {
@@ -477,7 +478,7 @@ const SpeciesManagementDashboard = () => {
         }
         setSelectedSpecies(null)
       } else {
-        const resp = await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.uid);
+        const resp = await updateProjectSpecies(accessToken || '', payLoad, selectedProject?.uid, editForm.projectSpeciesUid);
         if (resp.statusCode === 201 || resp.statusCode === 200) {
           toast.success("Species Updated")
         } else {
@@ -936,13 +937,13 @@ const SpeciesManagementDashboard = () => {
                     <Trash2 size={14} />
                     Delete
                   </button> : null}
-                  {selectedSpecies.isUnknown || selectedSpecies.interventionCount !== 0 ? null : <button
+                  {!selectedSpecies.isUnknown && selectedSpecies.projectSpeciesUid ? <button
                     onClick={handleStartEdit}
                     className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
                   >
                     <Edit2 size={14} />
                     Edit
-                  </button>}
+                  </button> : null}
                 </>
               )}
             </div>
