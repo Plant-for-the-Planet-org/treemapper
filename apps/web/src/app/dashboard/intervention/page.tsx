@@ -842,14 +842,14 @@ const TreeCard = ({ tree, onUpdate }) => {
               <div className="grid grid-cols-2 gap-3">
                 <EditableField
                   label="Height (m)"
-                  value={tree.currentHeight?.toString() || ''}
+                  value={tree.height?.toString() || ''}
                   type="number"
                   placeholder="0.0"
                   onSave={(value) => handleUpdateField('height', parseFloat(value))}
                 />
                 <EditableField
                   label="Width (m)"
-                  value={tree.currentWidth?.toString() || ''}
+                  value={tree.width?.toString() || ''}
                   type="number"
                   placeholder="0.0"
                   onSave={(value) => handleUpdateField('width', parseFloat(value))}
