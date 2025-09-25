@@ -212,6 +212,13 @@ export const getUserProjectSites = async (token: string, id: string) => {
   return result
 }
 
+export const getProjectAnalytics = async (token: string, id: string) => {
+  const uri = `${getUrlApi.getProjectAnalytics}/${id}/leaderboard`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
+
 export const createNewDashboardSite = async (token: string, params: any, prjId: string) => {
   const uri = `${postUrlApi.createNewDashboardSite}/${prjId}/sites`;
   const result = await fetchPostCall(uri, params, token);

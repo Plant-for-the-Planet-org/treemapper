@@ -68,6 +68,7 @@ export const getUrlApi = {
   getWrokspaceMembers: `${baseUrl}/workspace/members`,
   getProjectMap:`${baseUrl}/interventions`,
   getProjectTreeMap:`${baseUrl}/interventions`,
+  getProjectAnalytics: `${baseUrl}/analytics`,
 
 } as const;
 
