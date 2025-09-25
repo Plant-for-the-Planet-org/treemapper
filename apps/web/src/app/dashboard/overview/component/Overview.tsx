@@ -468,21 +468,25 @@ const Overview = () => {
                     </button>
                 </div>}
             </div>
-            {projectRole !== 'admin' && projectRole !== 'owner' ? <ProjectMap projectId={selectedProject} token={accessToken} /> : <>     <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} />
-                {selectedTab === 'overview' ? <>
-                    <StatCardsContainer setTotalTrees={setTotalTrees} />
-                    <div className="px-4 py-6">
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                            <div className="h-full flex" style={{ flexDirection: 'column' }}>
-                                {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
-                                <TreePlantingChart />
+            {projectRole !== 'admin' && projectRole !== 'owner' ?
+                <>
+                    <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} projectRole={projectRole} />
+                    { selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}
+                </> : <>     <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} projectRole={projectRole}/>
+                    {selectedTab === 'overview' ? <>
+                        <StatCardsContainer setTotalTrees={setTotalTrees} />
+                        <div className="px-4 py-6">
+                            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                <div className="h-full flex" style={{ flexDirection: 'column' }}>
+                                    {Target && <ForestProgressComponent target={Target} treeCount={totalTrees} />}
+                                    <TreePlantingChart />
 
+                                </div>
+                                <div className="h-full flex">
+                                    <RecentAdditionsComponent />
+                                </div>
                             </div>
-                            <div className="h-full flex">
-                                <RecentAdditionsComponent />
-                            </div>
-                        </div>
-                    </div></> : selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
+                        </div></> : selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
         </div>
     );
 };
