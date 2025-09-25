@@ -64,6 +64,7 @@ import MapDisplayComponent from './component/InterventionDisplayMap';
 import EditSpeciesModal from './component/SpeciesEditModal';
 import OwenrshipTransfer from './component/OwnershipTransferModal';
 import UnifiedMapComponent from '@/component/MapSelect';
+import { useUserStore } from '@shared-core/store/useUserStore';
 // Mock API functions - replace with your actual API calls
 const mockApiCall = (delay = 1000) => new Promise(resolve => setTimeout(resolve, delay));
 
@@ -461,7 +462,7 @@ const FileUploadDialog = ({ open, onOpenChange, title, accept, onUpload, descrip
   );
 };
 
-const FileUploadMapDialog = ({intervention, open, onOpenChange, title, accept, onUpload, description }) => {
+const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, onUpload, description }) => {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const fileInputRef = useRef(null);
@@ -509,7 +510,7 @@ const FileUploadMapDialog = ({intervention, open, onOpenChange, title, accept, o
           <p className="text-sm text-gray-600">{description}</p>
         )}
         <div style={{ width: '100%', height: "50vh", backgroundColor: "red" }}>
-          <UnifiedMapComponent updateGeoJSON={()=>{}} uploadedGeoJSON={intervention.originalGeometry} mode={'point'} />
+          <UnifiedMapComponent updateGeoJSON={() => { }} uploadedGeoJSON={intervention.originalGeometry} mode={'point'} />
         </div>
         <div className="space-y-4">
           <div>
@@ -1087,7 +1088,7 @@ const HeaderWithFilters = ({
 };
 
 // Intervention Details Component
-const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, selectedProject }) => {
+const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, selectedProject, userDetails, selectedProjectDetails }) => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showSpeciesDialog, setShowSpeciesDialog] = useState(false);
@@ -1301,9 +1302,9 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                       </div>
                       <span className="text-sm text-gray-900">{intervention.user && intervention.user.name ? intervention.user.name : 'Update Owner'}</span>
                     </div>
-                    <Button size="sm" variant="ghost" onClick={() => setShowOwnerDialog(true)}>
+                    {selectedProjectDetails.userRole === 'admin' || selectedProjectDetails.userRole === 'owner'?<Button size="sm" variant="ghost" onClick={() => setShowOwnerDialog(true)}>
                       <Edit2 className="h-3 w-3" />
-                    </Button>
+                    </Button>:null}
                   </div>
                 </div>
               </div>
@@ -1616,6 +1617,9 @@ const TreeMapperUI = () => {
 
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  const userDetails = useUserStore(state => state);
+
+
   const observerRef = useRef();
 
   // Get unique intervention types
@@ -1966,6 +1970,8 @@ const TreeMapperUI = () => {
                 onDelete={handleInterventionDelete}
                 accessToken={accessToken}
                 selectedProject={selectedProject.uid}
+                userDetails={userDetails}
+                selectedProjectDetails={selectedProject}
               />
             </div>
           ) : (
