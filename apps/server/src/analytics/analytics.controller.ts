@@ -64,7 +64,7 @@ export class AnalyticsController {
   //   return this.analyticsService.getProjectMapData(membership.projectId);
   // }
 
-  
+
   @Post('/:id/export')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
@@ -79,4 +79,32 @@ export class AnalyticsController {
       membership.projectId
     );
   }
+
+
+
+  @Get('/:id/leaderboard')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getProjectLeaderboard(
+    @Membership() membership: ProjectGuardResponse,
+    @Query('page') page?: string,
+    @Query('pageSize') pageSize?: string,
+    @Query('timeFilter') timeFilter?: 'all-time' | 'this-year' | 'this-month',
+  ): Promise<{
+    items: any[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    console.log('Leaderboard query params:', { page, pageSize, timeFilter });
+    console.log('Membership:', membership);
+    return await this.analyticsService.getProjectLeaderboard(
+      membership.projectId,
+      page,
+      pageSize,
+      timeFilter || 'all-time'
+    );
+  }
+
 }

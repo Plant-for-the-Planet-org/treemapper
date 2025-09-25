@@ -48,4 +48,12 @@ export class UserCacheService {
         return await this.cacheService.get(this.getUseAuthrKeyMigration(auth0Id));
     }
 
+
+    async userCacheClearService(auth0Id: string): Promise<void> {
+        try {
+            await this.cacheService.delete(this.getUseAuthrKey(auth0Id));
+        } catch (error) {
+        }
+    }
+
 }

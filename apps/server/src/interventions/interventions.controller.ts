@@ -39,7 +39,7 @@ export class InterventionsController {
   constructor(private readonly interventionsService: InterventionsService) { }
 
   @Post('/projects/:id/web')
-  @ProjectRoles('owner', 'admin')
+  @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
   async createNewInterventionWeb(
     @Body() createInterventionDto: any,

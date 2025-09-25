@@ -8,7 +8,7 @@ import {
 import { DrizzleService } from '../../database/drizzle.service';
 import { image, intervention, interventionSpecies, projectSpecies, scientificSpecies, user } from '../../database/schema';
 import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from '../dto/user-species.dto';
-import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull } from 'drizzle-orm';
+import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull, asc } from 'drizzle-orm';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
 
@@ -55,7 +55,10 @@ export interface ProjectSpeciesAggregatedResponse {
     totalKnownSpecies: number;
     totalUnknownSpecies: number;
     totalProjectSpecies: number;
+    totalUsedInInterventions: number;
+    totalSpecimenCount: number;
     totalInterventionSpecies: number;
+    favoritedSpeciesCount: number;
   };
 }
 
@@ -131,171 +134,177 @@ export class ProjectSpeciesService {
     })
   }
 
-async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggregatedResponse> {
-  // Get all known species (with scientificSpeciesId) from both tables
-  const knownSpeciesQuery = await this.drizzle.db
-    .select({
-      scientificSpeciesId: sql<number>`COALESCE(${projectSpecies.scientificSpeciesId}, ${interventionSpecies.scientificSpeciesId})`,
-      scientificName: scientificSpecies.scientificName,
+  async getProjectSpeciesAggregated(projectId: number): Promise<ProjectSpeciesAggregatedResponse> {
+    // Single optimized query for known species with aggregation
+    const knownSpeciesData = await this.drizzle.db
+      .select({
+        // Scientific species core data
+        scientificSpeciesId: scientificSpecies.id,
+        scientificName: scientificSpecies.scientificName,
 
-      // Priority: project species common name first
-      commonName: sql<string>`COALESCE(${projectSpecies.commonName}, ${interventionSpecies.commonName})`,
-      speciesName: sql<string>`COALESCE(${projectSpecies.speciesName}, ${interventionSpecies.speciesName})`,
+        // Project species data (if exists)
+        projectSpeciesId: projectSpecies.id,
+        projectSpeciesUid: projectSpecies.uid,
+        projectCommonName: projectSpecies.commonName,
+        projectSpeciesName: projectSpecies.speciesName,
+        isFavourite: sql<boolean>`COALESCE(${projectSpecies.favourite}, false)`,
+        projectSpeciesNotes: projectSpecies.notes,
+        projectSpeciesImage: projectSpecies.image,
+        isDisabled: sql<boolean>`COALESCE(${projectSpecies.isDisabled}, false)`,
+        projectSpeciesCreatedAt: projectSpecies.createdAt,
 
-      // Project species data
-      projectSpeciesId: projectSpecies.id,
-      projectCommonName: projectSpecies.commonName,
-      projectSpeciesName: projectSpecies.speciesName,
-      isFavourite: sql<boolean>`COALESCE(${projectSpecies.favourite}, false)`,
-      projectSpeciesNotes: projectSpecies.notes,
-      projectSpeciesImage: projectSpecies.image,
-      projectSpeciesCreatedAt: projectSpecies.createdAt,
-      projectSpeciesUpdatedAt: projectSpecies.updatedAt,
+        // Aggregated intervention data
+        interventionUsageCount: sql<number>`COUNT(DISTINCT ${intervention.id})`,
+        totalSpecimenCount: sql<number>`COALESCE(SUM(${interventionSpecies.speciesCount}), 0)`,
 
-      // Intervention data
-      interventionSpeciesId: interventionSpecies.id,
-      interventionCommonName: interventionSpecies.commonName,
-      interventionSpeciesName: interventionSpecies.speciesName,
-      interventionId: interventionSpecies.interventionId,
-      speciesCount: interventionSpecies.speciesCount,
-      interventionSpeciesCreatedAt: interventionSpecies.createdAt,
-      interventionSpeciesUpdatedAt: interventionSpecies.updatedAt,
-    })
-    .from(scientificSpecies)
-    .leftJoin(
-      projectSpecies,
-      and(
-        eq(projectSpecies.scientificSpeciesId, scientificSpecies.id),
-        eq(projectSpecies.projectId, projectId),
-        isNull(projectSpecies.deletedAt)
+        // Latest activity dates
+        lastUsedAt: sql<Date>`MAX(${interventionSpecies.createdAt})`,
+
+      })
+      .from(scientificSpecies)
+      .leftJoin(
+        projectSpecies,
+        and(
+          eq(projectSpecies.scientificSpeciesId, scientificSpecies.id),
+          eq(projectSpecies.projectId, projectId),
+          isNull(projectSpecies.deletedAt)
+        )
       )
-    )
-    .leftJoin(
-      intervention, // Join intervention table first
-      and(
-        eq(intervention.projectId, projectId),
-        isNull(intervention.deletedAt)
+      .leftJoin(
+        interventionSpecies,
+        and(
+          eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id),
+          isNotNull(interventionSpecies.scientificSpeciesId),
+          isNull(interventionSpecies.deletedAt)
+        )
       )
-    )
-    .leftJoin(
-      interventionSpecies, // Then join interventionSpecies through intervention
-      and(
-        eq(interventionSpecies.interventionId, intervention.id),
-        eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id),
-        isNotNull(interventionSpecies.scientificSpeciesId)
+      .leftJoin(
+        intervention,
+        and(
+          eq(intervention.id, interventionSpecies.interventionId),
+          eq(intervention.projectId, projectId),
+          isNull(intervention.deletedAt)
+        )
       )
-    )
-    .where(
-      sql`(${projectSpecies.id} IS NOT NULL OR ${interventionSpecies.id} IS NOT NULL)`
-    );
-
-  // Get unknown species separately
-  const unknownSpeciesQuery = await this.drizzle.db
-    .select({
-      uid: interventionSpecies.uid,
-      speciesName: interventionSpecies.speciesName,
-      commonName: interventionSpecies.commonName,
-      interventionId: interventionSpecies.interventionId,
-      interventionUid: intervention.uid,
-      interventionHid: intervention.hid,
-      speciesCount: interventionSpecies.speciesCount,
-      image: sql<string>`NULL`, // Unknown species typically don't have images
-      createdAt: interventionSpecies.createdAt,
-      updatedAt: interventionSpecies.updatedAt,
-    })
-    .from(interventionSpecies)
-    .innerJoin(
-      intervention,
-      and(
-        eq(intervention.id, interventionSpecies.interventionId),
-        eq(intervention.projectId, projectId),
-        isNull(intervention.deletedAt)
+      .where(
+        or(
+          isNotNull(projectSpecies.id),
+          and(
+            isNotNull(interventionSpecies.id),
+            isNotNull(intervention.id)
+          )
+        )
       )
-    )
-    .where(
-      and(
-        eq(interventionSpecies.isUnknown, true),
-        isNull(interventionSpecies.scientificSpeciesId)
+      .groupBy(
+        scientificSpecies.id,
+        scientificSpecies.scientificName,
+        projectSpecies.id,
+        projectSpecies.uid,
+        projectSpecies.commonName,
+        projectSpecies.speciesName,
+        projectSpecies.favourite,
+        projectSpecies.notes,
+        projectSpecies.image,
+        projectSpecies.isDisabled,
+        projectSpecies.createdAt
       )
-    );
+      .orderBy(
+        desc(sql`COUNT(DISTINCT ${intervention.id})`), // Most used first
+        asc(scientificSpecies.scientificName)
+      );
 
-  // Process known species aggregation
-  const knownSpeciesMap = new Map<number, KnownSpeciesResponse>();
+    // Separate optimized query for unknown species
+    const unknownSpeciesData = await this.drizzle.db
+      .select({
+        uid: interventionSpecies.uid,
+        speciesName: interventionSpecies.speciesName,
+        commonName: interventionSpecies.commonName,
+        interventionId: interventionSpecies.interventionId,
+        interventionUid: intervention.uid,
+        interventionHid: intervention.hid,
+        speciesCount: interventionSpecies.speciesCount,
+        createdAt: interventionSpecies.createdAt,
+        updatedAt: interventionSpecies.updatedAt,
+      })
+      .from(interventionSpecies)
+      .innerJoin(
+        intervention,
+        and(
+          eq(intervention.id, interventionSpecies.interventionId),
+          eq(intervention.projectId, projectId),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .where(
+        and(
+          eq(interventionSpecies.isUnknown, true),
+          isNull(interventionSpecies.scientificSpeciesId),
+          isNull(interventionSpecies.deletedAt)
+        )
+      )
+      .orderBy(desc(interventionSpecies.createdAt));
 
-  for (const row of knownSpeciesQuery) {
-    const scientificSpeciesId = row.scientificSpeciesId;
+    // Transform known species data
+    const knownSpecies: any[] = knownSpeciesData.map(row => ({
+      scientificSpeciesId: row.scientificSpeciesId,
+      scientificName: row.scientificName,
 
-    if (!knownSpeciesMap.has(scientificSpeciesId)) {
-      // Initialize aggregated record
-      knownSpeciesMap.set(scientificSpeciesId, {
-        scientificSpeciesId,
-        scientificName: row.scientificName,
-        commonName: row.commonName,
-        speciesName: row.speciesName,
-        image: row.projectSpeciesImage || null,
+      // Use priority: project species names first, then scientific name
+      commonName: row.projectCommonName || row.scientificName,
+      speciesName: row.projectSpeciesName || row.scientificName,
 
-        isInProjectSpecies: !!row.projectSpeciesId,
-        isFavourite: row.isFavourite,
-        projectSpeciesNotes: row.projectSpeciesNotes,
+      image: row.projectSpeciesImage || null,
 
-        interventionUsageCount: 0,
-        totalSpecimenCount: 0,
-        interventionIds: [],
-        createdAt: row.projectSpeciesCreatedAt || row.interventionSpeciesCreatedAt,
-        updatedAt: row.projectSpeciesUpdatedAt || row.interventionSpeciesUpdatedAt,
-      });
-    }
+      // Project species metadata
+      isInProjectSpecies: !!row.projectSpeciesId,
+      projectSpeciesUid: row.projectSpeciesUid || null,
+      isFavourite: row.isFavourite,
+      isDisabled: row.isDisabled,
+      projectSpeciesNotes: row.projectSpeciesNotes || null,
 
-    const species = knownSpeciesMap.get(scientificSpeciesId)!;
+      // Usage statistics
+      interventionUsageCount: Number(row.interventionUsageCount),
+      totalSpecimenCount: Number(row.totalSpecimenCount),
 
-    // Update project species data if exists
-    if (row.projectSpeciesId && !species.isInProjectSpecies) {
-      species.isInProjectSpecies = true;
-      species.isFavourite = row.isFavourite;
-      species.projectSpeciesNotes = row.projectSpeciesNotes;
-      species.image = species.image || row.projectSpeciesImage;
-    }
+      // Timestamps
+      createdAt: row.projectSpeciesCreatedAt || row.lastUsedAt,
+      lastUsedAt: row.lastUsedAt,
+    }));
 
-    // Aggregate intervention data
-    if (row.interventionSpeciesId && row.interventionId) {
-      if (!species.interventionIds.includes(row.interventionId)) {
-        species.interventionIds.push(row.interventionId);
-        species.interventionUsageCount++;
-      }
-      species.totalSpecimenCount += row.speciesCount || 0;
-    }
+    // Transform unknown species data
+    const unknownSpecies: UnknownSpeciesResponse[] = unknownSpeciesData.map(row => ({
+      uid: row.uid,
+      speciesName: row.speciesName || row.commonName || 'Unknown Species',
+      commonName: row.commonName || row.speciesName || 'Unknown Species',
+      interventionId: row.interventionId,
+      interventionUid: row.interventionUid,
+      interventionHid: row.interventionHid,
+      speciesCount: row.speciesCount,
+      image: null, // Unknown species don't have images
+      createdAt: row.createdAt,
+      updatedAt: row.updatedAt,
+    }));
+
+    // Calculate summary statistics
+    const totalProjectSpecies = knownSpecies.filter(s => s.isInProjectSpecies).length;
+    const totalUsedInInterventions = knownSpecies.filter(s => s.interventionUsageCount > 0).length;
+    const totalSpecimenCount = knownSpecies.reduce((sum, s) => sum + s.totalSpecimenCount, 0) +
+      unknownSpecies.reduce((sum, s) => sum + s.speciesCount, 0);
+
+    return {
+      knownSpecies,
+      unknownSpecies,
+      summary: {
+        totalKnownSpecies: knownSpecies.length,
+        totalUnknownSpecies: unknownSpecies.length,
+        totalProjectSpecies,
+        totalUsedInInterventions,
+        totalSpecimenCount,
+        favoritedSpeciesCount: knownSpecies.filter(s => s.isFavourite).length,
+        totalInterventionSpecies:totalUsedInInterventions 
+      },
+    };
   }
-
-  const knownSpecies = Array.from(knownSpeciesMap.values());
-  const unknownSpecies: UnknownSpeciesResponse[] = unknownSpeciesQuery.map(row => ({
-    uid: row.uid,
-    speciesName: '',
-    commonName: row.speciesName,
-    interventionId: row.interventionId,
-    interventionUid: row.interventionUid,
-    interventionHid: row.interventionHid,
-    speciesCount: row.speciesCount,
-    image: row.image,
-    createdAt: row.createdAt,
-    updatedAt: row.updatedAt,
-  }));
-
-  // Calculate summary
-  const totalProjectSpecies = knownSpecies.filter(s => s.isInProjectSpecies).length;
-  const totalInterventionSpecies = knownSpecies.filter(s => s.interventionUsageCount > 0).length + unknownSpecies.length;
-
-  return {
-    knownSpecies,
-    unknownSpecies,
-    summary: {
-      totalKnownSpecies: knownSpecies.length,
-      totalUnknownSpecies: unknownSpecies.length,
-      totalProjectSpecies,
-      totalInterventionSpecies,
-    },
-  };
-}
-
   async updateFavourite(
     speciesId: string,
     membership: ProjectGuardResponse,

@@ -26,6 +26,7 @@ import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+import { UserCacheService } from 'src/cache/user-cache.service';
 
 
 interface AuthenticatedRequest extends Request {
@@ -39,7 +40,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('workspace')
 export class WorkspaceController {
-    constructor(private readonly workspaceService: WorkspaceService) { }
+    constructor(private readonly workspaceService: WorkspaceService,private readonly userCacheService: UserCacheService) { }
     @Post()
     async createNewWorkspace(
         @Body() createOrganizationDto: CreateNewWorkspaceDto,
@@ -79,6 +80,17 @@ export class WorkspaceController {
             throw 'Not permitted'
         }
         return await this.workspaceService.cacheWorkspace();
+    }
+
+    @Post('cache/user/clear')
+    async clearUserCache(
+        @CurrentUser() user: User,
+        @Body() userDetails: any,
+    ) {
+        if (user.type !== 'superadmin') {
+            throw 'Not permitted'
+        }
+        return await this.userCacheService.userCacheClearService(userDetails.authID);
     }
 
 

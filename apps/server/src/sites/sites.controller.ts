@@ -29,7 +29,7 @@ export class SiteController {
   constructor(private readonly siteService: SiteService) { }
 
 @Post()
-@ProjectRoles('owner', 'admin')
+@ProjectRoles('owner', 'admin', 'contributor')
 @UseGuards(ProjectPermissionsGuard)
 async createSite(
   @Membership() membership: ProjectGuardResponse,

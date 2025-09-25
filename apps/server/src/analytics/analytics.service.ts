@@ -1086,6 +1086,131 @@ export class AnalyticsService {
     };
   }
 
+
+  async getProjectLeaderboard(
+    projectId: number,
+    page: string = '1',
+    pageSize: string = '20',
+    timeFilter: 'all-time' | 'this-year' | 'this-month' = 'all-time'
+  ): Promise<{
+    items: any[];
+    totalCount: number;
+    currentPage: number;
+    pageSize: number;
+    totalPages: number;
+  }> {
+    const parsedPage = parseInt(page, 10) || 1;
+    const parsedPageSize = parseInt(pageSize, 10) || 20;
+    const skip = (parsedPage - 1) * parsedPageSize;
+
+    // Build date filter based on timeFilter
+    let dateFilter = sql`true`; // Default: no date restriction
+
+    if (timeFilter === 'this-year') {
+      dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE)`;
+    } else if (timeFilter === 'this-month') {
+      dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                    AND EXTRACT(MONTH FROM ${intervention.interventionStartDate}) = EXTRACT(MONTH FROM CURRENT_DATE)`;
+    }
+
+
+    // Main leaderboard query with aggregations
+    const leaderboardData = await this.drizzleService.db
+  .select({
+    uid: user.uid,
+    displayName: user.displayName,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    image: user.image,
+    role: projectMember.projectRole,
+    joinDate: projectMember.joinedAt,
+    totalInterventions: sql<number>`COUNT(DISTINCT ${intervention.id})`.as('totalInterventions'),
+    totalTrees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`.as('totalTrees'),
+    totalSpecies: sql<number>`COUNT(DISTINCT ${interventionSpecies.id})`.as('totalSpecies'),
+  })
+  .from(projectMember)
+  .innerJoin(user, eq(projectMember.userId, user.id))
+  .leftJoin(
+    intervention,
+    and(
+      eq(intervention.userId, user.id),
+      eq(intervention.projectId, projectId),
+      isNull(intervention.deletedAt),
+      dateFilter
+    )
+  )
+  .leftJoin(
+    interventionSpecies,
+    and(
+      eq(interventionSpecies.interventionId, intervention.id),
+      isNull(interventionSpecies.deletedAt)
+    )
+  )
+  .where(
+    and(
+      eq(projectMember.projectId, projectId),
+      isNull(projectMember.deletedAt),
+      eq(projectMember.status, 'active')
+    )
+  )
+  .groupBy(
+    user.id,
+    user.uid,
+    user.displayName,
+    user.firstName,
+    user.lastName,
+    user.image,
+    projectMember.projectRole,
+    projectMember.joinedAt
+  )
+  .orderBy(
+    desc(sql`COALESCE(SUM(${intervention.totalTreeCount}), 0)`),
+    desc(sql`COUNT(DISTINCT ${intervention.id})`),
+    desc(sql`COUNT(DISTINCT ${interventionSpecies.id})`)
+  )
+  .limit(parsedPageSize)
+  .offset(skip);
+    // Get total count for pagination
+    const totalCountResult = await this.drizzleService.db
+      .select({
+        count: sql<number>`COUNT(DISTINCT ${user.id})`.as('count')
+      })
+      .from(projectMember)
+      .innerJoin(user, eq(projectMember.userId, user.id))
+      .where(
+        and(
+          eq(projectMember.projectId, projectId),
+          isNull(projectMember.deletedAt),
+          eq(projectMember.status, 'active')
+        )
+      );
+
+    const totalCount = totalCountResult[0]?.count || 0;
+    const totalPages = Math.ceil(totalCount / parsedPageSize);
+
+    // Format the response
+    const formattedItems = leaderboardData.map(item => ({
+      uid: item.uid,
+      displayName: item.displayName,
+      firstName: item.firstName,
+      lastName: item.lastName,
+      image: item.image,
+      role: item.role,
+      totalTrees: Number(item.totalTrees),
+      totalInterventions: Number(item.totalInterventions),
+      totalSpecies: Number(item.totalSpecies),
+      joinDate: item.joinDate?.toISOString().split('T')[0] || null, // Format as YYYY-MM-DD
+    }));
+
+    return {
+      items: formattedItems,
+      totalCount,
+      currentPage: parsedPage,
+      pageSize: parsedPageSize,
+      totalPages,
+    };
+  }
+
   //   async getProjectMapData(projectId: number): Promise<MapDataResponse> {
   //     // First, verify the project exists
   //     const projectData = await this.drizzleService.db
