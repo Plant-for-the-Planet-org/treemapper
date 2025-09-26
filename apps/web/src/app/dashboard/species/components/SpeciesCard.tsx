@@ -65,7 +65,7 @@ export const SpeciesCard = ({
 
         <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
           {species.image ? (
-            <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${species.image}`} alt={species.commonName || species.speciesName} className="w-full h-full object-cover" />
+            <img src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/species/${species.image}`} alt={species.commonName || species.speciesName} className="w-full h-full object-cover" />
           ) : (
             <div className="w-full h-full flex items-center justify-center">
               <Leaf className="w-5 h-5 text-gray-400" />

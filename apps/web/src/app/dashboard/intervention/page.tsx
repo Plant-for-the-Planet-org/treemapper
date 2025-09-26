@@ -800,7 +800,7 @@ const TreeCard = ({ tree, onUpdate }) => {
           {tree.image && (
             <div className="mb-3 relative group">
               <img
-                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${tree.image}`}
+                src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/tree/${tree.image}`}
                 alt={`Tree ${tree.tag || tree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
