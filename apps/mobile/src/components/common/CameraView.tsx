@@ -1,4 +1,4 @@
-import { Linking, Platform, StyleSheet, Text, View } from 'react-native'
+import { Linking, Platform, StyleSheet, Text, View, ActivityIndicator } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { CameraCapturedPicture, CameraView, PermissionStatus, useCameraPermissions } from 'expo-camera';
 import CustomButton from './CustomButton'
@@ -6,7 +6,6 @@ import { Colors, Typography } from 'src/utils/constants'
 import i18next from 'src/locales'
 import useLogManagement from 'src/hooks/realm/useLogManagement';
 import { useToast } from 'react-native-toast-notifications';
-
 
 interface Props {
   takePicture: (metaData: CameraCapturedPicture) => void
@@ -16,74 +15,145 @@ const CameraMainView = (props: Props) => {
   const [permission, requestPermission] = useCameraPermissions()
   const { addNewLog } = useLogManagement()
   const [loading, setLoading] = useState(false)
+  const [cameraReady, setCameraReady] = useState(false)
   const cameraRef = useRef<CameraView>(null)
   const toast = useToast()
+
   useEffect(() => {
-    requestPermission()
-  }, [])
+    if (!permission) {
+      requestPermission()
+    }
+  }, [permission])
+
+  const handleCameraReady = () => {
+    setCameraReady(true)
+  }
+
+  const handleCameraMountError = (error: { message: string }) => {
+    addNewLog({
+      logType: 'INTERVENTION',
+      message: 'Camera mount error',
+      logLevel: 'error',
+      statusCode: '',
+      logStack: JSON.stringify(error)
+    })
+    toast.show('Camera failed to start. Please try again.')
+  }
 
   const captureImage = async () => {
+    if (!cameraReady) {
+      toast.show('Camera is not ready yet. Please wait.')
+      return
+    }
+
+    if (!cameraRef.current) {
+      toast.show('Camera reference not available')
+      return
+    }
+
     try {
       setLoading(true)
-      const data = await cameraRef.current.takePictureAsync({ skipProcessing: true, quality: 0, base64: false })
-      if (data) {
+
+      // Take picture with proper options
+      const data = await cameraRef.current.takePictureAsync({
+        quality: 0.8, // Balance between quality and file size
+        base64: false,
+        exif: false,
+        skipProcessing: false, // Process the image properly
+      })
+
+      if (data && data.uri) {
+        // Pass the captured image to parent
         props.takePicture(data)
       } else {
-        setLoading(false)
+        throw new Error('No image data returned from camera')
       }
-    } catch (error) {
+    } catch (error: any) {
+      const errorMessage = error?.message || 'Unknown error'
+      
       addNewLog({
         logType: 'INTERVENTION',
-        message: 'Error ocurred while capturing image',
+        message: 'Error occurred while capturing image',
         logLevel: 'error',
         statusCode: '',
-        logStack: JSON.stringify(error)
+        logStack: JSON.stringify({
+          message: errorMessage,
+          stack: error?.stack,
+          name: error?.name
+        })
       })
-      toast.show("Error Ocurred, Please try again");
+      
+      toast.show('Failed to capture image. Please try again.')
       setLoading(false)
     }
   }
+
   const onClickOpenSettings = async () => {
-    if (Platform.OS === 'android') {
-      Linking.openSettings();
-    } else {
-      Linking.openURL('app-settings:')
+    try {
+      if (Platform.OS === 'android') {
+        await Linking.openSettings()
+      } else {
+        await Linking.openURL('app-settings:')
+      }
+    } catch (error) {
+      toast.show('Unable to open settings')
     }
-  };
+  }
 
+  const renderCameraView = () => {
+    return (
+      <>
+        <CameraView
+          facing="back" // Use string literal, not translation
+          style={styles.cameraWrapper}
+          ref={cameraRef}
+          onCameraReady={handleCameraReady}
+          onMountError={handleCameraMountError}
+          active={!loading} // Pause camera when processing
+        />
+        {loading && (
+          <View style={styles.cameraBackDrop}>
+            <ActivityIndicator size="large" color={Colors.WHITE} />
+            <Text style={styles.loadingText}>Processing image...</Text>
+          </View>
+        )}
+        {!cameraReady && !loading && (
+          <View style={styles.cameraBackDrop}>
+            <ActivityIndicator size="large" color={Colors.WHITE} />
+            <Text style={styles.loadingText}>Initializing camera...</Text>
+          </View>
+        )}
+      </>
+    )
+  }
 
-  const showCameraOrLoading = () => {
-
-    return <>
-      <CameraView
-        facing={i18next.t('label.back')}
-        style={styles.cameraWrapper}
-        ref={cameraRef}
-      />
-      {loading && <View style={styles.cameraBackDrop}></View>}
-    </>
+  const renderPermissionRequest = () => {
+    return (
+      <>
+        <Text style={styles.centerText}>
+          {i18next.t('label.camera_permission')}
+        </Text>
+        <Text style={styles.centerTextNote} onPress={onClickOpenSettings}>
+          {i18next.t('label.open_settings')}
+        </Text>
+      </>
+    )
   }
 
   return (
     <View style={styles.container}>
       <View style={styles.wrapper}>
-        {permission && permission.status !== PermissionStatus.GRANTED ? (
-          <>
-            <Text style={styles.centerText}>
-              {i18next.t("label.camera_permission")}
-            </Text>
-            <Text style={styles.centerTextNote} onPress={onClickOpenSettings}>
-              {i18next.t('label.open_settings')}
-            </Text>
-          </>
-        ) : showCameraOrLoading()}
+        {permission?.status === PermissionStatus.GRANTED 
+          ? renderCameraView() 
+          : renderPermissionRequest()
+        }
       </View>
       <CustomButton
-        label={i18next.t("label.take_picture")}
+        label={i18next.t('label.take_picture')}
         containerStyle={styles.btnContainer}
         pressHandler={captureImage}
         loading={loading}
-        disable={loading}
+        disable={loading || !cameraReady || permission?.status !== PermissionStatus.GRANTED}
         hideFadeIn
       />
     </View>
@@ -104,10 +174,6 @@ const styles = StyleSheet.create({
     borderRadius: 15,
     overflow: 'hidden',
     marginTop: '5%',
-  },
-  tempLabel: {
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   centerText: {
     justifyContent: 'center',
@@ -136,8 +202,16 @@ const styles = StyleSheet.create({
     position: 'absolute',
     height: '100%',
     width: '100%',
-    backgroundColor: Colors.BLACK,
-    zIndex: 10
+    backgroundColor: 'rgba(0, 0, 0, 0.8)',
+    zIndex: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    color: Colors.WHITE,
+    marginTop: 16,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: 16,
   },
   btnContainer: {
     width: '100%',
