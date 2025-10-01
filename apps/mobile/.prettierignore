@@ -1,0 +1,12 @@
+ios
+android
+src/third-party
+src/app.json
+public
+/bskyweb/templates
+/dist/
+/.watchmanconfig
+/app.json
+
+web/index.html
+web-build/*

@@ -1,0 +1,12 @@
+{
+  "sample_trees": "Árvores de Amostra",
+  "tree": "Árvore",
+  "trees": "Árvores",
+  "next_step_to_measure_sample_trees_text": "Nas próximas etapas, você será solicitado a medir árvores de amostra para o local de plantio.",
+  "recommend_at_least_sample_trees": "Recomendamos que você colete pelo menos 10 a 12 árvores de amostra aleatoriamente.",
+  "how_many_sample_trees_to_record": "Quantas árvores você gostaria de registrar?",
+  "invalid_tree_count": "Contagem de árvores inválida",
+  "enter_valid_tree_count": "Você deve amostrar pelo menos 5 e, no máximo, 999 árvores.",
+  "add_another": "Adicionar Outra",
+  "add_sample_tree": "Adicionar Árvore de Amostra"
+}

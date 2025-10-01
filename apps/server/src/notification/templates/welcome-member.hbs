@@ -1,0 +1,67 @@
+<!-- src/notifications/templates/welcome-member.hbs -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Welcome to the Project</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+      color: #333;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+    .header {
+      background-color: #2A9D8F;
+      color: white;
+      padding: 20px;
+      text-align: center;
+      border-radius: 5px 5px 0 0;
+    }
+    .content {
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-top: none;
+      border-radius: 0 0 5px 5px;
+    }
+    .button {
+      display: inline-block;
+      background-color: #2A9D8F;
+      color: white;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-top: 20px;
+    }
+    .footer {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>Welcome to {{projectName}}</h1>
+  </div>
+  <div class="content">
+    <p>Hello {{name}},</p>
+    <p>Welcome to <strong>{{projectName}}</strong>! You now have access to this project and can start collaborating with the team.</p>
+    <p>Here are some things you can do:</p>
+    <ul>
+      <li>Explore the project dashboard</li>
+      <li>View and manage sites</li>
+      <li>Track tree data</li>
+      <li>Collaborate with other team members</li>
+    </ul>
+    <a href="{{projectUrl}}" class="button">Go to Project</a>
+    <p>If you have any questions, please reach out to the project administrators.</p>
+  </div>
+  <div class="footer">
+    <p>This email was sent automatically. Please do not reply to this email.</p>
+  </div>
+</body>
+</html>
