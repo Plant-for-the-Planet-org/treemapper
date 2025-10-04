@@ -4,33 +4,45 @@ import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, usePathname } from 'next/navigation';
 
 interface MobileAppBannerProps {
-  inviteId?: string;
+  projectInvite?: string;
+  projectLink?: string;
   onClose: () => void;
   onOpenApp: () => void;
 }
 
-const MobileAppBanner: React.FC<MobileAppBannerProps> = ({ inviteId, onClose, onOpenApp }) => {
+const MobileAppBanner: React.FC<MobileAppBannerProps> = ({ 
+  projectInvite, 
+  projectLink, 
+  onClose, 
+  onOpenApp 
+}) => {
+  const getInviteText = () => {
+    if (projectInvite) return `Project Invite: ${projectInvite.slice(0, 8)}...`;
+    if (projectLink) return `Project Link: ${projectLink.slice(0, 8)}...`;
+    return null;
+  };
+
   return (
     <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-green-600 to-green-500 text-white p-4 text-center z-50 shadow-lg animate-slide-down">
       <button
         onClick={onClose}
         className="absolute top-2 right-4 text-white text-xl font-bold bg-transparent border-none cursor-pointer"
+        aria-label="Close banner"
       >
         ×
       </button>
       <div>
         <div className="font-bold text-lg mb-1">🌳 Open in TreeMapper App</div>
         <div className="text-sm mb-3">Get the full experience with our mobile app!</div>
-        {inviteId && (
+        {getInviteText() && (
           <div className="text-xs mb-2 opacity-90">
-            Project Invite: {inviteId}
+            {getInviteText()}
           </div>
         )}
         <button
           onClick={onOpenApp}
           className="bg-white text-green-600 border-none px-4 py-2 rounded-full font-bold cursor-pointer hover:bg-gray-100 transition-colors"
         >
-          {/* Show different text based on platform */}
           Open App
         </button>
       </div>
@@ -47,6 +59,12 @@ const MobileAppRedirectInner: React.FC = () => {
   const pathname = usePathname();
 
   useEffect(() => {
+    // Check if user dismissed banner in this session
+    const dismissed = sessionStorage.getItem('treemapper-banner-dismissed');
+    if (dismissed) {
+      return;
+    }
+
     // Check if user is on mobile
     const userAgent = navigator.userAgent;
     const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
@@ -59,14 +77,15 @@ const MobileAppRedirectInner: React.FC = () => {
 
     // Only show banner for mobile users on dashboard pages
     if (mobileCheck && (pathname.startsWith('/dashboard') || pathname === '/')) {
-      const inviteParam = searchParams.get('invite');
+      const projectInvite = searchParams.get('project-invite');
+      const projectLink = searchParams.get('project-link');
       
-      // If there's an invite parameter, try immediate redirect first
-      if (inviteParam) {
+      // If there's a project parameter, try immediate redirect first
+      if (projectInvite || projectLink) {
         if (iosCheck) {
-          tryDirectRedirect(inviteParam, 'ios');
+          tryDirectRedirect(projectInvite, projectLink, 'ios');
         } else if (androidCheck) {
-          tryDirectRedirect(inviteParam, 'android');
+          tryDirectRedirect(projectInvite, projectLink, 'android');
         }
       }
       
@@ -79,96 +98,120 @@ const MobileAppRedirectInner: React.FC = () => {
     }
   }, [searchParams, pathname]);
 
-  const tryDirectRedirect = (inviteId: string, platform: 'ios' | 'android') => {
+  const buildDeepLinkUrl = (projectInvite: string | null, projectLink: string | null): string => {
+    const baseUrl = 'https://dash.treemapper.app/dashboard';
+    const params = new URLSearchParams();
+    
+    if (projectInvite) {
+      params.append('project-invite', projectInvite);
+    } else if (projectLink) {
+      params.append('project-link', projectLink);
+    }
+    
+    return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
+  };
+
+  const buildCustomSchemeUrl = (projectInvite: string | null, projectLink: string | null): string => {
+    const params = new URLSearchParams();
+    
+    if (projectInvite) {
+      params.append('project-invite', projectInvite);
+    } else if (projectLink) {
+      params.append('project-link', projectLink);
+    }
+    
+    return params.toString() 
+      ? `treemapper://dashboard?${params.toString()}` 
+      : 'treemapper://dashboard';
+  };
+
+  const tryDirectRedirect = (
+    projectInvite: string | null, 
+    projectLink: string | null, 
+    platform: 'ios' | 'android'
+  ) => {
+    const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
+    
     if (platform === 'ios') {
-      // For iOS, try universal link first (this should work automatically)
-      const universalLink = `https://dev.treemapper.app/dashboard?invite=${inviteId}`;
+      // For iOS, try universal link first (iOS will automatically open the app if installed)
+      window.location.href = universalLink;
       
-      // Create a hidden iframe to trigger the app
-      const iframe = document.createElement('iframe');
-      iframe.style.display = 'none';
-      iframe.src = universalLink;
-      document.body.appendChild(iframe);
-      
-      // Clean up iframe after a short delay
-      setTimeout(() => {
-        document.body.removeChild(iframe);
-      }, 1000);
-    } else if (platform === 'android') {
-      // For Android, try app link first
-      const appLink = `https://dev.treemapper.app/dashboard?invite=${inviteId}`;
-      
-      // Try to open the app link
-      window.location.href = appLink;
-      
-      // Fallback to custom scheme after a short delay
+      // If app doesn't open within 2.5 seconds, show banner
       setTimeout(() => {
         if (!document.hidden) {
-          window.location.href = `treemapper://dashboard?invite=${inviteId}`;
+          setShowBanner(true);
+        }
+      }, 2500);
+    } else if (platform === 'android') {
+      // For Android, try app link first (Android will automatically open the app if installed)
+      window.location.href = universalLink;
+      
+      // Fallback to custom scheme after a short delay if app link doesn't work
+      setTimeout(() => {
+        if (!document.hidden) {
+          const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
+          window.location.href = customSchemeUrl;
         }
       }, 1500);
+      
+      // If app doesn't open within 3 seconds, show banner
+      setTimeout(() => {
+        if (!document.hidden) {
+          setShowBanner(true);
+        }
+      }, 3000);
     }
-
-    // If app doesn't open within 2.5 seconds, show banner
-    setTimeout(() => {
-      if (!document.hidden) {
-        setShowBanner(true);
-      }
-    }, 2500);
   };
 
   const handleOpenApp = () => {
-    const inviteId = searchParams.get('invite');
-    const currentUrl = window.location.href;
+    const projectInvite = searchParams.get('project-invite');
+    const projectLink = searchParams.get('project-link');
     
     if (isIOS) {
       // iOS handling
-      if (inviteId) {
-        window.location.href = `treemapper://invite?projectId=${inviteId}`;
-      } else {
-        window.location.href = `treemapper://dashboard`;
-      }
+      const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
+      const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
       
-      // Fallback to App Store after delay
+      // Try universal link first
+      window.location.href = universalLink;
+      
+      // Fallback to custom scheme
       setTimeout(() => {
         if (!document.hidden) {
-          const appStoreUrl = 'https://apps.apple.com/app/treemapper/YOUR_APP_ID';
+          window.location.href = customSchemeUrl;
+        }
+      }, 1000);
+      
+      // Final fallback to App Store
+      setTimeout(() => {
+        if (!document.hidden) {
+          const appStoreUrl = 'https://apps.apple.com/app/treemapper/id1524353784';
           window.location.href = appStoreUrl;
         }
-      }, 2000);
+      }, 2500);
       
     } else if (isAndroid) {
       // Android handling
-      if (inviteId) {
-        // Try app link first
-        window.location.href = `https://dev.treemapper.app/dashboard?invite=${inviteId}`;
-        
-        // Fallback to custom scheme
-        setTimeout(() => {
-          if (!document.hidden) {
-            window.location.href = `treemapper://dashboard?invite=${inviteId}`;
-          }
-        }, 1500);
-        
-        // Final fallback to Play Store
-        setTimeout(() => {
-          if (!document.hidden) {
-            const playStoreUrl = 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
-            window.location.href = playStoreUrl;
-          }
-        }, 3000);
-      } else {
-        // No invite, just try to open app
-        window.location.href = `treemapper://dashboard`;
-        
-        // Fallback to Play Store
-        setTimeout(() => {
-          if (!document.hidden) {
-            const playStoreUrl = 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
-            window.location.href = playStoreUrl;
-          }
-        }, 2000);
-      }
+      const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
+      const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
+      
+      // Try app link first
+      window.location.href = universalLink;
+      
+      // Fallback to custom scheme
+      setTimeout(() => {
+        if (!document.hidden) {
+          window.location.href = customSchemeUrl;
+        }
+      }, 1500);
+      
+      // Final fallback to Play Store
+      setTimeout(() => {
+        if (!document.hidden) {
+          const playStoreUrl = 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
+          window.location.href = playStoreUrl;
+        }
+      }, 3000);
     } else {
       // Other mobile platforms, just hide banner
       setShowBanner(false);
@@ -181,20 +224,12 @@ const MobileAppRedirectInner: React.FC = () => {
     sessionStorage.setItem('treemapper-banner-dismissed', 'true');
   };
 
-  // Don't show banner if user previously dismissed it in this session
-  useEffect(() => {
-    const dismissed = sessionStorage.getItem('treemapper-banner-dismissed');
-    if (dismissed) {
-      setShowBanner(false);
-    }
-  }, []);
-
-  // Auto-hide banner after 10 seconds
+  // Auto-hide banner after 15 seconds
   useEffect(() => {
     if (showBanner) {
       const timer = setTimeout(() => {
         setShowBanner(false);
-      }, 10000);
+      }, 15000);
       return () => clearTimeout(timer);
     }
   }, [showBanner]);
@@ -231,7 +266,8 @@ const MobileAppRedirectInner: React.FC = () => {
 
   return (
     <MobileAppBanner
-      inviteId={searchParams.get('invite') || undefined}
+      projectInvite={searchParams.get('project-invite') || undefined}
+      projectLink={searchParams.get('project-link') || undefined}
       onClose={handleCloseBanner}
       onOpenApp={handleOpenApp}
     />

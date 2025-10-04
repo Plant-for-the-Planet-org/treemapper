@@ -1,4 +1,4 @@
-import {ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
+import { ScrollView, StyleSheet, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants'
@@ -53,6 +53,11 @@ const PredefineReasons: Array<{
         {
             label: "Flood",
             value: 'flood',
+            index: 2,
+        },
+        {
+            label: "Disease",
+            value: 'disease',
             index: 2,
         },
         {
@@ -347,12 +352,12 @@ const TreeRemeasurementView = () => {
     }
 
 
-    const acceptOptimalAlert=()=>{
+    const acceptOptimalAlert = () => {
         setShowOptimalAlert(false)
         setLoading(false)
     }
 
-    const rejectOptimalAlert=()=>{
+    const rejectOptimalAlert = () => {
         setShowOptimalAlert(false)
         setTimeout(() => {
             submitHandler()
@@ -366,12 +371,12 @@ const TreeRemeasurementView = () => {
 
     const imageURL = () => imageUri.length == 0 ? "Continue" : "Save"
 
-    const acceptAccuracyAlert=()=>{
+    const acceptAccuracyAlert = () => {
         setShowAccuracyModal(false)
         setLoading(false)
     }
 
-    const rejectAccuracyAlert=()=>{
+    const rejectAccuracyAlert = () => {
         setShowAccuracyModal(false)
         setTimeout(() => {
             submitHandler(true)
@@ -418,7 +423,7 @@ const TreeRemeasurementView = () => {
                                     changeHandler={handleHeightChange}
                                     autoFocus
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={convertMeasurements(treeDetails.specie_height,'m', isNonISUCountry)}
+                                    defaultValue={convertMeasurements(treeDetails.specie_height, 'm', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_feet') : 'm'}
                                     errMsg={heightErrorMessage} />
                             </View>
@@ -427,7 +432,7 @@ const TreeRemeasurementView = () => {
                                     placeholder={diameterLabel}
                                     changeHandler={handleDiameterChange}
                                     keyboardType={'decimal-pad'}
-                                    defaultValue={convertMeasurements(treeDetails.specie_diameter,'cm', isNonISUCountry)}
+                                    defaultValue={convertMeasurements(treeDetails.specie_diameter, 'cm', isNonISUCountry)}
                                     trailingText={isNonISUCountry ? i18next.t('label.select_species_inches') : 'cm'}
                                     errMsg={widthErrorMessage}
                                     info={i18next.t('label.measurement_diameter_info', {
