@@ -45,7 +45,7 @@ const LoadingSpinner = ({ size = 'default' }) => {
   );
 };
 
-const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, loading }) => {
+const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, loading, member }) => {
   if (!isOpen) return null;
 
   return (
@@ -65,7 +65,7 @@ const ConfirmationDialog = ({ isOpen, onClose, onConfirm, title, message, loadin
             </button>
             <button
               onClick={onConfirm}
-              disabled={loading}
+              disabled={loading && member.role !== 'admin' && member.role !== 'owner'}
               className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {loading && <LoadingSpinner size="small" />}
@@ -518,6 +518,7 @@ export default function SiteAccessModal({ isOpen, setIsOpen, site, refreshData }
         title="Confirm Action"
         message={getConfirmationMessage()}
         loading={loading}
+        member={confirmDialog.member}
       />
     </>
   );

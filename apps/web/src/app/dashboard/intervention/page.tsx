@@ -344,14 +344,14 @@ const EditableField = ({
         <span className={`text-sm ${value ? 'text-gray-900' : 'text-gray-400'} flex-1`}>
           {displayValue || value || placeholder || 'Not set'}
         </span>
-        <Button
+        {/* <Button
           size="sm"
           variant="ghost"
           className="opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => setIsEditing(true)}
         >
           <Edit2 className="h-3 w-3" />
-        </Button>
+        </Button> */}
       </div>
     </div>
   );
@@ -902,7 +902,7 @@ const TreeCard = ({ tree, onUpdate }) => {
 
 const SpeciesCard = ({ species, setEditSpecies, editSpecies }) => {
   return (
-    <Card className="hover:shadow-sm transition-shadow" onClick={() => { setEditSpecies(species) }}>
+    <Card className="hover:shadow-sm transition-shadow">
       <CardContent className="p-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
@@ -1302,9 +1302,9 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                       </div>
                       <span className="text-sm text-gray-900">{intervention.user && intervention.user.name ? intervention.user.name : 'Update Owner'}</span>
                     </div>
-                    {selectedProjectDetails.userRole === 'admin' || selectedProjectDetails.userRole === 'owner'?<Button size="sm" variant="ghost" onClick={() => setShowOwnerDialog(true)}>
+                    {/* {selectedProjectDetails.userRole === 'admin' || selectedProjectDetails.userRole === 'owner'?<Button size="sm" variant="ghost" onClick={() => setShowOwnerDialog(true)}>
                       <Edit2 className="h-3 w-3" />
-                    </Button>:null}
+                    </Button>:null} */}
                   </div>
                 </div>
               </div>
@@ -1319,7 +1319,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
             />
 
             {/* Action Buttons */}
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+            {/* <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
               <Button variant="outline" onClick={() => setShowLocationDialog(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
                 Update Location
@@ -1332,7 +1332,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Species
               </Button>
-            </div>
+            </div> */}
           </CardContent>
         )}
       </Card>
