@@ -65,6 +65,9 @@ const MobileAppRedirectInner: React.FC = () => {
       return;
     }
 
+    // Check if we already attempted redirect to prevent loops
+    const redirectAttempted = sessionStorage.getItem('treemapper-redirect-attempted');
+
     // Check if user is on mobile
     const userAgent = navigator.userAgent;
     const mobileCheck = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(userAgent);
@@ -80,26 +83,28 @@ const MobileAppRedirectInner: React.FC = () => {
       const projectInvite = searchParams.get('project-invite');
       const projectLink = searchParams.get('project-link');
       
-      // If there's a project parameter, try immediate redirect first
-      if (projectInvite || projectLink) {
+      // Try silent redirect only once per session
+      if (!redirectAttempted) {
+        sessionStorage.setItem('treemapper-redirect-attempted', 'true');
+        
         if (iosCheck) {
-          tryDirectRedirect(projectInvite, projectLink, 'ios');
+          trySilentRedirect(projectInvite, projectLink, 'ios');
         } else if (androidCheck) {
-          tryDirectRedirect(projectInvite, projectLink, 'android');
+          trySilentRedirect(projectInvite, projectLink, 'android');
         }
+      } else {
+        // If already attempted, just show banner
+        const timer = setTimeout(() => {
+          setShowBanner(true);
+        }, 500);
+        return () => clearTimeout(timer);
       }
-      
-      // Show banner after a short delay
-      const timer = setTimeout(() => {
-        setShowBanner(true);
-      }, 1000);
-
-      return () => clearTimeout(timer);
     }
   }, [searchParams, pathname]);
 
-  const buildDeepLinkUrl = (projectInvite: string | null, projectLink: string | null): string => {
-    const baseUrl = 'https://dash.treemapper.app/dashboard';
+  const buildUniversalLink = (projectInvite: string | null, projectLink: string | null): string => {
+    // This creates the universal/app link that opens the app if configured
+    const baseUrl = 'treemapper://dashboard';
     const params = new URLSearchParams();
     
     if (projectInvite) {
@@ -111,111 +116,86 @@ const MobileAppRedirectInner: React.FC = () => {
     return params.toString() ? `${baseUrl}?${params.toString()}` : baseUrl;
   };
 
-  const buildCustomSchemeUrl = (projectInvite: string | null, projectLink: string | null): string => {
-    const params = new URLSearchParams();
-    
-    if (projectInvite) {
-      params.append('project-invite', projectInvite);
-    } else if (projectLink) {
-      params.append('project-link', projectLink);
-    }
-    
-    return params.toString() 
-      ? `treemapper://dashboard?${params.toString()}` 
-      : 'treemapper://dashboard';
-  };
-
-  const tryDirectRedirect = (
+  const trySilentRedirect = (
     projectInvite: string | null, 
     projectLink: string | null, 
     platform: 'ios' | 'android'
   ) => {
-    const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
+    const deepLink = buildUniversalLink(projectInvite, projectLink);
     
-    if (platform === 'ios') {
-      // For iOS, try universal link first (iOS will automatically open the app if installed)
-      window.location.href = universalLink;
+    // Create invisible iframe to attempt app opening (works better on some browsers)
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    iframe.src = deepLink;
+    document.body.appendChild(iframe);
+    
+    // Also try direct location change as fallback
+    setTimeout(() => {
+      try {
+        window.location.href = deepLink;
+      } catch (e) {
+        console.log('Deep link attempt failed');
+      }
+    }, 100);
+    
+    // Clean up iframe
+    setTimeout(() => {
+      if (iframe.parentNode) {
+        document.body.removeChild(iframe);
+      }
+    }, 1000);
+    
+    // Check if app opened by detecting if page is hidden
+    const checkAppOpened = () => {
+      if (document.hidden) {
+        // App opened successfully, don't show banner
+        return;
+      }
       
-      // If app doesn't open within 2.5 seconds, show banner
-      setTimeout(() => {
-        if (!document.hidden) {
-          setShowBanner(true);
-        }
-      }, 2500);
-    } else if (platform === 'android') {
-      // For Android, try app link first (Android will automatically open the app if installed)
-      window.location.href = universalLink;
-      
-      // Fallback to custom scheme after a short delay if app link doesn't work
-      setTimeout(() => {
-        if (!document.hidden) {
-          const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
-          window.location.href = customSchemeUrl;
-        }
-      }, 1500);
-      
-      // If app doesn't open within 3 seconds, show banner
-      setTimeout(() => {
-        if (!document.hidden) {
-          setShowBanner(true);
-        }
-      }, 3000);
-    }
+      // App didn't open, show banner after delay
+      setShowBanner(true);
+    };
+    
+    // Wait appropriate time based on platform
+    const waitTime = platform === 'ios' ? 2500 : 3000;
+    setTimeout(checkAppOpened, waitTime);
   };
 
   const handleOpenApp = () => {
     const projectInvite = searchParams.get('project-invite');
     const projectLink = searchParams.get('project-link');
+    const deepLink = buildUniversalLink(projectInvite, projectLink);
     
-    if (isIOS) {
-      // iOS handling
-      const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
-      const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
-      
-      // Try universal link first
-      window.location.href = universalLink;
-      
-      // Fallback to custom scheme
-      setTimeout(() => {
-        if (!document.hidden) {
-          window.location.href = customSchemeUrl;
-        }
-      }, 1000);
-      
-      // Final fallback to App Store
-      setTimeout(() => {
-        if (!document.hidden) {
-          const appStoreUrl = 'https://apps.apple.com/app/treemapper/id1524353784';
-          window.location.href = appStoreUrl;
-        }
-      }, 2500);
-      
-    } else if (isAndroid) {
-      // Android handling
-      const universalLink = buildDeepLinkUrl(projectInvite, projectLink);
-      const customSchemeUrl = buildCustomSchemeUrl(projectInvite, projectLink);
-      
-      // Try app link first
-      window.location.href = universalLink;
-      
-      // Fallback to custom scheme
-      setTimeout(() => {
-        if (!document.hidden) {
-          window.location.href = customSchemeUrl;
-        }
-      }, 1500);
-      
-      // Final fallback to Play Store
-      setTimeout(() => {
-        if (!document.hidden) {
-          const playStoreUrl = 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
-          window.location.href = playStoreUrl;
-        }
-      }, 3000);
-    } else {
-      // Other mobile platforms, just hide banner
-      setShowBanner(false);
-    }
+    // Try to open the app
+    window.location.href = deepLink;
+    
+    // Set up fallback to app store
+    const appStoreUrl = isIOS 
+      ? 'https://apps.apple.com/app/treemapper/id1524353784'
+      : 'https://play.google.com/store/apps/details?id=org.pftp.treemapper';
+    
+    const fallbackTime = isIOS ? 2500 : 3000;
+    
+    const fallbackTimer = setTimeout(() => {
+      // Only redirect to store if page is still visible (app didn't open)
+      if (!document.hidden) {
+        window.location.href = appStoreUrl;
+      }
+    }, fallbackTime);
+    
+    // Clear fallback if page becomes hidden (app opened)
+    const visibilityHandler = () => {
+      if (document.hidden) {
+        clearTimeout(fallbackTimer);
+      }
+    };
+    
+    document.addEventListener('visibilitychange', visibilityHandler);
+    
+    // Cleanup
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', visibilityHandler);
+    }, fallbackTime + 1000);
   };
 
   const handleCloseBanner = () => {
