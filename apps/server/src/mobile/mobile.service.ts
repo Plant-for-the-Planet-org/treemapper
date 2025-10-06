@@ -1582,45 +1582,44 @@ export class MobileService {
     membership: number
   ): Promise<any> {
     try {
-      // Validate DTO
       this.validateRemeasurementDto(remeasurementDTO);
-
+      console.log("Remeasurement DTO", remeasurementDTO)
       // Generate UID for tree record
       const treeRecordUid = generateUid('treerec');
 
-      // Get tree details
-      const treeDetails = await this.drizzleService.db
-        .select()
-        .from(tree)
-        .where(eq(tree.uid, remeasurementDTO.tree))
-        .limit(1);
+      // // Get tree details
+      // const treeDetails = await this.drizzleService.db
+      //   .select()
+      //   .from(tree)
+      //   .where(eq(tree.uid, remeasurementDTO.tree))
+      //   .limit(1);
 
-      if (treeDetails.length === 0) {
-        throw new NotFoundException('Tree not found');
-      }
+      // if (treeDetails.length === 0) {
+      //   throw new NotFoundException('Tree not found');
+      // }
 
-      const currentTree = treeDetails[0];
-      const recordedAt = remeasurementDTO.eventDate
-        ? new Date(remeasurementDTO.eventDate)
-        : new Date();
+      // const currentTree = treeDetails[0];
+      // const recordedAt = remeasurementDTO.eventDate
+      //   ? new Date(remeasurementDTO.eventDate)
+      //   : new Date();
 
-      if (remeasurementDTO.type === 'measurement') {
-        return await this.handleMeasurementRecord(
-          currentTree,
-          remeasurementDTO,
-          membership,
-          treeRecordUid,
-          recordedAt
-        );
-      } else if (remeasurementDTO.type === 'status') {
-        return await this.handleStatusRecord(
-          currentTree,
-          remeasurementDTO,
-          membership,
-          treeRecordUid,
-          recordedAt
-        );
-      }
+      // if (remeasurementDTO.type === 'measurement') {
+      //   return await this.handleMeasurementRecord(
+      //     currentTree,
+      //     remeasurementDTO,
+      //     membership,
+      //     treeRecordUid,
+      //     recordedAt
+      //   );
+      // } else if (remeasurementDTO.type === 'status') {
+      //   return await this.handleStatusRecord(
+      //     currentTree,
+      //     remeasurementDTO,
+      //     membership,
+      //     treeRecordUid,
+      //     recordedAt
+      //   );
+      // }
 
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {

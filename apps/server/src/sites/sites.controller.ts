@@ -110,26 +110,26 @@ async revokeSiteAccess(
 
 
 
-// @Put('/:siteUid')
-// @ProjectRoles('owner', 'admin')
-// @UseGuards(ProjectPermissionsGuard)
-// async updateSite(
-//   @Membership() membership: ProjectGuardResponse,
-//   @Param('siteUid') siteUid: string,
-//   @Body() updateSiteDto: UpdateSiteDto,
-// ) {
-//   const site = await this.siteService.updateSite(
-//     membership.projectId,
-//     siteUid,
-//     updateSiteDto
-//   );
+@Put('/:siteUid')
+@ProjectRoles('owner', 'admin', 'contributor')
+@UseGuards(ProjectPermissionsGuard)
+async updateSite(
+  @Membership() membership: ProjectGuardResponse,
+  @Param('siteUid') siteUid: string,
+  @Body() updateSiteDto: UpdateSiteDto,
+) {
+  const site = await this.siteService.updateSite(
+    membership.projectId,
+    siteUid,
+    updateSiteDto
+  );
 
-//   return {
-//     status: 'success',
-//     message: 'Site updated successfully',
-//     data: site,
-//   };
-// }
+  return {
+    status: 'success',
+    message: 'Site updated successfully',
+    data: site,
+  };
+}
 
 
 

@@ -132,6 +132,7 @@ export class SiteService {
     }
 
     // Handle site access restrictions for non-admin users
+    console.log('Membership siteAccess:', membership.siteAccess);
     switch (membership.siteAccess) {
       case 'deny_all':
         return [];
@@ -159,7 +160,7 @@ export class SiteService {
           .where(eq(site.projectId, membership.projectId))
           .leftJoin(project, eq(site.projectId, project.id))
           .leftJoin(user, eq(site.createdById, user.id));
-
+        console.log('Membership allSitesData:', allSitesData);
         // Add member information to each site
         const allSitesWithMembers = await this.addMemberInfoToSites(allSitesData);
         return allSitesWithMembers;
@@ -195,7 +196,7 @@ export class SiteService {
           )
           .leftJoin(project, eq(site.projectId, project.id))
           .leftJoin(user, eq(site.createdById, user.id));
-
+        console.log('Membership limitedSitesData:', limitedSitesData);
         // Add member information to each site
         const limitedSitesWithMembers = await this.addMemberInfoToSites(limitedSitesData);
         return limitedSitesWithMembers;
@@ -259,7 +260,7 @@ export class SiteService {
           return false;
       }
     });
-
+    console.log('Members with access:', membersWithAccess);
     return {
       totalCount: membersWithAccess.length,
       avatars: membersWithAccess.map(member => ({
@@ -271,7 +272,7 @@ export class SiteService {
     };
   }
 
-   async getSiteMembers(siteUid: string): Promise<SiteMemberResponse[]> {
+  async getSiteMembers(siteUid: string): Promise<SiteMemberResponse[]> {
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
@@ -302,6 +303,7 @@ export class SiteService {
       .from(projectMember)
       .innerJoin(user, eq(projectMember.userId, user.id))
       .where(eq(projectMember.projectId, projectId));
+    console.log('Members with members:', members);
 
     return members.map(member => ({
       id: member.id,
@@ -314,7 +316,7 @@ export class SiteService {
     }));
   }
 
-    private calculateSiteAccess(
+  private calculateSiteAccess(
     role: string,
     siteAccess: string,
     restrictedSites: string[] | null,
@@ -338,7 +340,7 @@ export class SiteService {
     }
   }
 
-  
+
 
   async grantSiteAccess(siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
     const siteData = await this.drizzleService.db
@@ -554,41 +556,41 @@ export class SiteService {
   //   return siteData[0];
   // }
 
-  // async updateSite(
-  //   projectId: number,
-  //   siteUid: string,
-  //   updateSiteDto: UpdateSiteDto
-  // ) {
-  //   // First verify site exists and belongs to project
-  //   const existingSite = await this.drizzleService.db
-  //     .select({ id: site.id })
-  //     .from(site)
-  //     .where(
-  //       and(
-  //         eq(site.uid, siteUid),
-  //         eq(site.projectId, projectId)
-  //       )
-  //     )
-  //     .limit(1);
+  async updateSite(
+    projectId: number,
+    siteUid: string,
+    updateSiteDto: UpdateSiteDto
+  ) {
+    // First verify site exists and belongs to project
+    const existingSite = await this.drizzleService.db
+      .select({ id: site.id })
+      .from(site)
+      .where(
+        and(
+          eq(site.uid, siteUid),
+          eq(site.projectId, projectId)
+        )
+      )
+      .limit(1);
 
-  //   if (!existingSite.length) {
-  //     throw new NotFoundException('Site not found');
-  //   }
+    if (!existingSite.length) {
+      throw new NotFoundException('Site not found');
+    }
 
-  //   const updateData: any = {
-  //     updatedAt: new Date(),
-  //   };
+    const updateData: any = {
+      updatedAt: new Date(),
+    };
 
-  //   if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
-  //   if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
+    if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
+    if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
 
-  //   await this.drizzleService.db
-  //     .update(site)
-  //     .set(updateData)
-  //     .where(eq(site.id, existingSite[0].id));
+    await this.drizzleService.db
+      .update(site)
+      .set(updateData)
+      .where(eq(site.id, existingSite[0].id));
 
-  //   return '';
-  // }
+    return '';
+  }
 
   // async updateSiteImages(
   //   projectId: number,
