@@ -367,7 +367,7 @@ const ReviewTreeDetails = () => {
     }
 
     const remeasurementIcon = () => {
-        const canUse = type === 'tpo' || v3Approved
+        const canUse = type === 'tpo' && !v3Approved
         if (canUse && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
             return <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
                 <RemeasurementIconScalable />
