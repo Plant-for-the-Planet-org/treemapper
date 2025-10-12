@@ -48,7 +48,7 @@ export const postUrlNewApi = {
   interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,
   sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
   remeasurement: `${baseUrl}/mobile/intervention`,
-
+  deleteIntervention: `${mobileBaseUrl}/mobile/delete/intervention`,
 };
 
 export const getUrlMobileApi = {

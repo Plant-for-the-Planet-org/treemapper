@@ -36,6 +36,12 @@ export const createMobileProject = async (params: any) => {
   return result;
 };
 
+export const deleteMobileIntervention = async (id: any) => {
+  const uri = `${postUrlNewApi.deleteIntervention}/${id}`;
+  const result = await fetchPostCall(uri,{});
+  return result;
+};
+
 
 // export const getMobileUserSpecies = async () => {
 //   const uri = `${getUrlMobileApi.userSpecies}`;

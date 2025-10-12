@@ -12,9 +12,11 @@ import EmptyIntervention from 'assets/images/svg/EmptyIntervention.svg'
 import { lastScreenNavigationHelper } from 'src/utils/helpers/interventionFormHelper'
 import DeleteModal from '../common/DeleteModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { updateNewIntervention } from 'src/store/slice/appStateSlice'
 import i18next from 'i18next'
+import { RootState } from 'src/store'
+import { deleteMobileIntervention } from 'src/api/api.fetch'
 interface Props {
   interventionData: InterventionData[] | any[]
   selectedLabel: string
@@ -29,7 +31,9 @@ const InterventionList = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const [deleteData, setDeleteData] = useState(null)
   const [editModal, setEditModal] = useState(null)
-
+  const v3Approved = useSelector(
+    (state: RootState) => state.userState.v3Approved
+  )
   const { resetIntervention, deleteIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
 
@@ -49,8 +53,18 @@ const InterventionList = (props: Props) => {
 
   const handleDelete = async (item: InterventionData) => {
     setDeleteData(null)
-    await deleteIntervention(item.intervention_id)
-    dispatch(updateNewIntervention())
+    try {
+      await deleteIntervention(item.intervention_id)
+      dispatch(updateNewIntervention())
+      if (v3Approved) {
+              console.log("SDc v3Approved", v3Approved)
+              console.log("SDc item.hid", item.hid)
+
+        await deleteMobileIntervention(item.hid)
+      }
+    } catch (error) {
+      console.log("SDc error", error)
+    }
   }
 
   const handleEdit = async (item: InterventionData) => {
