@@ -132,15 +132,6 @@ const ProjectItem = ({
         ]}>
         {item.name}
       </Text>
-      {(country || item.country) && (
-        <Text
-          style={[
-            styles.projectText,
-            { fontFamily: Typography.FONT_FAMILY_REGULAR },
-          ]}>
-          {country || item.country}
-        </Text>
-      )}
       <View style={[styles.chipWrapper, { borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
         <Text style={[styles.chipLabel, { color: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>{item.purpose.toUpperCase()}</Text>
       </View>

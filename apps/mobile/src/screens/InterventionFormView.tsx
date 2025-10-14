@@ -187,15 +187,17 @@ const InterventionFormView = () => {
     })
     if (mappedData?.length) {
       setProjectStateData(mappedData)
-      const siteMappedData = projectData[0].sites.map((el, i) => {
-        return {
-          label: el.name,
-          value: el.id,
-          index: i,
-        }
-      })
-      setProjectSites(siteMappedData)
-      handleProjectSelect({ label: currentProject.projectName, value: currentProject.projectId, index: 0 })
+      if (projectData.length !== 0) {
+        const siteMappedData = projectData[0].sites.map((el, i) => {
+          return {
+            label: el.name,
+            value: el.id,
+            index: i,
+          }
+        })
+        setProjectSites(siteMappedData)
+        handleProjectSelect({ label: currentProject.projectName, value: currentProject.projectId, index: 0 })
+      }
     }
   }
 
@@ -217,7 +219,7 @@ const InterventionFormView = () => {
         value: 'other',
         index: 0,
       },])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0]?siteValidate[0].label:'', site_id: siteValidate && siteValidate[0]?siteValidate[0]:''.value }))
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0] ? siteValidate[0].label : '', site_id: siteValidate && siteValidate[0] ? siteValidate[0] : ''.value }))
     } else {
       setProjectSites([
         {
@@ -231,7 +233,7 @@ const InterventionFormView = () => {
           index: 0,
         },
       ])
-      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0]?siteValidate[0].label:'', site_id: siteValidate && siteValidate[0]?siteValidate[0]:''.value }))
+      setRegisterForm(prevState => ({ ...prevState, project_id: ProjectData.id, project_name: ProjectData.name, site_name: siteValidate && siteValidate[0] ? siteValidate[0].label : '', site_id: siteValidate && siteValidate[0] ? siteValidate[0] : ''.value }))
     }
   }
 
