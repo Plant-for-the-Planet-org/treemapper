@@ -152,7 +152,7 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
                 return null
             }
             const body = {
-                imageFile: TreeDetails.image_url,
+                imageFile:updateFilePath(TreeDetails.image_url),
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
                 imageId: TreeDetails.image_data.coordinateID,
                 treeServerId: TreeDetails.sloc_id
