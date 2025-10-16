@@ -6,6 +6,7 @@ export enum SortOrder {
   DESC = 'desc',
 }
 
+
 export enum AnalyticsPeriod {
   DAILY = 'daily',
   WEEKLY = 'weekly',
