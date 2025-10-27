@@ -27,7 +27,7 @@ import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import NoProjectModal from '../common/NoProjectModal'
 import NewAppModal from '../common/NewAppModal'
-import { useDeepLinking } from 'src/hooks/useDeeplink'
+import ProjectInviteModal from './DeepLinkModal'
 
 interface Props {
   toggleFilterModal: () => void
@@ -259,7 +259,7 @@ const HomeHeader = (props: Props) => {
         />
       </Pressable>
       <NewAppModal />
-
+      <ProjectInviteModal/>
     </View>
   )
 }

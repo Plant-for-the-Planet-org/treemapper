@@ -24,6 +24,18 @@ export const getMobileUserDetails = async () => {
   return result;
 };
 
+export const getMobileInviteStatus = async (id: string) => {
+  const uri = `${getUrlMobileApi.getMobileEmailInviteStatus}/${id}/status/link`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const getMobileInviteStatusEmail = async (id: string) => {
+  const uri = `${getUrlMobileApi.getMobileEmailInviteStatus}/${id}/status`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
 export const updateApiUserDetails = async (params: any) => {
   const uri = `${postUrlNewApi.updateUserDetails}`;
   const result = await fetchPostCall(uri, params);
@@ -38,7 +50,7 @@ export const createMobileProject = async (params: any) => {
 
 export const deleteMobileIntervention = async (id: any) => {
   const uri = `${postUrlNewApi.deleteIntervention}/${id}`;
-  const result = await fetchPostCall(uri,{});
+  const result = await fetchPostCall(uri, {});
   return result;
 };
 
@@ -176,7 +188,7 @@ export const createNewSite = async (pid: string, params: any) => {
 };
 
 
-export const getMobileInterventions = async (page:string) => {
+export const getMobileInterventions = async (page: string) => {
   const uri = `${getUrlMobileApi.getMobileInterventions}?limit=4&page=${page}`;
   const result = await fetchGetCall(uri, true);
   return result;
@@ -497,6 +509,17 @@ export const uploadMobileIntervention = async (params: any) => {
 };
 
 
+export const acceptEmailInvite = async (params: any) => {
+  const uri = `${postUrlNewApi.acceptEmailInvite}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const acceptLinkInvite = async (params: any) => {
+  const uri = `${postUrlNewApi.acceptBulkInvite}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
 
 export const uploadIntervention = async (params: any) => {
   const uri = `${postUrlApi.uploadIntervention}`;

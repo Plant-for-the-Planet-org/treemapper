@@ -51,6 +51,7 @@ export interface TempStateSlice {
   selectedId: string,
   speciesDownloading: boolean
   speciesWriting: boolean,
+  inviteId: string,
   speciesUpdatedAt: number
 }
 

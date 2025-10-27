@@ -49,6 +49,9 @@ export const postUrlNewApi = {
   sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
   remeasurement: `${baseUrl}/mobile/intervention`,
   deleteIntervention: `${mobileBaseUrl}/mobile/delete/intervention`,
+  acceptEmailInvite: `${mobileBaseUrl}/mobile/invites/accept`,
+  acceptBulkInvite: `${mobileBaseUrl}/mobile/invites/accept/link`,
+
 };
 
 export const getUrlMobileApi = {
@@ -57,6 +60,8 @@ export const getUrlMobileApi = {
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
   getProjectSpecies: `${mobileBaseUrl}/mobile/species`,
   getMobileInterventions: `${mobileBaseUrl}/mobile/project/interventions`,
+  getMobileEmailInviteStatus: `${mobileBaseUrl}/mobile/invites`,
+  getMobileaLinkInviteStatus: `${mobileBaseUrl}/mobile/invites`,
 };
 
 
