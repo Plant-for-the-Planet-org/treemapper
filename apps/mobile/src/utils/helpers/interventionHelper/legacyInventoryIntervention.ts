@@ -48,10 +48,32 @@ const interventionTittleSwitch = (t: INTERVENTION_TYPE): {
 
 
 const getGeometry = (g: any) => {
+    // Handle FeatureCollection geometry type
+    if (g.type === 'FeatureCollection' && g.features && g.features.length > 0) {
+        const firstFeature = g.features[0];
+        if (firstFeature.geometry && firstFeature.geometry.type === 'Point') {
+            return {
+                type: 'Point',
+                coordinates: JSON.stringify([firstFeature.geometry.coordinates]),
+                geoSpatial: firstFeature.geometry.coordinates
+            }
+        }
+    }
+
+    // Handle Point geometry type
+    if (g.type === 'Point') {
+        return {
+            type: g.type,
+            coordinates: JSON.stringify([g.coordinates]),
+            geoSpatial: g.coordinates
+        }
+    }
+
+    // Handle other geometry types (Polygon, etc.)
     return {
         type: g.type,
-        coordinates: g.type === 'Point' ? JSON.stringify([g.coordinates]) : JSON.stringify(g.coordinates[0]),
-        geoSpatial: g.type === 'Point' ? [g.coordinates][0] : g.coordinates[0][0]
+        coordinates: JSON.stringify(g.coordinates[0]),
+        geoSpatial: g.coordinates[0][0]
     }
 }
 
@@ -164,7 +186,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         sloc_id: d.id,
         latitude: d.geometry.coordinates[1],
         longitude: d.geometry.coordinates[0],
-        device_longitude: d.deviceLocation.coordinates[0],
+        device_longitude: d.deviceLocation?d.deviceLocation.coordinates[0]: 0,
         location_accuracy: "",
         image_url: "",
         cdn_image_url: d.coordinates[0].image || "",
@@ -181,7 +203,7 @@ const singleTreeDetails = (d: any): SampleTree => {
         app_meta_data: "",
         status: "SYNCED",
         hid: d.hid,
-        device_latitude: d.deviceLocation.coordinates[1],
+        device_latitude:  d.deviceLocation?d.deviceLocation.coordinates[1]:0,
         history: d.type === 'sample-tree-registration' ? handlePlantHistory(d.history, d.id, d) : [],
         remeasurement_requires: d.type === 'sample-tree-registration' ? rData.requireRemeasurement : false,
         is_alive: !d.status,
@@ -231,7 +253,7 @@ const getEntireSiteCheck = (data: any) => {
     return false
 }
 
-export const convertInventoryToIntervention = (data: any): InterventionData => {
+export const convertInventoryToIntervention = (data: any): InterventionData | null => {
     try {
         const extraData = interventionTittleSwitch(data.type);
         const geometryData = getGeometry(data.geometry);

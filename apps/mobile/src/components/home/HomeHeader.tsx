@@ -201,7 +201,7 @@ const HomeHeader = (props: Props) => {
           const element = convertInventoryToIntervention(response?.data.items[index]);
           await addNewIntervention(element)
         }
-        if (response?.data.items.length === 0 || response?.data.items.length < 4) {
+        if (response?.data.items.length === 0) {
           dispatch(updateServerIntervention(true))
           return;
         }

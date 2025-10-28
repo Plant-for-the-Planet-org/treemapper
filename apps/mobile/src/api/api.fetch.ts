@@ -189,7 +189,7 @@ export const createNewSite = async (pid: string, params: any) => {
 
 
 export const getMobileInterventions = async (page: string) => {
-  const uri = `${getUrlMobileApi.getMobileInterventions}?limit=4&page=${page}`;
+  const uri = `${getUrlMobileApi.getMobileInterventions}?limit=6&page=${page}`;
   const result = await fetchGetCall(uri, true);
   return result;
 };
