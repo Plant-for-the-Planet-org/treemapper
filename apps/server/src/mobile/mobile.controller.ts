@@ -14,12 +14,13 @@ import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { MobileService } from './mobile.service';
 import { Membership } from 'src/projects/decorators/membership.decorator';
-import { ProjectGuardResponse } from 'src/projects/projects.service';
+import { ProjectGuardResponse, ProjectsService } from 'src/projects/projects.service';
 import { InterventionResponseDto } from 'src/interventions/dto/interventions.dto';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { CreatePresignedUrlDto } from 'src/users/dto/signed-url.dto';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
+import { AcceptInviteDto } from 'src/projects/dto/accept-invite.dto';
 
 
 
@@ -27,7 +28,7 @@ import { UsersService } from 'src/users/users.service';
 @Controller('mobile')
 @UseGuards(JwtAuthGuard)
 export class MobileController {
-  constructor(private readonly appservice: MobileService, private readonly usersService: UsersService,) { }
+  constructor(private readonly appservice: MobileService, private readonly usersService: UsersService, private readonly projectsService: ProjectsService) { }
 
 
   @Get('user/profile')
@@ -65,6 +66,18 @@ export class MobileController {
   }
 
 
+  @Get('invites/:invite/status/link')
+  getProjectSingleLinkStatus(@Param('invite') invite: string) {
+    return this.projectsService.getProjectSingleLinkStatus(invite);
+  }
+
+  @Get('invites/:invite/status')
+  getProjectInviteStatus(@Param('invite') invite: string, @Req() req) {
+    return this.projectsService.getProjectInviteStatus(invite, req.user.email);
+  }
+
+
+
   @Post('site')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
@@ -92,8 +105,19 @@ export class MobileController {
     @Query('page') page: string = '1',
     @Query('limit') limit: string = '4',
   ): Promise<InterventionResponseDto> {
-    
+
     return this.appservice.getProjectIntervention(req.user.id, page, limit);
+  }
+
+  @Post('invites/accept')
+  acceptInvite(@Body() acceptInviteDto: AcceptInviteDto, @CurrentUser() userData: User) {
+    return this.projectsService.acceptInvite(acceptInviteDto.token, userData.id, userData.email, userData);
+  }
+
+
+  @Post('invites/accept/link')
+  acceptInviteLink(@Body() acceptInviteDto: AcceptInviteDto, @CurrentUser() userData: User) {
+    return this.projectsService.acceptLinkInvite(acceptInviteDto.token, userData.id, userData.email, userData);
   }
 
 

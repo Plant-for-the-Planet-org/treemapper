@@ -57,18 +57,16 @@ async function bootstrap() {
     app.useGlobalGuards(new JwtAuthGuard(reflector));
 
     // Swagger setup (development only)
-    if (!isProduction) {
-      const config = new DocumentBuilder()
-        .setTitle('TreeMapper API')
-        .setDescription('The TreeMapper Backend API')
-        .setVersion('1.0')
-        .addBearerAuth()
-        .build();
+    const config = new DocumentBuilder()
+      .setTitle('TreeMapper API')
+      .setDescription('The TreeMapper Backend API')
+      .setVersion('1.0')
+      .addBearerAuth()
+      .build();
 
-      const document = SwaggerModule.createDocument(app, config);
-      SwaggerModule.setup('api/docs', app, document);
-      logger.log('📚 Swagger documentation available at /api/docs');
-    }
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/docs', app, document);
+    logger.log('📚 Swagger documentation available at /api/docs');
 
     // Environment-based port configuration
     const port = process.env.PORT || 3001;
