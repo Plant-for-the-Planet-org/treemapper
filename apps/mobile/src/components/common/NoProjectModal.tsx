@@ -38,12 +38,13 @@ const NoProjectModal = ({
   const { addAllProjects } = useProjectManagement()
   const { addNewLog } = useLogManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+  const refreshProject = useSelector((state: RootState) => state.tempState.refreshProject)
 
   useEffect(() => {
     if (v3Approved || userType === 'tpo') {
       handleProjects()
     }
-  }, [v3Approved, userType, refetchProject])
+  }, [v3Approved, userType, refetchProject, refreshProject])
 
 
   const handleProjects = async () => {

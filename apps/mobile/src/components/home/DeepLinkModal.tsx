@@ -11,7 +11,7 @@ import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
-import { updateInviteId } from 'src/store/slice/tempStateSlice';
+import { updateInviteId, updateRefeshProject } from 'src/store/slice/tempStateSlice';
 import { useDeepLinking } from 'src/hooks/useDeeplink';
 import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileInviteStatusEmail } from 'src/api/api.fetch';
 
@@ -50,22 +50,21 @@ const DeepLinkModal = () => {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
-
+  useDeepLinking();
   const { inviteId } = useSelector((state: RootState) => state.tempState);
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn);
-
   // Initialize deep linking
-  useDeepLinking();
+
 
   const isVisible = inviteId !== '';
   const inviteType = inviteId.startsWith('bulk:') ? 'bulk' : 'email';
   const inviteCode = inviteType === 'bulk' ? inviteId.replace('bulk:', '') : inviteId;
 
   useEffect(() => {
-    if (isVisible && isLoggedIn) {
+    if (isVisible && isLoggedIn && inviteId) {
       handleInitalStatus();
     }
-  }, [isVisible, isLoggedIn]);
+  }, [isVisible, isLoggedIn, inviteId]);
 
   const handleInitalStatus = async () => {
     if (inviteType === 'email') {
@@ -95,7 +94,6 @@ const DeepLinkModal = () => {
 
       try {
         const result = await getMobileInviteStatus(inviteCode);
-
         if (result?.response?.data) {
           setInviteData(result.response.data);
         } else {
@@ -118,7 +116,7 @@ const DeepLinkModal = () => {
     try {
       if (inviteType === 'email') {
         const params = {
-          code: inviteCode,
+          token: inviteCode,
         };
 
         const result = await acceptEmailInvite(params);
@@ -126,6 +124,7 @@ const DeepLinkModal = () => {
         if (result?.response?.code === 'invite_accepted') {
           // Success - show success message
           setSuccessMessage(result.response.message || 'You have successfully joined the project');
+          dispatch(updateRefeshProject());
           // Close modal after a delay
           setTimeout(() => {
             handleClose();
@@ -147,7 +146,7 @@ const DeepLinkModal = () => {
 
       if (inviteType === 'bulk') {
         const params = {
-          code: inviteCode,
+          token: inviteCode,
         };
 
         const result = await acceptLinkInvite(params);

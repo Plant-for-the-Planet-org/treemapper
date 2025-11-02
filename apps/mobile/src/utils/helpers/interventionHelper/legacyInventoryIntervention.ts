@@ -86,8 +86,8 @@ const setPlantedSpecies = (s: any) => {
         if (element) {
             finalData.push({
                 guid: element.scientificSpecies ? element.scientificSpecies : '',
-                scientificName: element.scientificName ? element.scientificName : 'Undefined',
-                aliases: element.otherSpecies ? element.otherSpecies : 'Undefined',
+                scientificName: element.scientificName ? element.scientificName : 'Unknown',
+                aliases: element.otherSpecies ? element.otherSpecies : 'Unknown',
                 count: element.treeCount ? element.treeCount : 1,
                 image: ""
             })
@@ -190,8 +190,8 @@ const singleTreeDetails = (d: any): SampleTree => {
         location_accuracy: "",
         image_url: "",
         cdn_image_url: d.coordinates[0].image || "",
-        specie_name: d.scientificName || '',
-        local_name: d.scientificName || '',
+        specie_name: d.scientificName || 'Unknown',
+        local_name: d.scientificName || 'Unknown',
         specie_diameter: d.measurements.width,
         specie_height: d.measurements.height,
         tag_id: d.tag || '',

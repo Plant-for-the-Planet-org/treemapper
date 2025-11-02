@@ -53,6 +53,7 @@ export interface TempStateSlice {
   speciesWriting: boolean,
   inviteId: string,
   speciesUpdatedAt: number
+  refreshProject: string
 }
 
 export interface OldSampleTree {

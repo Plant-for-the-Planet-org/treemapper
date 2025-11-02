@@ -42,6 +42,7 @@ const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { isVisible, toggleModal } = props
   const [projects, setProjects] = useState<ProjectInterface[]>([])
+  
   const [selectedProject, setSelectedProject] = useState<DropdownItem>({
     label: '',
     value: '',

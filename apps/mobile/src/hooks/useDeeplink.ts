@@ -56,7 +56,7 @@ export const useDeepLinking = () => {
         // Handle project-invite parameter
         else if (params.projectInvite) {
             console.log('Navigating to project invite:', params.projectInvite);
-            dispatch(updateInviteId(`email:${params.projectLink}`));
+            dispatch(updateInviteId(`email:${params.projectInvite}`));
         }
     }, [navigation]);
 

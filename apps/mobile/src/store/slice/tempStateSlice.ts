@@ -9,6 +9,7 @@ const initialState: TempStateSlice = {
   speciesWriting: false,
   speciesUpdatedAt: 0,
   inviteId: '',
+  refreshProject: '',
 }
 
 const tempStateSlice = createSlice({
@@ -36,9 +37,12 @@ const tempStateSlice = createSlice({
     updateInviteId(state, action: PayloadAction<string>) {
       state.inviteId = action.payload
     },
+    updateRefeshProject(state) {
+      state.refreshProject = new Date().toISOString()
+    },
   },
 })
 
-export const { updateSpeciesWriting, updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt, updateInviteId } = tempStateSlice.actions
+export const { updateSpeciesWriting, updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt, updateInviteId, updateRefeshProject } = tempStateSlice.actions
 
 export default tempStateSlice.reducer
