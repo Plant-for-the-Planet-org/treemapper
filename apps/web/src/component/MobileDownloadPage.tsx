@@ -31,7 +31,7 @@ export default function MobileDownloadPrompt() {
           <div className="space-y-4 mb-2" style={{paddingTop: '3rem'}}>
             {/* App Store Button */}
             <a
-              href="https://apps.apple.com/app/treemapper"
+              href="https://apps.apple.com/app/treemapper/id1524353784"
               className="flex items-center justify-center w-full bg-black bg-opacity-80 backdrop-blur-sm text-white rounded-2xl py-4 px-6 transition-all hover:bg-opacity-90 hover:scale-105 active:scale-95 shadow-lg"
             >
               <div className="flex items-center space-x-4">
@@ -62,7 +62,7 @@ export default function MobileDownloadPrompt() {
 
             {/* Google Play Button */}
             <a
-              href="https://play.google.com/store/apps/details?id=com.treemapper"
+              href="https://play.google.com/store/apps/details?id=org.pftp.treemapper"
               className="flex items-center justify-center w-full bg-black bg-opacity-80 backdrop-blur-sm text-white rounded-2xl py-4 px-6 transition-all hover:bg-opacity-90 hover:scale-105 active:scale-95 shadow-lg"
             >
               <div className="flex items-center space-x-4">
