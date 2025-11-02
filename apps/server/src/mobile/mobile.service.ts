@@ -1820,6 +1820,7 @@ export class MobileService {
         tree_uid: tree.uid,
         tree_hid: tree.hid,
         tree_tag: tree.tag,
+        tree_image: tree.image,
         tree_planting_date: tree.plantingDate,
         tree_current_height: tree.height,
         tree_current_width: tree.width,
@@ -1870,7 +1871,6 @@ export class MobileService {
     for (const row of interventions) {
       // Get planted species for this intervention
       const plantedSpeciesData = await this.getPlantedSpecies(row.intervention_uid);
-
       // Get sample interventions for multi-tree and enrichment-planting
       const sampleInterventions = await this.getSampleInterventions(
         row.intervention_uid,
@@ -1899,7 +1899,7 @@ export class MobileService {
         measurements: this.getMeasurements(row),
         interventionStartDate: this.formatDate(row.intervention_start_date),
         idempotencyKey: row.intervention_idempotency_key,
-        coordinates: [{ image: '' }],
+        coordinates: this.getPrivateCoords(row),
         scientificSpecies: this.getScientificSpeciesUid(row),
         history: [], // Always empty array
         plantProject: row.project_uid,
@@ -2086,6 +2086,14 @@ export class MobileService {
       };
     }
     return null;
+  }
+
+  private getPrivateCoords(row: any): [{ image: string }] {
+    console.log("Planted species data", row)
+    if (row.intervention_type === 'single-tree-registration') {
+      return [{ image: row.tree_image }]
+    }
+    return [{ image: '' }];
   }
 
   private getScientificSpeciesUid(row: any): string | null {
