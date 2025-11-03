@@ -32,7 +32,7 @@ const SiteManagementPage = () => {
     if (isEditing && selectedSite) {
       setEditedSite({ ...selectedSite });
     }
-  }, [isEditing, selectedSite]);
+  }, [isEditing]);
 
   useEffect(() => {
     if (selectedProject) {
@@ -111,16 +111,35 @@ const SiteManagementPage = () => {
   const handleEdit = () => setIsEditing(true);
   const handleSave = async () => {
     if (editedSite) {
+      // Recalculate area if geometry was updated
+      const updatedArea = editedSite.geometry !== selectedSite.geometry
+        ? areaLabel(editedSite.geometry)
+        : editedSite.area;
+
+      const updatedSiteData = {
+        ...editedSite,
+        area: updatedArea,
+        lastUpdate: new Date().toISOString().split('T')[0]
+      };
+
       const updatedSites = sites.map(site =>
-        site.id === editedSite.id
-          ? { ...editedSite, lastUpdate: new Date().toISOString().split('T')[0] }
-          : site
+        site.id === editedSite.id ? updatedSiteData : site
       );
       setSites(updatedSites);
-      setSelectedSite(editedSite);
+      setSelectedSite(updatedSiteData);
       setIsEditing(false);
       setEditedSite(null);
-      await updateDashboardSite(accessToken, { name: editedSite.name, description: editedSite.description }, selectedProject?.uid, editedSite.id)
+
+      // Prepare update payload
+      const updatePayload = {
+        name: editedSite.name,
+        description: editedSite.description,
+        ...(editedSite.geometry !== selectedSite.geometry && {
+          geoJSON: editedSite.geometry
+        })
+      };
+
+      await updateDashboardSite(accessToken, updatePayload, selectedProject?.uid, editedSite.id);
     }
   };
 

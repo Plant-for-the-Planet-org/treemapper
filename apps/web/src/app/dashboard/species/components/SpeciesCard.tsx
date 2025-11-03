@@ -125,7 +125,7 @@ export const SpeciesCard = ({
           </div>
 
           {species.description && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-2">
+            <p className="text-xs text-gray-500 line-clamp-2">
               {species.description}
             </p>
           )}

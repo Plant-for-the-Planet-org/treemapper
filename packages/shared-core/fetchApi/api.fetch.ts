@@ -469,6 +469,11 @@ export const startImpersonationWork = async (token: string, person: string) => {
   return result;
 };
 
+export const editIntervention = async (token: string, param: any, ) => {
+  const uri = `${putUrlApi.editIntervention}/${param.interventionUid}/${param.prjid}`;
+  const result = await fetchPutCall(uri, param, token);
+  return result;
+};
 
 export const exitImpersonationWork = async (token: string) => {
   const uri = `${putUrlApi.impersonateUser}/exit`;

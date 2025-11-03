@@ -87,13 +87,61 @@ const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
 };
 
 // Polygon Controls Component
-const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing }) => {
+const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing, manualCoords, onCoordChange, onAddPolygonPoint }) => {
   return (
     <div className="space-y-3">
       <div className="text-xs text-gray-600">
         <p className="text-xs text-gray-500 leading-relaxed">
-          Click on the map to add points. Need at least 3 points to complete.
+          Click on the map to add points or enter coordinates below. Need at least 3 points to complete.
         </p>
+      </div>
+
+      {/* Manual Coordinates Input for Polygon */}
+      <div className="bg-gray-50 rounded-md p-3">
+        <div className="text-xs font-medium text-gray-700 mb-2">Add Point by Coordinates</div>
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Latitude
+              </label>
+              <input
+                type="text"
+                name="latitude"
+                value={manualCoords.latitude}
+                onChange={onCoordChange}
+                placeholder="0"
+                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+                style={{ color: '#262626' }}
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">
+                Longitude
+              </label>
+              <input
+                type="text"
+                name="longitude"
+                value={manualCoords.longitude}
+                onChange={onCoordChange}
+                placeholder="0"
+                style={{ color: '#262626' }}
+                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
+              />
+            </div>
+          </div>
+          <button
+            onClick={onAddPolygonPoint}
+            type="button"
+            className={`w-full border-none text-white px-5 py-2 rounded text-sm font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude === '' || manualCoords.longitude === ''
+              ? 'bg-gray-400 cursor-not-allowed'
+              : 'bg-[#007A49] hover:bg-[#006B3F] shadow-sm hover:shadow-md'
+              }`}
+            disabled={manualCoords.latitude === '' || manualCoords.longitude === ''}
+          >
+            Add Point
+          </button>
+        </div>
       </div>
 
       {polygonPoints.length > 0 && (
@@ -336,6 +384,47 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     }
   };
 
+  // Add polygon point from manual coordinates
+  const handleAddPolygonPoint = () => {
+    const lng = parseFloat(manualCoords.longitude);
+    const lat = parseFloat(manualCoords.latitude);
+
+    if (!isNaN(lng) && !isNaN(lat)) {
+      // Clear uploaded GeoJSON display when using manual coordinates
+      if (displayingUploadedGeoJSON) {
+        setDisplayingUploadedGeoJSON(false);
+      }
+
+      const point = {
+        longitude: lng,
+        latitude: lat
+      };
+
+      // If not drawing, start drawing
+      if (!drawingPolygon) {
+        setDrawingPolygon(true);
+        setPolygonPoints([point]);
+      } else {
+        // Add point to existing polygon
+        setPolygonPoints(prev => [...prev, point]);
+      }
+
+      // Update viewport to center on the new point
+      setViewState({
+        ...viewState,
+        longitude: lng,
+        latitude: lat,
+        zoom: Math.max(viewState.zoom, 10)
+      });
+
+      // Clear the input fields after adding the point
+      setManualCoords({
+        latitude: '',
+        longitude: ''
+      });
+    }
+  };
+
   // Function to render uploaded GeoJSON
   const renderUploadedGeoJSON = () => {
     if (!displayingUploadedGeoJSON || !geoJSON) return null;
@@ -511,6 +600,9 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
             onComplete={completePolygon}
             onReset={resetPolygon}
             isDrawing={drawingPolygon}
+            manualCoords={manualCoords}
+            onCoordChange={handleCoordChange}
+            onAddPolygonPoint={handleAddPolygonPoint}
           />
         ) : (
           <div className="space-y-3">

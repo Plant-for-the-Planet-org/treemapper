@@ -55,7 +55,7 @@ import {
   Settings,
   Pen
 } from 'lucide-react';
-import { deleteIntervention, getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
+import { deleteIntervention, editIntervention, getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
 import { spec } from 'node:test/reporters';
@@ -65,6 +65,7 @@ import EditSpeciesModal from './component/SpeciesEditModal';
 import OwenrshipTransfer from './component/OwnershipTransferModal';
 import UnifiedMapComponent from '@/component/MapSelect';
 import { useUserStore } from '@shared-core/store/useUserStore';
+import { toast } from 'react-toastify';
 // Mock API functions - replace with your actual API calls
 const mockApiCall = (delay = 1000) => new Promise(resolve => setTimeout(resolve, delay));
 
@@ -344,14 +345,14 @@ const EditableField = ({
         <span className={`text-sm ${value ? 'text-gray-900' : 'text-gray-400'} flex-1`}>
           {displayValue || value || placeholder || 'Not set'}
         </span>
-        {/* <Button
+        <Button
           size="sm"
           variant="ghost"
           className="opacity-0 group-hover:opacity-100 transition-opacity"
           onClick={() => setIsEditing(true)}
         >
           <Edit2 className="h-3 w-3" />
-        </Button> */}
+        </Button>
       </div>
     </div>
   );
@@ -1111,14 +1112,25 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
   };
 
   const handleFieldUpdate = async (field, value) => {
-    console.log(`Updating intervention ${field} to:`, value);
-    await mockApiCall();
+    console.log(`Updating intervention ${field} to:`, value, intervention);
+      const resp = await editIntervention(accessToken,{
+      interventionUid: intervention.uid,
+      prjid: selectedProject,
+      field,
+      value
+    })
+    console.log('Edit response:', resp);
     await onUpdate?.(intervention.uid, { [field]: value });
   };
 
+
   const handleFileUpload = async (type, file) => {
     console.log(`Uploading ${type} for intervention:`, file);
-    await mockApiCall();
+    const resp = await editIntervention(accessToken,{
+      interventionUid: intervention.uid,
+      type
+    })
+    console.log('Edit response:', resp);
     await onUpdate?.(intervention.uid, { [type]: file });
   };
 
@@ -1794,6 +1806,9 @@ const TreeMapperUI = () => {
     // Implement intervention update logic
     // After update, refresh the current page
     fetchInterventionData(pagination.page);
+    toast.success('Intervention updated successfully');
+        setSelectedIntervention(null);
+
   };
 
   const handleInterventionDelete = async (uid) => {

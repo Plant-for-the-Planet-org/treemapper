@@ -66,8 +66,8 @@ export const getUrlApi = {
   getMyOrgs: `${baseUrl}/organizations`,
   getSiteMembers: `${baseUrl}/projects`,
   getWrokspaceMembers: `${baseUrl}/workspace/members`,
-  getProjectMap:`${baseUrl}/interventions`,
-  getProjectTreeMap:`${baseUrl}/interventions`,
+  getProjectMap: `${baseUrl}/interventions`,
+  getProjectTreeMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
 
 } as const;
@@ -77,7 +77,6 @@ export const patchUrlApi = {
   updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
   markRead: `${baseUrl}/notifications`,
-
   deleteLink: `${baseUrl}/projects`,
   updateProjectSettings: `${baseUrl}/projects`,
   userDetails: `${baseUrl}/users/me`,
@@ -100,6 +99,8 @@ export const putUrlApi = {
   impersonateUserExit: `${baseUrl}/workspace/impersonate/exit`,
   speicesDataUpdate: `${baseUrl}/interventions`,
   ownershipTransfer: `${baseUrl}/interventions`,
+  editIntervention: `${baseUrl}/interventions`,
+
 } as const;
 
 // Export the base URL for other modules that might need it

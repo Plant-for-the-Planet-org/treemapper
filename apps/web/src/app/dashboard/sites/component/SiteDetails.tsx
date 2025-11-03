@@ -2,6 +2,7 @@ import { motion } from "framer-motion";
 import { Save, X, Edit3, Trash2, MapPin, User, Calendar, Clock, AreaChart, FileText, Users, UsersRound } from "lucide-react";
 import { InfoCard } from "./InfoCard";
 import SiteViewer from '@/component/DisplayGeoJSONMap';
+import GeoJSONUpload from '@/component/GeoJSONfileupload';
 
 
 export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit, onSave, onCancel, onDelete, siteAccessModal,setSiteAccessModal }) => (
@@ -86,8 +87,22 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
           <h3 className="text-sm font-semibold text-gray-900">Location</h3>
         </div>
         <div className="h-64 bg-gray-50 rounded-lg overflow-hidden">
-          <SiteViewer geoJsonData={site.geometry} />
+          <SiteViewer geoJsonData={isEditing && editedSite?.geometry ? editedSite.geometry : site.geometry} />
         </div>
+        {isEditing && (
+          <div className="mt-4">
+            <GeoJSONUpload
+              onGeoJSONChange={(geoJson) => {
+                if (geoJson && editedSite) {
+                  setEditedSite({ ...editedSite, geometry: geoJson });
+                }
+              }}
+              allowedGeometryTypes="polygon"
+              maxAreaHa={10000}
+              className="w-full"
+            />
+          </div>
+        )}
       </div>
 
       {/* Info Grid */}
