@@ -57,6 +57,10 @@ export class UpdateSiteDto {
   @IsOptional()
   @IsString()
   description?: string;
+
+  @ApiPropertyOptional({ description: 'Site description' })
+  @IsOptional()
+  geoJSON?: any;
 }
 
 // Update Site Images DTO

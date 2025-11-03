@@ -112,7 +112,7 @@ export class ProjectSpeciesService {
         isUnknown: false,
         commonName: createDto.commonName,
         isDisabled: createDto.isDisbaledSpecies || false,
-        notes: createDto.description,
+        notes: createDto.notes,
         favourite: createDto.favourite || false,
         image: createDto.image || ''
       })

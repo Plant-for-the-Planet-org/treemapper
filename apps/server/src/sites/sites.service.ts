@@ -584,6 +584,17 @@ export class SiteService {
     if (updateSiteDto.name !== undefined) updateData.name = updateSiteDto.name;
     if (updateSiteDto.description !== undefined) updateData.description = updateSiteDto.description;
 
+    // Handle geoJSON update
+    if (updateSiteDto.geoJSON !== undefined) {
+      try {
+        const geometry = this.getGeoJSONForPostGIS(updateSiteDto.geoJSON);
+        updateData.location = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
+        updateData.originalGeometry = updateSiteDto.geoJSON;
+      } catch (error) {
+        throw new BadRequestException('Invalid GeoJSON provided');
+      }
+    }
+
     await this.drizzleService.db
       .update(site)
       .set(updateData)

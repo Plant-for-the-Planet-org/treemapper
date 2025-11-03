@@ -95,6 +95,22 @@ export class InterventionsController {
     return this.interventionsService.bulkInterventionUpload(interventionData, membership);
   }
 
+  @Put(':interventionId/:id')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async editInterventionDetails(
+    @Param('interventionId') interventionId: string,
+    @Body() transferDto: any,
+    @CurrentUser() req: any,
+  ): Promise<any> {
+    const requesterId = req.user?.id || req.user?.sub;
+    return await this.interventionsService.interventionEdit(
+      interventionId,
+      transferDto,
+      requesterId,
+    );
+  }
+
 
   @Put(':interventionId/:id/owner')
   @ProjectRoles('owner', 'admin')
