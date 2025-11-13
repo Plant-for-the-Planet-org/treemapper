@@ -21,6 +21,7 @@ import {
   InterventionExportResponse,
 } from './dto/analytics.dto';
 import { intervention, projectMember, project, tree, user, site, interventionSpecies, scientificSpecies, projectSpecies } from '../database/schema';
+import { console } from 'inspector';
 
 
 // Updated interface for the response
@@ -1087,129 +1088,170 @@ export class AnalyticsService {
   }
 
 
-  async getProjectLeaderboard(
-    projectId: number,
-    page: string = '1',
-    pageSize: string = '20',
-    timeFilter: 'all-time' | 'this-year' | 'this-month' = 'all-time'
-  ): Promise<{
-    items: any[];
-    totalCount: number;
-    currentPage: number;
-    pageSize: number;
-    totalPages: number;
-  }> {
-    const parsedPage = parseInt(page, 10) || 1;
-    const parsedPageSize = parseInt(pageSize, 10) || 20;
-    const skip = (parsedPage - 1) * parsedPageSize;
+async getProjectLeaderboard(
+  projectId: number,
+  page: string = '1',
+  pageSize: string = '20',
+  timeFilter: 'all-time' | 'this-year' | 'this-month' = 'all-time'
+): Promise<{
+  items: any[];
+  totalCount: number;
+  currentPage: number;
+  pageSize: number;
+  totalPages: number;
+}> {
+  const parsedPage = parseInt(page, 10) || 1;
+  const parsedPageSize = parseInt(pageSize, 10) || 20;
+  const skip = (parsedPage - 1) * parsedPageSize;
 
-    // Build date filter based on timeFilter
-    let dateFilter = sql`true`; // Default: no date restriction
+  // Build date filter based on timeFilter
+  let dateFilter = sql`true`;
 
-    if (timeFilter === 'this-year') {
-      dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE)`;
-    } else if (timeFilter === 'this-month') {
-      dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE) 
-                    AND EXTRACT(MONTH FROM ${intervention.interventionStartDate}) = EXTRACT(MONTH FROM CURRENT_DATE)`;
-    }
-
-
-    // Main leaderboard query with aggregations
-    const leaderboardData = await this.drizzleService.db
-  .select({
-    uid: user.uid,
-    displayName: user.displayName,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    image: user.image,
-    role: projectMember.projectRole,
-    joinDate: projectMember.joinedAt,
-    totalInterventions: sql<number>`COUNT(DISTINCT ${intervention.id})`.as('totalInterventions'),
-    totalTrees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`.as('totalTrees'),
-    totalSpecies: sql<number>`COUNT(DISTINCT ${interventionSpecies.id})`.as('totalSpecies'),
-  })
-  .from(projectMember)
-  .innerJoin(user, eq(projectMember.userId, user.id))
-  .leftJoin(
-    intervention,
-    and(
-      eq(intervention.userId, user.id),
-      eq(intervention.projectId, projectId),
-      isNull(intervention.deletedAt),
-      dateFilter
-    )
-  )
-  .leftJoin(
-    interventionSpecies,
-    and(
-      eq(interventionSpecies.interventionId, intervention.id),
-      isNull(interventionSpecies.deletedAt)
-    )
-  )
-  .where(
-    and(
-      eq(projectMember.projectId, projectId),
-      isNull(projectMember.deletedAt),
-      eq(projectMember.status, 'active')
-    )
-  )
-  .groupBy(
-    user.id,
-    user.uid,
-    user.displayName,
-    user.firstName,
-    user.lastName,
-    user.image,
-    projectMember.projectRole,
-    projectMember.joinedAt
-  )
-  .orderBy(
-    desc(sql`COALESCE(SUM(${intervention.totalTreeCount}), 0)`),
-    desc(sql`COUNT(DISTINCT ${intervention.id})`),
-    desc(sql`COUNT(DISTINCT ${interventionSpecies.id})`)
-  )
-  .limit(parsedPageSize)
-  .offset(skip);
-    // Get total count for pagination
-    const totalCountResult = await this.drizzleService.db
-      .select({
-        count: sql<number>`COUNT(DISTINCT ${user.id})`.as('count')
-      })
-      .from(projectMember)
-      .innerJoin(user, eq(projectMember.userId, user.id))
-      .where(
-        and(
-          eq(projectMember.projectId, projectId),
-          isNull(projectMember.deletedAt),
-          eq(projectMember.status, 'active')
-        )
-      );
-
-    const totalCount = totalCountResult[0]?.count || 0;
-    const totalPages = Math.ceil(totalCount / parsedPageSize);
-
-    // Format the response
-    const formattedItems = leaderboardData.map(item => ({
-      uid: item.uid,
-      displayName: item.displayName,
-      firstName: item.firstName,
-      lastName: item.lastName,
-      image: item.image,
-      role: item.role,
-      totalTrees: Number(item.totalTrees),
-      totalInterventions: Number(item.totalInterventions),
-      totalSpecies: Number(item.totalSpecies),
-      joinDate: item.joinDate?.toISOString().split('T')[0] || null, // Format as YYYY-MM-DD
-    }));
-
-    return {
-      items: formattedItems,
-      totalCount,
-      currentPage: parsedPage,
-      pageSize: parsedPageSize,
-      totalPages,
-    };
+  if (timeFilter === 'this-year') {
+    dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE)`;
+  } else if (timeFilter === 'this-month') {
+    dateFilter = sql`EXTRACT(YEAR FROM ${intervention.interventionStartDate}) = EXTRACT(YEAR FROM CURRENT_DATE) 
+                  AND EXTRACT(MONTH FROM ${intervention.interventionStartDate}) = EXTRACT(MONTH FROM CURRENT_DATE)`;
   }
+
+  // Step 1: Get user interventions and tree counts (WITHOUT species join to avoid multiplication)
+  const userInterventionsSubquery = this.drizzleService.db
+    .select({
+      userId: user.id,
+      uid: user.uid,
+      displayName: user.displayName,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      image: user.image,
+      role: projectMember.projectRole,
+      joinDate: projectMember.joinedAt,
+      totalInterventions: sql<number>`COUNT(DISTINCT ${intervention.id})`.as('totalInterventions'),
+      totalTrees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`.as('totalTrees'),
+    })
+    .from(projectMember)
+    .innerJoin(user, eq(projectMember.userId, user.id))
+    .leftJoin(
+      intervention,
+      and(
+        eq(intervention.userId, user.id),
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt),
+        dateFilter
+      )
+    )
+    .where(
+      and(
+        eq(projectMember.projectId, projectId),
+        isNull(projectMember.deletedAt),
+        eq(projectMember.status, 'active')
+      )
+    )
+    .groupBy(
+      user.id,
+      user.uid,
+      user.displayName,
+      user.firstName,
+      user.lastName,
+      user.image,
+      projectMember.projectRole,
+      projectMember.joinedAt
+    )
+    .as('user_interventions');
+
+  // Step 2: Get unique species count separately
+  const userSpeciesSubquery = this.drizzleService.db
+    .select({
+      userId: user.id,
+      totalSpecies: sql<number>`COUNT(DISTINCT ${interventionSpecies.scientificSpeciesId})`.as('totalSpecies'),
+    })
+    .from(user)
+    .innerJoin(
+      intervention,
+      and(
+        eq(intervention.userId, user.id),
+        eq(intervention.projectId, projectId),
+        isNull(intervention.deletedAt),
+        dateFilter
+      )
+    )
+    .leftJoin(
+      interventionSpecies,
+      and(
+        eq(interventionSpecies.interventionId, intervention.id),
+        isNull(interventionSpecies.deletedAt)
+      )
+    )
+    .groupBy(user.id)
+    .as('user_species');
+
+  // Step 3: Combine the results
+  const leaderboardData = await this.drizzleService.db
+    .select({
+      uid: userInterventionsSubquery.uid,
+      displayName: userInterventionsSubquery.displayName,
+      firstName: userInterventionsSubquery.firstName,
+      lastName: userInterventionsSubquery.lastName,
+      image: userInterventionsSubquery.image,
+      role: userInterventionsSubquery.role,
+      joinDate: userInterventionsSubquery.joinDate,
+      totalInterventions: userInterventionsSubquery.totalInterventions,
+      totalTrees: userInterventionsSubquery.totalTrees,
+      totalSpecies: sql<number>`COALESCE(${userSpeciesSubquery.totalSpecies}, 0)`.as('totalSpecies'),
+    })
+    .from(userInterventionsSubquery)
+    .leftJoin(
+      userSpeciesSubquery,
+      eq(userSpeciesSubquery.userId, userInterventionsSubquery.userId)
+    )
+    .orderBy(
+      desc(userInterventionsSubquery.totalTrees),
+      desc(userInterventionsSubquery.totalInterventions),
+      desc(sql`COALESCE(${userSpeciesSubquery.totalSpecies}, 0)`)
+    )
+    .limit(parsedPageSize)
+    .offset(skip);
+
+  // Get total count for pagination
+  const totalCountResult = await this.drizzleService.db
+    .select({
+      count: sql<number>`COUNT(DISTINCT ${user.id})`.as('count')
+    })
+    .from(projectMember)
+    .innerJoin(user, eq(projectMember.userId, user.id))
+    .where(
+      and(
+        eq(projectMember.projectId, projectId),
+        isNull(projectMember.deletedAt),
+        eq(projectMember.status, 'active')
+      )
+    );
+
+  const totalCount = totalCountResult[0]?.count || 0;
+  const totalPages = Math.ceil(totalCount / parsedPageSize);
+
+  // Format the response
+  const formattedItems = leaderboardData.map((item, index) => ({
+    uid: item.uid,
+    displayName: item.displayName,
+    firstName: item.firstName,
+    lastName: item.lastName,
+    image: item.image,
+    role: item.role,
+    totalTrees: Number(item.totalTrees),
+    totalInterventions: Number(item.totalInterventions),
+    totalSpecies: Number(item.totalSpecies),
+    joinDate: item.joinDate?.toISOString().split('T')[0] || null,
+    rank: skip + index + 1,
+  }));
+
+  return {
+    items: formattedItems,
+    totalCount,
+    currentPage: parsedPage,
+    pageSize: parsedPageSize,
+    totalPages,
+  };
+}
 
   //   async getProjectMapData(projectId: number): Promise<MapDataResponse> {
   //     // First, verify the project exists

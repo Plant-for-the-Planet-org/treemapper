@@ -98,15 +98,15 @@ export class ProjectSpeciesController {
     );
   }
 
-  // @Delete('/:id/species/:species')
-  // @ProjectRoles('owner', 'admin', 'contributor')
-  // @UseGuards(ProjectPermissionsGuard)
-  // async delete(
-  //   @Param('species') species: string,
-  //   @Membership() membership: ProjectGuardResponse,
-  // ) {
-  //   return this.userSpeciesService.delete(species, membership);
-  // }
+  @Delete('/:id/species/:species')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async delete(
+    @Param('species') species: string,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.userSpeciesService.delete(species, membership);
+  }
 
 
 

@@ -450,28 +450,28 @@ export class ProjectSpeciesService {
 
 
 
-  //   async delete(speciesId: string, membership: ProjectGuardResponse) {
-  //     const existingSpecies = await this.getByUid(speciesId, membership.projectId);
+    async delete(speciesId: string, membership: ProjectGuardResponse) {
+      const existingSpecies = await this.getByUid(speciesId, membership.projectId);
 
-  //     if (!existingSpecies) {
-  //       throw new BadRequestException('Species does not have an image to delete');
-  //     }
+      if (!existingSpecies) {
+        throw new BadRequestException('Species does not have an image to delete');
+      }
 
-  //     const deletedSpecies = await this.drizzle.db
-  //       .delete(projectSpecies)
-  //       .where(
-  //         and(
-  //           eq(projectSpecies.id, existingSpecies.id),
-  //           eq(projectSpecies.projectId, membership.projectId),
-  //         ),
-  //       )
-  //       .returning();
+      const deletedSpecies = await this.drizzle.db
+        .delete(projectSpecies)
+        .where(
+          and(
+            eq(projectSpecies.id, existingSpecies.id),
+            eq(projectSpecies.projectId, membership.projectId),
+          ),
+        )
+        .returning();
 
-  //     if (!deletedSpecies.length) {
-  //       throw new NotFoundException('User species not found');
-  //     }
-  //     return { message: 'Species deleted successfully' };
-  //   }
+      if (!deletedSpecies.length) {
+        throw new NotFoundException('User species not found');
+      }
+      return { message: 'Species deleted successfully' };
+    }
 
 
 
