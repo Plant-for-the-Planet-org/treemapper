@@ -130,6 +130,7 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
 const getInterventionColor = (type: string, status: string): string => {
     const colors = {
         'single-tree-registration': '#10b981',
+        'multi-tree-registration': '#10b981',
         'direct-seeding': '#10b981',
         'enrichment-planting': '#059669',
         'maintenance': '#0891b2',
@@ -138,7 +139,7 @@ const getInterventionColor = (type: string, status: string): string => {
         default: '#6b7280',
     };
     const baseColor = colors[type as keyof typeof colors] || colors.default;
-    return status === 'completed' || status === 'active' ? baseColor : `${baseColor}CC`;
+    return status === 'completed' || status === 'active' ? baseColor : baseColor;
 };
 
 const getTreeStatusColor = (status: string): string => {
@@ -264,9 +265,17 @@ const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => 
 const fetchProjectInterventions = async (projectId: string, token: string): Promise<ApiResponse<ProjectMapResponse>> => {
     try {
         const response = await getAllMapInterevntions(token, projectId);
-        
+
+        // Handle the nested data structure from API response
+        const apiData = response.data?.data || response.data;
+        const rawInterventions = apiData?.interventions || [];
+        const apiBounds = apiData?.bounds;
+
+        console.log('Raw API response:', response);
+        console.log('Extracted interventions:', rawInterventions.length);
+
         // Process interventions - add locationGeometryType if missing
-        const processedInterventions = response.data.interventions.map((intervention: any) => ({
+        const processedInterventions = rawInterventions.map((intervention: any) => ({
             ...intervention,
             locationGeometryType: intervention.locationGeometryType || intervention.location?.type || 'Point'
         }));
@@ -283,10 +292,15 @@ const fetchProjectInterventions = async (projectId: string, token: string): Prom
         console.log('Valid interventions loaded:', validInterventions.length);
         console.log('Sample intervention:', validInterventions[0]);
 
-        // Calculate bounds from the interventions
-        const bounds = calculateBounds(validInterventions);
-        
-        console.log('Calculated bounds:', bounds);
+        // Use API bounds if available, otherwise calculate
+        let bounds: ProjectMapBounds;
+        if (apiBounds && apiBounds.bounds && apiBounds.center) {
+            bounds = apiBounds;
+            console.log('Using API bounds:', bounds);
+        } else {
+            bounds = calculateBounds(validInterventions);
+            console.log('Calculated bounds:', bounds);
+        }
 
         return {
             success: true,
@@ -391,7 +405,7 @@ const InterventionMarker: React.FC<{
     onMouseLeave: () => void;
 }> = ({ intervention, isSelected, isHovered, onClick, onMouseEnter, onMouseLeave }) => {
     const color = getInterventionColor(intervention.type, intervention.status);
-    const size = isSelected ? 16 : isHovered ? 12 : 10;
+    const size = isSelected ? 28 : isHovered ? 24 : 20; // Increased sizes for better visibility
     const [lng, lat] = getMarkerPosition(intervention);
 
     // Don't render if coordinates are invalid
@@ -401,9 +415,9 @@ const InterventionMarker: React.FC<{
     }
 
     return (
-        <Marker 
-            longitude={lng} 
-            latitude={lat} 
+        <Marker
+            longitude={lng}
+            latitude={lat}
             onClick={(e) => {
                 e.originalEvent.stopPropagation();
                 onClick();
@@ -415,10 +429,11 @@ const InterventionMarker: React.FC<{
                 onMouseLeave={onMouseLeave}
                 animate={{ scale: isSelected ? 1.2 : isHovered ? 1.1 : 1 }}
                 transition={{ duration: 0.2 }}
+                style={{ zIndex: isSelected ? 1000 : isHovered ? 999 : 10 }}
             >
                 <div
-                    className={`rounded-full border-2 border-white shadow-lg ${
-                        isSelected ? 'ring-2 ring-blue-500 ring-offset-2' : ''
+                    className={`rounded-full border-3 border-white shadow-lg ${
+                        isSelected ? 'ring-4 ring-blue-500 ring-offset-2' : ''
                     }`}
                     style={{
                         backgroundColor: color,
@@ -426,24 +441,24 @@ const InterventionMarker: React.FC<{
                         height: size,
                     }}
                 />
-                
-                {(intervention.locationGeometryType === 'Polygon' || 
+
+                {(intervention.locationGeometryType === 'Polygon' ||
                   intervention.locationGeometryType === 'MultiPolygon') && (
                     <div
-                        className="absolute -bottom-1 -right-1 w-3 h-3 bg-white rounded-full border border-gray-300 flex items-center justify-center"
+                        className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border-2 border-gray-300 flex items-center justify-center shadow-md"
                         title={`${intervention.locationGeometryType} geometry`}
                     >
-                        <div className="w-1.5 h-1.5 bg-gray-600 rounded-sm"></div>
+                        <div className="w-2 h-2 bg-gray-600 rounded-sm"></div>
                     </div>
                 )}
-                
+
                 {isHovered && !isSelected && (
                     <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-12 left-1/2 transform -translate-x-1/2 
-                               bg-gray-900 text-white text-xs px-2 py-1 rounded 
-                               whitespace-nowrap z-10"
+                        className="absolute -top-12 left-1/2 transform -translate-x-1/2
+                               bg-gray-900 text-white text-xs px-2 py-1 rounded
+                               whitespace-nowrap z-10 shadow-lg"
                     >
                         {intervention.hid} - {intervention.type.replace(/-/g, ' ')}
                     </motion.div>
@@ -641,19 +656,6 @@ const MapLegend: React.FC<{
                 </div>
             </div>
         </div>
-        
-        {selectedIntervention && (
-            <div className="mt-3 pt-2 border-t border-gray-100 bg-gray-50/50 -mx-3 -mb-3 px-3 pb-3 rounded-b-xl">
-                <div className="flex items-center justify-between">
-                    <span className="text-xs font-medium text-gray-600">
-                        ID: {selectedIntervention.hid}
-                    </span>
-                    <span className="text-xs text-gray-500 bg-white px-1.5 py-0.5 rounded-md shadow-sm">
-                        {treeCount.toLocaleString()} trees
-                    </span>
-                </div>
-            </div>
-        )}
     </div>
 );
 
@@ -674,14 +676,6 @@ const MapStats: React.FC<{
                     {interventions.reduce((sum, i) => sum + i.totalTreeCount, 0).toLocaleString()}
                 </span>
             </div>
-            {selectedIntervention && (
-                <div className="border-t border-gray-200 pt-2 mt-2">
-                    <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-600">Selected Trees:</span>
-                        <span className="font-semibold">{treeCount}</span>
-                    </div>
-                </div>
-            )}
         </div>
     </div>
 );
@@ -725,20 +719,31 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         loadInterventions();
     }, [loadInterventions]);
 
-    // Fit map to bounds when interventions load
+    // Fit map to bounds when interventions load - FIXED VERSION
     useEffect(() => {
         if (mapRef && bounds && interventions.length > 0) {
             try {
                 console.log('Fitting map to bounds:', bounds);
-                mapRef.fitBounds(bounds.bounds, {
-                    padding: 50,
-                    duration: 1000,
-                });
+                console.log('Interventions to show:', interventions.length);
+
+                // Use a longer delay to ensure map is fully initialized
+                setTimeout(() => {
+                    try {
+                        mapRef.fitBounds(bounds.bounds, {
+                            padding: { top: 100, bottom: 100, left: 400, right: 300 },
+                            duration: 2000,
+                            maxZoom: 15, // Reduced from 16 to prevent zooming too close
+                        });
+                        console.log('Map bounds fitted successfully');
+                    } catch (err) {
+                        console.warn('Failed to fit bounds:', err);
+                    }
+                }, 500); // Increased delay
             } catch (error) {
                 console.warn('Failed to fit bounds:', error);
             }
         }
-    }, [mapRef, bounds, interventions]);
+    }, [mapRef, bounds, interventions.length]);
 
     const handleInterventionClick = useCallback(async (intervention: MapIntervention) => {
         console.log('Intervention clicked:', intervention.hid);
@@ -757,7 +762,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         setMapState(prev => ({
             ...prev,
             selectedInterventionId: intervention.id,
-            isLoadingTrees: false, // Set to false since we don't have tree endpoint yet
+            isLoadingTrees: false,
             selectedTreeId: null,
             showTreeDetails: false,
         }));
@@ -785,6 +790,17 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         }));
     }, []);
 
+    const handlePolygonClick = useCallback((event: any) => {
+        const feature = event.features?.[0];
+        if (feature && feature.properties?.id) {
+            const interventionId = feature.properties.id;
+            const intervention = interventions.find(i => i.id === interventionId);
+            if (intervention) {
+                handleInterventionClick(intervention);
+            }
+        }
+    }, [interventions, handleInterventionClick]);
+
     const handleRetry = useCallback(() => {
         loadInterventions();
     }, [loadInterventions]);
@@ -803,17 +819,45 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         [trees, mapState.selectedTreeId]
     );
 
+    // Create GeoJSON for polygon/multipolygon interventions
+    const polygonGeoJSON = useMemo(() => {
+        const features = interventions
+            .filter(i => i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
+            .map(intervention => ({
+                type: 'Feature' as const,
+                id: intervention.id,
+                properties: {
+                    id: intervention.id,
+                    hid: intervention.hid,
+                    type: intervention.type,
+                    status: intervention.status,
+                    color: getInterventionColor(intervention.type, intervention.status),
+                },
+                geometry: intervention.location,
+            }));
+
+        console.log('Polygon GeoJSON features:', features.length);
+        return {
+            type: 'FeatureCollection' as const,
+            features,
+        };
+    }, [interventions]);
+
     // Debug information
     useEffect(() => {
         if (interventions.length > 0) {
-            console.log('Interventions loaded:', {
-                count: interventions.length,
-                bounds: bounds,
-                sample: interventions[0],
-                coordinates: interventions.map(i => getMarkerPosition(i))
-            });
+            console.log('=== INTERVENTIONS DEBUG ===');
+            console.log('Total interventions:', interventions.length);
+            console.log('Bounds:', bounds);
+            console.log('Polygon features:', polygonGeoJSON.features.length);
+            console.log('All intervention locations:', interventions.map(i => ({
+                hid: i.hid,
+                type: i.locationGeometryType,
+                coords: getMarkerPosition(i)
+            })));
+            console.log('=========================');
         }
-    }, [interventions, bounds]);
+    }, [interventions, bounds, polygonGeoJSON]);
 
     if (isLoading) {
         return (
@@ -874,11 +918,13 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     ]
                 }}
                 initialViewState={{
-                    longitude: bounds?.center[0] || -90.1366771,
-                    latitude: bounds?.center[1] || 18.6799582,
-                    zoom: bounds ? 12 : 10,
+                    longitude: bounds?.center[0] || 0,
+                    latitude: bounds?.center[1] || 0,
+                    zoom: 5, // Changed from 2 to 5 for better initial visibility
                 }}
                 style={{ width: '100%', height: '100%' }}
+                interactiveLayerIds={['interventions-polygons-fill', 'interventions-polygons-outline']}
+                onClick={handlePolygonClick}
                 onError={(error) => {
                     console.error('Map error:', error);
                     setError({
@@ -889,7 +935,46 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     });
                 }}
             >
-                {/* Intervention Markers */}
+                {/* Polygon/MultiPolygon Interventions as Layers */}
+                {polygonGeoJSON.features.length > 0 && (
+                    <Source
+                        id="interventions-polygons"
+                        type="geojson"
+                        data={polygonGeoJSON}
+                    >
+                        {/* Polygon fill layer - INCREASED OPACITY */}
+                        <Layer
+                            id="interventions-polygons-fill"
+                            type="fill"
+                            paint={{
+                                'fill-color': ['get', 'color'],
+                                'fill-opacity': [
+                                    'case',
+                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    0.6, // Increased from 0.5
+                                    0.4  // Increased from 0.3
+                                ]
+                            }}
+                        />
+                        {/* Polygon outline layer - INCREASED WIDTH */}
+                        <Layer
+                            id="interventions-polygons-outline"
+                            type="line"
+                            paint={{
+                                'line-color': ['get', 'color'],
+                                'line-width': [
+                                    'case',
+                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    4, // Increased from 3
+                                    3  // Increased from 2
+                                ],
+                                'line-opacity': 0.9 // Increased from 0.8
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Intervention Markers - for all interventions */}
                 {interventions.map((intervention) => (
                     <InterventionMarker
                         key={intervention.id}
@@ -985,10 +1070,11 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
 
             {/* Debug Info (remove in production) */}
             {process.env.NODE_ENV === 'development' && (
-                <div className="absolute bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded">
+                <div className="absolute bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded max-w-xs">
                     <div>Interventions: {interventions.length}</div>
-                    <div>Bounds: {bounds ? `${bounds.center[0].toFixed(4)}, ${bounds.center[1].toFixed(4)}` : 'None'}</div>
-                    <div>Selected: {selectedIntervention?.hid || 'None'}</div>
+                    <div>Polygons: {polygonGeoJSON.features.length}</div>
+                    <div>Bounds: {bounds ? `[${bounds.center[0].toFixed(2)}, ${bounds.center[1].toFixed(2)}]` : 'None'}</div>
+                    <div>Map Ready: {mapRef ? 'Yes' : 'No'}</div>
                 </div>
             )}
         </div>

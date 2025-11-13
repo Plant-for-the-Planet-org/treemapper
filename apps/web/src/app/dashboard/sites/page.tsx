@@ -111,8 +111,12 @@ const SiteManagementPage = () => {
   const handleEdit = () => setIsEditing(true);
   const handleSave = async () => {
     if (editedSite) {
+
+      // Check if geometry was updated by comparing JSON strings
+      const geometryChanged = JSON.stringify(editedSite.geometry) !== JSON.stringify(selectedSite.geometry);
+
       // Recalculate area if geometry was updated
-      const updatedArea = editedSite.geometry !== selectedSite.geometry
+      const updatedArea = geometryChanged
         ? areaLabel(editedSite.geometry)
         : editedSite.area;
 
@@ -134,11 +138,10 @@ const SiteManagementPage = () => {
       const updatePayload = {
         name: editedSite.name,
         description: editedSite.description,
-        ...(editedSite.geometry !== selectedSite.geometry && {
+        ...(geometryChanged && {
           geoJSON: editedSite.geometry
         })
       };
-
       await updateDashboardSite(accessToken, updatePayload, selectedProject?.uid, editedSite.id);
     }
   };

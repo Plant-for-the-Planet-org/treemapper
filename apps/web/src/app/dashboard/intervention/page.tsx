@@ -358,6 +358,117 @@ const EditableField = ({
   );
 };
 
+const NonEditableField = ({
+  value,
+  onSave,
+  type = 'text',
+  placeholder = '',
+  className = '',
+  displayValue = null,
+  label = '',
+  required = false
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState(value || '');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setEditValue(value || '');
+  }, [value]);
+
+  const handleSave = async () => {
+    if (required && !editValue.trim()) {
+      alert('This field is required');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await onSave(editValue);
+      setIsEditing(false);
+    } catch (error) {
+      console.error('Save failed:', error);
+      alert('Save failed. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleCancel = () => {
+    setEditValue(value || '');
+    setIsEditing(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && type !== 'textarea') {
+      handleSave();
+    } else if (e.key === 'Escape') {
+      handleCancel();
+    }
+  };
+
+  if (isEditing) {
+    return (
+      <div className="space-y-2">
+        {label && <label className="text-sm font-medium text-gray-700">{label}</label>}
+        <div className="flex items-start gap-2">
+          {type === 'textarea' ? (
+            <Textarea
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder={placeholder}
+              className={className}
+              rows={3}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : type === 'number' ? (
+            <Input
+              type="number"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder={placeholder}
+              className={className}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : type === 'date' ? (
+            <Input
+              type="date"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              className={className}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          ) : (
+            <Input
+              type="text"
+              value={editValue}
+              onChange={(e) => setEditValue(e.target.value)}
+              placeholder={placeholder}
+              className={className}
+              onKeyDown={handleKeyDown}
+              autoFocus
+            />
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="group">
+      {label && <label className="text-sm font-medium text-gray-700 block mb-1">{label}</label>}
+      <div className="flex items-center gap-2">
+        <span className={`text-sm ${value ? 'text-gray-900' : 'text-gray-400'} flex-1`}>
+          {displayValue || value || placeholder || 'Not set'}
+        </span>
+      </div>
+    </div>
+  );
+};
+
 // File Upload Dialog
 const FileUploadDialog = ({ open, onOpenChange, title, accept, onUpload, description }) => {
   const [file, setFile] = useState(null);
@@ -466,26 +577,46 @@ const FileUploadDialog = ({ open, onOpenChange, title, accept, onUpload, descrip
 const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, onUpload, description }) => {
   const [file, setFile] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [drawnGeoJSON, setDrawnGeoJSON] = useState(null);
   const fileInputRef = useRef(null);
+  console.log('intervention in FileUploadMapDialog:', intervention);
 
-  const handleFileSelect = (e) => {
+  const handleFileSelect = async (e) => {
     const selectedFile = e.target.files?.[0];
     if (selectedFile) {
       setFile(selectedFile);
+      // Parse the GeoJSON file and update the drawn GeoJSON
+      try {
+        const fileContent = await selectedFile.text();
+        const parsedGeoJSON = JSON.parse(fileContent);
+        setDrawnGeoJSON(parsedGeoJSON);
+      } catch (error) {
+        console.error('Error parsing GeoJSON file:', error);
+        alert('Invalid GeoJSON file. Please upload a valid GeoJSON file.');
+      }
     }
   };
 
-  const handleUpload = async () => {
-    if (!file) return;
+  const handleUpdateGeoJSON = (geoJSON) => {
+    console.log('GeoJSON updated from map:', geoJSON);
+    setDrawnGeoJSON(geoJSON);
+  };
+
+  const handleSaveLocation = async () => {
+    if (!drawnGeoJSON) {
+      alert('Please draw a location or upload a GeoJSON file.');
+      return;
+    }
 
     setIsUploading(true);
     try {
-      await onUpload(file);
+      await onUpload(drawnGeoJSON);
       setFile(null);
+      setDrawnGeoJSON(null);
       onOpenChange(false);
     } catch (error) {
       console.error('Upload failed:', error);
-      alert('Upload failed. Please try again.');
+      alert('Failed to update location. Please try again.');
     } finally {
       setIsUploading(false);
     }
@@ -493,6 +624,7 @@ const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, 
 
   const handleClose = () => {
     setFile(null);
+    setDrawnGeoJSON(null);
     onOpenChange(false);
   };
 
@@ -510,8 +642,12 @@ const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, 
         {description && (
           <p className="text-sm text-gray-600">{description}</p>
         )}
-        <div style={{ width: '100%', height: "50vh", backgroundColor: "red" }}>
-          <UnifiedMapComponent updateGeoJSON={() => { }} uploadedGeoJSON={intervention.originalGeometry} mode={'point'} />
+        <div style={{ width: '100%', height: "50vh" }}>
+          <UnifiedMapComponent
+            updateGeoJSON={handleUpdateGeoJSON}
+            uploadedGeoJSON={intervention.originalGeometry}
+            mode={intervention && intervention.originalGeometry && intervention.originalGeometry.type==='Polygon'?'polygon':'point'}
+          />
         </div>
         <div className="space-y-4">
           <div>
@@ -528,7 +664,7 @@ const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, 
               className="w-full justify-center"
             >
               <Upload className="h-4 w-4 mr-2" />
-              Choose File
+              Upload GeoJSON File
             </Button>
             {file && (
               <div className="mt-3 p-3 bg-gray-50 rounded-lg">
@@ -549,17 +685,17 @@ const FileUploadMapDialog = ({ intervention, open, onOpenChange, title, accept, 
             </Button>
             <Button
               variant="primary"
-              onClick={handleUpload}
-              disabled={!file || isUploading}
+              onClick={handleSaveLocation}
+              disabled={!drawnGeoJSON || isUploading}
               className="flex-1"
             >
               {isUploading ? (
                 <>
                   <Loader className="h-4 w-4 mr-2 animate-spin" />
-                  Uploading...
+                  Updating...
                 </>
               ) : (
-                'Upload'
+                'Save Location'
               )}
             </Button>
           </div>
@@ -1124,14 +1260,36 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
   };
 
 
-  const handleFileUpload = async (type, file) => {
-    console.log(`Uploading ${type} for intervention:`, file);
-    const resp = await editIntervention(accessToken,{
-      interventionUid: intervention.uid,
-      type
-    })
-    console.log('Edit response:', resp);
-    await onUpdate?.(intervention.uid, { [type]: file });
+  const handleFileUpload = async (type, geoJSONData) => {
+    console.log(`Updating ${type} for intervention:`, geoJSONData);
+
+    // Fake API call to update intervention GeoJSON
+    try {
+      // Simulating API call with a delay
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // In a real implementation, you would call your API here:
+      // const resp = await updateInterventionLocation(accessToken, {
+      //   interventionUid: intervention.uid,
+      //   projectId: selectedProject,
+      //   geometry: geoJSONData
+      // });
+
+      console.log('GeoJSON update successful (fake API):', {
+        interventionUid: intervention.uid,
+        projectId: selectedProject,
+        newGeometry: geoJSONData
+      });
+
+      // Update local state with the new geometry
+      await onUpdate?.(intervention.uid, { originalGeometry: geoJSONData });
+
+      toast.success('Location updated successfully!');
+    } catch (error) {
+      console.error('Failed to update location:', error);
+      toast.error('Failed to update location. Please try again.');
+      throw error;
+    }
   };
 
   const handleOwnerChange = async (newOwner) => {
@@ -1287,7 +1445,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                   onSave={(value) => handleFieldUpdate('interventionStartDate', value)}
                 />
 
-                <EditableField
+                <NonEditableField
                   label="Tree Count"
                   value={intervention.treeCount?.toString() || '0'}
                   type="number"
@@ -1330,21 +1488,20 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
               onSave={(value) => handleFieldUpdate('description', value)}
             />
 
-            {/* Action Buttons */}
-            {/* <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-              <Button variant="outline" onClick={() => setShowLocationDialog(true)}>
+            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
+              {/* <Button variant="outline" onClick={() => setShowLocationDialog(true)}>
                 <MapPin className="h-4 w-4 mr-2" />
                 Update Location
-              </Button>
-              <Button variant="outline" onClick={() => setShowImageDialog(true)}>
+              </Button> */}
+              {/* <Button variant="outline" onClick={() => setShowImageDialog(true)}>
                 <FileImage className="h-4 w-4 mr-2" />
                 {intervention.image ? 'Update Image' : 'Add Image'}
-              </Button>
-              <Button variant="outline" onClick={() => setShowSpeciesDialog(true)}>
+              </Button> */}
+              {/* <Button variant="outline" onClick={() => setShowSpeciesDialog(true)}>
                 <Settings className="h-4 w-4 mr-2" />
                 Manage Species
-              </Button>
-            </div> */}
+              </Button> */}
+            </div>
           </CardContent>
         )}
       </Card>
@@ -1684,11 +1841,22 @@ const TreeMapperUI = () => {
           setInterventions(prev => [...prev, ...newInterventions]);
         } else {
           setInterventions(newInterventions);
-          // Reset selection if no interventions match filters
-          if (newInterventions.length === 0) {
-            setSelectedIntervention(null);
-          } else if (!selectedIntervention || !newInterventions.find(i => i.id === selectedIntervention.id)) {
-            setSelectedIntervention(newInterventions[0]);
+
+          // If there's a currently selected intervention, try to keep it selected with updated data
+          if (selectedIntervention) {
+            const updatedSelectedIntervention = newInterventions.find(
+              i => i.uid === selectedIntervention.uid || i.id === selectedIntervention.id
+            );
+            if (updatedSelectedIntervention) {
+              setSelectedIntervention(updatedSelectedIntervention);
+            } else if (newInterventions.length === 0) {
+              setSelectedIntervention(null);
+            }
+          } else {
+            // Only auto-select first intervention if there's no current selection
+            if (newInterventions.length > 0) {
+              setSelectedIntervention(newInterventions[0]);
+            }
           }
         }
 
@@ -1803,12 +1971,36 @@ const TreeMapperUI = () => {
 
   const handleInterventionUpdate = async (uid, updates) => {
     console.log('Updating intervention:', uid, updates);
-    // Implement intervention update logic
-    // After update, refresh the current page
-    fetchInterventionData(pagination.page);
-    toast.success('Intervention updated successfully');
-        setSelectedIntervention(null);
 
+    try {
+      // Update the selected intervention immediately with optimistic update
+      if (selectedIntervention && selectedIntervention.uid === uid) {
+        setSelectedIntervention(prev => ({
+          ...prev,
+          ...updates
+        }));
+      }
+
+      // Update the intervention in the list
+      setInterventions(prev => prev.map(intervention =>
+        intervention.uid === uid
+          ? { ...intervention, ...updates }
+          : intervention
+      ));
+
+      // Refresh the intervention list from server
+      await fetchInterventionData(pagination.page);
+
+      // Don't show toast here, it's already shown in handleFileUpload
+      if (!updates.originalGeometry) {
+        toast.success('Intervention updated successfully');
+      }
+    } catch (error) {
+      console.error('Error updating intervention:', error);
+      if (!updates.originalGeometry) {
+        toast.error('Failed to update intervention');
+      }
+    }
   };
 
   const handleInterventionDelete = async (uid) => {

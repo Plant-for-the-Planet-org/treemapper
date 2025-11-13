@@ -511,7 +511,7 @@ const SpeciesManagementDashboard = () => {
 
   const handleDelete = async () => {
     setIsRemoving(true);
-
+    console.log('Deleting species with UID:', selectedSpecies);
     try {
       if (selectedSpecies.isUnknown) {
         // For unknown species, you might want to call a different API
@@ -519,8 +519,9 @@ const SpeciesManagementDashboard = () => {
         setUnknownSpecies(prev => prev.filter(s => s.uid !== selectedSpecies.uid));
         toast.success('Unknown species removed');
       } else {
+        console.log('Removing scientific species with projectSpeciesUid:', selectedSpecies.projectSpeciesUid);
         // For project species
-        const response = await removePrjSpecies(accessToken || '', selectedProject?.uid, selectedSpecies.uid);
+        const response = await removePrjSpecies(accessToken || '', selectedProject?.uid, selectedSpecies.projectSpeciesUid);
         if (response.statusCode === 200) {
           setScientificSpecies(prev => prev.filter(s => s.uid !== selectedSpecies.uid));
           toast.success('Species removed successfully');

@@ -93,8 +93,14 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
           <div className="mt-4">
             <GeoJSONUpload
               onGeoJSONChange={(geoJson) => {
-                if (geoJson && editedSite) {
-                  setEditedSite({ ...editedSite, geometry: geoJson });
+                console.log('GeoJSON received:', geoJson);
+                if (geoJson) {
+                  setEditedSite((prevEditedSite) => {
+                    console.log('Previous editedSite:', prevEditedSite);
+                    const updatedSite = { ...prevEditedSite, geometry: geoJson };
+                    console.log('Setting editedSite to:', updatedSite);
+                    return updatedSite;
+                  });
                 }
               }}
               allowedGeometryTypes="polygon"

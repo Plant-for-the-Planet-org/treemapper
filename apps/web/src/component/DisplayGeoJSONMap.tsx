@@ -20,7 +20,10 @@ const MapComponent = ({
   const mapRef = useRef();
 
   useEffect(() => {
-    if (!geoJsonData || !mapRef.current) return;
+   handleFly()
+  }, [geoJsonData]);
+  const handleFly=()=>{
+     if (!geoJsonData || !mapRef.current) return;
     console.log('GeoJSON data received:', geoJsonData);
     try {
       // Get bounds and center using Turf.js
@@ -51,7 +54,7 @@ const MapComponent = ({
     } catch (error) {
       console.error('Error calculating bounds with Turf:', error);
     }
-  }, [geoJsonData]);
+  }
 
   // Layer styles
   const polygonLayer = {
@@ -100,6 +103,7 @@ const MapComponent = ({
         attributionControl={false}
         onError={handleMapError}
         reuseMaps
+        onLoad={handleFly}
       >
         {geoJsonData && (
           <Source
