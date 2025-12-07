@@ -2,6 +2,7 @@ import i18next from 'src/locales/index'
 import React from 'react'
 import {
   FlatList,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -39,7 +40,6 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
-  console.log("pooppoop",allProjects)
   const v3Approved = useSelector(
     (state: RootState) => state.userState.v3Approved
   )
@@ -76,12 +76,16 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
             <TouchableProjectItem
               item={item}
               v3Approved={v3Approved}
-              onProjectPress={() => onProjectPress(item.id)}
+              onProjectPress={() => {
+                if (!v3Approved && onProjectPress) {
+                  onProjectPress(item.id)
+                }
+              }}
               selectedProjectId={selectedProjectId}
             />
           )
         }
-        return <ProjectItem item={item} v3Approved={v3Approved}/>
+        return <ProjectItem item={item} v3Approved={v3Approved} />
       }}
       keyExtractor={(item: any) => item.id}
       style={styles.container}
@@ -102,9 +106,6 @@ const ProjectItem = ({
   let country: any = handleFilter(item.country)
   if (country) {
     country = country[0].countryName
-  }
-  if (v3Approved &&item.purpose !== 'trees' && item.purpose !== 'conservation') {
-    return null
   }
   return (
     <View
@@ -132,9 +133,9 @@ const ProjectItem = ({
         ]}>
         {item.name}
       </Text>
-      <View style={[styles.chipWrapper, { borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
+      {!v3Approved && <View style={[styles.chipWrapper, { borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
         <Text style={[styles.chipLabel, { color: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>{item.purpose.toUpperCase()}</Text>
-      </View>
+      </View>}
     </View>
   )
 }
@@ -151,9 +152,14 @@ const TouchableProjectItem = ({
   v3Approved: boolean
 }) => {
   return (
-    <TouchableOpacity onPress={onProjectPress}>
-      <ProjectItem item={item} selectedProjectId={selectedProjectId} />
-    </TouchableOpacity>
+    <Pressable onPress={() => {
+      if (!v3Approved && onProjectPress) {
+        onProjectPress(item.id)
+
+      }
+    }}>
+      <ProjectItem item={item} selectedProjectId={selectedProjectId} v3Approved={v3Approved} />
+    </Pressable >
   )
 }
 
@@ -164,7 +170,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: Colors.LIGHT_BORDER_COLOR,
     marginTop: 20,
-    overflow:'hidden'
+    overflow: 'hidden'
   },
   image: {
     borderRadius: 10,
