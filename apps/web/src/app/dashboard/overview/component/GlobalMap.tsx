@@ -832,6 +832,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     type: intervention.type,
                     status: intervention.status,
                     color: getInterventionColor(intervention.type, intervention.status),
+                    isPolygon: true,
                 },
                 geometry: intervention.location,
             }));
@@ -843,21 +844,47 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         };
     }, [interventions]);
 
+    // Create GeoJSON for point interventions
+    const pointGeoJSON = useMemo(() => {
+        const features = interventions
+            .filter(i => i.location.type === 'Point')
+            .map(intervention => ({
+                type: 'Feature' as const,
+                id: intervention.id,
+                properties: {
+                    id: intervention.id,
+                    hid: intervention.hid,
+                    type: intervention.type,
+                    status: intervention.status,
+                    color: getInterventionColor(intervention.type, intervention.status),
+                    isPolygon: false,
+                },
+                geometry: intervention.location,
+            }));
+
+        console.log('Point GeoJSON features:', features.length);
+        return {
+            type: 'FeatureCollection' as const,
+            features,
+        };
+    }, [interventions]);
+
     // Debug information
     useEffect(() => {
         if (interventions.length > 0) {
             console.log('=== INTERVENTIONS DEBUG ===');
             console.log('Total interventions:', interventions.length);
-            console.log('Bounds:', bounds);
+            console.log('Point features:', pointGeoJSON.features.length);
             console.log('Polygon features:', polygonGeoJSON.features.length);
+            console.log('Bounds:', bounds);
             console.log('All intervention locations:', interventions.map(i => ({
                 hid: i.hid,
-                type: i.locationGeometryType,
-                coords: getMarkerPosition(i)
+                type: i.locationGeometryType || i.location.type,
+                coords: i.location.type === 'Point' ? i.location.coordinates : 'polygon'
             })));
             console.log('=========================');
         }
-    }, [interventions, bounds, polygonGeoJSON]);
+    }, [interventions, bounds, pointGeoJSON, polygonGeoJSON]);
 
     if (isLoading) {
         return (
@@ -923,8 +950,38 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     zoom: 5, // Changed from 2 to 5 for better initial visibility
                 }}
                 style={{ width: '100%', height: '100%' }}
-                interactiveLayerIds={['interventions-polygons-fill', 'interventions-polygons-outline']}
+                interactiveLayerIds={[
+                    'interventions-polygons-fill',
+                    'interventions-polygons-outline',
+                    'interventions-points-circle'
+                ]}
                 onClick={handlePolygonClick}
+                onMouseMove={(event) => {
+                    const feature = event.features?.[0];
+                    const hoveredId = feature && feature.properties?.id ? feature.properties.id : null;
+
+                    // Only update state if the hovered ID actually changed
+                    setMapState(prev => {
+                        if (prev.hoveredInterventionId !== hoveredId) {
+                            return {
+                                ...prev,
+                                hoveredInterventionId: hoveredId
+                            };
+                        }
+                        return prev;
+                    });
+                }}
+                onMouseLeave={() => {
+                    setMapState(prev => {
+                        if (prev.hoveredInterventionId !== null) {
+                            return {
+                                ...prev,
+                                hoveredInterventionId: null
+                            };
+                        }
+                        return prev;
+                    });
+                }}
                 onError={(error) => {
                     console.error('Map error:', error);
                     setError({
@@ -942,7 +999,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                         type="geojson"
                         data={polygonGeoJSON}
                     >
-                        {/* Polygon fill layer - INCREASED OPACITY */}
+                        {/* Polygon fill layer */}
                         <Layer
                             id="interventions-polygons-fill"
                             type="fill"
@@ -951,12 +1008,12 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                                 'fill-opacity': [
                                     'case',
                                     ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
-                                    0.6, // Increased from 0.5
-                                    0.4  // Increased from 0.3
+                                    0.6,
+                                    0.4
                                 ]
                             }}
                         />
-                        {/* Polygon outline layer - INCREASED WIDTH */}
+                        {/* Polygon outline layer */}
                         <Layer
                             id="interventions-polygons-outline"
                             type="line"
@@ -965,33 +1022,66 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                                 'line-width': [
                                     'case',
                                     ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
-                                    4, // Increased from 3
-                                    3  // Increased from 2
+                                    4,
+                                    3
                                 ],
-                                'line-opacity': 0.9 // Increased from 0.8
+                                'line-opacity': 0.9
                             }}
                         />
                     </Source>
                 )}
 
-                {/* Intervention Markers - for all interventions */}
-                {interventions.map((intervention) => (
-                    <InterventionMarker
-                        key={intervention.id}
-                        intervention={intervention}
-                        isSelected={mapState.selectedInterventionId === intervention.id}
-                        isHovered={mapState.hoveredInterventionId === intervention.id}
-                        onClick={() => handleInterventionClick(intervention)}
-                        onMouseEnter={() => setMapState(prev => ({
-                            ...prev,
-                            hoveredInterventionId: intervention.id
-                        }))}
-                        onMouseLeave={() => setMapState(prev => ({
-                            ...prev,
-                            hoveredInterventionId: null
-                        }))}
-                    />
-                ))}
+                {/* Point Interventions as Circle Layers */}
+                {pointGeoJSON.features.length > 0 && (
+                    <Source
+                        id="interventions-points"
+                        type="geojson"
+                        data={pointGeoJSON}
+                    >
+                        {/* Point circle layer */}
+                        <Layer
+                            id="interventions-points-circle"
+                            type="circle"
+                            paint={{
+                                'circle-color': ['get', 'color'],
+                                'circle-radius': [
+                                    'case',
+                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    14, // Selected size
+                                    ['==', ['get', 'id'], mapState.hoveredInterventionId || -1],
+                                    12, // Hovered size
+                                    10  // Default size
+                                ],
+                                'circle-opacity': 1,
+                                'circle-stroke-width': [
+                                    'case',
+                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    4, // Selected stroke
+                                    3  // Default stroke
+                                ],
+                                'circle-stroke-color': '#ffffff',
+                                'circle-stroke-opacity': 1
+                            }}
+                        />
+                        {/* Selection ring for selected points */}
+                        <Layer
+                            id="interventions-points-selected-ring"
+                            type="circle"
+                            paint={{
+                                'circle-radius': 18,
+                                'circle-color': 'transparent',
+                                'circle-stroke-width': 3,
+                                'circle-stroke-color': '#3b82f6',
+                                'circle-stroke-opacity': [
+                                    'case',
+                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    1,
+                                    0
+                                ]
+                            }}
+                        />
+                    </Source>
+                )}
 
                 {/* Trees Markers */}
                 {trees.map((tree) => (
@@ -1072,6 +1162,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             {process.env.NODE_ENV === 'development' && (
                 <div className="absolute bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded max-w-xs">
                     <div>Interventions: {interventions.length}</div>
+                    <div>Points: {pointGeoJSON.features.length}</div>
                     <div>Polygons: {polygonGeoJSON.features.length}</div>
                     <div>Bounds: {bounds ? `[${bounds.center[0].toFixed(2)}, ${bounds.center[1].toFixed(2)}]` : 'None'}</div>
                     <div>Map Ready: {mapRef ? 'Yes' : 'No'}</div>
