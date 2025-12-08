@@ -941,14 +941,14 @@ const TreeCard = ({ tree, onUpdate }) => {
                 alt={`Tree ${tree.tag || tree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
-              <Button
+              {/* <Button
                 size="sm"
                 variant="ghost"
                 className="absolute top-2 right-2 bg-white/90 opacity-0 group-hover:opacity-100 transition-opacity"
                 onClick={() => setShowImageDialog(true)}
               >
                 <Camera className="h-3 w-3" />
-              </Button>
+              </Button> */}
             </div>
           )}
 
@@ -977,14 +977,14 @@ const TreeCard = ({ tree, onUpdate }) => {
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <EditableField
+                <NonEditableField
                   label="Height (m)"
                   value={tree.height?.toString() || ''}
                   type="number"
                   placeholder="0.0"
                   onSave={(value) => handleUpdateField('height', parseFloat(value))}
                 />
-                <EditableField
+                <NonEditableField
                   label="Width (m)"
                   value={tree.width?.toString() || ''}
                   type="number"
@@ -1366,14 +1366,14 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
               <Badge variant={intervention.captureStatus === 'complete' ? 'success' : 'warning'}>
                 {intervention.captureStatus}
               </Badge>
-              <Button
+              {selectedProjectDetails.userRole==='owner' && <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setShowDeleteDialog(true)}
                 className="text-red-600 hover:text-red-700 hover:bg-red-50"
               >
                 <Trash2 className="h-4 w-4" />
-              </Button>
+              </Button>}
             </div>
           </div>
         </CardHeader>
