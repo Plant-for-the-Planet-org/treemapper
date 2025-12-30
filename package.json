@@ -60,7 +60,7 @@
     "expo-splash-screen": "0.27.5",
     "expo-status-bar": "~2.0.1",
     "expo-system-ui": "~4.0.9",
-    "expo-web-browser": "~14.0.2",
+    "expo-web-browser": "~14.2.0",
     "i18next": "^23.10.1",
     "jszip": "^3.10.1",
     "moment": "^2.30.1",
