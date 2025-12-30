@@ -39,7 +39,7 @@
     "d3-shape": "^3.2.0",
     "expo": "^52.0.44",
     "expo-application": "~6.0.2",
-    "expo-build-properties": "~0.13.2",
+    "expo-build-properties": "~0.14.8",
     "expo-camera": "~16.0.18",
     "expo-clipboard": "~7.0.1",
     "expo-constants": "~17.0.8",
