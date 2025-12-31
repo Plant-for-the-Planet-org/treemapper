@@ -1,8 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet } from 'react-native';
 import SelectableItem from './SelectableItem';
-import { Colors } from 'react-native/Libraries/NewAppScreen';
-import { Typography } from 'src/utils/constants';
+import { Colors, Typography } from 'src/utils/constants';
 import { scaleFont } from 'src/utils/constants/mixins';
 
 interface Props {

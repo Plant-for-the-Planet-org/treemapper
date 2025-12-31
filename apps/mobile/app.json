@@ -63,7 +63,8 @@
       "expo-secure-store",
       "expo-build-properties",
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      "@react-native-community/datetimepicker"
     ],
     "ios": {
       "supportsTablet": true,
