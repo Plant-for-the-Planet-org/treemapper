@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "home": "Startseite",
+    "docs": "Dokumentation",
+    "search": "Dokumentation durchsuchen...",
+    "theme": {
+      "light": "Hell",
+      "dark": "Dunkel",
+      "system": "System"
+    },
+    "language": "Sprache"
+  },
+  "home": {
+    "title": "TreeMapper Dokumentation",
+    "subtitle": "Umfassende Anleitung zur Verwendung der TreeMapper-Mobil- und Webanwendungen",
+    "getStarted": "Erste Schritte",
+    "viewDocs": "Dokumentation anzeigen",
+    "features": {
+      "title": "Was Sie lernen werden",
+      "mobile": {
+        "title": "Mobile App",
+        "description": "Erfahren Sie, wie Sie die TreeMapper-Mobile-App für Felddatenerfassung, Interventionen und Offline-Kartierung verwenden"
+      },
+      "web": {
+        "title": "Web-Dashboard",
+        "description": "Beherrschen Sie das Web-Dashboard für Analysen, Teamverwaltung und Datenvisualisierung"
+      },
+      "concepts": {
+        "title": "Schlüsselkonzepte",
+        "description": "Verstehen Sie Kernkonzepte wie Interventionen, Plots, Artenverwaltung und Synchronisierungs-Workflows"
+      }
+    }
+  },
+  "docs": {
+    "onThisPage": "Auf dieser Seite",
+    "previousPage": "Zurück",
+    "nextPage": "Weiter",
+    "feedback": {
+      "title": "War diese Seite hilfreich?",
+      "yes": "Ja",
+      "no": "Nein",
+      "thanks": "Vielen Dank für Ihr Feedback!"
+    },
+    "lastUpdated": "Zuletzt aktualisiert"
+  },
+  "search": {
+    "placeholder": "Suchen...",
+    "noResults": "Keine Ergebnisse gefunden",
+    "results": "{count} Ergebnisse"
+  }
+}

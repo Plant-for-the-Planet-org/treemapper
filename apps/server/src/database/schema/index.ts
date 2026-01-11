@@ -176,6 +176,7 @@ export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user'
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
 export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
+export const interventionApprovalStatusEnum = pgEnum('intervention_approval_status', ['new_request', 'in_review', 'approved', 'rejected', 'needs_revision']);
 export const migrationStatusEnum = pgEnum('migration_status', [
   'in_progress', 'completed', 'failed', 'started'
 ]);
@@ -498,6 +499,7 @@ export const project = pgTable('project', {
   isPublic: boolean('is_public').default(true).notNull(),
   isPrimary: boolean('is_primary').default(false).notNull(),
   isPersonal: boolean('is_personal').default(false).notNull(),
+  requiresInterventionApproval: boolean('requires_intervention_approval').default(false).notNull(),
   intensity: integer('intensity'),
   revisionPeriodicity: text('revision_periodicity'),
   migratedProject: boolean('migrated_project').default(false),
@@ -850,6 +852,28 @@ export const speciesRequest = pgTable('species_request', {
     .where(sql`status IN ('pending', 'approved')`),
 }));
 
+export interface ApprovalComment {
+  uid: string;
+  userId: number;
+  userName: string;
+  userRole: 'owner' | 'admin' | 'contributor' | 'observer';
+  comment: string;
+  isInternal: boolean;
+  createdAt: string;
+}
+
+export interface ApprovalHistoryEntry {
+  uid: string;
+  userId: number;
+  userName: string;
+  action: 'submitted' | 'moved_to_review' | 'approved' | 'rejected' | 'requested_revision' | 'resubmitted' | 'data_edited';
+  fromStatus?: string;
+  toStatus: string;
+  comment?: string;
+  changedFields?: string[];
+  timestamp: string;
+}
+
 export const intervention = pgTable('intervention', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -859,6 +883,13 @@ export const intervention = pgTable('intervention', {
   siteId: integer('site_id').references(() => site.id, { onDelete: 'set null' }),
   type: interventionTypeEnum('type').notNull(),
   status: interventionStatusEnum('status').default('planned'),
+  approvalStatus: interventionApprovalStatusEnum('approval_status'),
+  approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+  submittedForReviewAt: timestamp('submitted_for_review_at', { withTimezone: true }),
+  approvalComments: jsonb('approval_comments').$type<ApprovalComment[]>().default([]),
+  approvalHistory: jsonb('approval_history').$type<ApprovalHistoryEntry[]>().default([]),
   idempotencyKey: text('idempotency_key').unique().notNull(),
   registrationDate: timestamp('registration_date', { withTimezone: true }).notNull(),
   interventionStartDate: timestamp('intervention_start_date', { withTimezone: true }).notNull(),
@@ -893,6 +924,9 @@ export const intervention = pgTable('intervention', {
   userInterventionsIdx: index('intervention_user_idx')
     .on(table.userId, table.interventionEndDate)
     .where(sql`deleted_at IS NULL`),
+  projectApprovalStatusIdx: index('intervention_project_approval_status_idx')
+    .on(table.projectId, table.approvalStatus, table.submittedForReviewAt)
+    .where(sql`deleted_at IS NULL AND approval_status IS NOT NULL`),
   validDateRange: check('valid_date_range', sql`intervention_start_date <= intervention_end_date`),
   areaPositive: check('area_positive', sql`area IS NULL OR area >= 0`),
   treeCountsNonNegative: check('tree_counts_non_negative',
@@ -1068,6 +1102,7 @@ export const userRelations = relations(user, ({ many }) => ({
 
   verifiedSpecies: many(scientificSpecies, { relationName: 'verifiedBy' }),
   uploadedImages: many(image, { relationName: 'uploadedBy' }),
+  approvedInterventions: many(intervention, { relationName: 'approvedBy' }),
 }));
 
 export const scientificSpeciesRelations = relations(scientificSpecies, ({ one, many }) => ({
@@ -1108,7 +1143,11 @@ export const interventionRelations = relations(intervention, ({ one, many }) => 
     references: [user.id],
     relationName: 'userInterventions',
   }),
-
+  approvedBy: one(user, {
+    fields: [intervention.approvedById],
+    references: [user.id],
+    relationName: 'approvedBy',
+  }),
 
   trees: many(tree),
   species: many(interventionSpecies),

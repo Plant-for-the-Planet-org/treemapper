@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xargs:*)",
+      "Bash(mkdir:*)",
+      "Bash(npx create-next-app:*)",
+      "Bash(yarn install)",
+      "Bash(yarn build)",
+      "Bash(yarn dev)",
+      "Bash(lsof:*)",
+      "Bash(cat:*)"
+    ]
+  }
+}

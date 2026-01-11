@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "home": "Home",
+    "docs": "Documentation",
+    "search": "Search documentation...",
+    "theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "language": "Language"
+  },
+  "home": {
+    "title": "TreeMapper Documentation",
+    "subtitle": "Comprehensive guide for using TreeMapper mobile and web applications",
+    "getStarted": "Get Started",
+    "viewDocs": "View Documentation",
+    "features": {
+      "title": "What You'll Learn",
+      "mobile": {
+        "title": "Mobile App",
+        "description": "Learn how to use the TreeMapper mobile app for field data collection, interventions, and offline mapping"
+      },
+      "web": {
+        "title": "Web Dashboard",
+        "description": "Master the web dashboard for analytics, team management, and data visualization"
+      },
+      "concepts": {
+        "title": "Key Concepts",
+        "description": "Understand core concepts like interventions, plots, species management, and sync workflows"
+      }
+    }
+  },
+  "docs": {
+    "onThisPage": "On This Page",
+    "previousPage": "Previous",
+    "nextPage": "Next",
+    "feedback": {
+      "title": "Was this page helpful?",
+      "yes": "Yes",
+      "no": "No",
+      "thanks": "Thank you for your feedback!"
+    },
+    "lastUpdated": "Last updated"
+  },
+  "search": {
+    "placeholder": "Search...",
+    "noResults": "No results found",
+    "results": "{count} results"
+  }
+}

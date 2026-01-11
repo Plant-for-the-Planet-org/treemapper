@@ -494,3 +494,33 @@ export const revokeiteAccess = async (token: string, pid, siteId, memberId) => {
   const result = await fetchPostCall(uri, { memberUid: memberId }, token);
   return result;
 };
+
+// Approval Board APIs
+export const getApprovalBoard = async (token: string, projectId: string, filters?: any) => {
+  const queryParams = new URLSearchParams({
+    projectId: projectId.toString(),
+    ...(filters?.status && { status: filters.status }),
+    ...(filters?.userId && { userId: filters.userId.toString() }),
+  });
+  const uri = `${getUrlApi.getApprovalBoard}?${queryParams.toString()}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const checkProjectRequiresApproval = async (token: string, projectId: string) => {
+  const uri = `${getUrlApi.getProjectRequiresApproval}/${projectId}/requires-approval`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const moveInterventionStatus = async (token: string, params: any) => {
+  const uri = `${postUrlApi.moveInterventionStatus}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+export const addApprovalComment = async (token: string, params: any) => {
+  const uri = `${postUrlApi.addApprovalComment}`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};

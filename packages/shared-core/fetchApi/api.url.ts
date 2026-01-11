@@ -39,6 +39,8 @@ export const postUrlApi = {
   onboarding: `${baseUrl}/users/onboarding`,
   grantSiteAccess: `${baseUrl}/projects`,
   revokeSiteAccess: `${baseUrl}/projects`,
+  moveInterventionStatus: `${baseUrl}/interventions/approval/move-status`,
+  addApprovalComment: `${baseUrl}/interventions/approval/comment`,
 } as const;
 
 
@@ -69,6 +71,8 @@ export const getUrlApi = {
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
+  getApprovalBoard: `${baseUrl}/interventions/approval/board`,
+  getProjectRequiresApproval: `${baseUrl}/interventions/approval/projects`,
 
 } as const;
 

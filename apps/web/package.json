@@ -23,6 +23,7 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "crypto": "^1.0.1",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.7.4",
     "lucide-react": "^0.525.0",

@@ -1,0 +1,51 @@
+{
+  "nav": {
+    "home": "Inicio",
+    "docs": "Documentación",
+    "search": "Buscar documentación...",
+    "theme": {
+      "light": "Claro",
+      "dark": "Oscuro",
+      "system": "Sistema"
+    },
+    "language": "Idioma"
+  },
+  "home": {
+    "title": "Documentación de TreeMapper",
+    "subtitle": "Guía completa para usar las aplicaciones móviles y web de TreeMapper",
+    "getStarted": "Comenzar",
+    "viewDocs": "Ver Documentación",
+    "features": {
+      "title": "Lo que aprenderás",
+      "mobile": {
+        "title": "Aplicación Móvil",
+        "description": "Aprenda a usar la aplicación móvil TreeMapper para la recopilación de datos de campo, intervenciones y mapeo sin conexión"
+      },
+      "web": {
+        "title": "Panel Web",
+        "description": "Domine el panel web para análisis, gestión de equipos y visualización de datos"
+      },
+      "concepts": {
+        "title": "Conceptos Clave",
+        "description": "Comprenda conceptos básicos como intervenciones, parcelas, gestión de especies y flujos de sincronización"
+      }
+    }
+  },
+  "docs": {
+    "onThisPage": "En esta página",
+    "previousPage": "Anterior",
+    "nextPage": "Siguiente",
+    "feedback": {
+      "title": "¿Fue útil esta página?",
+      "yes": "Sí",
+      "no": "No",
+      "thanks": "¡Gracias por tus comentarios!"
+    },
+    "lastUpdated": "Última actualización"
+  },
+  "search": {
+    "placeholder": "Buscar...",
+    "noResults": "No se encontraron resultados",
+    "results": "{count} resultados"
+  }
+}

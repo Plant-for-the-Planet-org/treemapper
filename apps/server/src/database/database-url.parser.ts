@@ -9,10 +9,7 @@ export interface DatabaseConfig {
   ssl?: any;
 }
 
-/**
- * Parse DATABASE_URL or fall back to individual environment variables
- * Supports PostgreSQL URLs like: postgresql://user:password@host:port/database
- */
+
 export function parseDatabaseConfig(): DatabaseConfig {
   const databaseUrl = process.env.DATABASE_URL;
 
@@ -26,7 +23,10 @@ export function parseDatabaseConfig(): DatabaseConfig {
         username: url.username,
         password: url.password,
         database: url.pathname.slice(1), // Remove leading slash
-        ssl: process.env.DB_SSL ? true : process.env.DB_SSL_BYPASS ? { rejectUnauthorized: false } : false
+        // Default to SSL enabled with rejectUnauthorized: false for cloud databases
+        ssl: process.env.DB_SSL === 'false' 
+          ? false 
+          : { rejectUnauthorized: false }
       };
     } catch (error) {
       console.warn('Failed to parse DATABASE_URL, falling back to individual env vars:', error.message);
@@ -40,6 +40,6 @@ export function parseDatabaseConfig(): DatabaseConfig {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'postgres',
-    ssl: process.env.DB_SSL === 'true'
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
   };
 }

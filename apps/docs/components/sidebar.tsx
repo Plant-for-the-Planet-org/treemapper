@@ -1,0 +1,132 @@
+'use client';
+
+import * as React from 'react';
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
+import { ChevronDown, ChevronRight } from 'lucide-react';
+import { cn } from '@/lib/utils';
+import { docsConfig, type DocSection, type DocItem } from '@/lib/docs';
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const [openSections, setOpenSections] = React.useState<string[]>(() => {
+    const activeSection = docsConfig.find((section) =>
+      section.items.some((item) => pathname.includes(item.href))
+    );
+    return activeSection ? [activeSection.id] : ['getting-started'];
+  });
+
+  const toggleSection = (sectionId: string) => {
+    setOpenSections((prev) =>
+      prev.includes(sectionId)
+        ? prev.filter((id) => id !== sectionId)
+        : [...prev, sectionId]
+    );
+  };
+
+  return (
+    <aside className="fixed top-16 left-0 z-30 hidden h-[calc(100vh-4rem)] w-64 shrink-0 overflow-y-auto border-r bg-background md:sticky md:block">
+      <nav className="p-4 space-y-2">
+        {docsConfig.map((section) => (
+          <div key={section.id} className="space-y-1">
+            <button
+              onClick={() => toggleSection(section.id)}
+              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
+            >
+              <span>{section.title}</span>
+              {openSections.includes(section.id) ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {openSections.includes(section.id) && (
+              <div className="ml-2 space-y-0.5">
+                {section.items.map((item) => (
+                  <SidebarItem key={item.id} item={item} pathname={pathname} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+function SidebarItem({ item, pathname }: { item: DocItem; pathname: string }) {
+  const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
+
+  return (
+    <Link
+      href={item.href}
+      className={cn(
+        'block rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-accent',
+        isActive
+          ? 'bg-accent font-medium text-accent-foreground'
+          : 'text-muted-foreground hover:text-foreground'
+      )}
+    >
+      {item.title}
+    </Link>
+  );
+}
+
+export function MobileSidebar() {
+  const [isOpen, setIsOpen] = React.useState(false);
+
+  return (
+    <>
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="md:hidden fixed bottom-4 right-4 z-50 rounded-full bg-primary p-3 text-primary-foreground shadow-lg"
+      >
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="24"
+          height="24"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        >
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+      {isOpen && (
+        <>
+          <div
+            className="fixed inset-0 z-40 bg-black/50 md:hidden"
+            onClick={() => setIsOpen(false)}
+          />
+          <div className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-background md:hidden">
+            <div className="flex items-center justify-between p-4 border-b">
+              <span className="font-semibold">Documentation</span>
+              <button onClick={() => setIsOpen(false)}>
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="24"
+                  height="24"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+              </button>
+            </div>
+            <Sidebar />
+          </div>
+        </>
+      )}
+    </>
+  );
+}
