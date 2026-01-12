@@ -1,12 +1,11 @@
 import { useState } from 'react'
-import * as FileSystem from 'expo-file-system'
+import { File, Directory, Paths } from 'expo-file-system'
 import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import JSZip from 'jszip';
 import useLogManagement from './realm/useLogManagement'
 import { getUrlApi } from 'src/api/api.url'
 import Bugsnag from '@bugsnag/expo'
 import { useToast } from 'react-native-toast-notifications'
-import RNFS from 'react-native-fs';
 import { updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
 import { useDispatch } from 'react-redux'
 import { updateSpeciesDownloading } from 'src/store/slice/tempStateSlice'
@@ -18,8 +17,11 @@ const useDownloadFile = () => {
   const toast = useToast()
   const dispatch = useDispatch()
   const fileUrl = getUrlApi.getAllSpeciesAchieve
-  const zipFilePath = `${FileSystem.documentDirectory}archive.zip`
-  const targetFilePath = `${FileSystem.documentDirectory}unzipped`
+
+  // Create directories for cache
+  const cacheDir = new Directory(Paths.cache, 'species')
+  const targetDir = new Directory(Paths.document, 'unzipped')
+
   const downloadFile = async () => {
     try {
       setCurrentState(SPECIES_SYNC_STATE.DOWNLOADING)
@@ -30,12 +32,17 @@ const useDownloadFile = () => {
         logLevel: 'info',
         statusCode: '000',
       })
-      const downloadResumable = FileSystem.createDownloadResumable(
-        fileUrl,
-        zipFilePath,
-        {},
-      )
-      await downloadResumable.downloadAsync()
+
+      // Ensure cache directory exists
+      if (!cacheDir.exists) {
+        await cacheDir.create()
+      }
+
+      // Download file using new API
+      const downloadedFile = await File.downloadFileAsync(fileUrl, cacheDir, {
+        idempotent: true // Overwrite if exists
+      })
+
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Species data downloaded successfully",
@@ -43,7 +50,7 @@ const useDownloadFile = () => {
         statusCode: '000',
       })
       setCurrentState(SPECIES_SYNC_STATE.UNZIPPING_FILE)
-      await unzipFile(zipFilePath, targetFilePath)
+      await unzipFile(downloadedFile, targetDir)
     } catch (error) {
       dispatch(updateSpeciesDownloading(false))
       Bugsnag.notify(error)
@@ -59,7 +66,7 @@ const useDownloadFile = () => {
     }
   }
 
-  const unzipFile = async (zipFilePath, targetFilePath) => {
+  const unzipFile = async (zipFile: File, targetDirectory: Directory) => {
     try {
       addNewLog({
         logType: 'DATA_SYNC',
@@ -67,7 +74,7 @@ const useDownloadFile = () => {
         logLevel: 'info',
         statusCode: '000',
       })
-      await unzipActualFile(zipFilePath, targetFilePath)
+      await unzipActualFile(zipFile, targetDirectory)
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Species data unzipped successfully",
@@ -82,7 +89,7 @@ const useDownloadFile = () => {
       })
       await updateLocalSpeciesSync();
       dispatch(updateSpeciesDownloading(false))
-      dispatch(updateSpeciesDownloaded(targetFilePath))
+      dispatch(updateSpeciesDownloaded(targetDirectory.uri))
       setCurrentState(SPECIES_SYNC_STATE.READING_FILE)
     } catch (error) {
       addNewLog({
@@ -96,41 +103,48 @@ const useDownloadFile = () => {
     }
   }
 
-  const unzipActualFile = async (zipFilePath, targetPath) => {
+  const unzipActualFile = async (zipFile: File, targetDirectory: Directory) => {
     try {
-      // Read the zip file
-      const zipData = await FileSystem.readAsStringAsync(zipFilePath, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
-      
+      // Ensure target directory exists
+      if (!targetDirectory.exists) {
+        targetDirectory.create()
+      }
+
+      // Read the zip file as base64
+      const zipData = await zipFile.base64();
+
       // Load the zip
       const zip = await JSZip.loadAsync(zipData, { base64: true });
-      
+
       // Extract all files
-      const promises = [];
-      
+      const promises: Promise<void>[] = [];
+
       zip.forEach((relativePath, zipEntry) => {
         if (!zipEntry.dir) {
-          const promise = zipEntry.async('base64').then(async (content) => {
-            const filePath = `${targetPath}/${relativePath}`;
-            const dirPath = filePath.substring(0, filePath.lastIndexOf('/'));
-            
-            // Create directory if it doesn't exist
-            try {
-              await FileSystem.makeDirectoryAsync(dirPath, { intermediates: true });
-            } catch (err) {
-              // Directory might already exist
+          const promise = zipEntry.async('text').then(async (content) => {
+            // Split path to create nested directories
+            const pathParts = relativePath.split('/');
+            const fileName = pathParts.pop() || '';
+
+            // Create nested directory structure
+            let currentDir = targetDirectory;
+            for (const part of pathParts) {
+              if (part) {
+                currentDir = new Directory(currentDir, part);
+                if (!currentDir.exists) {
+                  currentDir.create();
+                }
+              }
             }
-            
+
             // Write the file
-            return FileSystem.writeAsStringAsync(filePath, content, {
-              encoding: FileSystem.EncodingType.Base64,
-            });
+            const targetFile = new File(currentDir, fileName);
+            await targetFile.write(content);
           });
           promises.push(promise);
         }
       });
-      
+
       await Promise.all(promises);
       console.log('Unzip completed successfully');
       return true;
@@ -140,13 +154,10 @@ const useDownloadFile = () => {
     }
   };
 
-  const checkDownloadFolder = async () => {
+  const checkDownloadFolder = () => {
     try {
-      const folderExists = await RNFS.exists(zipFilePath);
-      if (folderExists) {
-        return true
-      }
-      return false
+      // Check if the target unzipped directory exists
+      return targetDir.exists
     } catch (error) {
       return false
     }

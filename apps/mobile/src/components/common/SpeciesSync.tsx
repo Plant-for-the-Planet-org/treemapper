@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import React, { useEffect } from 'react'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
-import * as FileSystem from 'expo-file-system'
+import { File } from 'expo-file-system'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { checkForMigrateSpecies, getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
 import { isWithin90Days } from 'src/utils/helpers/timeHelper'
@@ -54,9 +54,6 @@ const SpeciesSync = () => {
       if (updateAppCount % 2 === 0) {
         checkForAppUpdate()
       }
-      // if (updateAppCount % 3 === 0) {
-      //   handleSpeciesSync()
-      // }
       dispatch(setUpdateAppCount())
     }, 5000);
   }, [])
@@ -193,36 +190,36 @@ const SpeciesSync = () => {
       }
     };
   
-    // const handleRemoveFromFav = async (element) => {
-    //   await removeUserSpeciesToServer(element.id);
-    //   await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
-    // };
+    const handleRemoveFromFav = async (element) => {
+      await removeUserSpeciesToServer(element.id);
+      await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
+    };
   
     const handleEdit = async (element) => {
-      // await updateServerSpeciesDetail({
-      //   "scientificSpecies": element.data.scientificSpecies,
-      //   "aliases": element.data.aliases || element.data.scientificSpecies,
-      //   "description": element.data.description,
-      // }, element.id);
+      await updateServerSpeciesDetail({
+        "scientificSpecies": element.data.scientificSpecies,
+        "aliases": element.data.aliases || element.data.scientificSpecies,
+        "description": element.data.description,
+      }, element.id);
       await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id);
     };
   
-    // for (const element of queeData) {
-    //   switch (element.type) {
-    //     case 'skip':
-    //       await handleSkip(element);
-    //       break;
-    //     case 'addToFav':
-    //       await handleAddToFav(element);
-    //       break;
-    //     case 'removeFromFav':
-    //       await handleRemoveFromFav(element);
-    //       break;
-    //     case 'edit':
-    //       await handleEdit(element);
-    //       break;
-    //   }
-    // }
+    for (const element of queeData) {
+      switch (element.type) {
+        case 'skip':
+          await handleSkip(element);
+          break;
+        case 'addToFav':
+          await handleAddToFav(element);
+          break;
+        case 'removeFromFav':
+          await handleRemoveFromFav(element);
+          break;
+        case 'edit':
+          await handleEdit(element);
+          break;
+      }
+    }
   };
   
 
@@ -236,20 +233,15 @@ const SpeciesSync = () => {
       isSpeciesUpdateRequired()
       return
     }
-
     if (!speciesSync && speciesUpdatedAt !== 0 && speciesLocalURL) {
       readAndWriteSpecies()
       return
     }
-
     if (!speciesLocalURL) {
       isSpeciesUpdateRequired()
       return
     }
-
-
-    handleSpeciesSync()
-
+    // handleSpeciesSync()
   }
 
 
@@ -281,10 +273,12 @@ const SpeciesSync = () => {
   const readAndWriteSpecies = async () => {
     try {
       dispatch(updateSpeciesWriting(true))
-      const speciesContent = await FileSystem.readAsStringAsync(
-        speciesLocalURL + '/scientific_species.json',
-        { encoding: 'utf8' },
-      )
+
+      // Create a File instance from the URI
+      const speciesFile = new File(speciesLocalURL, 'scientific_species.json')
+
+      // Read the file content as text
+      const speciesContent = await speciesFile.text()
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();
@@ -297,6 +291,7 @@ const SpeciesSync = () => {
         statusCode: '000',
       })
     } catch (error) {
+      console.log("Error in reading and writing species: ", error);
       dispatch(updateSpeciesWriting(false))
       addNewLog({
         logType: 'DATA_SYNC',
