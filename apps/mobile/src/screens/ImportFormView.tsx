@@ -1,5 +1,6 @@
-import { ActivityIndicator, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native'
 import React, { useState } from 'react'
+import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors, Typography } from 'src/utils/constants';
 import i18next from 'src/locales/index';
 import FA5Icon from '@expo/vector-icons/FontAwesome5';

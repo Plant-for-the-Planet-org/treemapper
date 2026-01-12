@@ -1,6 +1,8 @@
-import { ActivityIndicator, FlatList, Pressable, SafeAreaView, StyleSheet, Text, View } from 'react-native'
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, Text, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { useRealm } from '@realm/react'
+import { SafeAreaView } from 'react-native-safe-area-context'
+
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { Inventory } from 'src/types/interface/slice.interface'
 import { Typography } from 'src/utils/constants'
