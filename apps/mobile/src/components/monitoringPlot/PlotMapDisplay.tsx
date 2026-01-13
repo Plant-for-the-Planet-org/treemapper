@@ -71,7 +71,7 @@ const PlotMapDisplay = (props: Props) => {
                 logoEnabled={false}
                 attributionEnabled={false}
                 onDidFinishLoadingMap={setupMap}
-                styleURL={JSON.stringify(MapStyle)}>
+                mapStyle={MapStyle}>
                 <MapLibreGL.Camera ref={cameraRef} />
                 <MapLibreGL.UserLocation
                     showsUserHeadingIndicator

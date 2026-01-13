@@ -324,7 +324,7 @@ const PolygonMarkerMap = (props: Props) => {
           setLoading(true)
         }}
         attributionEnabled={false}
-        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
+        mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <MapLibreGL.Camera ref={cameraRef} followUserLocation={trackingState === 'start'} followUserMode={UserTrackingMode.FollowWithCourse} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator

@@ -407,7 +407,7 @@ const TreeRemeasurementView = () => {
                                         uri: imageUri,
                                     }}
                                     style={styles.imageView}
-                                    resizeMode="cover"
+                                    contentFit="cover"
                                 />
                                 <View style={styles.imageControls}>
                                     <TouchableOpacity onPress={takePicture}>
@@ -578,7 +578,6 @@ const styles = StyleSheet.create({
     },
     imageView: {
         borderRadius: 12,
-        resizeMode: 'cover',
         width: '100%',
         height: '100%',
         backgroundColor: Colors.TEXT_COLOR,

@@ -261,7 +261,7 @@ const ProjectSitesView = () => {
             logoEnabled={false}
             attributionEnabled={false}
             onDidFinishLoadingMap={handleGeometryBounds}
-            styleURL={JSON.stringify(MapStyle)}>
+            mapStyle={MapStyle}>
             <MapLibreGL.Camera ref={cameraRef} />
             <MapLibreGL.ShapeSource
               id={'polygon-site-geometry'}

@@ -23,7 +23,7 @@ const SatelliteLayer = {
             "type": "raster",
             "tileSize": 256,
             "tiles": [
-                process.env.EXPO_PUBLIC_OFFLINE_LINK
+                `${process.env.EXPO_PUBLIC_OFFLINE_LINK}`
             ]
         }
     },

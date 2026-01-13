@@ -237,7 +237,7 @@ const CreatePlotMapDetail = (props: Props) => {
         onRegionIsChanging={() => {
           setLoading(true)
         }}
-        styleURL={JSON.stringify(MapStyle)}>
+        mapStyle={MapStyle}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator

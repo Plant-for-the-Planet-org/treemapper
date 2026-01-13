@@ -172,7 +172,7 @@ const SiteCreationMap = (props: Props) => {
                     setLoadingSite(true)
                 }}
                 attributionEnabled={false}
-                styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
+                mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
                 <MapLibreGL.Camera ref={cameraRef} />
                 <MapLibreGL.UserLocation
                     showsUserHeadingIndicator

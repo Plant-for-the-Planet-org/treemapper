@@ -323,8 +323,6 @@ const DisplayMap = () => {
     }
     return null;
   };
-  const mapStyleURL = JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle);
-
   return (
     <MapLibreGL.MapView
       style={styles.map}
@@ -338,7 +336,7 @@ const DisplayMap = () => {
       }}
       ref={mapRef}
       compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
-      styleURL={mapStyleURL}
+      mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
       <MapLibreGL.Camera ref={cameraRef} />
       <MapLibreGL.UserLocation

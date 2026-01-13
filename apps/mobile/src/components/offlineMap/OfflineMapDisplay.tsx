@@ -112,7 +112,7 @@ const OfflineMapDisplay = () => {
             attributionEnabled={false}
             onDidFinishLoadingMap={handleCamera}
             compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
-            styleURL={JSON.stringify(MapStyle)}>
+            mapStyle={MapStyle}>
             <MapLibreGL.Camera ref={cameraRef} />
             <MapLibreGL.UserLocation
               showsUserHeadingIndicator

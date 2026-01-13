@@ -106,7 +106,7 @@ const PreviewMap = (props: Props) => {
           attributionEnabled={false}
           logoEnabled={false}
           onDidFinishLoadingMap={handleCamera}
-          styleURL={JSON.stringify(MapStyle)}>
+          mapStyle={MapStyle}>
           <MapLibreGL.Camera
             ref={cameraRef}
             animationDuration={4000} // Ensure animations take at least 4 seconds

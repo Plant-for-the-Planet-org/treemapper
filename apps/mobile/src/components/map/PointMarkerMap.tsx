@@ -244,7 +244,7 @@ const PointMarkerMap = (props: Props) => {
         onRegionIsChanging={() => {
           setLoading(true)
         }}
-        styleURL={JSON.stringify(mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle)}>
+        mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
         <MapLibreGL.Camera ref={cameraRef} />
         <MapLibreGL.UserLocation
           showsUserHeadingIndicator
