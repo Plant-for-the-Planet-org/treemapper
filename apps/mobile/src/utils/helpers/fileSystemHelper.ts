@@ -1,7 +1,6 @@
-import * as FileSystem from 'expo-file-system';
+import { Paths, File } from 'expo-file-system';
 import { basePath } from './fileManagementHelper';
 import * as ImageManipulator from 'expo-image-manipulator';
-import RNFS from 'react-native-fs';
 import { Platform } from 'react-native';
 
 export const copyImageAndGetData = async (imagePath: string, interventionId: string, isSpecies: boolean): Promise<string> => {
@@ -19,6 +18,9 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     const splittedPath = imagePath.split('/');
     // splits and stores the file name and extension which is present on last index
     let fileName = splittedPath.pop();
+    if (!fileName) {
+      throw new Error('Invalid image path - no filename found');
+    }
     // splits and stores the file parent directory which is present on last index after pop
     const parentDirectory = splittedPath.pop();
     // splits and stores the file extension
@@ -27,14 +29,21 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     fileName = fileName.split('.')[0];
 
     // stores the destination path in which image should be stored
-    const outputPath = isSpecies ? `${FileSystem.documentDirectory}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
+    const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
+    const outputPath = isSpecies ? `${documentDir}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
     // stores the path from which the image should be copied
-    const inputPath = `${FileSystem.cacheDirectory}/${parentDirectory}/${fileName}.${fileExtension}`; //TESTING
+    const cacheDir = Paths.cache.uri.endsWith('/') ? Paths.cache.uri.slice(0, -1) : Paths.cache.uri;
+    const inputPath = `${cacheDir}/${parentDirectory}/${fileName}.${fileExtension}`; //TESTING
     const compFile = await compressImage(inputPath, 0.7)
-    await RNFS.copyFile(compFile, outputPath);
+
+    // Copy file using Expo FileSystem
+    const sourceFile = new File(compFile);
+    const destFile = new File(outputPath);
+    sourceFile.copy(destFile);
+
     return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;
   } catch (error) {
-    throw new Error(error);
+    throw new Error(`Image copy failed: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
@@ -55,14 +64,16 @@ async function compressImage(uri: string, compressValue: number): Promise<string
   }
 }
 
-function replaceId(originalString) {
+function replaceId(originalString: string) {
    // Use a regular expression to match everything up to and including "/Documents"
    const updatedString = originalString.replace(/.*\/Documents/, '');
-   return `${FileSystem.documentDirectory}${updatedString}`;
+   const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
+   return `${documentDir}${updatedString}`;
 }
 
-// Function to update old paths by removing everything before '/TreeMapper' and adding RNFS.DocumentDirectoryPath
-export function updateFilePath(oldPath) {
+// Function to update old paths by removing everything before '/TreeMapper' and adding document directory path
+// This ensures backward compatibility with files created using RNFS
+export function updateFilePath(oldPath: string) {
   // Find the position of '/TreeMapper' in the old path
   const treeMapperIndex = oldPath.indexOf('/TreeMapper');
 
@@ -71,11 +82,13 @@ export function updateFilePath(oldPath) {
     // Extract the part after '/TreeMapper'
     const relativePath = oldPath.substring(treeMapperIndex);
 
-    // Prepend RNFS.DocumentDirectoryPath to construct the new path
-    const newPath = `${RNFS.DocumentDirectoryPath}${relativePath}`;
+    // Prepend document directory path to construct the new path
+    // Paths.document.uri points to the same location as RNFS.DocumentDirectoryPath
+    const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
+    const newPath = `${documentDir}${relativePath}`;
 
     return Platform.OS==='android'?`file://${newPath}`:newPath;
-  } else {  
+  } else {
     if(Platform.OS==='ios'){
       return replaceId(oldPath)
     }
