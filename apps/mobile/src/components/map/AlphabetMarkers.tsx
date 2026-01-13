@@ -18,7 +18,7 @@ const AlphabetMarkers = (props: Props) => {
       return String.fromCharCode(i + 65)
     }
     return props.coordinates.map((d, i) => (
-      <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)}>
+      <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)} anchor={{ x: 0.5, y: 1 }}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={Colors.NEW_PRIMARY} />
@@ -36,19 +36,24 @@ export default AlphabetMarkers
 const styles = StyleSheet.create({
   container: {
     width: 50,
-    height: 100,
+    height: 50,
     backgroundColor: 'transparent',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   mapPinContainer: {
     position: 'absolute',
-    left: '17%',
-    top: '-0.1%',
+    left: 0,
+    top: 0,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   labelText: {
     position: 'absolute',
     top: 6,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    textAlign: 'center',
   },
 })

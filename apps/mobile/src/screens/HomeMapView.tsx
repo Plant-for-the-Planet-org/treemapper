@@ -28,16 +28,6 @@ const HomeMapView = () => {
     (state: RootState) => state.userState.v3Approved,
   )
 
-  useEffect(() => {
-    healthCheck()
-  }, [])
-
-
-  const healthCheck = async () => {
-    const response = await getMobileHealth()
-    console.log("This is Mobile Health response", response)
-  }
-
 
   const toggleFilterModal = () => {
     setShowFilterModal(!showFilterModal)

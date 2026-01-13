@@ -156,7 +156,7 @@ const EditPolygonMap = () => {
                 logoEnabled={false}
                 onDidFinishLoadingMap={setUpPolygon}
                 attributionEnabled={false}
-                styleURL={JSON.stringify(MapStyle)}>
+                mapStyle={MapStyle}>
                 <MapLibreGL.Camera ref={cameraRef} />
                 <MapLibreGL.UserLocation
                     showsUserHeadingIndicator

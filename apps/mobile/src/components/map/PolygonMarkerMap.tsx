@@ -13,7 +13,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import DisplayCurrentPolygonMarker from './DisplayCurrentPolygonMarker'
 import { Colors, Typography } from 'src/utils/constants'
-import distanceCalculator from 'src/utils/helpers/turfHelpers'
+import { checkIsValidPolygonMarker } from 'src/utils/helpers/turfHelpers'
 import { useToast } from 'react-native-toast-notifications'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -25,6 +25,8 @@ import i18next from 'i18next'
 import AlertModal from '../common/AlertModal'
 import PolygonTracker from './PolygonTracker'
 import bbox from '@turf/bbox'
+import MapZoomScale from './MapZoomScale'
+
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -161,6 +163,7 @@ const PolygonMarkerMap = (props: Props) => {
       setLineError(false)
       if (!checkValidDistance) {
         errorHaptic()
+        return
       }
       setCoordinates([...coordinates, centerCoordinates])
       setCurrentCoordinate(prevState => ({
@@ -178,16 +181,12 @@ const PolygonMarkerMap = (props: Props) => {
   const checkIsValidMarker = async (centerCoordinates: number[], coords: any) => {
     try {
       for (const oneMarker of coords) {
-        const distanceInMeters = distanceCalculator(
-          [centerCoordinates[1], centerCoordinates[0]],
-          [oneMarker[1], oneMarker[0]],
-          'meters',
-        );
-        if (!distanceInMeters) {
-          toast.show("Marker is close to previous point.", {
-            type: "normal",
+        const isValid = await checkIsValidPolygonMarker(centerCoordinates, oneMarker);
+        if (!isValid) {
+          toast.show("Points must be at least 1 meter apart. Please move to a different location.", {
+            type: "danger",
             placement: "bottom",
-            duration: 2000,
+            duration: 3000,
             animationType: "slide-in",
           })
           return false
@@ -344,6 +343,7 @@ const PolygonMarkerMap = (props: Props) => {
           latestCoords={latestCoords} startCoord={coordinates.length > 0 ? coordinates[0] : null} isPaused={trackingState === 'pause'} />}
       </MapLibreGL.MapView>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
+      <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
       {polygonComplete && (
         <View style={styles.btnFooter}>
           <CustomButton

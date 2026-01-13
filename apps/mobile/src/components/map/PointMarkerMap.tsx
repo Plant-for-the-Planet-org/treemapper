@@ -28,6 +28,8 @@ import { INTERVENTION_TYPE } from 'src/types/type/app.type'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
+import MapZoomScale from './MapZoomScale'
+
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
@@ -111,7 +113,7 @@ const PointMarkerMap = (props: Props) => {
     }
   }
 
-    const handleCamera2 = () => {
+  const handleCamera2 = () => {
     if (currentUserLocation[0] === 0) {
       return
     }
@@ -142,14 +144,14 @@ const PointMarkerMap = (props: Props) => {
 
   const onSelectLocation = async () => {
     const centerCoordinates = await mapRef.current.getCenter()
-    if(!centerCoordinates){
+    if (!centerCoordinates) {
       return
     }
-    if(centerCoordinates && centerCoordinates[0]===0){
+    if (centerCoordinates && centerCoordinates[0] === 0) {
       toast.show("Please click on your location")
       return
     }
-    if(currentUserLocation && currentUserLocation[0]===0){
+    if (currentUserLocation && currentUserLocation[0] === 0) {
       toast.show("Please click on your location")
       return
     }
@@ -263,6 +265,7 @@ const PointMarkerMap = (props: Props) => {
           sampleTreeData={tree_details} />}
       </MapLibreGL.MapView>
       <SatelliteIconWrapper low />
+      <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} />
       <CustomButton
         label={i18next.t('label.tree_map_marking_btn')}
         containerStyle={styles.btnContainer}

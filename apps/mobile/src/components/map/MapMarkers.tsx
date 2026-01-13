@@ -64,7 +64,8 @@ const MapMarkers = (props: Props) => {
       <MapLibreGL.MarkerView
         coordinate={[el.longitude, el.latitude]}
         id={String(i)}
-        key={String(el.longitude)}>
+        key={String(el.longitude)}
+        anchor={{ x: 0.5, y: 1 }}>
         <Pressable style={styles.container} onPress={() => {
           handleMarkerPress(i, el)
         }}>
@@ -86,15 +87,19 @@ export default MapMarkers
 const styles = StyleSheet.create({
   container: {
     width: 50,
-    height: 100,
+    height: 50,
     backgroundColor: 'transparent',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     alignItems: 'center',
   },
   mapPinContainer: {
     position: 'absolute',
-    left: '17%',
-    top: '-0.1%',
+    left: 0,
+    top: 0,
+    width: 50,
+    height: 50,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   markerContainer: {
     position: 'absolute',
@@ -108,6 +113,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 6,
     fontFamily: Typography.FONT_FAMILY_BOLD,
+    textAlign: 'center',
   },
 })
 
