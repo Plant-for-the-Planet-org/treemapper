@@ -56,12 +56,6 @@ const NoProjectModal = ({
       }
       const result = await addAllProjects(responseData)
       if (result) {
-        if (responseData.length > 0) {
-          dispatch(updateCurrentProject({
-            name: responseData[0].properties.name,
-            id: responseData[0].properties.uid
-          }))
-        }
         dispatch(updateProjectState(true))
         addNewLog({
           logType: 'PROJECTS',

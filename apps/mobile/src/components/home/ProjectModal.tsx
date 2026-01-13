@@ -184,9 +184,6 @@ const ProjectModal = (props: Props) => {
     if (isVisible || toggleProjectModal || lastProjectAdded) {
       loadProjects()
       handlePresentModal()
-      // if (lastProjectAdded) {
-      //   dispatch(updateLastProject(0))
-      // }
     }
   }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, handlePresentModal, dispatch])
 

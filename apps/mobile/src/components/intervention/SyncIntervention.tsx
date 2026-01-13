@@ -93,6 +93,7 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     }
 
     const startSyncingData = async () => {
+        console.log("startSyncingData called")
         if (!isLoggedIn) {
             showLogin()
             return

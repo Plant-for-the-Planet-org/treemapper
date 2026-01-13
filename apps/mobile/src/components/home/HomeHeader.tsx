@@ -66,6 +66,16 @@ const HomeHeader = (props: Props) => {
     }
   }, [isLoggedIn, expiringAt])
 
+    useEffect(() => {
+    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
+      addServerIntervention()
+    }
+    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && v3Approved) {
+      addMobileServerIntervention()
+    }
+  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn])
+
+
   const syncUserDetails = async () => {
     try {
       const { response } = await getMobileUserDetails()
@@ -134,14 +144,6 @@ const HomeHeader = (props: Props) => {
     return (timestamp - currentTime) <= fiveHoursInMilliseconds;
   }
 
-  useEffect(() => {
-    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
-      addServerIntervention()
-    }
-    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && v3Approved) {
-      addMobileServerIntervention()
-    }
-  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn])
 
 
   const checkInternetConnectivity = async () => {
@@ -238,11 +240,12 @@ const HomeHeader = (props: Props) => {
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
         <HamburgerIcon onPress={openHomeDrawer} width={SCALE_24} height={SCALE_24} />
       </Pressable>
-      <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <View style={{ alignItems: 'flex-start', gap: 5 }}>
         <SpeciesSync />
-        <SyncIntervention isLoggedIn={isLoggedIn} />
       </View>
+      <NoProjectModal userType={userType} v3Approved={v3Approved} />
+      <NewAppModal />
+      <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <View style={styles.sectionWrapper} />
       {v3Approved || userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
@@ -258,8 +261,6 @@ const HomeHeader = (props: Props) => {
           width={SCALE_24} height={SCALE_24}
         />
       </Pressable>
-      <NewAppModal />
-      <ProjectInviteModal/>
     </View>
   )
 }
