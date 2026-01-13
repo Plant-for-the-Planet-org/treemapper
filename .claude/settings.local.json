@@ -8,7 +8,9 @@
       "Bash(yarn build)",
       "Bash(yarn dev)",
       "Bash(lsof:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(npx tsc:*)",
+      "Bash(grep:*)"
     ]
   }
 }
