@@ -3,8 +3,12 @@
 import React, { useState } from 'react';
 import {
   InterventionApprovalData,
+  SiteApprovalData,
+  ApprovalData,
   ApprovalStatus,
   ApprovalHistoryEntry,
+  isInterventionApproval,
+  isSiteApproval,
 } from '@shared-core/types/approval.types';
 import {
   Dialog,
@@ -26,10 +30,15 @@ import {
   User,
   Calendar,
   Image as ImageIcon,
+  MapPin,
+  ExternalLink,
+  TreesIcon,
+  Droplets,
 } from 'lucide-react';
+import { SiteMapView } from './SiteMapView';
 
 interface ApprovalModalProps {
-  intervention: InterventionApprovalData | null;
+  intervention: ApprovalData | null;
   isOpen: boolean;
   isAdmin: boolean;
   onClose: () => void;
@@ -55,6 +64,10 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [targetStatus, setTargetStatus] = useState<ApprovalStatus | null>(null);
 
   if (!intervention) return null;
+
+  // Type check
+  const isIntervention = isInterventionApproval(intervention);
+  const isSite = isSiteApproval(intervention);
 
   const formatType = (type: string) => {
     return type
@@ -117,230 +130,630 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="!max-w-[85vw] w-[85vw] max-h-[90vh] overflow-y-auto sm:!max-w-[85vw]">
         <DialogHeader>
-          <DialogTitle>Intervention Details</DialogTitle>
+          <DialogTitle>{isIntervention ? 'Intervention Details' : 'Site Details'}</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
           {/* Header */}
           <div>
             <div className="text-sm font-bold text-[#007A49] mb-1">
-              #{intervention.interventionHid}
+              {isIntervention ? `#${intervention.interventionHid}` : `Site: ${intervention.siteUid}`}
             </div>
             <h2 className="text-2xl font-bold text-gray-900">
-              {formatType(intervention.type)}
+              {isIntervention ? formatType(intervention.type) : intervention.name}
             </h2>
           </div>
 
-          {/* Image */}
-          {intervention.interventionData.image && (
-            <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
-              <img
-                src={intervention.interventionData.image}
-                alt="Intervention"
-                className="w-full h-full object-cover"
-              />
-            </div>
-          )}
-
-          {/* Overview */}
-          <div>
-            <h3 className="text-lg font-semibold mb-3">Overview</h3>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <span className="text-gray-600">Created by:</span>
-                <span className="ml-2 font-semibold">
-                  {intervention.createdBy.name}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Email:</span>
-                <span className="ml-2 font-semibold">
-                  {intervention.createdBy.email}
-                </span>
-              </div>
-              <div>
-                <span className="text-gray-600">Tree Count:</span>
-                <span className="ml-2 font-semibold">
-                  {intervention.interventionData.totalTreeCount || 0}
-                </span>
-              </div>
-              {intervention.interventionData.area && (
-                <div>
-                  <span className="text-gray-600">Area:</span>
-                  <span className="ml-2 font-semibold">
-                    {intervention.interventionData.area.toFixed(2)} m²
-                  </span>
+          {/* Two Column Layout - 60/40 split */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
+            {/* Left Column - Details (60% width - 3 of 5 columns) */}
+            <div className="lg:col-span-3 space-y-6">
+              {/* Image or Map */}
+              {isIntervention && intervention.interventionData.image && (
+                <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={intervention.interventionData.image}
+                    alt="Intervention"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               )}
-              <div>
-                <span className="text-gray-600">Registration Date:</span>
-                <span className="ml-2 font-semibold">
-                  {formatDate(intervention.interventionData.registrationDate)}
-                </span>
-              </div>
-            </div>
-          </div>
 
-          {/* Description */}
-          {intervention.interventionData.description && (
-            <div>
-              <h3 className="text-lg font-semibold mb-2">Description</h3>
-              <p className="text-sm text-gray-700">
-                {intervention.interventionData.description}
-              </p>
-            </div>
-          )}
+              {isSite && intervention.siteData.location && (
+                <SiteMapView
+                  location={intervention.siteData.location}
+                  className="w-full h-64"
+                />
+              )}
 
-          {/* Approval Info */}
-          {intervention.approvedBy && (
-            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-              <div className="text-sm font-semibold text-green-800">
-                ✓ Approved by {intervention.approvedBy.name}
-              </div>
-              {intervention.approvedAt && (
-                <div className="text-xs text-green-700 mt-1">
-                  on {formatDate(intervention.approvedAt)}
+              {isSite && intervention.siteData.image && (
+                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
+                  <img
+                    src={intervention.siteData.image}
+                    alt="Site"
+                    className="w-full h-full object-cover"
+                  />
                 </div>
               )}
-            </div>
-          )}
 
-          {/* History */}
-          {intervention.history && intervention.history.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">History</h3>
-              <div className="space-y-2">
-                {intervention.history.map((entry: ApprovalHistoryEntry) => (
-                  <div
-                    key={entry.uid}
-                    className="bg-gray-50 rounded-lg p-3 text-sm"
-                  >
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-semibold">
-                        {getHistoryActionText(entry.action)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        {formatDate(entry.timestamp)}
+              {/* Overview */}
+              <div>
+                <h3 className="text-lg font-semibold mb-3">Overview</h3>
+                <div className="space-y-3 text-sm">
+                  <div>
+                    <span className="text-gray-600">Created by:</span>
+                    <span className="ml-2 font-semibold">
+                      {intervention.createdBy.name}
+                    </span>
+                  </div>
+                  <div>
+                    <span className="text-gray-600">Email:</span>
+                    <span className="ml-2 font-semibold">
+                      {intervention.createdBy.email}
+                    </span>
+                  </div>
+                  {isIntervention && (
+                    <div>
+                      <span className="text-gray-600">Intervention Type:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatType(intervention.type)}
                       </span>
                     </div>
-                    <div className="text-xs text-gray-600">{entry.userName}</div>
-                    {entry.comment && (
-                      <div className="text-xs text-gray-700 mt-2 italic">
-                        "{entry.comment}"
+                  )}
+                  {isSite && (
+                    <div>
+                      <span className="text-gray-600">Site Status:</span>
+                      <Badge className="ml-2" variant="outline">
+                        {formatType(intervention.siteData.status)}
+                      </Badge>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Details Section */}
+              {isIntervention && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Intervention Details</h3>
+                  <div className="space-y-2 text-sm">
+                    <div>
+                      <span className="text-gray-600">Total Tree Count:</span>
+                      <span className="ml-2 font-semibold">
+                        {intervention.interventionData.totalTreeCount || 0}
+                      </span>
+                    </div>
+                    {intervention.interventionData.totalSampleTreeCount !== undefined && (
+                      <div>
+                        <span className="text-gray-600">Sample Tree Count:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.interventionData.totalSampleTreeCount}
+                        </span>
                       </div>
                     )}
-                    {entry.changedFields && entry.changedFields.length > 0 && (
-                      <div className="text-xs text-gray-500 mt-1">
-                        Changed: {entry.changedFields.join(', ')}
+                    {intervention.interventionData.area && (
+                      <div>
+                        <span className="text-gray-600">Area:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.interventionData.area.toFixed(2)} m²
+                        </span>
+                      </div>
+                    )}
+                    {intervention.interventionData.status && (
+                      <div>
+                        <span className="text-gray-600">Intervention Status:</span>
+                        <Badge className="ml-2" variant="outline">
+                          {formatType(intervention.interventionData.status)}
+                        </Badge>
+                      </div>
+                    )}
+                    {intervention.interventionData.captureMode && (
+                      <div>
+                        <span className="text-gray-600">Capture Mode:</span>
+                        <span className="ml-2 font-semibold">
+                          {formatType(intervention.interventionData.captureMode)}
+                        </span>
+                      </div>
+                    )}
+                    {intervention.interventionData.captureStatus && (
+                      <div>
+                        <span className="text-gray-600">Capture Status:</span>
+                        <Badge
+                          className="ml-2"
+                          variant={
+                            intervention.interventionData.captureStatus === 'complete'
+                              ? 'default'
+                              : 'secondary'
+                          }
+                        >
+                          {formatType(intervention.interventionData.captureStatus)}
+                        </Badge>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-gray-600">Start Date:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatDate(intervention.interventionData.interventionStartDate)}
+                      </span>
+                    </div>
+                    <div>
+                      <span className="text-gray-600">End Date:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatDate(intervention.interventionData.interventionEndDate)}
+                      </span>
+                    </div>
+                    {intervention.interventionData.isPrivate !== undefined && (
+                      <div>
+                        <span className="text-gray-600">Visibility:</span>
+                        <Badge className="ml-2" variant="outline">
+                          {intervention.interventionData.isPrivate ? '🔒 Private' : '🌐 Public'}
+                        </Badge>
                       </div>
                     )}
                   </div>
-                ))}
-              </div>
+                </div>
+              )}
+
+              {isSite && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Site Details</h3>
+                  <div className="space-y-2 text-sm">
+                    {intervention.siteData.area && (
+                      <div>
+                        <span className="text-gray-600">Area:</span>
+                        <span className="ml-2 font-semibold">
+                          {(intervention.siteData.area / 10000).toFixed(2)} hectares
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.expectedTreeCount && (
+                      <div>
+                        <span className="text-gray-600">Expected Tree Count:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.siteData.expectedTreeCount.toLocaleString()}
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.soilType && (
+                      <div>
+                        <span className="text-gray-600">Soil Type:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.siteData.soilType}
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.elevation !== null && (
+                      <div>
+                        <span className="text-gray-600">Elevation:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.siteData.elevation} m
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.slope !== null && (
+                      <div>
+                        <span className="text-gray-600">Slope:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.siteData.slope}°
+                        </span>
+                      </div>
+                    )}
+                    <div>
+                      <span className="text-gray-600">Water Access:</span>
+                      <Badge className="ml-2" variant="outline">
+                        {intervention.siteData.waterAccess ? '✓ Available' : '✗ Not Available'}
+                      </Badge>
+                    </div>
+                    {intervention.siteData.accessibility && (
+                      <div>
+                        <span className="text-gray-600">Accessibility:</span>
+                        <span className="ml-2 font-semibold">
+                          {intervention.siteData.accessibility}
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.plannedPlantingDate && (
+                      <div>
+                        <span className="text-gray-600">Planned Planting Date:</span>
+                        <span className="ml-2 font-semibold">
+                          {formatDate(intervention.siteData.plannedPlantingDate)}
+                        </span>
+                      </div>
+                    )}
+                    {intervention.siteData.actualPlantingDate && (
+                      <div>
+                        <span className="text-gray-600">Actual Planting Date:</span>
+                        <span className="ml-2 font-semibold">
+                          {formatDate(intervention.siteData.actualPlantingDate)}
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Sample Trees - Only for interventions with sample tree data */}
+              {isIntervention && intervention.interventionData.sampleTrees && intervention.interventionData.sampleTrees.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Sample Trees ({intervention.interventionData.sampleTrees.length} of {intervention.interventionData.totalTreeCount})
+                  </h3>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full text-xs">
+                      <thead className="bg-gray-100">
+                        <tr>
+                          <th className="px-2 py-2 text-left font-semibold">Tag</th>
+                          <th className="px-2 py-2 text-left font-semibold">Species</th>
+                          <th className="px-2 py-2 text-left font-semibold">Height</th>
+                          <th className="px-2 py-2 text-left font-semibold">DBH</th>
+                          <th className="px-2 py-2 text-left font-semibold">Health</th>
+                          <th className="px-2 py-2 text-left font-semibold">Image</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200">
+                        {intervention.interventionData.sampleTrees.slice(0, 10).map((tree) => (
+                          <tr key={tree.treeId} className="hover:bg-gray-50">
+                            <td className="px-2 py-2">{tree.treeTag || '-'}</td>
+                            <td className="px-2 py-2">
+                              <div className="font-medium">{tree.species}</div>
+                              {tree.scientificName && (
+                                <div className="text-gray-500 italic text-xs">{tree.scientificName}</div>
+                              )}
+                            </td>
+                            <td className="px-2 py-2">{tree.height ? `${tree.height.toFixed(1)}m` : '-'}</td>
+                            <td className="px-2 py-2">{tree.diameter ? `${tree.diameter.toFixed(1)}cm` : '-'}</td>
+                            <td className="px-2 py-2">
+                              {tree.health && (
+                                <Badge
+                                  variant="outline"
+                                  className={
+                                    tree.health === 'excellent'
+                                      ? 'bg-green-50 text-green-700 border-green-200'
+                                      : tree.health === 'good'
+                                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                      : tree.health === 'fair'
+                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
+                                      : 'bg-red-50 text-red-700 border-red-200'
+                                  }
+                                >
+                                  {tree.health}
+                                </Badge>
+                              )}
+                            </td>
+                            <td className="px-2 py-2">
+                              {tree.image ? (
+                                <a href={tree.image} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                  View
+                                </a>
+                              ) : (
+                                '-'
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                    {intervention.interventionData.sampleTrees.length > 10 && (
+                      <div className="mt-2 text-xs text-gray-500 text-center">
+                        Showing 10 of {intervention.interventionData.sampleTrees.length} sample trees
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Location Information - Only for interventions with point locations */}
+              {isIntervention && intervention.interventionData.location && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Location</h3>
+                  <div className="space-y-3">
+                    <div className="text-sm">
+                      <span className="text-gray-600">Coordinates:</span>
+                      <span className="ml-2 font-mono text-xs">
+                        {typeof intervention.interventionData.location === 'object' &&
+                        intervention.interventionData.location.lat &&
+                        intervention.interventionData.location.lng
+                          ? `${intervention.interventionData.location.lat.toFixed(
+                              6
+                            )}, ${intervention.interventionData.location.lng.toFixed(6)}`
+                          : 'N/A'}
+                      </span>
+                    </div>
+                    {typeof intervention.interventionData.location === 'object' &&
+                      intervention.interventionData.location.lat &&
+                      intervention.interventionData.location.lng && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          const lat = intervention.interventionData.location.lat;
+                          const lng = intervention.interventionData.location.lng;
+                          window.open(
+                            `https://www.google.com/maps?q=${lat},${lng}`,
+                            '_blank'
+                          );
+                        }}
+                      >
+                        <MapPin className="h-4 w-4 mr-2" />
+                        Open in Maps
+                        <ExternalLink className="h-4 w-4 ml-2" />
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* Description */}
+              {isIntervention && intervention.interventionData.description && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Description</h3>
+                  <p className="text-sm text-gray-700">
+                    {intervention.interventionData.description}
+                  </p>
+                </div>
+              )}
+
+              {isSite && intervention.description && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-2">Description</h3>
+                  <p className="text-sm text-gray-700">
+                    {intervention.description}
+                  </p>
+                </div>
+              )}
             </div>
-          )}
 
-          {/* Comment Form */}
-          {showCommentForm && (
-            <div className="border-t pt-4">
-              <h3 className="text-lg font-semibold mb-3">
-                {targetStatus
-                  ? `Change Status to ${targetStatus.replace('_', ' ')}`
-                  : 'Add Comment'}
-              </h3>
+            {/* Right Column - Status, Comments & Actions (40% width - 2 of 5 columns) */}
+            <div className="lg:col-span-2 space-y-6">
+              {/* Current Status */}
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h3 className="text-lg font-semibold mb-3">Current Status</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="text-gray-600">Approval Status:</span>
+                    <Badge
+                      className="ml-2"
+                      variant={
+                        intervention.approvalStatus === 'approved'
+                          ? 'default'
+                          : intervention.approvalStatus === 'rejected'
+                          ? 'destructive'
+                          : 'secondary'
+                      }
+                    >
+                      {formatType(intervention.approvalStatus)}
+                    </Badge>
+                  </div>
+                  {intervention.submittedForReviewAt && (
+                    <div>
+                      <span className="text-gray-600">Submitted for Review:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatDate(intervention.submittedForReviewAt)}
+                      </span>
+                    </div>
+                  )}
+                  {isIntervention && intervention.interventionData.editedAt && (
+                    <div>
+                      <span className="text-gray-600">Last Edited:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatDate(intervention.interventionData.editedAt)}
+                      </span>
+                    </div>
+                  )}
+                  {isIntervention && intervention.interventionData.registrationDate && (
+                    <div>
+                      <span className="text-gray-600">Registration Date:</span>
+                      <span className="ml-2 font-semibold">
+                        {formatDate(intervention.interventionData.registrationDate)}
+                      </span>
+                    </div>
+                  )}
+                  {isSite && (
+                    <>
+                      <div>
+                        <span className="text-gray-600">Created:</span>
+                        <span className="ml-2 font-semibold">
+                          {formatDate(intervention.siteData.createdAt)}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-600">Last Updated:</span>
+                        <span className="ml-2 font-semibold">
+                          {formatDate(intervention.siteData.updatedAt)}
+                        </span>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
 
-              <Textarea
-                value={comment}
-                onChange={(e) => setComment(e.target.value)}
-                placeholder="Add your comment here..."
-                className="mb-3"
-                rows={4}
-              />
+              {/* Approval Info */}
+              {intervention.approvedBy && (
+                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                  <div className="text-sm font-semibold text-green-800">
+                    ✓ Approved by {intervention.approvedBy.name}
+                  </div>
+                  {intervention.approvedAt && (
+                    <div className="text-xs text-green-700 mt-1">
+                      on {formatDate(intervention.approvedAt)}
+                    </div>
+                  )}
+                </div>
+              )}
 
-              {isAdmin && (
-                <div className="flex items-center space-x-2 mb-3">
-                  <Checkbox
-                    id="internal"
-                    checked={isInternal}
-                    onCheckedChange={(checked) =>
-                      setIsInternal(checked as boolean)
-                    }
+              {/* Comments */}
+              {intervention.comments && intervention.comments.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Comments</h3>
+                  <div className="space-y-3 max-h-96 overflow-y-auto">
+                    {intervention.comments.map((comment) => (
+                      <div
+                        key={comment.uid}
+                        className={`rounded-lg p-3 text-sm border ${
+                          comment.isInternal
+                            ? 'bg-yellow-50 border-yellow-200'
+                            : 'bg-white border-gray-200'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-2">
+                          <div>
+                            <div className="font-semibold text-gray-900">
+                              {comment.userName}
+                              {comment.isInternal && (
+                                <Badge className="ml-2 text-xs" variant="outline">
+                                  🔒 Internal
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="text-xs text-gray-500">
+                              {comment.userRole} • {formatDate(comment.createdAt)}
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-gray-700">{comment.comment}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* History */}
+              {intervention.history && intervention.history.length > 0 && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">History</h3>
+                  <div className="space-y-2 max-h-64 overflow-y-auto">
+                    {intervention.history.map((entry: ApprovalHistoryEntry) => (
+                      <div
+                        key={entry.uid}
+                        className="bg-gray-50 rounded-lg p-3 text-sm"
+                      >
+                        <div className="flex items-center justify-between mb-1">
+                          <span className="font-semibold">
+                            {getHistoryActionText(entry.action)}
+                          </span>
+                          <span className="text-xs text-gray-500">
+                            {formatDate(entry.timestamp)}
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-600">{entry.userName}</div>
+                        {entry.comment && (
+                          <div className="text-xs text-gray-700 mt-2 italic">
+                            "{entry.comment}"
+                          </div>
+                        )}
+                        {entry.changedFields && entry.changedFields.length > 0 && (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Changed: {entry.changedFields.join(', ')}
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Comment Form */}
+              {showCommentForm && (
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-3">
+                    {targetStatus
+                      ? `Change Status to ${targetStatus.replace('_', ' ')}`
+                      : 'Add Comment'}
+                  </h3>
+
+                  <Textarea
+                    value={comment}
+                    onChange={(e) => setComment(e.target.value)}
+                    placeholder="Add your comment here..."
+                    className="mb-3"
+                    rows={4}
                   />
-                  <Label htmlFor="internal" className="text-sm">
-                    Internal Comment (only visible to admins and owners)
-                  </Label>
+
+                  {isAdmin && (
+                    <div className="flex items-center space-x-2 mb-3">
+                      <Checkbox
+                        id="internal"
+                        checked={isInternal}
+                        onCheckedChange={(checked) =>
+                          setIsInternal(checked as boolean)
+                        }
+                      />
+                      <Label htmlFor="internal" className="text-sm">
+                        Internal Comment (only visible to admins and owners)
+                      </Label>
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        setShowCommentForm(false);
+                        setTargetStatus(null);
+                        setComment('');
+                        setIsInternal(false);
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={targetStatus === 'rejected' && !comment.trim()}
+                    >
+                      Submit
+                    </Button>
+                  </div>
                 </div>
               )}
 
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  onClick={() => {
-                    setShowCommentForm(false);
-                    setTargetStatus(null);
-                    setComment('');
-                    setIsInternal(false);
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleSubmit}
-                  disabled={targetStatus === 'rejected' && !comment.trim()}
-                >
-                  Submit
-                </Button>
-              </div>
-            </div>
-          )}
+              {/* Actions */}
+              {!showCommentForm && (
+                <div className="border-t pt-4 space-y-3">
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => setShowCommentForm(true)}
+                  >
+                    <MessageSquare className="h-4 w-4 mr-2" />
+                    Add Comment
+                  </Button>
 
-          {/* Actions */}
-          {!showCommentForm && (
-            <div className="border-t pt-4 space-y-3">
-              <Button
-                variant="outline"
-                className="w-full"
-                onClick={() => setShowCommentForm(true)}
-              >
-                <MessageSquare className="h-4 w-4 mr-2" />
-                Add Comment
-              </Button>
-
-              {isAdmin && (
-                <div className="grid grid-cols-3 gap-2">
-                  {canMoveToReview && (
-                    <Button
-                      onClick={() => handleStatusClick('in_review')}
-                      className="bg-blue-600 hover:bg-blue-700"
-                    >
-                      <Eye className="h-4 w-4 mr-1" />
-                      Review
-                    </Button>
-                  )}
-                  {canApprove && (
-                    <Button
-                      onClick={() => handleStatusClick('approved')}
-                      className="bg-green-600 hover:bg-green-700"
-                    >
-                      <CheckCircle2 className="h-4 w-4 mr-1" />
-                      Approve
-                    </Button>
-                  )}
-                  {canReject && (
-                    <Button
-                      onClick={() => handleStatusClick('rejected')}
-                      className="bg-red-600 hover:bg-red-700"
-                    >
-                      <XCircle className="h-4 w-4 mr-1" />
-                      Reject
-                    </Button>
+                  {isAdmin && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {canMoveToReview && (
+                        <Button
+                          onClick={() => handleStatusClick('in_review')}
+                          className="bg-blue-600 hover:bg-blue-700"
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          Review
+                        </Button>
+                      )}
+                      {canApprove && (
+                        <Button
+                          onClick={() => handleStatusClick('approved')}
+                          className="bg-green-600 hover:bg-green-700"
+                        >
+                          <CheckCircle2 className="h-4 w-4 mr-1" />
+                          Approve
+                        </Button>
+                      )}
+                      {canReject && (
+                        <Button
+                          onClick={() => handleStatusClick('rejected')}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          <XCircle className="h-4 w-4 mr-1" />
+                          Reject
+                        </Button>
+                      )}
+                    </div>
                   )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </DialogContent>
     </Dialog>

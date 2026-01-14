@@ -15,7 +15,6 @@ export default function ApprovalsPage() {
   const selectedProject = useProjectStore((state) => state.selectedProject);
   const { requiresApproval, setRequiresApproval } = useApprovalStore();
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<string | null>(null);
 
   useEffect(() => {
     if (selectedProject && accessToken) {
@@ -42,17 +41,6 @@ export default function ApprovalsPage() {
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
-    // Implement search logic here if needed
-  };
-
-  const handleStatusFilter = (status: string | null) => {
-    setStatusFilter(status);
-    // Implement filter logic here if needed
-  };
-
-  const handleReset = () => {
-    setSearchQuery('');
-    setStatusFilter(null);
   };
 
   if (!selectedProject) {
@@ -98,15 +86,12 @@ export default function ApprovalsPage() {
         </p>
       </div>
 
-      <ApprovalFilters
-        onSearch={handleSearch}
-        onStatusFilter={handleStatusFilter}
-        onReset={handleReset}
-      />
+      <ApprovalFilters onSearch={handleSearch} />
 
       <ApprovalBoard
         projectId={selectedProject.uid}
         userRole={selectedProject.role || 'contributor'}
+        searchQuery={searchQuery}
       />
     </div>
   );

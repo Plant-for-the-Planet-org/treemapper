@@ -10,7 +10,9 @@
       "Bash(lsof:*)",
       "Bash(cat:*)",
       "Bash(npx tsc:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run type-check:*)"
     ]
   }
 }

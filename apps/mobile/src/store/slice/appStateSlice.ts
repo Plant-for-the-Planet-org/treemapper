@@ -90,7 +90,7 @@ const appStateSlice = createSlice({
       state.imageSize = 0
     },
     logoutAppUser(state) {
-      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL }
+      return { ...initialState, speciesSync: true, speciesLocalURL: state.speciesLocalURL , lastServerInterventionpage: ''}
     },
   },
 })

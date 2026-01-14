@@ -6,6 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
 import { MessageSquare, ImageIcon, User, Calendar } from 'lucide-react';
+import { useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 
 interface ApprovalCardProps {
   intervention: InterventionApprovalData;
@@ -18,6 +20,22 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
   onClick,
   isDragging = false,
 }) => {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+    isDragging: isSortableDragging,
+  } = useSortable({
+    id: intervention.interventionId,
+  });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+
   const formatType = (type: string) => {
     return type
       .split('-')
@@ -39,8 +57,12 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
 
   return (
     <Card
+      ref={setNodeRef}
+      style={style}
+      {...attributes}
+      {...listeners}
       className={`p-4 mb-3 cursor-pointer hover:shadow-md transition-all duration-200 ${
-        isDragging ? 'opacity-50 scale-105' : ''
+        isDragging || isSortableDragging ? 'opacity-50 scale-105' : ''
       }`}
       onClick={onClick}
     >

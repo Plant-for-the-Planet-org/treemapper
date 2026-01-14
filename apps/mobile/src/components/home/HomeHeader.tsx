@@ -67,11 +67,8 @@ const HomeHeader = (props: Props) => {
   }, [isLoggedIn, expiringAt])
 
   useEffect(() => {
-    if(!tokenValid){
+    if (!tokenValid) {
       return;
-    }
-    if (isLoggedIn) {
-      syncUserDetails()
     }
     if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
       addServerIntervention()
@@ -80,6 +77,13 @@ const HomeHeader = (props: Props) => {
       addMobileServerIntervention()
     }
   }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn, tokenValid])
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      syncUserDetails()
+    }
+  }, [isLoggedIn])
+
 
 
   const syncUserDetails = async () => {
@@ -248,7 +252,7 @@ const HomeHeader = (props: Props) => {
       </Pressable>
       <View style={{ alignItems: 'flex-start', gap: 5 }}>
         <SpeciesSync />
-        <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid}/>
+        <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid} />
       </View>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <NewAppModal />

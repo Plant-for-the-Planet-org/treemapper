@@ -1,0 +1,458 @@
+import { InterventionApprovalData, SampleTree } from '@shared-core/types/approval.types';
+
+// Helper function to generate sample trees
+const generateSampleTrees = (count: number, baseSpecies: string[], baseCoords: { lat: number; lng: number }): SampleTree[] => {
+  const species = baseSpecies;
+  const sampleTrees: SampleTree[] = [];
+
+  for (let i = 0; i < count; i++) {
+    const speciesIndex = i % species.length;
+    const latOffset = (Math.random() - 0.5) * 0.001;
+    const lngOffset = (Math.random() - 0.5) * 0.001;
+
+    sampleTrees.push({
+      treeId: `tree-${Date.now()}-${i}`,
+      treeTag: `T${String(i + 1).padStart(3, '0')}`,
+      species: species[speciesIndex].split('(')[0].trim(),
+      scientificName: species[speciesIndex].match(/\((.*?)\)/)?.[1],
+      coordinates: {
+        lat: baseCoords.lat + latOffset,
+        lng: baseCoords.lng + lngOffset,
+      },
+      height: Math.random() * 15 + 2, // 2-17 meters
+      diameter: Math.random() * 40 + 5, // 5-45 cm
+      health: (['excellent', 'good', 'fair'] as const)[Math.floor(Math.random() * 3)],
+      age: Math.floor(Math.random() * 10) + 1,
+      plantingDate: new Date(Date.now() - Math.random() * 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      image: i % 3 === 0 ? `https://images.unsplash.com/photo-${1500000000000 + i}?w=400` : null,
+      notes: i % 4 === 0 ? 'Healthy growth, well-established root system' : undefined,
+      capturedAt: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+  }
+
+  return sampleTrees;
+};
+
+export const dummyApprovalDataEnhanced: InterventionApprovalData[] = [
+  // MULTI-TREE REGISTRATIONS - NEW REQUESTS
+  {
+    interventionId: 11,
+    interventionUid: 'int-011-uid',
+    interventionHid: 'INT-2024-011',
+    type: 'multi-tree-registration',
+    createdBy: {
+      id: 111,
+      name: 'Carlos Martinez',
+      email: 'carlos.martinez@example.com',
+    },
+    approvalStatus: 'new_request',
+    submittedForReviewAt: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [],
+    history: [
+      {
+        uid: 'history-011',
+        userId: 111,
+        userName: 'Carlos Martinez',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'Multi-tree registration of native oak forest restoration. Systematic grid sampling with detailed tree measurements.',
+      location: { lat: 42.3601, lng: -71.0589 },
+      area: 45000,
+      totalTreeCount: 3200,
+      totalSampleTreeCount: 45,
+      sampleTrees: generateSampleTrees(45, [
+        'White Oak (Quercus alba)',
+        'Red Oak (Quercus rubra)',
+        'Black Oak (Quercus velutina)',
+        'Pin Oak (Quercus palustris)',
+        'Scarlet Oak (Quercus coccinea)',
+      ], { lat: 42.3601, lng: -71.0589 }),
+      registrationDate: '2024-01-15',
+      interventionStartDate: '2024-01-18',
+      interventionEndDate: '2024-01-22',
+      image: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400',
+      status: 'completed',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+
+  // SINGLE-TREE REGISTRATION - NEW REQUEST
+  {
+    interventionId: 12,
+    interventionUid: 'int-012-uid',
+    interventionHid: 'INT-2024-012',
+    type: 'single-tree-registration',
+    createdBy: {
+      id: 112,
+      name: 'Nina Andersson',
+      email: 'nina.andersson@example.com',
+    },
+    approvalStatus: 'new_request',
+    submittedForReviewAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [
+      {
+        uid: 'comment-012',
+        userId: 112,
+        userName: 'Nina Andersson',
+        userRole: 'contributor',
+        comment: 'Heritage tree documentation with individual tree profiles including historical significance.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    history: [
+      {
+        uid: 'history-012',
+        userId: 112,
+        userName: 'Nina Andersson',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'Individual registration of heritage and significant trees in urban park. Each tree with complete profile.',
+      location: { lat: 59.3293, lng: 18.0686 },
+      area: 1200,
+      totalTreeCount: 18,
+      totalSampleTreeCount: 18,
+      sampleTrees: generateSampleTrees(18, [
+        'European Beech (Fagus sylvatica)',
+        'Norway Maple (Acer platanoides)',
+        'Scots Pine (Pinus sylvestris)',
+        'Silver Birch (Betula pendula)',
+      ], { lat: 59.3293, lng: 18.0686 }),
+      registrationDate: '2024-01-12',
+      interventionStartDate: '2024-01-14',
+      interventionEndDate: '2024-01-16',
+      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400',
+      status: 'completed',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+
+  // MULTI-TREE REGISTRATION - IN REVIEW
+  {
+    interventionId: 13,
+    interventionUid: 'int-013-uid',
+    interventionHid: 'INT-2024-013',
+    type: 'multi-tree-registration',
+    createdBy: {
+      id: 113,
+      name: 'Yuki Tanaka',
+      email: 'yuki.tanaka@example.com',
+    },
+    approvalStatus: 'in_review',
+    submittedForReviewAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [
+      {
+        uid: 'comment-013',
+        userId: 113,
+        userName: 'Yuki Tanaka',
+        userRole: 'contributor',
+        comment: 'Mixed species plantation with strategic sampling for biodiversity assessment.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'comment-014',
+        userId: 201,
+        userName: 'Admin User',
+        userRole: 'admin',
+        comment: 'Reviewing sample tree data quality. Photos and measurements look comprehensive.',
+        isInternal: true,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    history: [
+      {
+        uid: 'history-013',
+        userId: 113,
+        userName: 'Yuki Tanaka',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'history-014',
+        userId: 201,
+        userName: 'Admin User',
+        action: 'moved_to_review',
+        fromStatus: 'new_request',
+        toStatus: 'in_review',
+        timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'Multi-species plantation registration with systematic sampling across plantation blocks.',
+      location: { lat: 35.6762, lng: 139.6503 },
+      area: 62000,
+      totalTreeCount: 5800,
+      totalSampleTreeCount: 58,
+      sampleTrees: generateSampleTrees(58, [
+        'Japanese Cedar (Cryptomeria japonica)',
+        'Hinoki Cypress (Chamaecyparis obtusa)',
+        'Japanese Red Pine (Pinus densiflora)',
+        'Sakura (Prunus serrulata)',
+        'Japanese Maple (Acer palmatum)',
+      ], { lat: 35.6762, lng: 139.6503 }),
+      registrationDate: '2024-01-08',
+      interventionStartDate: '2024-01-10',
+      interventionEndDate: '2024-01-14',
+      image: 'https://images.unsplash.com/photo-1518173946687-a4c8892bbd9f?w=400',
+      status: 'completed',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+
+  // SINGLE-TREE REGISTRATION - IN REVIEW
+  {
+    interventionId: 14,
+    interventionUid: 'int-014-uid',
+    interventionHid: 'INT-2024-014',
+    type: 'single-tree-registration',
+    createdBy: {
+      id: 114,
+      name: 'Ahmed Hassan',
+      email: 'ahmed.hassan@example.com',
+    },
+    approvalStatus: 'in_review',
+    submittedForReviewAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+    approvedAt: null,
+    rejectedAt: null,
+    approvedBy: null,
+    comments: [
+      {
+        uid: 'comment-015',
+        userId: 114,
+        userName: 'Ahmed Hassan',
+        userRole: 'contributor',
+        comment: 'Street tree inventory with individual tree health assessments and maintenance recommendations.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    history: [
+      {
+        uid: 'history-015',
+        userId: 114,
+        userName: 'Ahmed Hassan',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'history-016',
+        userId: 202,
+        userName: 'Jane Smith',
+        action: 'moved_to_review',
+        fromStatus: 'new_request',
+        toStatus: 'in_review',
+        timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'Urban street tree inventory with individual assessment for maintenance planning.',
+      location: { lat: 30.0444, lng: 31.2357 },
+      area: 600,
+      totalTreeCount: 32,
+      totalSampleTreeCount: 32,
+      sampleTrees: generateSampleTrees(32, [
+        'Ficus (Ficus benjamina)',
+        'Neem (Azadirachta indica)',
+        'Jacaranda (Jacaranda mimosifolia)',
+        'Flame Tree (Delonix regia)',
+      ], { lat: 30.0444, lng: 31.2357 }),
+      registrationDate: '2024-01-06',
+      interventionStartDate: '2024-01-09',
+      interventionEndDate: '2024-01-11',
+      image: 'https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=400',
+      status: 'active',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+
+  // MULTI-TREE REGISTRATION - APPROVED
+  {
+    interventionId: 15,
+    interventionUid: 'int-015-uid',
+    interventionHid: 'INT-2024-015',
+    type: 'multi-tree-registration',
+    createdBy: {
+      id: 115,
+      name: 'Sophie Dubois',
+      email: 'sophie.dubois@example.com',
+    },
+    approvalStatus: 'approved',
+    submittedForReviewAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+    approvedAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+    rejectedAt: null,
+    approvedBy: {
+      id: 201,
+      name: 'Admin User',
+    },
+    comments: [
+      {
+        uid: 'comment-016',
+        userId: 115,
+        userName: 'Sophie Dubois',
+        userRole: 'contributor',
+        comment: 'Riparian forest restoration with native species. Sample trees show excellent establishment rates.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'comment-017',
+        userId: 201,
+        userName: 'Admin User',
+        userRole: 'admin',
+        comment: 'Approved. Excellent documentation and sample tree data quality.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    history: [
+      {
+        uid: 'history-017',
+        userId: 115,
+        userName: 'Sophie Dubois',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 8 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'history-018',
+        userId: 201,
+        userName: 'Admin User',
+        action: 'moved_to_review',
+        fromStatus: 'new_request',
+        toStatus: 'in_review',
+        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'history-019',
+        userId: 201,
+        userName: 'Admin User',
+        action: 'approved',
+        fromStatus: 'in_review',
+        toStatus: 'approved',
+        comment: 'Excellent documentation and sample tree data quality.',
+        timestamp: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'Riparian buffer zone restoration with native willow and alder species.',
+      location: { lat: 48.8566, lng: 2.3522 },
+      area: 28000,
+      totalTreeCount: 1800,
+      totalSampleTreeCount: 36,
+      sampleTrees: generateSampleTrees(36, [
+        'White Willow (Salix alba)',
+        'Black Alder (Alnus glutinosa)',
+        'European Ash (Fraxinus excelsior)',
+        'Field Maple (Acer campestre)',
+      ], { lat: 48.8566, lng: 2.3522 }),
+      registrationDate: '2023-12-22',
+      interventionStartDate: '2023-12-28',
+      interventionEndDate: '2024-01-05',
+      image: 'https://images.unsplash.com/photo-1542273917363-3b1817f69a2d?w=400',
+      status: 'completed',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+
+  // SINGLE-TREE REGISTRATION - APPROVED
+  {
+    interventionId: 16,
+    interventionUid: 'int-016-uid',
+    interventionHid: 'INT-2024-016',
+    type: 'single-tree-registration',
+    createdBy: {
+      id: 116,
+      name: 'Raj Kumar',
+      email: 'raj.kumar@example.com',
+    },
+    approvalStatus: 'approved',
+    submittedForReviewAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+    approvedAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+    rejectedAt: null,
+    approvedBy: {
+      id: 202,
+      name: 'Jane Smith',
+    },
+    comments: [
+      {
+        uid: 'comment-018',
+        userId: 116,
+        userName: 'Raj Kumar',
+        userRole: 'contributor',
+        comment: 'Campus tree inventory with individual tree health monitoring protocol.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    history: [
+      {
+        uid: 'history-020',
+        userId: 116,
+        userName: 'Raj Kumar',
+        action: 'submitted',
+        toStatus: 'new_request',
+        timestamp: new Date(Date.now() - 9 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        uid: 'history-021',
+        userId: 202,
+        userName: 'Jane Smith',
+        action: 'approved',
+        fromStatus: 'new_request',
+        toStatus: 'approved',
+        timestamp: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ],
+    interventionData: {
+      description: 'University campus tree inventory with baseline health assessments.',
+      location: { lat: 12.9716, lng: 77.5946 },
+      area: 950,
+      totalTreeCount: 24,
+      totalSampleTreeCount: 24,
+      sampleTrees: generateSampleTrees(24, [
+        'Banyan (Ficus benghalensis)',
+        'Peepal (Ficus religiosa)',
+        'Rain Tree (Samanea saman)',
+        'Gulmohar (Delonix regia)',
+      ], { lat: 12.9716, lng: 77.5946 }),
+      registrationDate: '2023-12-19',
+      interventionStartDate: '2023-12-23',
+      interventionEndDate: '2023-12-27',
+      image: 'https://images.unsplash.com/photo-1502082553048-f009c37129b9?w=400',
+      status: 'completed',
+      captureMode: 'on-site',
+      captureStatus: 'complete',
+      isPrivate: false,
+    },
+  },
+];
