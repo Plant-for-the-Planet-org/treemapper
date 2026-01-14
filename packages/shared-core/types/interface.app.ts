@@ -60,8 +60,8 @@ export interface TrustIndicatorProps {
 }
 
 export interface LoginFormProps {
-  loading: boolean;
-  onLogin: () => void;
+  loading: string | false;
+  onLogin: (connection?: string) => void;
 }
 
 export interface MobileAppSectionProps {

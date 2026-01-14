@@ -10,11 +10,17 @@ const logoutUrl = [
 ].join('');
 
 const authHandler = handleAuth({
-  login: handleLogin({
-    authorizationParams: {
-      audience: process.env.AUTH0_AUDIENCE,
-      scope: process.env.AUTH0_SCOPE || 'openid profile email'
-    }
+  login: handleLogin((req) => {
+    const url = new URL(req.url);
+    const connection = url.searchParams.get('connection');
+
+    return {
+      authorizationParams: {
+        audience: process.env.AUTH0_AUDIENCE,
+        scope: process.env.AUTH0_SCOPE || 'openid profile email',
+        ...(connection && { connection })
+      }
+    };
   }),
   // Use federated logout to clear both local and Auth0 sessions
   logout: handleLogout({

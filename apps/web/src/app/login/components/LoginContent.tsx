@@ -17,7 +17,7 @@ import EmailVerificationModal from '@/component/EmailVerificationModal';
 export default function LoginContent() {
   const searchParams = useSearchParams();
   const returnTo = searchParams.get('returnTo');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | false>(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
@@ -48,12 +48,27 @@ export default function LoginContent() {
     }
   ];
 
-  const handleLogin = useCallback(() => {
-    setLoading(true);
-    // Redirect to Auth0 login with returnTo parameter if it exists
-    window.location.href = returnTo
-      ? `/api/auth/login?returnTo=${encodeURIComponent(returnTo)}`
-      : '/api/auth/login';
+  const handleLogin = useCallback((connection?: string) => {
+    setLoading(connection || 'auth0');
+
+    // Build the Auth0 login URL with connection parameter if provided
+    let loginUrl = '/api/auth/login';
+    const params = new URLSearchParams();
+
+    if (returnTo) {
+      params.append('returnTo', returnTo);
+    }
+
+    if (connection && connection !== 'auth0') {
+      params.append('connection', connection);
+    }
+
+    if (params.toString()) {
+      loginUrl += `?${params.toString()}`;
+    }
+
+    // Redirect to Auth0 login
+    window.location.href = loginUrl;
   }, [returnTo]);
 
   const handleImprint = useCallback(() => {
