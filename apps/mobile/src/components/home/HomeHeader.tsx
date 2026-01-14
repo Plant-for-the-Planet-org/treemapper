@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, View } from 'react-native'
-import React, { useEffect } from 'react'
+import React, { useEffect, useState } from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
 import HomeMapIcon from 'assets/images/svg/HomeMapIcon.svg'
@@ -41,7 +41,7 @@ const HomeHeader = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const userType = useSelector((state: RootState) => state.userState.type)
-
+  const [tokenValid, setTokenValid] = useState<boolean>(false)
   const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
   const { refreshUserToken } = useAuthentication()
   const { addNewLog } = useLogManagement()
@@ -57,23 +57,29 @@ const HomeHeader = (props: Props) => {
 
 
   useEffect(() => {
-    if (isLoggedIn) {
-      syncUserDetails()
-    }
     const isExpired = hasTimestampExpiredOrCloseToExpiry(expiringAt);
     if (expiringAt && isExpired) {
       refreshUser()
+      setTokenValid(false)
+    } else {
+      setTokenValid(true)
     }
   }, [isLoggedIn, expiringAt])
 
-    useEffect(() => {
+  useEffect(() => {
+    if(!tokenValid){
+      return;
+    }
+    if (isLoggedIn) {
+      syncUserDetails()
+    }
     if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
       addServerIntervention()
     }
     if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && v3Approved) {
       addMobileServerIntervention()
     }
-  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn])
+  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn, tokenValid])
 
 
   const syncUserDetails = async () => {
@@ -242,6 +248,7 @@ const HomeHeader = (props: Props) => {
       </Pressable>
       <View style={{ alignItems: 'flex-start', gap: 5 }}>
         <SpeciesSync />
+        <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid}/>
       </View>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <NewAppModal />

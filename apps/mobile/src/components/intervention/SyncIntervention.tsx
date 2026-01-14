@@ -27,10 +27,11 @@ import useLogManagement from 'src/hooks/realm/useLogManagement';
 import { generateUid } from 'src/utils/helpers/uidGenerator';
 interface Props {
     isLoggedIn: boolean
+    tokenValid?: boolean
 }
 
 
-const SyncIntervention = ({ isLoggedIn }: Props) => {
+const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
     const [retryCount, setRetryCount] = useState(10)
@@ -62,9 +63,18 @@ const SyncIntervention = ({ isLoggedIn }: Props) => {
     )
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
-            syncUploaded()
+            if (!tokenValid) {
+                addNewLog({
+                    logType: 'DATA_SYNC',
+                    message: 'Token Invalid during data sync',
+                    logLevel: 'error',
+                    statusCode: '',
+                })
+            } else {
+                syncUploaded()
+            }
         }
-    }, [uploadData])
+    }, [uploadData, tokenValid])
 
 
 

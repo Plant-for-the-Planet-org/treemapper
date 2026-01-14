@@ -223,7 +223,7 @@ const ProjectModal = (props: Props) => {
     } catch (error) {
       console.log("Error processing project geometry:", error)
     }
-  }, [currentProject.projectId, projectSite.siteId, realm, updateMapBoundsForGeometry])
+  }, [currentProject.projectId, projectSite.siteId, updateMapBoundsForGeometry])
 
   // Empty project list component
   const emptyProjectListRender = () => (
