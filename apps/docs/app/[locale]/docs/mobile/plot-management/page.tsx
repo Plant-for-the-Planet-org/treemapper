@@ -1,259 +1,253 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function PlotManagementPage() {
+export default async function PlotManagementPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.plotManagement');
+
   return (
     <DocPage
-      title="Plot Management"
-      description="Learn how to create and manage monitoring plots in the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="plot-management"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Monitoring plots are defined areas within your restoration sites used for systematic,
-        long-term data collection. TreeMapper's mobile app provides comprehensive tools for creating
-        plots, managing plot groups, and tracking individual plants within plots over time.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Plot Types</h2>
-      <p>TreeMapper supports two types of monitoring plots:</p>
+      <h2>{t('plotTypesTitle')}</h2>
+      <p>{t('plotTypesIntro')}</p>
 
-      <h3>Intervention Plots</h3>
+      <h3>{t('interventionPlotsTitle')}</h3>
       <p>
-        Plots located within areas where restoration activities have been performed. Use these to
-        monitor the success and growth of planted trees.
+        {t('interventionPlotsDesc')}
       </p>
 
-      <h3>Control Plots</h3>
+      <h3>{t('controlPlotsTitle')}</h3>
       <p>
-        Plots in areas without intervention, used as a baseline for comparison. Control plots help
-        you measure the impact of your restoration efforts by comparing treated and untreated areas.
+        {t('controlPlotsDesc')}
       </p>
 
-      <h2>Plot Shapes</h2>
-      <p>Plots can be defined in two shapes, each suited to different monitoring methodologies:</p>
+      <h2>{t('plotShapesTitle')}</h2>
+      <p>{t('plotShapesIntro')}</p>
 
-      <h3>Circular Plots</h3>
+      <h3>{t('circularPlotsTitle')}</h3>
       <ul>
-        <li>Defined by a center point and radius</li>
-        <li>Common in forestry sampling protocols</li>
-        <li>Easy to establish in the field using a measuring tape from center</li>
-        <li>Area calculated automatically from radius</li>
+        <li>{t('circularPlotsItem1')}</li>
+        <li>{t('circularPlotsItem2')}</li>
+        <li>{t('circularPlotsItem3')}</li>
+        <li>{t('circularPlotsItem4')}</li>
       </ul>
 
-      <h3>Rectangular Plots</h3>
+      <h3>{t('rectangularPlotsTitle')}</h3>
       <ul>
-        <li>Defined by length and width dimensions</li>
-        <li>Useful for systematic grid-based sampling</li>
-        <li>Easy to subdivide into smaller sampling units</li>
-        <li>Area calculated from length x width</li>
+        <li>{t('rectangularPlotsItem1')}</li>
+        <li>{t('rectangularPlotsItem2')}</li>
+        <li>{t('rectangularPlotsItem3')}</li>
+        <li>{t('rectangularPlotsItem4')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Plot Shapes"
-        description="Diagram showing circular and rectangular plot configurations"
+        title={t('plotShapesImageTitle')}
+        description={t('plotShapesImageDesc')}
       />
 
-      <h2>Plot Complexity</h2>
-      <p>When creating a plot, you can choose between two complexity levels:</p>
+      <h2>{t('plotComplexityTitle')}</h2>
+      <p>{t('plotComplexityIntro')}</p>
 
-      <h3>Standard Plots</h3>
+      <h3>{t('standardPlotsTitle')}</h3>
       <p>
-        Full-featured plots with comprehensive data collection options including nested subplots,
-        detailed measurements, and environmental observations.
+        {t('standardPlotsDesc')}
       </p>
 
-      <h3>Simple Plots</h3>
+      <h3>{t('simplePlotsTitle')}</h3>
       <p>
-        Streamlined plots for basic monitoring with fewer data fields. Ideal for quick assessments
-        or when detailed monitoring isn't required.
+        {t('simplePlotsDesc')}
       </p>
 
-      <h2>Creating a Plot</h2>
-      <p>Follow these steps to create a new monitoring plot:</p>
+      <h2>{t('creatingPlotTitle')}</h2>
+      <p>{t('creatingPlotIntro')}</p>
 
       <div className="space-y-4 my-8">
         <WorkflowStep
           number={1}
-          title="Select Plot Options"
-          description="Choose plot complexity (Standard/Simple), shape (Circular/Rectangular), and type (Intervention/Control)"
+          title={t('step1Title')}
+          description={t('step1Desc')}
         />
         <WorkflowStep
           number={2}
-          title="Enter Plot Details"
-          description="Provide plot name, dimensions (radius or length/width), and any identification information"
+          title={t('step2Title')}
+          description={t('step2Desc')}
         />
         <WorkflowStep
           number={3}
-          title="Mark Location on Map"
-          description="Use the map interface to draw or position your plot boundary"
+          title={t('step3Title')}
+          description={t('step3Desc')}
         />
         <WorkflowStep
           number={4}
-          title="Add Documentation"
-          description="Take photos of the plot area for reference"
+          title={t('step4Title')}
+          description={t('step4Desc')}
         />
         <WorkflowStep
           number={5}
-          title="Save Plot"
-          description="Confirm and save the plot to begin data collection"
+          title={t('step5Title')}
+          description={t('step5Desc')}
         />
       </div>
 
       <PlaceholderImage
-        title="Plot Creation"
-        description="Screenshots showing the plot creation workflow"
+        title={t('plotCreationImageTitle')}
+        description={t('plotCreationImageDesc')}
       />
 
-      <h3>Drawing Plot Boundaries</h3>
-      <p>When marking the plot location on the map:</p>
+      <h3>{t('drawingBoundariesTitle')}</h3>
+      <p>{t('drawingBoundariesIntro')}</p>
       <ul>
         <li>
-          <strong>For circular plots</strong>: Tap to set the center point, then adjust the radius
+          <strong>{t('circularPlots')}</strong>: {t('circularPlotsBoundaryDesc')}
         </li>
         <li>
-          <strong>For rectangular plots</strong>: Draw the corners or drag to position and resize
+          <strong>{t('rectangularPlots')}</strong>: {t('rectangularPlotsBoundaryDesc')}
         </li>
-        <li>The app automatically calculates dimensions and area based on your drawing</li>
-        <li>You can manually adjust dimensions after drawing for precise measurements</li>
+        <li>{t('drawingBoundariesItem3')}</li>
+        <li>{t('drawingBoundariesItem4')}</li>
       </ul>
 
-      <h2>Managing Plants in Plots</h2>
+      <h2>{t('managingPlantsTitle')}</h2>
       <p>
-        Once a plot is created, you can track individual plants within it. Each plant record
-        includes:
+        {t('managingPlantsIntro')}
       </p>
 
-      <h3>Plant Information</h3>
+      <h3>{t('plantInformationTitle')}</h3>
       <ul>
         <li>
-          <strong>Species</strong>: Scientific name and local/common name
+          <strong>{t('species')}</strong>: {t('speciesDesc')}
         </li>
         <li>
-          <strong>Tag</strong>: Unique identifier for the plant
+          <strong>{t('tag')}</strong>: {t('tagDesc')}
         </li>
         <li>
-          <strong>Type</strong>: Classification of the plant
+          <strong>{t('type')}</strong>: {t('typeDesc')}
         </li>
         <li>
-          <strong>Quantity</strong>: Number of individuals (for grouped plants)
+          <strong>{t('quantity')}</strong>: {t('quantityDesc')}
         </li>
         <li>
-          <strong>Location</strong>: GPS coordinates within the plot
+          <strong>{t('location')}</strong>: {t('locationDesc')}
         </li>
         <li>
-          <strong>Status</strong>: Current condition (Alive, Deceased, etc.)
+          <strong>{t('status')}</strong>: {t('statusDesc')}
         </li>
       </ul>
 
-      <h3>Adding Plants to a Plot</h3>
+      <h3>{t('addingPlantsTitle')}</h3>
       <ul>
-        <li>Open the plot details</li>
-        <li>Tap to add a new plant</li>
-        <li>Select or search for the species</li>
-        <li>Mark the plant's location within the plot</li>
-        <li>Add measurements and photos</li>
-        <li>Save the plant record</li>
+        <li>{t('addingPlantsItem1')}</li>
+        <li>{t('addingPlantsItem2')}</li>
+        <li>{t('addingPlantsItem3')}</li>
+        <li>{t('addingPlantsItem4')}</li>
+        <li>{t('addingPlantsItem5')}</li>
+        <li>{t('addingPlantsItem6')}</li>
       </ul>
 
-      <h2>Plot Groups</h2>
+      <h2>{t('plotGroupsTitle')}</h2>
       <p>
-        Organize related plots into groups for easier management. Plot groups are useful when you
-        have multiple plots that are part of the same monitoring design or sampling strategy.
+        {t('plotGroupsDesc')}
       </p>
 
-      <h3>Creating a Plot Group</h3>
+      <h3>{t('creatingPlotGroupTitle')}</h3>
       <ul>
-        <li>Navigate to plot groups section</li>
-        <li>Create a new group with a descriptive name</li>
-        <li>Add existing plots to the group</li>
-        <li>Manage group membership as needed</li>
+        <li>{t('creatingPlotGroupItem1')}</li>
+        <li>{t('creatingPlotGroupItem2')}</li>
+        <li>{t('creatingPlotGroupItem3')}</li>
+        <li>{t('creatingPlotGroupItem4')}</li>
       </ul>
 
-      <h3>Benefits of Plot Groups</h3>
+      <h3>{t('benefitsTitle')}</h3>
       <ul>
         <li>
-          <strong>Organization</strong>: Keep related plots together
+          <strong>{t('organization')}</strong>: {t('organizationDesc')}
         </li>
         <li>
-          <strong>Reporting</strong>: Aggregate data across grouped plots
+          <strong>{t('reporting')}</strong>: {t('reportingDesc')}
         </li>
         <li>
-          <strong>Workflow</strong>: Easily find and work with related plots
+          <strong>{t('workflow')}</strong>: {t('workflowDesc')}
         </li>
       </ul>
 
-      <h2>Plant Timeline</h2>
+      <h2>{t('plantTimelineTitle')}</h2>
       <p>
-        TreeMapper maintains a complete history of each plant in your plots. The plant timeline
-        shows:
+        {t('plantTimelineDesc')}
       </p>
       <ul>
-        <li>Initial recording date and measurements</li>
-        <li>All subsequent remeasurements</li>
-        <li>Growth trends over time</li>
-        <li>Status changes (if plant died or was damaged)</li>
-        <li>Photos from each measurement session</li>
+        <li>{t('plantTimelineItem1')}</li>
+        <li>{t('plantTimelineItem2')}</li>
+        <li>{t('plantTimelineItem3')}</li>
+        <li>{t('plantTimelineItem4')}</li>
+        <li>{t('plantTimelineItem5')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Plant Timeline"
-        description="Screenshot showing plant measurement history"
+        title={t('plantTimelineImageTitle')}
+        description={t('plantTimelineImageDesc')}
       />
 
-      <h2>Plot Observations</h2>
+      <h2>{t('plotObservationsTitle')}</h2>
       <p>
-        In addition to plant data, you can record environmental observations for each plot. These
-        observations help document site conditions and factors that may affect plant growth.
+        {t('plotObservationsDesc')}
       </p>
 
-      <h2>Managing Plots</h2>
+      <h2>{t('managingPlotsTitle')}</h2>
 
-      <h3>Editing Plots</h3>
+      <h3>{t('editingPlotsTitle')}</h3>
       <p>
-        You can update plot information including name, dimensions, and other details. Changes are
-        tracked with timestamps for audit purposes.
+        {t('editingPlotsDesc')}
       </p>
 
-      <h3>Deleting Plots</h3>
+      <h3>{t('deletingPlotsTitle')}</h3>
       <p>
-        Plots can be deleted if no longer needed. Note that deleting a plot will also remove all
-        associated plant records, so use this option carefully.
+        {t('deletingPlotsDesc')}
       </p>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
       <ul>
         <li>
-          <strong>Consistent naming</strong>: Use a systematic naming convention for plots (e.g.,
-          Site-Plot-Number)
+          <strong>{t('consistentNaming')}</strong>: {t('consistentNamingDesc')}
         </li>
         <li>
-          <strong>Accurate boundaries</strong>: Take time to precisely mark plot boundaries for
-          consistent data collection
+          <strong>{t('accurateBoundaries')}</strong>: {t('accurateBoundariesDesc')}
         </li>
         <li>
-          <strong>Regular monitoring</strong>: Establish a schedule for revisiting plots to collect
-          growth data
+          <strong>{t('regularMonitoring')}</strong>: {t('regularMonitoringDesc')}
         </li>
         <li>
-          <strong>Photo documentation</strong>: Take overview photos of each plot during every visit
+          <strong>{t('photoDocumentation')}</strong>: {t('photoDocumentationDesc')}
         </li>
         <li>
-          <strong>Tag plants</strong>: Use physical tags in the field to match digital records
+          <strong>{t('tagPlants')}</strong>: {t('tagPlantsDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/plots">Plots & Plot Groups Concept</Link>
+          <Link href={`/${locale}/docs/concepts/plots`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/measurements">Taking Measurements</Link>
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/remeasurement">Remeasurement</Link>
+          <Link href={`/${locale}/docs/concepts/remeasurement`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

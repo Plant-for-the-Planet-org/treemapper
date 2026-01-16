@@ -1,242 +1,226 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function MonitoringPlotsPage() {
+export default async function MonitoringPlotsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.monitoringPlots');
+
   return (
     <DocPage
-      title="Setting Up Monitoring Plots"
-      description="Learn how to establish and manage monitoring plots for long-term forest research and tracking."
+      title={t('title')}
+      description={t('description')}
       pageId="monitoring-plots"
     >
       <p>
-        Monitoring Plots in TreeMapper are designed to help restoration teams systematically monitor
-        a defined area over time. They enable users to assess how forests and landscapes change as
-        a result of restoration activities and to compare areas with and without interventions.
+        {t('intro1')}
       </p>
 
       <p>
-        Monitoring plots provide a structured way to track plant growth, survival, and environmental
-        conditions, supporting long-term, evidence-based restoration monitoring.
+        {t('intro2')}
       </p>
 
       <PlaceholderImage
-        title="Monitoring Plot Overview"
-        description="Screenshot showing monitoring plot interface"
+        title={t('overviewImageTitle')}
+        description={t('overviewImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>What Is a Monitoring Plot?</h2>
+      <h2>{t('whatIsTitle')}</h2>
       <p>
-        A monitoring plot represents a specific, clearly defined area within a restoration site that
-        is observed repeatedly over time. By collecting consistent data from the same area, users
-        can understand trends in vegetation growth, species composition, and ecosystem recovery.
+        {t('whatIsDesc')}
       </p>
 
-      <p>Monitoring plots are particularly useful for:</p>
+      <p>{t('usefulForIntro')}</p>
       <ul>
-        <li>Measuring the effectiveness of restoration interventions</li>
-        <li>Comparing restored areas with untouched or naturally regenerating areas</li>
-        <li>Generating reliable, long-term monitoring data</li>
+        <li>{t('usefulForItem1')}</li>
+        <li>{t('usefulForItem2')}</li>
+        <li>{t('usefulForItem3')}</li>
       </ul>
 
-      <h2>Creating a Monitoring Plot</h2>
+      <h2>{t('creatingTitle')}</h2>
       <p>
-        To create a monitoring plot, users complete a simple registration form. This form captures
-        three key aspects:
+        {t('creatingIntro')}
       </p>
 
-      <h3>1. Plot Type</h3>
-      <p>Users select whether the plot is an <strong>Intervention</strong> or a <strong>Control</strong> plot:</p>
+      <h3>{t('plotTypeTitle')}</h3>
+      <p>{t('plotTypeIntro')} <strong>{t('intervention')}</strong> {t('plotTypeMid')} <strong>{t('control')}</strong> {t('plotTypeEnd')}</p>
       <ul>
         <li>
-          <strong>Intervention plots</strong> are areas where restoration activities (such as
-          planting or assisted regeneration) have taken place.
+          <strong>{t('interventionPlots')}</strong> {t('interventionPlotsDesc')}
         </li>
         <li>
-          <strong>Control plots</strong> represent areas without interventions and are used as
-          reference points for comparison.
+          <strong>{t('controlPlots')}</strong> {t('controlPlotsDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Plot Type Selection"
-        description="Screenshot showing intervention vs control plot selection"
+        title={t('plotTypeImageTitle')}
+        description={t('plotTypeImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h3>2. Plot Details</h3>
+      <h3>{t('plotDetailsTitle')}</h3>
       <p>
-        Users define the basic characteristics of the plot, such as its name and dimensions. This
-        ensures that the plot can be consistently revisited and monitored over time.
+        {t('plotDetailsDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plot Details Form"
-        description="Screenshot showing plot name and dimensions input"
+        title={t('plotDetailsImageTitle')}
+        description={t('plotDetailsImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h3>3. Location</h3>
+      <h3>{t('locationTitle')}</h3>
       <p>
-        The plot's geographic location is recorded so that it can be accurately mapped, revisited,
-        and visualized within the platform.
+        {t('locationDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plot Location Mapping"
-        description="Screenshot showing plot location on map"
+        title={t('locationImageTitle')}
+        description={t('locationImageDesc')}
         aspectRatio="portrait"
       />
 
       <p>
-        Once these steps are completed, the monitoring plot is registered and ready for data
-        collection.
+        {t('onceCompleted')}
       </p>
 
-      <h2>Adding Plants to a Monitoring Plot</h2>
+      <h2>{t('addingPlantsTitle')}</h2>
       <p>
-        After a plot is created, users can add plant-level data within the plot area.
+        {t('addingPlantsIntro')}
       </p>
 
-      <p>For each plant, users record:</p>
+      <p>{t('forEachPlantIntro')}</p>
       <ul>
-        <li>Whether the plant was <strong>planted</strong> or is a <strong>recruit</strong> (naturally occurring)</li>
-        <li>The <strong>species</strong></li>
-        <li><strong>Initial measurements</strong> (such as height or diameter)</li>
-        <li><strong>Optional tags</strong> for identification or grouping</li>
-        <li>The plant's <strong>position</strong> within the plot</li>
+        <li>{t('forEachPlantItem1')} <strong>{t('planted')}</strong> {t('forEachPlantItem1Mid')} <strong>{t('recruit')}</strong> {t('forEachPlantItem1End')}</li>
+        <li>{t('forEachPlantItem2')} <strong>{t('species')}</strong></li>
+        <li><strong>{t('initialMeasurements')}</strong> {t('initialMeasurementsDesc')}</li>
+        <li><strong>{t('optionalTags')}</strong> {t('optionalTagsDesc')}</li>
+        <li>{t('forEachPlantItem5')} <strong>{t('position')}</strong> {t('forEachPlantItem5End')}</li>
       </ul>
 
       <p>
-        This allows the plot to capture both restoration efforts and natural regeneration in a
-        single monitoring framework.
+        {t('allowsPlotDesc')}
       </p>
 
       <PlaceholderImage
-        title="Adding Plants to Plot"
-        description="Screenshot showing plant data entry form"
+        title={t('addingPlantsImageTitle')}
+        description={t('addingPlantsImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Plant Timeline and Remeasurements</h2>
+      <h2>{t('plantTimelineTitle')}</h2>
       <p>
-        Plants within a monitoring plot can be observed repeatedly over time through a plant timeline.
+        {t('plantTimelineIntro')}
       </p>
 
-      <p>As monitoring continues, users can:</p>
+      <p>{t('asMonitoringIntro')}</p>
       <ul>
-        <li>Add new measurements as plants grow</li>
-        <li>Update existing measurements if corrections are needed</li>
-        <li>Mark plants as deceased when applicable</li>
+        <li>{t('asMonitoringItem1')}</li>
+        <li>{t('asMonitoringItem2')}</li>
+        <li>{t('asMonitoringItem3')}</li>
       </ul>
 
       <p>
-        This creates a clear historical record of each plant's development and survival, supporting
-        long-term analysis of restoration outcomes.
+        {t('createsRecordDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plant Timeline"
-        description="Screenshot showing plant measurement history and timeline"
+        title={t('plantTimelineImageTitle')}
+        description={t('plantTimelineImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Plot Observations</h2>
+      <h2>{t('plotObservationsTitle')}</h2>
       <p>
-        Monitoring plots also include an observations section for recording broader environmental
-        changes within the plot.
+        {t('plotObservationsIntro')}
       </p>
 
-      <p>Currently supported observations include:</p>
+      <p>{t('currentlySupportedIntro')}</p>
       <ul>
-        <li><strong>Soil Moisture</strong></li>
-        <li><strong>Canopy Cover</strong></li>
+        <li><strong>{t('soilMoisture')}</strong></li>
+        <li><strong>{t('canopyCover')}</strong></li>
       </ul>
 
       <p>
-        Observations are recorded using a single, structured form and can be edited later if
-        corrections are required. Additional observation types, such as bioacoustics, are planned
-        for future updates.
+        {t('observationsRecordedDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plot Observations"
-        description="Screenshot showing observation recording form"
+        title={t('plotObservationsImageTitle')}
+        description={t('plotObservationsImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Map View and Plot Visualization</h2>
-      <p>Each monitoring plot includes a dedicated map view that shows:</p>
+      <h2>{t('mapViewTitle')}</h2>
+      <p>{t('mapViewIntro')}</p>
       <ul>
-        <li>The plot boundary</li>
-        <li>The location of plants within the plot</li>
+        <li>{t('mapViewItem1')}</li>
+        <li>{t('mapViewItem2')}</li>
       </ul>
 
       <p>
-        From this view, users can navigate to individual plant details and adjust plot dimensions
-        when necessary. This spatial overview helps ensure accuracy and clarity during field
-        monitoring.
+        {t('mapViewDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plot Map View"
-        description="Screenshot showing plot boundary and plant locations on map"
+        title={t('mapViewImageTitle')}
+        description={t('mapViewImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Editing and Updating Plot Data</h2>
+      <h2>{t('editingTitle')}</h2>
       <p>
-        All monitoring plot data remains fully editable. Users can update plot details, plant
-        records, observations, and locations to ensure data accuracy as monitoring progresses or
-        new information becomes available.
+        {t('editingDesc')}
       </p>
 
-      <h2>Plot Groups</h2>
+      <h2>{t('plotGroupsTitle')}</h2>
       <p>
-        Monitoring plots can be organized into groups to simplify analysis and management.
+        {t('plotGroupsIntro')}
       </p>
 
       <ul>
-        <li>A group can contain multiple monitoring plots</li>
-        <li>Each monitoring plot can belong to only one group</li>
+        <li>{t('plotGroupsItem1')}</li>
+        <li>{t('plotGroupsItem2')}</li>
       </ul>
 
       <p>
-        Groups are useful for organizing plots that share similar characteristics, objectives, or
-        study designs, such as:
+        {t('groupsUsefulIntro')}
       </p>
       <ul>
-        <li>Control vs intervention comparisons</li>
-        <li>Long-term research areas</li>
-        <li>Specific restoration strategies</li>
+        <li>{t('groupsUsefulItem1')}</li>
+        <li>{t('groupsUsefulItem2')}</li>
+        <li>{t('groupsUsefulItem3')}</li>
       </ul>
 
       <p>
-        This structure helps users manage large monitoring efforts and analyze results across
-        related plots.
+        {t('structureHelpsDesc')}
       </p>
 
       <PlaceholderImage
-        title="Plot Groups"
-        description="Screenshot showing plot group organization"
+        title={t('plotGroupsImageTitle')}
+        description={t('plotGroupsImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>What's Next?</h2>
-      <p>After setting up your monitoring plot, you can:</p>
+      <h2>{t('whatsNextTitle')}</h2>
+      <p>{t('whatsNextIntro')}</p>
       <ul>
         <li>
-          <Link href="/docs/mobile/measurements">Learn about taking measurements</Link> for
-          scientific data collection
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('nextLink1')}</Link> {t('nextLink1Desc')}
         </li>
         <li>
-          <Link href="/docs/tutorials/first-intervention">Create interventions</Link> within your
-          monitoring plots
+          <Link href={`/${locale}/docs/tutorials/first-intervention`}>{t('nextLink2')}</Link> {t('nextLink2Desc')}
         </li>
         <li>
-          <Link href="/docs/web/overview">View plot data on the web dashboard</Link> for
-          analysis and reporting
+          <Link href={`/${locale}/docs/web/overview`}>{t('nextLink3')}</Link> {t('nextLink3Desc')}
         </li>
       </ul>
     </DocPage>

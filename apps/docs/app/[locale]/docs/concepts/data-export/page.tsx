@@ -1,152 +1,145 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function DataExportPage() {
+export default async function DataExportPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.dataExport');
+
   return (
     <DocPage
-      title="Data Export"
-      description="Learn how to export your restoration data from TreeMapper in various formats for analysis and reporting."
+      title={t('title')}
+      description={t('description')}
       pageId="data-export"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        All data registered using the TreeMapper app can be exported in <strong>GeoJSON</strong> or{' '}
-        <strong>Excel</strong> format. This allows you to use your restoration data in external
-        tools for analysis, reporting, or integration with other systems.
+        {t('overviewIntro1')} <strong>{t('geoJSON')}</strong> {t('overviewIntro2')} <strong>{t('excel')}</strong> {t('overviewIntro3')}
       </p>
 
-      <h2>Exporting from the Mobile App</h2>
+      <h2>{t('exportingMobileTitle')}</h2>
       <p>
-        From the mobile app, you can export <strong>single intervention data</strong> as a GeoJSON
-        file. This exported file can then be imported into any ArcGIS-supported platform or other
-        GIS tools for spatial analysis and visualization.
+        {t('exportingMobileIntro1')} <strong>{t('singleIntervention')}</strong> {t('exportingMobileIntro2')}
       </p>
 
       <PlaceholderImage
-        title="Mobile Export"
-        description="Screenshot showing GeoJSON export option for a single intervention in the mobile app"
+        title={t('mobileExportImageTitle')}
+        description={t('mobileExportImageDesc')}
       />
 
-      <h3>How to Export from Mobile</h3>
+      <h3>{t('howToExportMobileTitle')}</h3>
       <ul>
-        <li>Open the intervention you want to export</li>
-        <li>Tap the export or share option</li>
-        <li>Select GeoJSON format</li>
-        <li>Share or save the file to your preferred location</li>
+        <li>{t('howToExportMobileItem1')}</li>
+        <li>{t('howToExportMobileItem2')}</li>
+        <li>{t('howToExportMobileItem3')}</li>
+        <li>{t('howToExportMobileItem4')}</li>
       </ul>
 
-      <h2>Exporting from the Web Dashboard</h2>
+      <h2>{t('exportingWebTitle')}</h2>
       <p>
-        For exporting <strong>all your data</strong>, use the web dashboard. The web dashboard
-        provides more comprehensive export options, including the ability to filter data by time
-        period.
+        {t('exportingWebIntro1')} <strong>{t('allData')}</strong>, {t('exportingWebIntro2')}
       </p>
 
       <PlaceholderImage
-        title="Web Dashboard Export"
-        description="Screenshot showing data export options in the web dashboard"
+        title={t('webDashboardExportImageTitle')}
+        description={t('webDashboardExportImageDesc')}
       />
 
-      <h3>Time-Based Filtering</h3>
+      <h3>{t('timeBasedFilteringTitle')}</h3>
       <p>
-        You can use the <strong>time filter</strong> to export data from a specific time period.
-        This is useful when you need to generate reports for a particular month, quarter, or year.
+        {t('timeBasedFilteringIntro1')} <strong>{t('timeFilter')}</strong> {t('timeBasedFilteringIntro2')}
       </p>
 
-      <h3>Available Export Formats</h3>
-      <p>Currently, the web dashboard allows you to export all your data in Excel format:</p>
+      <h3>{t('availableFormatsTitle')}</h3>
+      <p>{t('availableFormatsIntro')}</p>
       <ul>
         <li>
-          <strong>Excel (.xlsx)</strong>: Export all intervention and restoration data in a
-          spreadsheet format, ideal for analysis in Excel, Google Sheets, or other spreadsheet
-          applications
+          <strong>{t('excelFormat')}</strong>: {t('excelFormatDesc')}
         </li>
       </ul>
 
-      <h2>Additional Data Exports</h2>
+      <h2>{t('additionalExportsTitle')}</h2>
       <p>
-        Beyond intervention data, you can also export other types of data from their respective
-        sections in the web dashboard:
+        {t('additionalExportsIntro')}
       </p>
 
-      <h3>Species Data</h3>
+      <h3>{t('speciesDataTitle')}</h3>
       <p>
-        Export species-level data from the species management section. This includes all tree
-        species records, counts, and related information collected across your projects.
+        {t('speciesDataDesc')}
       </p>
 
-      <h3>Team Data</h3>
+      <h3>{t('teamDataTitle')}</h3>
       <p>
-        Export team member information and activity data from the team management section. This is
-        useful for tracking contributions and generating team performance reports.
+        {t('teamDataDesc')}
       </p>
 
-      <h2>Export Summary</h2>
+      <h2>{t('exportSummaryTitle')}</h2>
       <div className="overflow-x-auto my-6">
         <table className="w-full border-collapse border border-border">
           <thead>
             <tr className="bg-muted">
-              <th className="border border-border px-4 py-2 text-left">Platform</th>
-              <th className="border border-border px-4 py-2 text-left">Data Type</th>
-              <th className="border border-border px-4 py-2 text-left">Format</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tablePlatform')}</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableDataType')}</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableFormat')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="border border-border px-4 py-2">Mobile App</td>
-              <td className="border border-border px-4 py-2">Single Intervention</td>
-              <td className="border border-border px-4 py-2">GeoJSON</td>
+              <td className="border border-border px-4 py-2">{t('mobileApp')}</td>
+              <td className="border border-border px-4 py-2">{t('singleIntervention')}</td>
+              <td className="border border-border px-4 py-2">{t('geoJSON')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Web Dashboard</td>
-              <td className="border border-border px-4 py-2">All Interventions</td>
-              <td className="border border-border px-4 py-2">Excel</td>
+              <td className="border border-border px-4 py-2">{t('webDashboard')}</td>
+              <td className="border border-border px-4 py-2">{t('allInterventions')}</td>
+              <td className="border border-border px-4 py-2">{t('excel')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Web Dashboard</td>
-              <td className="border border-border px-4 py-2">Species Data</td>
-              <td className="border border-border px-4 py-2">Excel</td>
+              <td className="border border-border px-4 py-2">{t('webDashboard')}</td>
+              <td className="border border-border px-4 py-2">{t('speciesData')}</td>
+              <td className="border border-border px-4 py-2">{t('excel')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Web Dashboard</td>
-              <td className="border border-border px-4 py-2">Team Data</td>
-              <td className="border border-border px-4 py-2">Excel</td>
+              <td className="border border-border px-4 py-2">{t('webDashboard')}</td>
+              <td className="border border-border px-4 py-2">{t('teamData')}</td>
+              <td className="border border-border px-4 py-2">{t('excel')}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h2>Use Cases</h2>
+      <h2>{t('useCasesTitle')}</h2>
       <ul>
         <li>
-          <strong>GIS Analysis</strong>: Export GeoJSON from mobile and import into ArcGIS, QGIS,
-          or other mapping platforms for advanced spatial analysis
+          <strong>{t('gisAnalysis')}</strong>: {t('gisAnalysisDesc')}
         </li>
         <li>
-          <strong>Reporting</strong>: Export Excel data from the web dashboard to create custom
-          reports for stakeholders
+          <strong>{t('reporting')}</strong>: {t('reportingDesc')}
         </li>
         <li>
-          <strong>Data Backup</strong>: Regularly export your data as a backup or for archival
-          purposes
+          <strong>{t('dataBackup')}</strong>: {t('dataBackupDesc')}
         </li>
         <li>
-          <strong>Integration</strong>: Use exported data to integrate with other data management
-          or reporting systems
+          <strong>{t('integration')}</strong>: {t('integrationDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/web/reports">Reports & Analytics</Link>
+          <Link href={`/${locale}/docs/web/reports`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/species-management">Species Management</Link>
+          <Link href={`/${locale}/docs/web/species-management`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/team-management">Team Management</Link>
+          <Link href={`/${locale}/docs/web/team-management`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

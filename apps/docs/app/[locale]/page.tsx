@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { setRequestLocale } from 'next-intl/server';
+import { setRequestLocale, getTranslations } from 'next-intl/server';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
 
@@ -11,6 +11,7 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
+  const t = await getTranslations('home');
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden">
@@ -66,32 +67,28 @@ export default async function HomePage({
             {/* Title */}
             <div className="space-y-2 sm:space-y-3 pt-2 sm:pt-4">
               <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-lg [text-shadow:_2px_2px_8px_rgb(0_0_0_/_60%)]">
-                TreeMapper
+                {t('title')}
               </h1>
-              {/* <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight drop-shadow-lg [text-shadow:_2px_2px_8px_rgb(0_0_0_/_60%)] text-white/90">
-                Documentation
-              </h2> */}
             </div>
 
             {/* Description */}
             <p className="text-base sm:text-lg md:text-xl text-white/85 max-w-lg mx-auto lg:mx-0 leading-relaxed drop-shadow-md [text-shadow:_1px_1px_4px_rgb(0_0_0_/_50%)]">
-              Learn how to map, monitor, and manage tree planting interventions
-              with our comprehensive guides and tutorials.
+              {t('description')}
             </p>
 
             {/* Features List */}
             <div className="flex flex-wrap justify-center lg:justify-start gap-2 sm:gap-3 pt-1 sm:pt-2">
               <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium border border-white/20">
-                Mobile App
+                {t('features.mobileApp')}
               </span>
               <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium border border-white/20">
-                Web Platform
+                {t('features.webPlatform')}
               </span>
               <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium border border-white/20">
-                Offline Support
+                {t('features.offlineSupport')}
               </span>
               <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/15 backdrop-blur-sm rounded-full text-xs sm:text-sm font-medium border border-white/20">
-                Data Export
+                {t('features.dataExport')}
               </span>
             </div>
 
@@ -102,7 +99,7 @@ export default async function HomePage({
                   size="lg"
                   className="group gap-2 sm:gap-3 bg-gradient-to-r from-[#007A49] to-[#00a65a] hover:from-[#006640] hover:to-[#008c4a] text-white px-6 sm:px-8 lg:px-10 py-5 sm:py-6 lg:py-7 text-base sm:text-lg font-semibold rounded-full shadow-[0_8px_30px_rgba(0,122,73,0.4)] hover:shadow-[0_12px_40px_rgba(0,122,73,0.6)] transition-all duration-300 hover:scale-105 border border-white/20 lg:bg-gradient-to-r lg:from-[#007A49] lg:to-[#00a65a] bg-white/20"
                 >
-                  View Documentation
+                  {t('viewDocs')}
                   <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 transition-transform duration-300 group-hover:translate-x-1" />
                 </Button>
               </Link>
@@ -148,7 +145,7 @@ export default async function HomePage({
         <footer className="relative z-10 py-4 sm:py-6 px-4 sm:px-8 md:px-16 lg:px-24">
           <div className="flex items-center justify-center lg:justify-start gap-2 drop-shadow-md">
             <span className="text-white/80 text-xs sm:text-sm [text-shadow:_1px_1px_4px_rgb(0_0_0_/_50%)]">
-              Created by
+              {t('createdBy')}
             </span>
             <a
               href="https://www.plant-for-the-planet.org"

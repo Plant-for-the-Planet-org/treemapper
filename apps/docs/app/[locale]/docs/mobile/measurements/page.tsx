@@ -1,264 +1,258 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function MeasurementsPage() {
+export default async function MeasurementsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.measurements');
+
   return (
     <DocPage
-      title="Taking Measurements"
-      description="Learn how to accurately measure trees using the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="measurements"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Accurate tree measurements are essential for tracking growth and assessing the success of
-        your restoration efforts. TreeMapper provides tools for recording height, diameter, and
-        other metrics with built-in validation to ensure data quality.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Measurement Types</h2>
+      <h2>{t('measurementTypesTitle')}</h2>
 
-      <h3>Height/Length</h3>
+      <h3>{t('heightLengthTitle')}</h3>
       <p>
-        Tree height is measured from the ground to the top of the tree. TreeMapper supports
-        different units based on your location:
+        {t('heightLengthDesc')}
       </p>
       <ul>
         <li>
-          <strong>Metric countries (ISU)</strong>: Enter height in meters
+          <strong>{t('metricCountries')}</strong>: {t('metricCountriesDesc')}
         </li>
         <li>
-          <strong>Non-metric countries</strong>: Enter height in feet (automatically converted to
-          meters for storage)
+          <strong>{t('nonMetricCountries')}</strong>: {t('nonMetricCountriesDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Height Measurement"
-        description="Diagram showing how to measure tree height from ground to crown"
+        title={t('heightMeasurementImageTitle')}
+        description={t('heightMeasurementImageDesc')}
       />
 
-      <h3>Diameter Measurements</h3>
+      <h3>{t('diameterMeasurementsTitle')}</h3>
       <p>
-        TreeMapper automatically determines which diameter measurement to use based on tree height:
+        {t('diameterMeasurementsDesc')}
       </p>
 
-      <h4>Diameter at Breast Height (DBH)</h4>
-      <p>For trees taller than 1.3 meters (4.3 feet):</p>
+      <h4>{t('dbhTitle')}</h4>
+      <p>{t('dbhIntro')}</p>
       <ul>
-        <li>Measured at 1.3 meters (breast height) above the ground</li>
-        <li>Standard forestry measurement for established trees</li>
-        <li>Entered in centimeters (metric) or inches (non-metric)</li>
+        <li>{t('dbhItem1')}</li>
+        <li>{t('dbhItem2')}</li>
+        <li>{t('dbhItem3')}</li>
       </ul>
 
-      <h4>Basal Diameter</h4>
-      <p>For trees shorter than 1.3 meters:</p>
+      <h4>{t('basalDiameterTitle')}</h4>
+      <p>{t('basalDiameterIntro')}</p>
       <ul>
-        <li>Measured at the base of the tree, near ground level</li>
-        <li>Used for seedlings and young trees</li>
-        <li>Same unit options as DBH</li>
+        <li>{t('basalDiameterItem1')}</li>
+        <li>{t('basalDiameterItem2')}</li>
+        <li>{t('basalDiameterItem3')}</li>
       </ul>
 
       <p>
-        The app automatically switches between "DBH" and "Basal Diameter" labels based on the height
-        you enter, ensuring the correct measurement protocol is followed.
+        {t('appSwitchesDesc')}
       </p>
 
       <PlaceholderImage
-        title="Diameter Measurement Points"
-        description="Diagram showing DBH measurement at 1.3m vs basal diameter at ground level"
+        title={t('diameterMeasurementPointsImageTitle')}
+        description={t('diameterMeasurementPointsImageDesc')}
       />
 
-      <h2>Taking Measurements</h2>
-      <p>When adding measurements to a tree, follow these steps:</p>
+      <h2>{t('takingMeasurementsTitle')}</h2>
+      <p>{t('takingMeasurementsIntro')}</p>
 
       <div className="space-y-4 my-8">
         <WorkflowStep
           number={1}
-          title="Enter Height"
-          description="Input the tree height in the appropriate unit for your region"
+          title={t('step1Title')}
+          description={t('step1Desc')}
         />
         <WorkflowStep
           number={2}
-          title="Enter Diameter"
-          description="Input DBH (for trees >1.3m) or basal diameter (for shorter trees)"
+          title={t('step2Title')}
+          description={t('step2Desc')}
         />
         <WorkflowStep
           number={3}
-          title="Add Tree Tag (Optional)"
-          description="Enable the tag switch and enter an alphanumeric tag ID if using physical tags"
+          title={t('step3Title')}
+          description={t('step3Desc')}
         />
         <WorkflowStep
           number={4}
-          title="Take Photo"
-          description="Capture a photo of the tree for visual documentation"
+          title={t('step4Title')}
+          description={t('step4Desc')}
         />
         <WorkflowStep
           number={5}
-          title="Save Measurements"
-          description="Confirm and save the measurement record"
+          title={t('step5Title')}
+          description={t('step5Desc')}
         />
       </div>
 
-      <h2>Measurement Validation</h2>
+      <h2>{t('measurementValidationTitle')}</h2>
       <p>
-        TreeMapper includes built-in validation to help ensure your measurements are botanically
-        reasonable:
+        {t('measurementValidationDesc')}
       </p>
 
-      <h3>Height-to-Diameter Ratio</h3>
+      <h3>{t('heightToDiameterTitle')}</h3>
       <p>
-        The app checks the ratio between height and diameter to identify potentially erroneous
-        measurements. If the ratio falls outside expected ranges for typical trees, you'll see an
-        alert.
+        {t('heightToDiameterDesc')}
       </p>
 
-      <h4>What Happens When Validation Fails?</h4>
+      <h4>{t('validationFailsTitle')}</h4>
       <ul>
-        <li>An alert appears explaining the potential issue</li>
-        <li>You can review and correct your measurements</li>
-        <li>You can choose to save anyway if the measurements are accurate for an unusual tree</li>
+        <li>{t('validationFailsItem1')}</li>
+        <li>{t('validationFailsItem2')}</li>
+        <li>{t('validationFailsItem3')}</li>
       </ul>
 
-      <h3>Input Validation</h3>
+      <h3>{t('inputValidationTitle')}</h3>
       <ul>
-        <li>Values must be positive numbers</li>
-        <li>Decimal format is supported (e.g., 2.5 meters)</li>
-        <li>Empty values are not allowed for required fields</li>
+        <li>{t('inputValidationItem1')}</li>
+        <li>{t('inputValidationItem2')}</li>
+        <li>{t('inputValidationItem3')}</li>
       </ul>
 
-      <h2>Tree Tags</h2>
+      <h2>{t('treeTagsTitle')}</h2>
       <p>
-        Tree tags provide a physical-to-digital link for tracking individual trees in the field:
+        {t('treeTagsDesc')}
       </p>
       <ul>
-        <li>Toggle the tag switch to enable tag input</li>
-        <li>Enter an alphanumeric tag ID that matches the physical tag on the tree</li>
-        <li>Tags must be unique within the intervention</li>
-        <li>Use consistent tagging protocols across your project</li>
+        <li>{t('treeTagsItem1')}</li>
+        <li>{t('treeTagsItem2')}</li>
+        <li>{t('treeTagsItem3')}</li>
+        <li>{t('treeTagsItem4')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Tree Tag Input"
-        description="Screenshot showing the tree tag input field"
+        title={t('treeTagInputImageTitle')}
+        description={t('treeTagInputImageDesc')}
       />
 
-      <h2>Location Data</h2>
+      <h2>{t('locationDataTitle')}</h2>
       <p>
-        When you take measurements, TreeMapper automatically captures your current GPS location.
-        This provides:
+        {t('locationDataDesc')}
       </p>
       <ul>
-        <li>Geographic reference for the measured tree</li>
-        <li>Location accuracy information</li>
-        <li>Timestamp of the measurement</li>
+        <li>{t('locationDataItem1')}</li>
+        <li>{t('locationDataItem2')}</li>
+        <li>{t('locationDataItem3')}</li>
       </ul>
 
-      <h2>Unit Conversion</h2>
+      <h2>{t('unitConversionTitle')}</h2>
       <p>
-        TreeMapper handles unit conversion automatically to ensure data consistency across all
-        users:
+        {t('unitConversionDesc')}
       </p>
 
       <div className="overflow-x-auto my-6">
         <table className="w-full border-collapse border border-border">
           <thead>
             <tr className="bg-muted">
-              <th className="border border-border px-4 py-2 text-left">Measurement</th>
-              <th className="border border-border px-4 py-2 text-left">Input Unit</th>
-              <th className="border border-border px-4 py-2 text-left">Stored Unit</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableMeasurement')}</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableInputUnit')}</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableStoredUnit')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="border border-border px-4 py-2">Height (Metric)</td>
-              <td className="border border-border px-4 py-2">Meters</td>
-              <td className="border border-border px-4 py-2">Meters</td>
+              <td className="border border-border px-4 py-2">{t('tableRow1Measurement')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow1Input')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow1Stored')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Height (Non-metric)</td>
-              <td className="border border-border px-4 py-2">Feet</td>
-              <td className="border border-border px-4 py-2">Meters</td>
+              <td className="border border-border px-4 py-2">{t('tableRow2Measurement')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow2Input')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow2Stored')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Diameter (Metric)</td>
-              <td className="border border-border px-4 py-2">Centimeters</td>
-              <td className="border border-border px-4 py-2">Centimeters</td>
+              <td className="border border-border px-4 py-2">{t('tableRow3Measurement')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow3Input')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow3Stored')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Diameter (Non-metric)</td>
-              <td className="border border-border px-4 py-2">Inches</td>
-              <td className="border border-border px-4 py-2">Centimeters</td>
+              <td className="border border-border px-4 py-2">{t('tableRow4Measurement')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow4Input')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow4Stored')}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
-      <h2>Best Practices for Accurate Measurements</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Height Measurement Tips</h3>
+      <h3>{t('heightMeasurementTipsTitle')}</h3>
       <ul>
         <li>
-          <strong>Use proper tools</strong>: A clinometer or hypsometer improves accuracy for tall
-          trees
+          <strong>{t('useProperTools')}</strong>: {t('useProperToolsDesc')}
         </li>
         <li>
-          <strong>Stand at known distance</strong>: Position yourself at a consistent distance from
-          the tree
+          <strong>{t('standAtKnownDistance')}</strong>: {t('standAtKnownDistanceDesc')}
         </li>
         <li>
-          <strong>Identify the top</strong>: Clearly identify the highest point of the crown
+          <strong>{t('identifyTheTop')}</strong>: {t('identifyTheTopDesc')}
         </li>
         <li>
-          <strong>Account for slope</strong>: Measure from the uphill side on slopes
+          <strong>{t('accountForSlope')}</strong>: {t('accountForSlopeDesc')}
         </li>
       </ul>
 
-      <h3>Diameter Measurement Tips</h3>
+      <h3>{t('diameterMeasurementTipsTitle')}</h3>
       <ul>
         <li>
-          <strong>Use a diameter tape</strong>: D-tapes give direct diameter readings from
-          circumference
+          <strong>{t('useDiameterTape')}</strong>: {t('useDiameterTapeDesc')}
         </li>
         <li>
-          <strong>Measure perpendicular</strong>: Hold the tape perpendicular to the tree trunk
+          <strong>{t('measurePerpendicular')}</strong>: {t('measurePerpendicularDesc')}
         </li>
         <li>
-          <strong>Avoid irregularities</strong>: If there's a bulge or damage at breast height,
-          measure slightly above or below
+          <strong>{t('avoidIrregularities')}</strong>: {t('avoidIrregularitiesDesc')}
         </li>
         <li>
-          <strong>Record multiple stems</strong>: For multi-stemmed trees, measure each stem
-          separately
+          <strong>{t('recordMultipleStems')}</strong>: {t('recordMultipleStemsDesc')}
         </li>
       </ul>
 
-      <h3>General Tips</h3>
+      <h3>{t('generalTipsTitle')}</h3>
       <ul>
         <li>
-          <strong>Be consistent</strong>: Use the same measurement technique across all trees
+          <strong>{t('beConsistent')}</strong>: {t('beConsistentDesc')}
         </li>
         <li>
-          <strong>Double-check unusual values</strong>: Re-measure if numbers seem off
+          <strong>{t('doubleCheckUnusual')}</strong>: {t('doubleCheckUnusualDesc')}
         </li>
         <li>
-          <strong>Document conditions</strong>: Note any factors affecting measurement accuracy
+          <strong>{t('documentConditions')}</strong>: {t('documentConditionsDesc')}
         </li>
         <li>
-          <strong>Take photos</strong>: Photos provide visual verification of measurements
+          <strong>{t('takePhotos')}</strong>: {t('takePhotosDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/remeasurement">Remeasurement</Link>
+          <Link href={`/${locale}/docs/concepts/remeasurement`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/photo-documentation">Photo Documentation</Link>
+          <Link href={`/${locale}/docs/mobile/photo-documentation`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/creating-interventions">Creating Interventions</Link>
+          <Link href={`/${locale}/docs/mobile/creating-interventions`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

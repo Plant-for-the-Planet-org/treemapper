@@ -1,274 +1,265 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function CreatingInterventionsPage() {
+export default async function CreatingInterventionsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.creatingInterventions');
+
   return (
     <DocPage
-      title="Creating Interventions"
-      description="Step-by-step guide to creating interventions in the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="creating-interventions"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Creating an intervention in TreeMapper is a multi-step process that guides you through
-        selecting the intervention type, marking the location, adding species information, and
-        capturing photos and measurements. This comprehensive workflow ensures all necessary data is
-        collected for each restoration activity.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Intervention Types</h2>
-      <p>TreeMapper supports over 13 intervention types to cover various restoration activities:</p>
+      <h2>{t('interventionTypesTitle')}</h2>
+      <p>{t('interventionTypesIntro')}</p>
 
-      <h3>Planting Interventions</h3>
+      <h3>{t('plantingInterventionsTitle')}</h3>
       <ul>
         <li>
-          <strong>Single Tree Planting</strong>: Plant one tree at a specific point location
+          <strong>{t('singleTreePlanting')}</strong>: {t('singleTreePlantingDesc')}
         </li>
         <li>
-          <strong>Multi-Tree Planting</strong>: Plant multiple trees within a defined polygon area
+          <strong>{t('multiTreePlanting')}</strong>: {t('multiTreePlantingDesc')}
         </li>
         <li>
-          <strong>Assisted Regeneration</strong>: Document areas where natural regeneration is being
-          supported
+          <strong>{t('assistedRegeneration')}</strong>: {t('assistedRegenerationDesc')}
         </li>
       </ul>
 
-      <h3>Maintenance Interventions</h3>
+      <h3>{t('maintenanceInterventionsTitle')}</h3>
       <ul>
         <li>
-          <strong>Maintenance</strong>: General tree care like pruning, watering, or mulching
+          <strong>{t('maintenance')}</strong>: {t('maintenanceDesc')}
         </li>
         <li>
-          <strong>Fire Suppression</strong>: Creating firebreaks or fire prevention measures
+          <strong>{t('fireSuppression')}</strong>: {t('fireSuppressionDesc')}
         </li>
         <li>
-          <strong>Fire Patrol</strong>: Monitoring and patrolling for fire risks
+          <strong>{t('firePatrol')}</strong>: {t('firePatrolDesc')}
         </li>
         <li>
-          <strong>Fencing</strong>: Installing protective barriers
+          <strong>{t('fencing')}</strong>: {t('fencingDesc')}
         </li>
       </ul>
 
-      <h3>Removal and Other</h3>
+      <h3>{t('removalOtherTitle')}</h3>
       <ul>
         <li>
-          <strong>Invasive Removal</strong>: Clearing non-native or harmful vegetation
+          <strong>{t('invasiveRemoval')}</strong>: {t('invasiveRemovalDesc')}
         </li>
         <li>
-          <strong>Grass Suppression</strong>: Managing grass competition
+          <strong>{t('grassSuppression')}</strong>: {t('grassSuppressionDesc')}
         </li>
         <li>
-          <strong>Marking Regenerant</strong>: Identifying and marking natural seedlings
+          <strong>{t('markingRegenerant')}</strong>: {t('markingRegenerantDesc')}
         </li>
         <li>
-          <strong>Soil Improvement</strong>: Enhancing soil conditions for planting
+          <strong>{t('soilImprovement')}</strong>: {t('soilImprovementDesc')}
         </li>
         <li>
-          <strong>Stop Harvesting</strong>: Designating areas protected from harvesting
+          <strong>{t('stopHarvesting')}</strong>: {t('stopHarvestingDesc')}
         </li>
         <li>
-          <strong>Direct Seeding</strong>: Broadcasting seeds in restoration areas
+          <strong>{t('directSeeding')}</strong>: {t('directSeedingDesc')}
         </li>
         <li>
-          <strong>Other</strong>: Custom intervention types
+          <strong>{t('other')}</strong>: {t('otherDesc')}
         </li>
       </ul>
 
-      <h2>Step-by-Step Creation Process</h2>
+      <h2>{t('stepByStepTitle')}</h2>
 
-      <h3>Step 1: Start New Intervention</h3>
+      <h3>{t('step1Title')}</h3>
       <p>
-        From the main map screen, tap the add button to start creating a new intervention. This
-        opens the intervention form where you'll enter the basic details.
+        {t('step1Desc')}
       </p>
 
       <PlaceholderImage
-        title="New Intervention Form"
-        description="Screenshot of the initial intervention form"
+        title={t('newInterventionFormImageTitle')}
+        description={t('newInterventionFormImageDesc')}
       />
 
-      <h3>Step 2: Select Intervention Type</h3>
+      <h3>{t('step2Title')}</h3>
       <p>
-        Choose the type of intervention you're performing from the list of available types. The
-        selected type determines what additional information you'll need to provide.
+        {t('step2Desc')}
       </p>
 
-      <h3>Step 3: Choose Project and Site</h3>
-      <p>Select which project this intervention belongs to. You can also optionally select a specific site within the project. For site-wide interventions, you can enable the "Entire Site" toggle to apply the intervention to the whole site.</p>
+      <h3>{t('step3Title')}</h3>
+      <p>{t('step3Desc')}</p>
 
-      <h3>Step 4: Set Intervention Date</h3>
+      <h3>{t('step4Title')}</h3>
       <p>
-        The date picker allows you to set when the intervention was performed. By default, it's set
-        to today's date, but you can adjust it if you're recording past activities.
+        {t('step4Desc')}
       </p>
 
-      <h3>Step 5: Add Location Name (Optional)</h3>
+      <h3>{t('step5Title')}</h3>
       <p>
-        You can provide a descriptive location name and any additional information about the
-        intervention site. This helps identify the intervention later.
+        {t('step5Desc')}
       </p>
 
-      <h2>Marking the Location</h2>
+      <h2>{t('markingLocationTitle')}</h2>
       <p>
-        After completing the initial form, you'll mark the intervention location on the map. The app
-        supports two location types:
+        {t('markingLocationDesc')}
       </p>
 
-      <h3>Point Location</h3>
-      <p>Best for single trees or specific spot interventions:</p>
+      <h3>{t('pointLocationTitle')}</h3>
+      <p>{t('pointLocationIntro')}</p>
       <ul>
-        <li>The map opens with your current GPS location</li>
-        <li>Tap on the map to place the marker at the exact intervention location</li>
-        <li>The GPS accuracy indicator helps ensure precise placement</li>
-        <li>You can drag the marker to adjust the position</li>
+        <li>{t('pointLocationItem1')}</li>
+        <li>{t('pointLocationItem2')}</li>
+        <li>{t('pointLocationItem3')}</li>
+        <li>{t('pointLocationItem4')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Point Marker"
-        description="Screenshot showing point marker placement on the map"
+        title={t('pointMarkerImageTitle')}
+        description={t('pointMarkerImageDesc')}
       />
 
-      <h3>Polygon Location</h3>
-      <p>Best for area-based interventions like multi-tree planting:</p>
+      <h3>{t('polygonLocationTitle')}</h3>
+      <p>{t('polygonLocationIntro')}</p>
       <ul>
-        <li>Tap points on the map to define the boundary corners</li>
-        <li>Points are labeled alphabetically (A, B, C, etc.) for reference</li>
-        <li>Lines connect the points to show the polygon shape</li>
-        <li>Close the polygon by connecting back to the first point</li>
+        <li>{t('polygonLocationItem1')}</li>
+        <li>{t('polygonLocationItem2')}</li>
+        <li>{t('polygonLocationItem3')}</li>
+        <li>{t('polygonLocationItem4')}</li>
       </ul>
 
-      <h4>GPS Polygon Tracking</h4>
+      <h4>{t('gpsPolygonTrackingTitle')}</h4>
       <p>
-        For accurate polygon mapping, use the GPS tracking feature to walk the perimeter of the
-        area:
+        {t('gpsPolygonTrackingDesc')}
       </p>
       <ul>
-        <li>Enable the polygon tracker to automatically record your path</li>
-        <li>Walk slowly along the boundary of the intervention area</li>
-        <li>The app records GPS points as you move</li>
-        <li>Stop tracking when you return to the starting point</li>
+        <li>{t('gpsPolygonTrackingItem1')}</li>
+        <li>{t('gpsPolygonTrackingItem2')}</li>
+        <li>{t('gpsPolygonTrackingItem3')}</li>
+        <li>{t('gpsPolygonTrackingItem4')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Polygon Tracking"
-        description="Screenshot showing polygon boundary creation with GPS tracking"
+        title={t('polygonTrackingImageTitle')}
+        description={t('polygonTrackingImageDesc')}
       />
 
-      <h2>Adding Species Information</h2>
+      <h2>{t('addingSpeciesTitle')}</h2>
       <p>
-        For planting interventions, you'll be prompted to add species information. This can include:
+        {t('addingSpeciesDesc')}
       </p>
       <ul>
         <li>
-          <strong>Species selection</strong>: Choose from your project's species list or search the
-          database
+          <strong>{t('speciesSelection')}</strong>: {t('speciesSelectionDesc')}
         </li>
         <li>
-          <strong>Tree count</strong>: Number of trees planted for each species
+          <strong>{t('treeCount')}</strong>: {t('treeCountDesc')}
         </li>
         <li>
-          <strong>Sample trees</strong>: Mark individual trees for detailed tracking
+          <strong>{t('sampleTrees')}</strong>: {t('sampleTreesDesc')}
         </li>
       </ul>
 
-      <h3>Registering Sample Trees</h3>
-      <p>Sample trees are individual trees you want to track over time. For each sample tree:</p>
+      <h3>{t('registeringSampleTreesTitle')}</h3>
+      <p>{t('registeringSampleTreesIntro')}</p>
       <ul>
-        <li>Mark the exact location on the map</li>
-        <li>Add measurements (height, diameter)</li>
-        <li>Take a photo of the tree</li>
-        <li>Optionally assign a tree tag ID</li>
+        <li>{t('registeringSampleTreesItem1')}</li>
+        <li>{t('registeringSampleTreesItem2')}</li>
+        <li>{t('registeringSampleTreesItem3')}</li>
+        <li>{t('registeringSampleTreesItem4')}</li>
       </ul>
 
-      <h2>Local and Dynamic Forms</h2>
+      <h2>{t('localDynamicFormsTitle')}</h2>
       <p>
-        Depending on the intervention type, you may see additional form screens for specific data
-        collection:
+        {t('localDynamicFormsDesc')}
       </p>
       <ul>
         <li>
-          <strong>Local forms</strong>: Project-specific fields configured by your organization
+          <strong>{t('localForms')}</strong>: {t('localFormsDesc')}
         </li>
         <li>
-          <strong>Dynamic forms</strong>: Intervention-type-specific fields for detailed data
-          capture
+          <strong>{t('dynamicForms')}</strong>: {t('dynamicFormsDesc')}
         </li>
       </ul>
 
-      <h2>Completing the Intervention</h2>
+      <h2>{t('completingTitle')}</h2>
       <p>
-        After filling in all required information, you'll see a preview screen showing all the
-        collected data. Review the information and tap to complete the intervention. The
-        intervention will be:
+        {t('completingDesc')}
       </p>
       <ul>
-        <li>Saved to your device immediately</li>
-        <li>Synced to the server when you have internet connectivity</li>
-        <li>Visible on the map and in your intervention list</li>
+        <li>{t('completingItem1')}</li>
+        <li>{t('completingItem2')}</li>
+        <li>{t('completingItem3')}</li>
       </ul>
 
-      <h2>Intervention Status</h2>
-      <p>As you create an intervention, it progresses through these statuses:</p>
+      <h2>{t('interventionStatusTitle')}</h2>
+      <p>{t('interventionStatusIntro')}</p>
       <ul>
         <li>
-          <strong>Initialized</strong>: Basic form started
+          <strong>{t('initialized')}</strong>: {t('initializedDesc')}
         </li>
         <li>
-          <strong>Location</strong>: Location marked
+          <strong>{t('location')}</strong>: {t('locationDesc')}
         </li>
         <li>
-          <strong>Species</strong>: Species added (if required)
+          <strong>{t('species')}</strong>: {t('speciesDesc')}
         </li>
         <li>
-          <strong>Tree Details</strong>: Sample trees registered
+          <strong>{t('treeDetails')}</strong>: {t('treeDetailsDesc')}
         </li>
         <li>
-          <strong>Local Form</strong>: Local form completed
+          <strong>{t('localForm')}</strong>: {t('localFormDesc')}
         </li>
         <li>
-          <strong>Dynamic Form</strong>: Dynamic form completed
+          <strong>{t('dynamicForm')}</strong>: {t('dynamicFormDesc')}
         </li>
         <li>
-          <strong>Complete</strong>: Ready for sync
-        </li>
-      </ul>
-
-      <h2>Tips for Creating Interventions</h2>
-      <ul>
-        <li>
-          <strong>Check GPS accuracy</strong>: Wait for high accuracy before marking locations
-        </li>
-        <li>
-          <strong>Take clear photos</strong>: Capture the intervention site from multiple angles
-        </li>
-        <li>
-          <strong>Be precise with polygons</strong>: Walk slowly when using GPS tracking for
-          accurate boundaries
-        </li>
-        <li>
-          <strong>Save often</strong>: The app saves progress automatically, but complete
-          interventions when possible
-        </li>
-        <li>
-          <strong>Work offline</strong>: You can create interventions without internet - they'll
-          sync later
+          <strong>{t('complete')}</strong>: {t('completeDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('tipsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/interventions">Understanding Interventions</Link>
+          <strong>{t('tip1Bold')}</strong>: {t('tip1Desc')}
         </li>
         <li>
-          <Link href="/docs/mobile/measurements">Taking Measurements</Link>
+          <strong>{t('tip2Bold')}</strong>: {t('tip2Desc')}
         </li>
         <li>
-          <Link href="/docs/mobile/photo-documentation">Photo Documentation</Link>
+          <strong>{t('tip3Bold')}</strong>: {t('tip3Desc')}
         </li>
         <li>
-          <Link href="/docs/mobile/map-navigation">Map Navigation</Link>
+          <strong>{t('tip4Bold')}</strong>: {t('tip4Desc')}
+        </li>
+        <li>
+          <strong>{t('tip5Bold')}</strong>: {t('tip5Desc')}
+        </li>
+      </ul>
+
+      <h2>{t('relatedTopicsTitle')}</h2>
+      <ul>
+        <li>
+          <Link href={`/${locale}/docs/concepts/interventions`}>{t('relatedLink1')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('relatedLink2')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/mobile/photo-documentation`}>{t('relatedLink3')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/mobile/map-navigation`}>{t('relatedLink4')}</Link>
         </li>
       </ul>
     </DocPage>

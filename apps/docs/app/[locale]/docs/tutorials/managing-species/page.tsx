@@ -1,107 +1,101 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function ManagingSpeciesPage() {
+export default async function ManagingSpeciesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.managingSpecies');
+
   return (
     <DocPage
-      title="Managing Species"
-      description="Learn how to manage tree species in TreeMapper on mobile and on the web dashboard."
+      title={t('title')}
+      description={t('description')}
       pageId="managing-species"
     >
       <p>
-        Species management is where you review, customize, and organize the species you use during
-        intervention registration (for example during tree planting).
+        {t('intro1')}
       </p>
 
       <p>
-        TreeMapper downloads the species list during installation from the Plant-for-the-Planet
-        database. It includes <strong>60,000+ species</strong> covering the most planted species.
-        Once downloaded, the species list remains available <strong>offline</strong> in the mobile
-        app.
+        {t('intro2')} <strong>{t('speciesCount')}</strong> {t('intro2Mid')} <strong>{t('offline')}</strong> {t('intro2End')}
       </p>
 
       <PlaceholderImage
-        title="Species List"
-        description="Screenshot showing the species list in the TreeMapper mobile app"
+        title={t('speciesListImageTitle')}
+        description={t('speciesListImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Where You Can Manage Species</h2>
+      <h2>{t('whereManageTitle')}</h2>
       <ul>
         <li>
-          <strong>Mobile App</strong>: Manage species directly on your device (works offline once
-          downloaded)
+          <strong>{t('mobileApp')}</strong>: {t('mobileAppDesc')}
         </li>
         <li>
-          <strong>Web Dashboard</strong>: Manage species with more powerful filters and controls
+          <strong>{t('webDashboard')}</strong>: {t('webDashboardDesc')}
         </li>
       </ul>
 
-      <h2>Managing Species in the Mobile App (Offline-Friendly)</h2>
+      <h2>{t('mobileAppTitle')}</h2>
       <p>
-        In the mobile app, species are available even without internet once they’ve been downloaded.
-        You can customize species data locally to better match your field workflows.
+        {t('mobileAppIntro')}
       </p>
 
-      <p>From the mobile app, you can:</p>
+      <p>{t('fromMobileIntro')}</p>
       <ul>
         <li>
-          Update the <strong>local name</strong>
+          {t('fromMobileItem1')} <strong>{t('localName')}</strong>
         </li>
         <li>
-          Add more <strong>description</strong> or notes
+          {t('fromMobileItem2')} <strong>{t('description')}</strong> {t('fromMobileItem2End')}
         </li>
         <li>
-          Add a <strong>custom image</strong>
+          {t('fromMobileItem3')} <strong>{t('customImage')}</strong>
         </li>
         <li>
-          Mark a species as a <strong>favorite</strong> so it’s easy to find during planting
-          registration
+          {t('fromMobileItem4')} <strong>{t('favorite')}</strong> {t('fromMobileItem4End')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Edit Species"
-        description="Screenshot showing species details editing (local name, description, image, favorite)"
+        title={t('editSpeciesImageTitle')}
+        description={t('editSpeciesImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Managing Species in the Web Dashboard</h2>
+      <h2>{t('webDashboardTitle')}</h2>
       <p>
-        You can also manage species from the web dashboard. This is especially useful when working
-        with large lists, because the web dashboard provides <strong>more filters</strong> for
-        browsing and managing species.
+        {t('webDashboardIntro1')} <strong>{t('moreFilters')}</strong> {t('webDashboardIntro2')}
       </p>
 
       <p>
-        The same types of updates (like local naming, descriptions, images, and favorites) can be
-        managed from the web dashboard as well.
+        {t('webDashboardDesc')}
       </p>
 
-      <h2>Species Not Found? Request It</h2>
+      <h2>{t('speciesNotFoundTitle')}</h2>
       <p>
-        Plant-for-the-Planet maintains the core database of the most planted species. If you can’t
-        find a species you need, you can request it to be added.
+        {t('speciesNotFoundIntro')}
       </p>
 
       <p>
-        To request a species, open the web dashboard and submit a request. The team will review it
-        and add it to the database if appropriate.
+        {t('requestSpeciesDesc')}
       </p>
 
-      <h2>What's Next?</h2>
+      <h2>{t('whatsNextTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/tutorials/first-intervention">Create your first intervention</Link> and
-          use species during registration
+          <Link href={`/${locale}/docs/tutorials/first-intervention`}>{t('nextLink1')}</Link> {t('nextLink1Desc')}
         </li>
         <li>
-          <Link href="/docs/tutorials/monitoring-plots">Set up monitoring plots</Link> to track
-          planted and recruited plants over time
+          <Link href={`/${locale}/docs/tutorials/monitoring-plots`}>{t('nextLink2')}</Link> {t('nextLink2Desc')}
         </li>
       </ul>
     </DocPage>
   );
 }
-

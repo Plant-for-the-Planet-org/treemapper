@@ -1,269 +1,265 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function DashboardOverviewPage() {
+export default async function DashboardOverviewPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.dashboardOverview');
+
   return (
     <DocPage
-      title="Dashboard Overview"
-      description="Learn about the TreeMapper web dashboard and its key features for managing restoration projects."
+      title={t('title')}
+      description={t('description')}
       pageId="dashboard-overview"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        The TreeMapper web dashboard is your central hub for managing restoration projects, viewing
-        analytics, and collaborating with your team. It provides comprehensive tools for data
-        visualization, project management, and reporting.
+        {t('overviewDesc')}
       </p>
 
       <PlaceholderImage
-        title="Dashboard Home"
-        description="Screenshot of the main dashboard view"
+        title={t('dashboardHomeImageTitle')}
+        description={t('dashboardHomeImageDesc')}
       />
 
-      <h2>Dashboard Statistics</h2>
+      <h2>{t('dashboardStatisticsTitle')}</h2>
       <p>
-        The dashboard displays key performance indicators (KPIs) as cards at the top of the screen,
-        giving you an instant overview of your project's progress:
+        {t('dashboardStatisticsDesc')}
       </p>
 
-      <h3>Trees Planted</h3>
+      <h3>{t('treesPlantedTitle')}</h3>
       <p>
-        Total number of trees planted across all interventions. Includes month-over-month comparison
-        showing growth or decline trends.
+        {t('treesPlantedDesc')}
       </p>
 
-      <h3>Species Planted</h3>
+      <h3>{t('speciesPlantedTitle')}</h3>
       <p>
-        Count of unique tree species used in your restoration work. Tracks biodiversity in your
-        planting efforts.
+        {t('speciesPlantedDesc')}
       </p>
 
-      <h3>Area Covered</h3>
+      <h3>{t('areaCoveredTitle')}</h3>
       <p>
-        Total area of restoration interventions measured in hectares. Calculated from polygon
-        interventions and site boundaries.
+        {t('areaCoveredDesc')}
       </p>
 
-      <h3>Field Data Collectors</h3>
+      <h3>{t('fieldDataCollectorsTitle')}</h3>
       <p>
-        Number of team members actively contributing data to the project. Shows team engagement and
-        capacity.
+        {t('fieldDataCollectorsDesc')}
       </p>
 
-      <h3>Trend Indicators</h3>
-      <p>Each metric includes trend indicators showing:</p>
+      <h3>{t('trendIndicatorsTitle')}</h3>
+      <p>{t('trendIndicatorsIntro')}</p>
       <ul>
         <li>
-          <strong>Percentage change</strong>: Comparison with the previous month
+          <strong>{t('percentageChange')}</strong>: {t('percentageChangeDesc')}
         </li>
         <li>
-          <strong>Direction</strong>: Visual indicator showing increase or decrease
+          <strong>{t('direction')}</strong>: {t('directionDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Statistics Cards"
-        description="Screenshot showing the KPI statistics cards"
+        title={t('statisticsCardsImageTitle')}
+        description={t('statisticsCardsImageDesc')}
       />
 
-      <h2>Date Range Filtering</h2>
+      <h2>{t('dateRangeFilteringTitle')}</h2>
       <p>
-        Filter all dashboard data by date range using the advanced date picker. Available presets
-        include:
+        {t('dateRangeFilteringDesc')}
       </p>
       <ul>
-        <li>Today / Yesterday</li>
-        <li>Last 7 days / Last 30 days</li>
-        <li>This month / Last month</li>
-        <li>Last 3 months / Last 6 months</li>
-        <li>This year</li>
-        <li>All time</li>
-        <li>Custom date range selection</li>
+        <li>{t('dateRangeItem1')}</li>
+        <li>{t('dateRangeItem2')}</li>
+        <li>{t('dateRangeItem3')}</li>
+        <li>{t('dateRangeItem4')}</li>
+        <li>{t('dateRangeItem5')}</li>
+        <li>{t('dateRangeItem6')}</li>
+        <li>{t('dateRangeItem7')}</li>
       </ul>
       <p>
-        The date filter applies to all dashboard components, allowing you to analyze data from
-        specific time periods.
+        {t('dateRangeFilteringNote')}
       </p>
 
-      <h2>Forest Progress</h2>
+      <h2>{t('forestProgressTitle')}</h2>
       <p>
-        The forest progress component visualizes your progress toward planting targets:
+        {t('forestProgressDesc')}
       </p>
       <ul>
         <li>
-          <strong>Progress bar</strong>: Visual representation of trees planted vs target
+          <strong>{t('progressBar')}</strong>: {t('progressBarDesc')}
         </li>
         <li>
-          <strong>Current count</strong>: Number of trees planted so far
+          <strong>{t('currentCount')}</strong>: {t('currentCountDesc')}
         </li>
         <li>
-          <strong>Target goal</strong>: Your project's tree planting target
+          <strong>{t('targetGoal')}</strong>: {t('targetGoalDesc')}
         </li>
         <li>
-          <strong>Percentage complete</strong>: How close you are to reaching your goal
+          <strong>{t('percentageComplete')}</strong>: {t('percentageCompleteDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Forest Progress"
-        description="Screenshot showing the forest progress tracker"
+        title={t('forestProgressImageTitle')}
+        description={t('forestProgressImageDesc')}
       />
 
-      <h2>Tree Planting Chart</h2>
+      <h2>{t('treePlantingChartTitle')}</h2>
       <p>
-        The time-series chart visualizes tree planting trends over time:
+        {t('treePlantingChartDesc')}
       </p>
       <ul>
         <li>
-          <strong>Monthly view</strong>: Trees planted per month
+          <strong>{t('monthlyView')}</strong>: {t('monthlyViewDesc')}
         </li>
         <li>
-          <strong>Historical data</strong>: Compare current performance to past periods
+          <strong>{t('historicalData')}</strong>: {t('historicalDataDesc')}
         </li>
         <li>
-          <strong>Interactive tooltips</strong>: Hover for detailed numbers
+          <strong>{t('interactiveTooltips')}</strong>: {t('interactiveTooltipsDesc')}
         </li>
       </ul>
 
-      <h2>Recent Additions</h2>
+      <h2>{t('recentAdditionsTitle')}</h2>
       <p>
-        The recent additions component shows the latest activity in your project:
+        {t('recentAdditionsDesc')}
       </p>
       <ul>
-        <li>Recently added trees and interventions</li>
-        <li>Latest project updates</li>
-        <li>Recent team activity</li>
+        <li>{t('recentAdditionsItem1')}</li>
+        <li>{t('recentAdditionsItem2')}</li>
+        <li>{t('recentAdditionsItem3')}</li>
       </ul>
-      <p>This keeps you informed about ongoing work without having to dig through data.</p>
+      <p>{t('recentAdditionsNote')}</p>
 
-      <h2>Dashboard Tabs</h2>
-      <p>The dashboard includes multiple views accessible via tabs:</p>
+      <h2>{t('dashboardTabsTitle')}</h2>
+      <p>{t('dashboardTabsIntro')}</p>
 
-      <h3>Overview Tab</h3>
+      <h3>{t('overviewTabTitle')}</h3>
       <p>
-        The main analytics view with statistics, charts, and progress tracking. This is the default
-        view when you open the dashboard.
+        {t('overviewTabDesc')}
       </p>
 
-      <h3>Leaderboard Tab</h3>
+      <h3>{t('leaderboardTabTitle')}</h3>
       <p>
-        Shows team member rankings based on contribution metrics. See who's planted the most trees
-        and contributed the most interventions.
+        {t('leaderboardTabDesc')}
       </p>
 
-      <h3>Map Tab</h3>
+      <h3>{t('mapTabTitle')}</h3>
       <p>
-        Geographic visualization of your project showing sites, interventions, and planted areas on
-        an interactive map.
+        {t('mapTabDesc')}
       </p>
 
       <PlaceholderImage
-        title="Dashboard Tabs"
-        description="Screenshot showing the dashboard tab navigation"
+        title={t('dashboardTabsImageTitle')}
+        description={t('dashboardTabsImageDesc')}
       />
 
-      <h2>Role-Based Access</h2>
+      <h2>{t('roleBasedAccessTitle')}</h2>
       <p>
-        Dashboard views vary based on your role in the project:
+        {t('roleBasedAccessDesc')}
       </p>
 
-      <h3>Admin / Owner</h3>
-      <p>Full access to all dashboard features including:</p>
+      <h3>{t('adminOwnerTitle')}</h3>
+      <p>{t('adminOwnerIntro')}</p>
       <ul>
-        <li>Complete analytics and statistics</li>
-        <li>Data export functionality</li>
-        <li>All management features</li>
-        <li>Project settings access</li>
+        <li>{t('adminOwnerItem1')}</li>
+        <li>{t('adminOwnerItem2')}</li>
+        <li>{t('adminOwnerItem3')}</li>
+        <li>{t('adminOwnerItem4')}</li>
       </ul>
 
-      <h3>Contributor</h3>
-      <p>Limited view focused on:</p>
+      <h3>{t('contributorTitle')}</h3>
+      <p>{t('contributorIntro')}</p>
       <ul>
-        <li>Leaderboard rankings</li>
-        <li>Map visualization</li>
-        <li>Personal contribution metrics</li>
+        <li>{t('contributorItem1')}</li>
+        <li>{t('contributorItem2')}</li>
+        <li>{t('contributorItem3')}</li>
       </ul>
 
-      <h3>Observer</h3>
-      <p>Read-only access to:</p>
+      <h3>{t('observerTitle')}</h3>
+      <p>{t('observerIntro')}</p>
       <ul>
-        <li>Leaderboard data</li>
-        <li>Map visualization</li>
-        <li>Basic project information</li>
+        <li>{t('observerItem1')}</li>
+        <li>{t('observerItem2')}</li>
+        <li>{t('observerItem3')}</li>
       </ul>
 
-      <h2>Data Export</h2>
+      <h2>{t('dataExportTitle')}</h2>
       <p>
-        From the dashboard, you can export your project data:
-      </p>
-      <ul>
-        <li>
-          <strong>CSV reports</strong>: Download intervention data in spreadsheet format
-        </li>
-        <li>
-          <strong>Date filtering</strong>: Export data from specific time periods
-        </li>
-        <li>
-          <strong>Project statistics</strong>: Include summary metrics in exports
-        </li>
-      </ul>
-      <p>
-        See <Link href="/docs/concepts/data-export">Data Export</Link> for more details on export
-        options.
-      </p>
-
-      <h2>Navigation</h2>
-      <p>
-        The dashboard sidebar provides quick access to all major sections:
+        {t('dataExportDesc')}
       </p>
       <ul>
         <li>
-          <strong>Overview</strong>: Main dashboard with analytics
+          <strong>{t('csvReports')}</strong>: {t('csvReportsDesc')}
         </li>
         <li>
-          <strong>Sites</strong>: Manage restoration sites
+          <strong>{t('dateFiltering')}</strong>: {t('dateFilteringDesc')}
         </li>
         <li>
-          <strong>Interventions</strong>: View and manage interventions
+          <strong>{t('projectStatistics')}</strong>: {t('projectStatisticsDesc')}
+        </li>
+      </ul>
+      <p>
+        {t('dataExportNote')} <Link href={`/${locale}/docs/concepts/data-export`}>{t('dataExportLink')}</Link> {t('dataExportNoteEnd')}
+      </p>
+
+      <h2>{t('navigationTitle')}</h2>
+      <p>
+        {t('navigationDesc')}
+      </p>
+      <ul>
+        <li>
+          <strong>{t('overview')}</strong>: {t('overviewDesc')}
         </li>
         <li>
-          <strong>Species</strong>: Manage tree species
+          <strong>{t('sites')}</strong>: {t('sitesDesc')}
         </li>
         <li>
-          <strong>Team</strong>: Manage team members
+          <strong>{t('interventions')}</strong>: {t('interventionsDesc')}
         </li>
         <li>
-          <strong>Reports</strong>: Generate and view reports
+          <strong>{t('species')}</strong>: {t('speciesDesc')}
         </li>
         <li>
-          <strong>Settings</strong>: Project configuration
+          <strong>{t('team')}</strong>: {t('teamDesc')}
+        </li>
+        <li>
+          <strong>{t('reports')}</strong>: {t('reportsDesc')}
+        </li>
+        <li>
+          <strong>{t('settings')}</strong>: {t('settingsDesc')}
         </li>
       </ul>
 
-      <h2>Getting Started</h2>
-      <p>When you first access the dashboard:</p>
+      <h2>{t('gettingStartedTitle')}</h2>
+      <p>{t('gettingStartedIntro')}</p>
       <ol>
-        <li>Select or create a project to work with</li>
-        <li>Review your dashboard statistics to understand current status</li>
-        <li>Set your planting target if not already configured</li>
-        <li>Invite team members to collaborate</li>
-        <li>Begin creating sites and recording interventions</li>
+        <li>{t('gettingStartedItem1')}</li>
+        <li>{t('gettingStartedItem2')}</li>
+        <li>{t('gettingStartedItem3')}</li>
+        <li>{t('gettingStartedItem4')}</li>
+        <li>{t('gettingStartedItem5')}</li>
       </ol>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/web/sites-management">Managing Sites</Link>
+          <Link href={`/${locale}/docs/web/sites-management`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/team-management">Team Management</Link>
+          <Link href={`/${locale}/docs/web/team-management`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/reports">Reports & Analytics</Link>
+          <Link href={`/${locale}/docs/web/reports`}>{t('relatedLink3')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/data-export">Data Export</Link>
+          <Link href={`/${locale}/docs/concepts/data-export`}>{t('relatedLink4')}</Link>
         </li>
       </ul>
     </DocPage>

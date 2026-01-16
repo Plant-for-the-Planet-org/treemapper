@@ -1,158 +1,153 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function RemeasurementPage() {
+export default async function RemeasurementPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.remeasurement');
+
   return (
     <DocPage
-      title="Remeasurement"
-      description="Learn how to track tree growth over time by remeasuring trees in TreeMapper."
+      title={t('title')}
+      description={t('description')}
       pageId="remeasurement"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Using TreeMapper, you can <strong>remeasure trees over time</strong> to track their growth
-        and health. Both <strong>sample trees</strong> and <strong>single trees</strong> can be
-        remeasured, allowing you to build a comprehensive history of each tree's development.
+        {t('overviewIntro1')} <strong>{t('remeasureTrees')}</strong> {t('overviewIntro2')} <strong>{t('sampleTrees')}</strong> {t('overviewIntro3')} <strong>{t('singleTrees')}</strong> {t('overviewIntro4')}
       </p>
 
-      <h2>How to Remeasure a Tree</h2>
-      <p>Follow these steps to remeasure a tree from the mobile app:</p>
+      <h2>{t('howToRemeasureTitle')}</h2>
+      <p>{t('howToRemeasureIntro')}</p>
 
       <div className="space-y-4 my-8">
         <WorkflowStep
           number={1}
-          title="Select Intervention"
-          description="Open the mobile app and tap on the intervention containing the tree you want to remeasure"
+          title={t('step1Title')}
+          description={t('step1Desc')}
         />
         <WorkflowStep
           number={2}
-          title="Select Tree"
-          description="Choose the specific tree you want to remeasure from the intervention"
+          title={t('step2Title')}
+          description={t('step2Desc')}
         />
         <WorkflowStep
           number={3}
-          title="Choose Measure"
-          description="Select the 'Measure' option to record new measurements"
+          title={t('step3Title')}
+          description={t('step3Desc')}
         />
         <WorkflowStep
           number={4}
-          title="Add Details"
-          description="Enter the measurement details (height, diameter, etc.) and add an updated photo"
+          title={t('step4Title')}
+          description={t('step4Desc')}
         />
         <WorkflowStep
           number={5}
-          title="Complete"
-          description="Save the remeasurement to complete the process"
+          title={t('step5Title')}
+          description={t('step5Desc')}
         />
       </div>
 
       <PlaceholderImage
-        title="Remeasurement Flow"
-        description="Screenshots showing the step-by-step remeasurement process in the mobile app"
+        title={t('remeasurementFlowImageTitle')}
+        description={t('remeasurementFlowImageDesc')}
       />
 
-      <h2>Recording Dead Trees</h2>
+      <h2>{t('recordingDeadTreesTitle')}</h2>
       <p>
-        If a tree has died, you can record this using the same workflow. Instead of adding new
-        measurements:
+        {t('recordingDeadTreesIntro')}
       </p>
       <ul>
-        <li>Select the tree from the intervention</li>
+        <li>{t('recordingDeadTreesItem1')}</li>
         <li>
-          Choose <strong>"Tree is Dead"</strong> option
+          {t('recordingDeadTreesItem2')} <strong>{t('treeIsDead')}</strong> {t('recordingDeadTreesItem2End')}
         </li>
-        <li>Provide the reason for the tree's death</li>
-        <li>Add any additional comments or observations</li>
-        <li>Optionally add a photo documenting the condition</li>
+        <li>{t('recordingDeadTreesItem3')}</li>
+        <li>{t('recordingDeadTreesItem4')}</li>
+        <li>{t('recordingDeadTreesItem5')}</li>
       </ul>
 
       <p>
-        This helps maintain accurate records of tree survival rates and identify potential issues
-        affecting your restoration sites.
+        {t('recordingDeadTreesDesc')}
       </p>
 
-      <h2>Measurement History</h2>
+      <h2>{t('measurementHistoryTitle')}</h2>
       <p>
-        All tree remeasurements are stored as a <strong>history/timeline</strong> and attached to
-        that specific tree. You can view the complete measurement history from the{' '}
-        <strong>tree details section</strong>, which shows:
+        {t('measurementHistoryIntro1')} <strong>{t('historyTimeline')}</strong> {t('measurementHistoryIntro2')} <strong>{t('treeDetailsSection')}</strong> {t('measurementHistoryIntro3')}
       </p>
       <ul>
-        <li>Date of each measurement</li>
-        <li>Growth metrics over time (height, diameter, etc.)</li>
-        <li>Photos from each measurement session</li>
-        <li>Health status changes</li>
-        <li>Any recorded issues or deaths</li>
+        <li>{t('measurementHistoryItem1')}</li>
+        <li>{t('measurementHistoryItem2')}</li>
+        <li>{t('measurementHistoryItem3')}</li>
+        <li>{t('measurementHistoryItem4')}</li>
+        <li>{t('measurementHistoryItem5')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Tree Timeline"
-        description="Screenshot showing the measurement history timeline for a tree"
+        title={t('treeTimelineImageTitle')}
+        description={t('treeTimelineImageDesc')}
       />
 
-      <h2>Remeasurement Reminders</h2>
+      <h2>{t('remeasurementRemindersTitle')}</h2>
       <p>
-        TreeMapper can help you stay on schedule with your monitoring activities. From the mobile
-        app, you can enable <strong>tree remeasurement periodicity and frequency</strong> settings:
+        {t('remeasurementRemindersIntro1')} <strong>{t('remeasurementPeriodicity')}</strong> {t('remeasurementRemindersIntro2')}
       </p>
       <ul>
-        <li>Set how often trees should be remeasured (monthly, quarterly, annually, etc.)</li>
-        <li>Receive notifications when it's time to remeasure</li>
-        <li>Never miss a scheduled monitoring session</li>
+        <li>{t('remeasurementRemindersItem1')}</li>
+        <li>{t('remeasurementRemindersItem2')}</li>
+        <li>{t('remeasurementRemindersItem3')}</li>
       </ul>
 
-      <h2>Identifying Trees Due for Remeasurement</h2>
-      <p>TreeMapper makes it easy to find trees that need remeasurement:</p>
+      <h2>{t('identifyingTreesTitle')}</h2>
+      <p>{t('identifyingTreesIntro')}</p>
 
-      <h3>Visual Indicators on Map</h3>
+      <h3>{t('visualIndicatorsTitle')}</h3>
       <p>
-        All trees that are due for remeasurement will turn <strong>red</strong> on the map. This
-        visual indicator helps you quickly identify which trees need attention without having to
-        check each one individually.
+        {t('visualIndicatorsIntro1')} <strong>{t('red')}</strong> {t('visualIndicatorsIntro2')}
       </p>
 
-      <h3>Location Feature</h3>
+      <h3>{t('locationFeatureTitle')}</h3>
       <p>
-        Use the <strong>location feature</strong> to navigate to trees that require remeasurement.
-        This is especially useful in large sites where trees may be spread across a wide area.
+        {t('locationFeatureIntro1')} <strong>{t('locationFeature')}</strong> {t('locationFeatureIntro2')}
       </p>
 
       <PlaceholderImage
-        title="Trees Due for Remeasurement"
-        description="Map view showing trees highlighted in red that are due for remeasurement"
+        title={t('treesDueImageTitle')}
+        description={t('treesDueImageDesc')}
       />
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
       <ul>
         <li>
-          <strong>Consistent timing</strong>: Try to remeasure at the same time of year for
-          comparable growth data
+          <strong>{t('consistentTiming')}</strong>: {t('consistentTimingDesc')}
         </li>
         <li>
-          <strong>Photo documentation</strong>: Always include updated photos to visually track
-          changes
+          <strong>{t('photoDocumentation')}</strong>: {t('photoDocumentationDesc')}
         </li>
         <li>
-          <strong>Note conditions</strong>: Record any observations about tree health, pests, or
-          environmental factors
+          <strong>{t('noteConditions')}</strong>: {t('noteConditionsDesc')}
         </li>
         <li>
-          <strong>Regular schedule</strong>: Set up remeasurement reminders to maintain consistent
-          monitoring
+          <strong>{t('regularSchedule')}</strong>: {t('regularScheduleDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/interventions">Understanding Interventions</Link>
+          <Link href={`/${locale}/docs/concepts/interventions`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/plots">Plots & Plot Groups</Link>
+          <Link href={`/${locale}/docs/concepts/plots`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/measurements">Taking Measurements</Link>
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

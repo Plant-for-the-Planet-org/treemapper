@@ -1,93 +1,91 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function SiteCreationPage() {
+export default async function SiteCreationPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.siteCreation');
+
   return (
     <DocPage
-      title="Creating a Site"
-      description="Learn how to create sites in TreeMapper to define where restoration activities take place."
+      title={t('title')}
+      description={t('description')}
       pageId="site-creation"
     >
       <p>
-        <strong>Sites</strong> are the polygon areas where tree plantation (and other restoration
-        activities) are going on. A single project can have as many sites as you want.
+        <strong>{t('sites')}</strong> {t('intro')}
       </p>
 
       <PlaceholderImage
-        title="Sites Overview"
-        description="Screenshot showing the sites list and create site button"
+        title={t('sitesOverviewImageTitle')}
+        description={t('sitesOverviewImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Creating a Site</h2>
-      <p>To create a new site:</p>
+      <h2>{t('creatingTitle')}</h2>
+      <p>{t('creatingIntro')}</p>
       <ol>
-        <li>Open <strong>Sites</strong></li>
-        <li>Tap <strong>Add New Site</strong></li>
-        <li>Give the site a <strong>name</strong></li>
-        <li>Select what <strong>type</strong> of site it will be</li>
-        <li>Define the site boundary (polygon) using one of the methods below</li>
-        <li>Save the site</li>
+        <li>{t('creatingStep1')} <strong>{t('sites')}</strong></li>
+        <li>{t('creatingStep2')} <strong>{t('addNewSite')}</strong></li>
+        <li>{t('creatingStep3')} <strong>{t('name')}</strong></li>
+        <li>{t('creatingStep4')} <strong>{t('type')}</strong> {t('creatingStep4Desc')}</li>
+        <li>{t('creatingStep5')}</li>
+        <li>{t('creatingStep6')}</li>
       </ol>
 
-      <h2>Define Site Boundaries</h2>
-      <p>You can define the site boundary in two ways:</p>
+      <h2>{t('defineBoundariesTitle')}</h2>
+      <p>{t('defineBoundariesIntro')}</p>
 
-      <h3>1) Draw a Polygon on the Map</h3>
+      <h3>{t('drawPolygonTitle')}</h3>
       <p>
-        Draw the polygon over the map to mark the site boundaries. This is useful when you’re in
-        the field or when you already know the site area.
+        {t('drawPolygonDesc1')}
       </p>
 
       <p>
-        Sites can also be created using the <strong>mobile app</strong>. The advantage of creating a
-        site with the app is that, if you don’t have an accurate GeoJSON of the site, you can{' '}
-        <strong>trace the site using mobile GPS</strong> by moving across the border of the site and
-        registering the boundary directly from the field.
+        {t('drawPolygonDesc2')} <strong>{t('mobileApp')}</strong>. {t('drawPolygonDesc3')} <strong>{t('traceWithGPS')}</strong> {t('drawPolygonDesc4')}
       </p>
 
       <PlaceholderImage
-        title="Draw Site Polygon"
-        description="Screenshot showing polygon drawing for site boundaries"
+        title={t('drawPolygonImageTitle')}
+        description={t('drawPolygonImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h3>2) Upload a GeoJSON File</h3>
+      <h3>{t('uploadGeoJSONTitle')}</h3>
       <p>
-        If you already have the site boundary in GIS format, you can upload a GeoJSON file for the
-        site.
+        {t('uploadGeoJSONDesc')}
       </p>
 
       <PlaceholderImage
-        title="Upload GeoJSON"
-        description="Screenshot showing GeoJSON upload for site boundaries"
+        title={t('uploadGeoJSONImageTitle')}
+        description={t('uploadGeoJSONImageDesc')}
         aspectRatio="portrait"
       />
 
-      <h2>Site Access Management</h2>
+      <h2>{t('accessManagementTitle')}</h2>
       <p>
-        Sites also have access management. You can use this to give limited access to certain sites
-        for specific team members.
+        {t('accessManagementIntro')}
       </p>
 
       <p>
-        This is useful when a project includes multiple restoration areas and different teams should
-        only work on specific sites.
+        {t('accessManagementDesc')}
       </p>
 
-      <h2>What's Next?</h2>
+      <h2>{t('whatsNextTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/tutorials/first-intervention">Create interventions</Link> inside your
-          site to start recording restoration work
+          <Link href={`/${locale}/docs/tutorials/first-intervention`}>{t('nextLink1')}</Link> {t('nextLink1Desc')}
         </li>
         <li>
-          <Link href="/docs/tutorials/team-collaboration">Manage your team</Link> and assign access
-          through roles and site permissions
+          <Link href={`/${locale}/docs/tutorials/team-collaboration`}>{t('nextLink2')}</Link> {t('nextLink2Desc')}
         </li>
       </ul>
     </DocPage>
   );
 }
-

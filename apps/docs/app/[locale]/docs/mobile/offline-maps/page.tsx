@@ -1,279 +1,271 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function OfflineMapsPage() {
+export default async function OfflineMapsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.offlineMaps');
+
   return (
     <DocPage
-      title="Offline Maps"
-      description="Learn how to download and use offline maps in the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="offline-maps"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        TreeMapper allows you to download map tiles for offline use, ensuring you can navigate and
-        record data even in areas without internet connectivity. This is essential for fieldwork in
-        remote restoration sites.
+        {t('overviewDesc')}
       </p>
 
-      <h2>How Offline Maps Work</h2>
+      <h2>{t('howOfflineMapsWorkTitle')}</h2>
       <p>
-        Offline maps use MapLibre's offline pack system to store map tiles directly on your device.
-        When you download an area:
+        {t('howOfflineMapsWorkDesc')}
       </p>
       <ul>
-        <li>Map tiles for multiple zoom levels are saved to your device</li>
-        <li>The area name is determined automatically via reverse geocoding</li>
-        <li>Maps remain available until you delete them</li>
-        <li>You can have multiple offline maps for different regions</li>
+        <li>{t('howOfflineMapsWorkItem1')}</li>
+        <li>{t('howOfflineMapsWorkItem2')}</li>
+        <li>{t('howOfflineMapsWorkItem3')}</li>
+        <li>{t('howOfflineMapsWorkItem4')}</li>
       </ul>
 
-      <h2>Downloading Offline Maps</h2>
+      <h2>{t('downloadingTitle')}</h2>
 
-      <h3>Step 1: Select the Area</h3>
+      <h3>{t('step1Title')}</h3>
       <p>
-        Navigate to the Offline Maps section and tap to add a new offline map. The map view opens
-        where you can pan and zoom to select the area you want to download.
+        {t('step1Desc')}
       </p>
 
       <PlaceholderImage
-        title="Area Selection"
-        description="Screenshot showing map area selection for offline download"
+        title={t('areaSelectionImageTitle')}
+        description={t('areaSelectionImageDesc')}
       />
 
-      <h3>Step 2: Confirm Selection</h3>
+      <h3>{t('step2Title')}</h3>
       <p>
-        Position the map view to show the area you need. The visible map bounds will determine what
-        gets downloaded. Consider:
+        {t('step2Desc')}
       </p>
       <ul>
-        <li>Include all your restoration sites within the view</li>
-        <li>Add some buffer around the edges for navigation</li>
-        <li>Larger areas require more storage space</li>
+        <li>{t('step2Item1')}</li>
+        <li>{t('step2Item2')}</li>
+        <li>{t('step2Item3')}</li>
       </ul>
 
-      <h3>Step 3: Download</h3>
+      <h3>{t('step3Title')}</h3>
       <p>
-        Tap "Save Area" to begin the download. The app will show a progress indicator while
-        downloading:
+        {t('step3Desc')}
       </p>
       <ul>
-        <li>Download progress percentage</li>
-        <li>Estimated tile count</li>
-        <li>Download size</li>
+        <li>{t('step3Item1')}</li>
+        <li>{t('step3Item2')}</li>
+        <li>{t('step3Item3')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Download Progress"
-        description="Screenshot showing offline map download progress"
+        title={t('downloadProgressImageTitle')}
+        description={t('downloadProgressImageDesc')}
       />
 
-      <h3>Step 4: Completion</h3>
+      <h3>{t('step4Title')}</h3>
       <p>
-        When the download completes, the offline map is saved with metadata including the area name
-        and file size. You'll see a confirmation notification and the map will appear in your
-        offline maps list.
+        {t('step4Desc')}
       </p>
 
-      <h2>Download Specifications</h2>
-      <p>TreeMapper downloads map tiles with the following specifications:</p>
+      <h2>{t('downloadSpecificationsTitle')}</h2>
+      <p>{t('downloadSpecificationsIntro')}</p>
 
       <div className="overflow-x-auto my-6">
         <table className="w-full border-collapse border border-border">
           <thead>
             <tr className="bg-muted">
-              <th className="border border-border px-4 py-2 text-left">Setting</th>
-              <th className="border border-border px-4 py-2 text-left">Value</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableSetting')}</th>
+              <th className="border border-border px-4 py-2 text-left">{t('tableValue')}</th>
             </tr>
           </thead>
           <tbody>
             <tr>
-              <td className="border border-border px-4 py-2">Minimum Zoom Level</td>
-              <td className="border border-border px-4 py-2">14</td>
+              <td className="border border-border px-4 py-2">{t('tableRow1Setting')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow1Value')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Maximum Zoom Level</td>
-              <td className="border border-border px-4 py-2">20</td>
+              <td className="border border-border px-4 py-2">{t('tableRow2Setting')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow2Value')}</td>
             </tr>
             <tr>
-              <td className="border border-border px-4 py-2">Map Style</td>
-              <td className="border border-border px-4 py-2">Configured via environment</td>
+              <td className="border border-border px-4 py-2">{t('tableRow3Setting')}</td>
+              <td className="border border-border px-4 py-2">{t('tableRow3Value')}</td>
             </tr>
           </tbody>
         </table>
       </div>
 
       <p>
-        The zoom levels ensure you have detailed maps for precise work while keeping download sizes
-        manageable.
+        {t('zoomLevelsDesc')}
       </p>
 
-      <h2>Managing Offline Maps</h2>
+      <h2>{t('managingTitle')}</h2>
 
-      <h3>Viewing Downloaded Maps</h3>
-      <p>Access your offline maps from the Offline Maps screen. Each map shows:</p>
+      <h3>{t('viewingDownloadedMapsTitle')}</h3>
+      <p>{t('viewingDownloadedMapsIntro')}</p>
       <ul>
         <li>
-          <strong>Map name</strong>: Auto-generated identifier with timestamp
+          <strong>{t('mapName')}</strong>: {t('mapNameDesc')}
         </li>
         <li>
-          <strong>Area name</strong>: Geographic location name from reverse geocoding
+          <strong>{t('areaName')}</strong>: {t('areaNameDesc')}
         </li>
         <li>
-          <strong>Size</strong>: Storage space used by the map tiles
+          <strong>{t('size')}</strong>: {t('sizeDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Offline Maps List"
-        description="Screenshot showing the list of downloaded offline maps"
+        title={t('offlineMapsListImageTitle')}
+        description={t('offlineMapsListImageDesc')}
       />
 
-      <h3>Deleting Offline Maps</h3>
-      <p>To free up device storage, you can delete offline maps you no longer need:</p>
+      <h3>{t('deletingTitle')}</h3>
+      <p>{t('deletingIntro')}</p>
       <ul>
-        <li>Open the Offline Maps screen</li>
-        <li>Find the map you want to delete</li>
-        <li>Tap the delete option</li>
-        <li>Confirm deletion in the modal</li>
+        <li>{t('deletingItem1')}</li>
+        <li>{t('deletingItem2')}</li>
+        <li>{t('deletingItem3')}</li>
+        <li>{t('deletingItem4')}</li>
       </ul>
       <p>
-        Deleted maps are completely removed from your device. You can re-download the area later if
-        needed.
+        {t('deletingDesc')}
       </p>
 
-      <h2>Using Offline Maps</h2>
+      <h2>{t('usingOfflineMapsTitle')}</h2>
       <p>
-        Once downloaded, offline maps are automatically used when you're in the corresponding area
-        without internet connectivity:
+        {t('usingOfflineMapsDesc')}
       </p>
       <ul>
         <li>
-          <strong>Map navigation</strong>: Browse and navigate the map as usual
+          <strong>{t('mapNavigation')}</strong>: {t('mapNavigationDesc')}
         </li>
         <li>
-          <strong>Creating interventions</strong>: Mark locations on the offline map
+          <strong>{t('creatingInterventions')}</strong>: {t('creatingInterventionsDesc')}
         </li>
         <li>
-          <strong>Plot management</strong>: Create and view plots using offline tiles
+          <strong>{t('plotManagement')}</strong>: {t('plotManagementDesc')}
         </li>
         <li>
-          <strong>Location tracking</strong>: GPS continues to work independently of map tiles
+          <strong>{t('locationTracking')}</strong>: {t('locationTrackingDesc')}
         </li>
       </ul>
 
       <p>
-        When online maps aren't available and you don't have offline maps for an area, you'll see a
-        basic map or no map tiles at all. GPS functionality remains available.
+        {t('whenOnlineMapsDesc')}
       </p>
 
-      <h2>Storage Considerations</h2>
+      <h2>{t('storageConsiderationsTitle')}</h2>
 
-      <h3>Estimating Download Size</h3>
-      <p>Offline map size depends on:</p>
+      <h3>{t('estimatingDownloadSizeTitle')}</h3>
+      <p>{t('estimatingDownloadSizeIntro')}</p>
       <ul>
         <li>
-          <strong>Area size</strong>: Larger areas require more tiles
+          <strong>{t('areaSize')}</strong>: {t('areaSizeDesc')}
         </li>
         <li>
-          <strong>Map detail</strong>: Areas with more features have larger tiles
+          <strong>{t('mapDetail')}</strong>: {t('mapDetailDesc')}
         </li>
         <li>
-          <strong>Zoom levels</strong>: More zoom levels mean more tiles
+          <strong>{t('zoomLevels')}</strong>: {t('zoomLevelsDesc2')}
         </li>
       </ul>
       <p>
-        A typical restoration site area might require 50-200 MB of storage, while larger regions
-        could require several hundred MB.
+        {t('typicalSizeDesc')}
       </p>
 
-      <h3>Managing Device Storage</h3>
+      <h3>{t('managingDeviceStorageTitle')}</h3>
       <ul>
-        <li>Download only the areas you need for upcoming fieldwork</li>
-        <li>Delete maps after completing work in an area</li>
-        <li>Monitor your device storage regularly</li>
-        <li>Keep some buffer storage for photos and intervention data</li>
+        <li>{t('managingDeviceStorageItem1')}</li>
+        <li>{t('managingDeviceStorageItem2')}</li>
+        <li>{t('managingDeviceStorageItem3')}</li>
+        <li>{t('managingDeviceStorageItem4')}</li>
       </ul>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Before Fieldwork</h3>
+      <h3>{t('beforeFieldworkTitle')}</h3>
       <ul>
         <li>
-          <strong>Download in advance</strong>: Download maps while you have good WiFi connection
+          <strong>{t('downloadInAdvance')}</strong>: {t('downloadInAdvanceDesc')}
         </li>
         <li>
-          <strong>Verify coverage</strong>: Check that your downloaded area covers all planned work
-          sites
+          <strong>{t('verifyCoverage')}</strong>: {t('verifyCoverageDesc')}
         </li>
         <li>
-          <strong>Check storage</strong>: Ensure you have enough space for maps and new data
-        </li>
-      </ul>
-
-      <h3>In the Field</h3>
-      <ul>
-        <li>
-          <strong>Test before going remote</strong>: Verify offline maps work before losing
-          connectivity
-        </li>
-        <li>
-          <strong>Use GPS wisely</strong>: GPS accuracy may vary; wait for good signal
-        </li>
-        <li>
-          <strong>Conserve battery</strong>: Offline map use consumes less battery than streaming
-          tiles
+          <strong>{t('checkStorage')}</strong>: {t('checkStorageDesc')}
         </li>
       </ul>
 
-      <h3>After Fieldwork</h3>
+      <h3>{t('inTheFieldTitle')}</h3>
       <ul>
         <li>
-          <strong>Sync data</strong>: Upload collected data when back online
+          <strong>{t('testBeforeGoing')}</strong>: {t('testBeforeGoingDesc')}
         </li>
         <li>
-          <strong>Clean up</strong>: Delete offline maps if no longer needed
+          <strong>{t('useGpsWisely')}</strong>: {t('useGpsWiselyDesc')}
         </li>
         <li>
-          <strong>Download updates</strong>: Re-download areas if map data has changed
-          significantly
+          <strong>{t('conserveBattery')}</strong>: {t('conserveBatteryDesc')}
         </li>
       </ul>
 
-      <h2>Troubleshooting</h2>
-
-      <h3>Download Fails</h3>
-      <ul>
-        <li>Check your internet connection stability</li>
-        <li>Try a smaller area first</li>
-        <li>Ensure you have sufficient device storage</li>
-        <li>Restart the app and try again</li>
-      </ul>
-
-      <h3>Maps Not Displaying Offline</h3>
-      <ul>
-        <li>Verify the offline map covers your current location</li>
-        <li>Check that the map wasn't accidentally deleted</li>
-        <li>Zoom to a level within the downloaded range (14-20)</li>
-      </ul>
-
-      <h3>Slow Download</h3>
-      <ul>
-        <li>Large areas take longer to download</li>
-        <li>Use WiFi instead of cellular data for faster downloads</li>
-        <li>Download during off-peak hours if possible</li>
-      </ul>
-
-      <h2>Related Topics</h2>
+      <h3>{t('afterFieldworkTitle')}</h3>
       <ul>
         <li>
-          <Link href="/docs/mobile/map-navigation">Map Navigation</Link>
+          <strong>{t('syncData')}</strong>: {t('syncDataDesc')}
         </li>
         <li>
-          <Link href="/docs/concepts/sync-offline">Sync & Offline Mode</Link>
+          <strong>{t('cleanUp')}</strong>: {t('cleanUpDesc')}
         </li>
         <li>
-          <Link href="/docs/mobile/creating-interventions">Creating Interventions</Link>
+          <strong>{t('downloadUpdates')}</strong>: {t('downloadUpdatesDesc')}
+        </li>
+      </ul>
+
+      <h2>{t('troubleshootingTitle')}</h2>
+
+      <h3>{t('downloadFailsTitle')}</h3>
+      <ul>
+        <li>{t('downloadFailsItem1')}</li>
+        <li>{t('downloadFailsItem2')}</li>
+        <li>{t('downloadFailsItem3')}</li>
+        <li>{t('downloadFailsItem4')}</li>
+      </ul>
+
+      <h3>{t('mapsNotDisplayingTitle')}</h3>
+      <ul>
+        <li>{t('mapsNotDisplayingItem1')}</li>
+        <li>{t('mapsNotDisplayingItem2')}</li>
+        <li>{t('mapsNotDisplayingItem3')}</li>
+      </ul>
+
+      <h3>{t('slowDownloadTitle')}</h3>
+      <ul>
+        <li>{t('slowDownloadItem1')}</li>
+        <li>{t('slowDownloadItem2')}</li>
+        <li>{t('slowDownloadItem3')}</li>
+      </ul>
+
+      <h2>{t('relatedTopicsTitle')}</h2>
+      <ul>
+        <li>
+          <Link href={`/${locale}/docs/mobile/map-navigation`}>{t('relatedLink1')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/concepts/sync-offline`}>{t('relatedLink2')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/mobile/creating-interventions`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

@@ -1,260 +1,251 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function InterventionsPage() {
+export default async function InterventionsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.interventions');
+
   return (
     <DocPage
-      title="Understanding Interventions"
-      description="Learn about interventions, the core concept in TreeMapper for documenting forestry actions."
+      title={t('title')}
+      description={t('description')}
       pageId="interventions"
     >
-      <h2>What is an Intervention?</h2>
+      <h2>{t('whatIsTitle')}</h2>
       <p>
-        An <strong>intervention</strong> is any documented forestry action or activity in TreeMapper.
-        It represents work performed at a specific location and time, such as planting trees,
-        removing invasive species, maintaining existing forests, or conducting observations.
+        {t('whatIsIntro1')} <strong>{t('whatIsIntro1Bold')}</strong> {t('whatIsIntro1Rest')}
       </p>
 
       <p>
-        Every intervention contains key information including location, date, type, species involved,
-        photos, and measurements—creating a comprehensive record of your forestry work.
+        {t('whatIsIntro2')}
       </p>
 
       <PlaceholderImage
-        title="Intervention Example"
-        description="Visual representation of an intervention with all its components"
+        title={t('exampleImageTitle')}
+        description={t('exampleImageDesc')}
       />
 
-      <h2>Intervention Types</h2>
-      <p>TreeMapper supports multiple intervention types to cover various forestry activities:</p>
+      <h2>{t('typesTitle')}</h2>
+      <p>{t('typesIntro')}</p>
 
-      <h3>Planting Interventions</h3>
+      <h3>{t('plantingTitle')}</h3>
       <ul>
         <li>
-          <strong>Single Tree</strong>: Planting one tree at a specific point location
+          <strong>{t('singleTree')}</strong>: {t('singleTreeDesc')}
         </li>
         <li>
-          <strong>Multi-Tree</strong>: Planting multiple trees within a defined area (polygon)
+          <strong>{t('multiTree')}</strong>: {t('multiTreeDesc')}
         </li>
         <li>
-          <strong>Regeneration</strong>: Documenting natural forest regeneration or assisted
-          regeneration efforts
+          <strong>{t('regeneration')}</strong>: {t('regenerationDesc')}
         </li>
       </ul>
 
-      <h3>Maintenance Interventions</h3>
+      <h3>{t('maintenanceTitle')}</h3>
       <ul>
         <li>
-          <strong>Maintenance</strong>: General tree care activities like pruning, watering,
-          or mulching
+          <strong>{t('maintenance')}</strong>: {t('maintenanceDesc')}
         </li>
         <li>
-          <strong>Fire Suppression</strong>: Firebreak creation or fire prevention measures
+          <strong>{t('fireSuppression')}</strong>: {t('fireSuppressionDesc')}
         </li>
         <li>
-          <strong>Fencing</strong>: Installing protective barriers around planted areas
+          <strong>{t('fencing')}</strong>: {t('fencingDesc')}
         </li>
       </ul>
 
-      <h3>Removal Interventions</h3>
+      <h3>{t('removalTitle')}</h3>
       <ul>
         <li>
-          <strong>Invasive Species Removal</strong>: Clearing non-native or harmful vegetation
+          <strong>{t('invasiveRemoval')}</strong>: {t('invasiveRemovalDesc')}
         </li>
         <li>
-          <strong>Dead Tree Removal</strong>: Removing deceased trees for safety or land management
-        </li>
-      </ul>
-
-      <h3>Monitoring Interventions</h3>
-      <ul>
-        <li>
-          <strong>Observation</strong>: Recording observations without physical work (wildlife,
-          disease, etc.)
-        </li>
-        <li>
-          <strong>Remeasurement</strong>: Follow-up measurements to track tree growth over time
+          <strong>{t('deadTreeRemoval')}</strong>: {t('deadTreeRemovalDesc')}
         </li>
       </ul>
 
-      <h2>Anatomy of an Intervention</h2>
-
-      <h3>Required Fields</h3>
-      <p>Every intervention must have these essential components:</p>
+      <h3>{t('monitoringTitle')}</h3>
       <ul>
-        <li><strong>Location</strong>: GPS coordinates (point) or boundary (polygon)</li>
-        <li><strong>Type</strong>: The kind of intervention (planting, maintenance, etc.)</li>
-        <li><strong>Date</strong>: When the intervention was performed</li>
-        <li><strong>Project</strong>: Which project this intervention belongs to</li>
+        <li>
+          <strong>{t('observation')}</strong>: {t('observationDesc')}
+        </li>
+        <li>
+          <strong>{t('remeasurement')}</strong>: {t('remeasurementDesc')}
+        </li>
       </ul>
 
-      <h3>Optional but Recommended</h3>
+      <h2>{t('anatomyTitle')}</h2>
+
+      <h3>{t('requiredFieldsTitle')}</h3>
+      <p>{t('requiredFieldsIntro')}</p>
       <ul>
-        <li><strong>Photos</strong>: Visual documentation of the intervention site</li>
-        <li><strong>Species</strong>: Tree species involved (especially for planting)</li>
-        <li><strong>Tree Count</strong>: Number of trees planted or affected</li>
-        <li><strong>Measurements</strong>: Height, diameter, or other dimensions</li>
-        <li><strong>Notes</strong>: Observations, conditions, or special circumstances</li>
-        <li><strong>Site</strong>: Specific location within the project</li>
+        <li><strong>{t('location')}</strong>: {t('locationDesc')}</li>
+        <li><strong>{t('type')}</strong>: {t('typeDesc')}</li>
+        <li><strong>{t('date')}</strong>: {t('dateDesc')}</li>
+        <li><strong>{t('project')}</strong>: {t('projectDesc')}</li>
       </ul>
 
-      <h3>Metadata (Automatic)</h3>
-      <p>TreeMapper automatically captures:</p>
+      <h3>{t('optionalTitle')}</h3>
       <ul>
-        <li><strong>Creator</strong>: User who recorded the intervention</li>
-        <li><strong>Creation Time</strong>: Exact timestamp of record creation</li>
-        <li><strong>Device Info</strong>: Mobile device details</li>
-        <li><strong>Sync Status</strong>: Whether data has been uploaded to the server</li>
-        <li><strong>GPS Accuracy</strong>: Precision of location data</li>
+        <li><strong>{t('photos')}</strong>: {t('photosDesc')}</li>
+        <li><strong>{t('species')}</strong>: {t('speciesDesc')}</li>
+        <li><strong>{t('treeCount')}</strong>: {t('treeCountDesc')}</li>
+        <li><strong>{t('measurements')}</strong>: {t('measurementsDesc')}</li>
+        <li><strong>{t('notes')}</strong>: {t('notesDesc')}</li>
+        <li><strong>{t('site')}</strong>: {t('siteDesc')}</li>
       </ul>
 
-      <h2>Intervention Workflow</h2>
+      <h3>{t('metadataTitle')}</h3>
+      <p>{t('metadataIntro')}</p>
+      <ul>
+        <li><strong>{t('creator')}</strong>: {t('creatorDesc')}</li>
+        <li><strong>{t('creationTime')}</strong>: {t('creationTimeDesc')}</li>
+        <li><strong>{t('deviceInfo')}</strong>: {t('deviceInfoDesc')}</li>
+        <li><strong>{t('syncStatus')}</strong>: {t('syncStatusDesc')}</li>
+        <li><strong>{t('gpsAccuracy')}</strong>: {t('gpsAccuracyDesc')}</li>
+      </ul>
+
+      <h2>{t('workflowTitle')}</h2>
 
       <div className="space-y-4 my-8">
         <WorkflowStep
           number={1}
-          title="Create"
-          description="Open the app, navigate to the location, and start a new intervention"
+          title={t('workflowStep1Title')}
+          description={t('workflowStep1Desc')}
         />
         <WorkflowStep
           number={2}
-          title="Document"
-          description="Add photos, select species, enter measurements, and record details"
+          title={t('workflowStep2Title')}
+          description={t('workflowStep2Desc')}
         />
         <WorkflowStep
           number={3}
-          title="Save Locally"
-          description="Intervention is saved on your device, even without internet"
+          title={t('workflowStep3Title')}
+          description={t('workflowStep3Desc')}
         />
         <WorkflowStep
           number={4}
-          title="Sync"
-          description="When online, data automatically syncs to the server"
+          title={t('workflowStep4Title')}
+          description={t('workflowStep4Desc')}
         />
         <WorkflowStep
           number={5}
-          title="Analyze"
-          description="View intervention data on the web dashboard for reporting and analytics"
+          title={t('workflowStep5Title')}
+          description={t('workflowStep5Desc')}
         />
       </div>
 
-      <h2>Point vs Polygon Interventions</h2>
+      <h2>{t('pointVsPolygonTitle')}</h2>
 
-      <h3>Point Interventions</h3>
-      <p>Best for:</p>
+      <h3>{t('pointTitle')}</h3>
+      <p>{t('pointBestFor')}</p>
       <ul>
-        <li>Single tree planting</li>
-        <li>Individual tree observations</li>
-        <li>Specific location markers</li>
+        <li>{t('pointUse1')}</li>
+        <li>{t('pointUse2')}</li>
+        <li>{t('pointUse3')}</li>
       </ul>
       <p>
-        Point interventions are marked with a single GPS coordinate representing the exact
-        location of a tree or feature.
+        {t('pointDesc')}
       </p>
 
-      <h3>Polygon Interventions</h3>
-      <p>Best for:</p>
+      <h3>{t('polygonTitle')}</h3>
+      <p>{t('polygonBestFor')}</p>
       <ul>
-        <li>Multi-tree planting over an area</li>
-        <li>Forest restoration zones</li>
-        <li>Maintenance areas</li>
-        <li>Removal projects</li>
+        <li>{t('polygonUse1')}</li>
+        <li>{t('polygonUse2')}</li>
+        <li>{t('polygonUse3')}</li>
+        <li>{t('polygonUse4')}</li>
       </ul>
       <p>
-        Polygon interventions define a boundary by walking the perimeter and recording GPS
-        points. TreeMapper automatically calculates the area and displays it on maps.
+        {t('polygonDesc')}
       </p>
 
       <PlaceholderImage
-        title="Point vs Polygon"
-        description="Visual comparison showing point marker and polygon boundary on map"
+        title={t('pointVsPolygonImageTitle')}
+        description={t('pointVsPolygonImageDesc')}
       />
 
-      <h2>Intervention Status</h2>
+      <h2>{t('statusTitle')}</h2>
 
-      <h3>Incomplete</h3>
+      <h3>{t('incompleteTitle')}</h3>
       <p>
-        Interventions saved as drafts without all required information. You can return to
-        complete them later.
+        {t('incompleteDesc')}
       </p>
 
-      <h3>Pending Sync (Unsync)</h3>
+      <h3>{t('pendingSyncTitle')}</h3>
       <p>
-        Complete interventions stored locally but not yet uploaded to the server. They'll
-        sync automatically when internet is available.
+        {t('pendingSyncDesc')}
       </p>
 
-      <h3>Synced</h3>
+      <h3>{t('syncedTitle')}</h3>
       <p>
-        Interventions successfully uploaded to the server. Data is backed up and visible
-        in the web dashboard.
+        {t('syncedDesc')}
       </p>
 
-      <h3>Sync Failed</h3>
+      <h3>{t('syncFailedTitle')}</h3>
       <p>
-        Interventions that encountered errors during sync. Usually due to server issues or
-        connectivity problems. You can retry syncing from the Interventions tab.
+        {t('syncFailedDesc')}
       </p>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Accuracy</h3>
+      <h3>{t('accuracyTitle')}</h3>
       <ul>
-        <li>Wait for strong GPS signal (accuracy &lt; 10 meters) before marking locations</li>
-        <li>Stand at the tree or center of planting area for point interventions</li>
-        <li>Walk the actual perimeter slowly for polygon interventions</li>
+        <li>{t('accuracyTip1')}</li>
+        <li>{t('accuracyTip2')}</li>
+        <li>{t('accuracyTip3')}</li>
       </ul>
 
-      <h3>Documentation</h3>
+      <h3>{t('documentationTitle')}</h3>
       <ul>
-        <li>Take photos from multiple angles (overview, close-up, context)</li>
-        <li>Include people or objects for scale reference</li>
-        <li>Capture "before" and "after" photos when possible</li>
-        <li>Add descriptive notes about site conditions</li>
+        <li>{t('documentationTip1')}</li>
+        <li>{t('documentationTip2')}</li>
+        <li>{t('documentationTip3')}</li>
+        <li>{t('documentationTip4')}</li>
       </ul>
 
-      <h3>Organization</h3>
+      <h3>{t('organizationTitle')}</h3>
       <ul>
-        <li>Use consistent naming conventions for sites</li>
-        <li>Tag interventions with relevant labels for easy filtering</li>
-        <li>Record interventions promptly while details are fresh</li>
-        <li>Sync data regularly to prevent loss</li>
+        <li>{t('organizationTip1')}</li>
+        <li>{t('organizationTip2')}</li>
+        <li>{t('organizationTip3')}</li>
+        <li>{t('organizationTip4')}</li>
       </ul>
 
-      <h2>Common Questions</h2>
+      <h2>{t('commonQuestionsTitle')}</h2>
 
-      <h3>Can I edit an intervention after syncing?</h3>
+      <h3>{t('question1Title')}</h3>
       <p>
-        Yes, but with some limitations. You can edit most fields like notes, species, and
-        measurements. However, changing the location or intervention type may require
-        administrator approval depending on your project settings.
+        {t('question1Answer')}
       </p>
 
-      <h3>What happens to interventions if I delete the app?</h3>
+      <h3>{t('question2Title')}</h3>
       <p>
-        Synced interventions are safe on the server. Unsynced interventions will be lost unless
-        you sync before deleting. Always sync your data before uninstalling the app or
-        switching devices.
+        {t('question2Answer')}
       </p>
 
-      <h3>How many interventions can I create offline?</h3>
+      <h3>{t('question3Title')}</h3>
       <p>
-        There's no practical limit. You can create hundreds of interventions offline, limited
-        only by your device storage (primarily photos). Each intervention is small (~1KB of data
-        without photos).
+        {t('question3Answer')}
       </p>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/tutorials/first-intervention">Creating your first intervention</Link>
+          <Link href={`/${locale}/docs/tutorials/first-intervention`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/creating-interventions">Intervention creation guide</Link>
+          <Link href={`/${locale}/docs/mobile/creating-interventions`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/sync-offline">Understanding sync and offline mode</Link>
+          <Link href={`/${locale}/docs/concepts/sync-offline`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

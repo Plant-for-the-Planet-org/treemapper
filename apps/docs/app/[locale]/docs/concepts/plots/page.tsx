@@ -1,279 +1,257 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function PlotsPage() {
+export default async function PlotsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.plots');
+
   return (
     <DocPage
-      title="Plots & Plot Groups"
-      description="Understand monitoring plots and plot groups, key concepts for systematic long-term forest monitoring in TreeMapper."
+      title={t('title')}
+      description={t('description')}
       pageId="plots"
     >
-      <h2>What Are Monitoring Plots?</h2>
+      <h2>{t('whatAreTitle')}</h2>
       <p>
-        A <strong>monitoring plot</strong> is a specific, clearly defined area within a restoration
-        site that is observed repeatedly over time. Monitoring plots provide a structured framework
-        for collecting consistent, comparable data about forest restoration progress.
+        {t('whatAreIntro1')} <strong>{t('whatAreIntro1Bold')}</strong> {t('whatAreIntro1Rest')}
       </p>
 
       <p>
-        By repeatedly collecting data from the same defined area, you can track changes in
-        vegetation growth, species composition, and ecosystem recovery over time. This systematic
-        approach enables evidence-based assessment of restoration effectiveness.
+        {t('whatAreIntro2')}
       </p>
 
       <PlaceholderImage
-        title="Monitoring Plot Concept"
-        description="Visual representation of a monitoring plot as a defined area for repeated observation"
+        title={t('conceptImageTitle')}
+        description={t('conceptImageDesc')}
       />
 
-      <h2>Why Use Monitoring Plots?</h2>
-      <p>Monitoring plots are essential for:</p>
+      <h2>{t('whyUseTitle')}</h2>
+      <p>{t('whyUseIntro')}</p>
       <ul>
         <li>
-          <strong>Measuring Effectiveness</strong>: Quantify how well restoration interventions are
-          working by comparing data over time
+          <strong>{t('measuringEffectiveness')}</strong>: {t('measuringEffectivenessDesc')}
         </li>
         <li>
-          <strong>Scientific Rigor</strong>: Provide standardized, repeatable data collection
-          methods that meet scientific standards
+          <strong>{t('scientificRigor')}</strong>: {t('scientificRigorDesc')}
         </li>
         <li>
-          <strong>Comparative Analysis</strong>: Compare restored areas with control areas (areas
-          without interventions) to understand restoration impact
+          <strong>{t('comparativeAnalysis')}</strong>: {t('comparativeAnalysisDesc')}
         </li>
         <li>
-          <strong>Long-Term Tracking</strong>: Establish baseline data and track changes over
-          months, years, or decades
+          <strong>{t('longTermTracking')}</strong>: {t('longTermTrackingDesc')}
         </li>
         <li>
-          <strong>Evidence-Based Decisions</strong>: Make informed decisions about restoration
-          strategies based on actual data rather than assumptions
+          <strong>{t('evidenceBased')}</strong>: {t('evidenceBasedDesc')}
         </li>
       </ul>
 
-      <h2>Plot Types</h2>
-      <p>TreeMapper supports two main types of monitoring plots:</p>
+      <h2>{t('plotTypesTitle')}</h2>
+      <p>{t('plotTypesIntro')}</p>
 
-      <h3>Intervention Plots</h3>
+      <h3>{t('interventionPlotsTitle')}</h3>
       <p>
-        <strong>Intervention plots</strong> are areas where restoration activities have taken place,
-        such as:
+        <strong>{t('interventionPlotsBold')}</strong> {t('interventionPlotsIntro')}
       </p>
       <ul>
-        <li>Tree planting activities</li>
-        <li>Assisted regeneration efforts</li>
-        <li>Active restoration interventions</li>
+        <li>{t('interventionPlotsItem1')}</li>
+        <li>{t('interventionPlotsItem2')}</li>
+        <li>{t('interventionPlotsItem3')}</li>
       </ul>
       <p>
-        These plots help you measure the direct impact of your restoration work by tracking how
-        planted trees and restored areas develop over time.
+        {t('interventionPlotsDesc')}
       </p>
 
-      <h3>Control Plots</h3>
+      <h3>{t('controlPlotsTitle')}</h3>
       <p>
-        <strong>Control plots</strong> represent areas without active interventions. They serve as
-        reference points for comparison, helping you understand:
+        <strong>{t('controlPlotsBold')}</strong> {t('controlPlotsIntro')}
       </p>
       <ul>
-        <li>Natural regeneration rates</li>
-        <li>Baseline ecosystem conditions</li>
-        <li>The difference restoration makes compared to untouched areas</li>
+        <li>{t('controlPlotsItem1')}</li>
+        <li>{t('controlPlotsItem2')}</li>
+        <li>{t('controlPlotsItem3')}</li>
       </ul>
       <p>
-        By comparing intervention plots with control plots, you can quantify the actual impact of
-        your restoration efforts.
+        {t('controlPlotsDesc')}
       </p>
 
       <PlaceholderImage
-        title="Intervention vs Control Plots"
-        description="Visual comparison showing intervention and control plot concepts"
+        title={t('interventionVsControlImageTitle')}
+        description={t('interventionVsControlImageDesc')}
       />
 
-      <h2>Plot Components</h2>
-      <p>Each monitoring plot contains several key components:</p>
+      <h2>{t('plotComponentsTitle')}</h2>
+      <p>{t('plotComponentsIntro')}</p>
 
-      <h3>Plot Definition</h3>
+      <h3>{t('plotDefinitionTitle')}</h3>
       <ul>
-        <li><strong>Name</strong>: Unique identifier for the plot</li>
-        <li><strong>Dimensions</strong>: Size and shape of the plot area</li>
-        <li><strong>Location</strong>: Geographic coordinates and boundaries</li>
-        <li><strong>Type</strong>: Intervention or Control</li>
+        <li><strong>{t('name')}</strong>: {t('nameDesc')}</li>
+        <li><strong>{t('dimensions')}</strong>: {t('dimensionsDesc')}</li>
+        <li><strong>{t('location')}</strong>: {t('locationDesc')}</li>
+        <li><strong>{t('type')}</strong>: {t('typeDesc')}</li>
       </ul>
 
-      <h3>Plant-Level Data</h3>
+      <h3>{t('plantLevelDataTitle')}</h3>
       <p>
-        Within each plot, you can record individual plant data, including:
+        {t('plantLevelDataIntro')}
       </p>
       <ul>
-        <li>Whether plants were <strong>planted</strong> or are <strong>recruits</strong> (naturally occurring)</li>
-        <li><strong>Species identification</strong></li>
-        <li><strong>Measurements</strong>: Height, diameter, and other scientific data</li>
-        <li><strong>Position</strong> within the plot</li>
-        <li><strong>Tags</strong> for identification or grouping</li>
+        <li>{t('plantLevelDataItem1')} <strong>{t('planted')}</strong> {t('plantLevelDataItem1Mid')} <strong>{t('recruits')}</strong> {t('plantLevelDataItem1End')}</li>
+        <li><strong>{t('speciesIdentification')}</strong></li>
+        <li><strong>{t('measurements')}</strong>: {t('measurementsDesc')}</li>
+        <li><strong>{t('position')}</strong> {t('positionDesc')}</li>
+        <li><strong>{t('tags')}</strong> {t('tagsDesc')}</li>
       </ul>
 
-      <h3>Observations</h3>
+      <h3>{t('observationsTitle')}</h3>
       <p>
-        Plot-level environmental observations, such as:
+        {t('observationsIntro')}
       </p>
       <ul>
-        <li><strong>Soil Moisture</strong></li>
-        <li><strong>Canopy Cover</strong></li>
-        <li>Additional observation types (coming soon)</li>
+        <li><strong>{t('soilMoisture')}</strong></li>
+        <li><strong>{t('canopyCover')}</strong></li>
+        <li>{t('additionalObservations')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Plot Components"
-        description="Diagram showing plot structure with plants, measurements, and observations"
+        title={t('plotComponentsImageTitle')}
+        description={t('plotComponentsImageDesc')}
       />
 
-      <h2>Plant Timeline and Remeasurements</h2>
+      <h2>{t('plantTimelineTitle')}</h2>
       <p>
-        One of the most powerful features of monitoring plots is the ability to track individual
-        plants over time through a <strong>plant timeline</strong>. This allows you to:
+        {t('plantTimelineIntro1')} <strong>{t('plantTimelineBold')}</strong> {t('plantTimelineIntro2')}
       </p>
       <ul>
-        <li>Record multiple measurements as plants grow</li>
-        <li>Update measurements if corrections are needed</li>
-        <li>Track survival rates by marking plants as deceased</li>
-        <li>Create a complete historical record of each plant's development</li>
+        <li>{t('plantTimelineItem1')}</li>
+        <li>{t('plantTimelineItem2')}</li>
+        <li>{t('plantTimelineItem3')}</li>
+        <li>{t('plantTimelineItem4')}</li>
       </ul>
 
       <p>
-        This longitudinal data collection supports robust analysis of restoration outcomes and helps
-        identify which species and strategies are most successful.
+        {t('plantTimelineDesc')}
       </p>
 
-      <h2>Plot Groups</h2>
+      <h2>{t('plotGroupsTitle')}</h2>
       <p>
-        <strong>Plot groups</strong> allow you to organize multiple monitoring plots together for
-        easier management and analysis.
+        <strong>{t('plotGroupsBold')}</strong> {t('plotGroupsIntro')}
       </p>
 
-      <h3>Group Structure</h3>
+      <h3>{t('groupStructureTitle')}</h3>
       <ul>
-        <li>A group can contain <strong>multiple monitoring plots</strong></li>
-        <li>Each monitoring plot can belong to <strong>only one group</strong></li>
-        <li>Groups help organize plots with shared characteristics or objectives</li>
+        <li>{t('groupStructureItem1')} <strong>{t('multiplePlots')}</strong></li>
+        <li>{t('groupStructureItem2')} <strong>{t('onlyOneGroup')}</strong></li>
+        <li>{t('groupStructureItem3')}</li>
       </ul>
 
-      <h3>When to Use Plot Groups</h3>
-      <p>Plot groups are particularly useful for:</p>
+      <h3>{t('whenToUseTitle')}</h3>
+      <p>{t('whenToUseIntro')}</p>
       <ul>
         <li>
-          <strong>Control vs Intervention Comparisons</strong>: Group all control plots together and
-          all intervention plots together for easy comparison
+          <strong>{t('controlVsIntervention')}</strong>: {t('controlVsInterventionDesc')}
         </li>
         <li>
-          <strong>Long-Term Research Areas</strong>: Organize plots by research site or study area
+          <strong>{t('longTermResearch')}</strong>: {t('longTermResearchDesc')}
         </li>
         <li>
-          <strong>Specific Restoration Strategies</strong>: Group plots that use the same
-          restoration approach or technique
+          <strong>{t('specificStrategies')}</strong>: {t('specificStrategiesDesc')}
         </li>
         <li>
-          <strong>Geographic Organization</strong>: Group plots by location, watershed, or
-          ecological zone
+          <strong>{t('geographicOrg')}</strong>: {t('geographicOrgDesc')}
         </li>
         <li>
-          <strong>Time-Based Studies</strong>: Organize plots by planting year or monitoring period
+          <strong>{t('timeBasedStudies')}</strong>: {t('timeBasedStudiesDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Plot Groups Organization"
-        description="Visual representation of how multiple plots can be organized into groups"
+        title={t('plotGroupsImageTitle')}
+        description={t('plotGroupsImageDesc')}
       />
 
-      <h2>Benefits of Plot Groups</h2>
-      <p>Using plot groups provides several advantages:</p>
+      <h2>{t('benefitsTitle')}</h2>
+      <p>{t('benefitsIntro')}</p>
       <ul>
         <li>
-          <strong>Simplified Management</strong>: Easier to navigate and manage large numbers of
-          plots
+          <strong>{t('simplifiedMgmt')}</strong>: {t('simplifiedMgmtDesc')}
         </li>
         <li>
-          <strong>Bulk Analysis</strong>: Analyze results across related plots simultaneously
+          <strong>{t('bulkAnalysis')}</strong>: {t('bulkAnalysisDesc')}
         </li>
         <li>
-          <strong>Organized Reporting</strong>: Generate reports for specific groups of plots
+          <strong>{t('organizedReporting')}</strong>: {t('organizedReportingDesc')}
         </li>
         <li>
-          <strong>Clear Structure</strong>: Maintain logical organization as your monitoring
-          program grows
+          <strong>{t('clearStructure')}</strong>: {t('clearStructureDesc')}
         </li>
       </ul>
 
-      <h2>Plots vs Interventions</h2>
+      <h2>{t('plotsVsInterventionsTitle')}</h2>
       <p>
-        It's important to understand the difference between <strong>monitoring plots</strong> and{' '}
-        <Link href="/docs/concepts/interventions">interventions</Link>:
+        {t('plotsVsInterventionsIntro')} <strong>{t('monitoringPlots')}</strong> {t('plotsVsInterventionsMid')}{' '}
+        <Link href={`/${locale}/docs/concepts/interventions`}>{t('interventions')}</Link>:
       </p>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
-        <h4 className="mt-0 text-blue-600 dark:text-blue-500">Key Differences</h4>
+        <h4 className="mt-0 text-blue-600 dark:text-blue-500">{t('keyDifferencesTitle')}</h4>
         <ul className="mb-0">
           <li>
-            <strong>Interventions</strong> document specific actions or events (planting, removal,
-            maintenance) at a point in time
+            <strong>{t('interventions')}</strong> {t('keyDiff1')}
           </li>
           <li>
-            <strong>Monitoring Plots</strong> are long-term observation areas where you repeatedly
-            collect data over time
+            <strong>{t('monitoringPlots')}</strong> {t('keyDiff2')}
           </li>
           <li>
-            Interventions can be created <em>within</em> monitoring plots to document what was done
+            {t('keyDiff3')} <em>{t('within')}</em> {t('keyDiff3Rest')}
           </li>
           <li>
-            Monitoring plots provide the framework for tracking the <em>results</em> of interventions
+            {t('keyDiff4')} <em>{t('results')}</em> {t('keyDiff4Rest')}
           </li>
         </ul>
       </div>
 
-      <h2>Best Practices</h2>
-      <p>When working with monitoring plots:</p>
+      <h2>{t('bestPracticesTitle')}</h2>
+      <p>{t('bestPracticesIntro')}</p>
       <ul>
         <li>
-          <strong>Establish Clear Boundaries</strong>: Use GPS and physical markers to ensure plots
-          can be accurately relocated
+          <strong>{t('establishBoundaries')}</strong>: {t('establishBoundariesDesc')}
         </li>
         <li>
-          <strong>Consistent Methodology</strong>: Use the same measurement protocols and timing
-          for all plots in a group
+          <strong>{t('consistentMethodology')}</strong>: {t('consistentMethodologyDesc')}
         </li>
         <li>
-          <strong>Regular Monitoring</strong>: Schedule regular remeasurement visits to track
-          changes over time
+          <strong>{t('regularMonitoring')}</strong>: {t('regularMonitoringDesc')}
         </li>
         <li>
-          <strong>Document Everything</strong>: Record environmental conditions, weather, and any
-          unusual events during monitoring
+          <strong>{t('documentEverything')}</strong>: {t('documentEverythingDesc')}
         </li>
         <li>
-          <strong>Use Plot Groups</strong>: Organize plots logically from the start to make
-          management easier as your program grows
+          <strong>{t('usePlotGroups')}</strong>: {t('usePlotGroupsDesc')}
         </li>
       </ul>
 
-      <h2>What's Next?</h2>
-      <p>Now that you understand plots and plot groups, explore these guides:</p>
+      <h2>{t('whatsNextTitle')}</h2>
+      <p>{t('whatsNextIntro')}</p>
       <ul>
         <li>
-          <Link href="/docs/tutorials/monitoring-plots">Set up your first monitoring plot</Link> -
-          step-by-step tutorial
+          <Link href={`/${locale}/docs/tutorials/monitoring-plots`}>{t('nextLink1')}</Link> -
+          {t('nextLink1Desc')}
         </li>
         <li>
-          <Link href="/docs/concepts/interventions">Learn about interventions</Link> and how they
-          relate to plots
+          <Link href={`/${locale}/docs/concepts/interventions`}>{t('nextLink2')}</Link> {t('nextLink2Desc')}
         </li>
         <li>
-          <Link href="/docs/mobile/measurements">Learn about taking measurements</Link> for
-          scientific data collection
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('nextLink3')}</Link> {t('nextLink3Desc')}
         </li>
         <li>
-          <Link href="/docs/web/overview">View plot data on the web dashboard</Link> for analysis
-          and reporting
+          <Link href={`/${locale}/docs/web/overview`}>{t('nextLink4')}</Link> {t('nextLink4Desc')}
         </li>
       </ul>
     </DocPage>

@@ -1,206 +1,190 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function ProjectsSitesPage() {
+export default async function ProjectsSitesPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.projectsSites');
+
   return (
     <DocPage
-      title="Projects vs Sites"
-      description="Understand the difference between projects and sites in TreeMapper and how they work together to organize your restoration work."
+      title={t('title')}
+      description={t('description')}
       pageId="projects-sites"
     >
-      <h2>What Is a Project?</h2>
+      <h2>{t('whatIsProjectTitle')}</h2>
       <p>
-        A <strong>project</strong> is the core container for restoration in TreeMapper. It
-        represents a restoration initiative or program where all related activities are grouped
-        together—interventions, sites, monitoring plots, team members, and analytics.
+        {t('whatIsProjectIntro1')} <strong>{t('project')}</strong> {t('whatIsProjectIntro2')}
       </p>
 
       <p>
-        When you sign in to the mobile app or start using the web dashboard, you will be asked to
-        create or select a project so that all your restoration efforts are linked to the right
-        context. You can create as many projects as you need.
+        {t('whatIsProjectIntro3')}
       </p>
 
       <PlaceholderImage
-        title="Project Overview"
-        description="Screenshot showing project overview in the web dashboard"
+        title={t('projectOverviewImageTitle')}
+        description={t('projectOverviewImageDesc')}
       />
 
-      <h3>Project Details</h3>
-      <p>When creating a project, you typically provide:</p>
+      <h3>{t('projectDetailsTitle')}</h3>
+      <p>{t('projectDetailsIntro')}</p>
       <ul>
         <li>
-          <strong>Name</strong>: The name of the restoration project
+          <strong>{t('name')}</strong>: {t('nameDesc')}
         </li>
         <li>
-          <strong>Project Type</strong>: For example, organizational or{' '}
-          <strong>personal</strong> (if it’s only for personal use)
+          <strong>{t('projectType')}</strong>: {t('projectTypeDesc1')} <strong>{t('personal')}</strong> {t('projectTypeDesc2')}
         </li>
         <li>
-          <strong>Location</strong>: Optional geographic location or region for the project,
-          selected on the map
+          <strong>{t('location')}</strong>: {t('locationDesc')}
         </li>
       </ul>
 
       <p>
-        Once saved, the project is created and you can start using other features such as team
-        management, site creation, interventions, monitoring plots, and analytics. Project details
-        can always be edited later from the project edit section.
+        {t('projectDetailsDesc1')}
       </p>
 
       <p>
-        Projects can be created from both the <strong>mobile app</strong> and the{' '}
-        <strong>web dashboard</strong> with the same options.
+        {t('projectDetailsDesc2')} <strong>{t('mobileApp')}</strong> {t('projectDetailsDesc2Mid')} <strong>{t('webDashboard')}</strong> {t('projectDetailsDesc2End')}
       </p>
 
-      <h2>What Is a Site?</h2>
+      <h2>{t('whatIsSiteTitle')}</h2>
       <p>
-        A <strong>site</strong> is a specific polygon area within a project where tree planting and
-        other restoration activities take place. While a project defines the overall initiative,
-        sites define the actual geographic areas on the map.
+        {t('whatIsSiteIntro1')} <strong>{t('site')}</strong> {t('whatIsSiteIntro2')}
       </p>
 
       <p>
-        A single project can have <strong>many sites</strong>. This allows you to represent
-        multiple planting areas, farms, reserves, or landscape units under the same project.
+        {t('whatIsSiteIntro3')} <strong>{t('manySites')}</strong>. {t('whatIsSiteIntro4')}
       </p>
 
       <PlaceholderImage
-        title="Sites on Map"
-        description="Screenshot showing multiple sites within a single project"
+        title={t('sitesOnMapImageTitle')}
+        description={t('sitesOnMapImageDesc')}
       />
 
-      <h3>Site Details</h3>
-      <p>When creating a site, you typically provide:</p>
+      <h3>{t('siteDetailsTitle')}</h3>
+      <p>{t('siteDetailsIntro')}</p>
       <ul>
         <li>
-          <strong>Name</strong>: The site name
+          <strong>{t('name')}</strong>: {t('siteNameDesc')}
         </li>
         <li>
-          <strong>Site Type</strong>: The type/category of the site
+          <strong>{t('siteType')}</strong>: {t('siteTypeDesc')}
         </li>
         <li>
-          <strong>Boundary</strong>: A polygon defining the site area
+          <strong>{t('boundary')}</strong>: {t('boundaryDesc')}
         </li>
       </ul>
 
-      <h3>Defining Site Boundaries</h3>
-      <p>You can define site boundaries in multiple ways:</p>
+      <h3>{t('definingBoundariesTitle')}</h3>
+      <p>{t('definingBoundariesIntro')}</p>
       <ul>
         <li>
-          <strong>Draw Polygon on Map</strong>: Manually draw the boundary over the map to mark the
-          site
+          <strong>{t('drawPolygon')}</strong>: {t('drawPolygonDesc')}
         </li>
         <li>
-          <strong>Upload GeoJSON</strong>: Upload an existing GIS file if you already have an
-          accurate site boundary
+          <strong>{t('uploadGeoJSON')}</strong>: {t('uploadGeoJSONDesc')}
         </li>
         <li>
-          <strong>Trace with Mobile GPS</strong>: In the mobile app, walk along the border of the
-          site and trace the boundary using GPS when no accurate GeoJSON is available
+          <strong>{t('traceWithGPS')}</strong>: {t('traceWithGPSDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Site Boundary Methods"
-        description="Diagram showing drawing, uploading GeoJSON, and tracing with GPS for site boundaries"
+        title={t('siteBoundaryMethodsImageTitle')}
+        description={t('siteBoundaryMethodsImageDesc')}
       />
 
-      <h2>Access and Permissions</h2>
+      <h2>{t('accessPermissionsTitle')}</h2>
       <p>
-        Projects and sites both play a role in access management, but at different levels of
-        granularity.
+        {t('accessPermissionsIntro')}
       </p>
 
-      <h3>Project-Level Access</h3>
+      <h3>{t('projectLevelAccessTitle')}</h3>
       <p>
-        At the project level, access is managed via{' '}
-        <Link href="/docs/tutorials/team-collaboration">team collaboration and roles</Link>:
+        {t('projectLevelAccessIntro')}{' '}
+        <Link href={`/${locale}/docs/tutorials/team-collaboration`}>{t('teamCollaborationLink')}</Link>:
       </p>
       <ul>
         <li>
-          <strong>Owner</strong> and <strong>Admin</strong>: Full project management, including
-          team, sites, and settings
+          <strong>{t('owner')}</strong> {t('and')} <strong>{t('admin')}</strong>: {t('ownerAdminDesc')}
         </li>
         <li>
-          <strong>Contributor</strong>: Can contribute data to the project (interventions,
-          monitoring, etc.)
+          <strong>{t('contributor')}</strong>: {t('contributorDesc')}
         </li>
         <li>
-          <strong>Observer</strong>: Read-only access to project data for analysis and validation
+          <strong>{t('observer')}</strong>: {t('observerDesc')}
         </li>
       </ul>
 
-      <h3>Site-Level Access</h3>
+      <h3>{t('siteLevelAccessTitle')}</h3>
       <p>
-        Sites also have access management so you can give limited access to specific sites for
-        certain team members. This is useful when:
+        {t('siteLevelAccessIntro')}
       </p>
       <ul>
-        <li>Different teams work on different areas within the same project</li>
-        <li>You want to restrict contributors to only some sites</li>
-        <li>External partners are involved in only part of the project area</li>
+        <li>{t('siteLevelAccessItem1')}</li>
+        <li>{t('siteLevelAccessItem2')}</li>
+        <li>{t('siteLevelAccessItem3')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Project and Site Access"
-        description="Screenshot showing project-level and site-level access settings"
+        title={t('projectSiteAccessImageTitle')}
+        description={t('projectSiteAccessImageDesc')}
       />
 
-      <h2>How Projects and Sites Work Together</h2>
-      <p>In summary:</p>
+      <h2>{t('howWorkTogetherTitle')}</h2>
+      <p>{t('howWorkTogetherIntro')}</p>
       <ul>
         <li>
-          A <strong>project</strong> defines the overall restoration initiative (who, why, and
-          high-level where)
+          {t('howWorkTogetherItem1')} <strong>{t('project')}</strong> {t('howWorkTogetherItem1Rest')}
         </li>
         <li>
-          <strong>Sites</strong> define the specific geographic areas (exact where) where
-          restoration happens
+          <strong>{t('sites')}</strong> {t('howWorkTogetherItem2')}
         </li>
         <li>
-          Interventions, monitoring plots, and plant data are associated with sites and projects
+          {t('howWorkTogetherItem3')}
         </li>
         <li>
-          Analytics and reporting aggregate data across sites within a project
+          {t('howWorkTogetherItem4')}
         </li>
       </ul>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
-        <h4 className="mt-0 text-blue-600 dark:text-blue-500">Quick Comparison</h4>
+        <h4 className="mt-0 text-blue-600 dark:text-blue-500">{t('quickComparisonTitle')}</h4>
         <ul className="mb-0">
           <li>
-            <strong>Project</strong>: Who is involved, what the initiative is, and overall scope
+            <strong>{t('project')}</strong>: {t('quickComparisonProject')}
           </li>
           <li>
-            <strong>Site</strong>: Where exactly restoration takes place on the map
+            <strong>{t('site')}</strong>: {t('quickComparisonSite')}
           </li>
           <li>
-            One project → many sites; each site belongs to a single project
+            {t('quickComparisonItem3')}
           </li>
           <li>
-            Project-level roles manage overall access; site-level access refines who can work where
+            {t('quickComparisonItem4')}
           </li>
         </ul>
       </div>
 
-      <h2>What's Next?</h2>
+      <h2>{t('whatsNextTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/tutorials/project-creation">Create your first project</Link> to start a
-          new restoration initiative
+          <Link href={`/${locale}/docs/tutorials/project-creation`}>{t('nextLink1')}</Link> {t('nextLink1Desc')}
         </li>
         <li>
-          <Link href="/docs/tutorials/site-creation">Create sites</Link> within your project to
-          define restoration areas
+          <Link href={`/${locale}/docs/tutorials/site-creation`}>{t('nextLink2')}</Link> {t('nextLink2Desc')}
         </li>
         <li>
-          <Link href="/docs/concepts/plots">Learn about plots & plot groups</Link> for detailed
-          long-term monitoring inside sites
+          <Link href={`/${locale}/docs/concepts/plots`}>{t('nextLink3')}</Link> {t('nextLink3Desc')}
         </li>
       </ul>
     </DocPage>
   );
 }
-

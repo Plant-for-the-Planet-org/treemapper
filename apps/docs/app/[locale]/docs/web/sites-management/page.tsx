@@ -1,242 +1,238 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function SitesManagementPage() {
+export default async function SitesManagementPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.sitesManagement');
+
   return (
     <DocPage
-      title="Managing Sites"
-      description="Learn how to create and manage restoration sites in the TreeMapper web dashboard."
+      title={t('title')}
+      description={t('description')}
       pageId="sites-management"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Sites are geographic areas within your project where restoration activities take place. The
-        web dashboard provides comprehensive tools for creating, viewing, editing, and managing
-        sites.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Viewing Sites</h2>
+      <h2>{t('viewingSitesTitle')}</h2>
       <p>
-        The Sites page displays all sites within your current project. You can switch between
-        different view modes:
+        {t('viewingSitesDesc')}
       </p>
 
-      <h3>Grid View</h3>
+      <h3>{t('gridViewTitle')}</h3>
       <p>
-        Visual card-based layout showing site previews with key information at a glance.
+        {t('gridViewDesc')}
       </p>
 
-      <h3>List View</h3>
+      <h3>{t('listViewTitle')}</h3>
       <p>
-        Tabular layout with sortable columns for detailed comparison and management.
+        {t('listViewDesc')}
       </p>
 
       <PlaceholderImage
-        title="Sites List"
-        description="Screenshot showing the sites list view"
+        title={t('sitesListImageTitle')}
+        description={t('sitesListImageDesc')}
       />
 
-      <h2>Site Information</h2>
-      <p>Each site displays the following information:</p>
+      <h2>{t('siteInformationTitle')}</h2>
+      <p>{t('siteInformationIntro')}</p>
       <ul>
         <li>
-          <strong>Site name</strong>: Descriptive name for the site
+          <strong>{t('siteName')}</strong>: {t('siteNameDesc')}
         </li>
         <li>
-          <strong>Description</strong>: Details about the site and its purpose
+          <strong>{t('description')}</strong>: {t('descriptionDesc')}
         </li>
         <li>
-          <strong>Creation date</strong>: When the site was created
+          <strong>{t('creationDate')}</strong>: {t('creationDateDesc')}
         </li>
         <li>
-          <strong>Creator</strong>: Team member who created the site
+          <strong>{t('creator')}</strong>: {t('creatorDesc')}
         </li>
         <li>
-          <strong>Last updated</strong>: Most recent modification timestamp
+          <strong>{t('lastUpdated')}</strong>: {t('lastUpdatedDesc')}
         </li>
         <li>
-          <strong>Area</strong>: Size in hectares calculated from the GeoJSON boundary
+          <strong>{t('area')}</strong>: {t('areaDesc')}
         </li>
         <li>
-          <strong>Status</strong>: Current site status (active, etc.)
+          <strong>{t('status')}</strong>: {t('statusDesc')}
         </li>
         <li>
-          <strong>Members</strong>: Team members assigned to the site
+          <strong>{t('members')}</strong>: {t('membersDesc')}
         </li>
       </ul>
 
-      <h2>Searching and Filtering</h2>
-      <p>Find specific sites using the search and filter options:</p>
+      <h2>{t('searchingFilteringTitle')}</h2>
+      <p>{t('searchingFilteringIntro')}</p>
       <ul>
         <li>
-          <strong>Search by name</strong>: Type to filter sites by name
+          <strong>{t('searchByName')}</strong>: {t('searchByNameDesc')}
         </li>
         <li>
-          <strong>Status filter</strong>: Show all sites or filter by status
+          <strong>{t('statusFilter')}</strong>: {t('statusFilterDesc')}
         </li>
         <li>
-          <strong>Sortable columns</strong>: Click column headers to sort by name, creation date,
-          etc.
+          <strong>{t('sortableColumns')}</strong>: {t('sortableColumnsDesc')}
         </li>
       </ul>
 
-      <h2>Creating a New Site</h2>
+      <h2>{t('creatingNewSiteTitle')}</h2>
       <p>
-        To create a new site, click the "Create Site" button to navigate to the site creation page.
+        {t('creatingNewSiteDesc')}
       </p>
 
-      <h3>Site Details</h3>
-      <p>Provide the following information:</p>
+      <h3>{t('siteDetailsTitle')}</h3>
+      <p>{t('siteDetailsIntro')}</p>
       <ul>
         <li>
-          <strong>Site name</strong>: A unique, descriptive name
+          <strong>{t('siteName')}</strong>: {t('siteNameDesc2')}
         </li>
         <li>
-          <strong>Description</strong>: Optional details about the site
+          <strong>{t('description')}</strong>: {t('descriptionDesc2')}
         </li>
         <li>
-          <strong>Site type</strong>: Category of the site (Planting, Planted, Barren,
-          Reforestation)
+          <strong>{t('siteType')}</strong>: {t('siteTypeDesc')}
         </li>
       </ul>
 
-      <h3>Defining Site Boundaries</h3>
-      <p>Site boundaries can be defined in two ways:</p>
+      <h3>{t('definingBoundariesTitle')}</h3>
+      <p>{t('definingBoundariesIntro')}</p>
 
-      <h4>Draw on Map</h4>
+      <h4>{t('drawOnMapTitle')}</h4>
       <p>
-        Use the interactive map to draw a polygon boundary around your site. Click to add points and
-        close the polygon to complete the boundary.
+        {t('drawOnMapDesc')}
       </p>
 
-      <h4>Upload GeoJSON</h4>
+      <h4>{t('uploadGeoJsonTitle')}</h4>
       <p>
-        If you have existing GIS data, upload a GeoJSON file containing the site boundary polygon.
-        The system will validate and import the geometry.
+        {t('uploadGeoJsonDesc')}
       </p>
 
       <PlaceholderImage
-        title="Site Creation"
-        description="Screenshot showing the site creation interface with map drawing"
+        title={t('siteCreationImageTitle')}
+        description={t('siteCreationImageDesc')}
       />
 
-      <h3>Area Calculation</h3>
+      <h3>{t('areaCalculationTitle')}</h3>
       <p>
-        Once the boundary is defined, TreeMapper automatically calculates the site area in hectares
-        based on the GeoJSON geometry.
+        {t('areaCalculationDesc')}
       </p>
 
-      <h2>Editing Sites</h2>
+      <h2>{t('editingSitesTitle')}</h2>
       <p>
-        You can edit existing sites to update their information:
+        {t('editingSitesDesc')}
       </p>
 
-      <h3>Editable Fields</h3>
+      <h3>{t('editableFieldsTitle')}</h3>
       <ul>
-        <li>Site name</li>
-        <li>Description</li>
-        <li>GeoJSON geometry (boundary)</li>
+        <li>{t('editableFieldsItem1')}</li>
+        <li>{t('editableFieldsItem2')}</li>
+        <li>{t('editableFieldsItem3')}</li>
       </ul>
 
-      <h3>In-Place Editing</h3>
+      <h3>{t('inPlaceEditingTitle')}</h3>
       <p>
-        Click the edit button on a site to modify its details. Changes are saved when you confirm,
-        or cancelled if you dismiss the edit mode.
+        {t('inPlaceEditingDesc')}
       </p>
 
-      <h3>Geometry Updates</h3>
+      <h3>{t('geometryUpdatesTitle')}</h3>
       <p>
-        When you update the site boundary, the area is automatically recalculated to reflect the new
-        geometry.
+        {t('geometryUpdatesDesc')}
       </p>
 
-      <h2>Site Access Control</h2>
+      <h2>{t('siteAccessControlTitle')}</h2>
       <p>
-        Manage who can access and work within each site. This is useful for large projects with
-        multiple teams working in different areas.
+        {t('siteAccessControlDesc')}
       </p>
 
-      <h3>Managing Access</h3>
+      <h3>{t('managingAccessTitle')}</h3>
       <ol>
-        <li>Open the site access modal</li>
-        <li>Add or remove team members from the site</li>
-        <li>Save changes to update access permissions</li>
+        <li>{t('managingAccessItem1')}</li>
+        <li>{t('managingAccessItem2')}</li>
+        <li>{t('managingAccessItem3')}</li>
       </ol>
 
-      <h3>Access Levels</h3>
+      <h3>{t('accessLevelsTitle')}</h3>
       <p>
-        Site access works in conjunction with project-level roles. Team members with site access can
-        work within that site according to their project role.
+        {t('accessLevelsDesc')}
       </p>
 
       <PlaceholderImage
-        title="Site Access"
-        description="Screenshot showing the site access management modal"
+        title={t('siteAccessImageTitle')}
+        description={t('siteAccessImageDesc')}
       />
 
-      <h2>Deleting Sites</h2>
+      <h2>{t('deletingSitesTitle')}</h2>
       <p>
-        Sites can be deleted if they're no longer needed:
+        {t('deletingSitesDesc')}
       </p>
       <ol>
-        <li>Click the delete option on the site</li>
-        <li>Confirm deletion in the modal dialog</li>
-        <li>The site and its associations are removed</li>
+        <li>{t('deletingSitesItem1')}</li>
+        <li>{t('deletingSitesItem2')}</li>
+        <li>{t('deletingSitesItem3')}</li>
       </ol>
       <p>
-        <strong>Note:</strong> Deleting a site does not delete interventions recorded within it, but
-        those interventions will no longer be associated with a site.
+        <strong>{t('note')}</strong>: {t('deletingSitesNote')}
       </p>
 
-      <h2>Site Types</h2>
-      <p>TreeMapper supports different site types to categorize your restoration areas:</p>
+      <h2>{t('siteTypesTitle')}</h2>
+      <p>{t('siteTypesIntro')}</p>
 
-      <h3>Planting</h3>
-      <p>Areas actively designated for tree planting activities.</p>
+      <h3>{t('planting')}</h3>
+      <p>{t('plantingDesc')}</p>
 
-      <h3>Planted</h3>
-      <p>Areas where planting has been completed.</p>
+      <h3>{t('planted')}</h3>
+      <p>{t('plantedDesc')}</p>
 
-      <h3>Barren</h3>
-      <p>Cleared or empty areas awaiting restoration.</p>
+      <h3>{t('barren')}</h3>
+      <p>{t('barrenDesc')}</p>
 
-      <h3>Reforestation</h3>
-      <p>Areas undergoing reforestation efforts, possibly including natural regeneration.</p>
+      <h3>{t('reforestation')}</h3>
+      <p>{t('reforestationDesc')}</p>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Naming Conventions</h3>
+      <h3>{t('namingConventionsTitle')}</h3>
       <ul>
-        <li>Use descriptive, consistent names across sites</li>
-        <li>Include location references when helpful</li>
-        <li>Avoid special characters that may cause issues</li>
+        <li>{t('namingConventionsItem1')}</li>
+        <li>{t('namingConventionsItem2')}</li>
+        <li>{t('namingConventionsItem3')}</li>
       </ul>
 
-      <h3>Boundary Accuracy</h3>
+      <h3>{t('boundaryAccuracyTitle')}</h3>
       <ul>
-        <li>Use GeoJSON files from surveyed data when available</li>
-        <li>Draw boundaries carefully, following actual site perimeters</li>
-        <li>Update boundaries if site areas change</li>
+        <li>{t('boundaryAccuracyItem1')}</li>
+        <li>{t('boundaryAccuracyItem2')}</li>
+        <li>{t('boundaryAccuracyItem3')}</li>
       </ul>
 
-      <h3>Access Management</h3>
+      <h3>{t('accessManagementTitle')}</h3>
       <ul>
-        <li>Assign only necessary team members to each site</li>
-        <li>Review access periodically as team composition changes</li>
-        <li>Use site-level access for larger projects with distinct teams</li>
+        <li>{t('accessManagementItem1')}</li>
+        <li>{t('accessManagementItem2')}</li>
+        <li>{t('accessManagementItem3')}</li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/projects-sites">Projects vs Sites</Link>
+          <Link href={`/${locale}/docs/concepts/projects-sites`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/tutorials/site-creation">Site Creation Tutorial</Link>
+          <Link href={`/${locale}/docs/tutorials/site-creation`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/team-management">Team Management</Link>
+          <Link href={`/${locale}/docs/web/team-management`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

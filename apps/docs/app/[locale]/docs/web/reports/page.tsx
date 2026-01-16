@@ -1,281 +1,284 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function ReportsPage() {
+export default async function ReportsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.reports');
+
   return (
     <DocPage
-      title="Reports & Analytics"
-      description="Learn how to use reports and analytics features in the TreeMapper web dashboard."
+      title={t('title')}
+      description={t('description')}
       pageId="reports"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        TreeMapper provides comprehensive reporting and analytics tools to help you track progress,
-        measure impact, and share results with stakeholders. From team leaderboards to geographic
-        visualizations, you can gain insights into your restoration work.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Forest Champions Leaderboard</h2>
+      <h2>{t('forestChampionsLeaderboardTitle')}</h2>
       <p>
-        The leaderboard ranks team members based on their contributions to the project:
+        {t('forestChampionsLeaderboardDesc')}
       </p>
 
       <PlaceholderImage
-        title="Leaderboard"
-        description="Screenshot showing the forest champions leaderboard"
+        title={t('leaderboardImageTitle')}
+        description={t('leaderboardImageDesc')}
       />
 
-      <h3>Ranking Metrics</h3>
-      <p>Team members are ranked primarily by trees planted, with additional metrics available:</p>
+      <h3>{t('rankingMetricsTitle')}</h3>
+      <p>{t('rankingMetricsDesc')}</p>
       <ul>
         <li>
-          <strong>Trees Planted</strong>: Total number of trees planted by the member
+          <strong>{t('treesPlanted')}</strong>: {t('treesPlantedDesc')}
         </li>
         <li>
-          <strong>Interventions</strong>: Number of interventions conducted
+          <strong>{t('interventions')}</strong>: {t('interventionsDesc')}
         </li>
         <li>
-          <strong>Species Count</strong>: Unique species planted
+          <strong>{t('speciesCount')}</strong>: {t('speciesCountDesc')}
         </li>
       </ul>
 
-      <h3>Member Information</h3>
-      <p>Each leaderboard entry shows:</p>
+      <h3>{t('memberInformationTitle')}</h3>
+      <p>{t('memberInformationIntro')}</p>
       <ul>
-        <li>Rank position with visual badges (crown for 1st, medal for 2nd, award for 3rd)</li>
-        <li>Member avatar and display name</li>
-        <li>Role badge (color-coded by role)</li>
-        <li>Member since date</li>
-        <li>Primary metric (trees planted)</li>
+        <li>{t('memberInformationItem1')}</li>
+        <li>{t('memberInformationItem2')}</li>
+        <li>{t('memberInformationItem3')}</li>
+        <li>{t('memberInformationItem4')}</li>
+        <li>{t('memberInformationItem5')}</li>
       </ul>
 
-      <h3>Expandable Details</h3>
+      <h3>{t('expandableDetailsTitle')}</h3>
       <p>
-        Click on a leaderboard entry to expand and see additional contribution details including
-        intervention counts and species diversity.
+        {t('expandableDetailsDesc')}
       </p>
 
-      <h3>Time-Based Filtering</h3>
-      <p>View rankings for different time periods:</p>
+      <h3>{t('timeBasedFilteringTitle')}</h3>
+      <p>{t('timeBasedFilteringIntro')}</p>
       <ul>
         <li>
-          <strong>All-time</strong>: Complete project history
+          <strong>{t('allTime')}</strong>: {t('allTimeDesc')}
         </li>
         <li>
-          <strong>This year</strong>: Current calendar year
+          <strong>{t('thisYear')}</strong>: {t('thisYearDesc')}
         </li>
         <li>
-          <strong>This month</strong>: Current month only
+          <strong>{t('thisMonth')}</strong>: {t('thisMonthDesc')}
         </li>
       </ul>
       <p>
-        Filtering allows you to recognize recent contributors and track ongoing performance.
+        {t('timeBasedFilteringNote')}
       </p>
 
-      <h2>Geographic Analytics</h2>
+      <h2>{t('geographicAnalyticsTitle')}</h2>
       <p>
-        The map view provides geographic visualization of your restoration work:
+        {t('geographicAnalyticsDesc')}
       </p>
 
-      <h3>Map Features</h3>
+      <h3>{t('mapFeaturesTitle')}</h3>
       <ul>
         <li>
-          <strong>Site locations</strong>: View all project sites on an interactive map
+          <strong>{t('siteLocations')}</strong>: {t('siteLocationsDesc')}
         </li>
         <li>
-          <strong>Area coverage</strong>: See the geographic extent of your work
+          <strong>{t('areaCoverage')}</strong>: {t('areaCoverageDesc')}
         </li>
         <li>
-          <strong>Intervention distribution</strong>: Understand where activities are concentrated
+          <strong>{t('interventionDistribution')}</strong>: {t('interventionDistributionDesc')}
         </li>
       </ul>
 
-      <h3>Map Controls</h3>
+      <h3>{t('mapControlsTitle')}</h3>
       <ul>
-        <li>Zoom and pan to explore different areas</li>
-        <li>Toggle between map and satellite views</li>
-        <li>Click on features for detailed information</li>
+        <li>{t('mapControlsItem1')}</li>
+        <li>{t('mapControlsItem2')}</li>
+        <li>{t('mapControlsItem3')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Geographic Map"
-        description="Screenshot showing the geographic analytics map"
+        title={t('geographicMapImageTitle')}
+        description={t('geographicMapImageDesc')}
       />
 
-      <h2>Dashboard Analytics</h2>
+      <h2>{t('dashboardAnalyticsTitle')}</h2>
       <p>
-        The main dashboard (for Admins and Owners) provides comprehensive analytics:
+        {t('dashboardAnalyticsDesc')}
       </p>
 
-      <h3>Key Metrics</h3>
+      <h3>{t('keyMetricsTitle')}</h3>
       <ul>
-        <li>Trees planted with trend indicators</li>
-        <li>Species diversity metrics</li>
-        <li>Area covered in hectares</li>
-        <li>Active team member count</li>
+        <li>{t('keyMetricsItem1')}</li>
+        <li>{t('keyMetricsItem2')}</li>
+        <li>{t('keyMetricsItem3')}</li>
+        <li>{t('keyMetricsItem4')}</li>
       </ul>
 
-      <h3>Progress Tracking</h3>
+      <h3>{t('progressTrackingTitle')}</h3>
       <ul>
-        <li>Progress toward planting targets</li>
-        <li>Monthly planting trends</li>
-        <li>Recent activity summaries</li>
+        <li>{t('progressTrackingItem1')}</li>
+        <li>{t('progressTrackingItem2')}</li>
+        <li>{t('progressTrackingItem3')}</li>
       </ul>
 
-      <h3>Time Series Charts</h3>
+      <h3>{t('timeSeriesChartsTitle')}</h3>
       <p>
-        Visualize planting activity over time with interactive charts showing monthly or daily
-        trends.
+        {t('timeSeriesChartsDesc')}
       </p>
 
-      <h2>Data Export</h2>
+      <h2>{t('dataExportTitle')}</h2>
       <p>
-        Export your data for external analysis and reporting:
+        {t('dataExportDesc')}
       </p>
 
-      <h3>Export Options</h3>
+      <h3>{t('exportOptionsTitle')}</h3>
       <ul>
         <li>
-          <strong>Intervention data</strong>: All interventions with full details
+          <strong>{t('interventionData')}</strong>: {t('interventionDataDesc')}
         </li>
         <li>
-          <strong>Date filtering</strong>: Export specific time periods
+          <strong>{t('dateFiltering')}</strong>: {t('dateFilteringDesc')}
         </li>
         <li>
-          <strong>CSV format</strong>: Compatible with Excel and other tools
+          <strong>{t('csvFormat')}</strong>: {t('csvFormatDesc')}
         </li>
       </ul>
 
-      <h3>What's Included</h3>
-      <p>Exported data includes:</p>
+      <h3>{t('whatsIncludedTitle')}</h3>
+      <p>{t('whatsIncludedIntro')}</p>
       <ul>
-        <li>Intervention details (type, date, location)</li>
-        <li>Species and tree counts</li>
-        <li>Team member information</li>
-        <li>Geographic coordinates</li>
-        <li>Custom metadata fields</li>
+        <li>{t('whatsIncludedItem1')}</li>
+        <li>{t('whatsIncludedItem2')}</li>
+        <li>{t('whatsIncludedItem3')}</li>
+        <li>{t('whatsIncludedItem4')}</li>
+        <li>{t('whatsIncludedItem5')}</li>
       </ul>
 
       <PlaceholderImage
-        title="Export Options"
-        description="Screenshot showing the data export interface"
+        title={t('exportOptionsImageTitle')}
+        description={t('exportOptionsImageDesc')}
       />
 
-      <h2>Report Generation</h2>
+      <h2>{t('reportGenerationTitle')}</h2>
       <p>
-        Generate reports for stakeholders and organizational needs:
+        {t('reportGenerationDesc')}
       </p>
 
-      <h3>Date Range Selection</h3>
+      <h3>{t('dateRangeSelectionTitle')}</h3>
       <p>
-        Use the date picker to select the reporting period. Predefined options include last month,
-        last quarter, this year, and custom ranges.
+        {t('dateRangeSelectionDesc')}
       </p>
 
-      <h3>Report Contents</h3>
-      <p>Reports typically include:</p>
+      <h3>{t('reportContentsTitle')}</h3>
+      <p>{t('reportContentsIntro')}</p>
       <ul>
-        <li>Summary statistics for the period</li>
-        <li>Intervention breakdown by type</li>
-        <li>Species distribution</li>
-        <li>Team contributions</li>
-        <li>Geographic distribution</li>
+        <li>{t('reportContentsItem1')}</li>
+        <li>{t('reportContentsItem2')}</li>
+        <li>{t('reportContentsItem3')}</li>
+        <li>{t('reportContentsItem4')}</li>
+        <li>{t('reportContentsItem5')}</li>
       </ul>
 
-      <h2>Infinite Scroll</h2>
+      <h2>{t('infiniteScrollTitle')}</h2>
       <p>
-        For large datasets like the leaderboard, TreeMapper uses infinite scroll:
+        {t('infiniteScrollDesc')}
       </p>
       <ul>
-        <li>Initial load shows top contributors</li>
-        <li>Scroll to load more entries</li>
-        <li>Loading indicators show when fetching data</li>
-        <li>Pagination handled automatically</li>
+        <li>{t('infiniteScrollItem1')}</li>
+        <li>{t('infiniteScrollItem2')}</li>
+        <li>{t('infiniteScrollItem3')}</li>
+        <li>{t('infiniteScrollItem4')}</li>
       </ul>
 
-      <h2>Role-Based Access</h2>
-      <p>Analytics access varies by role:</p>
+      <h2>{t('roleBasedAccessTitle')}</h2>
+      <p>{t('roleBasedAccessDesc')}</p>
 
-      <h3>Admin / Owner</h3>
+      <h3>{t('adminOwnerTitle')}</h3>
       <ul>
-        <li>Full dashboard analytics</li>
-        <li>All export options</li>
-        <li>Complete reporting features</li>
+        <li>{t('adminOwnerItem1')}</li>
+        <li>{t('adminOwnerItem2')}</li>
+        <li>{t('adminOwnerItem3')}</li>
       </ul>
 
-      <h3>Contributor / Observer</h3>
+      <h3>{t('contributorObserverTitle')}</h3>
       <ul>
-        <li>Leaderboard access</li>
-        <li>Map visualization</li>
-        <li>Limited analytics (no detailed dashboard)</li>
+        <li>{t('contributorObserverItem1')}</li>
+        <li>{t('contributorObserverItem2')}</li>
+        <li>{t('contributorObserverItem3')}</li>
       </ul>
 
-      <h2>Using Analytics Effectively</h2>
+      <h2>{t('usingAnalyticsEffectivelyTitle')}</h2>
 
-      <h3>Progress Monitoring</h3>
+      <h3>{t('progressMonitoringTitle')}</h3>
       <ul>
-        <li>Check dashboard regularly to track progress toward goals</li>
-        <li>Use time filters to compare periods</li>
-        <li>Identify trends early to address issues</li>
+        <li>{t('progressMonitoringItem1')}</li>
+        <li>{t('progressMonitoringItem2')}</li>
+        <li>{t('progressMonitoringItem3')}</li>
       </ul>
 
-      <h3>Team Motivation</h3>
+      <h3>{t('teamMotivationTitle')}</h3>
       <ul>
-        <li>Share leaderboard rankings with the team</li>
-        <li>Recognize top contributors</li>
-        <li>Use monthly views to highlight recent achievements</li>
+        <li>{t('teamMotivationItem1')}</li>
+        <li>{t('teamMotivationItem2')}</li>
+        <li>{t('teamMotivationItem3')}</li>
       </ul>
 
-      <h3>Stakeholder Reporting</h3>
+      <h3>{t('stakeholderReportingTitle')}</h3>
       <ul>
-        <li>Export data for external reports</li>
-        <li>Use date filtering for specific reporting periods</li>
-        <li>Include geographic visualizations for impact communication</li>
+        <li>{t('stakeholderReportingItem1')}</li>
+        <li>{t('stakeholderReportingItem2')}</li>
+        <li>{t('stakeholderReportingItem3')}</li>
       </ul>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Regular Review</h3>
+      <h3>{t('regularReviewTitle')}</h3>
       <ul>
         <li>
-          <strong>Weekly check-ins</strong>: Monitor recent activity and address any data quality
-          issues
+          <strong>{t('weeklyCheckIns')}</strong>: {t('weeklyCheckInsDesc')}
         </li>
         <li>
-          <strong>Monthly reviews</strong>: Analyze trends and progress toward targets
+          <strong>{t('monthlyReviews')}</strong>: {t('monthlyReviewsDesc')}
         </li>
         <li>
-          <strong>Quarterly reports</strong>: Generate comprehensive reports for stakeholders
-        </li>
-      </ul>
-
-      <h3>Data Quality</h3>
-      <ul>
-        <li>
-          <strong>Verify entries</strong>: Spot-check interventions for accuracy
-        </li>
-        <li>
-          <strong>Complete records</strong>: Ensure species and measurements are recorded
-        </li>
-        <li>
-          <strong>Sync regularly</strong>: Remind team to sync mobile data for accurate analytics
+          <strong>{t('quarterlyReports')}</strong>: {t('quarterlyReportsDesc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h3>{t('dataQualityTitle')}</h3>
       <ul>
         <li>
-          <Link href="/docs/web/overview">Dashboard Overview</Link>
+          <strong>{t('verifyEntries')}</strong>: {t('verifyEntriesDesc')}
         </li>
         <li>
-          <Link href="/docs/concepts/data-export">Data Export</Link>
+          <strong>{t('completeRecords')}</strong>: {t('completeRecordsDesc')}
         </li>
         <li>
-          <Link href="/docs/web/team-management">Team Management</Link>
+          <strong>{t('syncRegularly')}</strong>: {t('syncRegularlyDesc')}
+        </li>
+      </ul>
+
+      <h2>{t('relatedTopicsTitle')}</h2>
+      <ul>
+        <li>
+          <Link href={`/${locale}/docs/web/overview`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/tutorials/analytics-reporting">Analytics Tutorial</Link>
+          <Link href={`/${locale}/docs/concepts/data-export`}>{t('relatedLink2')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/web/team-management`}>{t('relatedLink3')}</Link>
+        </li>
+        <li>
+          <Link href={`/${locale}/docs/tutorials/analytics-reporting`}>{t('relatedLink4')}</Link>
         </li>
       </ul>
     </DocPage>

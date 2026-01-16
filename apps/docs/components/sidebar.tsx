@@ -4,11 +4,14 @@ import * as React from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { docsConfig, type DocItem } from '@/lib/docs';
 
 export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
+  const tSections = useTranslations('sidebar.sections');
+  const tItems = useTranslations('sidebar.items');
   const [openSections, setOpenSections] = React.useState<string[]>(() => {
     const activeSection = docsConfig.find((section) =>
       section.items.some((item) => pathname.includes(item.href))
@@ -33,7 +36,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
               onClick={() => toggleSection(section.id)}
               className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
             >
-              <span>{section.title}</span>
+              <span>{tSections(section.titleKey)}</span>
               {openSections.includes(section.id) ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -43,7 +46,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
             {openSections.includes(section.id) && (
               <div className="ml-2 space-y-0.5">
                 {section.items.map((item) => (
-                  <SidebarItem key={item.id} item={item} pathname={pathname} />
+                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} />
                 ))}
               </div>
             )}
@@ -62,7 +65,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
               onClick={() => toggleSection(section.id)}
               className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
             >
-              <span>{section.title}</span>
+              <span>{tSections(section.titleKey)}</span>
               {openSections.includes(section.id) ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -72,7 +75,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
             {openSections.includes(section.id) && (
               <div className="ml-2 space-y-0.5">
                 {section.items.map((item) => (
-                  <SidebarItem key={item.id} item={item} pathname={pathname} />
+                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} />
                 ))}
               </div>
             )}
@@ -83,7 +86,15 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
   );
 }
 
-function SidebarItem({ item, pathname }: { item: DocItem; pathname: string }) {
+function SidebarItem({
+  item,
+  pathname,
+  tItems,
+}: {
+  item: DocItem;
+  pathname: string;
+  tItems: ReturnType<typeof useTranslations>;
+}) {
   const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
@@ -96,13 +107,14 @@ function SidebarItem({ item, pathname }: { item: DocItem; pathname: string }) {
           : 'text-muted-foreground hover:text-foreground'
       )}
     >
-      {item.title}
+      {tItems(item.titleKey)}
     </Link>
   );
 }
 
 export function MobileSidebar() {
   const [isOpen, setIsOpen] = React.useState(false);
+  const t = useTranslations('sidebar');
 
   return (
     <>
@@ -134,7 +146,7 @@ export function MobileSidebar() {
           />
           <div className="fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto bg-background md:hidden">
             <div className="flex items-center justify-between p-4 border-b">
-              <span className="font-semibold">Documentation</span>
+              <span className="font-semibold">{t('mobileTitle')}</span>
               <button onClick={() => setIsOpen(false)}>
                 <svg
                   xmlns="http://www.w3.org/2000/svg"

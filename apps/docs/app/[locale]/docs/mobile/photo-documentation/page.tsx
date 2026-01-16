@@ -1,277 +1,278 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function PhotoDocumentationPage() {
+export default async function PhotoDocumentationPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.photoDocumentation');
+
   return (
     <DocPage
-      title="Photo Documentation"
-      description="Learn how to capture and manage photos in the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="photo-documentation"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        Photo documentation is a critical component of restoration monitoring. TreeMapper's
-        integrated camera allows you to capture photos directly within the app, automatically
-        linking them to interventions, trees, and plots for comprehensive visual records.
+        {t('overviewDesc')}
       </p>
 
-      <h2>Camera Features</h2>
-      <p>TreeMapper uses your device's native camera with optimized settings for field documentation:</p>
+      <h2>{t('cameraFeaturesTitle')}</h2>
+      <p>{t('cameraFeaturesIntro')}</p>
       <ul>
         <li>
-          <strong>Real-time preview</strong>: See exactly what you're capturing before taking the
-          photo
+          <strong>{t('realTimePreview')}</strong>: {t('realTimePreviewDesc')}
         </li>
         <li>
-          <strong>Auto-focus</strong>: Automatic focus adjustment for clear images
+          <strong>{t('autoFocus')}</strong>: {t('autoFocusDesc')}
         </li>
         <li>
-          <strong>Metadata capture</strong>: Automatic recording of image dimensions and properties
+          <strong>{t('metadataCapture')}</strong>: {t('metadataCaptureDesc')}
         </li>
         <li>
-          <strong>GPS tagging</strong>: Location coordinates captured with each photo
+          <strong>{t('gpsTagging')}</strong>: {t('gpsTaggingDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Camera Interface"
-        description="Screenshot of the TreeMapper camera interface"
+        title={t('cameraInterfaceImageTitle')}
+        description={t('cameraInterfaceImageDesc')}
       />
 
-      <h2>Taking Photos</h2>
-      <p>The photo capture workflow is straightforward:</p>
+      <h2>{t('takingPhotosTitle')}</h2>
+      <p>{t('takingPhotosIntro')}</p>
 
       <div className="space-y-4 my-8">
         <WorkflowStep
           number={1}
-          title="Open Camera"
-          description="The camera opens automatically when photos are needed during data entry"
+          title={t('step1Title')}
+          description={t('step1Desc')}
         />
         <WorkflowStep
           number={2}
-          title="Frame Your Subject"
-          description="Position the camera to capture the tree, plot, or site clearly"
+          title={t('step2Title')}
+          description={t('step2Desc')}
         />
         <WorkflowStep
           number={3}
-          title="Capture Photo"
-          description="Tap the capture button to take the photo"
+          title={t('step3Title')}
+          description={t('step3Desc')}
         />
         <WorkflowStep
           number={4}
-          title="Review Preview"
-          description="Review the captured image in the preview screen"
+          title={t('step4Title')}
+          description={t('step4Desc')}
         />
         <WorkflowStep
           number={5}
-          title="Confirm or Retake"
-          description="Choose to continue with the photo or retake if needed"
+          title={t('step5Title')}
+          description={t('step5Desc')}
         />
       </div>
 
-      <h2>Image Preview</h2>
-      <p>After capturing a photo, you'll see a preview screen with options:</p>
+      <h2>{t('imagePreviewTitle')}</h2>
+      <p>{t('imagePreviewIntro')}</p>
       <ul>
         <li>
-          <strong>Continue</strong>: Accept the photo and proceed with data entry
+          <strong>{t('continue')}</strong>: {t('continueDesc')}
         </li>
         <li>
-          <strong>Retake</strong>: Discard the photo and capture a new one
+          <strong>{t('retake')}</strong>: {t('retakeDesc')}
         </li>
       </ul>
       <p>
-        The preview includes loading states and error handling to ensure your photos are properly
-        saved before continuing.
+        {t('imagePreviewDesc')}
       </p>
 
-      <h2>Photo Contexts</h2>
-      <p>TreeMapper captures photos in various contexts throughout the app:</p>
+      <h2>{t('photoContextsTitle')}</h2>
+      <p>{t('photoContextsIntro')}</p>
 
-      <h3>Species Photos</h3>
+      <h3>{t('speciesPhotosTitle')}</h3>
       <p>
-        When adding species to an intervention, you can capture photos of the planted trees. These
-        photos help document the species and condition at planting time.
+        {t('speciesPhotosDesc')}
       </p>
 
-      <h3>Sample Tree Photos</h3>
+      <h3>{t('sampleTreePhotosTitle')}</h3>
       <p>
-        Each sample tree can have photos attached during initial registration and subsequent
-        remeasurements. This creates a visual timeline of tree growth.
+        {t('sampleTreePhotosDesc')}
       </p>
 
-      <h3>Plot Photos</h3>
+      <h3>{t('plotPhotosTitle')}</h3>
       <p>
-        Monitoring plots can include overview photos showing the plot area, vegetation, and site
-        conditions.
+        {t('plotPhotosDesc')}
       </p>
 
-      <h3>Remeasurement Photos</h3>
+      <h3>{t('remeasurementPhotosTitle')}</h3>
       <p>
-        When remeasuring trees, updated photos document current conditions and growth progress.
+        {t('remeasurementPhotosDesc')}
       </p>
 
-      <h3>Intervention Photos</h3>
+      <h3>{t('interventionPhotosTitle')}</h3>
       <p>
-        General intervention documentation including before/after photos of the work performed.
+        {t('interventionPhotosDesc')}
       </p>
 
       <PlaceholderImage
-        title="Photo Types"
-        description="Examples of different photo types in TreeMapper"
+        title={t('photoTypesImageTitle')}
+        description={t('photoTypesImageDesc')}
       />
 
-      <h2>Image Storage</h2>
-      <p>TreeMapper manages photo storage efficiently:</p>
+      <h2>{t('imageStorageTitle')}</h2>
+      <p>{t('imageStorageIntro')}</p>
 
-      <h3>Local Storage</h3>
+      <h3>{t('localStorageTitle')}</h3>
       <ul>
-        <li>Photos are saved to your device's document directory</li>
-        <li>Organized by intervention ID or context</li>
-        <li>Available offline until synced</li>
+        <li>{t('localStorageItem1')}</li>
+        <li>{t('localStorageItem2')}</li>
+        <li>{t('localStorageItem3')}</li>
       </ul>
 
-      <h3>Cloud Storage</h3>
+      <h3>{t('cloudStorageTitle')}</h3>
       <ul>
-        <li>Photos sync to the server when internet is available</li>
-        <li>CDN URLs are generated for synced images</li>
-        <li>Original photos remain on device as backup</li>
+        <li>{t('cloudStorageItem1')}</li>
+        <li>{t('cloudStorageItem2')}</li>
+        <li>{t('cloudStorageItem3')}</li>
       </ul>
 
-      <h3>Storage Tracking</h3>
+      <h3>{t('storageTrackingTitle')}</h3>
       <p>
-        The app tracks image file sizes to help manage device storage and estimate upload bandwidth
-        requirements.
+        {t('storageTrackingDesc')}
       </p>
 
-      <h2>Photo Data</h2>
-      <p>Each photo in TreeMapper includes associated metadata:</p>
+      <h2>{t('photoDataTitle')}</h2>
+      <p>{t('photoDataIntro')}</p>
       <ul>
         <li>
-          <strong>Latitude/Longitude</strong>: GPS coordinates where the photo was taken
+          <strong>{t('latitudeLongitude')}</strong>: {t('latitudeLongitudeDesc')}
         </li>
         <li>
-          <strong>Timestamp</strong>: Date and time of capture
+          <strong>{t('timestamp')}</strong>: {t('timestampDesc')}
         </li>
         <li>
-          <strong>Dimensions</strong>: Image width and height
+          <strong>{t('dimensions')}</strong>: {t('dimensionsDesc')}
         </li>
         <li>
-          <strong>File size</strong>: Size in bytes for storage management
+          <strong>{t('fileSize')}</strong>: {t('fileSizeDesc')}
         </li>
         <li>
-          <strong>Upload status</strong>: Whether the photo has been synced to the server
+          <strong>{t('uploadStatus')}</strong>: {t('uploadStatusDesc')}
         </li>
         <li>
-          <strong>CDN URL</strong>: Cloud storage URL after successful upload
+          <strong>{t('cdnUrl')}</strong>: {t('cdnUrlDesc')}
         </li>
       </ul>
 
-      <h2>Best Practices for Photo Documentation</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Composition</h3>
+      <h3>{t('compositionTitle')}</h3>
       <ul>
         <li>
-          <strong>Fill the frame</strong>: Get close enough to clearly show the subject
+          <strong>{t('fillTheFrame')}</strong>: {t('fillTheFrameDesc')}
         </li>
         <li>
-          <strong>Include context</strong>: Show surrounding area for location reference
+          <strong>{t('includeContext')}</strong>: {t('includeContextDesc')}
         </li>
         <li>
-          <strong>Use reference objects</strong>: Include a measuring stick or person for scale
+          <strong>{t('useReferenceObjects')}</strong>: {t('useReferenceObjectsDesc')}
         </li>
         <li>
-          <strong>Multiple angles</strong>: Capture different perspectives when possible
+          <strong>{t('multipleAngles')}</strong>: {t('multipleAnglesDesc')}
         </li>
       </ul>
 
-      <h3>Lighting</h3>
+      <h3>{t('lightingTitle')}</h3>
       <ul>
         <li>
-          <strong>Avoid direct sun</strong>: Strong shadows can obscure details
+          <strong>{t('avoidDirectSun')}</strong>: {t('avoidDirectSunDesc')}
         </li>
         <li>
-          <strong>Overcast is ideal</strong>: Even lighting shows features clearly
+          <strong>{t('overcastIdeal')}</strong>: {t('overcastIdealDesc')}
         </li>
         <li>
-          <strong>Position sun behind you</strong>: Ensure subject is well-lit
+          <strong>{t('positionSunBehind')}</strong>: {t('positionSunBehindDesc')}
         </li>
       </ul>
 
-      <h3>Technical Quality</h3>
+      <h3>{t('technicalQualityTitle')}</h3>
       <ul>
         <li>
-          <strong>Hold steady</strong>: Brace against something solid to avoid blur
+          <strong>{t('holdSteady')}</strong>: {t('holdSteadyDesc')}
         </li>
         <li>
-          <strong>Clean the lens</strong>: Wipe your camera lens before shooting
+          <strong>{t('cleanTheLens')}</strong>: {t('cleanTheLensDesc')}
         </li>
         <li>
-          <strong>Check focus</strong>: Ensure the subject is sharp before capturing
+          <strong>{t('checkFocus')}</strong>: {t('checkFocusDesc')}
         </li>
         <li>
-          <strong>Review immediately</strong>: Check the preview and retake if needed
+          <strong>{t('reviewImmediately')}</strong>: {t('reviewImmediatelyDesc')}
         </li>
       </ul>
 
-      <h3>Documentation Standards</h3>
+      <h3>{t('documentationStandardsTitle')}</h3>
       <ul>
         <li>
-          <strong>Consistent style</strong>: Use similar framing for comparison over time
+          <strong>{t('consistentStyle')}</strong>: {t('consistentStyleDesc')}
         </li>
         <li>
-          <strong>Before and after</strong>: Document conditions before and after interventions
+          <strong>{t('beforeAndAfter')}</strong>: {t('beforeAndAfterDesc')}
         </li>
         <li>
-          <strong>Capture issues</strong>: Photograph any problems like disease or damage
+          <strong>{t('captureIssues')}</strong>: {t('captureIssuesDesc')}
         </li>
         <li>
-          <strong>Overview shots</strong>: Include wide-angle views of the entire site
+          <strong>{t('overviewShots')}</strong>: {t('overviewShotsDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="Photo Best Practices"
-        description="Examples of good vs poor photo documentation"
+        title={t('photoBestPracticesImageTitle')}
+        description={t('photoBestPracticesImageDesc')}
       />
 
-      <h2>Troubleshooting</h2>
+      <h2>{t('troubleshootingTitle')}</h2>
 
-      <h3>Photo Won't Save</h3>
+      <h3>{t('photoWontSaveTitle')}</h3>
       <ul>
-        <li>Check that you have sufficient device storage</li>
-        <li>Ensure the app has camera and storage permissions</li>
-        <li>Try closing and reopening the camera</li>
+        <li>{t('photoWontSaveItem1')}</li>
+        <li>{t('photoWontSaveItem2')}</li>
+        <li>{t('photoWontSaveItem3')}</li>
       </ul>
 
-      <h3>Blurry Images</h3>
+      <h3>{t('blurryImagesTitle')}</h3>
       <ul>
-        <li>Hold the device more steadily</li>
-        <li>Ensure adequate lighting</li>
-        <li>Clean the camera lens</li>
-        <li>Wait for auto-focus to complete before capturing</li>
+        <li>{t('blurryImagesItem1')}</li>
+        <li>{t('blurryImagesItem2')}</li>
+        <li>{t('blurryImagesItem3')}</li>
+        <li>{t('blurryImagesItem4')}</li>
       </ul>
 
-      <h3>Photos Not Syncing</h3>
+      <h3>{t('photosNotSyncingTitle')}</h3>
       <ul>
-        <li>Check your internet connection</li>
-        <li>Large photos may take longer to upload</li>
-        <li>Try syncing from the intervention list</li>
+        <li>{t('photosNotSyncingItem1')}</li>
+        <li>{t('photosNotSyncingItem2')}</li>
+        <li>{t('photosNotSyncingItem3')}</li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/mobile/measurements">Taking Measurements</Link>
+          <Link href={`/${locale}/docs/mobile/measurements`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/creating-interventions">Creating Interventions</Link>
+          <Link href={`/${locale}/docs/mobile/creating-interventions`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/remeasurement">Remeasurement</Link>
+          <Link href={`/${locale}/docs/concepts/remeasurement`}>{t('relatedLink3')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/sync-offline">Sync & Offline Mode</Link>
+          <Link href={`/${locale}/docs/concepts/sync-offline`}>{t('relatedLink4')}</Link>
         </li>
       </ul>
     </DocPage>

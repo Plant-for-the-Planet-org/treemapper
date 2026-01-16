@@ -1,269 +1,270 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function BulkUploadPage() {
+export default async function BulkUploadPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.bulkUpload');
+
   return (
     <DocPage
-      title="Bulk Data Upload"
-      description="Learn how to upload large amounts of intervention data using the TreeMapper web dashboard."
+      title={t('title')}
+      description={t('description')}
       pageId="bulk-upload"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        The bulk upload feature allows you to import large quantities of intervention data from
-        spreadsheets or CSV files. This is useful when migrating data from other systems or
-        recording historical planting data that wasn't captured in the mobile app.
+        {t('overviewDesc')}
       </p>
 
-      <h2>When to Use Bulk Upload</h2>
+      <h2>{t('whenToUseTitle')}</h2>
       <ul>
         <li>
-          <strong>Historical data</strong>: Import past planting records not recorded in TreeMapper
+          <strong>{t('historicalData')}</strong>: {t('historicalDataDesc')}
         </li>
         <li>
-          <strong>Data migration</strong>: Move data from other forestry management systems
+          <strong>{t('dataMigration')}</strong>: {t('dataMigrationDesc')}
         </li>
         <li>
-          <strong>Large datasets</strong>: Upload hundreds or thousands of records at once
+          <strong>{t('largeDatasets')}</strong>: {t('largeDatasetsDesc')}
         </li>
         <li>
-          <strong>Species data</strong>: Bulk import species and tree information
+          <strong>{t('speciesData')}</strong>: {t('speciesDataDesc')}
         </li>
       </ul>
 
-      <h2>Upload Wizard</h2>
+      <h2>{t('uploadWizardTitle')}</h2>
       <p>
-        The bulk upload process uses a step-by-step wizard to guide you through the import:
+        {t('uploadWizardDesc')}
       </p>
 
       <PlaceholderImage
-        title="Upload Wizard"
-        description="Screenshot showing the bulk upload wizard interface"
+        title={t('uploadWizardImageTitle')}
+        description={t('uploadWizardImageDesc')}
       />
 
-      <h3>Step 1: Project and Site Selection</h3>
+      <h3>{t('step1Title')}</h3>
       <p>
-        First, select the target project and optionally a specific site for the imported data:
+        {t('step1Desc')}
       </p>
       <ul>
         <li>
-          <strong>Project selection</strong>: Choose which project will receive the uploaded data
+          <strong>{t('projectSelection')}</strong>: {t('projectSelectionDesc')}
         </li>
         <li>
-          <strong>Site selection</strong>: Optionally assign all uploaded interventions to a
-          specific site
+          <strong>{t('siteSelection')}</strong>: {t('siteSelectionDesc')}
         </li>
-        <li>The system validates your selections before proceeding</li>
+        <li>{t('step1Note')}</li>
       </ul>
 
-      <h3>Step 2: File Upload</h3>
+      <h3>{t('step2Title')}</h3>
       <p>
-        Upload your data file in CSV or spreadsheet format:
+        {t('step2Desc')}
       </p>
       <ul>
         <li>
-          <strong>Supported formats</strong>: CSV, Excel (.xlsx)
+          <strong>{t('supportedFormats')}</strong>: {t('supportedFormatsDesc')}
         </li>
         <li>
-          <strong>File parsing</strong>: The system reads and parses your file structure
+          <strong>{t('fileParsing')}</strong>: {t('fileParsingDesc')}
         </li>
         <li>
-          <strong>Column mapping</strong>: Match your file columns to TreeMapper fields
+          <strong>{t('columnMapping')}</strong>: {t('columnMappingDesc')}
         </li>
         <li>
-          <strong>Preview</strong>: See a sample of the data to verify it's correct
+          <strong>{t('preview')}</strong>: {t('previewDesc')}
         </li>
       </ul>
 
       <PlaceholderImage
-        title="File Upload"
-        description="Screenshot showing the file upload interface"
+        title={t('fileUploadImageTitle')}
+        description={t('fileUploadImageDesc')}
       />
 
-      <h3>Step 3: Data Validation</h3>
+      <h3>{t('step3Title')}</h3>
       <p>
-        The system validates your data before import:
+        {t('step3Desc')}
       </p>
       <ul>
         <li>
-          <strong>Field validation</strong>: Check that required fields are present and properly
-          formatted
+          <strong>{t('fieldValidation')}</strong>: {t('fieldValidationDesc')}
         </li>
         <li>
-          <strong>Data type verification</strong>: Ensure dates, numbers, and coordinates are valid
+          <strong>{t('dataTypeVerification')}</strong>: {t('dataTypeVerificationDesc')}
         </li>
         <li>
-          <strong>Error reporting</strong>: Identify and display any issues with the data
+          <strong>{t('errorReporting')}</strong>: {t('errorReportingDesc')}
         </li>
         <li>
-          <strong>Data preview</strong>: Review the validated data before confirming
+          <strong>{t('dataPreview')}</strong>: {t('dataPreviewDesc')}
         </li>
       </ul>
 
-      <h4>Handling Errors</h4>
+      <h4>{t('handlingErrorsTitle')}</h4>
       <p>
-        If validation errors are found:
+        {t('handlingErrorsDesc')}
       </p>
       <ul>
-        <li>The system displays which rows have issues</li>
-        <li>Error messages explain what needs to be corrected</li>
-        <li>You can go back to fix your file and re-upload</li>
-        <li>Some minor issues can be corrected in the preview</li>
+        <li>{t('handlingErrorsItem1')}</li>
+        <li>{t('handlingErrorsItem2')}</li>
+        <li>{t('handlingErrorsItem3')}</li>
+        <li>{t('handlingErrorsItem4')}</li>
       </ul>
 
-      <h3>Step 4: Upload Confirmation</h3>
+      <h3>{t('step4Title')}</h3>
       <p>
-        After successful upload, you'll see a confirmation:
+        {t('step4Desc')}
       </p>
       <ul>
         <li>
-          <strong>Summary</strong>: Number of records successfully imported
+          <strong>{t('summary')}</strong>: {t('summaryDesc')}
         </li>
         <li>
-          <strong>Results</strong>: Details about the uploaded data
+          <strong>{t('results')}</strong>: {t('resultsDesc')}
         </li>
         <li>
-          <strong>Next steps</strong>: Option to start a new upload or return to the dashboard
+          <strong>{t('nextSteps')}</strong>: {t('nextStepsDesc')}
         </li>
       </ul>
 
-      <h2>Data Requirements</h2>
+      <h2>{t('dataRequirementsTitle')}</h2>
 
-      <h3>Required Fields</h3>
-      <p>Your upload file must include these minimum fields:</p>
+      <h3>{t('requiredFieldsTitle')}</h3>
+      <p>{t('requiredFieldsIntro')}</p>
       <ul>
         <li>
-          <strong>Intervention type</strong>: Type of intervention (planting, maintenance, etc.)
+          <strong>{t('interventionType')}</strong>: {t('interventionTypeDesc')}
         </li>
         <li>
-          <strong>Date</strong>: When the intervention occurred
+          <strong>{t('date')}</strong>: {t('dateDesc')}
         </li>
         <li>
-          <strong>Location</strong>: GPS coordinates (latitude/longitude) or geometry
+          <strong>{t('location')}</strong>: {t('locationDesc')}
         </li>
       </ul>
 
-      <h3>Optional Fields</h3>
-      <p>Enhance your data with additional fields:</p>
+      <h3>{t('optionalFieldsTitle')}</h3>
+      <p>{t('optionalFieldsIntro')}</p>
       <ul>
-        <li>Species names and counts</li>
-        <li>Tree measurements (height, diameter)</li>
-        <li>Notes and observations</li>
-        <li>Custom metadata fields</li>
+        <li>{t('optionalFieldsItem1')}</li>
+        <li>{t('optionalFieldsItem2')}</li>
+        <li>{t('optionalFieldsItem3')}</li>
+        <li>{t('optionalFieldsItem4')}</li>
       </ul>
 
-      <h3>File Format Guidelines</h3>
+      <h3>{t('fileFormatGuidelinesTitle')}</h3>
       <ul>
-        <li>Use clear, descriptive column headers</li>
-        <li>Format dates consistently (ISO format recommended: YYYY-MM-DD)</li>
-        <li>Use decimal coordinates for location (e.g., -1.2345, 36.7890)</li>
-        <li>Avoid special characters in text fields</li>
-        <li>Remove any summary rows or totals from the data</li>
+        <li>{t('fileFormatGuidelinesItem1')}</li>
+        <li>{t('fileFormatGuidelinesItem2')}</li>
+        <li>{t('fileFormatGuidelinesItem3')}</li>
+        <li>{t('fileFormatGuidelinesItem4')}</li>
+        <li>{t('fileFormatGuidelinesItem5')}</li>
       </ul>
 
-      <h2>Bulk Species Upload</h2>
+      <h2>{t('bulkSpeciesUploadTitle')}</h2>
       <p>
-        In addition to intervention data, you can bulk upload species information:
+        {t('bulkSpeciesUploadDesc')}
       </p>
       <ul>
-        <li>Scientific names and common names</li>
-        <li>Species metadata (habitat, height, flowering season)</li>
-        <li>Tree counts and distribution data</li>
+        <li>{t('bulkSpeciesUploadItem1')}</li>
+        <li>{t('bulkSpeciesUploadItem2')}</li>
+        <li>{t('bulkSpeciesUploadItem3')}</li>
       </ul>
 
-      <h2>Progress Tracking</h2>
+      <h2>{t('progressTrackingTitle')}</h2>
       <p>
-        The wizard shows your progress through the upload process:
+        {t('progressTrackingDesc')}
       </p>
       <ul>
-        <li>Visual step indicators show completed, current, and remaining steps</li>
-        <li>You can navigate back to previous steps to make corrections</li>
-        <li>Data persists across steps so you don't lose your work</li>
+        <li>{t('progressTrackingItem1')}</li>
+        <li>{t('progressTrackingItem2')}</li>
+        <li>{t('progressTrackingItem3')}</li>
       </ul>
 
-      <h2>Best Practices</h2>
+      <h2>{t('bestPracticesTitle')}</h2>
 
-      <h3>Before Uploading</h3>
+      <h3>{t('beforeUploadingTitle')}</h3>
       <ul>
         <li>
-          <strong>Clean your data</strong>: Remove duplicates, fix formatting issues, and validate
-          coordinates
+          <strong>{t('cleanYourData')}</strong>: {t('cleanYourDataDesc')}
         </li>
         <li>
-          <strong>Test with sample</strong>: Try uploading a small subset first to verify the
-          process
+          <strong>{t('testWithSample')}</strong>: {t('testWithSampleDesc')}
         </li>
         <li>
-          <strong>Backup original</strong>: Keep a copy of your original file before any
-          modifications
+          <strong>{t('backupOriginal')}</strong>: {t('backupOriginalDesc')}
         </li>
         <li>
-          <strong>Map columns</strong>: Understand how your columns map to TreeMapper fields
+          <strong>{t('mapColumns')}</strong>: {t('mapColumnsDesc')}
         </li>
       </ul>
 
-      <h3>During Upload</h3>
+      <h3>{t('duringUploadTitle')}</h3>
       <ul>
         <li>
-          <strong>Review carefully</strong>: Check the data preview at each step
+          <strong>{t('reviewCarefully')}</strong>: {t('reviewCarefullyDesc')}
         </li>
         <li>
-          <strong>Address errors</strong>: Don't ignore validation warnings - fix issues in your
-          source file
+          <strong>{t('addressErrors')}</strong>: {t('addressErrorsDesc')}
         </li>
         <li>
-          <strong>Don't refresh</strong>: Avoid refreshing the page during upload
+          <strong>{t('dontRefresh')}</strong>: {t('dontRefreshDesc')}
         </li>
       </ul>
 
-      <h3>After Upload</h3>
+      <h3>{t('afterUploadTitle')}</h3>
       <ul>
         <li>
-          <strong>Verify results</strong>: Check the dashboard to confirm data appears correctly
+          <strong>{t('verifyResults')}</strong>: {t('verifyResultsDesc')}
         </li>
         <li>
-          <strong>Spot check</strong>: Review a sample of uploaded interventions for accuracy
+          <strong>{t('spotCheck')}</strong>: {t('spotCheckDesc')}
         </li>
         <li>
-          <strong>Document</strong>: Keep records of what was uploaded and when
+          <strong>{t('document')}</strong>: {t('documentDesc')}
         </li>
       </ul>
 
-      <h2>Troubleshooting</h2>
+      <h2>{t('troubleshootingTitle')}</h2>
 
-      <h3>File Won't Upload</h3>
+      <h3>{t('fileWontUploadTitle')}</h3>
       <ul>
-        <li>Check file size limits (contact support for very large files)</li>
-        <li>Ensure the file format is supported (CSV or Excel)</li>
-        <li>Try saving as CSV if Excel upload fails</li>
+        <li>{t('fileWontUploadItem1')}</li>
+        <li>{t('fileWontUploadItem2')}</li>
+        <li>{t('fileWontUploadItem3')}</li>
       </ul>
 
-      <h3>Validation Errors</h3>
+      <h3>{t('validationErrorsTitle')}</h3>
       <ul>
-        <li>Review error messages for specific issues</li>
-        <li>Check date formats match expected format</li>
-        <li>Verify coordinates are valid decimal numbers</li>
-        <li>Ensure required fields are not empty</li>
+        <li>{t('validationErrorsItem1')}</li>
+        <li>{t('validationErrorsItem2')}</li>
+        <li>{t('validationErrorsItem3')}</li>
+        <li>{t('validationErrorsItem4')}</li>
       </ul>
 
-      <h3>Missing Data After Upload</h3>
+      <h3>{t('missingDataTitle')}</h3>
       <ul>
-        <li>Check that you selected the correct project</li>
-        <li>Verify the upload completed successfully (reached step 4)</li>
-        <li>Refresh the dashboard to see new data</li>
+        <li>{t('missingDataItem1')}</li>
+        <li>{t('missingDataItem2')}</li>
+        <li>{t('missingDataItem3')}</li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/concepts/interventions">Understanding Interventions</Link>
+          <Link href={`/${locale}/docs/concepts/interventions`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/web/species-management">Species Management</Link>
+          <Link href={`/${locale}/docs/web/species-management`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/data-export">Data Export</Link>
+          <Link href={`/${locale}/docs/concepts/data-export`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>

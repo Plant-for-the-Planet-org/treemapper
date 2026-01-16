@@ -1,209 +1,194 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-export default function MapNavigationPage() {
+export default async function MapNavigationPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  setRequestLocale(locale);
+  const t = await getTranslations('pages.mapNavigation');
+
   return (
     <DocPage
-      title="Map Navigation"
-      description="Learn how to navigate and interact with maps in the TreeMapper mobile app."
+      title={t('title')}
+      description={t('description')}
       pageId="map-navigation"
     >
-      <h2>Overview</h2>
+      <h2>{t('overviewTitle')}</h2>
       <p>
-        The TreeMapper mobile app uses an interactive map as the primary interface for viewing and
-        managing your restoration work. The map displays all your interventions, sites, and trees,
-        allowing you to navigate to specific locations and record new data in the field.
+        {t('overviewDesc')}
       </p>
 
       <PlaceholderImage
-        title="Map Interface"
-        description="Screenshot of the main map view showing interventions and sites"
+        title={t('mapInterfaceImageTitle')}
+        description={t('mapInterfaceImageDesc')}
       />
 
-      <h2>Map Views</h2>
-      <p>TreeMapper offers two map view options to suit different needs:</p>
+      <h2>{t('mapViewsTitle')}</h2>
+      <p>{t('mapViewsIntro')}</p>
 
-      <h3>Standard Map View</h3>
+      <h3>{t('standardMapViewTitle')}</h3>
       <p>
-        The default map view shows roads, terrain, and landmarks. This view is useful for general
-        navigation and understanding the landscape context of your restoration sites.
+        {t('standardMapViewDesc')}
       </p>
 
-      <h3>Satellite View</h3>
+      <h3>{t('satelliteViewTitle')}</h3>
       <p>
-        Toggle to satellite view for aerial imagery of your sites. This is particularly helpful for:
+        {t('satelliteViewIntro')}
       </p>
       <ul>
-        <li>Identifying vegetation cover and land use patterns</li>
-        <li>Verifying site boundaries against actual terrain</li>
-        <li>Planning new planting areas based on existing vegetation</li>
-        <li>Assessing forest density and gaps</li>
+        <li>{t('satelliteViewItem1')}</li>
+        <li>{t('satelliteViewItem2')}</li>
+        <li>{t('satelliteViewItem3')}</li>
+        <li>{t('satelliteViewItem4')}</li>
       </ul>
       <p>
-        Tap the satellite icon in the map controls to switch between standard and satellite views.
+        {t('satelliteViewDesc')}
       </p>
 
-      <h2>Map Elements</h2>
+      <h2>{t('mapElementsTitle')}</h2>
 
-      <h3>Interventions</h3>
+      <h3>{t('interventionsTitle')}</h3>
       <p>
-        Interventions appear on the map as markers (for point interventions) or shaded areas (for
-        polygon interventions). The map uses clustering to group nearby interventions when zoomed
-        out, making it easier to see the overall distribution of your work.
+        {t('interventionsDesc')}
       </p>
       <ul>
         <li>
-          <strong>Clustered markers</strong>: When zoomed out, nearby interventions are grouped into
-          clusters showing the count of interventions in that area
+          <strong>{t('clusteredMarkers')}</strong>: {t('clusteredMarkersDesc')}
         </li>
         <li>
-          <strong>Individual markers</strong>: Zoom in to see individual intervention markers
+          <strong>{t('individualMarkers')}</strong>: {t('individualMarkersDesc')}
         </li>
         <li>
-          <strong>Polygon shapes</strong>: Area-based interventions display as outlined polygons on
-          the map
+          <strong>{t('polygonShapes')}</strong>: {t('polygonShapesDesc')}
         </li>
       </ul>
 
-      <h3>Sites</h3>
+      <h3>{t('sitesTitle')}</h3>
       <p>
-        Project sites appear as polygon boundaries on the map, showing the defined areas where
-        restoration activities take place. Sites help you understand the geographic scope of your
-        project.
+        {t('sitesDesc')}
       </p>
 
-      <h3>Sample Trees</h3>
+      <h3>{t('sampleTreesTitle')}</h3>
       <p>
-        When viewing a specific intervention, individual sample trees appear as markers within the
-        intervention area. This allows you to see the distribution of planted trees and navigate to
-        specific trees for remeasurement.
+        {t('sampleTreesDesc')}
       </p>
 
       <PlaceholderImage
-        title="Sample Trees on Map"
-        description="Screenshot showing individual tree markers within an intervention"
+        title={t('sampleTreesImageTitle')}
+        description={t('sampleTreesImageDesc')}
       />
 
-      <h2>Interacting with the Map</h2>
+      <h2>{t('interactingTitle')}</h2>
 
-      <h3>Selecting Interventions</h3>
+      <h3>{t('selectingInterventionsTitle')}</h3>
       <p>
-        Tap on any intervention marker or polygon to select it. When selected, the intervention
-        details appear in a carousel at the bottom of the screen, showing:
+        {t('selectingInterventionsDesc')}
       </p>
       <ul>
-        <li>Intervention type and date</li>
-        <li>Number of trees planted</li>
-        <li>Species information</li>
-        <li>Sync status</li>
+        <li>{t('selectingInterventionsItem1')}</li>
+        <li>{t('selectingInterventionsItem2')}</li>
+        <li>{t('selectingInterventionsItem3')}</li>
+        <li>{t('selectingInterventionsItem4')}</li>
       </ul>
-      <p>Tap on the carousel card to open the full intervention details.</p>
+      <p>{t('selectingInterventionsNote')}</p>
 
-      <h3>User Location</h3>
+      <h3>{t('userLocationTitle')}</h3>
       <p>
-        Your current location is shown on the map with a location marker. The app also displays GPS
-        accuracy information, helping you understand the precision of your location data. For best
-        results when recording interventions, wait for the GPS accuracy indicator to show high
-        accuracy (under 10 meters).
+        {t('userLocationDesc')}
       </p>
 
-      <h3>Zoom and Pan</h3>
+      <h3>{t('zoomAndPanTitle')}</h3>
       <ul>
         <li>
-          <strong>Pinch to zoom</strong>: Use two fingers to zoom in and out
+          <strong>{t('pinchToZoom')}</strong>: {t('pinchToZoomDesc')}
         </li>
         <li>
-          <strong>Drag to pan</strong>: Slide one finger to move around the map
+          <strong>{t('dragToPan')}</strong>: {t('dragToPanDesc')}
         </li>
         <li>
-          <strong>Double-tap</strong>: Quickly zoom in on a location
+          <strong>{t('doubleTap')}</strong>: {t('doubleTapDesc')}
         </li>
         <li>
-          <strong>Zoom scale</strong>: A scale indicator shows the current zoom level for context
+          <strong>{t('zoomScale')}</strong>: {t('zoomScaleDesc')}
         </li>
       </ul>
 
-      <h2>Filtering Interventions</h2>
+      <h2>{t('filteringTitle')}</h2>
       <p>
-        The map includes powerful filtering options to help you find specific interventions:
+        {t('filteringIntro')}
       </p>
 
-      <h3>Filter by Type</h3>
+      <h3>{t('filterByTypeTitle')}</h3>
       <p>
-        Show only specific intervention types such as planting, maintenance, or monitoring
-        interventions.
+        {t('filterByTypeDesc')}
       </p>
 
-      <h3>Filter by Date</h3>
-      <p>Set a date range to display interventions from a specific time period.</p>
+      <h3>{t('filterByDateTitle')}</h3>
+      <p>{t('filterByDateDesc')}</p>
 
-      <h3>Filter by Status</h3>
-      <p>Filter by completion status to find incomplete interventions that need attention.</p>
+      <h3>{t('filterByStatusTitle')}</h3>
+      <p>{t('filterByStatusDesc')}</p>
 
-      <h3>Remeasurement Filter</h3>
+      <h3>{t('remeasurementFilterTitle')}</h3>
       <p>
-        Show only trees that are due for remeasurement. Trees requiring remeasurement appear in red
-        on the map, making them easy to identify and navigate to.
+        {t('remeasurementFilterDesc')}
       </p>
 
       <PlaceholderImage
-        title="Map Filters"
-        description="Screenshot showing the filter options panel"
+        title={t('mapFiltersImageTitle')}
+        description={t('mapFiltersImageDesc')}
       />
 
-      <h2>GPS Accuracy</h2>
+      <h2>{t('gpsAccuracyTitle')}</h2>
       <p>
-        TreeMapper displays GPS accuracy information to help you collect precise location data. The
-        accuracy indicator shows:
+        {t('gpsAccuracyDesc')}
       </p>
       <ul>
         <li>
-          <strong>High accuracy (green)</strong>: Under 10 meters - ideal for recording
-          interventions
+          <strong>{t('highAccuracy')}</strong>: {t('highAccuracyDesc')}
         </li>
         <li>
-          <strong>Medium accuracy (yellow)</strong>: 10-25 meters - acceptable for most purposes
+          <strong>{t('mediumAccuracy')}</strong>: {t('mediumAccuracyDesc')}
         </li>
         <li>
-          <strong>Low accuracy (red)</strong>: Over 25 meters - consider waiting for better signal
+          <strong>{t('lowAccuracy')}</strong>: {t('lowAccuracyDesc')}
         </li>
       </ul>
       <p>
-        For best results, ensure you have a clear view of the sky and wait for the accuracy to
-        improve before marking locations.
+        {t('gpsAccuracyNote')}
       </p>
 
-      <h2>Tips for Effective Navigation</h2>
+      <h2>{t('tipsTitle')}</h2>
       <ul>
         <li>
-          <strong>Download offline maps</strong>: Before going to areas with poor connectivity,
-          download offline maps to ensure you can navigate even without internet
+          <strong>{t('tip1Bold')}</strong>: {t('tip1Desc')}
         </li>
         <li>
-          <strong>Use satellite view</strong>: Switch to satellite view to better identify terrain
-          features and existing vegetation
+          <strong>{t('tip2Bold')}</strong>: {t('tip2Desc')}
         </li>
         <li>
-          <strong>Check GPS accuracy</strong>: Always verify GPS accuracy before recording
-          intervention locations
+          <strong>{t('tip3Bold')}</strong>: {t('tip3Desc')}
         </li>
         <li>
-          <strong>Use filters</strong>: When working on specific tasks, use filters to reduce map
-          clutter and focus on relevant interventions
+          <strong>{t('tip4Bold')}</strong>: {t('tip4Desc')}
         </li>
       </ul>
 
-      <h2>Related Topics</h2>
+      <h2>{t('relatedTopicsTitle')}</h2>
       <ul>
         <li>
-          <Link href="/docs/mobile/creating-interventions">Creating Interventions</Link>
+          <Link href={`/${locale}/docs/mobile/creating-interventions`}>{t('relatedLink1')}</Link>
         </li>
         <li>
-          <Link href="/docs/mobile/offline-maps">Offline Maps</Link>
+          <Link href={`/${locale}/docs/mobile/offline-maps`}>{t('relatedLink2')}</Link>
         </li>
         <li>
-          <Link href="/docs/concepts/remeasurement">Remeasurement</Link>
+          <Link href={`/${locale}/docs/concepts/remeasurement`}>{t('relatedLink3')}</Link>
         </li>
       </ul>
     </DocPage>
