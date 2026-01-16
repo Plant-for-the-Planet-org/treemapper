@@ -1,9 +1,8 @@
 import Link from 'next/link';
-import { getTranslations } from 'next-intl/server';
+import Image from 'next/image';
 import { setRequestLocale } from 'next-intl/server';
-import { Header } from '@/components/header';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, BookOpen, Globe, TrendingUp } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export default async function HomePage({
   params,
@@ -12,103 +11,126 @@ export default async function HomePage({
 }) {
   const { locale } = await params;
   setRequestLocale(locale);
-  const t = await getTranslations('home');
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <Header />
-      <main className="flex-1">
-        <section className="w-full px-4 md:px-8 lg:px-16 xl:px-24 py-16 md:py-24 lg:py-32">
-          <div className="mx-auto text-center space-y-8">
-            <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
-              {t('title')}
-            </h1>
-            <p className="text-xl text-muted-foreground">
-              {t('subtitle')}
+    <div className="relative min-h-screen w-full overflow-hidden">
+      {/* Video Background */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover"
+      >
+        <source
+          src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/treemapper_home.mp4"
+          type="video/mp4"
+        />
+      </video>
+
+      {/* Overlay for better text readability */}
+      <div className="absolute inset-0 bg-black/50" />
+
+      {/* Content */}
+      <div className="relative z-10 min-h-screen flex flex-col">
+        {/* Main Content */}
+        <main className="flex-1 flex items-center justify-start px-8 md:px-16 lg:px-24">
+          <div className="text-left text-white space-y-6 max-w-2xl">
+            {/* Logos */}
+            <div className="flex items-center justify-start gap-4 drop-shadow-lg">
+              <Image
+                src="https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/08/Plant-for-the-Planet-Official-Logo.svg"
+                alt="Plant-for-the-Planet"
+                width={60}
+                height={60}
+                className="h-14 w-auto drop-shadow-lg"
+                unoptimized
+              />
+              <div className="w-px h-10 bg-white/40" />
+              <Image
+                src="https://mailer-cdn.plant-for-the-planet.org/uploads/1768558111.png"
+                alt="TreeMapper"
+                width={180}
+                height={48}
+                className="h-12 w-auto drop-shadow-lg"
+                unoptimized
+              />
+            </div>
+
+            {/* Title */}
+            <div className="space-y-3 pt-4">
+              <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight drop-shadow-lg [text-shadow:_2px_2px_8px_rgb(0_0_0_/_60%)]">
+                TreeMapper
+              </h1>
+              <h2 className="text-2xl md:text-3xl lg:text-4xl font-semibold tracking-tight drop-shadow-lg [text-shadow:_2px_2px_8px_rgb(0_0_0_/_60%)] text-white/90">
+                Documentation
+              </h2>
+            </div>
+
+            {/* Description */}
+            <p className="text-lg md:text-xl text-white/85 max-w-lg leading-relaxed drop-shadow-md [text-shadow:_1px_1px_4px_rgb(0_0_0_/_50%)]">
+              Learn how to map, monitor, and manage tree planting interventions
+              with our comprehensive guides and tutorials.
             </p>
-            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+
+            {/* Features List */}
+            <div className="flex flex-wrap gap-3 pt-2">
+              <span className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
+                Mobile App
+              </span>
+              <span className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
+                Web Platform
+              </span>
+              <span className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
+                Offline Support
+              </span>
+              <span className="px-4 py-2 bg-white/15 backdrop-blur-sm rounded-full text-sm font-medium border border-white/20">
+                Data Export
+              </span>
+            </div>
+
+            {/* Button */}
+            <div className="pt-4">
               <Link href={`/${locale}/docs/introduction`}>
-                <Button size="lg" className="gap-2">
-                  {t('getStarted')}
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </Link>
-              <Link href={`/${locale}/docs/quick-start`}>
-                <Button variant="outline" size="lg">
-                  {t('viewDocs')}
+                <Button
+                  size="lg"
+                  className="gap-2 bg-[#007A49] hover:bg-[#006640] text-white px-8 py-6 text-lg shadow-lg transition-all hover:scale-105"
+                >
+                  View Documentation
+                  <ArrowRight className="h-5 w-5" />
                 </Button>
               </Link>
             </div>
           </div>
-        </section>
+        </main>
 
-        <section className="w-full px-4 md:px-8 lg:px-16 xl:px-24 py-16 border-t">
-          <h2 className="text-3xl font-bold text-center mb-12">
-            {t('features.title')}
-          </h2>
-          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-            <FeatureCard
-              icon={<Globe className="h-8 w-8" />}
-              title={t('features.mobile.title')}
-              description={t('features.mobile.description')}
-              href={`/${locale}/docs/mobile-setup`}
-            />
-            <FeatureCard
-              icon={<TrendingUp className="h-8 w-8" />}
-              title={t('features.web.title')}
-              description={t('features.web.description')}
-              href={`/${locale}/docs/web-setup`}
-            />
-            <FeatureCard
-              icon={<BookOpen className="h-8 w-8" />}
-              title={t('features.concepts.title')}
-              description={t('features.concepts.description')}
-              href={`/${locale}/docs/concepts/interventions`}
-            />
-          </div>
-        </section>
-      </main>
-
-      <footer className="border-t py-8">
-        <div className="w-full px-4 md:px-8 lg:px-16 xl:px-24 text-center text-sm text-muted-foreground">
-          <p>
-            Built by{' '}
+        {/* Footer */}
+        <footer className="relative z-10 py-6 px-8 md:px-16 lg:px-24">
+          <div className="flex items-center gap-2 drop-shadow-md">
+            <span className="text-white/80 text-sm [text-shadow:_1px_1px_4px_rgb(0_0_0_/_50%)]">
+              Created by
+            </span>
             <a
               href="https://www.plant-for-the-planet.org"
               target="_blank"
               rel="noopener noreferrer"
-              className="font-medium text-foreground hover:underline"
+              className="flex items-center gap-2 hover:opacity-80 transition-opacity"
             >
-              Plant-for-the-Planet
+              <Image
+                src="https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/08/Plant-for-the-Planet-Official-Logo.svg"
+                alt="Plant-for-the-Planet"
+                width={24}
+                height={24}
+                className="h-5 w-auto drop-shadow-md"
+                unoptimized
+              />
+              <span className="font-medium text-white text-sm [text-shadow:_1px_1px_4px_rgb(0_0_0_/_50%)]">
+                Plant-for-the-Planet
+              </span>
             </a>
-          </p>
-        </div>
-      </footer>
+          </div>
+        </footer>
+      </div>
     </div>
-  );
-}
-
-function FeatureCard({
-  icon,
-  title,
-  description,
-  href,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  description: string;
-  href: string;
-}) {
-  return (
-    <Link
-      href={href}
-      className="group rounded-lg border p-6 lg:p-8 hover:border-primary transition-colors"
-    >
-      <div className="text-primary mb-4">{icon}</div>
-      <h3 className="font-semibold text-lg lg:text-xl mb-2 group-hover:text-primary transition-colors">
-        {title}
-      </h3>
-      <p className="text-sm lg:text-base text-muted-foreground">{description}</p>
-    </Link>
   );
 }

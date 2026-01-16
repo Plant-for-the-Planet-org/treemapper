@@ -6,7 +6,7 @@ const withNextIntl = createNextIntlPlugin();
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   images: {
-    domains: ['placeholder.com', 'www-cdn.plant-for-the-planet.org'],
+    domains: ['placeholder.com', 'www-cdn.plant-for-the-planet.org', 'pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev'],
   },
 };
 

@@ -1,5 +1,5 @@
 import { DocPage } from '@/components/doc-page';
-import { PlaceholderImage } from '@/components/placeholder-image';
+import Image from 'next/image';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowRight } from 'lucide-react';
@@ -21,9 +21,13 @@ export default async function IntroductionPage({
         TreeMapper is designed to help restoration projects move beyond simple tree-count reporting and towards data-driven ecosystem monitoring. It enables organizations to document planting activities, monitor tree survival and growth, manage species and interventions, and analyze restoration progress over time, all in a standardized and verifiable way.
       </p>
 
-      <PlaceholderImage
-        title="TreeMapper Overview"
-        description="Screenshot showing the TreeMapper mobile app and web dashboard"
+      <Image
+        src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/introduction_one.png"
+        alt="TreeMapper mobile app and web dashboard overview"
+        width={1200}
+        height={675}
+        className="rounded-lg my-4 w-full h-auto"
+        priority
       />
 
       <p>
