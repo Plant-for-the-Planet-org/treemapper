@@ -9,6 +9,10 @@ import '../globals.css';
 export const metadata: Metadata = {
   title: 'TreeMapper Documentation',
   description: 'Comprehensive user guide for TreeMapper mobile and web applications',
+  icons: {
+    icon: 'https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/05/TreeMapper-logo-e1716997059777.png',
+    apple: 'https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/05/TreeMapper-logo-e1716997059777.png',
+  },
 };
 
 export const dynamic = 'force-dynamic';

@@ -18,8 +18,8 @@ export default async function HomePage({
     <div className="min-h-screen flex flex-col">
       <Header />
       <main className="flex-1">
-        <section className="container px-4 py-16 md:py-24">
-          <div className="max-w-3xl mx-auto text-center space-y-8">
+        <section className="w-full px-4 md:px-8 lg:px-16 xl:px-24 py-16 md:py-24 lg:py-32">
+          <div className="mx-auto text-center space-y-8">
             <h1 className="text-4xl md:text-6xl font-bold tracking-tight">
               {t('title')}
             </h1>
@@ -42,11 +42,11 @@ export default async function HomePage({
           </div>
         </section>
 
-        <section className="container px-4 py-16 border-t">
+        <section className="w-full px-4 md:px-8 lg:px-16 xl:px-24 py-16 border-t">
           <h2 className="text-3xl font-bold text-center mb-12">
             {t('features.title')}
           </h2>
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
             <FeatureCard
               icon={<Globe className="h-8 w-8" />}
               title={t('features.mobile.title')}
@@ -70,7 +70,7 @@ export default async function HomePage({
       </main>
 
       <footer className="border-t py-8">
-        <div className="container px-4 text-center text-sm text-muted-foreground">
+        <div className="w-full px-4 md:px-8 lg:px-16 xl:px-24 text-center text-sm text-muted-foreground">
           <p>
             Built by{' '}
             <a
@@ -102,13 +102,13 @@ function FeatureCard({
   return (
     <Link
       href={href}
-      className="group rounded-lg border p-6 hover:border-primary transition-colors"
+      className="group rounded-lg border p-6 lg:p-8 hover:border-primary transition-colors"
     >
       <div className="text-primary mb-4">{icon}</div>
-      <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+      <h3 className="font-semibold text-lg lg:text-xl mb-2 group-hover:text-primary transition-colors">
         {title}
       </h3>
-      <p className="text-sm text-muted-foreground">{description}</p>
+      <p className="text-sm lg:text-base text-muted-foreground">{description}</p>
     </Link>
   );
 }

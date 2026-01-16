@@ -20,8 +20,8 @@ export default function FirstInterventionPage() {
       <ul>
         <li>Installed and set up the TreeMapper mobile app</li>
         <li>Granted location permissions</li>
-        <li>Selected an active project</li>
         <li>GPS signal (you should see your location on the map)</li>
+        <li>Selected an active project (optional - only if you're signed in and want to upload to server)</li>
       </ul>
 
       <h2>Step 1: Navigate to the Map</h2>
@@ -45,11 +45,7 @@ export default function FirstInterventionPage() {
       </div>
 
       <h2>Step 2: Start a New Intervention</h2>
-      <p>There are two ways to create an intervention:</p>
-      <ol>
-        <li>Tap the large <strong>+ (plus)</strong> button at the bottom center of the screen</li>
-        <li>Or, long-press on a location on the map and select "Add Intervention"</li>
-      </ol>
+      <p>Tap the large <strong>+ (plus)</strong> button at the bottom center of the screen to create a new intervention.</p>
 
       <PlaceholderImage
         title="Add Button"
@@ -57,13 +53,10 @@ export default function FirstInterventionPage() {
         aspectRatio="portrait"
       />
 
-      <h2>Step 3: Choose Intervention Type</h2>
+      <h2>Step 3: Select Intervention Type</h2>
       <p>
-        TreeMapper supports multiple types of interventions. For your first intervention,
-        select <strong>"Tree Planting"</strong> from the list.
+        Choose the type of intervention you want to create. TreeMapper supports multiple types:
       </p>
-
-      <p>Other common intervention types include:</p>
       <ul>
         <li><strong>Single Tree</strong>: For planting individual trees</li>
         <li><strong>Multi-Tree</strong>: For planting multiple trees in an area</li>
@@ -80,7 +73,7 @@ export default function FirstInterventionPage() {
 
       <h2>Step 4: Mark the Location</h2>
       <p>
-        Now you'll mark where the intervention is taking place. TreeMapper offers two methods:
+        After selecting the intervention type, mark where the intervention is taking place:
       </p>
 
       <h3>Point Location (Single Tree)</h3>
@@ -89,7 +82,7 @@ export default function FirstInterventionPage() {
         at that location.
       </p>
 
-      <h3>Polygon Area (Multiple Trees)</h3>
+      <h3>Polygon Area (Multi-Tree)</h3>
       <p>
         For planting multiple trees over an area:
       </p>
@@ -115,27 +108,10 @@ export default function FirstInterventionPage() {
         </p>
       </div>
 
-      <h2>Step 5: Add Photos</h2>
+      <h2>Step 5: Select Species (If Intervention Supports)</h2>
       <p>
-        Photo documentation is crucial for monitoring progress over time. Take at least one photo
-        of your intervention site:
-      </p>
-      <ol>
-        <li>Tap the <strong>camera icon</strong></li>
-        <li>Take a photo of the planting area or tree</li>
-        <li>Review and confirm the photo</li>
-        <li>Add more photos if desired (recommended: before, during, and after shots)</li>
-      </ol>
-
-      <PlaceholderImage
-        title="Photo Capture"
-        description="Screenshot of camera interface for taking intervention photos"
-        aspectRatio="portrait"
-      />
-
-      <h2>Step 6: Select Tree Species</h2>
-      <p>
-        Specify which tree species you're planting:
+        If your intervention type supports species selection (like Single Tree or Multi-Tree),
+        specify which tree species you're planting:
       </p>
       <ol>
         <li>Tap on <strong>"Add Species"</strong></li>
@@ -159,59 +135,135 @@ export default function FirstInterventionPage() {
         </p>
       </div>
 
-      <h2>Step 7: Add Details (Optional)</h2>
+      <h2>Step 6: Capture Photo (For Single Tree/Multi-Tree)</h2>
       <p>
-        Enhance your intervention record with additional information:
+        <strong>Note:</strong> Photo capture is only available for interventions that support tree planting
+        (Single Tree or Multi-Tree) after you've selected the location.
+      </p>
+      <p>
+        Photo documentation is crucial for monitoring progress over time. Take at least one photo
+        of your intervention site:
+      </p>
+      <ol>
+        <li>Tap the <strong>camera icon</strong></li>
+        <li>Take a photo of the planting area or tree</li>
+        <li>Review and confirm the photo</li>
+        <li>Add more photos if desired (recommended: before, during, and after shots)</li>
+      </ol>
+
+      <PlaceholderImage
+        title="Photo Capture"
+        description="Screenshot of camera interface for taking intervention photos"
+        aspectRatio="portrait"
+      />
+
+      <h2>Step 7: Add Measurements (For Trees)</h2>
+      <p>
+        For tree planting interventions, you can add measurements to track growth over time:
       </p>
       <ul>
+        <li><strong>Tree Height</strong>: Height of the tree or sapling</li>
+        <li><strong>Diameter</strong>: Trunk diameter measurements (DBH - Diameter at Breast Height)</li>
         <li><strong>Planting Date</strong>: When the trees were planted (defaults to today)</li>
-        <li><strong>Tree Height</strong>: Average height of planted saplings</li>
-        <li><strong>Diameter</strong>: Trunk diameter measurements</li>
+        <li><strong>Other Measurements</strong>: Additional scientific data as needed</li>
+      </ul>
+
+      <PlaceholderImage
+        title="Measurements"
+        description="Screenshot showing measurement input fields"
+        aspectRatio="portrait"
+      />
+
+      <h2>Step 8: Add Optional Tags</h2>
+      <p>
+        You can add custom tags to categorize and organize your interventions:
+      </p>
+      <ul>
+        <li><strong>Tags</strong>: Custom labels for categorization (e.g., "monitoring plot", "restoration zone")</li>
         <li><strong>Notes</strong>: Any observations or special conditions</li>
-        <li><strong>Tags</strong>: Custom labels for categorization</li>
       </ul>
 
       <PlaceholderImage
         title="Intervention Details"
-        description="Screenshot of the intervention details form"
+        description="Screenshot of the intervention details form with tags and notes"
         aspectRatio="portrait"
       />
 
-      <h2>Step 8: Review and Submit</h2>
+      <h2>Understanding Sample Trees (Multi-Tree Interventions)</h2>
+      <p>
+        For <strong>Multi-Tree</strong> interventions, TreeMapper supports the concept of <strong>sample trees</strong>.
+        Sample trees are random tree data points within your planted location that you can register for
+        long-term monitoring.
+      </p>
+      
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
+        <h4 className="mt-0 text-blue-600 dark:text-blue-500">Example</h4>
+        <p className="mb-0">
+          If you've planted 2000 trees in a multi-tree plantation with different species, you can register
+          random sample trees (preferably of different species) from the location. Over time, you can
+          monitor and remeasure these sample trees to assess the impact and growth of your restoration efforts.
+        </p>
+      </div>
+
+      <p>Benefits of sample trees:</p>
+      <ul>
+        <li>Representative monitoring without measuring every single tree</li>
+        <li>Track growth and survival rates over time</li>
+        <li>Compare performance across different species</li>
+        <li>Scientific data collection for impact assessment</li>
+      </ul>
+
+      <p>
+        To add sample trees in a multi-tree intervention, select individual trees within your planted
+        area and register them with specific measurements and photos. These sample trees will be marked
+        for future monitoring visits.
+      </p>
+
+      <h2>Step 9: Register Intervention</h2>
+      <p>
+        Once you've completed all the steps, your intervention is registered. You have two options:
+      </p>
+
+      <h3>Option 1: Export Data</h3>
+      <p>
+        You can export your intervention data directly from the app without signing in. This allows
+        you to share or backup your data locally.
+      </p>
+
+      <h3>Option 2: Save and Upload to Server</h3>
+      <p>
+        If you're signed in, you can save the intervention and upload it to the server for:
+      </p>
+      <ul>
+        <li>Cloud backup and synchronization</li>
+        <li>Access from multiple devices</li>
+        <li>Viewing on the web dashboard</li>
+        <li>Team collaboration and project management</li>
+      </ul>
+
       <p>
         Before saving, review all the information you've entered:
       </p>
       <ol>
         <li>Check the location is correct on the map</li>
-        <li>Verify species selection and tree count</li>
-        <li>Ensure photos are clear and relevant</li>
-        <li>Review any additional details</li>
-        <li>Tap <strong>"Save"</strong> or <strong>"Submit"</strong></li>
+        <li>Verify species selection and tree count (if applicable)</li>
+        <li>Ensure photos are clear and relevant (for tree planting interventions)</li>
+        <li>Review measurements and tags</li>
+        <li>Tap <strong>"Save"</strong> or <strong>"Register"</strong></li>
       </ol>
 
       <PlaceholderImage
         title="Review Screen"
-        description="Screenshot of intervention preview before submission"
+        description="Screenshot of intervention preview before registration"
         aspectRatio="portrait"
       />
-
-      <h2>Step 9: Sync Your Data</h2>
-      <p>
-        If you're connected to the internet, your intervention will sync automatically. If you're
-        offline:
-      </p>
-      <ul>
-        <li>Your intervention is saved locally on your device</li>
-        <li>It will appear with an "Unsync" status</li>
-        <li>When you reconnect to the internet, it will sync automatically</li>
-        <li>You can also manually trigger sync from the menu</li>
-      </ul>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
         <h4 className="mt-0 text-blue-600 dark:text-blue-500">Offline Mode</h4>
         <p className="mb-0">
           TreeMapper works fully offline! You can create dozens of interventions in the field
-          without internet, and sync them all when you return to Wi-Fi. Learn more about{' '}
+          without internet. Your data is saved locally and can be exported or synced when you
+          reconnect. Learn more about{' '}
           <Link href="/docs/tutorials/working-offline">working offline</Link>.
         </p>
       </div>

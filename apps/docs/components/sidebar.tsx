@@ -5,9 +5,9 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { docsConfig, type DocSection, type DocItem } from '@/lib/docs';
+import { docsConfig, type DocItem } from '@/lib/docs';
 
-export function Sidebar() {
+export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
   const pathname = usePathname();
   const [openSections, setOpenSections] = React.useState<string[]>(() => {
     const activeSection = docsConfig.find((section) =>
@@ -23,6 +23,35 @@ export function Sidebar() {
         : [...prev, sectionId]
     );
   };
+
+  if (isMobile) {
+    return (
+      <nav className="p-4 space-y-2">
+        {docsConfig.map((section) => (
+          <div key={section.id} className="space-y-1">
+            <button
+              onClick={() => toggleSection(section.id)}
+              className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
+            >
+              <span>{section.title}</span>
+              {openSections.includes(section.id) ? (
+                <ChevronDown className="h-4 w-4" />
+              ) : (
+                <ChevronRight className="h-4 w-4" />
+              )}
+            </button>
+            {openSections.includes(section.id) && (
+              <div className="ml-2 space-y-0.5">
+                {section.items.map((item) => (
+                  <SidebarItem key={item.id} item={item} pathname={pathname} />
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+    );
+  }
 
   return (
     <aside className="fixed top-16 left-0 z-30 hidden h-[calc(100vh-4rem)] w-64 shrink-0 overflow-y-auto border-r bg-background md:sticky md:block">
@@ -123,7 +152,7 @@ export function MobileSidebar() {
                 </svg>
               </button>
             </div>
-            <Sidebar />
+            <Sidebar isMobile />
           </div>
         </>
       )}

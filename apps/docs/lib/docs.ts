@@ -48,6 +48,16 @@ export const docsConfig: DocSection[] = [
         href: '/docs/tutorials/first-intervention',
       },
       {
+        id: 'project-creation',
+        title: 'Creating a Project',
+        href: '/docs/tutorials/project-creation',
+      },
+      {
+        id: 'site-creation',
+        title: 'Creating a Site',
+        href: '/docs/tutorials/site-creation',
+      },
+      {
         id: 'monitoring-plots',
         title: 'Setting Up Monitoring Plots',
         href: '/docs/tutorials/monitoring-plots',
@@ -104,9 +114,9 @@ export const docsConfig: DocSection[] = [
         href: '/docs/concepts/data-export',
       },
       {
-        id: 'species-database',
-        title: 'Species Database',
-        href: '/docs/concepts/species-database',
+        id: 'remeasurement',
+        title: 'Remeasurement',
+        href: '/docs/concepts/remeasurement',
       },
     ],
   },
@@ -190,16 +200,6 @@ export const docsConfig: DocSection[] = [
         id: 'faq',
         title: 'FAQs',
         href: '/docs/faq',
-      },
-      {
-        id: 'troubleshooting',
-        title: 'Troubleshooting',
-        href: '/docs/troubleshooting',
-      },
-      {
-        id: 'common-issues',
-        title: 'Common Issues',
-        href: '/docs/common-issues',
       },
       {
         id: 'contact-support',

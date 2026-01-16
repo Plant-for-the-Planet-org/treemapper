@@ -13,7 +13,7 @@ export default function WebSetupPage() {
       <p>
         The TreeMapper web dashboard provides a powerful interface for managing your projects,
         viewing analytics, and coordinating team activities. Access it through your web browser
-        on any desktop or mobile device.
+        on any desktop and tablet device.
       </p>
 
       <h2>System Requirements</h2>
@@ -28,8 +28,8 @@ export default function WebSetupPage() {
 
       <h3>1. Navigate to the Dashboard</h3>
       <p>
-        Open your web browser and go to your organization's TreeMapper dashboard URL.
-        This is typically in the format: <code>https://your-org.treemapper.app</code>
+        Open your web browser and go toTreeMapper dashboard URL.
+        <code>https://dash.treemapper.app</code>
       </p>
 
       <PlaceholderImage

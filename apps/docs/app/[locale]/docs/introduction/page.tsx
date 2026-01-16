@@ -1,19 +1,24 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { ArrowRight } from 'lucide-react';
 
-export default function IntroductionPage() {
+export default async function IntroductionPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  
   return (
     <DocPage
       title="Introduction to TreeMapper"
-      description="Welcome to the TreeMapper documentation. Learn how to use our powerful forest monitoring and tree planting management platform."
+      description="TreeMapper is a digital monitoring and management platform developed by Plant-for-the-Planet to support high-quality, transparent, and science-based forest restoration."
       pageId="introduction"
     >
       <p>
-        TreeMapper is a comprehensive platform designed to help environmental organizations,
-        forestry projects, and conservation teams track, monitor, and document tree-related
-        interventions and activities. Whether you're planting trees, monitoring forest health,
-        or managing restoration projects, TreeMapper provides the tools you need.
+        TreeMapper is designed to help restoration projects move beyond simple tree-count reporting and towards data-driven ecosystem monitoring. It enables organizations to document planting activities, monitor tree survival and growth, manage species and interventions, and analyze restoration progress over time, all in a standardized and verifiable way.
       </p>
 
       <PlaceholderImage
@@ -21,75 +26,72 @@ export default function IntroductionPage() {
         description="Screenshot showing the TreeMapper mobile app and web dashboard"
       />
 
-      <h2>What is TreeMapper?</h2>
       <p>
-        TreeMapper is built by <a href="https://www.plant-for-the-planet.org" target="_blank" rel="noopener noreferrer">Plant-for-the-Planet</a> and consists of two main components:
+        The platform consists of two tightly integrated components:
+      </p>
+
+      <ul>
+        <li>
+          <strong>TreeMapper Mobile App</strong> – built for on-ground data collection, even in remote and offline environments
+        </li>
+        <li>
+          <strong>TreeMapper Web Dashboard</strong> – built for project management, data analysis, and collaboration
+        </li>
+      </ul>
+
+      <p>
+        Together, they provide an end-to-end solution for restoration teams, NGOs, researchers, and funders to plan, monitor, verify, and improve restoration outcomes.
+      </p>
+
+      <h2>Purpose and Vision</h2>
+      <p>
+        TreeMapper was created to address common challenges in restoration projects, such as:
+      </p>
+      <ul>
+        <li>Inconsistent data collection across teams and regions</li>
+        <li>Limited visibility into long-term survival and impact</li>
+        <li>Difficulty managing species, plots, and interventions at scale</li>
+        <li>Lack of transparent and auditable monitoring data</li>
+      </ul>
+      <p>
+        By combining field-level data capture with centralized analytics and management, TreeMapper supports credible restoration aligned with ecological best practices rather than just planting numbers.
+      </p>
+
+      <h2>Who TreeMapper Is For</h2>
+      <p>TreeMapper is used by:</p>
+      <ul>
+        <li>Forest and landscape restoration organizations</li>
+        <li>Tree planting and monitoring teams</li>
+        <li>Conservation projects and research initiatives</li>
+        <li>Donors and partners seeking transparent impact reporting</li>
+      </ul>
+      <p>
+        It is especially suited for projects that require long-term monitoring, species-level insights, and clear accountability.
+      </p>
+
+      <h2>What's New</h2>
+      <p>
+        TreeMapper has recently evolved into a more powerful and scalable platform with:
       </p>
       <ul>
         <li>
-          <strong>Mobile App</strong>: A React Native/Expo application for iOS and Android that
-          enables field teams to collect data offline, map tree locations, and document
-          interventions with photos and measurements.
+          A web dashboard offering advanced functionality such as role management, species and intervention management, and analytics
         </li>
         <li>
-          <strong>Web Dashboard</strong>: A Next.js web application providing analytics,
-          team management, bulk data operations, and comprehensive reporting tools.
+          Enhanced mobile app features, including structured monitoring plots and improved long-term monitoring workflows
         </li>
       </ul>
+      <p>
+        These updates make TreeMapper not just a data collection tool, but a comprehensive restoration management system.
+      </p>
 
-      <h2>Key Features</h2>
-
-      <h3>For Mobile Users</h3>
-      <ul>
-        <li><strong>Offline-First Architecture</strong>: Work anywhere without internet connectivity</li>
-        <li><strong>GPS-Based Mapping</strong>: Accurately plot tree locations and intervention areas</li>
-        <li><strong>Photo Documentation</strong>: Capture and attach images to your data</li>
-        <li><strong>Species Database</strong>: Access thousands of tree species with search and filtering</li>
-        <li><strong>Monitoring Plots</strong>: Set up standardized research plots for long-term tracking</li>
-        <li><strong>Automatic Sync</strong>: Data automatically syncs when you're back online</li>
-      </ul>
-
-      <h3>For Web Users</h3>
-      <ul>
-        <li><strong>Analytics Dashboard</strong>: View real-time progress and KPIs</li>
-        <li><strong>Team Management</strong>: Invite users and manage permissions</li>
-        <li><strong>Bulk Data Upload</strong>: Import large datasets via CSV or GeoJSON</li>
-        <li><strong>Site Management</strong>: Organize projects by geographic locations</li>
-        <li><strong>Advanced Reporting</strong>: Generate and export custom reports</li>
-        <li><strong>Species Curation</strong>: Manage your organization's tree species catalog</li>
-      </ul>
-
-      <h2>Who Should Use This Documentation?</h2>
-      <p>This documentation is designed for:</p>
-      <ul>
-        <li><strong>Field Teams</strong>: Learn how to use the mobile app for data collection</li>
-        <li><strong>Project Managers</strong>: Master the web dashboard for oversight and reporting</li>
-        <li><strong>Team Leaders</strong>: Understand workflows for coordinating field operations</li>
-        <li><strong>Data Analysts</strong>: Explore data export and analysis capabilities</li>
-      </ul>
-
-      <h2>Getting Started</h2>
-      <p>Ready to begin? Here's what to do next:</p>
-      <ol>
-        <li>
-          <Link href="/docs/mobile-setup">Set up the mobile app</Link> on your iOS or Android device
-        </li>
-        <li>
-          <Link href="/docs/web-setup">Access the web dashboard</Link> and create your account
-        </li>
-        <li>
-          <Link href="/docs/quick-start">Follow the quick start guide</Link> to create your first intervention
-        </li>
-      </ol>
-
-      <div className="bg-primary/10 border border-primary/20 rounded-lg p-6 my-8">
-        <h3 className="mt-0 text-primary">Need Help?</h3>
-        <p className="mb-0">
-          If you have questions or run into issues, check out our{' '}
-          <Link href="/docs/faq">FAQ</Link> or{' '}
-          <Link href="/docs/troubleshooting">troubleshooting guide</Link>. You can also{' '}
-          <Link href="/docs/contact-support">contact our support team</Link>.
-        </p>
+      <div className="mt-8 pt-8 border-t">
+        <Link href={`/${locale}/docs/mobile-setup`}>
+          <Button size="lg" className="gap-2">
+            Next: Mobile App Setup
+            <ArrowRight className="h-4 w-4" />
+          </Button>
+        </Link>
       </div>
     </DocPage>
   );

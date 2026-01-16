@@ -50,7 +50,7 @@ export default function MobileSetupPage() {
       />
 
       <h2>First Launch</h2>
-      <p>When you first open TreeMapper, you'll need to complete these steps:</p>
+      <p>When you first open TreeMapper, you'll need to complete these steps (sign-in is optional):</p>
 
       <h3>1. Grant Permissions</h3>
       <p>TreeMapper will request the following permissions:</p>
@@ -75,8 +75,44 @@ export default function MobileSetupPage() {
         aspectRatio="portrait"
       />
 
-      <h3>2. Sign In or Create Account</h3>
-      <p>You have two options:</p>
+      <h3>2. Sign In (Optional)</h3>
+      <p>
+        <strong>TreeMapper can be used completely without signing in.</strong> You can collect data,
+        take photos, and export your data directly from the app without any account.
+      </p>
+
+      <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 my-6">
+        <h4 className="mt-0 text-green-600 dark:text-green-500">Using TreeMapper Without Sign-In</h4>
+        <p className="mb-0">
+          You can use TreeMapper fully offline to collect tree planting data, take measurements,
+          document with photos, and export your data. No account or internet connection required
+          for data collection.
+        </p>
+      </div>
+
+      <p>
+        However, signing in unlocks additional features:
+      </p>
+      <ul>
+        <li>
+          <strong>Cloud Backup</strong>: Upload your data to secure cloud storage for backup and
+          access from multiple devices
+        </li>
+        <li>
+          <strong>Project Management</strong>: Create and manage projects, collaborate with team
+          members, and organize your restoration activities
+        </li>
+        <li>
+          <strong>Web Dashboard Access</strong>: View and analyze your data on the web dashboard
+          with advanced analytics, reporting, and visualization tools
+        </li>
+        <li>
+          <strong>Team Collaboration</strong>: Share data with your organization and work together
+          on restoration projects
+        </li>
+      </ul>
+
+      <p>If you choose to sign in, you have two options:</p>
       <ul>
         <li>
           <strong>Sign In</strong>: If your organization has already created an account for you,
@@ -89,23 +125,27 @@ export default function MobileSetupPage() {
 
       <PlaceholderImage
         title="Sign In Screen"
-        description="Screenshot of the login/signup screen"
+        description="Screenshot of the login/signup screen (optional step)"
         aspectRatio="portrait"
       />
 
-      <h3>3. Select or Create a Project</h3>
+      <h3>3. Select or Create a Project (If Signed In)</h3>
       <p>
-        After signing in, you'll need to select a project to work on. Projects are organizational
-        units that group your tree planting and monitoring activities.
+        If you signed in, you'll need to select or create a project to work on. Projects are
+        organizational units that group your tree planting and monitoring activities.
       </p>
       <ul>
         <li>If you were invited to a project, select it from the list</li>
         <li>If you're starting fresh, create a new project by tapping "Create Project"</li>
       </ul>
+      <p className="text-muted-foreground">
+        <em>Note: If you're using TreeMapper without signing in, you can skip this step and start
+        collecting data immediately.</em>
+      </p>
 
       <PlaceholderImage
         title="Project Selection"
-        description="Screenshot of the project selection screen"
+        description="Screenshot of the project selection screen (only if signed in)"
         aspectRatio="portrait"
       />
 

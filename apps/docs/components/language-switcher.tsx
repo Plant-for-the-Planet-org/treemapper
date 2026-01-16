@@ -20,7 +20,7 @@ export function LanguageSwitcher() {
 
   const handleLanguageChange = (newLocale: string) => {
     const currentPath = pathname.replace(`/${locale}`, '');
-    const newPath = newLocale === 'en' ? currentPath || '/' : `/${newLocale}${currentPath}`;
+    const newPath = `/${newLocale}${currentPath || ''}`;
     router.push(newPath);
     setIsOpen(false);
   };
