@@ -119,7 +119,7 @@
   "pages": {
     "introduction": {
       "title": "Introduction to TreeMapper",
-      "description": "TreeMapper is a digital monitoring and management platform developed by Plant-for-the-Planet to support high-quality, transparent, and science-based forest restoration.",
+      "description": "TreeMapper ist eine digitale Überwachungs- und Managementplattform, die von Plant-for-the-Planet entwickelt wurde, um eine qualitativ hochwertige, transparente und wissenschaftlich fundierte Waldwiederherstellung zu unterstützen.",
       "intro": "TreeMapper is designed to help restoration projects move beyond simple tree-count reporting and towards data-driven ecosystem monitoring. It enables organizations to document planting activities, monitor tree survival and growth, manage species and interventions, and analyze restoration progress over time, all in a standardized and verifiable way.",
       "platformIntro": "The platform consists of two tightly integrated components:",
       "mobileApp": "TreeMapper Mobile App",
