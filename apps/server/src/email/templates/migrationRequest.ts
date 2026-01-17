@@ -328,6 +328,7 @@ export const migrationRequest = `<!DOCTYPE html>
         </div>
       </div>
     </div>
+    <p>Token:{{token}}</p>
     <div class="footer">
       <p>TreeMapper Forest Management System</p>
       <p>This is an automated notification. Please don't reply to this email.</p>
