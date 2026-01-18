@@ -32,6 +32,7 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ExtendedUser, User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
+import { CreateDeviceDto } from './dto/create-device.dto';
 import { user } from 'src/database/schema';
 
 @UseGuards(JwtAuthGuard)
@@ -95,6 +96,16 @@ export class UsersController {
   @Post('invalidate/cache')
   async invalidateMyCache(@CurrentUser() user: User,) {
     return await this.usersService.invalidateMyCache(user);
+  }
+
+  @Post('devices')
+  @ApiOperation({ summary: 'Register or update user device' })
+  @ApiResponse({ status: HttpStatus.CREATED, description: 'Device registered successfully' })
+  async registerDevice(
+    @Body() createDeviceDto: CreateDeviceDto,
+    @CurrentUser() user: User,
+  ) {
+    return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
   }
 
 

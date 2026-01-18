@@ -51,7 +51,7 @@ export const postUrlNewApi = {
   deleteIntervention: `${mobileBaseUrl}/mobile/delete/intervention`,
   acceptEmailInvite: `${mobileBaseUrl}/mobile/invites/accept`,
   acceptBulkInvite: `${mobileBaseUrl}/mobile/invites/accept/link`,
-
+  registerDevice: `${mobileBaseUrl}/users/devices`,
 };
 
 export const getUrlMobileApi = {

@@ -1,5 +1,6 @@
 import { getUrlApi, postUrlApi, getUrlMobileApi, postUrlNewApi } from './api.url';
 import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
+import { DeviceRegistrationParams } from '../types/type/device.type';
 
 import * as FileSystem from 'expo-file-system';
 import { updateFilePath } from '../utils/helpers/fileSystemHelper'
@@ -517,6 +518,12 @@ export const acceptEmailInvite = async (params: any) => {
 
 export const acceptLinkInvite = async (params: any) => {
   const uri = `${postUrlNewApi.acceptBulkInvite}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+export const registerUserDevice = async (params: DeviceRegistrationParams) => {
+  const uri = `${postUrlNewApi.registerDevice}`;
   const result = await fetchPostCall(uri, params);
   return result;
 };
