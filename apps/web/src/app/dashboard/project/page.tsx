@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Leaf, Tractor, MapPin, Globe, Info, FileText, ChevronDown, ArrowLeft, Upload, Loader2Icon, TreePine, Target, Users, Shield, Plus } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Leaf, MapPin, Globe, Info, FileText, ArrowLeft, Loader2Icon, TreePine, Target, Shield, Plus } from 'lucide-react';
 import ProjectMap from '@/component/MapSelect';
 import { toast } from 'react-toastify'
 import { createNewProject } from '@shared-core/fetchApi/api.fetch';
@@ -11,6 +11,62 @@ import { useToken } from '@/context/useTokenContext';
 import { useSearchParams } from 'next/navigation';
 import Spinner from '@/component/Spinner';
 import useProjectStore from '@shared-core/store/useProjectStore'
+
+// Validation types and utilities
+interface ValidationErrors {
+    projectName?: string;
+    target?: string;
+    projectWebsite?: string;
+    aboutProject?: string;
+}
+
+const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
+
+const validateProjectName = (name: string): string | undefined => {
+    if (!name || name.trim() === '') {
+        return 'Project name is required';
+    }
+    if (name.trim().length < 3) {
+        return 'Project name must be at least 3 characters';
+    }
+    if (name.trim().length > 100) {
+        return 'Project name must be less than 100 characters';
+    }
+    return undefined;
+};
+
+const validateTarget = (target: string): string | undefined => {
+    if (target === '') return undefined;
+    const num = Number(target);
+    if (isNaN(num)) {
+        return 'Target must be a valid number';
+    }
+    if (num < 0) {
+        return 'Target cannot be negative';
+    }
+    if (num > 1000000000) {
+        return 'Target value is too large';
+    }
+    if (!Number.isInteger(num)) {
+        return 'Target must be a whole number';
+    }
+    return undefined;
+};
+
+const validateWebsite = (url: string): string | undefined => {
+    if (url === '') return undefined;
+    if (!URL_REGEX.test(url)) {
+        return 'Please enter a valid URL (e.g., https://example.com)';
+    }
+    return undefined;
+};
+
+const validateDescription = (description: string): string | undefined => {
+    if (description.length > 2000) {
+        return 'Description must be less than 2000 characters';
+    }
+    return undefined;
+};
 
 // Header Component
 const ProjectHeader = ({ onBack }) => {
@@ -88,11 +144,28 @@ const FormInput = ({
     placeholder,
     icon: Icon,
     required = false,
-    min,
-    rows,
-    flex
+    min = undefined,
+    rows = undefined,
+    flex = false,
+    error = undefined,
+    onBlur = undefined
+}: {
+    label: string;
+    name: string;
+    type?: string;
+    value: string;
+    onChange: (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
+    placeholder?: string;
+    icon?: React.ComponentType<{ className?: string }>;
+    required?: boolean;
+    min?: string;
+    rows?: number;
+    flex?: boolean;
+    error?: string;
+    onBlur?: (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => void;
 }) => {
     const isTextarea = type === 'textarea';
+    const hasError = !!error;
 
     return (
         <div
@@ -104,7 +177,7 @@ const FormInput = ({
             <div className={`relative ${flex && isTextarea ? 'flex-1 flex flex-col' : ''}`}>
                 {Icon && (
                     <div className={`absolute ${isTextarea ? 'top-3' : 'inset-y-0'} left-0 pl-3 flex items-${isTextarea ? 'start' : 'center'} pointer-events-none z-10`}>
-                        <Icon className="h-4 w-4 text-gray-400" />
+                        <Icon className={`h-4 w-4 ${hasError ? 'text-red-400' : 'text-gray-400'}`} />
                     </div>
                 )}
                 {isTextarea ? (
@@ -113,9 +186,10 @@ const FormInput = ({
                         name={name}
                         value={value}
                         onChange={onChange}
+                        onBlur={onBlur}
                         required={required}
-                        rows={flex ? undefined : (rows || 4)} // Remove rows when flex is true
-                        className={`${Icon ? 'pl-10' : ''} block w-full ${flex ? 'flex-1 h-full min-h-[6rem]' : ''} rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2.5 transition-colors resize-none placeholder-gray-400`}
+                        rows={flex ? undefined : (rows || 4)}
+                        className={`${Icon ? 'pl-10' : ''} block w-full ${flex ? 'flex-1 h-full min-h-[6rem]' : ''} rounded-lg border ${hasError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} shadow-sm text-sm py-2.5 transition-colors resize-none placeholder-gray-400`}
                         placeholder={placeholder}
                     />
                 ) : (
@@ -125,18 +199,22 @@ const FormInput = ({
                         name={name}
                         value={value}
                         onChange={onChange}
+                        onBlur={onBlur}
                         required={required}
                         min={min}
-                        className={`${Icon ? 'pl-10' : ''} block w-full rounded-lg border border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 text-sm py-2.5 transition-colors placeholder-gray-400`}
+                        className={`${Icon ? 'pl-10' : ''} block w-full rounded-lg border ${hasError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} shadow-sm text-sm py-2.5 transition-colors placeholder-gray-400`}
                         placeholder={placeholder}
                     />
                 )}
             </div>
+            {hasError && (
+                <p className="text-sm text-red-600 mt-1">{error}</p>
+            )}
         </div>
     );
 };
 // Project Details Form Component
-const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, loading }) => {
+const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, loading, errors, onBlur, isFormValid }) => {
     return (
         <div className="space-y-6 h-full" style={{ display: 'flex', flexDirection: 'column' }}>
             <div>
@@ -147,9 +225,11 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                         name="projectName"
                         value={formData.projectName}
                         onChange={onChange}
+                        onBlur={onBlur}
                         placeholder="Enter project name"
                         icon={FileText}
                         required
+                        error={errors.projectName}
                     />
 
                     <ProjectTypeSelector
@@ -165,9 +245,11 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                             type="number"
                             value={formData.target}
                             onChange={onChange}
+                            onBlur={onBlur}
                             placeholder="e.g., 100"
                             icon={Target}
                             min="0"
+                            error={errors.target}
                         />
 
                         <FormInput
@@ -176,8 +258,10 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                             type="url"
                             value={formData.projectWebsite}
                             onChange={onChange}
+                            onBlur={onBlur}
                             placeholder="https://example.com"
                             icon={Globe}
+                            error={errors.projectWebsite}
                         />
                     </div>
 
@@ -187,14 +271,16 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                         type="textarea"
                         value={formData.aboutProject}
                         onChange={onChange}
+                        onBlur={onBlur}
                         placeholder="Describe your project goals and methods..."
                         icon={Info}
                         rows={4}
                         flex={true}
+                        error={errors.aboutProject}
                     />
                 </div>
             </div>
-            <ProjectFooter agreeTerms={true} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
+            <ProjectFooter agreeTerms={isFormValid} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
         </div>
     );
 };
@@ -282,14 +368,56 @@ export function CreateProjectUI() {
         projectWebsite: '',
         aboutProject: '',
     });
+    const [errors, setErrors] = useState<ValidationErrors>({});
+    const [touched, setTouched] = useState<Record<string, boolean>>({});
     const selectedProject = useProjectStore(s => s.selectedProject)
-    const [agreeTerms, setAgreeTerms] = useState(false);
     const [finalGeoJSON, setFinalGeoJSON] = useState(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
     const { accessToken } = useToken()
     const searchParams = useSearchParams();
     const [pageLoading, setPageLoading] = useState(true)
+
+    // Validate a single field
+    const validateField = useCallback((name: string, value: string): string | undefined => {
+        switch (name) {
+            case 'projectName':
+                return validateProjectName(value);
+            case 'target':
+                return validateTarget(value);
+            case 'projectWebsite':
+                return validateWebsite(value);
+            case 'aboutProject':
+                return validateDescription(value);
+            default:
+                return undefined;
+        }
+    }, []);
+
+    // Validate all fields and return errors
+    const validateAllFields = useCallback((): ValidationErrors => {
+        return {
+            projectName: validateProjectName(formData.projectName),
+            target: validateTarget(formData.target),
+            projectWebsite: validateWebsite(formData.projectWebsite),
+            aboutProject: validateDescription(formData.aboutProject),
+        };
+    }, [formData]);
+
+    // Check if form is valid
+    const isFormValid = useCallback((): boolean => {
+        const allErrors = validateAllFields();
+        return !Object.values(allErrors).some(error => error !== undefined);
+    }, [validateAllFields]);
+
+    // Handle field blur - validate and mark as touched
+    const handleBlur = useCallback((e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const { name, value } = e.target;
+        setTouched(prev => ({ ...prev, [name]: true }));
+        const error = validateField(name, value);
+        setErrors(prev => ({ ...prev, [name]: error }));
+    }, [validateField]);
+
     useEffect(() => {
         const name = searchParams.get('name');
         const type = searchParams.get('type');
@@ -351,14 +479,40 @@ export function CreateProjectUI() {
 
     const handleInputChange = (e) => {
         const { name, value, type, checked } = e.target;
+        const newValue = type === 'checkbox' ? checked : value;
         setFormData(prev => ({
             ...prev,
-            [name]: type === 'checkbox' ? checked : value
+            [name]: newValue
         }));
+        // Validate on change if field was already touched
+        if (touched[name]) {
+            const error = validateField(name, newValue);
+            setErrors(prev => ({ ...prev, [name]: error }));
+        }
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Mark all fields as touched
+        setTouched({
+            projectName: true,
+            target: true,
+            projectWebsite: true,
+            aboutProject: true,
+        });
+
+        // Validate all fields
+        const validationErrors = validateAllFields();
+        setErrors(validationErrors);
+
+        // Check if there are any errors
+        const hasErrors = Object.values(validationErrors).some(error => error !== undefined);
+        if (hasErrors) {
+            toast.error('Please fix the validation errors before submitting.');
+            return;
+        }
+
         const payLoad = {
             "projectName": formData.projectName,
             "projectType": formData.projectType,
@@ -433,6 +587,9 @@ export function CreateProjectUI() {
                             handleSubmit={handleSubmit}
                             loading={loading}
                             projectTypes={projectTypes}
+                            errors={errors}
+                            onBlur={handleBlur}
+                            isFormValid={isFormValid()}
                         />
                     </div>
                 </div>
