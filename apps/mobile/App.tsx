@@ -16,10 +16,17 @@ import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 import Bugsnag from '@bugsnag/expo'
 import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
+import { OneSignal, LogLevel } from 'react-native-onesignal';
 
 
-Bugsnag.start(BugSnagConfig)
-MapLibreGL.setAccessToken(null)
+try {
+  Bugsnag.start(BugSnagConfig)
+  MapLibreGL.setAccessToken(null)
+  OneSignal.initialize(process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID);
+} catch (error) {
+console.log('Error initializing app services:', error);
+}
+
 
 export default function App() {
   return (

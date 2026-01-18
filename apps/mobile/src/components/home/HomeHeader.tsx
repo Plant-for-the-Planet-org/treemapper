@@ -8,15 +8,15 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import useProjectManagement from 'src/hooks/realm/useProjectManagement'
-import { getAllProjects, getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
-import { resetProjectState, updateProjectError, updateProjectState } from 'src/store/slice/projectStateSlice'
+import {getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
+import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { logoutAppUser, updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserLogin, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
+import useAppStartup from 'src/hooks/useAppStartup'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 import { SCALE_24 } from 'src/utils/constants/spacing'
@@ -37,6 +37,7 @@ interface Props {
 const HomeHeader = (props: Props) => {
   const { logoutUser } = useAuthentication()
   const { toggleFilterModal, toggleProjectModal } = props
+  useAppStartup()
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
