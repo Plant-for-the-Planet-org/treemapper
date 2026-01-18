@@ -3,7 +3,7 @@ import { DrizzleService } from '../database/drizzle.service';
 import { notifications, user } from '../database/schema/index';
 import { eq, and, desc, count, sql, inArray, isNull, or } from 'drizzle-orm';
 import { CreateNotification, Notification } from '../notification/entity/notification.entity';
-import { NotificationQueryDto, NotificationStatsDto } from './dto/notification.dto';
+import { NotificationQueryDto, NotificationStatsDto, MobileNotificationQueryDto } from './dto/notification.dto';
 
 @Injectable()
 export class NotificationRepository {
@@ -308,5 +308,101 @@ export class NotificationRepository {
   private generateUid(): string {
     return Math.random().toString(36).substring(2, 15) +
       Math.random().toString(36).substring(2, 15);
+  }
+
+  async findForMobile(
+    userId: number,
+    query: MobileNotificationQueryDto
+  ): Promise<{ notifications: Notification[]; total: number; unreadCount: number }> {
+    const { page = 1, limit = 20, unreadOnly, type } = query;
+    const offset = (page - 1) * limit;
+
+    const whereConditions = [
+      eq(notifications.userId, userId),
+      eq(notifications.isArchived, false),
+    ];
+
+    if (unreadOnly) {
+      whereConditions.push(eq(notifications.isRead, false));
+    }
+
+    if (type) {
+      whereConditions.push(eq(notifications.type, type));
+    }
+
+    const whereClause = and(...whereConditions);
+
+    const [notificationsList, [{ count: totalCount }], [{ count: unreadCount }]] = await Promise.all([
+      this.drizzle.db
+        .select({
+          id: notifications.id,
+          uid: notifications.uid,
+          userId: notifications.userId,
+          type: notifications.type,
+          title: notifications.title,
+          message: notifications.message,
+          entityId: notifications.entityId,
+          priority: notifications.priority,
+          category: notifications.category,
+          isRead: notifications.isRead,
+          isArchived: notifications.isArchived,
+          actionUrl: notifications.actionUrl,
+          actionText: notifications.actionText,
+          scheduledFor: notifications.scheduledFor,
+          expiresAt: notifications.expiresAt,
+          deliveryMethod: notifications.deliveryMethod,
+          sentAt: notifications.sentAt,
+          deliveredAt: notifications.deliveredAt,
+          image: notifications.image,
+          batchId: notifications.batchId,
+          retryCount: notifications.retryCount,
+          createdAt: notifications.createdAt,
+          updatedAt: notifications.updatedAt,
+        })
+        .from(notifications)
+        .where(whereClause)
+        .orderBy(desc(notifications.createdAt))
+        .limit(limit)
+        .offset(offset),
+
+      this.drizzle.db
+        .select({ count: count() })
+        .from(notifications)
+        .where(whereClause),
+
+      this.drizzle.db
+        .select({ count: count() })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, userId),
+            eq(notifications.isRead, false),
+            eq(notifications.isArchived, false)
+          )
+        ),
+    ]);
+
+    return {
+      notifications: notificationsList,
+      total: totalCount,
+      unreadCount,
+    };
+  }
+
+  async markMultipleAsRead(notificationUids: string[], userId: number): Promise<number> {
+    const result = await this.drizzle.db
+      .update(notifications)
+      .set({
+        isRead: true,
+        updatedAt: new Date(),
+      })
+      .where(
+        and(
+          inArray(notifications.uid, notificationUids),
+          eq(notifications.userId, userId)
+        )
+      );
+
+    return result.rowCount || 0;
   }
 }

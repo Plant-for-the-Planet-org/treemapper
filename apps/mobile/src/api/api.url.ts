@@ -62,6 +62,8 @@ export const getUrlMobileApi = {
   getMobileInterventions: `${mobileBaseUrl}/mobile/project/interventions`,
   getMobileEmailInviteStatus: `${mobileBaseUrl}/mobile/invites`,
   getMobileaLinkInviteStatus: `${mobileBaseUrl}/mobile/invites`,
+  getNotifications: `${mobileBaseUrl}/mobile/notifications`,
+  getUnreadNotificationCount: `${mobileBaseUrl}/mobile/notifications/unread-count`,
 };
 
 

@@ -1,5 +1,5 @@
 import { getUrlApi, postUrlApi, getUrlMobileApi, postUrlNewApi } from './api.url';
-import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall } from './customFetch';
+import { fetchDeleteCall, fetchGetCall, fetchPostCall, fetchPutCall, fetchPatchCall } from './customFetch';
 import { DeviceRegistrationParams } from '../types/type/device.type';
 
 import * as FileSystem from 'expo-file-system';
@@ -531,6 +531,35 @@ export const registerUserDevice = async (params: DeviceRegistrationParams) => {
 export const uploadIntervention = async (params: any) => {
   const uri = `${postUrlApi.uploadIntervention}`;
   const result = await fetchPostCall(uri, params);
+  return result;
+};
+
+// Notification APIs
+export const getNotifications = async (page: number = 1, limit: number = 20, type?: string) => {
+  const queryParams = new URLSearchParams({ page: page.toString(), limit: limit.toString() });
+  if (type) {
+    queryParams.append('type', type);
+  }
+  const uri = `${getUrlMobileApi.getNotifications}?${queryParams.toString()}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const getUnreadNotificationCount = async () => {
+  const uri = `${getUrlMobileApi.getUnreadNotificationCount}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
+export const markNotificationAsRead = async (uid: string) => {
+  const uri = `${getUrlMobileApi.getNotifications}/${uid}/read`;
+  const result = await fetchPatchCall(uri, {});
+  return result;
+};
+
+export const markAllNotificationsAsRead = async () => {
+  const uri = `${getUrlMobileApi.getNotifications}/mark-all-read`;
+  const result = await fetchPatchCall(uri, {});
   return result;
 };
 

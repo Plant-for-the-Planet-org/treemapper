@@ -67,4 +67,5 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 export const fetchPostCall = (uri: string, params: any, authRequire?: boolean) => fetchCall('POST', uri, params, authRequire);
 export const fetchGetCall = (uri: string, authRequire: boolean) => fetchCall('GET', uri, null, authRequire);
 export const fetchPutCall = (uri: string, params: any) => fetchCall('PUT', uri, params);
+export const fetchPatchCall = (uri: string, params: any) => fetchCall('PATCH', uri, params);
 export const fetchDeleteCall = (uri: string) => fetchCall('DELETE', uri, {}, true);

@@ -213,3 +213,96 @@ export class NotificationStatsDto {
   @ApiProperty()
   byPriority: Record<string, number>;
 }
+
+// Mobile-specific DTOs
+
+export class MobileNotificationQueryDto {
+  @ApiPropertyOptional({ description: 'Page number (1-indexed)', default: 1 })
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  page?: number = 1;
+
+  @ApiPropertyOptional({ description: 'Number of items per page', default: 20 })
+  @IsOptional()
+  @IsInt()
+  @Type(() => Number)
+  limit?: number = 20;
+
+  @ApiPropertyOptional({ description: 'Filter to only unread notifications' })
+  @IsOptional()
+  @IsBoolean()
+  @Transform(({ value }) => value === 'true' || value === true)
+  unreadOnly?: boolean;
+
+  @ApiPropertyOptional({ enum: NotificationType, description: 'Filter by notification type' })
+  @IsOptional()
+  @IsEnum(NotificationType)
+  type?: NotificationType;
+}
+
+export class MobileNotificationItemDto {
+  @ApiProperty({ description: 'Notification unique identifier' })
+  uid: string;
+
+  @ApiProperty({ enum: NotificationType, description: 'Type of notification' })
+  type: string;
+
+  @ApiProperty({ description: 'Notification title' })
+  title: string;
+
+  @ApiProperty({ description: 'Notification message content' })
+  message: string;
+
+  @ApiProperty({ description: 'Whether the notification has been read' })
+  isRead: boolean;
+
+  @ApiPropertyOptional({ description: 'Priority level' })
+  priority?: string;
+
+  @ApiPropertyOptional({ description: 'Category of the notification' })
+  category?: string;
+
+  @ApiPropertyOptional({ description: 'URL for action' })
+  actionUrl?: string;
+
+  @ApiPropertyOptional({ description: 'Text for action button' })
+  actionText?: string;
+
+  @ApiPropertyOptional({ description: 'Image URL for the notification' })
+  image?: string;
+
+  @ApiProperty({ description: 'When the notification was created' })
+  createdAt: Date;
+}
+
+export class MobileNotificationPaginationDto {
+  @ApiProperty({ description: 'Current page number' })
+  page: number;
+
+  @ApiProperty({ description: 'Items per page' })
+  limit: number;
+
+  @ApiProperty({ description: 'Total number of notifications' })
+  total: number;
+
+  @ApiProperty({ description: 'Total number of pages' })
+  totalPages: number;
+
+  @ApiProperty({ description: 'Whether there is a next page' })
+  hasNextPage: boolean;
+
+  @ApiProperty({ description: 'Whether there is a previous page' })
+  hasPreviousPage: boolean;
+}
+
+export class MobileNotificationResponseDto {
+  @ApiProperty({ type: [MobileNotificationItemDto], description: 'List of notifications' })
+  notifications: MobileNotificationItemDto[];
+
+  @ApiProperty({ type: MobileNotificationPaginationDto, description: 'Pagination information' })
+  pagination: MobileNotificationPaginationDto;
+
+  @ApiProperty({ description: 'Count of unread notifications' })
+  unreadCount: number;
+}

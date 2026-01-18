@@ -59,6 +59,12 @@ export type RootStackParamList = {
   CreateProject: undefined
   TreeMapperFeaturesScreen: undefined
   Guide: undefined
+  Notification: undefined
+  NotificationDetail: NotificationDetailView
+}
+
+type NotificationDetailView = {
+  notificationUid: string
 }
 
 type SpeciesInfoView = {

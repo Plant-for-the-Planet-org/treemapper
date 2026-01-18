@@ -5,10 +5,14 @@ import {
   Body,
   UseGuards,
   Req,
-  Headers, Put,
+  Headers,
+  Put,
+  Patch,
   Query,
-  Param
+  Param,
+  ParseIntPipe,
 } from '@nestjs/common';
+import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectRoles } from './decorators/project-roles.decorator';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
@@ -21,14 +25,26 @@ import { CreatePresignedUrlDto } from 'src/users/dto/signed-url.dto';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
 import { UsersService } from 'src/users/users.service';
 import { AcceptInviteDto } from 'src/projects/dto/accept-invite.dto';
+import { NotificationService } from 'src/notification/notification.service';
+import {
+  MobileNotificationQueryDto,
+  MobileNotificationResponseDto,
+} from 'src/notification/dto/notification.dto';
 
 
 
 
+@ApiTags('Mobile')
+@ApiBearerAuth()
 @Controller('mobile')
 @UseGuards(JwtAuthGuard)
 export class MobileController {
-  constructor(private readonly appservice: MobileService, private readonly usersService: UsersService, private readonly projectsService: ProjectsService) { }
+  constructor(
+    private readonly appservice: MobileService,
+    private readonly usersService: UsersService,
+    private readonly projectsService: ProjectsService,
+    private readonly notificationService: NotificationService,
+  ) { }
 
 
   @Get('user/profile')
@@ -167,5 +183,76 @@ export class MobileController {
     @CurrentUser() userData: any,
   ): Promise<any> {
     return await this.appservice.requestMigration(userData, authorization);
+  }
+
+  // ============================================
+  // NOTIFICATION ENDPOINTS
+  // ============================================
+
+  @Get('notifications')
+  @ApiOperation({ summary: 'Get paginated notifications for mobile app' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns paginated list of notifications with unread count',
+    type: MobileNotificationResponseDto,
+  })
+  async getNotifications(
+    @CurrentUser() userData: User,
+    @Query() query: MobileNotificationQueryDto,
+  ): Promise<MobileNotificationResponseDto> {
+    return this.notificationService.getMobileNotifications(userData.id, query);
+  }
+
+  @Get('notifications/unread-count')
+  @ApiOperation({ summary: 'Get count of unread notifications' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the count of unread notifications',
+  })
+  async getUnreadNotificationCount(
+    @CurrentUser() userData: User,
+  ): Promise<{ unreadCount: number }> {
+    const count = await this.notificationService.getUnreadCount(userData.id);
+    return { unreadCount: count };
+  }
+
+  @Patch('notifications/:uid/read')
+  @ApiOperation({ summary: 'Mark a single notification as read' })
+  @ApiResponse({
+    status: 200,
+    description: 'Notification marked as read',
+  })
+  async markNotificationAsRead(
+    @Param('uid') uid: string,
+    @CurrentUser() userData: User,
+  ): Promise<{ success: boolean }> {
+    await this.notificationService.markMultipleAsRead([uid], userData.id);
+    return { success: true };
+  }
+
+  @Patch('notifications/mark-read')
+  @ApiOperation({ summary: 'Mark multiple notifications as read' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns count of notifications marked as read',
+  })
+  async markMultipleNotificationsAsRead(
+    @Body() body: { notificationUids: string[] },
+    @CurrentUser() userData: User,
+  ): Promise<{ markedCount: number }> {
+    return this.notificationService.markMultipleAsRead(body.notificationUids, userData.id);
+  }
+
+  @Patch('notifications/mark-all-read')
+  @ApiOperation({ summary: 'Mark all notifications as read' })
+  @ApiResponse({
+    status: 200,
+    description: 'All notifications marked as read',
+  })
+  async markAllNotificationsAsRead(
+    @CurrentUser() userData: User,
+  ): Promise<{ success: boolean }> {
+    await this.notificationService.markAllAsRead(userData.id);
+    return { success: true };
   }
 }

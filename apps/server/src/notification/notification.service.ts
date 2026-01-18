@@ -7,7 +7,9 @@ import {
   NotificationType,
   NotificationPriority,
   NotificationCategory,
-  DeliveryMethod
+  DeliveryMethod,
+  MobileNotificationQueryDto,
+  MobileNotificationResponseDto,
 } from './dto/notification.dto';
 import { Notification } from './entity/notification.entity';
 import { generateUid } from 'src/util/uidGenerator';
@@ -324,5 +326,50 @@ export class NotificationService {
 
   async cleanupExpiredNotifications(): Promise<number> {
     return this.notificationRepository.deleteExpiredNotifications();
+  }
+
+  // MOBILE APP NOTIFICATIONS
+
+  async getMobileNotifications(
+    userId: number,
+    query: MobileNotificationQueryDto
+  ): Promise<MobileNotificationResponseDto> {
+    const { page = 1, limit = 20 } = query;
+
+    const result = await this.notificationRepository.findForMobile(userId, query);
+
+    const totalPages = Math.ceil(result.total / limit);
+
+    const notificationItems = result.notifications.map((notification) => ({
+      uid: notification.uid,
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      isRead: notification.isRead,
+      priority: notification.priority,
+      category: notification.category,
+      actionUrl: notification.actionUrl,
+      actionText: notification.actionText,
+      image: notification.image,
+      createdAt: notification.createdAt,
+    }));
+
+    return {
+      notifications: notificationItems,
+      pagination: {
+        page,
+        limit,
+        total: result.total,
+        totalPages,
+        hasNextPage: page < totalPages,
+        hasPreviousPage: page > 1,
+      },
+      unreadCount: result.unreadCount,
+    };
+  }
+
+  async markMultipleAsRead(notificationUids: string[], userId: number): Promise<{ markedCount: number }> {
+    const markedCount = await this.notificationRepository.markMultipleAsRead(notificationUids, userId);
+    return { markedCount };
   }
 }

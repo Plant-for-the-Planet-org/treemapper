@@ -51,6 +51,8 @@ import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
 import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
 import GuideView from './GuideView'
+import NotificationView from './NotificationView'
+import NotificationDetailView from './NotificationDetailView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -105,5 +107,7 @@ export default {
   DeleteAccount: DeleteAccount,
   TreeMapperFeaturesScreen:TreeMapperFeaturesScreen,
   CreateProject:CreateProjectScreen,
-  Guide: GuideView
+  Guide: GuideView,
+  Notification: NotificationView,
+  NotificationDetail: NotificationDetailView
 }
