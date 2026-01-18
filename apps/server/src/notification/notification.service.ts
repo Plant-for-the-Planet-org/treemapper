@@ -346,11 +346,11 @@ export class NotificationService {
       title: notification.title,
       message: notification.message,
       isRead: notification.isRead,
-      priority: notification.priority,
-      category: notification.category,
-      actionUrl: notification.actionUrl,
-      actionText: notification.actionText,
-      image: notification.image,
+      priority: notification.priority ?? undefined,
+      category: notification.category ?? undefined,
+      actionUrl: notification.actionUrl ?? undefined,
+      actionText: notification.actionText ?? undefined,
+      image: notification.image ?? undefined,
       createdAt: notification.createdAt,
     }));
 
