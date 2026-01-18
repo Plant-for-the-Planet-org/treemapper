@@ -230,7 +230,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const navigationHandlers = {
     createNewProject: () => router.push('/dashboard/project'),
     openProfileSetting: () => router.push('/dashboard/profile'),
-    updateRoute: (newRoute: string) => router.push(`/dashboard/${newRoute}`)
+    updateRoute: (newRoute: string) => {
+      const route = newRoute === '' ? '/dashboard' : `/dashboard/${newRoute}`;
+      router.push(route);
+    }
   };
 
   // Handle token errors

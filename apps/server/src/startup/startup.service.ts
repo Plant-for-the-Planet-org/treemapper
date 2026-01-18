@@ -24,7 +24,7 @@ export class StartupService implements OnApplicationBootstrap {
                 console.log('Database connection verified successfully');
                 return;
             } catch (error) {
-                console.log(`Database not ready, retrying... (${retries} attempts left)`);
+                console.log(`Database not ready, retrying... (${retries} attempts left)`, error.message);
                 retries--;
                 if (retries === 0) {
                     throw new Error(`Database connection failed after all retries: ${error.message}`);

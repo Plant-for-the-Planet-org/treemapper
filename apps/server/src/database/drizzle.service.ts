@@ -12,13 +12,15 @@ export class DrizzleService implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly dbConfig: DatabaseConfig) {}
 
   async onModuleInit() {
+    console.log(`Connecting to database at ${this.dbConfig.host}:${this.dbConfig.port}/${this.dbConfig.database} (SSL: ${JSON.stringify(this.dbConfig.ssl)})`);
+
     this._pool = new Pool({
       host: this.dbConfig.host,
       port: this.dbConfig.port,
       user: this.dbConfig.username,
       password: this.dbConfig.password,
       database: this.dbConfig.database,
-      ssl:this.dbConfig.ssl
+      ssl: this.dbConfig.ssl
     });
 
     this._db = drizzle(this._pool, { schema });

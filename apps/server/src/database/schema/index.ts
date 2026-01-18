@@ -67,7 +67,9 @@ export const auditEntityEnum = pgEnum('audit_entity', [
   'bulk_invite',
   'image',
   'notification',
-  'migration'
+  'migration',
+  'review_thread',
+  'review_comment'
 ]);
 
 
@@ -93,7 +95,6 @@ export interface InterventionSpeciesEntry {
   updatedAt: string;
   deletedAt?: string;
 }
-
 
 
 export const userTypeEnum = pgEnum('user_type', ['individual', 'tpo', "organization", 'other', "school", "superadmin"]);
@@ -181,6 +182,40 @@ export const migrationStatusEnum = pgEnum('migration_status', [
   'in_progress', 'completed', 'failed', 'started'
 ]);
 
+export const reviewStatusEnum = pgEnum('review_status', [
+  'draft',              // Not submitted yet
+  'pending',            // Awaiting review
+  'in_review',          // Admin is actively reviewing
+  'changes_requested',  // Admin wants changes
+  'in_revision',        // Field worker is making changes
+  'resubmitted',        // Ready for re-review
+  'approved',           // Passed review
+  'published',          // Live/public
+  'unpublished',        // Was published, now hidden
+  'rejected',           // Won't be published
+]);
+
+export const reviewDecisionEnum = pgEnum('review_decision', [
+  'approved',
+  'changes_requested',
+  'rejected',
+]);
+
+export const reviewCommentTypeEnum = pgEnum('review_comment_type', [
+  'general',           // Overall feedback
+  'issue',             // Specific problem identified
+  'question',          // Asking for clarification
+  'response',          // Reply to issue/question
+  'resolution',        // Marking something resolved
+  'system',            // Automated messages
+]);
+
+export const reviewCommentAuthorRoleEnum = pgEnum('review_comment_author_role', [
+  'admin',
+  'reviewer',
+  'field_worker',
+]);
+
 
 
 
@@ -216,10 +251,6 @@ export const migrationRequest = pgTable('migration_request', {
 }, (table) => ({
   migrationReqeuestIdIdx: index('migration_request_id_idx').on(table.userId)
 }))
-
-
-
-
 
 export const migration = pgTable('migration', {
   id: serial('id').primaryKey(),
@@ -324,9 +355,6 @@ export const userDevice = pgTable('user_device', {
   userIdIdx: index('user_device_user_id_idx').on(table.userId),
   oneSignalIdIdx: index('user_device_one_signal_id_idx').on(table.oneSignalId),
 }));
-
-
-
 
 export const workspace = pgTable('workspace', {
   id: serial('id').primaryKey(),
@@ -498,8 +526,6 @@ export const auditLog = pgTable('audit_log', {
     .where(sql`workspace_id IS NOT NULL`)
 }))
 
-
-
 export const project = pgTable('project', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -629,7 +655,6 @@ export const bulkInvite = pgTable('bulk_invite', {
     sql`array_length(email_domain_restrictions, 1) IS NULL OR array_length(email_domain_restrictions, 1) > 0`),
 }));
 
-
 export const site = pgTable('site', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -665,7 +690,6 @@ export const site = pgTable('site', {
   locationIdx: index('site_location_gist_idx').using('gist', table.location),
   createdByIdx: index('site_created_by_idx').on(table.createdById)
 }));
-
 
 export const projectInvites = pgTable('project_invite', {
   id: serial('id').primaryKey(),
@@ -834,7 +858,6 @@ export const projectSpecies = pgTable('project_species', {
   scientificSpeciesIdIdx: index('scientific_species_id_Idx').on(table.scientificSpeciesId)
 }));
 
-
 export const speciesRequest = pgTable('species_request', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -905,6 +928,20 @@ export const intervention = pgTable('intervention', {
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
+
+  reviewStatus: reviewStatusEnum('review_status').default('draft').notNull(),
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
+  firstSubmittedAt: timestamp('first_submitted_at', { withTimezone: true }), // Never changes after first submission
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
+  publishedAt: timestamp('published_at', { withTimezone: true }),
+  publishedById: integer('published_by_id').references(() => user.id, { onDelete: 'set null' }),
+  unpublishedAt: timestamp('unpublished_at', { withTimezone: true }),
+  unpublishedById: integer('unpublished_by_id').references(() => user.id, { onDelete: 'set null' }),
+  unpublishReason: text('unpublish_reason'),
+  revisionCount: integer('revision_count').default(0).notNull(),
+  currentReviewThreadId: integer('current_review_thread_id'), // Active thread (FK added via relation, avoid circular)
+
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -927,6 +964,113 @@ export const intervention = pgTable('intervention', {
     sql`flag = false OR flag_reason IS NOT NULL`),
   registrationNotFuture: check('registration_not_future',
     sql`registration_date <= NOW()`),
+  // Review system indexes
+  reviewQueueIdx: index('intervention_review_queue_idx')
+    .on(table.reviewStatus, table.projectId, table.submittedAt)
+    .where(sql`review_status IN ('pending', 'resubmitted') AND deleted_at IS NULL`),
+  reviewStatusProjectIdx: index('intervention_review_status_project_idx')
+    .on(table.projectId, table.reviewStatus, table.updatedAt)
+    .where(sql`deleted_at IS NULL`),
+}));
+
+// Review thread - created each time an intervention enters review
+export const reviewThread = pgTable('review_thread', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+
+  // What's being reviewed
+  interventionId: integer('intervention_id').notNull().references(() => intervention.id, { onDelete: 'cascade' }),
+
+  // Thread metadata
+  threadNumber: integer('thread_number').notNull(), // 1, 2, 3... for each review cycle
+  status: text('status').notNull().default('open'), // 'open', 'resolved', 'closed'
+
+  // Outcome
+  resolution: reviewDecisionEnum('resolution'), // 'approved', 'changes_requested', 'rejected'
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedById: integer('resolved_by_id').references(() => user.id, { onDelete: 'set null' }),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  interventionThreadIdx: index('review_thread_intervention_idx')
+    .on(table.interventionId, table.threadNumber),
+  openThreadsIdx: index('review_thread_open_idx')
+    .on(table.status, table.createdAt)
+    .where(sql`status = 'open'`),
+  validStatus: check('review_thread_valid_status',
+    sql`status IN ('open', 'resolved', 'closed')`),
+  resolvedHasDetails: check('review_thread_resolved_has_details',
+    sql`status != 'resolved' OR (resolution IS NOT NULL AND resolved_by_id IS NOT NULL AND resolved_at IS NOT NULL)`),
+}));
+
+// Review issue types for structured feedback
+export interface ReviewIssue {
+  field: string;           // 'location', 'species', 'photo', 'tree_count', etc.
+  severity: 'error' | 'warning' | 'suggestion';
+  message: string;
+  resolved?: boolean;
+  resolvedAt?: string;
+}
+
+// Review attachment for comments
+export interface ReviewAttachment {
+  uid: string;
+  type: 'image' | 'document';
+  url: string;
+  name: string;
+}
+
+// Review comments - the conversation messages
+export const reviewComment = pgTable('review_comment', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+
+  threadId: integer('thread_id').notNull().references(() => reviewThread.id, { onDelete: 'cascade' }),
+  parentCommentId: integer('parent_comment_id'), // For nested replies (self-reference handled in relations)
+
+  // Author
+  authorId: integer('author_id').notNull().references(() => user.id, { onDelete: 'set null' }),
+  authorRole: reviewCommentAuthorRoleEnum('author_role').notNull(),
+
+  // Content
+  type: reviewCommentTypeEnum('type').notNull().default('general'),
+  message: text('message').notNull(),
+
+  // For issue-type comments: what field/entity is this about?
+  targetField: text('target_field'), // 'location', 'species', 'photo', 'tree_count', etc.
+  targetEntityType: text('target_entity_type'), // 'intervention', 'tree', 'image'
+  targetEntityUid: text('target_entity_uid'), // Specific tree or image UID
+  severity: text('severity'), // 'error', 'warning', 'suggestion'
+
+  // Issue tracking
+  isResolved: boolean('is_resolved').default(false),
+  resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+  resolvedById: integer('resolved_by_id').references(() => user.id, { onDelete: 'set null' }),
+
+  // Attachments (e.g., admin uploads reference image)
+  attachments: jsonb('attachments').$type<ReviewAttachment[]>(),
+
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  threadCommentsIdx: index('review_comment_thread_idx')
+    .on(table.threadId, table.createdAt),
+  unresolvedIssuesIdx: index('review_comment_unresolved_idx')
+    .on(table.threadId, table.type, table.isResolved)
+    .where(sql`type = 'issue' AND is_resolved = false AND deleted_at IS NULL`),
+  targetEntityIdx: index('review_comment_target_idx')
+    .on(table.targetEntityType, table.targetEntityUid)
+    .where(sql`target_entity_uid IS NOT NULL`),
+  validSeverity: check('review_comment_valid_severity',
+    sql`severity IS NULL OR severity IN ('error', 'warning', 'suggestion')`),
+  validTargetEntityType: check('review_comment_valid_target_entity_type',
+    sql`target_entity_type IS NULL OR target_entity_type IN ('intervention', 'tree', 'image')`),
+  issueHasSeverity: check('review_comment_issue_has_severity',
+    sql`type != 'issue' OR severity IS NOT NULL`),
+  resolvedHasDetails: check('review_comment_resolved_has_details',
+    sql`is_resolved = false OR (resolved_by_id IS NOT NULL AND resolved_at IS NOT NULL)`),
 }));
 
 export const interventionSpecies = pgTable('intervention_species', {
@@ -982,6 +1126,12 @@ export const tree = pgTable('tree', {
   migratedTree: boolean('migrated_tree').default(false),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
+
+  // Review status for trees - NULL means inherit from parent intervention
+  // Allows admin to flag specific trees within an approved intervention
+  reviewStatus: reviewStatusEnum('review_status'), // NULL = inherit from intervention
+  hasReviewIssues: boolean('has_review_issues').default(false),
+
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
   deletedAt: timestamp('deleted_at', { withTimezone: true }),
@@ -1011,7 +1161,6 @@ export const tree = pgTable('tree', {
   measurementDateLogic: check('measurement_date_logic',
     sql`last_measurement_date IS NULL OR next_measurement_date IS NULL OR next_measurement_date > last_measurement_date`),
 }));
-
 
 export const treeRecord = pgTable('tree_record', {
   id: serial('id').primaryKey(),
@@ -1094,6 +1243,13 @@ export const userRelations = relations(user, ({ many }) => ({
   devices: many(userDevice),
   verifiedSpecies: many(scientificSpecies, { relationName: 'verifiedBy' }),
   uploadedImages: many(image, { relationName: 'uploadedBy' }),
+  // Review system relations
+  approvedInterventions: many(intervention, { relationName: 'approvedBy' }),
+  publishedInterventions: many(intervention, { relationName: 'publishedBy' }),
+  unpublishedInterventions: many(intervention, { relationName: 'unpublishedBy' }),
+  resolvedReviewThreads: many(reviewThread, { relationName: 'resolvedBy' }),
+  reviewComments: many(reviewComment, { relationName: 'author' }),
+  resolvedReviewComments: many(reviewComment, { relationName: 'resolvedBy' }),
 }));
 
 export const userDeviceRelations = relations(userDevice, ({ one }) => ({
@@ -1141,7 +1297,28 @@ export const interventionRelations = relations(intervention, ({ one, many }) => 
     references: [user.id],
     relationName: 'userInterventions',
   }),
-
+  // Review system relations
+  approvedBy: one(user, {
+    fields: [intervention.approvedById],
+    references: [user.id],
+    relationName: 'approvedBy',
+  }),
+  publishedBy: one(user, {
+    fields: [intervention.publishedById],
+    references: [user.id],
+    relationName: 'publishedBy',
+  }),
+  unpublishedBy: one(user, {
+    fields: [intervention.unpublishedById],
+    references: [user.id],
+    relationName: 'unpublishedBy',
+  }),
+  reviewThreads: many(reviewThread),
+  currentReviewThread: one(reviewThread, {
+    fields: [intervention.currentReviewThreadId],
+    references: [reviewThread.id],
+    relationName: 'currentThread',
+  }),
 
   trees: many(tree),
   species: many(interventionSpecies),
@@ -1165,6 +1342,44 @@ export const treeRelations = relations(tree, ({ one, many }) => ({
   records: many(treeRecord),
 }));
 
+// Review system relations
+export const reviewThreadRelations = relations(reviewThread, ({ one, many }) => ({
+  intervention: one(intervention, {
+    fields: [reviewThread.interventionId],
+    references: [intervention.id],
+  }),
+  resolvedBy: one(user, {
+    fields: [reviewThread.resolvedById],
+    references: [user.id],
+    relationName: 'resolvedBy',
+  }),
+  comments: many(reviewComment),
+  // For interventions that have this as their current thread
+  currentForInterventions: many(intervention, { relationName: 'currentThread' }),
+}));
+
+export const reviewCommentRelations = relations(reviewComment, ({ one, many }) => ({
+  thread: one(reviewThread, {
+    fields: [reviewComment.threadId],
+    references: [reviewThread.id],
+  }),
+  author: one(user, {
+    fields: [reviewComment.authorId],
+    references: [user.id],
+    relationName: 'author',
+  }),
+  resolvedBy: one(user, {
+    fields: [reviewComment.resolvedById],
+    references: [user.id],
+    relationName: 'resolvedBy',
+  }),
+  parentComment: one(reviewComment, {
+    fields: [reviewComment.parentCommentId],
+    references: [reviewComment.id],
+    relationName: 'parentComment',
+  }),
+  replies: many(reviewComment, { relationName: 'parentComment' }),
+}));
 
 export const imageRelations = relations(image, ({ one }) => ({
   uploadedBy: one(user, {

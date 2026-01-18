@@ -6,26 +6,26 @@ import {
   ApprovalStatus,
   InterventionApprovalData,
   SiteApprovalData,
-  ApprovalData,
   ApprovalEntityType,
   isInterventionApproval,
-  isSiteApproval,
+  mapReviewStatusToLegacyStatus,
+  ReviewDecision,
 } from '@shared-core/types/approval.types';
 import { ApprovalColumn } from './ApprovalColumn';
 import { ApprovalModal } from './ApprovalModal';
 import useApprovalStore from '@shared-core/store/useApprovalStore';
 import {
-  getApprovalBoard,
-  moveInterventionStatus,
-  addApprovalComment,
+  getReviewQueue,
+  submitReviewDecision,
+  addAdminComment,
+  addFieldWorkerComment,
+  getCurrentThread,
+  getInterventionThreads,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import { Loader2, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { dummyApprovalData } from '../data/dummyApprovalData';
-import { dummyApprovalDataEnhanced } from '../data/dummyApprovalDataEnhanced';
-import { dummySiteApprovalData } from '../data/dummySiteData';
 import {
   DndContext,
   DragEndEvent,
@@ -37,7 +37,6 @@ import {
   useSensors,
   closestCorners,
 } from '@dnd-kit/core';
-import { arrayMove } from '@dnd-kit/sortable';
 import { ApprovalCard } from './ApprovalCard';
 
 interface ApprovalBoardProps {
@@ -59,8 +58,6 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     error,
     setApprovals,
     selectApproval,
-    updateApproval,
-    updateApprovalStatus,
     setLoading,
     setError,
   } = useApprovalStore();
@@ -71,6 +68,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   const [columns, setColumns] = useState<ApprovalBoardColumn[]>([
     {
       status: 'new_request',
+      reviewStatus: ['draft', 'pending'],
       title: 'New Requests',
       interventions: [],
       sites: [],
@@ -80,6 +78,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     },
     {
       status: 'in_review',
+      reviewStatus: ['in_review', 'changes_requested', 'in_revision', 'resubmitted'],
       title: 'In Review',
       interventions: [],
       sites: [],
@@ -89,6 +88,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     },
     {
       status: 'approved',
+      reviewStatus: ['approved', 'published'],
       title: 'Approved',
       interventions: [],
       sites: [],
@@ -98,6 +98,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     },
     {
       status: 'rejected',
+      reviewStatus: ['rejected', 'unpublished'],
       title: 'Rejected',
       interventions: [],
       sites: [],
@@ -109,7 +110,6 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
   const [activeIntervention, setActiveIntervention] =
     useState<InterventionApprovalData | null>(null);
-  const [activeSite, setActiveSite] = useState<SiteApprovalData | null>(null);
 
   const isAdmin = userRole === 'owner' || userRole === 'admin';
 
@@ -162,9 +162,15 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
     // Organize approvals into columns based on entity type and search
     const updatedColumns = columns.map((col) => {
-      const interventions = approvals.filter(
-        (approval) => approval.approvalStatus === col.status && matchesSearch(approval)
-      );
+      const interventions = approvals.filter((approval) => {
+        // Check if intervention matches column by legacy status or review status
+        const matchesStatus =
+          approval.approvalStatus === col.status ||
+          (approval.reviewStatus &&
+            Array.isArray(col.reviewStatus) &&
+            col.reviewStatus.includes(approval.reviewStatus));
+        return matchesStatus && matchesSearch(approval);
+      });
       const sitesList = sites.filter(
         (site) => site.approvalStatus === col.status && matchesSearch(site)
       );
@@ -184,20 +190,75 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       setLoading(true);
       setError(null);
 
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await getApprovalBoard(accessToken, projectId);
-      // if (response.statusCode === 200) {
-      //   setApprovals(response.data?.interventions || []);
-      //   setSites(response.data?.sites || []);
-      // } else {
-      //   setError('Failed to load approvals');
-      // }
+      console.log('Loading approvals for project:', projectId, 'isAdmin:', isAdmin);
 
-      // Using dummy data for presentation
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Simulate API delay
-      setApprovals([...dummyApprovalData, ...dummyApprovalDataEnhanced]);
-      setSites(dummySiteApprovalData);
+      if (!isAdmin) {
+        // For non-admins, they can view their own interventions
+        // For now, show empty state - can be enhanced later with user-specific endpoint
+        console.log('User is not admin, showing empty state');
+        setApprovals([]);
+        setSites([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch review queue for admins
+      console.log('Fetching review queue...');
+      const response = await getReviewQueue(accessToken, projectId, {
+        limit: 100,
+        page: 1,
+      });
+
+      console.log('Review queue response:', response);
+
+      if (response.statusCode === 200 && response.data) {
+        // Map backend InterventionReviewSummary to InterventionApprovalData
+        const mappedInterventions: InterventionApprovalData[] = response.data.data.map(
+          (item: any) => ({
+            interventionId: item.interventionId,
+            interventionUid: item.interventionUid,
+            interventionHid: item.interventionHid,
+            type: item.type,
+            createdBy: {
+              id: item.userId,
+              name: item.userName,
+              email: '', // Not provided in summary
+            },
+            approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
+            reviewStatus: item.reviewStatus,
+            submittedForReviewAt: item.submittedAt
+              ? new Date(item.submittedAt).toISOString()
+              : null,
+            approvedAt: null, // Will be populated from details if needed
+            rejectedAt: null,
+            approvedBy: null,
+            comments: [],
+            reviewComments: [],
+            reviewThreads: [],
+            history: [],
+            interventionData: {
+              description: item.interventionName || '',
+              location: null,
+              area: 0,
+              totalTreeCount: 0,
+              registrationDate: '',
+              interventionStartDate: '',
+              interventionEndDate: '',
+              image: null,
+            },
+            unresolvedIssuesCount: item.unresolvedIssuesCount || 0,
+            revisionCount: item.revisionCount || 0,
+            currentThreadId: item.currentThreadId,
+          })
+        );
+
+        setApprovals(mappedInterventions);
+        setSites([]); // Sites not yet supported in new API
+      } else {
+        setError(response.message || 'Failed to load approvals');
+      }
     } catch (err: any) {
+      console.error('Error loading approvals:', err);
       setError(err.message || 'Failed to load approvals');
     } finally {
       setLoading(false);
@@ -227,135 +288,134 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     comment: string,
     isInternal: boolean
   ) => {
-    if (!selectedApproval) return;
+    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return;
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await moveInterventionStatus(accessToken, {
-      //   interventionId: selectedApproval.interventionId,
-      //   newStatus,
-      //   comment: comment || undefined,
-      //   isInternal,
-      // });
+      setLoading(true);
 
-      // Using dummy data - simulate successful update
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      // Update the approval with the new status
-      if (isInterventionApproval(selectedApproval)) {
-        updateApprovalStatus(selectedApproval.interventionId, newStatus);
-
-        // If there's a comment, add it to the approval
-        if (comment) {
-          const updatedApproval = approvals.find(
-            (a) => a.interventionId === selectedApproval.interventionId
-          );
-          if (updatedApproval) {
-            const newComment = {
-              uid: `comment-${Date.now()}`,
-              userId: 201,
-              userName: 'Current User',
-              userRole: isAdmin ? 'admin' : 'contributor' as any,
-              comment,
-              isInternal,
-              createdAt: new Date().toISOString(),
-            };
-            updatedApproval.comments.push(newComment);
-          }
-        }
+      // Map legacy status to review decision
+      let decision: ReviewDecision;
+      if (newStatus === 'approved') {
+        decision = 'approved';
+      } else if (newStatus === 'rejected') {
+        decision = 'rejected';
       } else {
-        // Update site status
-        const updatedSites = sites.map((site) =>
-          site.siteId === selectedApproval.siteId
-            ? { ...site, approvalStatus: newStatus }
-            : site
-        );
-        setSites(updatedSites);
-
-        // If there's a comment, add it to the site
-        if (comment) {
-          const updatedSite = updatedSites.find(
-            (s) => s.siteId === selectedApproval.siteId
-          );
-          if (updatedSite) {
-            const newComment = {
-              uid: `comment-${Date.now()}`,
-              userId: 201,
-              userName: 'Current User',
-              userRole: isAdmin ? 'admin' : 'contributor' as any,
-              comment,
-              isInternal,
-              createdAt: new Date().toISOString(),
-            };
-            updatedSite.comments.push(newComment);
-          }
-        }
+        decision = 'changes_requested';
       }
 
-      selectApproval(null);
+      // Submit review decision
+      const response = await submitReviewDecision(
+        accessToken,
+        projectId,
+        selectedApproval.interventionUid,
+        {
+          decision,
+          note: comment || undefined,
+          issues: comment
+            ? [
+                {
+                  field: 'general',
+                  severity: 'suggestion' as const,
+                  message: comment,
+                },
+              ]
+            : undefined,
+        }
+      );
+
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        // Reload approvals to get updated data
+        await loadApprovals();
+        selectApproval(null);
+      } else {
+        setError(response.message || 'Failed to update status');
+      }
     } catch (err: any) {
-      // Revert on error
-      await loadApprovals();
       setError(err.message || 'Failed to update status');
+    } finally {
+      setLoading(false);
     }
   };
 
   const handleCommentAdd = async (comment: string, isInternal: boolean) => {
-    if (!selectedApproval) return;
+    if (!selectedApproval || !isInterventionApproval(selectedApproval)) return;
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const response = await addApprovalComment(accessToken, {
-      //   interventionId: selectedApproval.interventionId,
-      //   comment,
-      //   isInternal,
-      // });
+      setLoading(true);
 
-      // Using dummy data - simulate successful comment addition
-      await new Promise((resolve) => setTimeout(resolve, 300));
-
-      if (isInterventionApproval(selectedApproval)) {
-        const updatedApproval = approvals.find(
-          (a) => a.interventionId === selectedApproval.interventionId
+      // Get or create current thread
+      let threadUid: string;
+      if (selectedApproval.currentThreadId) {
+        // Get thread details to get threadUid
+        const threadsResponse = await getInterventionThreads(
+          accessToken,
+          selectedApproval.interventionUid
         );
-
-        if (updatedApproval) {
-          const newComment = {
-            uid: `comment-${Date.now()}`,
-            userId: 201,
-            userName: 'Current User',
-            userRole: isAdmin ? 'admin' : 'contributor' as any,
-            comment,
-            isInternal,
-            createdAt: new Date().toISOString(),
-          };
-          updatedApproval.comments.push(newComment);
-          updateApproval(updatedApproval);
+        if (
+          threadsResponse.statusCode === 200 &&
+          threadsResponse.data?.data?.length > 0
+        ) {
+          const currentThread = threadsResponse.data.data.find(
+            (t: any) => t.id === selectedApproval.currentThreadId
+          );
+          threadUid = currentThread?.uid;
+        } else {
+          // Fallback: get current thread
+          const currentThreadResponse = await getCurrentThread(
+            accessToken,
+            selectedApproval.interventionUid
+          );
+          if (currentThreadResponse.statusCode === 200 && currentThreadResponse.data) {
+            threadUid = currentThreadResponse.data.uid;
+          } else {
+            throw new Error('No active review thread found');
+          }
         }
       } else {
-        const updatedSite = sites.find(
-          (s) => s.siteId === selectedApproval.siteId
-        );
-
-        if (updatedSite) {
-          const newComment = {
-            uid: `comment-${Date.now()}`,
-            userId: 201,
-            userName: 'Current User',
-            userRole: isAdmin ? 'admin' : 'contributor' as any,
-            comment,
-            isInternal,
-            createdAt: new Date().toISOString(),
-          };
-          updatedSite.comments.push(newComment);
-          // Update the sites state
-          setSites(sites.map(s => s.siteId === updatedSite.siteId ? updatedSite : s));
-        }
+        throw new Error('No active review thread found. Please submit for review first.');
       }
 
-      selectApproval(null);
+      if (!threadUid) {
+        throw new Error('Could not find thread UID');
+      }
+
+      // Add comment based on user role
+      const commentDto = {
+        type: 'general' as const,
+        message: comment,
+        severity: undefined as any,
+      };
+
+      let response;
+      if (isAdmin) {
+        response = await addAdminComment(
+          accessToken,
+          projectId,
+          threadUid,
+          commentDto
+        );
+      } else {
+        response = await addFieldWorkerComment(accessToken, threadUid, commentDto);
+      }
+
+      if (response.statusCode === 200 || response.statusCode === 201) {
+        // Reload intervention details to get updated comments
+        const detailsResponse = await getInterventionReviewDetails(
+          accessToken,
+          selectedApproval.interventionUid
+        );
+        if (detailsResponse.statusCode === 200) {
+          // Update the approval with new data
+          await loadApprovals();
+        }
+        selectApproval(null);
+      } else {
+        setError(response.message || 'Failed to add comment');
+      }
     } catch (err: any) {
       setError(err.message || 'Failed to add comment');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -425,7 +485,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     }
   };
 
-  const handleDragEnd = (event: DragEndEvent) => {
+  const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
     setActiveIntervention(null);
 
@@ -442,12 +502,29 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     // Check if dropped on a column
     const overColumn = columns.find((col) => col.status === overId);
     if (overColumn && activeIntervention.approvalStatus !== overColumn.status) {
-      updateApprovalStatus(activeId, overColumn.status);
-      // TODO: When backend is ready, uncomment this to sync with API
-      // await moveInterventionStatus(accessToken, {
-      //   interventionId: activeId,
-      //   newStatus: overColumn.status,
-      // });
+      // Map legacy status to review decision
+      let decision: ReviewDecision;
+      if (overColumn.status === 'approved') {
+        decision = 'approved';
+      } else if (overColumn.status === 'rejected') {
+        decision = 'rejected';
+      } else {
+        decision = 'changes_requested';
+      }
+
+      try {
+        await submitReviewDecision(
+          accessToken,
+          projectId,
+          activeIntervention.interventionUid,
+          {
+            decision,
+          }
+        );
+        await loadApprovals();
+      } catch (err: any) {
+        setError(err.message || 'Failed to update status');
+      }
       return;
     }
 
@@ -459,12 +536,29 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       overIntervention &&
       activeIntervention.approvalStatus !== overIntervention.approvalStatus
     ) {
-      updateApprovalStatus(activeId, overIntervention.approvalStatus);
-      // TODO: When backend is ready, uncomment this to sync with API
-      // await moveInterventionStatus(accessToken, {
-      //   interventionId: activeId,
-      //   newStatus: overIntervention.approvalStatus,
-      // });
+      // Map legacy status to review decision
+      let decision: ReviewDecision;
+      if (overIntervention.approvalStatus === 'approved') {
+        decision = 'approved';
+      } else if (overIntervention.approvalStatus === 'rejected') {
+        decision = 'rejected';
+      } else {
+        decision = 'changes_requested';
+      }
+
+      try {
+        await submitReviewDecision(
+          accessToken,
+          projectId,
+          activeIntervention.interventionUid,
+          {
+            decision,
+          }
+        );
+        await loadApprovals();
+      } catch (err: any) {
+        setError(err.message || 'Failed to update status');
+      }
     }
   };
 

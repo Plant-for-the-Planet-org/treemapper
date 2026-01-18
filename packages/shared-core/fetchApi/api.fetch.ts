@@ -495,32 +495,217 @@ export const revokeiteAccess = async (token: string, pid, siteId, memberId) => {
   return result;
 };
 
-// Approval Board APIs
-export const getApprovalBoard = async (token: string, projectId: string, filters?: any) => {
-  const queryParams = new URLSearchParams({
-    projectId: projectId.toString(),
-    ...(filters?.status && { status: filters.status }),
-    ...(filters?.userId && { userId: filters.userId.toString() }),
-  });
-  const uri = `${getUrlApi.getApprovalBoard}?${queryParams.toString()}`;
+// Approval Board APIs - New Backend Structure
+export const getReviewQueue = async (
+  token: string,
+  projectId: string,
+  query?: {
+    limit?: number;
+    page?: number;
+    status?: string;
+    search?: string;
+    sortOrder?: 'asc' | 'desc';
+    sortBy?: 'submittedAt' | 'updatedAt' | 'createdAt';
+  }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  if (query?.sortOrder) queryParams.append('sortOrder', query.sortOrder);
+  if (query?.sortBy) queryParams.append('sortBy', query.sortBy);
+
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getReviewQueue}/${projectId}/queue?${queryString}`
+    : `${getUrlApi.getReviewQueue}/${projectId}/queue`;
   const result = await fetchGetCall(uri, token);
   return result;
 };
 
-export const checkProjectRequiresApproval = async (token: string, projectId: string) => {
+export const getInterventionReviewDetails = async (
+  token: string,
+  interventionUid: string
+) => {
+  const uri = `${getUrlApi.getInterventionReviewDetails}/${interventionUid}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const getInterventionThreads = async (
+  token: string,
+  interventionUid: string,
+  query?: {
+    limit?: number;
+    page?: number;
+    status?: 'open' | 'resolved' | 'closed';
+  }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getInterventionThreads}/${interventionUid}/threads?${queryString}`
+    : `${getUrlApi.getInterventionThreads}/${interventionUid}/threads`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const getCurrentThread = async (
+  token: string,
+  interventionUid: string
+) => {
+  const uri = `${getUrlApi.getCurrentThread}/${interventionUid}/threads/current`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const getThreadComments = async (token: string, threadUid: string) => {
+  const uri = `${getUrlApi.getThreadComments}/${threadUid}/comments`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const submitForReview = async (
+  token: string,
+  interventionUid: string,
+  dto: { note?: string }
+) => {
+  const uri = `${postUrlApi.submitForReview}/${interventionUid}/submit`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const resubmitForReview = async (
+  token: string,
+  interventionUid: string,
+  dto: { note?: string }
+) => {
+  const uri = `${postUrlApi.resubmitForReview}/${interventionUid}/resubmit`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const submitReviewDecision = async (
+  token: string,
+  projectId: string,
+  interventionUid: string,
+  dto: {
+    decision: 'approved' | 'changes_requested' | 'rejected';
+    note?: string;
+    issues?: Array<{
+      field: string;
+      severity: 'error' | 'warning' | 'suggestion';
+      message: string;
+    }>;
+  }
+) => {
+  const uri = `${postUrlApi.submitReviewDecision}/${projectId}/interventions/${interventionUid}/review`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const publishIntervention = async (
+  token: string,
+  projectId: string,
+  interventionUid: string,
+  dto: { note?: string }
+) => {
+  const uri = `${postUrlApi.publishIntervention}/${projectId}/interventions/${interventionUid}/publish`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const unpublishIntervention = async (
+  token: string,
+  projectId: string,
+  interventionUid: string,
+  dto: { reason: string; createReviewThread?: boolean }
+) => {
+  const uri = `${postUrlApi.unpublishIntervention}/${projectId}/interventions/${interventionUid}/unpublish`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const addAdminComment = async (
+  token: string,
+  projectId: string,
+  threadUid: string,
+  dto: {
+    type: 'general' | 'issue' | 'question' | 'response' | 'resolution';
+    message: string;
+    parentCommentId?: number;
+    targetField?: string;
+    targetEntityType?: 'intervention' | 'tree' | 'image';
+    targetEntityUid?: string;
+    severity?: 'error' | 'warning' | 'suggestion';
+  }
+) => {
+  const uri = `${postUrlApi.addAdminComment}/${projectId}/threads/${threadUid}/comments`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const addFieldWorkerComment = async (
+  token: string,
+  threadUid: string,
+  dto: {
+    type: 'general' | 'issue' | 'question' | 'response' | 'resolution';
+    message: string;
+    parentCommentId?: number;
+    targetField?: string;
+    targetEntityType?: 'intervention' | 'tree' | 'image';
+    targetEntityUid?: string;
+    severity?: 'error' | 'warning' | 'suggestion';
+  }
+) => {
+  const uri = `${postUrlApi.addFieldWorkerComment}/${threadUid}/comments`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const markIssueAddressed = async (
+  token: string,
+  commentUid: string,
+  dto: { note?: string }
+) => {
+  const uri = `${postUrlApi.markIssueAddressed}/${commentUid}/addressed`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const resolveIssue = async (
+  token: string,
+  projectId: string,
+  commentUid: string,
+  dto: { note?: string }
+) => {
+  const uri = `${postUrlApi.resolveIssue}/${projectId}/comments/${commentUid}/resolve`;
+  const result = await fetchPostCall(uri, dto, token);
+  return result;
+};
+
+export const getUserReviewSummary = async (token: string) => {
+  const uri = `${getUrlApi.getUserReviewSummary}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+// Check if project requires approval workflow
+export const checkProjectRequiresApproval = async (
+  token: string,
+  projectId: string
+) => {
   const uri = `${getUrlApi.getProjectRequiresApproval}/${projectId}/requires-approval`;
   const result = await fetchGetCall(uri, token);
   return result;
 };
 
-export const moveInterventionStatus = async (token: string, params: any) => {
-  const uri = `${postUrlApi.moveInterventionStatus}`;
-  const result = await fetchPostCall(uri, params, token);
-  return result;
-};
-
-export const addApprovalComment = async (token: string, params: any) => {
-  const uri = `${postUrlApi.addApprovalComment}`;
-  const result = await fetchPostCall(uri, params, token);
-  return result;
-};
+// Legacy functions for backward compatibility (can be removed later)
+export const getApprovalBoard = getReviewQueue;
+export const moveInterventionStatus = submitReviewDecision;
+export const addApprovalComment = addFieldWorkerComment;

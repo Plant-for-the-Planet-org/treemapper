@@ -1,6 +1,85 @@
+// New backend review statuses
+export type ReviewStatus =
+  | 'draft'
+  | 'pending'
+  | 'in_review'
+  | 'changes_requested'
+  | 'in_revision'
+  | 'resubmitted'
+  | 'approved'
+  | 'published'
+  | 'unpublished'
+  | 'rejected';
+
+export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
+
+export type ReviewCommentType =
+  | 'general'
+  | 'issue'
+  | 'question'
+  | 'response'
+  | 'resolution'
+  | 'system';
+
+export type ReviewCommentAuthorRole = 'admin' | 'reviewer' | 'field_worker';
+
+export type IssueSeverity = 'error' | 'warning' | 'suggestion';
+
+// Legacy statuses for backward compatibility
 export type ApprovalStatus = 'new_request' | 'in_review' | 'approved' | 'rejected';
+
+// Map old statuses to new statuses
+export function mapLegacyStatusToReviewStatus(status: ApprovalStatus): ReviewStatus {
+  const mapping: Record<ApprovalStatus, ReviewStatus> = {
+    new_request: 'pending',
+    in_review: 'in_review',
+    approved: 'approved',
+    rejected: 'rejected',
+  };
+  return mapping[status];
+}
+
+// Map new statuses to legacy statuses for UI display
+export function mapReviewStatusToLegacyStatus(status: ReviewStatus): ApprovalStatus {
+  if (status === 'pending' || status === 'draft') return 'new_request';
+  if (status === 'in_review' || status === 'changes_requested' || status === 'in_revision' || status === 'resubmitted') return 'in_review';
+  if (status === 'approved' || status === 'published') return 'approved';
+  if (status === 'rejected' || status === 'unpublished') return 'rejected';
+  return 'new_request';
+}
+
 export type ApprovalEntityType = 'intervention' | 'site';
 
+// New backend review comment structure
+export interface ReviewComment {
+  id: number;
+  uid: string;
+  threadId: number;
+  parentCommentId?: number;
+  author: {
+    id: number;
+    displayName: string;
+    image?: string;
+  };
+  authorRole: ReviewCommentAuthorRole;
+  type: ReviewCommentType;
+  message: string;
+  targetField?: string;
+  targetEntityType?: string;
+  targetEntityUid?: string;
+  severity?: IssueSeverity;
+  isResolved: boolean;
+  resolvedAt?: Date | string;
+  resolvedBy?: {
+    id: number;
+    displayName: string;
+  };
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  replies?: ReviewComment[];
+}
+
+// Legacy comment structure for backward compatibility
 export interface ApprovalComment {
   uid: string;
   userId: number;
@@ -11,6 +90,26 @@ export interface ApprovalComment {
   createdAt: string;
 }
 
+// New backend review thread structure
+export interface ReviewThread {
+  id: number;
+  uid: string;
+  interventionId: number;
+  threadNumber: number;
+  status: 'open' | 'resolved' | 'closed';
+  resolution?: ReviewDecision;
+  resolvedAt?: Date | string;
+  resolvedBy?: {
+    id: number;
+    displayName: string;
+  };
+  createdAt: Date | string;
+  updatedAt: Date | string;
+  commentsCount?: number;
+  unresolvedIssuesCount?: number;
+}
+
+// Legacy history entry for backward compatibility
 export interface ApprovalHistoryEntry {
   uid: string;
   userId: number;
@@ -42,6 +141,28 @@ export interface SampleTree {
   capturedAt: string;
 }
 
+// New backend intervention review summary
+export interface InterventionReviewSummary {
+  interventionId: number;
+  interventionUid: string;
+  interventionHid: string;
+  interventionName?: string;
+  type: string;
+  reviewStatus: ReviewStatus;
+  submittedAt?: Date | string;
+  userId: number;
+  userName: string;
+  projectId: number;
+  projectName: string;
+  siteId?: number;
+  siteName?: string;
+  unresolvedIssuesCount: number;
+  lastCommentAt?: Date | string;
+  revisionCount: number;
+  currentThreadId?: number;
+}
+
+// Legacy intervention approval data (for backward compatibility and UI)
 export interface InterventionApprovalData {
   interventionId: number;
   interventionUid: string;
@@ -52,7 +173,8 @@ export interface InterventionApprovalData {
     name: string;
     email: string;
   };
-  approvalStatus: ApprovalStatus;
+  approvalStatus: ApprovalStatus; // Legacy status for UI
+  reviewStatus?: ReviewStatus; // New status from backend
   submittedForReviewAt: string | null;
   approvedAt: string | null;
   rejectedAt: string | null;
@@ -60,7 +182,10 @@ export interface InterventionApprovalData {
     id: number;
     name: string;
   } | null;
-  comments: ApprovalComment[];
+  comments: ApprovalComment[]; // Legacy comments
+  reviewComments?: ReviewComment[]; // New review comments
+  reviewThreads?: ReviewThread[]; // New review threads
+  currentThread?: ReviewThread; // Current active thread
   history: ApprovalHistoryEntry[];
   interventionData: {
     description: string;
@@ -79,6 +204,9 @@ export interface InterventionApprovalData {
     isPrivate?: boolean;
     editedAt?: string | null;
   };
+  // New fields from backend
+  unresolvedIssuesCount?: number;
+  revisionCount?: number;
 }
 
 export interface SiteApprovalData {
@@ -145,7 +273,8 @@ export interface AddCommentRequest {
 }
 
 export interface ApprovalBoardColumn {
-  status: ApprovalStatus;
+  status: ApprovalStatus; // Legacy status for column mapping
+  reviewStatus?: ReviewStatus | ReviewStatus[]; // New status(es) from backend
   title: string;
   interventions: InterventionApprovalData[];
   sites: SiteApprovalData[];

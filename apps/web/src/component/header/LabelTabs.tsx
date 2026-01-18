@@ -42,8 +42,11 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   }
 
   const handleTabClick = (id: string) => {
+    console.log('Tab clicked:', id);
+    const route = id === '' ? '/dashboard' : `/dashboard/${id}`;
+    console.log('Navigating to:', route);
     updateRoute(id);
-    setParentTab(id)
+    setParentTab(id);
   }
 
   return (
@@ -55,16 +58,21 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
           }
         }
         return (
-          <div
+          <button
             key={item.id}
+            type="button"
             className={`cursor-pointer px-2 py-1 whitespace-nowrap transition-all duration-200 ${parentTab === item.id
               ? 'text-gray-800 font-semibold'
               : 'text-gray-500 hover:text-gray-600'
               }`}
-            onClick={() => handleTabClick(item.id)}
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              handleTabClick(item.id);
+            }}
           >
             {item.label}
-          </div>
+          </button>
         )
       })}
     </div>

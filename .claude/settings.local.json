@@ -12,7 +12,12 @@
       "Bash(npx tsc:*)",
       "Bash(grep:*)",
       "Bash(npm install:*)",
-      "Bash(npm run type-check:*)"
+      "Bash(npm run type-check:*)",
+      "Bash(ping:*)",
+      "Bash(npm run db:push:*)",
+      "Bash(npm run:*)",
+      "Bash(npx drizzle-kit push)",
+      "Bash(npx drizzle-kit:*)"
     ]
   }
 }

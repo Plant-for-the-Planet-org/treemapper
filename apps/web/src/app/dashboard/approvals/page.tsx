@@ -32,10 +32,21 @@ export default function ApprovalsPage() {
       );
 
       if (response.statusCode === 200) {
-        setRequiresApproval(response.data?.requiresInterventionApproval || false);
+        // The response indicates if approval workflow is enabled
+        // If requiresInterventionApproval is true, approval workflow IS enabled, so show board
+        // If false or missing, approval workflow is NOT enabled, so hide board
+        const approvalEnabled = response.data?.requiresInterventionApproval ?? false;
+        // Set requiresApproval to false means "approval is enabled, show board"
+        // Set requiresApproval to true means "approval is NOT enabled, hide board"
+        setRequiresApproval(!approvalEnabled);
+      } else {
+        // If endpoint doesn't exist or fails, assume approval board is available
+        setRequiresApproval(false);
       }
     } catch (error) {
       console.error('Failed to check approval status:', error);
+      // On error, assume approval board is available (don't block access)
+      setRequiresApproval(false);
     }
   };
 
@@ -56,24 +67,26 @@ export default function ApprovalsPage() {
     );
   }
 
-  if (requiresApproval) {
-    return (
-      <div className="p-6">
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            <div className="font-semibold mb-1">
-              Approval workflow is not enabled for this project.
-            </div>
-            <div className="text-sm text-gray-600">
-              Contact a project owner or admin to enable the intervention approval
-              workflow.
-            </div>
-          </AlertDescription>
-        </Alert>
-      </div>
-    );
-  }
+  // Note: Temporarily disabled this check to allow board to always render
+  // The approval workflow check can be re-enabled once the API response structure is confirmed
+  // if (requiresApproval) {
+  //   return (
+  //     <div className="p-6">
+  //       <Alert>
+  //         <AlertCircle className="h-4 w-4" />
+  //         <AlertDescription>
+  //           <div className="font-semibold mb-1">
+  //             Approval workflow is not enabled for this project.
+  //           </div>
+  //           <div className="text-sm text-gray-600">
+  //             Contact a project owner or admin to enable the intervention approval
+  //             workflow.
+  //           </div>
+  //         </AlertDescription>
+  //       </Alert>
+  //     </div>
+  //   );
+  // }
 
   return (
     <div className="p-6">

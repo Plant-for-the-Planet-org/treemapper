@@ -1,15 +1,23 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   InterventionApprovalData,
   SiteApprovalData,
   ApprovalData,
   ApprovalStatus,
   ApprovalHistoryEntry,
+  ReviewThread,
+  ReviewComment,
   isInterventionApproval,
   isSiteApproval,
 } from '@shared-core/types/approval.types';
+import {
+  getInterventionReviewDetails,
+  getCurrentThread,
+  getThreadComments,
+} from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
 import {
   Dialog,
   DialogContent,
@@ -58,10 +66,54 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   onStatusChange,
   onCommentAdd,
 }) => {
+  const { accessToken } = useToken();
   const [comment, setComment] = useState('');
   const [isInternal, setIsInternal] = useState(false);
   const [showCommentForm, setShowCommentForm] = useState(false);
   const [targetStatus, setTargetStatus] = useState<ApprovalStatus | null>(null);
+  const [currentThread, setCurrentThread] = useState<ReviewThread | null>(null);
+  const [threadComments, setThreadComments] = useState<ReviewComment[]>([]);
+  const [loadingThread, setLoadingThread] = useState(false);
+
+  // Fetch review thread and comments when modal opens for interventions
+  useEffect(() => {
+    if (isOpen && intervention && isInterventionApproval(intervention)) {
+      loadReviewThread();
+    }
+  }, [isOpen, intervention]);
+
+  const loadReviewThread = async () => {
+    if (!intervention || !isInterventionApproval(intervention) || !accessToken) return;
+
+    try {
+      setLoadingThread(true);
+      const threadResponse = await getCurrentThread(
+        accessToken,
+        intervention.interventionUid
+      );
+
+      if (threadResponse.statusCode === 200 && threadResponse.data) {
+        setCurrentThread(threadResponse.data);
+        // Load comments for the thread
+        const commentsResponse = await getThreadComments(
+          accessToken,
+          threadResponse.data.uid
+        );
+        if (commentsResponse.statusCode === 200 && commentsResponse.data) {
+          setThreadComments(commentsResponse.data);
+        }
+      } else {
+        setCurrentThread(null);
+        setThreadComments([]);
+      }
+    } catch (err) {
+      console.error('Failed to load review thread:', err);
+      setCurrentThread(null);
+      setThreadComments([]);
+    } finally {
+      setLoadingThread(false);
+    }
+  };
 
   if (!intervention) return null;
 
@@ -582,10 +634,135 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 </div>
               )}
 
-              {/* Comments */}
+              {/* Review Thread & Comments */}
+              {isIntervention && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">
+                    Review Thread {currentThread && `#${currentThread.threadNumber}`}
+                  </h3>
+                  {loadingThread ? (
+                    <div className="text-sm text-gray-500">Loading thread...</div>
+                  ) : currentThread ? (
+                    <div className="space-y-3">
+                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <Badge
+                            variant={
+                              currentThread.status === 'open'
+                                ? 'default'
+                                : currentThread.status === 'resolved'
+                                ? 'secondary'
+                                : 'outline'
+                            }
+                          >
+                            {currentThread.status}
+                          </Badge>
+                          <span className="text-xs text-gray-500">
+                            {formatDate(
+                              typeof currentThread.createdAt === 'string'
+                                ? currentThread.createdAt
+                                : currentThread.createdAt.toISOString()
+                            )}
+                          </span>
+                        </div>
+                        {currentThread.resolution && (
+                          <div className="mt-2">
+                            <span className="text-xs text-gray-600">Resolution: </span>
+                            <Badge variant="outline">{currentThread.resolution}</Badge>
+                          </div>
+                        )}
+                        {currentThread.unresolvedIssuesCount !== undefined &&
+                          currentThread.unresolvedIssuesCount > 0 && (
+                            <div className="mt-2 text-xs text-amber-600">
+                              ⚠️ {currentThread.unresolvedIssuesCount} unresolved issue(s)
+                            </div>
+                          )}
+                      </div>
+
+                      {/* Review Comments */}
+                      {threadComments.length > 0 && (
+                        <div className="space-y-3 max-h-96 overflow-y-auto">
+                          {threadComments.map((comment) => (
+                            <div
+                              key={comment.uid}
+                              className={`rounded-lg p-3 text-sm border ${
+                                comment.authorRole === 'admin'
+                                  ? 'bg-blue-50 border-blue-200'
+                                  : comment.authorRole === 'reviewer'
+                                  ? 'bg-purple-50 border-purple-200'
+                                  : 'bg-white border-gray-200'
+                              }`}
+                            >
+                              <div className="flex items-start justify-between mb-2">
+                                <div>
+                                  <div className="font-semibold text-gray-900">
+                                    {comment.author.displayName}
+                                    <Badge className="ml-2 text-xs" variant="outline">
+                                      {comment.authorRole}
+                                    </Badge>
+                                    {comment.type !== 'general' && (
+                                      <Badge className="ml-2 text-xs" variant="secondary">
+                                        {comment.type}
+                                      </Badge>
+                                    )}
+                                    {comment.severity && (
+                                      <Badge
+                                        className="ml-2 text-xs"
+                                        variant={
+                                          comment.severity === 'error'
+                                            ? 'destructive'
+                                            : comment.severity === 'warning'
+                                            ? 'default'
+                                            : 'secondary'
+                                        }
+                                      >
+                                        {comment.severity}
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="text-xs text-gray-500">
+                                    {formatDate(
+                                      typeof comment.createdAt === 'string'
+                                        ? comment.createdAt
+                                        : comment.createdAt.toISOString()
+                                    )}
+                                  </div>
+                                </div>
+                                {comment.isResolved && (
+                                  <Badge variant="secondary" className="text-xs">
+                                    ✓ Resolved
+                                  </Badge>
+                                )}
+                              </div>
+                              <p className="text-gray-700">{comment.message}</p>
+                              {comment.targetField && (
+                                <div className="text-xs text-gray-500 mt-1">
+                                  Field: {comment.targetField}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {threadComments.length === 0 && (
+                        <div className="text-sm text-gray-500 text-center py-4">
+                          No comments yet
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">
+                      No active review thread. Intervention may not be submitted for review yet.
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Legacy Comments (fallback) */}
               {intervention.comments && intervention.comments.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-3">Comments</h3>
+                  <h3 className="text-lg font-semibold mb-3">Legacy Comments</h3>
                   <div className="space-y-3 max-h-96 overflow-y-auto">
                     {intervention.comments.map((comment) => (
                       <div

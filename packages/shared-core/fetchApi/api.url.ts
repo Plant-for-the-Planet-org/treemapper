@@ -39,8 +39,22 @@ export const postUrlApi = {
   onboarding: `${baseUrl}/users/onboarding`,
   grantSiteAccess: `${baseUrl}/projects`,
   revokeSiteAccess: `${baseUrl}/projects`,
-  moveInterventionStatus: `${baseUrl}/interventions/approval/move-status`,
-  addApprovalComment: `${baseUrl}/interventions/approval/comment`,
+  // Approval Board APIs - new endpoints
+  getReviewQueue: `${baseUrl}/approval-board/projects`,
+  getInterventionReviewDetails: `${baseUrl}/approval-board/interventions`,
+  getInterventionThreads: `${baseUrl}/approval-board/interventions`,
+  getCurrentThread: `${baseUrl}/approval-board/interventions`,
+  getThreadComments: `${baseUrl}/approval-board/threads`,
+  submitForReview: `${baseUrl}/approval-board/interventions`,
+  resubmitForReview: `${baseUrl}/approval-board/interventions`,
+  submitReviewDecision: `${baseUrl}/approval-board/projects`,
+  publishIntervention: `${baseUrl}/approval-board/projects`,
+  unpublishIntervention: `${baseUrl}/approval-board/projects`,
+  addAdminComment: `${baseUrl}/approval-board/projects`,
+  addFieldWorkerComment: `${baseUrl}/approval-board/threads`,
+  markIssueAddressed: `${baseUrl}/approval-board/comments`,
+  resolveIssue: `${baseUrl}/approval-board/projects`,
+  getUserReviewSummary: `${baseUrl}/approval-board/users/me/summary`,
 } as const;
 
 
@@ -72,8 +86,14 @@ export const getUrlApi = {
   getProjectTreeMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
   getApprovalBoard: `${baseUrl}/interventions/approval/board`,
-  getProjectRequiresApproval: `${baseUrl}/interventions/approval/projects`,
-
+  getProjectRequiresApproval: `${baseUrl}/approval-board/projects`,
+  // Approval Board GET endpoints
+  getReviewQueue: `${baseUrl}/approval-board/projects`,
+  getInterventionReviewDetails: `${baseUrl}/approval-board/interventions`,
+  getInterventionThreads: `${baseUrl}/approval-board/interventions`,
+  getCurrentThread: `${baseUrl}/approval-board/interventions`,
+  getThreadComments: `${baseUrl}/approval-board/threads`,
+  getUserReviewSummary: `${baseUrl}/approval-board/users/me/summary`,
 } as const;
 
 export const patchUrlApi = {
