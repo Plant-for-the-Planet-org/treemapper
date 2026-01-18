@@ -58,6 +58,13 @@ const SideBarList = (props: Props) => {
       key: 'offline_map',
       disable: false
     },
+    {
+      label: 'Guide',
+      screen: 'Guide',
+      icon: <View style={styles.guideIconWrapper}><Ionicons name={'book'} size={16} color="#fff" style={{paddingTop: 2}} /></View>,
+      visible: true,
+      key: 'guide'
+    },
     // {
     //   label: i18next.t('label.data_explorer'),
     //   screen: 'DataExplorer',
@@ -118,5 +125,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'tomato',
     justifyContent: 'center',
     alignItems: 'center'
+  },
+  guideIconWrapper: {
+    width: SCALE_24,
+    height: SCALE_24,
+    borderRadius: 50,
+    backgroundColor: '#007A49',
+    justifyContent: 'center',
+    alignItems: 'center',
   }
 })

@@ -50,6 +50,7 @@ import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
 import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
+import GuideView from './GuideView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -103,5 +104,6 @@ export default {
   ProjectSites:ProjectSites,
   DeleteAccount: DeleteAccount,
   TreeMapperFeaturesScreen:TreeMapperFeaturesScreen,
-  CreateProject:CreateProjectScreen
+  CreateProject:CreateProjectScreen,
+  Guide: GuideView
 }

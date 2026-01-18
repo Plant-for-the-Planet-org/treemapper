@@ -58,6 +58,7 @@ export type RootStackParamList = {
   DeleteAccount: undefined
   CreateProject: undefined
   TreeMapperFeaturesScreen: undefined
+  Guide: undefined
 }
 
 type SpeciesInfoView = {

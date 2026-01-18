@@ -38,6 +38,28 @@ export default async function LocaleLayout({
 
   return (
     <html lang={locale} suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                // Early detection of TreeMapper app
+                var userAgent = navigator.userAgent || '';
+                if (userAgent.includes('TreeMapper-Mobile-App')) {
+                  window.TreeMapperApp = true;
+                  if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', function() {
+                      window.dispatchEvent(new Event('treemapper-app-detected'));
+                    });
+                  } else {
+                    window.dispatchEvent(new Event('treemapper-app-detected'));
+                  }
+                }
+              })();
+            `,
+          }}
+        />
+      </head>
       <body>
         <ThemeProvider
           attribute="class"

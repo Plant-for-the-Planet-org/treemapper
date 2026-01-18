@@ -8,7 +8,7 @@ import { useTranslations } from 'next-intl';
 import { cn } from '@/lib/utils';
 import { docsConfig, type DocItem } from '@/lib/docs';
 
-export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
+export function Sidebar({ isMobile = false, onItemClick }: { isMobile?: boolean; onItemClick?: () => void }) {
   const pathname = usePathname();
   const tSections = useTranslations('sidebar.sections');
   const tItems = useTranslations('sidebar.items');
@@ -46,7 +46,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
             {openSections.includes(section.id) && (
               <div className="ml-2 space-y-0.5">
                 {section.items.map((item) => (
-                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} />
+                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} onItemClick={onItemClick} />
                 ))}
               </div>
             )}
@@ -75,7 +75,7 @@ export function Sidebar({ isMobile = false }: { isMobile?: boolean }) {
             {openSections.includes(section.id) && (
               <div className="ml-2 space-y-0.5">
                 {section.items.map((item) => (
-                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} />
+                  <SidebarItem key={item.id} item={item} pathname={pathname} tItems={tItems} onItemClick={onItemClick} />
                 ))}
               </div>
             )}
@@ -90,16 +90,19 @@ function SidebarItem({
   item,
   pathname,
   tItems,
+  onItemClick,
 }: {
   item: DocItem;
   pathname: string;
   tItems: ReturnType<typeof useTranslations>;
+  onItemClick?: () => void;
 }) {
   const isActive = pathname === item.href || pathname.startsWith(`${item.href}/`);
 
   return (
     <Link
       href={item.href}
+      onClick={onItemClick}
       className={cn(
         'block rounded-md px-3 py-1.5 text-sm transition-colors hover:bg-accent',
         isActive
@@ -164,7 +167,7 @@ export function MobileSidebar() {
                 </svg>
               </button>
             </div>
-            <Sidebar isMobile />
+            <Sidebar isMobile onItemClick={() => setIsOpen(false)} />
           </div>
         </>
       )}
