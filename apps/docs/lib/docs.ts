@@ -193,6 +193,27 @@ export const docsConfig: DocSection[] = [
     ],
   },
   {
+    id: 'planet-platform',
+    titleKey: 'planetPlatform',
+    items: [
+      {
+        id: 'planet-platform-intro',
+        titleKey: 'planetPlatformIntro',
+        href: '/docs/planet-platform/introduction',
+      },
+      {
+        id: 'planet-platform-registration',
+        titleKey: 'planetPlatformRegistration',
+        href: '/docs/planet-platform/registration',
+      },
+      {
+        id: 'planet-platform-documents',
+        titleKey: 'planetPlatformDocuments',
+        href: '/docs/planet-platform/documents',
+      },
+    ],
+  },
+  {
     id: 'troubleshooting',
     titleKey: 'helpSupport',
     items: [

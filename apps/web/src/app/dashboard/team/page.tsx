@@ -326,7 +326,7 @@ const TeamsDashboard = () => {
                 </>
             </div>
             <div className='p-6' style={{ flex: 1, display: 'flex', flexDirection: 'column', width: 'full', height: 'full' }}>
-                {loading ? null : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
+                {loading ? <div className="flex justify-center items-center h-64"><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
                     <table className="min-w-full divide-y divide-gray-200">
                         <thead className="bg-gray-50">
                             <tr>
@@ -384,6 +384,7 @@ const TeamsDashboard = () => {
                                                     className="h-10 w-10 rounded-full"
                                                     src={user.avatar}
                                                     alt={user.name}
+                                                    referrerPolicy="no-referrer"
                                                 /> : customImageGenerator(user.uid)}
                                             </div>
                                             <div className="ml-4">

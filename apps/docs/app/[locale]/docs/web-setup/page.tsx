@@ -1,6 +1,7 @@
 import { DocPage } from '@/components/doc-page';
 import { PlaceholderImage } from '@/components/placeholder-image';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function WebSetupPage() {
   return (
@@ -28,14 +29,22 @@ export default function WebSetupPage() {
 
       <h3>1. Navigate to the Dashboard</h3>
       <p>
-        Open your web browser and go toTreeMapper dashboard URL.
+        Open your web browser and go to the TreeMapper dashboard URL:{' '}
         <code>https://dash.treemapper.app</code>
       </p>
 
-      <PlaceholderImage
-        title="Dashboard Login"
-        description="Screenshot of the TreeMapper web dashboard login page"
-      />
+      <div className="my-6 flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-4xl">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768800335452-Screenshot_2026-01-19_at_10.55.29___AM.png"
+            alt="Navigate to the Dashboard"
+            width={1920}
+            height={1080}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+          />
+        </div>
+      </div>
 
       <h3>2. Sign In</h3>
       <p>Sign in using one of these methods:</p>
@@ -60,10 +69,18 @@ export default function WebSetupPage() {
         project you want to work with.
       </p>
 
-      <PlaceholderImage
-        title="Project Selection"
-        description="Screenshot showing project selection interface"
-      />
+      <div className="my-6 flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-4xl">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768800733949-Screenshot_2026-01-19_at_11.02.08___AM.png"
+            alt="Project Selection"
+            width={1920}
+            height={1080}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+          />
+        </div>
+      </div>
 
       <h2>Dashboard Overview</h2>
 
@@ -91,11 +108,6 @@ export default function WebSetupPage() {
         </li>
       </ul>
 
-      <PlaceholderImage
-        title="Dashboard Navigation"
-        description="Screenshot of the main dashboard interface with sidebar navigation"
-      />
-
       <h3>Overview Page</h3>
       <p>The Overview page provides at-a-glance insights:</p>
       <ul>
@@ -107,10 +119,18 @@ export default function WebSetupPage() {
         <li><strong>Recent Activity</strong>: Latest interventions and updates</li>
       </ul>
 
-      <PlaceholderImage
-        title="Overview Dashboard"
-        description="Screenshot showing the analytics overview with charts and KPIs"
-      />
+      <div className="my-6 flex flex-col items-center justify-center">
+        <div className="relative w-full max-w-4xl">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768800820384-Screenshot_2026-01-19_at_11.03.35___AM.png"
+            alt="Overview Dashboard"
+            width={1920}
+            height={1080}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 90vw, 1200px"
+          />
+        </div>
+      </div>
 
       <h2>User Profile Setup</h2>
 
@@ -128,11 +148,6 @@ export default function WebSetupPage() {
         </li>
         <li>Click <strong>Save Changes</strong></li>
       </ol>
-
-      <PlaceholderImage
-        title="Profile Settings"
-        description="Screenshot of user profile settings page"
-      />
 
       <h2>Key Features</h2>
 

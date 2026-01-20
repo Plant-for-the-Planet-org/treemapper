@@ -17,7 +17,8 @@
       "Bash(npm run db:push:*)",
       "Bash(npm run:*)",
       "Bash(npx drizzle-kit push)",
-      "Bash(npx drizzle-kit:*)"
+      "Bash(npx drizzle-kit:*)",
+      "Bash(node -e:*)"
     ]
   }
 }

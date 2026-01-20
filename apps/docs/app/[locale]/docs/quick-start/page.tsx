@@ -13,9 +13,10 @@ export default function QuickStartPage() {
         tracking your tree planting and forest monitoring activities.
       </p>
 
-      <h2>5-Minute Setup</h2>
-
-      <div className="space-y-6">
+      <div className="grid md:grid-cols-2 gap-8 my-8">
+        <div>
+          <h2>5-Minute Setup</h2>
+          <div className="space-y-6">
         <div className="border-l-4 border-primary pl-6">
           <h3 className="mt-0">Step 1: Install the Mobile App (2 minutes)</h3>
           <ul className="mb-0">
@@ -51,6 +52,28 @@ export default function QuickStartPage() {
           <p className="text-sm text-muted-foreground mt-2">
             <Link href="/docs/tutorials/first-intervention">Detailed intervention tutorial →</Link>
           </p>
+        </div>
+          </div>
+        </div>
+
+        <div className="flex flex-col items-center justify-center">
+          <div className="w-full max-w-[300px] rounded-lg overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg">
+            <video
+              controls
+              autoPlay
+              muted
+              loop
+              playsInline
+              className="w-full aspect-[9/16] bg-black"
+              poster="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/treemapper_quickstart_poster.jpg"
+            >
+              <source
+                src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768802057156-output.mp4"
+                type="video/mp4"
+              />
+              Your browser does not support the video tag.
+            </video>
+          </div>
         </div>
       </div>
 

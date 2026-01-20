@@ -1,6 +1,7 @@
 import { DocPage } from '@/components/doc-page';
-import { PlaceholderImage } from '@/components/placeholder-image';
+import { SignInGallery } from '@/components/sign-in-gallery';
 import Link from 'next/link';
+import Image from 'next/image';
 
 export default function MobileSetupPage() {
   return (
@@ -29,11 +30,20 @@ export default function MobileSetupPage() {
         <li>Wait for the download and installation to complete</li>
       </ol>
 
-      <PlaceholderImage
-        title="iOS App Store"
-        description="Screenshot of TreeMapper in the iOS App Store"
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768790904166-IMG_2433.PNG"
+            alt="Screenshot of TreeMapper in the iOS App Store"
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">iOS App Store</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">Screenshot of TreeMapper in the iOS App Store</p>
+      </div>
 
       <h3>Android</h3>
       <ol>
@@ -43,11 +53,20 @@ export default function MobileSetupPage() {
         <li>Wait for the download and installation to complete</li>
       </ol>
 
-      <PlaceholderImage
-        title="Google Play Store"
-        description="Screenshot of TreeMapper in the Google Play Store"
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768790298811-playstore_android.png"
+            alt="Screenshot of TreeMapper in the Google Play Store"
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">Google Play Store</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">Screenshot of TreeMapper in the Google Play Store</p>
+      </div>
 
       <h2>First Launch</h2>
       <p>When you first open TreeMapper, you'll need to complete these steps (sign-in is optional):</p>
@@ -69,11 +88,20 @@ export default function MobileSetupPage() {
         </p>
       </div>
 
-      <PlaceholderImage
-        title="Permission Requests"
-        description="Screenshot showing permission dialogs"
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799330873-IMG_2434.PNG"
+            alt="Location permission screenshot"
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">Location Permission</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">Screenshot showing the location permission dialog</p>
+      </div>
 
       <h3>2. Sign In (Optional)</h3>
       <p>
@@ -123,10 +151,24 @@ export default function MobileSetupPage() {
         </li>
       </ul>
 
-      <PlaceholderImage
-        title="Sign In Screen"
-        description="Screenshot of the login/signup screen (optional step)"
-        aspectRatio="portrait"
+      <SignInGallery
+        images={[
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799599331-IMG_2437.PNG',
+            alt: 'Login button screen',
+            title: 'Login Button',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799599332-IMG_2438.PNG',
+            alt: 'Login page screen',
+            title: 'Login Page',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799599332-IMG_2439.PNG',
+            alt: 'Sidebar after successful sign-in',
+            title: 'Sidebar After Sign-In',
+          },
+        ]}
       />
 
       <h3>3. Select or Create a Project (If Signed In)</h3>
@@ -143,10 +185,24 @@ export default function MobileSetupPage() {
         collecting data immediately.</em>
       </p>
 
-      <PlaceholderImage
-        title="Project Selection"
-        description="Screenshot of the project selection screen (only if signed in)"
-        aspectRatio="portrait"
+      <SignInGallery
+        images={[
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799960521-IMG_2442.PNG',
+            alt: 'No project found',
+            title: 'No project found',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799960521-IMG_2441.PNG',
+            alt: 'Create Project Page',
+            title: 'Create Project Page',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768799960520-IMG_2443.PNG',
+            alt: 'Select Project for intervention',
+            title: 'Select Project for intervention',
+          },
+        ]}
       />
 
       <h2>Initial Configuration</h2>

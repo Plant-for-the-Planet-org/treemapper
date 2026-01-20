@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { ChevronDown, ChevronRight } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -36,7 +37,19 @@ export function Sidebar({ isMobile = false, onItemClick }: { isMobile?: boolean;
               onClick={() => toggleSection(section.id)}
               className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
             >
-              <span>{tSections(section.titleKey)}</span>
+              <span className="flex items-center gap-2">
+                {tSections(section.titleKey)}
+                {section.id === 'planet-platform' && (
+                  <Image
+                    src="https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/08/Plant-for-the-Planet-Official-Logo.svg"
+                    alt="Plant-for-the-Planet"
+                    width={16}
+                    height={16}
+                    className="h-4 w-4"
+                    unoptimized
+                  />
+                )}
+              </span>
               {openSections.includes(section.id) ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
@@ -65,7 +78,19 @@ export function Sidebar({ isMobile = false, onItemClick }: { isMobile?: boolean;
               onClick={() => toggleSection(section.id)}
               className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-sm font-semibold hover:bg-accent transition-colors"
             >
-              <span>{tSections(section.titleKey)}</span>
+              <span className="flex items-center gap-2">
+                {tSections(section.titleKey)}
+                {section.id === 'planet-platform' && (
+                  <Image
+                    src="https://www-cdn.plant-for-the-planet.org/wp-content/uploads/2024/08/Plant-for-the-Planet-Official-Logo.svg"
+                    alt="Plant-for-the-Planet"
+                    width={16}
+                    height={16}
+                    className="h-4 w-4"
+                    unoptimized
+                  />
+                )}
+              </span>
               {openSections.includes(section.id) ? (
                 <ChevronDown className="h-4 w-4" />
               ) : (
