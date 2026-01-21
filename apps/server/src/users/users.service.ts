@@ -11,6 +11,7 @@ import { UserCacheService } from '../cache/user-cache.service';
 import { R2Service } from 'src/common/services/r2.service';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
+import { AuditService } from '../audit/audit.service';
 
 @Injectable()
 export class UsersService {
@@ -18,7 +19,8 @@ export class UsersService {
     constructor(
         private drizzleService: DrizzleService,
         private userCacheService: UserCacheService,
-        private readonly r2Service: R2Service
+        private readonly r2Service: R2Service,
+        private readonly auditService: AuditService
     ) { }
 
     private readonly FULL_USER_SELECT = {
@@ -301,9 +303,27 @@ export class UsersService {
     }
 
     async updateUserAvatar(userPayload: AvatarDTO, userData: User): Promise<Boolean> {
+        // Get current user data for audit log
+        const currentUser = await this.drizzleService.db
+            .select()
+            .from(user)
+            .where(eq(user.id, userData.id))
+            .limit(1);
+
+        if (currentUser.length === 0) {
+            throw new BadRequestException(`User with ID ${userData.id} not found`);
+        }
+
+        const oldValues = {
+            image: currentUser[0].image,
+            firstName: currentUser[0].firstName,
+            lastName: currentUser[0].lastName,
+        };
+
         let payload: { firstName?: string, lastName?: string } = {};
         if (userPayload.firstName) payload.firstName = userPayload.firstName;
         if (userPayload.lastName) payload.lastName = userPayload.lastName;
+        
         const result = await this.drizzleService.db
             .update(user)
             .set({
@@ -314,11 +334,33 @@ export class UsersService {
             .where(eq(user.id, userData.id))
             .returning({
                 id: user.id,
-            })
+                image: user.image,
+                firstName: user.firstName,
+                lastName: user.lastName,
+                uid: user.uid,
+            });
 
         if (result.length === 0) {
             throw new BadRequestException(`User with ID ${userData.id} not found`);
         }
+
+        const newValues = {
+            image: result[0].image,
+            firstName: result[0].firstName,
+            lastName: result[0].lastName,
+        };
+
+        // Create audit log
+        await this.auditService.createAuditLog('user', {
+            action: 'update',
+            entityId: userData.id,
+            entityUid: result[0].uid,
+            userId: userData.id,
+            oldValues: oldValues,
+            newValues: newValues,
+            source: 'web',
+        });
+
         await this.userCacheService.refreshAuthUser({ ...userData, image: userPayload.avatarUrl });
         return true;
     }
@@ -326,6 +368,23 @@ export class UsersService {
 
 
     async update(id: number, updateUserDto: UpdateUserDto): Promise<any> {
+        // Get current user data for audit log
+        const currentUser = await this.drizzleService.db
+            .select()
+            .from(user)
+            .where(eq(user.id, id))
+            .limit(1);
+
+        if (currentUser.length === 0) {
+            throw new Error(`User with id ${id} not found`);
+        }
+
+        const oldValues = { ...currentUser[0] };
+        // Remove fields that shouldn't be in audit log
+        delete oldValues.id;
+        delete oldValues.createdAt;
+        delete oldValues.updatedAt;
+
         const payload = this.prepareUpdateData(updateUserDto);
 
         const result = await this.drizzleService.db
@@ -337,6 +396,23 @@ export class UsersService {
         if (result.length === 0) {
             throw new Error(`User with id ${id} not found`);
         }
+
+        const newValues = { ...result[0] };
+        // Remove fields that shouldn't be in audit log
+        delete newValues.id;
+        delete newValues.createdAt;
+        delete newValues.updatedAt;
+
+        // Create audit log
+        await this.auditService.createAuditLog('user', {
+            action: 'update',
+            entityId: id,
+            entityUid: result[0].uid,
+            userId: id,
+            oldValues: oldValues,
+            newValues: newValues,
+            source: 'web',
+        });
 
         // Refresh cache with the updated user data
         await this.userCacheService.refreshAuthUser(result[0]);

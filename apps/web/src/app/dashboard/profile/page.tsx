@@ -9,7 +9,6 @@ import { ActionButtons } from './components/ActionButtons';
 import { AvatarUpload } from './components/AvatarUpload';
 import { Header } from './components/Header';
 import { InputField } from './components/InputField';
-import { PrivacyToggle } from './components/PrivacyToggle';
 import { SelectField } from './components/SelectField';
 import { TextareaField } from './components/TextareaField';
 import { useToken } from '@/context/useTokenContext';
@@ -26,8 +25,21 @@ const generateAnimalAvatar = (uid) => {
 };
 
 
-const ProfileSettings = ({ goBack }) => {
-  const [profile, setProfile] = useState({
+interface ProfileState {
+  displayName: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  bio: string;
+  image: string;
+  slug: string;
+  url: string;
+  type: string;
+  isPrivate: boolean;
+}
+
+const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
+  const [profile, setProfile] = useState<ProfileState>({
     displayName: '',
     email: '',
     firstName: '',
@@ -40,10 +52,10 @@ const ProfileSettings = ({ goBack }) => {
     isPrivate: false
   });
 
-  const [file, setFile] = useState(null);
+  const [file, setFile] = useState<File | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [validationErrors, setValidationErrors] = useState({});
+  const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
   const [showSuccess, setShowSuccess] = useState(false);
 
   const { accessToken } = useToken();
@@ -61,7 +73,7 @@ const ProfileSettings = ({ goBack }) => {
   };
 
   const validateForm = () => {
-    const errors = {};
+    const errors: Record<string, string> = {};
 
     if (!profile.firstName.trim()) {
       errors.firstName = 'First name is required';
@@ -150,11 +162,14 @@ const ProfileSettings = ({ goBack }) => {
   const uploadImage = async () => {
     try {
       if (!file) {
-        throw 'Image Details not found';
+        throw new Error('Image file not found');
       }
+      
+      // Generate unique filename with timestamp
+      const timestamp = Date.now();
       const presignedResponse = await generatePreSignUrl(accessToken, {
-        fileName: String(new Date().getMilliseconds()),
-        fileType: file?.type,
+        fileName: `${timestamp}_${file.name}`,
+        fileType: file.type,
         folder: 'profile'
       });
 
@@ -162,23 +177,35 @@ const ProfileSettings = ({ goBack }) => {
         throw new Error(presignedResponse.message || 'Failed to get upload URL');
       }
 
-      const response = await uploadViaAPI(file, presignedResponse.data.data.uploadUrl);
-      if (response.success) {
-        await updateUserAvatar(accessToken, {
-          avatarUrl: `${process.env.CDN}/production/profile/${presignedResponse.data.data.fileName}`
-        });
-        return {
-          fileName: presignedResponse.data.data.fileName,
-          success: true
-        };
-      } else {
-        throw 'Failed to upload image';
+      // Upload file to presigned URL
+      const uploadResponse = await uploadViaAPI(file, presignedResponse.data.data.uploadUrl);
+      if (!uploadResponse.success) {
+        throw new Error('Failed to upload image to storage');
       }
+
+      // Update user avatar in database
+      const avatarUrl = `${process.env.NEXT_PUBLIC_CDN}/profile/${presignedResponse.data.data.fileName}`;
+      const avatarUpdateResponse = await updateUserAvatar(accessToken, {
+        avatarUrl: avatarUrl
+      });
+
+      if (avatarUpdateResponse.statusCode !== 200 && avatarUpdateResponse.statusCode !== 201) {
+        throw new Error(avatarUpdateResponse.message || 'Failed to update avatar in database');
+      }
+
+      // Update local profile state with new image URL
+      setProfile(prev => ({ ...prev, image: avatarUrl }));
+
+      return {
+        fileName: presignedResponse.data.data.fileName,
+        success: true
+      };
     } catch (error) {
       console.error('Image upload error:', error);
       return {
         fileName: '',
-        success: false
+        success: false,
+        error: error.message || 'Image upload failed'
       };
     }
   };
@@ -191,23 +218,31 @@ const ProfileSettings = ({ goBack }) => {
     setIsSaving(true);
 
     try {
-      let fileName = '';
+      // Upload image first if a new file was selected
       if (file) {
         const uploadResponse = await uploadImage();
-        if (uploadResponse.success) {
-          fileName = uploadResponse.fileName;
+        if (!uploadResponse.success) {
+          throw new Error('Failed to upload profile picture');
         }
+        // Image is already updated via updateUserAvatar in uploadImage
+        // Clear the file state since upload is complete
+        setFile(null);
       }
 
+      // Prepare payload for profile update (excluding image if it's a blob URL)
       const payload = { ...profile };
       if (payload.image && payload.image.startsWith('blob:')) {
         delete payload.image;
       }
-      if (fileName) {
-        payload['image'] = fileName;
-      }
+      // Don't include image in payload if it was just uploaded via updateUserAvatar
+      // The image field should already be updated in the profile state
 
-      await updateUserDetails(accessToken,payload)
+      // Update other profile details
+      await updateUserDetails(accessToken, payload);
+      
+      // Refresh user details to get the latest data
+      await fetchUserDetails();
+      
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -215,6 +250,8 @@ const ProfileSettings = ({ goBack }) => {
 
     } catch (error) {
       console.error('Save error:', error);
+      // Show error message to user
+      alert(error.message || 'Failed to save profile. Please try again.');
     } finally {
       setIsSaving(false);
     }
@@ -232,7 +269,7 @@ const ProfileSettings = ({ goBack }) => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 w-full">
-      <Header goBack={goBack} onLogout={handleLogout} />
+      <Header onLogout={handleLogout} />
 
       {/* Success Message */}
       {showSuccess && (
@@ -266,14 +303,14 @@ const ProfileSettings = ({ goBack }) => {
                     name="firstName"
                     value={profile.firstName}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.firstName }} placeholder={undefined} readOnly={undefined} />
+                    validation={validationErrors.firstName ? { error: validationErrors.firstName } : undefined} placeholder={undefined} readOnly={undefined} />
 
                   <InputField
                     label="Last Name"
                     name="lastName"
                     value={profile.lastName}
                     onChange={handleProfileChange}
-                    validation={{ error: validationErrors.lastName }} placeholder={undefined} readOnly={undefined} />
+                    validation={validationErrors.lastName ? { error: validationErrors.lastName } : undefined} placeholder={undefined} readOnly={undefined} />
 
                   <div className="md:col-span-2">
                     <InputField
@@ -281,7 +318,7 @@ const ProfileSettings = ({ goBack }) => {
                       name="displayName"
                       value={profile.displayName}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.displayName }} placeholder={undefined} readOnly={undefined} />
+                      validation={validationErrors.displayName ? { error: validationErrors.displayName } : undefined} placeholder={undefined} readOnly={undefined} />
                   </div>
 
                   <div className="md:col-span-2">
@@ -291,7 +328,7 @@ const ProfileSettings = ({ goBack }) => {
                       type="email"
                       value={profile.email}
                       onChange={handleProfileChange}
-                      validation={{ error: validationErrors.email }} placeholder={undefined} readOnly={true} />
+                      validation={validationErrors.email ? { error: validationErrors.email } : undefined} placeholder={undefined} readOnly={true} />
                   </div>
 
                   <div className="md:col-span-2">
@@ -302,7 +339,7 @@ const ProfileSettings = ({ goBack }) => {
                       value={profile.url}
                       onChange={handleProfileChange}
                       placeholder="https://yourwebsite.com"
-                      validation={{ error: validationErrors.url }} readOnly={undefined} />
+                      validation={validationErrors.url ? { error: validationErrors.url } : undefined} readOnly={undefined} />
                   </div>
 
                   <div className="md:col-span-2">
@@ -335,16 +372,6 @@ const ProfileSettings = ({ goBack }) => {
                   placeholder="Tell us about yourself..." validation={undefined} />
               </div>
             </div>
-          </div>
-
-          {/* Privacy Settings Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-stone-200/50 p-8 shadow-sm transition-all duration-300 hover:shadow-md">
-            <div className="mb-6">
-              <h2 className="text-2xl font-bold text-stone-900 mb-2">Privacy Settings</h2>
-              <p className="text-stone-600">Control who can see your profile information.</p>
-            </div>
-
-            <PrivacyToggle profile={profile} onChange={handleProfileChange} />
           </div>
 
           <ActionButtons

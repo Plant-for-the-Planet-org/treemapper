@@ -2,11 +2,11 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  Settings, Users, MapPin, Bell, Shield,
+  Settings, Users, MapPin, Shield,
   Trash2, Save, ArrowLeft, Leaf, Tractor,
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock, Menu, X, Plus, UserX,
-  Check, Loader, ChevronRight, Eye, EyeOff,
+  Check, Loader, ChevronRight,
   Video, Building, Timer, AlertCircle
 } from 'lucide-react';
 
@@ -46,9 +46,9 @@ const InputField = ({
   value,
   onChange,
   type = 'text',
-  placeholder,
-  icon: Icon,
-  validation,
+  placeholder = '',
+  icon: Icon = null,
+  validation = {} as { error?: string; success?: boolean; hint?: string },
   required = false,
   ...props
 }) => {
@@ -110,8 +110,8 @@ const SelectField = ({
   value,
   onChange,
   options,
-  icon: Icon,
-  validation,
+  icon: Icon = null,
+  validation = {} as { error?: string },
   required = false,
   ...props
 }) => {
@@ -164,9 +164,9 @@ const TextareaField = ({
   value,
   onChange,
   rows = 4,
-  placeholder,
-  icon: Icon,
-  validation,
+  placeholder = '',
+  icon: Icon = null,
+  validation = {} as { error?: string },
   required = false
 }) => {
   const hasError = validation?.error;
@@ -278,32 +278,6 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
   </div>
 );
 
-// Auto-save indicator component
-const AutoSaveIndicator = ({ status }) => {
-  const getStatusConfig = () => {
-    switch (status) {
-      case 'saving':
-        return { text: 'Saving...', icon: Loader, color: 'text-amber-600', spin: true };
-      case 'saved':
-        return { text: 'All changes saved', icon: Check, color: 'text-green-600', spin: false };
-      case 'error':
-        return { text: 'Save failed', icon: AlertCircle, color: 'text-red-600', spin: false };
-      default:
-        return { text: '', icon: null, color: '', spin: false };
-    }
-  };
-
-  const { text, icon: Icon, color, spin } = getStatusConfig();
-
-  if (!Icon) return null;
-
-  return (
-    <div className="flex items-center space-x-2 text-sm">
-      <Icon className={`h-4 w-4 ${color} ${spin ? 'animate-spin' : ''}`} />
-      <span className={color}>{text}</span>
-    </div>
-  );
-};
 
 // General Settings Component
 const GeneralSettings = ({
@@ -313,8 +287,7 @@ const GeneralSettings = ({
   imageFileName,
   videoFileName,
   loading,
-  validationErrors,
-  autoSaveStatus
+  validationErrors
 }) => (
   <div className="space-y-8">
     <div className="flex justify-between items-start">
@@ -322,7 +295,28 @@ const GeneralSettings = ({
         <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Settings</h2>
         <p className="text-stone-600">Configure your project's basic information and settings.</p>
       </div>
-      <AutoSaveIndicator status={autoSaveStatus} />
+    </div>
+
+    {/* Save Button at Top */}
+    <div className="flex justify-end pb-4 border-b border-stone-200">
+      <button
+        disabled={loading}
+        type="button"
+        onClick={handleSubmit}
+        className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
+      >
+        {loading ? (
+          <>
+            <Loader className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </>
+        )}
+      </button>
     </div>
 
     <form onSubmit={handleSubmit} className="space-y-6">
@@ -335,6 +329,7 @@ const GeneralSettings = ({
               name="name"
               value={projectData.name}
               onChange={handleInputChange}
+              placeholder="Enter project name"
               icon={FileText}
               validation={{ error: validationErrors.name }}
               required
@@ -345,6 +340,7 @@ const GeneralSettings = ({
               name="slug"
               value={projectData.slug}
               onChange={handleInputChange}
+              placeholder="project-slug"
               icon={Globe}
               validation={{
                 error: validationErrors.slug,
@@ -531,6 +527,7 @@ const GeneralSettings = ({
             onChange={handleInputChange}
             min="1"
             placeholder="Enter target number"
+            icon={Users}
             validation={{
               hint: "Target must be a positive number greater than 0"
             }}
@@ -577,115 +574,73 @@ const GeneralSettings = ({
         </div>
       </CollapsibleSection>
 
-      {/* Project Settings */}
-      <CollapsibleSection title="Project Visibility & Status" icon={Eye}>
-        <div className="space-y-4">
-          {[
-            {
-              key: 'isPublic',
-              title: 'Public Project',
-              desc: 'Make this project visible to the public',
-              icon: Globe
-            },
-            {
-              key: 'isPersonal',
-              title: 'Personal Project',
-              desc: 'Mark this as a personal project (will be private)',
-              icon: Users
-            },
-            {
-              key: 'isPrimary',
-              title: 'Primary Project',
-              desc: 'Set this as your primary project (must be active)',
-              icon: FileText
-            },
-            {
-              key: 'isActive',
-              title: 'Active Project',
-              desc: 'Project is currently active and accepting updates',
-              icon: Check
-            }
-          ].map(({ key, title, desc, icon: Icon }) => (
-            <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-stone-50/50 hover:bg-stone-100/50 transition-colors duration-200">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-[#007A49]/10 rounded-lg flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-[#007A49]" />
-                </div>
-                <div>
-                  <p className="font-semibold text-stone-800">{title}</p>
-                  <p className="text-sm text-stone-600">{desc}</p>
-                </div>
-              </div>
-              <ToggleSwitch
-                checked={projectData[key]}
-                onChange={() => handleInputChange({
-                  target: { name: key, type: 'checkbox', checked: !projectData[key] }
-                })}
-              />
-            </div>
-          ))}
-        </div>
-      </CollapsibleSection>
-
-      {/* Save Button */}
-      <div className="flex justify-end pt-6">
-        <button
-          disabled={loading}
-          type="submit"
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
-        >
-          {loading ? (
-            <>
-              <Loader className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Changes
-            </>
-          )}
-        </button>
-      </div>
     </form>
   </div>
 );
 
 
 // Location Settings Component
-const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
+const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) => {
   const [geoJSON, setGeoJSON] = useState(existingGeoJSON || null);
   const [isLoading, setIsLoading] = useState(false);
 
+  // Update geoJSON state when existingGeoJSON prop changes
+  useEffect(() => {
+    setGeoJSON(existingGeoJSON || null);
+  }, [existingGeoJSON]);
+
+  // Determine mode based on geometry type
+  const getMode = () => {
+    if (!existingGeoJSON) return 'point';
+    
+    try {
+      // Handle different GeoJSON formats
+      let geometry = null;
+      
+      if (existingGeoJSON.type === 'FeatureCollection' && existingGeoJSON.features?.[0]) {
+        geometry = existingGeoJSON.features[0].geometry;
+      } else if (existingGeoJSON.type === 'Feature') {
+        geometry = existingGeoJSON.geometry;
+      } else if (existingGeoJSON.type === 'Polygon' || existingGeoJSON.type === 'MultiPolygon' || existingGeoJSON.type === 'Point') {
+        geometry = existingGeoJSON;
+      } else if (existingGeoJSON.geometry) {
+        geometry = existingGeoJSON.geometry;
+      }
+      
+      if (geometry && (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')) {
+        return 'polygon';
+      }
+    } catch (error) {
+      console.error('Error determining mode from GeoJSON:', error);
+    }
+    
+    return 'point';
+  };
+
+  const handleSave = async () => {
+    setIsLoading(true);
+    await handleLocationUpdate(geoJSON);
+    setTimeout(() => setIsLoading(false), 2000);
+  };
+
   return (
     <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Location</h2>
-        <p className="text-stone-600">Define the geographical boundaries of your project using our interactive map or by uploading location data.</p>
+      <div className="flex justify-between items-start">
+        <div>
+          <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Location</h2>
+          <p className="text-stone-600">Define the geographical boundaries of your project using our interactive map or by uploading location data.</p>
+        </div>
       </div>
 
-      <CollapsibleSection title="Project Location" icon={MapPin}>
-        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative">
-          <UnifiedMapComponent mode='point' updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
-        </div>
-
-        <div className="bg-stone-50/50 rounded-xl p-6 border border-stone-200">
-          <GeoJSONUpload onGeoJSONChange={setGeoJSON} />
-        </div>
-      </CollapsibleSection>
-
-      <div className="flex justify-end">
+      {/* Save Button at Top */}
+      <div className="flex justify-end pb-4 border-b border-stone-200">
         <button
           type="button"
-          onClick={() => {
-            setIsLoading(true);
-            handleLocationUpdate(geoJSON);
-            setTimeout(() => setIsLoading(false), 2000);
-          }}
-          disabled={isLoading}
+          onClick={handleSave}
+          disabled={isLoading || loading}
           className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
         >
-          {isLoading ? (
+          {(isLoading || loading) ? (
             <>
               <Loader className="h-4 w-4 mr-2 animate-spin" />
               Updating...
@@ -698,93 +653,20 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON }) => {
           )}
         </button>
       </div>
-    </div>
-  );
-};
 
-// Notification Settings Component
-const NotificationSettings = ({ projectData, handleInputChange }) => {
-  const [isLoading, setIsLoading] = useState(false);
+      <CollapsibleSection title="Project Location" icon={MapPin}>
+        <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative">
+          <UnifiedMapComponent mode={getMode()} updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
+        </div>
 
-  return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-3xl font-bold text-stone-900 mb-2">Notification Settings</h2>
-        <p className="text-stone-600">Configure which notifications you receive for this project to stay informed about important updates.</p>
-      </div>
-
-      <CollapsibleSection title="Notification Preferences" icon={Bell}>
-        <div className="space-y-4">
-          {[
-            {
-              key: 'progressUpdates',
-              title: 'Progress Updates',
-              desc: 'Receive notifications about project milestones and progress reports',
-              icon: FileText
-            },
-            {
-              key: 'treeAdditions',
-              title: 'Tree Additions',
-              desc: 'Get notified when new trees are added to the project inventory',
-              icon: Leaf
-            },
-            {
-              key: 'newCollaborators',
-              title: 'New Collaborators',
-              desc: 'Get notified when team members are added or removed from the project',
-              icon: Users
-            }
-          ].map(({ key, title, desc, icon: Icon }) => (
-            <div key={key} className="flex items-center justify-between p-4 rounded-xl bg-stone-50/50 hover:bg-stone-100/50 transition-colors duration-200">
-              <div className="flex items-center space-x-4">
-                <div className="w-10 h-10 bg-[#007A49]/10 rounded-lg flex items-center justify-center">
-                  <Icon className="h-5 w-5 text-[#007A49]" />
-                </div>
-                <div>
-                  <p className="font-semibold text-stone-800">{title}</p>
-                  <p className="text-sm text-stone-600">{desc}</p>
-                </div>
-              </div>
-              <ToggleSwitch
-                checked={projectData.notifications?.[key] || false}
-                onChange={() => handleInputChange({
-                  target: { name: `notifications.${key}`, type: 'checkbox', checked: !projectData.notifications?.[key] }
-                })}
-              />
-            </div>
-          ))}
+        <div className="bg-stone-50/50 rounded-xl p-6 border border-stone-200">
+          <GeoJSONUpload onGeoJSONChange={setGeoJSON} />
         </div>
       </CollapsibleSection>
-
-      <div className="flex justify-end">
-        <button
-          type="button"
-          onClick={() => {
-            setIsLoading(true);
-            setTimeout(() => {
-              setIsLoading(false);
-              // Show success notification
-            }, 1000);
-          }}
-          disabled={isLoading}
-          className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
-        >
-          {isLoading ? (
-            <>
-              <Loader className="h-4 w-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="h-4 w-4 mr-2" />
-              Save Preferences
-            </>
-          )}
-        </button>
-      </div>
     </div>
   );
 };
+
 
 // Enhanced Danger Zone Component
 const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, handleDeleteProject }) => {
@@ -957,46 +839,6 @@ const NotificationToast = ({ type, message, onClose }) => {
   );
 };
 
-// Auto-save hook
-const useAutoSave = (data, saveFunction, delay = 2000) => {
-  const [autoSaveStatus, setAutoSaveStatus] = useState('idle');
-  const timeoutRef = useRef(null);
-  const lastSavedRef = useRef(JSON.stringify(data));
-
-  const triggerAutoSave = useCallback(async () => {
-    const currentData = JSON.stringify(data);
-    if (currentData === lastSavedRef.current) return;
-
-    setAutoSaveStatus('saving');
-    try {
-      await saveFunction(data);
-      setAutoSaveStatus('saved');
-      lastSavedRef.current = currentData;
-      setTimeout(() => setAutoSaveStatus('idle'), 2000);
-    } catch (error) {
-      setAutoSaveStatus('error');
-      setTimeout(() => setAutoSaveStatus('idle'), 3000);
-    }
-  }, [data, saveFunction]);
-
-  useEffect(() => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
-
-    timeoutRef.current = setTimeout(() => {
-      triggerAutoSave();
-    }, delay);
-
-    return () => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
-    };
-  }, [data, triggerAutoSave, delay]);
-
-  return autoSaveStatus;
-};
 
 // Main Project Settings Component
 const ProjectSettings = () => {
@@ -1023,33 +865,14 @@ const ProjectSettings = () => {
     country: '',
     image: null,
     location: null,
-    isPublic: true,
-    isPersonal: false,
-    isPrimary: false,
-    isActive: true,
     originalGeometry: null,
-    metadata: {},
-    notifications: {
-      progressUpdates: false,
-      treeAdditions: false,
-      newCollaborators: false
-    }
+    metadata: {}
   });
 
   const [activeTab, setActiveTab] = useState('general');
   const [imageFileName, setImageFileName] = useState('No file selected');
   const [videoFileName, setVideoFileName] = useState('No file selected');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-
-  // Mock save function for auto-save
-  const autoSaveFunction = useCallback(async (data) => {
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    console.log('Auto-saving:', data);
-  }, []);
-
-  // Auto-save functionality
-  const autoSaveStatus = useAutoSave(projectData, autoSaveFunction, 3000);
 
   useEffect(() => {
     fetchProjectDetails();
@@ -1059,35 +882,26 @@ const ProjectSettings = () => {
     try {
       const result = await getSingleProjectDetails(accessToken, selectedProject?.uid || '');
       if (result.data) {
-        const response = result.data || {};
         setProjectData({
-          name: result.data.name,
-          slug: result.data.slug,
-          type: result.data.type,
-          ecosystem: result.data.ecosystem,
-          scale: result.data.scale,
-          target: result.data.target,
-          website: result.data.website,
-          videoUrl: result.data.videoUrl,
-          description: result.data.description,
-          purpose: result.data.purpose,
-          classification: result.data.classification,
-          intensity: result.data.intensity,
-          revisionPeriodicity: result.data.revisionPeriodicity,
-          country: result.data.country,
+          name: result.data.name || '',
+          slug: result.data.slug || '',
+          type: result.data.type || '',
+          ecosystem: result.data.ecosystem || '',
+          scale: result.data.scale || '',
+          // Preserve null/undefined for target - don't convert to empty string
+          target: result.data.target !== null && result.data.target !== undefined ? String(result.data.target) : '',
+          website: result.data.website || '',
+          videoUrl: result.data.videoUrl || '',
+          description: result.data.description || '',
+          purpose: result.data.purpose || '',
+          classification: result.data.classification || '',
+          intensity: result.data.intensity || '',
+          revisionPeriodicity: result.data.revisionPeriodicity || '',
+          country: result.data.country || '',
           image: result.data.image ?? null,
           location: result.data.location ?? null,
-          originalGeometry: result.data.originalGeometry,
-          isPublic: result.data.isPublic,
-          isPersonal: result.data.isPersonal,
-          isPrimary: result.data.isPrimary,
-          isActive: result.data.isActive,
-          metadata: {},
-          notifications: {
-            progressUpdates: true,
-            treeAdditions: false,
-            newCollaborators: true
-          }
+          originalGeometry: result.data.originalGeometry || null,
+          metadata: result.data.metadata || {}
         });
       }
 
@@ -1098,41 +912,37 @@ const ProjectSettings = () => {
   };
 
   const validateForm = () => {
-    const errors = {};
+    const errors: Record<string, string> = {};
+    const data = projectData as any;
 
-    if (!projectData.name.trim()) {
+    if (!data.name || !String(data.name).trim()) {
       errors.name = 'Project name is required';
     }
 
-    if (!projectData.slug.trim()) {
+    if (!data.slug || !String(data.slug).trim()) {
       errors.slug = 'Project slug is required';
-    } else if (!/^[a-z0-9-]+$/.test(projectData.slug)) {
+    } else if (!/^[a-z0-9-]+$/.test(String(data.slug))) {
       errors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
 
-    if (!projectData.type) {
+    if (!data.type) {
       errors.type = 'Project type is required';
     }
 
-    if (projectData.website && !/^https?:\/\/.+/.test(projectData.website)) {
+    if (data.website && !/^https?:\/\/.+/.test(String(data.website))) {
       errors.website = 'Please enter a valid URL starting with http:// or https://';
     }
 
-    if (projectData.videoUrl && !/^https?:\/\/.+/.test(projectData.videoUrl)) {
+    if (data.videoUrl && !/^https?:\/\/.+/.test(String(data.videoUrl))) {
       errors.videoUrl = 'Please enter a valid URL starting with http:// or https://';
     }
 
-    if (projectData.target && projectData.target <= 0) {
-      errors.target = 'Target must be a positive number greater than 0';
-    }
-
-    // Business logic validations
-    if (projectData.isPrimary && !projectData.isActive) {
-      errors.isPrimary = 'Primary project must be active';
-    }
-
-    if (projectData.isPersonal && projectData.isPublic) {
-      errors.isPersonal = 'Personal projects cannot be public';
+    const targetValue = data.target;
+    if (targetValue !== '' && targetValue !== null && targetValue !== undefined) {
+      const numTarget = typeof targetValue === 'string' ? Number(targetValue) : targetValue;
+      if (Number.isNaN(numTarget) || numTarget <= 0) {
+        errors.target = 'Target must be a positive number greater than 0';
+      }
     }
 
     setValidationErrors(errors);
@@ -1186,20 +996,106 @@ const ProjectSettings = () => {
     }
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  // Clean data before sending to API - convert empty strings to null/undefined for proper validation
+  // Send database field names directly (name, type, scale, website) as the service expects these
+  const prepareDataForApi = (data) => {
+    const cleaned: Record<string, any> = {};
+    
+    // Required fields - always include if they have values
+    if (data.name && data.name.trim()) {
+      cleaned.name = data.name.trim();
+    }
+    
+    if (data.slug && data.slug.trim()) {
+      cleaned.slug = data.slug.trim();
+    }
+    
+    if (data.type && data.type.trim()) {
+      cleaned.type = data.type.trim();
+    }
 
-    // if (!validateForm()) {
-    //   setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
-    //   return;
-    // }
+    // Optional string fields - only include if they have non-empty values
+    if (data.description && data.description.trim()) {
+      cleaned.description = data.description.trim();
+    }
+    
+    if (data.purpose && data.purpose.trim()) {
+      cleaned.purpose = data.purpose.trim();
+    }
+    
+    if (data.classification && data.classification.trim()) {
+      cleaned.classification = data.classification.trim();
+    }
+    
+    if (data.ecosystem && data.ecosystem.trim()) {
+      cleaned.ecosystem = data.ecosystem.trim();
+    }
+    
+    if (data.scale && data.scale.trim()) {
+      cleaned.scale = data.scale.trim();
+    }
+    
+    if (data.intensity && data.intensity.trim()) {
+      cleaned.intensity = data.intensity.trim();
+    }
+    
+    if (data.revisionPeriodicity && data.revisionPeriodicity.trim()) {
+      cleaned.revisionPeriodicity = data.revisionPeriodicity.trim();
+    }
+    
+    if (data.country && data.country.trim()) {
+      // Country code should be max 3 chars per schema, but DTO says 2 - use 3 for database
+      const countryCode = data.country.trim().substring(0, 3).toUpperCase();
+      cleaned.country = countryCode;
+    }
+    
+    if (data.website && data.website.trim()) {
+      cleaned.website = data.website.trim();
+    }
+    
+    if (data.videoUrl && data.videoUrl.trim()) {
+      cleaned.videoUrl = data.videoUrl.trim();
+    }
+    
+    if (data.image) {
+      cleaned.image = typeof data.image === 'string' ? data.image : null;
+    }
+
+    // Handle target - must be positive integer >= 1 or not sent at all
+    if (data.target !== '' && data.target !== null && data.target !== undefined) {
+      const targetNum = typeof data.target === 'string' ? Number(data.target) : data.target;
+      if (!Number.isNaN(targetNum) && Number.isInteger(targetNum) && targetNum > 0) {
+        cleaned.target = targetNum;
+      }
+    }
+
+    // Handle geometry fields
+    if (data.originalGeometry) {
+      cleaned.originalGeometry = data.originalGeometry;
+    }
+
+    return cleaned;
+  };
+
+  const handleSubmit = async (e) => {
+    if (e) {
+      e.preventDefault();
+    }
+
+    if (!validateForm()) {
+      setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
+      return;
+    }
 
     setLoading(true);
     try {
-      await updateProjectSettings(accessToken, { ...projectData }, selectedProject.uid)
+      const cleanedData = prepareDataForApi(projectData);
+      await updateProjectSettings(accessToken, cleanedData, selectedProject.uid)
       setNotification({ type: 'success', message: 'Project settings updated successfully!' });
     } catch (error) {
-      setNotification({ type: 'error', message: 'Failed to save project settings' });
+      console.error('Update error:', error);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to save project settings';
+      setNotification({ type: 'error', message: errorMessage });
     } finally {
       setLoading(false);
     }
@@ -1217,7 +1113,6 @@ const ProjectSettings = () => {
   const navItems = [
     { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'location', label: 'Location', icon: MapPin },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'danger', label: 'Danger Zone', icon: Trash2, danger: true },
   ];
 
@@ -1233,7 +1128,6 @@ const ProjectSettings = () => {
             videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
-            autoSaveStatus={autoSaveStatus}
           />
         );
       case 'location':
@@ -1241,13 +1135,7 @@ const ProjectSettings = () => {
           <LocationSettings
             handleLocationUpdate={handleLocationUpdate}
             existingGeoJSON={projectData.originalGeometry}
-          />
-        );
-      case 'notifications':
-        return (
-          <NotificationSettings
-            projectData={projectData}
-            handleInputChange={handleInputChange}
+            loading={loading}
           />
         );
       case 'danger':
@@ -1269,7 +1157,6 @@ const ProjectSettings = () => {
             videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
-            autoSaveStatus={autoSaveStatus}
           />
         );
     }
