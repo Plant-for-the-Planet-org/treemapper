@@ -20,7 +20,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       id: 'public',
       title: 'Plant-for-the-Planet Platform',
       subtitle: 'To contribute to global reforestation efforts with transparent data sharing.',
-      description: 'Data is shared publicly',
+      description: 'Data is published on the Plant-for-the-Planet platform.',
       recommended: true,
       icon: <Image
         src="/pftp-logo.svg"
@@ -35,7 +35,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       id: 'private',
       title: 'Personal/Organization Use',
       subtitle: 'Use TreeMapper for my Company/City/Personal use.',
-      description: 'Data is kept private to you',
+      description: 'Data is kept private to you.',
       icon: <Lock className="w-5 h-5" />,
       recommended: false
 

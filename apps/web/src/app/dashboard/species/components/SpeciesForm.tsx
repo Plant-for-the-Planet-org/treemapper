@@ -120,7 +120,7 @@ export const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload, isU
       <div className="flex items-center gap-4">
         {editForm.image && (
           <div className="w-16 h-16 bg-gray-100 rounded-lg overflow-hidden">
-            <img src={isAddingNew ? editForm.image : `https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/species/${editForm.image}`} alt="Species" className="w-full h-full object-cover" />
+            <img src={isAddingNew ? editForm.image : `${process.env.NEXT_PUBLIC_CDN}/species/${editForm.image}`} alt="Species" className="w-full h-full object-cover" />
           </div>
         )}
         <label className="flex items-center gap-2 px-3 py-2 bg-gray-100 text-gray-700 rounded-lg cursor-pointer hover:bg-gray-200 transition-colors text-sm">

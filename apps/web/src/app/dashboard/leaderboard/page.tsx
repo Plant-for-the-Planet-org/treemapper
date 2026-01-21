@@ -297,6 +297,7 @@ export default function ForestLeaderboard() {
                             src={user.image}
                             alt={user.displayName}
                             className="h-full w-full object-cover"
+                            referrerPolicy="no-referrer"
                           />
                         ) : (
                           <Users className="h-6 w-6 text-gray-400" />

@@ -780,7 +780,7 @@ const SpeciesManagementDashboard = () => {
                 <div className="flex items-start gap-4">
                   <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
                     {selectedSpecies.image ? (
-                      <img src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/species/${selectedSpecies.image}`} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
+                      <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${selectedSpecies.image}`} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Leaf className="w-8 h-8 text-gray-400" />

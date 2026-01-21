@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
-import { MapPin, Square, ChevronDown, ChevronUp, Target, Check, RotateCcw, Settings } from 'lucide-react';
+import { MapPin, RotateCcw } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 
@@ -9,33 +9,6 @@ interface Props {
   uploadedGeoJSON: any;
   mode: 'point' | 'polygon';
 }
-
-// Floating Control Panel Component
-const ControlPanel = ({ children, title, isCollapsed, onToggle, className = "" }) => {
-  return (
-    <div className={`absolute bg-white rounded-lg shadow-lg border border-gray-200 z-10 transition-all duration-200 ${className}`}>
-      <div
-        className="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 transition-colors"
-        onClick={onToggle}
-      >
-        <div className="flex items-center gap-2">
-          {/* <Settings className="h-4 w-4 text-gray-600" /> */}
-          <span className="text-sm font-medium text-gray-900">{title}</span>
-        </div>
-        {isCollapsed ? (
-          <ChevronDown className="h-4 w-4 text-gray-500" />
-        ) : (
-          <ChevronUp className="h-4 w-4 text-gray-500" />
-        )}
-      </div>
-      {!isCollapsed && (
-        <div className="p-3 pt-0 border-t border-gray-100">
-          {children}
-        </div>
-      )}
-    </div>
-  );
-};
 
 // Coordinate Input Component
 const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
@@ -86,101 +59,6 @@ const CoordinateInput = ({ manualCoords, onCoordChange, onSetCoordinates }) => {
   );
 };
 
-// Polygon Controls Component
-const PolygonControls = ({ polygonPoints, onComplete, onReset, isDrawing, manualCoords, onCoordChange, onAddPolygonPoint }) => {
-  return (
-    <div className="space-y-3">
-      <div className="text-xs text-gray-600">
-        <p className="text-xs text-gray-500 leading-relaxed">
-          Click on the map to add points or enter coordinates below. Need at least 3 points to complete.
-        </p>
-      </div>
-
-      {/* Manual Coordinates Input for Polygon */}
-      <div className="bg-gray-50 rounded-md p-3">
-        <div className="text-xs font-medium text-gray-700 mb-2">Add Point by Coordinates</div>
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Latitude
-              </label>
-              <input
-                type="text"
-                name="latitude"
-                value={manualCoords.latitude}
-                onChange={onCoordChange}
-                placeholder="0"
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-                style={{ color: '#262626' }}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">
-                Longitude
-              </label>
-              <input
-                type="text"
-                name="longitude"
-                value={manualCoords.longitude}
-                onChange={onCoordChange}
-                placeholder="0"
-                style={{ color: '#262626' }}
-                className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent transition-colors"
-              />
-            </div>
-          </div>
-          <button
-            onClick={onAddPolygonPoint}
-            type="button"
-            className={`w-full border-none text-white px-5 py-2 rounded text-sm font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-2 hover:shadow-md ${manualCoords.latitude === '' || manualCoords.longitude === ''
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-[#007A49] hover:bg-[#006B3F] shadow-sm hover:shadow-md'
-              }`}
-            disabled={manualCoords.latitude === '' || manualCoords.longitude === ''}
-          >
-            Add Point
-          </button>
-        </div>
-      </div>
-
-      {polygonPoints.length > 0 && (
-        <div className="bg-gray-50 rounded-md p-2">
-          <div className="text-xs text-gray-600 mb-2">
-            Points added: <span className="font-medium text-green-600">{polygonPoints.length}</span>
-          </div>
-          <div className="flex gap-2">
-            <button
-              type="button"
-              onClick={onComplete}
-              disabled={polygonPoints.length < 3}
-              className={`flex-1 border-none py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 ${polygonPoints.length >= 3
-                ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer text-white hover:shadow-md'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-                }`}
-            >
-              <Check className="h-3 w-3" />
-              Complete
-            </button>
-            <button
-              type="button"
-              onClick={onReset}
-              disabled={polygonPoints.length === 0}
-              className={`flex-1 border border-gray-300 py-1.5 px-3 rounded-md text-xs font-medium cursor-pointer transition-all duration-200 flex items-center justify-center gap-1 ${polygonPoints.length > 0
-                ? 'text-gray-700 hover:bg-gray-50 hover:border-gray-400'
-                : 'text-gray-400 cursor-not-allowed'
-                }`}
-            >
-              <RotateCcw className="h-3 w-3" />
-              Reset
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-};
-
 const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) => {
   // Initial viewport settings
   const [viewState, setViewState] = useState({
@@ -208,19 +86,44 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   // State to track if we're displaying uploaded GeoJSON
   const [displayingUploadedGeoJSON, setDisplayingUploadedGeoJSON] = useState(false);
 
-  // Control panel collapse states
-  const [isControlsCollapsed, setIsControlsCollapsed] = useState(true);
+  // State to show manual coordinate input
+  const [showManualInput, setShowManualInput] = useState(false);
+
+  // State for area error
+  const [areaError, setAreaError] = useState<string | null>(null);
+
+  // Max area in hectares
+  const MAX_AREA_HECTARES = 25000;
 
   // Effect to handle uploaded GeoJSON
   useEffect(() => {
     if (uploadedGeoJSON && uploadedGeoJSON !== geoJSON) {
-      setGeoJSON(uploadedGeoJSON);
-      setDisplayingUploadedGeoJSON(true);
-
       // Clear any existing manual selections
       setMarker(null);
       setPolygonPoints([]);
       setDrawingPolygon(false);
+      setAreaError(null);
+
+      // Validate area for polygon uploads
+      try {
+        const feature = uploadedGeoJSON.features ? uploadedGeoJSON.features[0] : uploadedGeoJSON;
+        if (feature.type === 'Polygon' || feature.geometry?.type === 'Polygon') {
+          const areaInSquareMeters = turf.area(uploadedGeoJSON);
+          const areaInHectares = areaInSquareMeters / 10000;
+
+          if (areaInHectares > MAX_AREA_HECTARES) {
+            setAreaError(`Uploaded polygon exceeds maximum limit of ${MAX_AREA_HECTARES.toLocaleString()} hectares. Area: ${areaInHectares.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`);
+            setDisplayingUploadedGeoJSON(false);
+            setGeoJSON(null);
+            return;
+          }
+        }
+      } catch (error) {
+        console.error('Error validating uploaded GeoJSON area:', error);
+      }
+
+      setGeoJSON(uploadedGeoJSON);
+      setDisplayingUploadedGeoJSON(true);
 
       // Center map on uploaded GeoJSON
       try {
@@ -245,17 +148,12 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     setDrawingPolygon(false);
     setGeoJSON(null);
     updateGeoJSON(null);
+    setAreaError(null);
     if (displayingUploadedGeoJSON) {
       setDisplayingUploadedGeoJSON(false);
     }
   }, [mode]);
 
-  // Effect to auto-expand panels when user interacts
-  useEffect(() => {
-    if (marker || polygonPoints.length > 0) {
-      setIsControlsCollapsed(false);
-    }
-  }, [marker, polygonPoints.length]);
 
 
 
@@ -268,6 +166,18 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         : polygonPoints.map(p => [p.longitude, p.latitude])
     ]
   };
+
+  // Check if click is near the first point (to close polygon)
+  const isNearFirstPoint = useCallback((lngLat, firstPoint, zoom) => {
+    if (!firstPoint) return false;
+    // Threshold decreases as zoom increases (more precise at higher zoom)
+    const threshold = 20 / Math.pow(2, zoom - 10);
+    const distance = Math.sqrt(
+      Math.pow(lngLat.lng - firstPoint.longitude, 2) +
+      Math.pow(lngLat.lat - firstPoint.latitude, 2)
+    );
+    return distance < threshold;
+  }, []);
 
   // Handle map click based on current mode
   const handleMapClick = useCallback(event => {
@@ -307,28 +217,37 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         setDrawingPolygon(true);
         setPolygonPoints([{ longitude: lngLat.lng, latitude: lngLat.lat }]);
       } else {
-        // Continue adding points to polygon
-        setPolygonPoints(prev => [...prev, { longitude: lngLat.lng, latitude: lngLat.lat }]);
+        // Check if clicking near first point to close polygon (need at least 3 points)
+        if (polygonPoints.length >= 3 && isNearFirstPoint(lngLat, polygonPoints[0], viewState.zoom)) {
+          // Auto-complete the polygon
+          const completedPolygonGeoJSON = {
+            type: 'Polygon',
+            coordinates: [
+              [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
+            ]
+          };
+
+          // Calculate area in hectares
+          const areaInSquareMeters = turf.area(completedPolygonGeoJSON as GeoJSON.Polygon);
+          const areaInHectares = areaInSquareMeters / 10000;
+
+          // Validate area
+          if (areaInHectares > MAX_AREA_HECTARES) {
+            setAreaError(`Area exceeds maximum limit of ${MAX_AREA_HECTARES.toLocaleString()} hectares. Current area: ${areaInHectares.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`);
+            return;
+          }
+
+          setAreaError(null);
+          setDrawingPolygon(false);
+          setGeoJSON(completedPolygonGeoJSON);
+          updateGeoJSON(completedPolygonGeoJSON);
+        } else {
+          // Continue adding points to polygon
+          setPolygonPoints(prev => [...prev, { longitude: lngLat.lng, latitude: lngLat.lat }]);
+        }
       }
     }
-  }, [mode, drawingPolygon, displayingUploadedGeoJSON]);
-
-  // Complete polygon drawing
-  const completePolygon = () => {
-    if (polygonPoints.length >= 3) {
-      setDrawingPolygon(false);
-      const completedPolygonGeoJSON = {
-        type: 'Polygon',
-        coordinates: [
-          [...polygonPoints.map(p => [p.longitude, p.latitude]), [polygonPoints[0].longitude, polygonPoints[0].latitude]]
-        ]
-      };
-      setGeoJSON(completedPolygonGeoJSON);
-      updateGeoJSON(completedPolygonGeoJSON);
-    } else {
-      alert('A polygon needs at least 3 points');
-    }
-  };
+  }, [mode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, viewState.zoom, isNearFirstPoint, updateGeoJSON, MAX_AREA_HECTARES]);
 
   // Reset polygon drawing
   const resetPolygon = () => {
@@ -336,6 +255,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     setPolygonPoints([]);
     setGeoJSON(null);
     updateGeoJSON(null);
+    setAreaError(null);
   };
 
   // Handle manual coordinate input
@@ -587,43 +507,186 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
         )}
       </Map>
 
-      {/* Main Controls Panel */}
-      <ControlPanel
-        title={mode === 'point' ? 'Point Selection' : 'Polygon Drawing'}
-        isCollapsed={isControlsCollapsed}
-        onToggle={() => setIsControlsCollapsed(!isControlsCollapsed)}
-        className="top-4 left-4"
-      >
-        {mode === 'polygon' ? (
-          <PolygonControls
-            polygonPoints={polygonPoints}
-            onComplete={completePolygon}
-            onReset={resetPolygon}
-            isDrawing={drawingPolygon}
-            manualCoords={manualCoords}
-            onCoordChange={handleCoordChange}
-            onAddPolygonPoint={handleAddPolygonPoint}
-          />
-        ) : (
-          <div className="space-y-3">
-            <div className="text-xs text-gray-600">
-              <p className="text-xs text-gray-500 leading-relaxed">
-                Click on the map to place a marker or use coordinates below.
-              </p>
+      {/* Point Mode UI */}
+      {mode === 'point' && (
+        <>
+          {/* Instruction or Selected Location Display */}
+          {!marker && !displayingUploadedGeoJSON ? (
+            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg border border-gray-200 z-10 p-3">
+              <p className="text-sm text-gray-600">Click on the map to select a location</p>
+              <button
+                type="button"
+                onClick={() => setShowManualInput(!showManualInput)}
+                className="mt-2 text-xs text-[#007A49] hover:underline"
+              >
+                {showManualInput ? 'Hide' : 'Or enter coordinates manually'}
+              </button>
+              {showManualInput && (
+                <div className="mt-3 pt-3 border-t border-gray-100">
+                  <CoordinateInput
+                    manualCoords={manualCoords}
+                    onCoordChange={handleCoordChange}
+                    onSetCoordinates={handleSetCoordinates}
+                  />
+                </div>
+              )}
             </div>
+          ) : (
+            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg border border-gray-200 z-10 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-900">Location Selected</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setMarker(null);
+                    setGeoJSON(null);
+                    updateGeoJSON(null);
+                    setManualCoords({ latitude: '', longitude: '' });
+                    setDisplayingUploadedGeoJSON(false);
+                  }}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                  title="Clear selection"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="text-xs text-gray-600 space-y-1">
+                <p>Lat: {marker?.latitude?.toFixed(6) || manualCoords.latitude}</p>
+                <p>Lng: {marker?.longitude?.toFixed(6) || manualCoords.longitude}</p>
+              </div>
+              <p className="text-xs text-gray-400 mt-2">Drag marker to adjust</p>
+            </div>
+          )}
+        </>
+      )}
 
-            {/* Manual Coordinates Input */}
-            <div className="bg-gray-50 rounded-md p-3">
-              <div className="text-xs font-medium text-gray-700 mb-2">Manual Coordinates</div>
-              <CoordinateInput
-                manualCoords={manualCoords}
-                onCoordChange={handleCoordChange}
-                onSetCoordinates={handleSetCoordinates}
-              />
+      {/* Polygon Mode UI */}
+      {mode === 'polygon' && (
+        <>
+          {/* Before drawing or while drawing */}
+          {(polygonPoints.length === 0 || drawingPolygon) && !displayingUploadedGeoJSON ? (
+            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg border border-gray-200 z-10 p-3 max-w-xs">
+              {polygonPoints.length === 0 ? (
+                <>
+                  <p className="text-sm text-gray-600">Click on the map to start drawing a polygon</p>
+                  <p className="text-xs text-gray-400 mt-1">Maximum area: {MAX_AREA_HECTARES.toLocaleString()} hectares</p>
+                  {areaError && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-xs text-red-600 font-medium">{areaError}</p>
+                    </div>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setShowManualInput(!showManualInput)}
+                    className="mt-2 text-xs text-[#007A49] hover:underline"
+                  >
+                    {showManualInput ? 'Hide' : 'Or enter coordinates manually'}
+                  </button>
+                  {showManualInput && (
+                    <div className="mt-3 pt-3 border-t border-gray-100">
+                      <div className="space-y-3">
+                        <div className="grid grid-cols-2 gap-3">
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Latitude</label>
+                            <input
+                              type="text"
+                              name="latitude"
+                              value={manualCoords.latitude}
+                              onChange={handleCoordChange}
+                              placeholder="0"
+                              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              style={{ color: '#262626' }}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-xs font-medium text-gray-700 mb-1">Longitude</label>
+                            <input
+                              type="text"
+                              name="longitude"
+                              value={manualCoords.longitude}
+                              onChange={handleCoordChange}
+                              placeholder="0"
+                              className="w-full px-2 py-1.5 text-xs border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                              style={{ color: '#262626' }}
+                            />
+                          </div>
+                        </div>
+                        <button
+                          onClick={handleAddPolygonPoint}
+                          type="button"
+                          disabled={manualCoords.latitude === '' || manualCoords.longitude === ''}
+                          className={`w-full border-none text-white px-4 py-2 rounded text-sm font-medium transition-all ${
+                            manualCoords.latitude === '' || manualCoords.longitude === ''
+                              ? 'bg-gray-400 cursor-not-allowed'
+                              : 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer'
+                          }`}
+                        >
+                          Add Point
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 bg-yellow-500 rounded-full animate-pulse"></div>
+                      <span className="text-sm font-medium text-gray-900">Drawing Polygon</span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={resetPolygon}
+                      className="text-gray-400 hover:text-gray-600 p-1"
+                      title="Reset"
+                    >
+                      <RotateCcw className="h-4 w-4" />
+                    </button>
+                  </div>
+                  <div className="text-xs text-gray-600 space-y-1">
+                    <p>Points added: <span className="font-medium text-green-600">{polygonPoints.length}</span></p>
+                    {polygonPoints.length < 3 ? (
+                      <p className="text-gray-500">Add {3 - polygonPoints.length} more point{3 - polygonPoints.length > 1 ? 's' : ''} to close</p>
+                    ) : (
+                      <p className="text-green-600 font-medium">Click on the first point (red) to close the polygon</p>
+                    )}
+                  </div>
+                  {areaError && (
+                    <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded-md">
+                      <p className="text-xs text-red-600 font-medium">{areaError}</p>
+                      <p className="text-xs text-red-500 mt-1">Please draw a smaller area or remove some points.</p>
+                    </div>
+                  )}
+                </>
+              )}
             </div>
-          </div>
-        )}
-      </ControlPanel>
+          ) : polygonPoints.length > 0 && !drawingPolygon && !displayingUploadedGeoJSON ? (
+            /* Polygon completed */
+            <div className="absolute top-4 left-4 bg-white rounded-lg shadow-lg border border-gray-200 z-10 p-3">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                  <span className="text-sm font-medium text-gray-900">Polygon Selected</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={resetPolygon}
+                  className="text-gray-400 hover:text-gray-600 p-1"
+                  title="Clear selection"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="text-xs text-gray-600">
+                <p>{polygonPoints.length} vertices</p>
+              </div>
+            </div>
+          ) : null}
+        </>
+      )}
 
       {/* Status Indicator */}
       {

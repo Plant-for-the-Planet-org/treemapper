@@ -52,6 +52,7 @@ const UserAvatar = ({ user, index }) => {
         src={imageUrl}
         alt={`${user.name}'s avatar`}
         className="w-full h-full object-cover"
+        referrerPolicy="no-referrer"
         onError={(e) => {
           e.target.src = `https://avatar.iran.liara.run/public/${(index % 50) + 1}`;
         }}

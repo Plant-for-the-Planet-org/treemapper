@@ -937,7 +937,7 @@ const TreeCard = ({ tree, onUpdate }) => {
           {tree.image && (
             <div className="mb-3 relative group">
               <img
-                src={`https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production/tree/${tree.image}`}
+                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${tree.image}`}
                 alt={`Tree ${tree.tag || tree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
@@ -1467,7 +1467,7 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2 flex-1">
                       <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        {intervention.user && intervention.user.image ? <img src={`${intervention.user.image}`} className="h-full w-full rounded-full" /> : <User className="h-3 w-3 text-gray-600" />
+                        {intervention.user && intervention.user.image ? <img src={`${intervention.user.image}`} className="h-full w-full rounded-full" referrerPolicy="no-referrer" /> : <User className="h-3 w-3 text-gray-600" />
                         }
                       </div>
                       <span className="text-sm text-gray-900">{intervention.user && intervention.user.name ? intervention.user.name : 'Update Owner'}</span>

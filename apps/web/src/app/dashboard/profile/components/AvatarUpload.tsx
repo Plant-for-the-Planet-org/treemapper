@@ -11,6 +11,7 @@ export const AvatarUpload = ({ profile, onAvatarChange, isUploading, generateAni
             src={avatarSrc}
             alt="Profile"
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+            referrerPolicy="no-referrer"
             onError={(e) => {
               e.target.src = generateAnimalAvatar(profile.email || 'fallback');
             }}

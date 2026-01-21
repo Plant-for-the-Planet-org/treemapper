@@ -387,7 +387,7 @@ const Badge = ({ children, variant = 'default', className = '' }: any) => {
 const Avatar = ({ src, alt, fallback, className = '' }: any) => (
   <div className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className}`}>
     {src ? (
-      <img src={src} alt={alt} className="aspect-square h-full w-full" />
+      <img src={src} alt={alt} className="aspect-square h-full w-full" referrerPolicy="no-referrer" />
     ) : (
       <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-600 text-sm font-medium">
         {fallback}

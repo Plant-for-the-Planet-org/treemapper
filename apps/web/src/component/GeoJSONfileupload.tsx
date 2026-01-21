@@ -2,548 +2,510 @@
 
 import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
-import { Upload, FileText, CheckCircle, XCircle, AlertTriangle, Loader2, MapPin, Info } from "lucide-react";
+import { Upload, CheckCircle, XCircle, Loader2 } from "lucide-react";
+import * as turf from "@turf/turf";
+import * as tj from "@mapbox/togeojson";
 
-// Mock dependencies - replace with your actual imports
-const tj = {
-  kml: (dom: any) => ({ type: "FeatureCollection", features: [] })
-};
-const gjv = {
-  isGeoJSONObject: (obj: any) => true,
-  isFeatureCollection: (obj: any) => true
-};
-const flatten = (geoJson: any) => geoJson;
-const turf = {
-  area: (geoJson: any) => 10000,
-  centroid: (geoJson: any) => ({ geometry: { coordinates: [0, 0] } })
-};
-
-type AllowedGeometryTypes = 'point' | 'polygon' | 'both';
+// Constants
+const MAX_AREA_HECTARES = 25000;
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface GeoJSONUploadProps {
-    onGeoJSONChange: (geoJson: any | null) => void;
-    maxAreaHa?: number;
-    allowedGeometryTypes?: AllowedGeometryTypes;
-    className?: string;
+  onGeoJSONChange: (geoJson: any | null) => void;
+  className?: string;
 }
 
 interface UploadState {
-  status: 'idle' | 'uploading' | 'success' | 'error';
+  status: "idle" | "uploading" | "success" | "error";
   message: string;
   fileName?: string;
   area?: number;
-  coordinates?: [number, number];
+  geometryType?: string;
 }
 
 export default function GeoJSONUpload({
-    onGeoJSONChange,
-    maxAreaHa = 1000,
-    allowedGeometryTypes = 'polygon',
-    className = ""
+  onGeoJSONChange,
+  className = "",
 }: GeoJSONUploadProps) {
-    const [uploadState, setUploadState] = useState<UploadState>({
-      status: 'idle',
-      message: ''
-    });
-    const [geoJson, setGeoJson] = useState<any | null>(null);
+  const [uploadState, setUploadState] = useState<UploadState>({
+    status: "idle",
+    message: "",
+  });
 
-    const resetUploadState = () => {
-        setUploadState({ status: 'idle', message: '' });
-        setGeoJson(null);
-        onGeoJSONChange(null);
-    };
+  const resetUploadState = () => {
+    setUploadState({ status: "idle", message: "" });
+    onGeoJSONChange(null);
+  };
 
-    const onDrop = useCallback((acceptedFiles: File[]) => {
-        if (acceptedFiles.length === 0) return;
+  // Validate that the geometry is a Polygon or MultiPolygon
+  const validateGeometryType = (
+    geoJson: any
+  ): { valid: boolean; type: string | null; error?: string } => {
+    let geometryType: string | null = null;
 
-        const file = acceptedFiles[0];
-        const fileType = file.name.substring(
-            file.name.lastIndexOf(".") + 1,
-            file.name.length
-        ).toLowerCase();
+    // Handle different GeoJSON structures
+    if (geoJson.type === "FeatureCollection" && geoJson.features?.length > 0) {
+      const types = new Set<string>();
+      for (const feature of geoJson.features) {
+        if (feature.geometry?.type) {
+          types.add(feature.geometry.type);
+        }
+      }
 
-        setUploadState({
-            status: 'uploading',
-            message: 'Processing file...',
-            fileName: file.name
-        });
+      if (types.size === 0) {
+        return { valid: false, type: null, error: "No valid geometries found in the file." };
+      }
 
-        const reader = new FileReader();
-        reader.onabort = () => {
-            setUploadState({
-                status: 'error',
-                message: 'File reading was aborted',
-                fileName: file.name
-            });
+      if (types.size > 1) {
+        // Check if it's just Polygon and MultiPolygon mix (allowed)
+        const allowedTypes = new Set(["Polygon", "MultiPolygon"]);
+        const hasOnlyAllowed = [...types].every((t) => allowedTypes.has(t));
+        if (!hasOnlyAllowed) {
+          return {
+            valid: false,
+            type: null,
+            error: `Mixed geometry types found (${[...types].join(", ")}). Only Polygon and MultiPolygon are allowed.`,
+          };
+        }
+      }
+
+      geometryType = [...types][0];
+    } else if (geoJson.type === "Feature" && geoJson.geometry?.type) {
+      geometryType = geoJson.geometry.type;
+    } else if (geoJson.type === "Polygon" || geoJson.type === "MultiPolygon") {
+      geometryType = geoJson.type;
+    }
+
+    if (!geometryType) {
+      return { valid: false, type: null, error: "Could not determine geometry type." };
+    }
+
+    // Only allow Polygon and MultiPolygon
+    if (geometryType !== "Polygon" && geometryType !== "MultiPolygon") {
+      const typeMessage =
+        geometryType === "Point"
+          ? "Point geometries are not supported."
+          : geometryType === "LineString"
+            ? "LineString geometries are not supported."
+            : `${geometryType} geometries are not supported.`;
+
+      return {
+        valid: false,
+        type: geometryType,
+        error: `${typeMessage} Only Polygon and MultiPolygon are allowed.`,
+      };
+    }
+
+    return { valid: true, type: geometryType };
+  };
+
+  // Calculate total area of all polygons
+  const calculateTotalArea = (geoJson: any): number => {
+    try {
+      const areaInSquareMeters = turf.area(geoJson);
+      return areaInSquareMeters / 10000; // Convert to hectares
+    } catch (error) {
+      console.error("Error calculating area:", error);
+      return 0;
+    }
+  };
+
+  // Normalize GeoJSON to FeatureCollection with single feature
+  const normalizeToFeatureCollection = (geoJson: any): any => {
+    // Already a FeatureCollection
+    if (geoJson.type === "FeatureCollection") {
+      // If multiple features, merge them into a single MultiPolygon
+      if (geoJson.features.length > 1) {
+        const polygons: any[] = [];
+
+        for (const feature of geoJson.features) {
+          if (feature.geometry.type === "Polygon") {
+            polygons.push(feature.geometry.coordinates);
+          } else if (feature.geometry.type === "MultiPolygon") {
+            polygons.push(...feature.geometry.coordinates);
+          }
+        }
+
+        return {
+          type: "FeatureCollection",
+          features: [
+            {
+              type: "Feature",
+              properties: {},
+              geometry: {
+                type: "MultiPolygon",
+                coordinates: polygons,
+              },
+            },
+          ],
         };
-        
-        reader.onerror = () => {
-            setUploadState({
-                status: 'error',
-                message: 'File reading failed',
-                fileName: file.name
-            });
-        };
+      }
+      return geoJson;
+    }
 
-        if (fileType === "kml") {
-            reader.readAsText(file);
-            reader.onload = (event: any) => {
-                try {
-                    const dom = new DOMParser().parseFromString(
-                        event.target.result,
-                        "text/xml"
-                    );
-                    const geo = tj.kml(dom);
-                    normalizeGeoJson(geo, file.name);
-                } catch (error) {
-                    console.error("Error parsing KML:", error);
-                    setUploadState({
-                        status: 'error',
-                        message: 'Invalid KML file format',
-                        fileName: file.name
-                    });
-                }
-            };
-        } else if (fileType === "geojson" || fileType === "json") {
-            reader.readAsText(file);
-            reader.onload = (event: any) => {
-                try {
-                    const geo = JSON.parse(event.target.result);
-                    normalizeGeoJson(geo, file.name);
-                } catch (error) {
-                    console.error("Error parsing GeoJSON:", error);
-                    setUploadState({
-                        status: 'error',
-                        message: 'Invalid JSON format',
-                        fileName: file.name
-                    });
-                }
-            };
-        } else {
-            setUploadState({
-                status: 'error',
-                message: 'Unsupported file format. Please use KML or GeoJSON files.',
-                fileName: file.name
-            });
-        }
-    }, [maxAreaHa, allowedGeometryTypes]);
+    // Single Feature
+    if (geoJson.type === "Feature") {
+      return {
+        type: "FeatureCollection",
+        features: [geoJson],
+      };
+    }
 
-    const { getRootProps, getInputProps, isDragActive, isDragReject } = useDropzone({
-        accept: {
-            "application/vnd.google-earth.kml+xml": [".kml"],
-            "application/vnd.geo+json": [".geojson"],
-            "application/json": [".json"]
-        },
-        onDrop,
-        multiple: false,
-        maxSize: 10 * 1024 * 1024, // 10MB
-        onDropRejected: (rejectedFiles) => {
-            const rejection = rejectedFiles[0];
-            if (rejection.errors.some(error => error.code === 'file-too-large')) {
-                setUploadState({
-                    status: 'error',
-                    message: 'File size must be less than 10MB',
-                    fileName: rejection.file.name
-                });
-            } else {
-                setUploadState({
-                    status: 'error',
-                    message: 'File type not supported',
-                    fileName: rejection.file.name
-                });
-            }
-        }
+    // Raw Geometry (Polygon or MultiPolygon)
+    if (geoJson.type === "Polygon" || geoJson.type === "MultiPolygon") {
+      return {
+        type: "FeatureCollection",
+        features: [
+          {
+            type: "Feature",
+            properties: {},
+            geometry: geoJson,
+          },
+        ],
+      };
+    }
+
+    return null;
+  };
+
+  const processGeoJSON = (geoJson: any, fileName: string) => {
+    // Validate geometry type
+    const validation = validateGeometryType(geoJson);
+    if (!validation.valid) {
+      setUploadState({
+        status: "error",
+        message: validation.error || "Invalid geometry type.",
+        fileName,
+      });
+      return;
+    }
+
+    // Normalize to FeatureCollection
+    const normalized = normalizeToFeatureCollection(geoJson);
+    if (!normalized) {
+      setUploadState({
+        status: "error",
+        message: "Could not process the file structure.",
+        fileName,
+      });
+      return;
+    }
+
+    // Calculate and validate area
+    const areaInHectares = calculateTotalArea(normalized);
+
+    if (areaInHectares > MAX_AREA_HECTARES) {
+      setUploadState({
+        status: "error",
+        message: `Area exceeds maximum limit of ${MAX_AREA_HECTARES.toLocaleString()} hectares. Current area: ${areaInHectares.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`,
+        fileName,
+        area: Math.round(areaInHectares * 100) / 100,
+      });
+      return;
+    }
+
+    // Success
+    const roundedArea = Math.round(areaInHectares * 100) / 100;
+    setUploadState({
+      status: "success",
+      message: `File processed successfully.`,
+      fileName,
+      area: roundedArea,
+      geometryType: validation.type || undefined,
+    });
+    onGeoJSONChange(normalized);
+  };
+
+  const onDrop = useCallback((acceptedFiles: File[]) => {
+    if (acceptedFiles.length === 0) return;
+
+    const file = acceptedFiles[0];
+    const fileExtension = file.name
+      .substring(file.name.lastIndexOf(".") + 1)
+      .toLowerCase();
+
+    setUploadState({
+      status: "uploading",
+      message: "Processing file...",
+      fileName: file.name,
     });
 
-    const getGeometryTypes = (geoJson: any): string[] => {
-        if (!geoJson.features || !Array.isArray(geoJson.features)) {
-            return [];
-        }
-        
-        const types = new Set<string>();
-        geoJson.features.forEach((feature: any) => {
-            if (feature.geometry && feature.geometry.type) {
-                types.add(feature.geometry.type);
-            }
-        });
-        
-        return Array.from(types);
+    const reader = new FileReader();
+
+    reader.onabort = () => {
+      setUploadState({
+        status: "error",
+        message: "File reading was aborted.",
+        fileName: file.name,
+      });
     };
 
-    const getAllowedGeometryTypesText = (): string => {
-        switch (allowedGeometryTypes) {
-            case 'point':
-                return 'points';
-            case 'polygon':
-                return 'polygons and multipolygons';
-            case 'both':
-                return 'points, polygons, and multipolygons';
-            default:
-                return 'supported geometries';
-        }
+    reader.onerror = () => {
+      setUploadState({
+        status: "error",
+        message: "File reading failed.",
+        fileName: file.name,
+      });
     };
 
-    const normalizeGeoJson = (geoJson: any, fileName: string) => {
-        
-        if (!gjv.isGeoJSONObject(geoJson) || !geoJson.features?.length) {
+    reader.onload = (event: ProgressEvent<FileReader>) => {
+      try {
+        const content = event.target?.result as string;
+
+        if (fileExtension === "kml") {
+          // Parse KML
+          const dom = new DOMParser().parseFromString(content, "text/xml");
+
+          // Check for parsing errors
+          const parseError = dom.querySelector("parsererror");
+          if (parseError) {
             setUploadState({
-                status: 'error',
-                message: 'Invalid file format. No valid features found.',
-                fileName
+              status: "error",
+              message: "Invalid KML file format.",
+              fileName: file.name,
             });
             return;
+          }
+
+          const geoJson = tj.kml(dom);
+          processGeoJSON(geoJson, file.name);
+        } else if (fileExtension === "geojson" || fileExtension === "json") {
+          // Parse GeoJSON
+          const geoJson = JSON.parse(content);
+          processGeoJSON(geoJson, file.name);
+        } else {
+          setUploadState({
+            status: "error",
+            message: "Unsupported file format. Please use .kml, .geojson, or .json files.",
+            fileName: file.name,
+          });
         }
-
-        try {
-            const geometryTypes = getGeometryTypes(geoJson);
-            // Check for mixed geometry types
-            if (geometryTypes.length > 1) {
-                setUploadState({
-                    status: 'error',
-                    message: 'Mixed geometry types found. Please upload a file with only one geometry type.',
-                    fileName
-                });
-                return;
-            }
-
-            const geometryType = geometryTypes[0];
-            
-            // Validate allowed geometry types
-            if (allowedGeometryTypes === 'point' && geometryType !== 'Point') {
-                setUploadState({
-                    status: 'error',
-                    message: 'Only point geometries are allowed.',
-                    fileName
-                });
-                return;
-            }
-
-            if (allowedGeometryTypes === 'polygon' && !['Polygon', 'MultiPolygon', 'LineString'].includes(geometryType)) {
-                setUploadState({
-                    status: 'error',
-                    message: 'Only polygon and multipolygon geometries are allowed.',
-                    fileName
-                });
-                return;
-            }
-
-            // Handle Point geometries
-            if (geometryType === 'Point') {
-                const pointFeature = geoJson.features.find((feature: any) => feature.geometry?.type === 'Point');
-                
-                if (!pointFeature) {
-                    setUploadState({
-                        status: 'error',
-                        message: 'No valid point found in the file',
-                        fileName
-                    });
-                    return;
-                }
-
-                const featureCollection = {
-                    type: "FeatureCollection",
-                    features: [pointFeature],
-                };
-
-                const [longitude, latitude] = pointFeature.geometry.coordinates;
-                
-                setGeoJson(featureCollection);
-                setUploadState({
-                    status: 'success',
-                    message: `Point processed successfully.`,
-                    fileName,
-                    coordinates: [longitude, latitude]
-                });
-                onGeoJSONChange(featureCollection);
-                return;
-            }
-
-            // Handle Polygon geometries (existing logic)
-            const convertLineStringToPolygon = (geoJson: any) => {
-                const convertedGeoJSON = JSON.parse(JSON.stringify(geoJson));
-
-                convertedGeoJSON.features = convertedGeoJSON.features.map((feature: any) => {
-                    if (feature.geometry?.type === "LineString") {
-                        const coordinates = feature.geometry.coordinates;
-
-                        if (
-                            coordinates.length > 0 &&
-                            (coordinates[0][0] !== coordinates[coordinates.length - 1][0] ||
-                                coordinates[0][1] !== coordinates[coordinates.length - 1][1])
-                        ) {
-                            coordinates.push(coordinates[0]);
-                        }
-
-                        feature.geometry.type = "Polygon";
-                        feature.geometry.coordinates = [coordinates];
-                    }
-                    return feature;
-                });
-
-                return convertedGeoJSON;
-            };
-
-            const flattened = flatten(geoJson);
-            const geoJsonWithPolygons = convertLineStringToPolygon(flattened);
-
-            const polygons = geoJsonWithPolygons.features.filter(
-                (feature: any) => feature.geometry?.type === "Polygon" || feature.geometry?.type === "MultiPolygon"
-            );
-
-            if (polygons.length > 0) {
-                const featureCollection = {
-                    type: "FeatureCollection",
-                    features: [polygons[0]],
-                };
-
-                if (gjv.isFeatureCollection(featureCollection)) {
-                    const area = turf.area(featureCollection);
-                    const areaInHa = area / 10000;
-
-                    if (areaInHa > maxAreaHa) {
-                        const roundedArea = Math.round(areaInHa * 100) / 100;
-                        setUploadState({
-                            status: 'error',
-                            message: `Area is too large (${roundedArea} ha). Maximum allowed: ${maxAreaHa} ha`,
-                            fileName,
-                            area: roundedArea
-                        });
-                        return;
-                    }
-
-                    const roundedArea = Math.round(areaInHa * 100) / 100;
-                    setGeoJson(featureCollection);
-                    setUploadState({
-                        status: 'success',
-                        message: `File processed successfully. Area: ${roundedArea} ha`,
-                        fileName,
-                        area: roundedArea
-                    });
-                    onGeoJSONChange(featureCollection);
-                } else {
-                    setUploadState({
-                        status: 'error',
-                        message: `Invalid geometry format. Only ${getAllowedGeometryTypesText()} are supported.`,
-                        fileName
-                    });
-                }
-            } else {
-                setUploadState({
-                    status: 'error',
-                    message: 'No valid polygons found in the file',
-                    fileName
-                });
-            }
-        } catch (error) {
-            console.error("Error processing GeoJSON:", error);
-            setUploadState({
-                status: 'error',
-                message: 'An error occurred while processing the file',
-                fileName
-            });
-        }
+      } catch (error) {
+        console.error("Error processing file:", error);
+        setUploadState({
+          status: "error",
+          message: fileExtension === "kml"
+            ? "Invalid KML file format."
+            : "Invalid JSON format.",
+          fileName: file.name,
+        });
+      }
     };
 
-    const getStatusIcon = () => {
-        switch (uploadState.status) {
-            case 'uploading':
-                return <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />;
-            case 'success':
-                return <CheckCircle className="h-6 w-6 text-green-500" />;
-            case 'error':
-                return <XCircle className="h-6 w-6 text-red-500" />;
-            default:
-                return <Upload className="h-6 w-6 text-gray-400" />;
+    reader.readAsText(file);
+  }, []);
+
+  const { getRootProps, getInputProps, isDragActive, isDragReject } =
+    useDropzone({
+      accept: {
+        "application/vnd.google-earth.kml+xml": [".kml"],
+        "application/geo+json": [".geojson"],
+        "application/json": [".json"],
+      },
+      onDrop,
+      multiple: false,
+      maxSize: MAX_FILE_SIZE,
+      onDropRejected: (rejectedFiles) => {
+        const rejection = rejectedFiles[0];
+        if (rejection.errors.some((error) => error.code === "file-too-large")) {
+          setUploadState({
+            status: "error",
+            message: "File size must be less than 10MB.",
+            fileName: rejection.file.name,
+          });
+        } else {
+          setUploadState({
+            status: "error",
+            message: "File type not supported. Please use .kml, .geojson, or .json files.",
+            fileName: rejection.file.name,
+          });
         }
-    };
+      },
+    });
 
-    const getStatusColor = () => {
-        if (isDragReject) return 'border-red-300 bg-red-50';
-        if (isDragActive) return 'border-green-300 bg-green-50';
-        
-        switch (uploadState.status) {
-            case 'uploading':
-                return 'border-blue-300 bg-blue-50';
-            case 'success':
-                return 'border-green-300 bg-green-50';
-            case 'error':
-                return 'border-red-300 bg-red-50';
-            default:
-                return 'border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100';
-        }
-    };
+  const getStatusIcon = () => {
+    switch (uploadState.status) {
+      case "uploading":
+        return <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />;
+      case "success":
+        return <CheckCircle className="h-6 w-6 text-green-500" />;
+      case "error":
+        return <XCircle className="h-6 w-6 text-red-500" />;
+      default:
+        return <Upload className="h-6 w-6 text-gray-400" />;
+    }
+  };
 
-    const getUploadHelpText = () => {
-        const baseText = "Supported formats: KML, GeoJSON (max 10MB)";
-        const geometryText = `Accepts: ${getAllowedGeometryTypesText()}`;
-        return `${baseText} • ${geometryText}`;
-    };
+  const getStatusColor = () => {
+    if (isDragReject) return "border-red-300 bg-red-50";
+    if (isDragActive) return "border-green-300 bg-green-50";
 
-    return (
-        <div className={className}>
-            <div className="space-y-4">
-                {/* Upload Area */}
-                <div
-                    {...getRootProps()}
-                    className={`
-                        relative border-2 border-dashed rounded-xl px-8 py-1 text-center cursor-pointer 
-                        transition-all duration-200 ${getStatusColor()}
-                    `}
-                >
-                    <input {...getInputProps()} />
-                    
-                    <div className="space-y-4">
-                        {/* Status Icon */}
-                        <div className="flex justify-center">
-                            {getStatusIcon()}
-                        </div>
+    switch (uploadState.status) {
+      case "uploading":
+        return "border-blue-300 bg-blue-50";
+      case "success":
+        return "border-green-300 bg-green-50";
+      case "error":
+        return "border-red-300 bg-red-50";
+      default:
+        return "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100";
+    }
+  };
 
-                        {/* Main Content */}
-                        <div className="space-y-2">
-                            {uploadState.status === 'idle' && (
-                                <>
-                                    <h3 className="text-md font-semibold text-gray-900">
-                                        {isDragActive ? 'Drop your file here' : 'Choose file or drag & drop'}
-                                    </h3>
-                                    <p className="text-sm text-gray-600">
-                                        {getUploadHelpText()}
-                                    </p>
-                                </>
-                            )}
+  return (
+    <div className={className}>
+      <div className="space-y-4">
+        <div
+          {...getRootProps()}
+          className={`
+            relative border-2 border-dashed rounded-xl px-8 py-4 text-center cursor-pointer
+            transition-all duration-200 ${getStatusColor()}
+          `}
+        >
+          <input {...getInputProps()} />
 
-                            {uploadState.status === 'uploading' && (
-                                <>
-                                    <h3 className="text-lg font-semibold text-blue-900">
-                                        Processing your file...
-                                    </h3>
-                                    {uploadState.fileName && (
-                                        <p className="text-sm text-blue-700">
-                                            {uploadState.fileName}
-                                        </p>
-                                    )}
-                                </>
-                            )}
+          <div className="space-y-3">
+            {/* Status Icon */}
+            <div className="flex justify-center">{getStatusIcon()}</div>
 
-                            {uploadState.status === 'success' && (
-                                <>
-                                    <h3 className="text-md font-semibold text-green-900">
-                                        File uploaded successfully!
-                                    </h3>
-                                    <div className="space-y-1">
-                                        <p className="text-sm text-green-700 font-medium">
-                                            {uploadState.fileName}
-                                        </p>
-                                        {uploadState.area && (
-                                            <p className="text-sm text-green-600">
-                                                Area: {uploadState.area} hectares
-                                            </p>
-                                        )}
-                                        {uploadState.coordinates && (
-                                            <p className="text-sm text-green-600">
-                                                Coordinates: {uploadState.coordinates[1].toFixed(6)}, {uploadState.coordinates[0].toFixed(6)}
-                                            </p>
-                                        )}
-                                    </div>
-                                </>
-                            )}
+            {/* Main Content */}
+            <div className="space-y-2">
+              {uploadState.status === "idle" && (
+                <>
+                  <h3 className="text-md font-semibold text-gray-900">
+                    {isDragActive
+                      ? "Drop your file here"
+                      : "Upload polygon file"}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    Drag & drop or click to select
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Supports: KML, GeoJSON (Polygon/MultiPolygon only, max {MAX_AREA_HECTARES.toLocaleString()} ha)
+                  </p>
+                </>
+              )}
 
-                            {uploadState.status === 'error' && (
-                                <>
-                                    <h3 className="text-md font-semibold text-red-900">
-                                        Upload failed
-                                    </h3>
-                                    <div className="space-y-1">
-                                        {uploadState.fileName && (
-                                            <p className="text-sm text-red-700 font-medium">
-                                                {uploadState.fileName}
-                                            </p>
-                                        )}
-                                        <p className="text-sm text-red-600">
-                                            {uploadState.message}
-                                        </p>
-                                    </div>
-                                </>
-                            )}
-                        </div>
+              {uploadState.status === "uploading" && (
+                <>
+                  <h3 className="text-md font-semibold text-blue-900">
+                    Processing your file...
+                  </h3>
+                  {uploadState.fileName && (
+                    <p className="text-sm text-blue-700">
+                      {uploadState.fileName}
+                    </p>
+                  )}
+                </>
+              )}
 
-                        {/* Action Buttons */}
-                        {uploadState.status !== 'idle' && uploadState.status !== 'uploading' && (
-                            <div className="flex justify-center gap-3 pt-2">
-                                {uploadState.status === 'success' && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            resetUploadState();
-                                        }}
-                                        className="px-4 py-2 text-sm font-medium text-green-700 bg-green-100 rounded-lg hover:bg-green-200 transition-colors"
-                                    >
-                                        Upload Different File
-                                    </button>
-                                )}
-                                
-                                {uploadState.status === 'error' && (
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            resetUploadState();
-                                        }}
-                                        className="px-4 py-2 text-sm font-medium text-red-700 bg-red-100 rounded-lg hover:bg-red-200 transition-colors"
-                                    >
-                                        Try Again
-                                    </button>
-                                )}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Drag Overlay */}
-                    {isDragActive && (
-                        <div className="absolute inset-0 bg-green-500 bg-opacity-10 border-2 border-green-400 border-dashed rounded-xl flex items-center justify-center">
-                            <div className="text-center">
-                                <Upload className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                                <p className="text-md font-semibold text-green-700">
-                                    Drop your file here
-                                </p>
-                            </div>
-                        </div>
+              {uploadState.status === "success" && (
+                <>
+                  <h3 className="text-md font-semibold text-green-900">
+                    File uploaded successfully!
+                  </h3>
+                  <div className="space-y-1">
+                    <p className="text-sm text-green-700 font-medium">
+                      {uploadState.fileName}
+                    </p>
+                    {uploadState.geometryType && (
+                      <p className="text-sm text-green-600">
+                        Type: {uploadState.geometryType}
+                      </p>
                     )}
-                </div>
+                    {uploadState.area !== undefined && (
+                      <p className="text-sm text-green-600">
+                        Area: {uploadState.area.toLocaleString()} hectares
+                      </p>
+                    )}
+                  </div>
+                </>
+              )}
+
+              {uploadState.status === "error" && (
+                <>
+                  <h3 className="text-md font-semibold text-red-900">
+                    Upload failed
+                  </h3>
+                  <div className="space-y-1">
+                    {uploadState.fileName && (
+                      <p className="text-sm text-red-700 font-medium">
+                        {uploadState.fileName}
+                      </p>
+                    )}
+                    <p className="text-sm text-red-600">
+                      {uploadState.message}
+                    </p>
+                  </div>
+                </>
+              )}
             </div>
+
+            {/* Action Buttons */}
+            {uploadState.status !== "idle" &&
+              uploadState.status !== "uploading" && (
+                <div className="flex justify-center gap-3 pt-2">
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      resetUploadState();
+                    }}
+                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
+                      uploadState.status === "success"
+                        ? "text-green-700 bg-green-100 hover:bg-green-200"
+                        : "text-red-700 bg-red-100 hover:bg-red-200"
+                    }`}
+                  >
+                    {uploadState.status === "success"
+                      ? "Upload Different File"
+                      : "Try Again"}
+                  </button>
+                </div>
+              )}
+          </div>
+
+          {/* Drag Overlay */}
+          {isDragActive && (
+            <div className="absolute inset-0 bg-green-500 bg-opacity-10 border-2 border-green-400 border-dashed rounded-xl flex items-center justify-center">
+              <div className="text-center">
+                <Upload className="h-12 w-12 text-green-500 mx-auto mb-2" />
+                <p className="text-md font-semibold text-green-700">
+                  Drop your file here
+                </p>
+              </div>
+            </div>
+          )}
         </div>
-    );
+      </div>
+    </div>
+  );
 }
 
-// Updated utility functions
+// Utility function to calculate area from GeoJSON
 export const calculateFarmArea = (geoJson: any): number => {
-    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
-        return 0;
-    }
-    
-    const feature = geoJson.features[0];
-    if (feature.geometry?.type === 'Point') {
-        return 0; // Points don't have area
-    }
-    
-    const area = turf.area(geoJson);
-    const areaInHa = area / 10000;
-    return Math.round(areaInHa * 100) / 100;
+  if (!geoJson) return 0;
+
+  try {
+    const areaInSquareMeters = turf.area(geoJson);
+    return Math.round((areaInSquareMeters / 10000) * 100) / 100;
+  } catch {
+    return 0;
+  }
 };
 
-export const getLatLonFromGeoJSON = (geoJson: any): { latitude: number; longitude: number } => {
-    if (!geoJson || !geoJson.features || geoJson.features.length === 0) {
-        return { latitude: 0, longitude: 0 };
-    }
-    
-    const feature = geoJson.features[0];
-    
-    // Handle Point geometry directly
-    if (feature.geometry?.type === 'Point') {
-        const [longitude, latitude] = feature.geometry.coordinates;
-        return { latitude, longitude };
-    }
-    
-    // Handle other geometries using centroid
+// Utility function to get center coordinates from GeoJSON
+export const getLatLonFromGeoJSON = (
+  geoJson: any
+): { latitude: number; longitude: number } => {
+  if (!geoJson) {
+    return { latitude: 0, longitude: 0 };
+  }
+
+  try {
     const centroid = turf.centroid(geoJson);
     const [longitude, latitude] = centroid.geometry.coordinates;
     return { latitude, longitude };
+  } catch {
+    return { latitude: 0, longitude: 0 };
+  }
 };

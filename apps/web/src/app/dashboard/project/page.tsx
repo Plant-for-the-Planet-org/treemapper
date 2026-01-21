@@ -20,7 +20,7 @@ interface ValidationErrors {
     aboutProject?: string;
 }
 
-const URL_REGEX = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
+const URL_REGEX = /^https?:\/\/([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/i;
 
 const validateProjectName = (name: string): string | undefined => {
     if (!name || name.trim() === '') {
