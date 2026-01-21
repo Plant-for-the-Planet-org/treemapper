@@ -379,7 +379,7 @@ export class UsersService {
             throw new Error(`User with id ${id} not found`);
         }
 
-        const oldValues = { ...currentUser[0] };
+        const oldValues: any = { ...currentUser[0] };
         // Remove fields that shouldn't be in audit log
         delete oldValues.id;
         delete oldValues.createdAt;
@@ -397,7 +397,7 @@ export class UsersService {
             throw new Error(`User with id ${id} not found`);
         }
 
-        const newValues = { ...result[0] };
+        const newValues: any = { ...result[0] };
         // Remove fields that shouldn't be in audit log
         delete newValues.id;
         delete newValues.createdAt;

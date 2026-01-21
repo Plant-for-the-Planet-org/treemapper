@@ -55,7 +55,7 @@ import {
   Settings,
   Pen
 } from 'lucide-react';
-import { deleteIntervention, editIntervention, getProjectIntervention } from '@shared-core/fetchApi/api.fetch';
+import { deleteIntervention, editIntervention, getProjectIntervention, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
 import { spec } from 'node:test/reporters';
@@ -63,6 +63,7 @@ import { useRouter } from 'next/navigation';
 import MapDisplayComponent from './component/InterventionDisplayMap';
 import EditSpeciesModal from './component/SpeciesEditModal';
 import OwenrshipTransfer from './component/OwnershipTransferModal';
+import EditInterventionModal from './component/EditInterventionModal';
 import UnifiedMapComponent from '@/component/MapSelect';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { toast } from 'react-toastify';
@@ -1225,12 +1226,13 @@ const HeaderWithFilters = ({
 };
 
 // Intervention Details Component
-const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, selectedProject, userDetails, selectedProjectDetails }) => {
+const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, selectedProject, userDetails, selectedProjectDetails, sites = [] }) => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showSpeciesDialog, setShowSpeciesDialog] = useState(false);
   const [showOwnerDialog, setShowOwnerDialog] = useState(false);
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
     overview: true,
     species: true,
@@ -1366,6 +1368,17 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
               <Badge variant={intervention.captureStatus === 'complete' ? 'success' : 'warning'}>
                 {intervention.captureStatus}
               </Badge>
+              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin' || intervention.userId === userDetails?.id) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowEditModal(true)}
+                  className="text-gray-700 hover:text-gray-900"
+                >
+                  <Pen className="h-4 w-4 mr-1" />
+                  Edit
+                </Button>
+              )}
               {selectedProjectDetails.userRole==='owner' && <Button
                 variant="ghost"
                 size="sm"
@@ -1744,6 +1757,20 @@ const InterventionDetails = ({ intervention, onUpdate, onDelete, accessToken, se
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Intervention Modal */}
+      <EditInterventionModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        intervention={intervention}
+        accessToken={accessToken}
+        selectedProject={selectedProject}
+        sites={sites}
+        onSaveComplete={(updatedIntervention) => {
+          onUpdate?.(intervention.uid, updatedIntervention);
+          setShowEditModal(false);
+        }}
+      />
     </div>
   );
 };
@@ -1878,10 +1905,24 @@ const TreeMapperUI = () => {
     }
   };
 
+  // Fetch sites for the project
+  const fetchSites = async () => {
+    if (!selectedProject?.uid || !accessToken) return;
+    try {
+      const response = await getUserProjectSites(accessToken, selectedProject.uid);
+      if (response && response.statusCode === 200) {
+        setSites(response.data || []);
+      }
+    } catch (error) {
+      console.error('Error fetching sites:', error);
+    }
+  };
+
   // Initial load
   useEffect(() => {
     if (selectedProject) {
       fetchInterventionData();
+      fetchSites();
     }
   }, [selectedProject]);
 
@@ -2179,6 +2220,7 @@ const TreeMapperUI = () => {
                 selectedProject={selectedProject.uid}
                 userDetails={userDetails}
                 selectedProjectDetails={selectedProject}
+                sites={sites}
               />
             </div>
           ) : (

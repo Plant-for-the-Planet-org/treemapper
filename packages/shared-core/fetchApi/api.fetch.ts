@@ -475,6 +475,70 @@ export const editIntervention = async (token: string, param: any, ) => {
   return result;
 };
 
+/**
+ * Comprehensive edit intervention
+ * Handles: dates, description, geometry, species, image, site
+ */
+export const editInterventionComprehensive = async (
+  token: string,
+  interventionUid: string,
+  projectId: string,
+  editData: {
+    interventionStartDate?: string;
+    interventionEndDate?: string;
+    description?: string;
+    geometry?: any;
+    species?: Array<{
+      uid?: string;
+      scientificSpeciesId?: number;
+      isUnknown: boolean;
+      speciesName?: string;
+      commonName?: string;
+      speciesCount: number;
+      action: 'add' | 'update' | 'remove';
+      reassignToSpeciesUid?: string;
+    }>;
+    image?: string | null;
+    siteUid?: string | null;
+  }
+) => {
+  const uri = `${putUrlApi.editIntervention}/${interventionUid}/${projectId}/edit`;
+  const result = await fetchPutCall(uri, editData, token);
+  return result;
+};
+
+/**
+ * Pre-validate intervention edit without making changes
+ * Returns validation errors for frontend preview
+ */
+export const preValidateInterventionEdit = async (
+  token: string,
+  interventionUid: string,
+  projectId: string,
+  editData: {
+    interventionStartDate?: string;
+    interventionEndDate?: string;
+    description?: string;
+    geometry?: any;
+    species?: Array<{
+      uid?: string;
+      scientificSpeciesId?: number;
+      isUnknown: boolean;
+      speciesName?: string;
+      commonName?: string;
+      speciesCount: number;
+      action: 'add' | 'update' | 'remove';
+      reassignToSpeciesUid?: string;
+    }>;
+    image?: string | null;
+    siteUid?: string | null;
+  }
+) => {
+  const uri = `${putUrlApi.editIntervention}/${interventionUid}/${projectId}/edit/validate`;
+  const result = await fetchPostCall(uri, editData, token);
+  return result;
+};
+
 export const exitImpersonationWork = async (token: string) => {
   const uri = `${putUrlApi.impersonateUser}/exit`;
   const result = await fetchPutCall(uri, {}, token);

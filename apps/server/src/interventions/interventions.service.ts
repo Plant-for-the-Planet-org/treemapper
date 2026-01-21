@@ -2302,5 +2302,639 @@ async interventionEdit(
       center: bounds.center,
     };
   }
+
+  // ============================================
+  // COMPREHENSIVE EDIT INTERVENTION METHODS
+  // ============================================
+
+  /**
+   * Validate if user has permission to edit the intervention
+   * Admin/Owner of project can edit any intervention
+   * Original creator can edit their own intervention
+   */
+  async validateEditPermission(
+    interventionData: any,
+    requesterId: number,
+    projectId: number
+  ): Promise<{ allowed: boolean; reason?: string }> {
+    const db = this.drizzleService.db;
+
+    // Check project membership and role
+    const membership = await db
+      .select({
+        projectRole: projectMember.projectRole,
+        status: projectMember.status,
+      })
+      .from(projectMember)
+      .where(
+        and(
+          eq(projectMember.projectId, projectId),
+          eq(projectMember.userId, requesterId),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!membership.length) {
+      return { allowed: false, reason: 'User is not a member of this project' };
+    }
+
+    const isAdminOrOwner = ['admin', 'owner'].includes(membership[0].projectRole);
+    const isCreator = interventionData.userId === requesterId;
+
+    if (isAdminOrOwner || isCreator) {
+      return { allowed: true };
+    }
+
+    return { allowed: false, reason: 'Only admin, owner, or the original creator can edit this intervention' };
+  }
+
+  /**
+   * Validate geometry change - check if all trees remain within the new polygon
+   * Uses PostGIS ST_Within for spatial validation
+   */
+  async validateGeometryChange(
+    tx: any,
+    interventionId: number,
+    newGeometry: any
+  ): Promise<{ valid: boolean; treesOutside: any[] }> {
+    // If geometry is a Point, no tree validation needed (single tree has its own location)
+    if (newGeometry.type === 'Point') {
+      return { valid: true, treesOutside: [] };
+    }
+
+    // For Polygon/MultiPolygon, check all trees are within the new boundary
+    const geometryJson = JSON.stringify(newGeometry);
+
+    const treesOutside = await tx
+      .select({
+        uid: tree.uid,
+        hid: tree.hid,
+        speciesName: interventionSpecies.speciesName,
+        lat: sql<number>`ST_Y(${tree.location}::geometry)`,
+        lng: sql<number>`ST_X(${tree.location}::geometry)`,
+      })
+      .from(tree)
+      .leftJoin(interventionSpecies, eq(tree.interventionSpeciesId, interventionSpecies.id))
+      .where(
+        and(
+          eq(tree.interventionId, interventionId),
+          isNull(tree.deletedAt),
+          sql`${tree.location} IS NOT NULL`,
+          sql`NOT ST_Within(${tree.location}::geometry, ST_SetSRID(ST_GeomFromGeoJSON(${geometryJson}), 4326))`
+        )
+      );
+
+    if (treesOutside.length > 0) {
+      return {
+        valid: false,
+        treesOutside: treesOutside.map(t => ({
+          treeUid: t.uid,
+          treeHid: t.hid,
+          speciesName: t.speciesName || 'Unknown',
+          location: { lat: t.lat, lng: t.lng }
+        }))
+      };
+    }
+
+    return { valid: true, treesOutside: [] };
+  }
+
+  /**
+   * Validate species changes
+   * - For removals: Check if species has trees, return tree list for reassignment
+   * - For count reductions: Ensure new count >= registered tree count
+   */
+  async validateSpeciesChanges(
+    tx: any,
+    interventionId: number,
+    speciesChanges: any[]
+  ): Promise<{ valid: boolean; errors: any[] }> {
+    const errors: any[] = [];
+
+    for (const change of speciesChanges) {
+      if (change.action === 'remove' && change.uid) {
+        // Get species and its tree count
+        const speciesData = await tx
+          .select({
+            id: interventionSpecies.id,
+            uid: interventionSpecies.uid,
+            speciesName: interventionSpecies.speciesName,
+          })
+          .from(interventionSpecies)
+          .where(
+            and(
+              eq(interventionSpecies.uid, change.uid),
+              isNull(interventionSpecies.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (speciesData.length > 0) {
+          const treeData = await this.getTreeCountAndHids(tx, speciesData[0].id);
+
+          if (treeData.count > 0 && !change.reassignToSpeciesUid) {
+            errors.push({
+              code: 'SPECIES_HAS_TREES',
+              message: `Cannot remove species "${speciesData[0].speciesName}" with ${treeData.count} registered trees. Please reassign trees first.`,
+              details: {
+                speciesUid: speciesData[0].uid,
+                speciesName: speciesData[0].speciesName,
+                treeCount: treeData.count,
+                treeHids: treeData.hids
+              }
+            });
+          }
+        }
+      }
+
+      if (change.action === 'update' && change.uid) {
+        // Check if count reduction is valid
+        const speciesData = await tx
+          .select({
+            id: interventionSpecies.id,
+            uid: interventionSpecies.uid,
+            speciesName: interventionSpecies.speciesName,
+            speciesCount: interventionSpecies.speciesCount,
+          })
+          .from(interventionSpecies)
+          .where(
+            and(
+              eq(interventionSpecies.uid, change.uid),
+              isNull(interventionSpecies.deletedAt)
+            )
+          )
+          .limit(1);
+
+        if (speciesData.length > 0) {
+          const treeData = await this.getTreeCountAndHids(tx, speciesData[0].id);
+
+          if (change.speciesCount < treeData.count) {
+            errors.push({
+              code: 'SPECIES_COUNT_TOO_LOW',
+              message: `Species count (${change.speciesCount}) cannot be less than registered tree count (${treeData.count})`,
+              details: {
+                speciesUid: speciesData[0].uid,
+                speciesName: speciesData[0].speciesName,
+                currentTreeCount: treeData.count,
+                requestedCount: change.speciesCount
+              }
+            });
+          }
+        }
+      }
+    }
+
+    return { valid: errors.length === 0, errors };
+  }
+
+  /**
+   * Validate site change - ensure site belongs to the same project
+   */
+  async validateSiteChange(
+    tx: any,
+    projectId: number,
+    newSiteUid: string | null
+  ): Promise<{ valid: boolean; siteId: number | null; error?: string }> {
+    if (newSiteUid === null) {
+      // Removing site assignment is always valid
+      return { valid: true, siteId: null };
+    }
+
+    const siteData = await tx
+      .select({
+        id: site.id,
+        projectId: site.projectId,
+      })
+      .from(site)
+      .where(
+        and(
+          eq(site.uid, newSiteUid),
+          isNull(site.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!siteData.length) {
+      return { valid: false, siteId: null, error: 'Site not found' };
+    }
+
+    if (siteData[0].projectId !== projectId) {
+      return { valid: false, siteId: null, error: 'Site does not belong to this project' };
+    }
+
+    return { valid: true, siteId: siteData[0].id };
+  }
+
+  /**
+   * Pre-validate edit operation without making changes
+   * Returns validation results for frontend preview
+   */
+  async preValidateInterventionEdit(
+    interventionUid: string,
+    editDto: any,
+    requesterId: number,
+    projectId: number
+  ): Promise<any> {
+    const db = this.drizzleService.db;
+    const errors: any[] = [];
+
+    // Get intervention data
+    const interventionData = await db
+      .select()
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.uid, interventionUid),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (!interventionData.length) {
+      return {
+        valid: false,
+        errors: [{ code: 'INTERVENTION_NOT_FOUND', message: 'Intervention not found' }]
+      };
+    }
+
+    // Check permissions
+    const permissionResult = await this.validateEditPermission(
+      interventionData[0],
+      requesterId,
+      projectId
+    );
+
+    if (!permissionResult.allowed) {
+      return {
+        valid: false,
+        errors: [{ code: 'PERMISSION_DENIED', message: permissionResult.reason }]
+      };
+    }
+
+    // Validate date range
+    if (editDto.interventionStartDate && editDto.interventionEndDate) {
+      const startDate = new Date(editDto.interventionStartDate);
+      const endDate = new Date(editDto.interventionEndDate);
+      if (startDate > endDate) {
+        errors.push({
+          code: 'INVALID_DATE_RANGE',
+          message: 'Start date cannot be after end date'
+        });
+      }
+    } else if (editDto.interventionStartDate && interventionData[0].interventionEndDate) {
+      const startDate = new Date(editDto.interventionStartDate);
+      if (startDate > interventionData[0].interventionEndDate) {
+        errors.push({
+          code: 'INVALID_DATE_RANGE',
+          message: 'Start date cannot be after existing end date'
+        });
+      }
+    } else if (editDto.interventionEndDate && interventionData[0].interventionStartDate) {
+      const endDate = new Date(editDto.interventionEndDate);
+      if (endDate < interventionData[0].interventionStartDate) {
+        errors.push({
+          code: 'INVALID_DATE_RANGE',
+          message: 'End date cannot be before existing start date'
+        });
+      }
+    }
+
+    // Validate geometry if changed
+    if (editDto.geometry) {
+      const geometryResult = await this.validateGeometryChange(
+        db,
+        interventionData[0].id,
+        editDto.geometry
+      );
+      if (!geometryResult.valid) {
+        errors.push({
+          code: 'TREES_OUTSIDE_POLYGON',
+          message: `${geometryResult.treesOutside.length} trees would fall outside the new polygon boundary`,
+          details: geometryResult.treesOutside
+        });
+      }
+    }
+
+    // Validate species changes
+    if (editDto.species && editDto.species.length > 0) {
+      const speciesResult = await this.validateSpeciesChanges(
+        db,
+        interventionData[0].id,
+        editDto.species
+      );
+      if (!speciesResult.valid) {
+        errors.push(...speciesResult.errors);
+      }
+    }
+
+    // Validate site change
+    if (editDto.siteUid !== undefined) {
+      const siteResult = await this.validateSiteChange(
+        db,
+        projectId,
+        editDto.siteUid
+      );
+      if (!siteResult.valid) {
+        errors.push({
+          code: 'INVALID_SITE',
+          message: siteResult.error
+        });
+      }
+    }
+
+    return {
+      valid: errors.length === 0,
+      errors
+    };
+  }
+
+  /**
+   * Comprehensive edit intervention method
+   * Handles all editable fields with proper validation and audit logging
+   */
+  async editInterventionComprehensive(
+    interventionUid: string,
+    editDto: any,
+    requesterId: number,
+    projectId: number
+  ): Promise<any> {
+    const db = this.drizzleService.db;
+
+    return await db.transaction(async (tx) => {
+      // 1. Get intervention data
+      const interventionData = await tx
+        .select()
+        .from(intervention)
+        .where(
+          and(
+            eq(intervention.uid, interventionUid),
+            isNull(intervention.deletedAt)
+          )
+        )
+        .limit(1);
+
+      if (!interventionData.length) {
+        throw new NotFoundException('Intervention not found');
+      }
+
+      const currentIntervention = interventionData[0];
+
+      // 2. Check permissions
+      const permissionResult = await this.validateEditPermission(
+        currentIntervention,
+        requesterId,
+        projectId
+      );
+
+      if (!permissionResult.allowed) {
+        throw new ForbiddenException(permissionResult.reason);
+      }
+
+      // 3. Pre-validate all changes
+      const validationResult = await this.preValidateInterventionEdit(
+        interventionUid,
+        editDto,
+        requesterId,
+        projectId
+      );
+
+      if (!validationResult.valid) {
+        throw new BadRequestException({
+          message: 'Validation failed',
+          errors: validationResult.errors
+        });
+      }
+
+      // 4. Store old values for audit
+      const oldValues: any = {};
+      const newValues: any = {};
+      const changedFields: string[] = [];
+
+      // 5. Prepare update data
+      const updateData: any = {
+        updatedAt: new Date(),
+        editedAt: new Date(),
+      };
+
+      // Handle basic fields
+      if (editDto.interventionStartDate !== undefined) {
+        oldValues.interventionStartDate = currentIntervention.interventionStartDate;
+        newValues.interventionStartDate = editDto.interventionStartDate;
+        updateData.interventionStartDate = new Date(editDto.interventionStartDate);
+        changedFields.push('interventionStartDate');
+      }
+
+      if (editDto.interventionEndDate !== undefined) {
+        oldValues.interventionEndDate = currentIntervention.interventionEndDate;
+        newValues.interventionEndDate = editDto.interventionEndDate;
+        updateData.interventionEndDate = new Date(editDto.interventionEndDate);
+        changedFields.push('interventionEndDate');
+      }
+
+      if (editDto.description !== undefined) {
+        oldValues.description = currentIntervention.description;
+        newValues.description = editDto.description;
+        updateData.description = editDto.description;
+        changedFields.push('description');
+      }
+
+      if (editDto.image !== undefined) {
+        oldValues.image = currentIntervention.image;
+        newValues.image = editDto.image;
+        updateData.image = editDto.image;
+        changedFields.push('image');
+      }
+
+      // Handle geometry change
+      if (editDto.geometry !== undefined) {
+        oldValues.geometry = currentIntervention.originalGeometry;
+        newValues.geometry = editDto.geometry;
+
+        const geometryJson = JSON.stringify(editDto.geometry);
+        updateData.location = sql`ST_SetSRID(ST_GeomFromGeoJSON(${geometryJson}), 4326)`;
+        updateData.originalGeometry = editDto.geometry;
+        changedFields.push('geometry');
+      }
+
+      // Handle site change
+      if (editDto.siteUid !== undefined) {
+        const siteResult = await this.validateSiteChange(tx, projectId, editDto.siteUid);
+        oldValues.siteId = currentIntervention.siteId;
+        newValues.siteId = siteResult.siteId;
+        updateData.siteId = siteResult.siteId;
+        changedFields.push('siteId');
+      }
+
+      // 6. Update intervention
+      await tx
+        .update(intervention)
+        .set(updateData)
+        .where(eq(intervention.id, currentIntervention.id));
+
+      // 7. Handle species changes
+      let totalTreeCount = currentIntervention.totalTreeCount || 0;
+
+      if (editDto.species && editDto.species.length > 0) {
+        oldValues.species = [];
+        newValues.species = [];
+
+        for (const speciesChange of editDto.species) {
+          if (speciesChange.action === 'add') {
+            // Add new species
+            const newSpeciesUid = generateUid('invspc');
+            await tx.insert(interventionSpecies).values({
+              uid: newSpeciesUid,
+              interventionId: currentIntervention.id,
+              scientificSpeciesId: speciesChange.scientificSpeciesId || null,
+              isUnknown: speciesChange.isUnknown,
+              speciesName: speciesChange.speciesName,
+              commonName: speciesChange.commonName,
+              speciesCount: speciesChange.speciesCount,
+            });
+
+            newValues.species.push({
+              action: 'add',
+              speciesName: speciesChange.speciesName,
+              speciesCount: speciesChange.speciesCount
+            });
+            changedFields.push('species');
+          }
+
+          if (speciesChange.action === 'update' && speciesChange.uid) {
+            const existingSpecies = await tx
+              .select()
+              .from(interventionSpecies)
+              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .limit(1);
+
+            if (existingSpecies.length > 0) {
+              oldValues.species.push({
+                uid: speciesChange.uid,
+                speciesCount: existingSpecies[0].speciesCount
+              });
+
+              await tx
+                .update(interventionSpecies)
+                .set({
+                  speciesCount: speciesChange.speciesCount,
+                  scientificSpeciesId: speciesChange.scientificSpeciesId ?? existingSpecies[0].scientificSpeciesId,
+                  speciesName: speciesChange.speciesName ?? existingSpecies[0].speciesName,
+                  commonName: speciesChange.commonName ?? existingSpecies[0].commonName,
+                  updatedAt: new Date(),
+                })
+                .where(eq(interventionSpecies.uid, speciesChange.uid));
+
+              newValues.species.push({
+                action: 'update',
+                uid: speciesChange.uid,
+                speciesCount: speciesChange.speciesCount
+              });
+              changedFields.push('species');
+            }
+          }
+
+          if (speciesChange.action === 'remove' && speciesChange.uid) {
+            const existingSpecies = await tx
+              .select()
+              .from(interventionSpecies)
+              .where(eq(interventionSpecies.uid, speciesChange.uid))
+              .limit(1);
+
+            if (existingSpecies.length > 0) {
+              // If reassignment is specified, update trees first
+              if (speciesChange.reassignToSpeciesUid) {
+                const targetSpecies = await tx
+                  .select({ id: interventionSpecies.id })
+                  .from(interventionSpecies)
+                  .where(eq(interventionSpecies.uid, speciesChange.reassignToSpeciesUid))
+                  .limit(1);
+
+                if (targetSpecies.length > 0) {
+                  await tx
+                    .update(tree)
+                    .set({ interventionSpeciesId: targetSpecies[0].id, updatedAt: new Date() })
+                    .where(eq(tree.interventionSpeciesId, existingSpecies[0].id));
+                }
+              }
+
+              // Soft delete the species
+              await tx
+                .update(interventionSpecies)
+                .set({ deletedAt: new Date() })
+                .where(eq(interventionSpecies.uid, speciesChange.uid));
+
+              oldValues.species.push({
+                action: 'remove',
+                uid: speciesChange.uid,
+                speciesName: existingSpecies[0].speciesName
+              });
+              changedFields.push('species');
+            }
+          }
+        }
+
+        // Recalculate total tree count from species
+        const speciesCounts = await tx
+          .select({
+            totalCount: sql<number>`COALESCE(SUM(${interventionSpecies.speciesCount}), 0)::int`
+          })
+          .from(interventionSpecies)
+          .where(
+            and(
+              eq(interventionSpecies.interventionId, currentIntervention.id),
+              isNull(interventionSpecies.deletedAt)
+            )
+          );
+
+        totalTreeCount = speciesCounts[0]?.totalCount || 0;
+
+        await tx
+          .update(intervention)
+          .set({ totalTreeCount })
+          .where(eq(intervention.id, currentIntervention.id));
+      }
+
+      // 8. Fetch updated intervention
+      const updatedIntervention = await tx
+        .select()
+        .from(intervention)
+        .where(eq(intervention.id, currentIntervention.id))
+        .limit(1);
+
+      // 9. Fetch updated species
+      const updatedSpecies = await tx
+        .select()
+        .from(interventionSpecies)
+        .where(
+          and(
+            eq(interventionSpecies.interventionId, currentIntervention.id),
+            isNull(interventionSpecies.deletedAt)
+          )
+        );
+
+      return {
+        success: true,
+        intervention: {
+          ...updatedIntervention[0],
+          species: updatedSpecies.map(s => ({
+            uid: s.uid,
+            speciesName: s.speciesName,
+            commonName: s.commonName,
+            count: s.speciesCount,
+            scientificSpeciesId: s.scientificSpeciesId,
+            isUnknown: s.isUnknown
+          }))
+        },
+        changedFields,
+        audit: {
+          oldValues,
+          newValues,
+          changedFields
+        }
+      };
+    });
+  }
 }
 

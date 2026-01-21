@@ -194,6 +194,93 @@ export class InterventionsController {
     return data
   }
 
+  /**
+   * Comprehensive edit intervention endpoint
+   * Allows editing: dates, description, geometry, species, image, site
+   */
+  @Put(':interventionId/:id/edit')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async editInterventionComprehensive(
+    @Param('interventionId') interventionUid: string,
+    @Body() editDto: any,
+    @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    const requesterId = user?.id || user?.sub;
+    if (!requesterId) {
+      throw new BadRequestException('User authentication required');
+    }
+
+    try {
+      const result = await this.interventionsService.editInterventionComprehensive(
+        interventionUid,
+        editDto,
+        requesterId,
+        membership.projectId,
+      );
+      return {
+        success: true,
+        statusCode: 200,
+        message: 'Intervention updated successfully',
+        data: result,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      // Handle validation errors
+      if (error.response?.errors) {
+        throw new HttpException(
+          {
+            success: false,
+            statusCode: 400,
+            message: 'Validation failed',
+            errors: error.response.errors,
+          },
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      throw new HttpException(
+        'Failed to update intervention',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * Pre-validate edit operation without making changes
+   * Returns validation results for frontend preview
+   */
+  @Post(':interventionId/:id/edit/validate')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async preValidateEdit(
+    @Param('interventionId') interventionUid: string,
+    @Body() editDto: any,
+    @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    const requesterId = user?.id || user?.sub;
+    if (!requesterId) {
+      throw new BadRequestException('User authentication required');
+    }
+
+    const result = await this.interventionsService.preValidateInterventionEdit(
+      interventionUid,
+      editDto,
+      requesterId,
+      membership.projectId,
+    );
+
+    return {
+      success: true,
+      statusCode: 200,
+      data: result,
+    };
+  }
 
   @Get(':id/map/all')
   @ProjectRoles('owner', 'admin', 'contributor')
