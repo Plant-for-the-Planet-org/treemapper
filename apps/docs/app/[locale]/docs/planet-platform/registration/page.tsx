@@ -19,13 +19,41 @@ export default async function PlanetPlatformRegistrationPage({
     >
       <p>{t('intro')}</p>
 
+      <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
+        <p className="mb-2">
+          {t('registrationLinkText')}{' '}
+          <Link href={t('registrationLinkUrl')} target="_blank" rel="noopener noreferrer" className="text-blue-600 dark:text-blue-400 hover:underline">
+            {t('registrationLink')}
+          </Link>.
+        </p>
+        <p className="mb-0">
+          <strong>{t('loginNote')}</strong>
+        </p>
+      </div>
+
       <h2>{t('stepsTitle')}</h2>
-      <ol>
-        <li>{t('step1')}</li>
-        <li>{t('step2')}</li>
-        <li>{t('step3')}</li>
-        <li>{t('step4')}</li>
-      </ol>
+      
+      <div className="space-y-6 my-6">
+        <div className="border-l-4 border-primary pl-6">
+          <h3 className="mt-0">{t('step1Title')}</h3>
+          <p className="mb-0">{t('step1Description')}</p>
+        </div>
+
+        <div className="border-l-4 border-primary pl-6">
+          <h3 className="mt-0">{t('step2Title')}</h3>
+          <p className="mb-0">{t('step2Description')}</p>
+        </div>
+
+        <div className="border-l-4 border-primary pl-6">
+          <h3 className="mt-0">{t('step3Title')}</h3>
+          <p className="mb-0">{t('step3Description')}</p>
+        </div>
+
+        <div className="border-l-4 border-primary pl-6">
+          <h3 className="mt-0">{t('step4Title')}</h3>
+          <p className="mb-0">{t('step4Description')}</p>
+        </div>
+      </div>
 
       <h2>{t('approvalTitle')}</h2>
       <p>{t('approvalContent')}</p>

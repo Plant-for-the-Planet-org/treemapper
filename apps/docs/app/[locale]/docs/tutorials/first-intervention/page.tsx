@@ -1,5 +1,6 @@
 import { DocPage } from '@/components/doc-page';
-import { PlaceholderImage } from '@/components/placeholder-image';
+import { SignInGallery } from '@/components/sign-in-gallery';
+import Image from 'next/image';
 import Link from 'next/link';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
@@ -37,11 +38,20 @@ export default async function FirstInterventionPage({
         {t('step1Intro1')} <strong>{t('mapTab')}</strong> {t('step1Intro2')}
       </p>
 
-      <PlaceholderImage
-        title={t('mapViewImageTitle')}
-        description={t('mapViewImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887765740-Screenshot_2026-01-20_at_11.12.30___AM.png"
+            alt={t('mapViewImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('mapViewImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('mapViewImageDesc')}</p>
+      </div>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
         <h4 className="mt-0 text-blue-600 dark:text-blue-500">{tUi('alerts.tip')}</h4>
@@ -53,11 +63,20 @@ export default async function FirstInterventionPage({
       <h2>{t('step2Title')}</h2>
       <p>{t('step2Intro1')} <strong>{t('plusButton')}</strong> {t('step2Intro2')}</p>
 
-      <PlaceholderImage
-        title={t('addButtonImageTitle')}
-        description={t('addButtonImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260676-IMG_2476.PNG"
+            alt={t('addButtonImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('addButtonImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('addButtonImageDesc')}</p>
+      </div>
 
       <h2>{t('step3Title')}</h2>
       <p>
@@ -71,11 +90,20 @@ export default async function FirstInterventionPage({
         <li><strong>{t('removal')}</strong>: {t('removalDesc')}</li>
       </ul>
 
-      <PlaceholderImage
-        title={t('interventionTypesImageTitle')}
-        description={t('interventionTypesImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260676-IMG_2477.PNG"
+            alt={t('interventionTypesImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('interventionTypesImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('interventionTypesImageDesc')}</p>
+      </div>
 
       <h2>{t('step4Title')}</h2>
       <p>
@@ -98,10 +126,24 @@ export default async function FirstInterventionPage({
         <li>{t('polygonStep4')}</li>
       </ol>
 
-      <PlaceholderImage
-        title={t('drawingPolygonImageTitle')}
-        description={t('drawingPolygonImageDesc')}
-        aspectRatio="portrait"
+      <SignInGallery
+        images={[
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260675-IMG_2467.PNG',
+            alt: t('pointLocationTitle'),
+            title: t('pointLocationTitle'),
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2479.PNG',
+            alt: 'Trace area by walking',
+            title: 'Trace Area by Walking',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2481.PNG',
+            alt: 'Multi plant location selection',
+            title: 'Multi Plant Location Selection',
+          },
+        ]}
       />
 
       <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-6 my-6">
@@ -122,10 +164,19 @@ export default async function FirstInterventionPage({
         <li>{t('step5Item4')}</li>
       </ol>
 
-      <PlaceholderImage
-        title={t('speciesSelectionImageTitle')}
-        description={t('speciesSelectionImageDesc')}
-        aspectRatio="portrait"
+      <SignInGallery
+        images={[
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2482.PNG',
+            alt: 'Add number of trees',
+            title: 'Add Number of Trees',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2483.PNG',
+            alt: 'Total trees and species selection',
+            title: 'Total Trees and Species Selection',
+          },
+        ]}
       />
 
       <div className="bg-yellow-500/10 border border-yellow-500/20 rounded-lg p-6 my-6">
@@ -150,11 +201,20 @@ export default async function FirstInterventionPage({
         <li>{t('step6Item4')}</li>
       </ol>
 
-      <PlaceholderImage
-        title={t('photoCaptureImageTitle')}
-        description={t('photoCaptureImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768888118192-Screenshot_2026-01-20_at_11.18.22___AM.png"
+            alt={t('photoCaptureImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('photoCaptureImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('photoCaptureImageDesc')}</p>
+      </div>
 
       <h2>{t('step7Title')}</h2>
       <p>
@@ -167,11 +227,20 @@ export default async function FirstInterventionPage({
         <li><strong>{t('otherMeasurements')}</strong>: {t('otherMeasurementsDesc')}</li>
       </ul>
 
-      <PlaceholderImage
-        title={t('measurementsImageTitle')}
-        description={t('measurementsImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768888204429-Screenshot_2026-01-20_at_11.19.46___AM.png"
+            alt={t('measurementsImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('measurementsImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('measurementsImageDesc')}</p>
+      </div>
 
       <h2>{t('step8Title')}</h2>
       <p>
@@ -181,12 +250,6 @@ export default async function FirstInterventionPage({
         <li><strong>{t('tags')}</strong>: {t('tagsDesc')}</li>
         <li><strong>{t('notes')}</strong>: {t('notesDesc')}</li>
       </ul>
-
-      <PlaceholderImage
-        title={t('interventionDetailsImageTitle')}
-        description={t('interventionDetailsImageDesc')}
-        aspectRatio="portrait"
-      />
 
       <h2>{t('sampleTreesTitle')}</h2>
       <p>
@@ -212,6 +275,31 @@ export default async function FirstInterventionPage({
       <p>
         {t('sampleTreesHowTo')}
       </p>
+
+      <SignInGallery
+        images={[
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2484.PNG',
+            alt: 'Asking for sample tree',
+            title: 'Sample Tree Prompt',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260677-IMG_2485.PNG',
+            alt: 'Adding sample tree',
+            title: 'Adding Sample Tree',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260678-IMG_2486.PNG',
+            alt: 'After planting multiple trees',
+            title: 'After Planting Multiple Trees',
+          },
+          {
+            src: 'https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260678-IMG_2487.PNG',
+            alt: 'All sample trees preview',
+            title: 'All Sample Trees Preview',
+          },
+        ]}
+      />
 
       <h2>{t('step9Title')}</h2>
       <p>
@@ -245,11 +333,20 @@ export default async function FirstInterventionPage({
         <li>{t('beforeSavingItem5')} <strong>{t('save')}</strong> {t('beforeSavingItem5Mid')} <strong>{t('register')}</strong></li>
       </ol>
 
-      <PlaceholderImage
-        title={t('reviewScreenImageTitle')}
-        description={t('reviewScreenImageDesc')}
-        aspectRatio="portrait"
-      />
+      <div className="flex flex-col items-center justify-center rounded-lg border-2 border-dashed bg-muted p-4 sm:p-8 text-center my-6">
+        <div className="relative w-full max-w-[391px]">
+          <Image
+            src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768887260678-IMG_2487.PNG"
+            alt={t('reviewScreenImageTitle')}
+            width={391}
+            height={786}
+            className="rounded-lg w-full h-auto"
+            sizes="(max-width: 768px) 100vw, 391px"
+          />
+        </div>
+        <h3 className="font-semibold text-lg mb-2 mt-4">{t('reviewScreenImageTitle')}</h3>
+        <p className="text-sm text-muted-foreground max-w-sm">{t('reviewScreenImageDesc')}</p>
+      </div>
 
       <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-6 my-6">
         <h4 className="mt-0 text-blue-600 dark:text-blue-500">{tUi('alerts.offlineMode')}</h4>

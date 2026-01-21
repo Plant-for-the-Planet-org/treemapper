@@ -19,8 +19,17 @@ export default async function PlanetPlatformIntroductionPage({
     >
       <p>{t('content')}</p>
 
+      <img
+        src="https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/docs/1768889088499-Screenshot_2026-01-20_at_11.26.58___AM.png"
+        alt={t('platformScreenshotTitle')}
+        className="w-full rounded-lg"
+      />
+
       <h2>{t('whatIsTitle')}</h2>
       <p>{t('whatIsContent')}</p>
+
+      <h2>{t('statsTitle')}</h2>
+      <p>{t('statsContent')}</p>
 
       <h2>{t('featuresTitle')}</h2>
       <ul>
