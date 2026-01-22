@@ -25,8 +25,19 @@ RUN yarn install --frozen-lockfile --network-timeout 1000000
 FROM base AS builder
 WORKDIR /app
 
+# Copy package files first for workspace resolution
+COPY package.json yarn.lock ./
+COPY turbo.json ./
+COPY apps/web/package.json ./apps/web/
+COPY apps/server/package.json ./apps/server/
+COPY apps/docs/package.json ./apps/docs/
+COPY packages/shared-core/package.json ./packages/shared-core/
+
 # Copy installed dependencies
 COPY --from=deps /app/node_modules ./node_modules
+
+# Re-run yarn to set up workspace symlinks (uses cached modules, just creates symlinks)
+RUN yarn install --frozen-lockfile --prefer-offline
 
 # Copy source code (excluding mobile)
 COPY . .
