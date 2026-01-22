@@ -176,6 +176,20 @@ export class MobileController {
     return this.appservice.doRemeasurement(updatedDto, req.user.id);
   }
 
+  @Put('/intervention/:treeid/mark-dead')
+  async markTreeAsDead(
+    @Body() body: { statusReason?: string; metadata?: any },
+    @Param('treeid') treeId: string,
+    @Req() req: any,
+  ): Promise<InterventionResponseDto> {
+    return this.appservice.markTreeAsDead(
+      treeId,
+      req.user.id,
+      body.statusReason,
+      body.metadata
+    );
+  }
+
 
   @Post('request/features')
   async requestMigration(

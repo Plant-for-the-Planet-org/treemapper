@@ -34,7 +34,7 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(10)
+    const [retryCount, setRetryCount] = useState(3)
     const realm = useRealm()
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
@@ -79,7 +79,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
 
     const showLogin = () => {
-        setRetryCount(10)
+        setRetryCount(3)
         if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -232,10 +232,10 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 throw new Error("Not able to convert body");
             }
 
-            // if (v3Approved) {
-            //     await handleMobileRemeasurement(el)
-            //     return
-            // }
+            if (v3Approved) {
+                await handleMobileRemeasurement(el)
+                return
+            }
 
             const { success } = await remeasurement(treeID, pData);
             if (success) {
@@ -261,22 +261,133 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
 
     const handleMobileRemeasurement = async (el) => {
+        console.log("=== handleMobileRemeasurement START ===");
         try {
-            const { pData, historyID, treeID } = await getRemeasurementBody(el);
+            const { pData, historyID, treeID } = await getRemeasurementBody(el, v3Approved);
+            
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
 
-            const { success } = await remeasuremenMobile(treeID, {
-                "type": pData.type,
-                "eventDate": pData.eventDate,
-                height: pData.measurements.height,
-                width: pData.measurements.width,
-                "metadata": pData.metadata || {},
-            });
-            if (success) {
-                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
+            // Build request body based on type
+            let requestBody: any = {
+                type: pData.type,
+                metadata: pData.metadata || {},
+            };
+
+            // Add eventDate if provided
+            if (pData.eventDate) {
+                requestBody.eventDate = pData.eventDate;
+            }
+
+            // Handle image upload for v3Approved users
+            let imageFilename: string | undefined = undefined;
+            if (v3Approved && pData.imageFile) {
+                
+                try {
+                    // Get presigned URL for image upload
+                    const presignedResponse = await presingedUrl({
+                        fileName: String(new Date().getTime()),
+                        fileType: 'image/jpg',
+                        folder: 'tree'
+                    });
+                    console.log("Presigned URL Response:", JSON.stringify(presignedResponse, null, 2));
+
+                    if (!presignedResponse.success || presignedResponse.response?.code !== 'success') {
+                        console.warn("⚠️ Failed to get presigned URL, continuing without image");
+                        console.warn("Response:", presignedResponse);
+                    } else {
+                        const signedUrl = presignedResponse.response.data.data.uploadUrl;
+                        const fileName = presignedResponse.response.data.data.fileName;
+                        console.log("Upload URL:", signedUrl);
+                        console.log("File Name:", fileName);
+
+                        // Upload image to presigned URL
+                        const uploadResponse = await fetch(signedUrl, {
+                            method: 'PUT',
+                            body: {
+                                uri: pData.imageFile,
+                                type: 'image/jpg',
+                                name: fileName || 'image.jpg',
+                            },
+                            headers: {
+                                'Content-Type': 'image/jpg',
+                            },
+                        });
+
+                        if (!uploadResponse.ok) {
+                            console.warn(`⚠️ Image upload failed with status: ${uploadResponse.status}, continuing without image`);
+                        } else {
+                            imageFilename = fileName;
+                            console.log("✅ Image uploaded successfully:", imageFilename);
+                        }
+                    }
+                } catch (imageError) {
+                    console.error("❌ Image upload error:", imageError);
+                    console.warn("⚠️ Continuing with remeasurement without image");
+                }
+            }
+
+            // Add type-specific fields
+            if (pData.type === 'measurement') {
+                console.log("--- Building MEASUREMENT request body ---");
+                // For measurement type, include height and width
+                if (pData.measurements?.height !== undefined) {
+                    requestBody.height = pData.measurements.height;
+                    console.log("Added height:", pData.measurements.height);
+                }
+                if (pData.measurements?.width !== undefined) {
+                    requestBody.width = pData.measurements.width;
+                    console.log("Added width:", pData.measurements.width);
+                }
+            } else if (pData.type === 'status') {
+                console.log("--- Building STATUS request body ---");
+                // For status type, include status and statusReason
+                requestBody.status = pData.status;
+                console.log("Added status:", pData.status);
+                if (pData.statusReason) {
+                    requestBody.statusReason = pData.statusReason;
+                    console.log("Added statusReason:", pData.statusReason);
+                }
             } else {
+                console.warn("Unknown type:", pData.type);
+            }
+
+            // Add image filename if uploaded
+            if (imageFilename) {
+                requestBody.imageFilename = imageFilename;
+                console.log("Added imageFilename:", imageFilename);
+            }
+
+            console.log("--- Final Request Body ---");
+            console.log("Request Body:", JSON.stringify(requestBody, null, 2));
+            console.log("Tree ID:", treeID);
+
+            console.log("--- Making API Call ---");
+            const response = await remeasuremenMobile(treeID, requestBody);
+            console.log("--- API Response ---");
+            console.log("Full Response:", JSON.stringify(response, null, 2));
+            console.log("Success:", response?.success);
+            console.log("Status Code:", response?.status);
+            if (response?.response) {
+                console.log("Response Body:", JSON.stringify(response.response, null, 2));
+            }
+            if (!response?.success) {
+                console.error("❌ API Call Failed!");
+                console.error("Status:", response?.status);
+                console.error("Response:", response?.response);
+                console.error("Extra:", response?.extra);
+            }
+            
+            const { success } = response;
+            if (success) {
+                console.log("✅ Remeasurement successful! Updating status...");
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID);
+                console.log("✅ Status updated successfully");
+                console.log("=== handleMobileRemeasurement SUCCESS ===");
+            } else {
+                console.error("❌ API returned success: false");
+                console.error("Response:", response);
                 addNewLog({
                     logType: 'DATA_SYNC',
                     message: 'Remeasurement Tree API response error',
@@ -285,6 +396,10 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 })
             }
         } catch (error) {
+            console.error("=== handleMobileRemeasurement ERROR ===");
+            console.error("Error message:", error?.message);
+            console.error("Error stack:", error?.stack);
+            console.error("Full error:", JSON.stringify(error, null, 2));
             addNewLog({
                 logType: 'DATA_SYNC',
                 message: 'Remeasurement error(Inside Catch)',

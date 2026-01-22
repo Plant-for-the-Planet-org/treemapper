@@ -94,7 +94,9 @@ export const remeasurement = async (tree_id: string, params: any) => {
 
 export const remeasuremenMobile = async (tree_id: string, params: any) => {
   const uri = `${postUrlNewApi.remeasurement}/${tree_id}/remeasure`
-  const result = await fetchPostCall(uri, params);
+  const result = await fetchPutCall(uri, params);
+  console.log("🔵 remeasuremenMobile API Response:");
+  console.log("  Result:", JSON.stringify(result, null, 2));
   return result;
 };
 

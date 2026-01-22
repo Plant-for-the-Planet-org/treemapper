@@ -47,7 +47,7 @@ export const postUrlNewApi = {
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
   interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,
   sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
-  remeasurement: `${baseUrl}/mobile/intervention`,
+  remeasurement: `${mobileBaseUrl}/mobile/intervention`,
   deleteIntervention: `${mobileBaseUrl}/mobile/delete/intervention`,
   acceptEmailInvite: `${mobileBaseUrl}/mobile/invites/accept`,
   acceptBulkInvite: `${mobileBaseUrl}/mobile/invites/accept/link`,

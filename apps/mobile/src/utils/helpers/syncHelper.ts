@@ -49,24 +49,24 @@ export const postDataConvertor = (d: InterventionData[]) => {
                     p2Id: el.sample_trees[0].tree_id,
                 })
             }
-            // if (el.sample_trees[0].status === 'REMEASUREMENT_DATA_UPLOAD') {
-            //     quae.push({
-            //         type: 'remeasurementData',
-            //         priority: 1,
-            //         nextStatus: 'SYNCED',
-            //         p1Id: el.intervention_id,
-            //         p2Id: el.sample_trees[0].tree_id,
-            //     })
-            // }
-            // if (el.sample_trees[0].status === 'REMEASUREMENT_EVENT_UPDATE') {
-            //     quae.push({
-            //         type: 'remeasurementStatus',
-            //         priority: 1,
-            //         nextStatus: 'SYNCED',
-            //         p1Id: el.intervention_id,
-            //         p2Id: el.sample_trees[0].tree_id,
-            //     })
-            // }
+            if (el.sample_trees[0].status === 'REMEASUREMENT_DATA_UPLOAD') {
+                quae.push({
+                    type: 'remeasurementData',
+                    priority: 1,
+                    nextStatus: 'SYNCED',
+                    p1Id: el.intervention_id,
+                    p2Id: el.sample_trees[0].tree_id,
+                })
+            }
+            if (el.sample_trees[0].status === 'REMEASUREMENT_EVENT_UPDATE') {
+                quae.push({
+                    type: 'remeasurementStatus',
+                    priority: 1,
+                    nextStatus: 'SYNCED',
+                    p1Id: el.intervention_id,
+                    p2Id: el.sample_trees[0].tree_id,
+                })
+            }
         } else {
             if (el.hid === '') {
                 quae.push({
@@ -152,7 +152,7 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
                 return null
             }
             const body = {
-                imageFile:updateFilePath(TreeDetails.image_url),
+                imageFile: updateFilePath(TreeDetails.image_url),
                 locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
                 imageId: TreeDetails.image_data.coordinateID,
                 treeServerId: TreeDetails.sloc_id
@@ -186,10 +186,11 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
 }
 
 
-export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> => {
+export const getRemeasurementBody = async (r: QuaeBody, v3Approved: boolean): Promise<BodyPayload> => {
+    console.log("Remeasurement body called", v3Approved)
     if (r.type === 'remeasurementData') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return convertRemeasurementBody(TreeDetails)
+        return convertRemeasurementBody(TreeDetails, v3Approved)
     }
     if (r.type === 'remeasurementStatus') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -369,10 +370,9 @@ const handleAdditionalData = (aData: FormElement[]) => {
     return { privateAdd, publicAdd }
 }
 
-export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
+export const convertRemeasurementBody = async (d: SampleTree, v3Approved: boolean): Promise<BodyPayload> => {
     try {
         const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_DATA_UPLOAD')
-        const base64Image = await getImageAsBase64(updateFilePath(d.image_url))
         const postData: any = {
             "type": "measurement",
             "eventDate": postTimeConvertor(getHistory.eventDate),
@@ -380,7 +380,6 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 "height": d.specie_height,
                 "width": d.specie_diameter,
             },
-            imageFile: `data:image/png;base64,${base64Image}`,
             "metadata": getHistory.additionalDetails.length > 0 ? {
                 "public": {
                     comment: getHistory.additionalDetails[0].value,
@@ -393,6 +392,19 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 }
             } : {}
         }
+        
+        // Handle image file - for v3Approved, use file path; for others, use base64
+        if (d.image_url) {
+            if (v3Approved) {
+                // For v3Approved users, use the file path for presigned URL upload
+                postData.imageFile = updateFilePath(d.image_url);
+            } else {
+                // For non-v3Approved, convert to base64 (legacy support)
+                const base64Image = await getImageAsBase64(updateFilePath(d.image_url));
+                postData.imageFile = `data:image/png;base64,${base64Image}`;
+            }
+        }
+        
         return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id, treeID: d.sloc_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }

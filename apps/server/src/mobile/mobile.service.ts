@@ -52,6 +52,7 @@ export interface RemeasurementDto {
   // Common fields
   eventDate?: string | Date;
   metadata?: any;
+  imageFilename?: string; // Filename of uploaded image for tree record
 }
 
 export interface InterventionResponseItem {
@@ -1691,43 +1692,45 @@ export class MobileService {
   ): Promise<any> {
     try {
       this.validateRemeasurementDto(remeasurementDTO);
+      
+      // Get tree details
+      const treeDetails = await this.drizzleService.db
+        .select()
+        .from(tree)
+        .where(eq(tree.uid, remeasurementDTO.tree))
+        .limit(1);
+
+      if (treeDetails.length === 0) {
+        throw new NotFoundException('Tree not found');
+      }
+
+      const currentTree = treeDetails[0];
+      const recordedAt = remeasurementDTO.eventDate
+        ? new Date(remeasurementDTO.eventDate)
+        : new Date();
+
       // Generate UID for tree record
       const treeRecordUid = generateUid('treerec');
 
-      // // Get tree details
-      // const treeDetails = await this.drizzleService.db
-      //   .select()
-      //   .from(tree)
-      //   .where(eq(tree.uid, remeasurementDTO.tree))
-      //   .limit(1);
+      if (remeasurementDTO.type === 'measurement') {
+        return await this.handleMeasurementRecord(
+          currentTree,
+          remeasurementDTO,
+          membership,
+          treeRecordUid,
+          recordedAt
+        );
+      } else if (remeasurementDTO.type === 'status') {
+        return await this.handleStatusRecord(
+          currentTree,
+          remeasurementDTO,
+          membership,
+          treeRecordUid,
+          recordedAt
+        );
+      }
 
-      // if (treeDetails.length === 0) {
-      //   throw new NotFoundException('Tree not found');
-      // }
-
-      // const currentTree = treeDetails[0];
-      // const recordedAt = remeasurementDTO.eventDate
-      //   ? new Date(remeasurementDTO.eventDate)
-      //   : new Date();
-
-      // if (remeasurementDTO.type === 'measurement') {
-      //   return await this.handleMeasurementRecord(
-      //     currentTree,
-      //     remeasurementDTO,
-      //     membership,
-      //     treeRecordUid,
-      //     recordedAt
-      //   );
-      // } else if (remeasurementDTO.type === 'status') {
-      //   return await this.handleStatusRecord(
-      //     currentTree,
-      //     remeasurementDTO,
-      //     membership,
-      //     treeRecordUid,
-      //     recordedAt
-      //   );
-      // }
-
+      throw new BadRequestException('Invalid remeasurement type');
     } catch (error) {
       if (error instanceof NotFoundException || error instanceof BadRequestException) {
         throw error;
@@ -1743,48 +1746,73 @@ export class MobileService {
     treeRecordUid: string,
     recordedAt: Date
   ) {
-    // Create tree record for measurement
-    const newTreeRecord = {
-      uid: treeRecordUid,
-      treeId: currentTree.id,
-      recordedById: membership,
-      recordType: 'measurement' as const,
-      recordedAt: recordedAt,
-      height: remeasurementDTO.height || null,
-      width: remeasurementDTO.width || null,
-      metadata: remeasurementDTO.metadata || null,
-    };
+    return await this.drizzleService.db.transaction(async (tx) => {
+      // Create tree record for measurement
+      const newTreeRecord = {
+        uid: treeRecordUid,
+        treeId: currentTree.id,
+        recordedById: membership,
+        recordType: 'measurement' as const,
+        recordedAt: recordedAt,
+        height: remeasurementDTO.height !== undefined ? remeasurementDTO.height : null,
+        width: remeasurementDTO.width !== undefined ? remeasurementDTO.width : null,
+        metadata: remeasurementDTO.metadata || null,
+        image: remeasurementDTO.imageFilename || null,
+      };
 
-    // Insert tree record
-    const insertedRecord = await this.drizzleService.db
-      .insert(treeRecord)
-      .values(newTreeRecord)
-      .returning();
+      // Insert tree record
+      const insertedRecord = await tx
+        .insert(treeRecord)
+        .values(newTreeRecord)
+        .returning();
 
-    // Update tree table with new measurements
-    const treeUpdateData: any = {
-      updatedAt: new Date(),
-    };
+      // Create image record if image filename is provided
+      if (remeasurementDTO.imageFilename) {
+        await tx.insert(image).values({
+          uid: generateUid('img'),
+          entityId: currentTree.id,
+          entityType: 'tree' as const,
+          type: 'record' as const, // Image type for remeasurement records
+          filename: remeasurementDTO.imageFilename,
+          mimeType: 'image/jpg',
+          deviceType: 'mobile' as const,
+          uploadedById: membership,
+          isPrimary: false,
+        });
+      }
 
-    if (remeasurementDTO.height !== undefined) {
-      treeUpdateData.currentHeight = remeasurementDTO.height;
-    }
-    if (remeasurementDTO.width !== undefined) {
-      treeUpdateData.currentWidth = remeasurementDTO.width;
-    }
+      // Update tree table with new measurements
+      const treeUpdateData: any = {
+        updatedAt: new Date(),
+        lastMeasurementDate: recordedAt,
+        remeasured: true,
+      };
 
-    const updatedTree = await this.drizzleService.db
-      .update(tree)
-      .set(treeUpdateData)
-      .where(eq(tree.id, currentTree.id))
-      .returning();
+      if (remeasurementDTO.height !== undefined) {
+        treeUpdateData.height = remeasurementDTO.height;
+      }
+      if (remeasurementDTO.width !== undefined) {
+        treeUpdateData.width = remeasurementDTO.width;
+      }
 
-    return {
-      success: true,
-      message: 'Tree measurement recorded successfully',
-      treeRecord: insertedRecord[0],
-      updatedTree: updatedTree[0],
-    };
+      // Update tree's image to show the latest image if provided
+      if (remeasurementDTO.imageFilename) {
+        treeUpdateData.image = remeasurementDTO.imageFilename;
+      }
+
+      const updatedTree = await tx
+        .update(tree)
+        .set(treeUpdateData)
+        .where(eq(tree.id, currentTree.id))
+        .returning();
+
+      return {
+        success: true,
+        message: 'Tree measurement recorded successfully',
+        treeRecord: insertedRecord[0],
+        updatedTree: updatedTree[0],
+      };
+    });
   }
 
   private async handleStatusRecord(
@@ -1794,45 +1822,102 @@ export class MobileService {
     treeRecordUid: string,
     recordedAt: Date
   ) {
-    // Create tree record for status change
-    const newTreeRecord = {
-      uid: treeRecordUid,
-      treeId: currentTree.id,
-      recordedById: membership,
-      recordType: 'status_change' as const,
-      recordedAt: recordedAt,
-      previousStatus: currentTree.status,
-      newStatus: remeasurementDTO.status,
-      statusReason: remeasurementDTO.statusReason || null,
-      metadata: remeasurementDTO.metadata || null,
-    };
+    return await this.drizzleService.db.transaction(async (tx) => {
+      // Determine record type based on status
+      // Use 'death' record type if status is 'dead', otherwise use 'status_change'
+      const recordType = remeasurementDTO.status === 'dead' 
+        ? ('death' as const) 
+        : ('status_change' as const);
 
-    // Insert tree record
-    const insertedRecord = await this.drizzleService.db
-      .insert(treeRecord)
-      .values(newTreeRecord)
-      .returning();
+      // Create tree record for status change
+      const newTreeRecord = {
+        uid: treeRecordUid,
+        treeId: currentTree.id,
+        recordedById: membership,
+        recordType: recordType,
+        recordedAt: recordedAt,
+        previousStatus: currentTree.status,
+        newStatus: remeasurementDTO.status,
+        statusReason: remeasurementDTO.statusReason || null,
+        metadata: remeasurementDTO.metadata || null,
+        image: remeasurementDTO.imageFilename || null,
+      };
 
-    // Update tree table with new status
-    const treeUpdateData: any = {
-      status: remeasurementDTO.status,
-      statusReason: remeasurementDTO.statusReason || null,
-      statusChangedAt: recordedAt,
-      updatedAt: new Date(),
-    };
+      // Insert tree record
+      const insertedRecord = await tx
+        .insert(treeRecord)
+        .values(newTreeRecord)
+        .returning();
 
-    const updatedTree = await this.drizzleService.db
-      .update(tree)
-      .set(treeUpdateData)
-      .where(eq(tree.id, currentTree.id))
-      .returning();
+      // Create image record if image filename is provided
+      if (remeasurementDTO.imageFilename) {
+        await tx.insert(image).values({
+          uid: generateUid('img'),
+          entityId: currentTree.id,
+          entityType: 'tree' as const,
+          type: 'record' as const, // Image type for remeasurement records
+          filename: remeasurementDTO.imageFilename,
+          mimeType: 'image/jpg',
+          deviceType: 'mobile' as const,
+          uploadedById: membership,
+          isPrimary: false,
+        });
+      }
 
-    return {
-      success: true,
-      message: `Tree status updated to ${remeasurementDTO.status} successfully`,
-      treeRecord: insertedRecord[0],
-      updatedTree: updatedTree[0],
-    };
+      // Update tree table with new status
+      const treeUpdateData: any = {
+        status: remeasurementDTO.status,
+        statusReason: remeasurementDTO.statusReason || null,
+        statusChangedAt: recordedAt,
+        updatedAt: new Date(),
+      };
+
+      // Update tree's image to show the latest image if provided
+      if (remeasurementDTO.imageFilename) {
+        treeUpdateData.image = remeasurementDTO.imageFilename;
+      }
+
+      const updatedTree = await tx
+        .update(tree)
+        .set(treeUpdateData)
+        .where(eq(tree.id, currentTree.id))
+        .returning();
+
+      return {
+        success: true,
+        message: `Tree status updated to ${remeasurementDTO.status} successfully`,
+        treeRecord: insertedRecord[0],
+        updatedTree: updatedTree[0],
+      };
+    });
+  }
+
+  async markTreeAsDead(
+    treeUid: string,
+    userId: number,
+    statusReason?: string,
+    metadata?: any
+  ): Promise<any> {
+    try {
+      if (!treeUid) {
+        throw new BadRequestException('Tree UID is required');
+      }
+
+      const remeasurementDTO: RemeasurementDto = {
+        tree: treeUid,
+        type: 'status',
+        status: 'dead',
+        statusReason: statusReason || 'Tree marked as dead',
+        metadata: metadata || null,
+      };
+
+      return await this.doRemeasurement(remeasurementDTO, userId);
+    } catch (error) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to mark tree as dead: ${error.message}`);
+    }
   }
 
   private validateRemeasurementDto(dto: RemeasurementDto): void {
