@@ -17,6 +17,7 @@ export function PlaceholderImage({
     video: 'aspect-video',
     square: 'aspect-square',
     portrait: 'aspect-[9/16]',
+    landscape: 'aspect-[16/9]',
   };
 
   return (
