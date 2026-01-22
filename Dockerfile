@@ -38,7 +38,7 @@ ENV TURBO_TELEMETRY_DISABLED=1
 
 # Build shared-core first, then web, server, and docs in parallel
 RUN yarn turbo build --filter=shared-core...
-RUN yarn turbo build --filter=web --filter=server --filter=docs --parallel
+RUN yarn turbo build --filter=web --filter=server --filter=@treemapper/docs --parallel
 
 # Production stage
 FROM base AS runner
