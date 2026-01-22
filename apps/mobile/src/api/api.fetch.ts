@@ -197,6 +197,13 @@ export const getMobileInterventions = async (page: string) => {
   return result;
 };
 
+export const getSingleIntervention = async (interventionId: string) => {
+  console.log("Fetching intervention ID:", interventionId);
+  const uri = `${getUrlMobileApi.getSingleIntervention}/${interventionId}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
 
 // Main function to get image as base64 (from your code)
 const getImageAsBase64 = async (fileUri: string): Promise<string> => {

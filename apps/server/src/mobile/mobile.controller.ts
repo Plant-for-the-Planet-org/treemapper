@@ -125,6 +125,30 @@ export class MobileController {
     return this.appservice.getProjectIntervention(req.user.id, page, limit);
   }
 
+  @Get('intervention/:interventionId')
+  @ApiOperation({ summary: 'Get single intervention by ID' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns the intervention details including trees',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Intervention not found',
+  })
+  async getSingleIntervention(
+    @Param('interventionId') interventionId: string,
+    @Req() req: any,
+  ): Promise<any> {
+    const result = await this.appservice.getSingleIntervention(interventionId, req.user.id);
+    if (!result) {
+      return {
+        success: false,
+        message: 'Intervention not found',
+      };
+    }
+    return result;
+  }
+
   @Post('invites/accept')
   acceptInvite(@Body() acceptInviteDto: AcceptInviteDto, @CurrentUser() userData: User) {
     return this.projectsService.acceptInvite(acceptInviteDto.token, userData.id, userData.email, userData);

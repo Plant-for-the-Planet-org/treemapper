@@ -255,6 +255,7 @@ const getEntireSiteCheck = (data: any) => {
 
 export const convertInventoryToIntervention = (data: any): InterventionData | null => {
     try {
+        console.log("Converting inventory to intervention for data id: ",JSON.stringify( data,null,2));
         const extraData = interventionTittleSwitch(data.type);
         const geometryData = getGeometry(data.geometry);
         const invStartDate = data.plantDate ? data.plantDate : data.interventionStartDate
@@ -309,7 +310,8 @@ export const convertInventoryToIntervention = (data: any): InterventionData | nu
             remeasurement_required: extraData.key === 'single-tree-registration' ? false : remeasurement_required,
             next_measurement_date: extraData.key === 'single-tree-registration' ? 0 : rData.d,
             intervention_end_date: moment(data.interventionEndDate).valueOf() || moment(data.registrationDate).valueOf() || 0,
-            fix_required: "NO"
+            fix_required: "NO",
+            last_updated_at: convertDateToTimestamp(data.editedAt || new Date()),
         }
         return finalData
     } catch (error) {

@@ -37,6 +37,10 @@ import { useToast } from 'react-native-toast-notifications'
 import { getDeviceDetails } from 'src/utils/helpers/appHelper/getAdditionalData'
 import InterventionMetaData from 'src/components/previewIntervention/InterventionMetaData'
 import DeleteModal from 'src/components/common/DeleteModal'
+import NetInfo from '@react-native-community/netinfo'
+import { getSingleIntervention } from 'src/api/api.fetch'
+import { convertInventoryToIntervention } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
+import { convertDateToTimestamp } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
 
 const InterventionPreviewView = () => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -57,10 +61,11 @@ const InterventionPreviewView = () => {
   const InterventionData = useObject<InterventionData>(
     RealmSchema.Intervention, interventionID
   )
-  const { saveIntervention, updateInterventionMetaData, resetIntervention } = useInterventionManagement()
+  const { saveIntervention, updateInterventionMetaData, resetIntervention, addNewIntervention } = useInterventionManagement()
   const dispatch = useDispatch()
   const scrollViewRef = useRef(null); // Reference for the ScrollView
   const childRefs = useRef([]);
+  const [isRefreshing, setIsRefreshing] = useState(false)
 
   const handleEdit = async (item: InterventionData) => {
     setEditModal(null)
@@ -72,6 +77,59 @@ const InterventionPreviewView = () => {
     setEditModal(null)
   }
 
+  const refreshInterventionData = async () => {
+    try {
+      // Only refresh for synced interventions
+      console.log("InterventionData?.status", InterventionData?.status)
+      if (InterventionData?.status !== 'SYNCED') {
+        return
+      }
+
+      // Check internet connectivity
+      const netInfo = await NetInfo.fetch()
+      console.log("netInfo.isConnected", netInfo.isConnected)
+      if (!netInfo.isConnected) {
+        return
+      }
+
+      setIsRefreshing(true)
+
+      // Fetch intervention data from server
+      const { response, success } = await getSingleIntervention(interventionID)
+      console.log("Refresh intervention response:", response, success)
+      if (success && response?.data) {
+        const interventionData = response.data
+        // Get server's updated_at timestamp
+        const serverUpdatedAt = convertDateToTimestamp(interventionData.updatedAt || interventionData.editedAt)
+        const localLastEdited = InterventionData?.last_updated_at || 0
+        console.log("Timestamps - Server:", serverUpdatedAt, "Local:", localLastEdited)
+        // Compare timestamps - if server has newer data, update local
+        if (serverUpdatedAt > localLastEdited) {
+          const convertedIntervention = convertInventoryToIntervention(interventionData)
+          if (convertedIntervention) {
+            await addNewIntervention(convertedIntervention)
+            addNewLog({
+              logType: 'INTERVENTION',
+              message: `Intervention ${interventionID} refreshed from server`,
+              logLevel: 'info',
+              statusCode: '000',
+            })
+          }
+        }
+      }
+    } catch (error) {
+      console.log("Error refreshing intervention data:", error)
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: `Error refreshing intervention ${interventionID}`,
+        logLevel: 'error',
+        statusCode: '000',
+        logStack: JSON.stringify(error)
+      })
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
 
   const openEditModal = (item: InterventionData) => {
     const obj = JSON.parse(JSON.stringify(item))
@@ -82,6 +140,7 @@ const InterventionPreviewView = () => {
     setLoading(false)
     checkIsTree()
     showInitialToast()
+    refreshInterventionData()
     if (route.params.id === 'review') {
       setupMetaData()
     }
@@ -258,8 +317,12 @@ const InterventionPreviewView = () => {
 
     if (InterventionData.status === 'SYNCED') {
       return <View style={styles.syncContainer}>
-        <SyncIcon width={20} height={20} />
-        <Text style={styles.label}>{i18next.t("label.fully_synced")}</Text>
+        {isRefreshing ? (
+          <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
+        ) : (
+          <SyncIcon width={20} height={20} />
+        )}
+        <Text style={styles.label}>{isRefreshing ? "Updating..." : i18next.t("label.fully_synced")}</Text>
       </View>
     }
     return <InterventionDeleteContainer interventionId={InterventionData.intervention_id} resetData={resetData} />

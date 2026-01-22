@@ -37,6 +37,7 @@ export const Intervention: ObjectSchema = {
     remeasurement_required: { type: 'bool', default: false },
     next_measurement_date: { type: 'double', default: 0 },
     is_legacy: { type: 'bool', default: false },
-    fix_required:  { type: 'string', default: 'NO' }
+    fix_required: { type: 'string', default: 'NO' },
+    last_updated_at: { type: 'double', default: 0 }
   },
 }

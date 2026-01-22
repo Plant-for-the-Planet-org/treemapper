@@ -1,4 +1,4 @@
-import { StyleSheet, View, TouchableOpacity } from 'react-native'
+import { StyleSheet, View, TouchableOpacity, Text } from 'react-native'
 import React from 'react'
 import Header from 'src/components/common/Header'
 import SideBarList from 'src/components/sidebar/SideBarList'
@@ -6,7 +6,7 @@ import SidebarHeader from 'src/components/sidebar/SidebarHeader'
 import SideBarFooter from 'src/components/sidebar/SideBarFooter'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { Colors } from 'src/utils/constants'
+import { Colors, Typography } from 'src/utils/constants'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -23,14 +23,18 @@ const HomeSideDrawer = () => {
   }
 
   const notificationIcon = (
-    <TouchableOpacity 
-      style={styles.notificationButton} 
-      onPress={handleNotificationPress}
-    >
-      <View style={styles.notificationIconWrapper}>
-        <Ionicons name={'notifications'} size={16} color="#fff" style={{paddingTop: 2}} />
-      </View>
-    </TouchableOpacity>
+    <>
+      {process.env.EXPO_PUBLIC_APP_ENV === 'staging' && <View style={styles.stagingWrapper}><Text style={styles.stagingLabel}>Development</Text></View>}
+      <TouchableOpacity
+        style={styles.notificationButton}
+        onPress={handleNotificationPress}
+      >
+        <View style={styles.notificationIconWrapper}>
+          <Ionicons name={'notifications'} size={16} color="#fff" style={{ paddingTop: 2 }} />
+        </View>
+      </TouchableOpacity>
+    </>
+
   )
 
   return (
@@ -67,5 +71,20 @@ const styles = StyleSheet.create({
     backgroundColor: '#007A49',
     justifyContent: 'center',
     alignItems: 'center',
+  }, stagingWrapper: {
+    flexDirection: "row",
+    alignItems: 'center',
+    position: 'absolute',
+    left: '14%',
+    backgroundColor: '#00BFFF',
+    top: '20%',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5
+  },
+  stagingLabel: {
+    color: Colors.WHITE,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    fontSize: 20
   }
 })

@@ -407,6 +407,7 @@ export interface InterventionData {
   next_measurement_date: number
   fix_required: FIX_REQUIRED
   is_legacy?: boolean
+  last_edited?: number
 }
 
 export interface LogDetails {

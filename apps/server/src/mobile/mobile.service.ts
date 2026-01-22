@@ -88,6 +88,8 @@ export interface InterventionResponseItem {
   captureStatus: string;
   deviceLocation: any;
   status: null;
+  updatedAt?: string;
+  editedAt?: string;
 }
 
 export interface SampleIntervention {
@@ -2006,6 +2008,7 @@ export class MobileService {
         intervention_capture_status: intervention.captureStatus,
         intervention_device_location: intervention.deviceLocation,
         intervention_created_at: intervention.createdAt,
+        intervention_updated_at: intervention.updatedAt,
         project_uid: project.uid,
         site_uid: site.uid,
         tree_uid: tree.uid,
@@ -2102,12 +2105,137 @@ export class MobileService {
         captureStatus: row.intervention_capture_status,
         deviceLocation: row.intervention_device_location,
         status: null,
+        updatedAt: this.formatDate(row.intervention_updated_at),
+        editedAt: this.formatDate(row.intervention_updated_at),
       };
 
       items.push(item);
     }
 
     return { items };
+  }
+
+  async getSingleIntervention(interventionUid: string, userId: number): Promise<InterventionResponseItem | null> {
+    const interventions = await this.drizzleService.db
+      .select({
+        intervention_uid: intervention.uid,
+        intervention_hid: intervention.hid,
+        intervention_metadata: intervention.metadata,
+        intervention_type: intervention.type,
+        intervention_start_date: intervention.interventionStartDate,
+        intervention_end_date: intervention.interventionEndDate,
+        intervention_registration_date: intervention.registrationDate,
+        intervention_sample_tree_count: intervention.totalSampleTreeCount,
+        intervention_idempotency_key: intervention.idempotencyKey,
+        intervention_original_geometry: intervention.originalGeometry,
+        intervention_capture_mode: intervention.captureMode,
+        intervention_capture_status: intervention.captureStatus,
+        intervention_device_location: intervention.deviceLocation,
+        intervention_created_at: intervention.createdAt,
+        intervention_updated_at: intervention.updatedAt,
+        project_uid: project.uid,
+        site_uid: site.uid,
+        tree_uid: tree.uid,
+        tree_hid: tree.hid,
+        tree_tag: tree.tag,
+        tree_image: tree.image,
+        tree_planting_date: tree.plantingDate,
+        tree_current_height: tree.height,
+        tree_current_width: tree.width,
+        tree_metadata: {},
+        intervention_species_uid: interventionSpecies.uid,
+        intervention_species_is_unknown: interventionSpecies.isUnknown,
+        intervention_species_species_name: interventionSpecies.speciesName,
+        intervention_species_created_at: interventionSpecies.createdAt,
+        intervention_species_updated_at: interventionSpecies.updatedAt,
+        intervention_species_count: interventionSpecies.speciesCount,
+        scientific_species_uid: scientificSpecies.uid,
+        scientific_species_scientific_name: scientificSpecies.scientificName,
+      })
+      .from(intervention)
+      .innerJoin(project, eq(intervention.projectId, project.id))
+      .leftJoin(site, eq(intervention.siteId, site.id))
+      .leftJoin(
+        interventionSpecies,
+        and(
+          eq(interventionSpecies.interventionId, intervention.id),
+          isNull(interventionSpecies.deletedAt)
+        )
+      )
+      .leftJoin(
+        tree,
+        and(
+          eq(tree.interventionId, intervention.id),
+          eq(tree.treeType, 'single'),
+          isNull(tree.deletedAt)
+        )
+      )
+      .leftJoin(
+        scientificSpecies,
+        eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id)
+      )
+      .where(
+        and(
+          eq(intervention.uid, interventionUid),
+          eq(intervention.userId, userId),
+          isNull(intervention.deletedAt)
+        )
+      )
+      .limit(1);
+
+    if (interventions.length === 0) {
+      return null;
+    }
+
+    const row = interventions[0];
+
+    // Get planted species for this intervention
+    const plantedSpeciesData = await this.getPlantedSpecies(row.intervention_uid);
+    // Get sample interventions for multi-tree and enrichment-planting
+    const sampleInterventions = await this.getSampleInterventions(
+      row.intervention_uid,
+      row.intervention_type,
+      row.intervention_metadata
+    );
+
+    const item: InterventionResponseItem = {
+      nextMeasurementDate: null,
+      hid: row.intervention_hid,
+      metadata: row.intervention_metadata || {},
+      scientificName: this.getScientificName(row),
+      sampleInterventions,
+      description: null,
+      otherSpecies: this.getOtherSpecies(row),
+      geometryUpdatesCount: 0,
+      type: row.intervention_type,
+      interventionEndDate: this.formatDate(row.intervention_end_date),
+      plantProjectSite: row.site_uid || null,
+      statusReason: null,
+      registrationDate: this.formatDate(row.intervention_registration_date),
+      sampleTreeCount: row.intervention_sample_tree_count,
+      id: row.intervention_uid,
+      tag: this.getTag(row),
+      plantDate: this.getPlantDate(row),
+      measurements: this.getMeasurements(row),
+      interventionStartDate: this.formatDate(row.intervention_start_date),
+      idempotencyKey: row.intervention_idempotency_key,
+      coordinates: this.getPrivateCoords(row),
+      scientificSpecies: this.getScientificSpeciesUid(row),
+      history: [],
+      plantProject: row.project_uid,
+      plantedSpecies: plantedSpeciesData,
+      originalGeometry: row.intervention_original_geometry,
+      captureMode: row.intervention_capture_mode,
+      geometry: row.intervention_original_geometry,
+      lastMeasurementDate: null,
+      captureStatus: row.intervention_capture_status,
+      deviceLocation: row.intervention_device_location,
+      status: null,
+      updatedAt: this.formatDate(row.intervention_updated_at),
+      editedAt: this.formatDate(row.intervention_updated_at),
+    };
+
+    return item;
   }
 
   private async getPlantedSpecies(interventionUid: string): Promise<PlantedSpecies[]> {
