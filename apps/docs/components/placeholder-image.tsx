@@ -3,7 +3,7 @@ import { cn } from '@/lib/utils';
 interface PlaceholderImageProps {
   title: string;
   description?: string;
-  aspectRatio?: 'video' | 'square' | 'portrait';
+  aspectRatio?: 'video' | 'square' | 'portrait' | 'landscape';
   className?: string;
 }
 
