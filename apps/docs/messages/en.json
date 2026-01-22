@@ -3139,7 +3139,7 @@
     "planetPlatformIntroduction": {
       "title": "Planet Platform - Introduction",
       "description": "Learn about the Planet Platform and how organizations can receive donations for their restoration projects.",
-      "content": "Plant for the Planet has created a platform where organizations can receive donations for their restoration projects from donors all across the globe. We help organizations by providing advisory services and tools to get started with their restoration initiatives.",
+      "content": "The Restoration Platform, the core of Forest Cloud, transforms global restoration by simplifying fundraising and ensuring transparency for forest conservation. Since 2018, it has evolved to bring back a trillion trees and conserve 3 trillion existing trees. The open-source, open access, digital solution currently supports scientific restoration initiatives as well as managing and coordinating conservation and restoration efforts globally. It benefits from robust Restoration Standards, proprietary restoration monitoring applications, a robust peer-review system and an ecosystem of ancillary digital solutions - the 'Forest Cloud'. Proven across 300 restoration initiatives and growing, the Platform unifies restoration organizations (ROs), donors, and scientists. Having demonstrated its success by restoring over 100M trees in 6 years, we now seek to improve its scale and geographic reach and solve the logistical challenges to contribute to a sustainable, thriving future.",
       "platformScreenshotTitle": "Planet Platform Screenshot",
       "platformScreenshotDesc": "Screenshot of the Planet Platform showing the project listing and donation interface",
       "whatIsTitle": "About the Platform",
@@ -3190,6 +3190,13 @@
     "planetPlatformDocuments": {
       "title": "Planet Platform - Documents Required & Contact",
       "description": "Learn about the documents required for registration and how to contact the Planet Platform team.",
+      "intro": "",
+      "verificationTitle": "Verification and Due Diligence Process",
+      "verificationIntro": "Restoring forests is a complex and long-term endeavor that requires a holistic approach. To address this, Plant-for-the-Planet has developed its own minimum and top-tier 'Standards' for various restoration and conservation methods (e.g. reforestation, agroforestry, and assisted natural regeneration) that consider biological, social, and economic factors. Organizations and their projects undergo a rigorous verification process during onboarding and are evaluated against these 'Standards'. Only those meeting the minimum 'Standards' are featured on the platform and allowed to actively collect donations.",
+      "verificationFirstStage": "At first stage, the proposals are reviewed by in-house expertise.",
+      "verificationLinkText": "Here is more information: https://www.plant-for-the-planet.org/restoration-organizations/",
+      "verificationSecondStage": "In the second phase of due diligence, external experts visit the projects for on-site evaluations based on the established standards. These evaluation results are then reviewed, discussed, and ultimately assessed by an independent, voluntary panel of experts - the so-called Review Board.",
+      "verificationConclusion": "This thorough process ensures that only high-quality, impactful projects are showcased and supported through our platform, fostering trust and delivering meaningful results. At the same time, Plant-for-the-Planet remains committed to continuously questioning, reviewing, and refining these standards, integrating the latest scientific research findings to ensure their effectiveness and relevance.",
       "documentsTitle": "Documents Required",
       "documentsIntro": "To complete your registration on the Planet Platform, you will need to provide the following documents:",
       "document1": "Organization registration certificate or legal documentation proving your organization's legal status",

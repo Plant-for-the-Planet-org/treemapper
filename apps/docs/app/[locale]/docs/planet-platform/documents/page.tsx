@@ -17,6 +17,19 @@ export default async function PlanetPlatformDocumentsPage({
       description={t('description')}
       pageId="planet-platform-documents"
     >
+      <p>{t('intro')}</p>
+
+      <h2>{t('verificationTitle')}</h2>
+      <p>{t('verificationIntro')}</p>
+      <p>{t('verificationFirstStage')}</p>
+      <p>
+        <Link href="https://www.plant-for-the-planet.org/restoration-organizations/">
+          {t('verificationLinkText')}
+        </Link>
+      </p>
+      <p>{t('verificationSecondStage')}</p>
+      <p>{t('verificationConclusion')}</p>
+
       <h2>{t('documentsTitle')}</h2>
       <p>{t('documentsIntro')}</p>
       <ul>
