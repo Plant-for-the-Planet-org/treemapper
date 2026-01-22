@@ -50,6 +50,7 @@ const InputField = ({
   icon: Icon = null,
   validation = {} as { error?: string; success?: boolean; hint?: string },
   required = false,
+  disabled = false,
   ...props
 }) => {
   const hasError = validation?.error;
@@ -57,13 +58,13 @@ const InputField = ({
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-semibold text-stone-700">
+      <label className={`block text-sm font-semibold ${disabled ? 'text-stone-500' : 'text-stone-700'}`}>
         {label} {required && <span className="text-red-500">*</span>}
       </label>
       <div className="relative">
         {Icon && (
           <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-            <Icon className="h-5 w-5 text-stone-400" />
+            <Icon className={`h-5 w-5 ${disabled ? 'text-stone-300' : 'text-stone-400'}`} />
           </div>
         )}
         <input
@@ -72,32 +73,41 @@ const InputField = ({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative ${hasError
-            ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
-            : hasSuccess
-              ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
-              : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
+          disabled={disabled}
+          className={`${Icon ? 'pl-12' : 'pl-4'} w-full px-4 py-3 border rounded-xl transition-all duration-300 relative ${
+            disabled
+              ? 'bg-stone-100 text-stone-500 border-stone-200 cursor-not-allowed'
+              : hasError
+                ? 'border-red-300 focus:border-red-500 focus:ring-2 focus:ring-red-200'
+                : hasSuccess
+                  ? 'border-green-300 focus:border-green-500 focus:ring-2 focus:ring-green-200'
+                  : 'border-stone-300 focus:border-[#007A49] focus:ring-2 focus:ring-[#007A49]/20'
             } focus:outline-none bg-white`}
           {...props}
         />
-        {hasError && (
+        {hasError && !disabled && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <X size={16} className="text-red-500" />
           </div>
         )}
-        {hasSuccess && (
+        {hasSuccess && !disabled && (
           <div className="absolute inset-y-0 right-0 flex items-center pr-3">
             <Check size={16} className="text-green-500" />
           </div>
         )}
+        {disabled && (
+          <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+            <Lock size={16} className="text-stone-400" />
+          </div>
+        )}
       </div>
-      {hasError && (
+      {hasError && !disabled && (
         <p className="text-xs text-red-600 animate-in slide-in-from-top-1 duration-200">
           {validation.error}
         </p>
       )}
       {validation?.hint && !hasError && (
-        <p className="text-xs text-stone-500">{validation.hint}</p>
+        <p className={`text-xs ${disabled ? 'text-stone-400' : 'text-stone-500'}`}>{validation.hint}</p>
       )}
     </div>
   );
@@ -347,6 +357,7 @@ const GeneralSettings = ({
                 hint: "URL-friendly identifier for your project"
               }}
               required
+              disabled={true}
             />
           </div>
 
