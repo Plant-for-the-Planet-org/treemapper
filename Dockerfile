@@ -19,8 +19,7 @@ COPY apps/docs/package.json ./apps/docs/
 COPY packages/shared-core/package.json ./packages/shared-core/
 
 # Install dependencies with optimizations
-# Use --ignore-optional to reduce memory footprint
-RUN yarn install --frozen-lockfile --network-timeout 1000000 --ignore-optional
+RUN yarn install --frozen-lockfile --network-timeout 1000000
 
 # Build stage - single stage to reduce memory from layer copying
 FROM base AS builder
