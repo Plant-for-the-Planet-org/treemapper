@@ -1,4 +1,4 @@
-# Use Node.js 23 alpine
+# Use Node.js 22 alpine
 FROM node:22-alpine AS base
 
 # Install system dependencies once
@@ -19,25 +19,15 @@ COPY apps/docs/package.json ./apps/docs/
 COPY packages/shared-core/package.json ./packages/shared-core/
 
 # Install dependencies with optimizations
-RUN yarn install --frozen-lockfile --network-timeout 1000000
+# Use --ignore-optional to reduce memory footprint
+RUN yarn install --frozen-lockfile --network-timeout 1000000 --ignore-optional
 
-# Build stage
+# Build stage - single stage to reduce memory from layer copying
 FROM base AS builder
 WORKDIR /app
 
-# Copy package files first for workspace resolution
-COPY package.json yarn.lock ./
-COPY turbo.json ./
-COPY apps/web/package.json ./apps/web/
-COPY apps/server/package.json ./apps/server/
-COPY apps/docs/package.json ./apps/docs/
-COPY packages/shared-core/package.json ./packages/shared-core/
-
-# Copy installed dependencies
-COPY --from=deps /app/node_modules ./node_modules
-
-# Re-run yarn to set up workspace symlinks (uses cached modules, just creates symlinks)
-RUN yarn install --frozen-lockfile --prefer-offline
+# Copy everything from deps
+COPY --from=deps /app ./
 
 # Copy source code (excluding mobile)
 COPY . .
@@ -46,10 +36,19 @@ RUN rm -rf apps/mobile
 # Build with optimizations
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 
-# Build shared-core first, then web, server, and docs in parallel
+# Build shared-core first
 RUN yarn turbo build --filter=shared-core...
-RUN yarn turbo build --filter=web --filter=server --filter=@treemapper/docs --parallel
+
+# Build sequentially instead of parallel to reduce memory usage
+RUN yarn turbo build --filter=server
+RUN yarn turbo build --filter=web
+RUN yarn turbo build --filter=@treemapper/docs
+
+# Clean up dev dependencies and caches to reduce final image size
+RUN yarn cache clean
+RUN rm -rf /tmp/*
 
 # Production stage
 FROM base AS runner
