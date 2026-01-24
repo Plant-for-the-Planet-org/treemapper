@@ -1,3 +1,4 @@
+import 'src/utils/initializeServices'
 import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import RootNavigator from './src/navigation/RootNavigator'
@@ -5,7 +6,6 @@ import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
 import store, { persister } from 'src/store'
 import { PersistGate } from 'redux-persist/integration/react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
 import { Auth0Provider } from 'react-native-auth0'
 import { RealmProvider } from 'src/db/RealmProvider'
 import 'src/utils/constants/mapboxLogger'
@@ -14,18 +14,7 @@ import 'react-native-get-random-values'
 import { ToastProvider } from 'react-native-toast-notifications'
 import { StatusBar } from 'expo-status-bar'
 import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
-import Bugsnag from '@bugsnag/expo'
-import BugSnagConfig from 'src/utils/bugsnag/bugsnag.config'
-import { OneSignal, LogLevel } from 'react-native-onesignal';
 
-
-try {
-  Bugsnag.start(BugSnagConfig)
-  MapLibreGL.setAccessToken(null)
-  OneSignal.initialize(process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID);
-} catch (error) {
-console.log('Error initializing app services:', error);
-}
 
 
 export default function App() {
