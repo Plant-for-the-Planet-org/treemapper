@@ -130,6 +130,9 @@ export class CreateProjectDto {
   @IsBoolean()
   isPersonal?: boolean = true;
 
+  @IsOptional()
+  @IsBoolean()
+  approvalBoardEnabled?: boolean = false;
 
   @IsOptional()
   @IsString()

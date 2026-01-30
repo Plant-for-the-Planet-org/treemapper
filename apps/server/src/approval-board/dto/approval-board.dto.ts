@@ -27,7 +27,14 @@ export type ReviewStatus =
   | 'unpublished'
   | 'rejected';
 
-export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
+export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected' | 'in_review';
+
+export enum ReviewDecisionEnum {
+  APPROVED = 'approved',
+  CHANGES_REQUESTED = 'changes_requested',
+  REJECTED = 'rejected',
+  IN_REVIEW = 'in_review',
+}
 
 export type ReviewCommentType =
   | 'general'
@@ -154,8 +161,8 @@ export class SubmitForReviewDto {
 // ================== Review Decision DTOs ==================
 
 export class CreateReviewDecisionDto {
-  @ApiProperty({ enum: ['approved', 'changes_requested', 'rejected'] })
-  @IsEnum(['approved', 'changes_requested', 'rejected'])
+  @ApiProperty({ enum: ReviewDecisionEnum })
+  @IsEnum(ReviewDecisionEnum)
   decision: ReviewDecision;
 
   @ApiPropertyOptional({ example: 'Please check the following issues' })

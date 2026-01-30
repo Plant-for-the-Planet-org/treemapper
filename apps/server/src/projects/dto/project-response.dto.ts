@@ -24,6 +24,7 @@ export class ProjectResponseDto {
   linkText?: string;
   isActive: boolean;
   isPublic: boolean;
+  approvalBoardEnabled: boolean;
   intensity?: string;
   revisionPeriodicityLevel?: string;
   metadata?: any;

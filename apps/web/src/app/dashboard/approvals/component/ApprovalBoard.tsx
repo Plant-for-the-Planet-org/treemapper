@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import {
   ApprovalBoardColumn,
   ApprovalStatus,
@@ -10,6 +10,7 @@ import {
   isInterventionApproval,
   mapReviewStatusToLegacyStatus,
   ReviewDecision,
+  ReviewStatus,
 } from '@shared-core/types/approval.types';
 import { ApprovalColumn } from './ApprovalColumn';
 import { ApprovalModal } from './ApprovalModal';
@@ -21,6 +22,7 @@ import {
   addFieldWorkerComment,
   getCurrentThread,
   getInterventionThreads,
+  getInterventionReviewDetails,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import { Loader2, AlertCircle } from 'lucide-react';
@@ -29,7 +31,6 @@ import { Button } from '@/components/ui/button';
 import {
   DndContext,
   DragEndEvent,
-  DragOverEvent,
   DragOverlay,
   DragStartEvent,
   PointerSensor,
@@ -44,6 +45,52 @@ interface ApprovalBoardProps {
   userRole: string;
   searchQuery?: string;
 }
+
+// Map a column's legacy status to a review decision for the API
+function mapColumnStatusToDecision(columnStatus: ApprovalStatus): ReviewDecision | null {
+  switch (columnStatus) {
+    case 'in_review':
+      return 'in_review';
+    case 'approved':
+      return 'approved';
+    case 'rejected':
+      return 'rejected';
+    default:
+      return null; // 'new_request' - can't move items here via API
+  }
+}
+
+// Column definitions
+const COLUMN_DEFINITIONS: Omit<ApprovalBoardColumn, 'interventions' | 'sites' | 'items'>[] = [
+  {
+    status: 'new_request',
+    reviewStatus: ['draft', 'pending'],
+    title: 'New Requests',
+    color: '#F59E0B',
+    badgeColor: 'bg-amber-500',
+  },
+  {
+    status: 'in_review',
+    reviewStatus: ['in_review', 'changes_requested', 'in_revision', 'resubmitted'],
+    title: 'In Review',
+    color: '#3B82F6',
+    badgeColor: 'bg-blue-500',
+  },
+  {
+    status: 'approved',
+    reviewStatus: ['approved', 'published'],
+    title: 'Approved',
+    color: '#10B981',
+    badgeColor: 'bg-green-500',
+  },
+  {
+    status: 'rejected',
+    reviewStatus: ['rejected', 'unpublished'],
+    title: 'Rejected',
+    color: '#EF4444',
+    badgeColor: 'bg-red-500',
+  },
+];
 
 export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   projectId,
@@ -64,52 +111,12 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
   const [entityType, setEntityType] = useState<ApprovalEntityType>('intervention');
   const [sites, setSites] = useState<SiteApprovalData[]>([]);
-
-  const [columns, setColumns] = useState<ApprovalBoardColumn[]>([
-    {
-      status: 'new_request',
-      reviewStatus: ['draft', 'pending'],
-      title: 'New Requests',
-      interventions: [],
-      sites: [],
-      items: [],
-      color: '#F59E0B',
-      badgeColor: 'bg-amber-500',
-    },
-    {
-      status: 'in_review',
-      reviewStatus: ['in_review', 'changes_requested', 'in_revision', 'resubmitted'],
-      title: 'In Review',
-      interventions: [],
-      sites: [],
-      items: [],
-      color: '#3B82F6',
-      badgeColor: 'bg-blue-500',
-    },
-    {
-      status: 'approved',
-      reviewStatus: ['approved', 'published'],
-      title: 'Approved',
-      interventions: [],
-      sites: [],
-      items: [],
-      color: '#10B981',
-      badgeColor: 'bg-green-500',
-    },
-    {
-      status: 'rejected',
-      reviewStatus: ['rejected', 'unpublished'],
-      title: 'Rejected',
-      interventions: [],
-      sites: [],
-      items: [],
-      color: '#EF4444',
-      badgeColor: 'bg-red-500',
-    },
-  ]);
-
+  const [columns, setColumns] = useState<ApprovalBoardColumn[]>([]);
   const [activeIntervention, setActiveIntervention] =
     useState<InterventionApprovalData | null>(null);
+
+  // Store the original column when drag starts, so we can compare on drop
+  const dragOriginalColumnRef = useRef<ApprovalStatus | null>(null);
 
   const isAdmin = userRole === 'owner' || userRole === 'admin';
 
@@ -127,19 +134,16 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     }
   }, [projectId, accessToken]);
 
+  // Organize approvals into columns using reviewStatus only (single source of truth)
   useEffect(() => {
-    // Filter function for search
     const matchesSearch = (item: InterventionApprovalData | SiteApprovalData): boolean => {
       if (!searchQuery) return true;
-
       const query = searchQuery.toLowerCase();
-
-      // Common fields
-      const matchesCreator = item.createdBy.name.toLowerCase().includes(query) ||
-                            item.createdBy.email.toLowerCase().includes(query);
+      const matchesCreator =
+        item.createdBy.name.toLowerCase().includes(query) ||
+        item.createdBy.email.toLowerCase().includes(query);
 
       if (isInterventionApproval(item)) {
-        // Search in intervention-specific fields
         return (
           item.interventionHid.toLowerCase().includes(query) ||
           item.interventionUid.toLowerCase().includes(query) ||
@@ -148,29 +152,24 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
           matchesCreator
         );
       } else {
-        // Search in site-specific fields
         return (
           item.siteUid.toLowerCase().includes(query) ||
           item.name.toLowerCase().includes(query) ||
           (item.description?.toLowerCase().includes(query) || false) ||
-          matchesCreator ||
-          (item.siteData.soilType?.toLowerCase().includes(query) || false) ||
-          (item.siteData.accessibility?.toLowerCase().includes(query) || false)
+          matchesCreator
         );
       }
     };
 
-    // Organize approvals into columns based on entity type and search
-    const updatedColumns = columns.map((col) => {
+    const updatedColumns: ApprovalBoardColumn[] = COLUMN_DEFINITIONS.map((col) => {
+      const columnReviewStatuses = col.reviewStatus as ReviewStatus[];
+
+      // Use reviewStatus as the sole source of truth for column assignment
       const interventions = approvals.filter((approval) => {
-        // Check if intervention matches column by legacy status or review status
-        const matchesStatus =
-          approval.approvalStatus === col.status ||
-          (approval.reviewStatus &&
-            Array.isArray(col.reviewStatus) &&
-            col.reviewStatus.includes(approval.reviewStatus));
-        return matchesStatus && matchesSearch(approval);
+        if (!approval.reviewStatus) return false;
+        return columnReviewStatuses.includes(approval.reviewStatus) && matchesSearch(approval);
       });
+
       const sitesList = sites.filter(
         (site) => site.approvalStatus === col.status && matchesSearch(site)
       );
@@ -182,6 +181,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         items: entityType === 'intervention' ? interventions : sitesList,
       };
     });
+
     setColumns(updatedColumns);
   }, [approvals, sites, entityType, searchQuery]);
 
@@ -190,29 +190,13 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       setLoading(true);
       setError(null);
 
-      console.log('Loading approvals for project:', projectId, 'isAdmin:', isAdmin);
-
-      if (!isAdmin) {
-        // For non-admins, they can view their own interventions
-        // For now, show empty state - can be enhanced later with user-specific endpoint
-        console.log('User is not admin, showing empty state');
-        setApprovals([]);
-        setSites([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch review queue for admins
-      console.log('Fetching review queue...');
+      // Fetch all submitted interventions (backend returns all statuses except draft by default)
       const response = await getReviewQueue(accessToken, projectId, {
         limit: 100,
         page: 1,
       });
 
-      console.log('Review queue response:', response);
-
       if (response.statusCode === 200 && response.data) {
-        // Map backend InterventionReviewSummary to InterventionApprovalData
         const mappedInterventions: InterventionApprovalData[] = response.data.data.map(
           (item: any) => ({
             interventionId: item.interventionId,
@@ -222,14 +206,14 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
             createdBy: {
               id: item.userId,
               name: item.userName,
-              email: '', // Not provided in summary
+              email: '',
             },
             approvalStatus: mapReviewStatusToLegacyStatus(item.reviewStatus),
             reviewStatus: item.reviewStatus,
             submittedForReviewAt: item.submittedAt
               ? new Date(item.submittedAt).toISOString()
               : null,
-            approvedAt: null, // Will be populated from details if needed
+            approvedAt: null,
             rejectedAt: null,
             approvedBy: null,
             comments: [],
@@ -253,12 +237,11 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         );
 
         setApprovals(mappedInterventions);
-        setSites([]); // Sites not yet supported in new API
+        setSites([]);
       } else {
         setError(response.message || 'Failed to load approvals');
       }
     } catch (err: any) {
-      console.error('Error loading approvals:', err);
       setError(err.message || 'Failed to load approvals');
     } finally {
       setLoading(false);
@@ -267,16 +250,12 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
   const handleCardClick = (id: number) => {
     if (entityType === 'intervention') {
-      const intervention = approvals.find(
-        (a) => a.interventionId === id
-      );
+      const intervention = approvals.find((a) => a.interventionId === id);
       if (intervention) {
         selectApproval(intervention);
       }
     } else {
-      const site = sites.find(
-        (s) => s.siteId === id
-      );
+      const site = sites.find((s) => s.siteId === id);
       if (site) {
         selectApproval(site);
       }
@@ -290,20 +269,15 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   ) => {
     if (!selectedApproval || !isInterventionApproval(selectedApproval)) return;
 
+    const decision = mapColumnStatusToDecision(newStatus);
+    if (!decision) {
+      setError('Cannot move to this status');
+      return;
+    }
+
     try {
       setLoading(true);
 
-      // Map legacy status to review decision
-      let decision: ReviewDecision;
-      if (newStatus === 'approved') {
-        decision = 'approved';
-      } else if (newStatus === 'rejected') {
-        decision = 'rejected';
-      } else {
-        decision = 'changes_requested';
-      }
-
-      // Submit review decision
       const response = await submitReviewDecision(
         accessToken,
         projectId,
@@ -311,20 +285,14 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         {
           decision,
           note: comment || undefined,
-          issues: comment
-            ? [
-                {
-                  field: 'general',
-                  severity: 'suggestion' as const,
-                  message: comment,
-                },
-              ]
-            : undefined,
+          issues:
+            comment && decision === 'changes_requested'
+              ? [{ field: 'general', severity: 'suggestion' as const, message: comment }]
+              : undefined,
         }
       );
 
       if (response.statusCode === 200 || response.statusCode === 201) {
-        // Reload approvals to get updated data
         await loadApprovals();
         selectApproval(null);
       } else {
@@ -343,10 +311,18 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     try {
       setLoading(true);
 
-      // Get or create current thread
-      let threadUid: string;
-      if (selectedApproval.currentThreadId) {
-        // Get thread details to get threadUid
+      // Get current thread UID
+      let threadUid: string | undefined;
+
+      const currentThreadResponse = await getCurrentThread(
+        accessToken,
+        selectedApproval.interventionUid
+      );
+      if (currentThreadResponse.statusCode === 200 && currentThreadResponse.data) {
+        threadUid = currentThreadResponse.data.uid;
+      }
+
+      if (!threadUid && selectedApproval.currentThreadId) {
         const threadsResponse = await getInterventionThreads(
           accessToken,
           selectedApproval.interventionUid
@@ -359,55 +335,28 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
             (t: any) => t.id === selectedApproval.currentThreadId
           );
           threadUid = currentThread?.uid;
-        } else {
-          // Fallback: get current thread
-          const currentThreadResponse = await getCurrentThread(
-            accessToken,
-            selectedApproval.interventionUid
-          );
-          if (currentThreadResponse.statusCode === 200 && currentThreadResponse.data) {
-            threadUid = currentThreadResponse.data.uid;
-          } else {
-            throw new Error('No active review thread found');
-          }
         }
-      } else {
-        throw new Error('No active review thread found. Please submit for review first.');
       }
 
       if (!threadUid) {
-        throw new Error('Could not find thread UID');
+        setError('No active review thread found. The intervention may need to be reviewed first.');
+        return;
       }
 
-      // Add comment based on user role
       const commentDto = {
         type: 'general' as const,
         message: comment,
-        severity: undefined as any,
       };
 
       let response;
       if (isAdmin) {
-        response = await addAdminComment(
-          accessToken,
-          projectId,
-          threadUid,
-          commentDto
-        );
+        response = await addAdminComment(accessToken, projectId, threadUid, commentDto);
       } else {
         response = await addFieldWorkerComment(accessToken, threadUid, commentDto);
       }
 
       if (response.statusCode === 200 || response.statusCode === 201) {
-        // Reload intervention details to get updated comments
-        const detailsResponse = await getInterventionReviewDetails(
-          accessToken,
-          selectedApproval.interventionUid
-        );
-        if (detailsResponse.statusCode === 200) {
-          // Update the approval with new data
-          await loadApprovals();
-        }
+        await loadApprovals();
         selectApproval(null);
       } else {
         setError(response.message || 'Failed to add comment');
@@ -419,6 +368,8 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     }
   };
 
+  // === Drag and Drop Handlers ===
+
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event;
     const intervention = approvals.find(
@@ -426,139 +377,78 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     );
     if (intervention) {
       setActiveIntervention(intervention);
+      // Store original column so we can detect cross-column drops
+      dragOriginalColumnRef.current = mapReviewStatusToLegacyStatus(
+        intervention.reviewStatus || 'pending'
+      );
     }
   };
 
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event;
-    if (!over) return;
-
-    const activeId = Number(active.id);
-    const overId = over.id;
-
-    const activeIntervention = approvals.find(
-      (a) => a.interventionId === activeId
-    );
-    if (!activeIntervention) return;
-
-    // Check if we're dragging over a column droppable zone
-    const overColumn = columns.find((col) => col.status === overId);
-    if (overColumn) {
-      if (activeIntervention.approvalStatus !== overColumn.status) {
-        // Move intervention to the new column
-        const updatedApprovals = approvals.map((approval) =>
-          approval.interventionId === activeId
-            ? { ...approval, approvalStatus: overColumn.status }
-            : approval
-        );
-        setApprovals(updatedApprovals);
-      }
-      return;
-    }
-
-    // Check if we're dragging over another intervention card
-    const overIntervention = approvals.find(
-      (a) => a.interventionId === Number(overId)
-    );
-
-    if (overIntervention) {
-      // If the over intervention is in a different column, move to that column
-      if (activeIntervention.approvalStatus !== overIntervention.approvalStatus) {
-        const updatedApprovals = approvals.map((approval) =>
-          approval.interventionId === activeId
-            ? { ...approval, approvalStatus: overIntervention.approvalStatus }
-            : approval
-        );
-        setApprovals(updatedApprovals);
-      } else {
-        // Same column - reorder
-        const oldIndex = approvals.findIndex((a) => a.interventionId === activeId);
-        const newIndex = approvals.findIndex(
-          (a) => a.interventionId === Number(overId)
-        );
-
-        if (oldIndex !== newIndex) {
-          const reorderedApprovals = arrayMove(approvals, oldIndex, newIndex);
-          setApprovals(reorderedApprovals);
-        }
-      }
-    }
-  };
+  // No handleDragOver: we do NOT mutate store state during drag.
+  // DragOverlay provides visual feedback for the dragged card.
+  // The droppable zone highlights via isOver in ApprovalColumn.
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event;
-    setActiveIntervention(null);
+    const originalColumn = dragOriginalColumnRef.current;
 
-    if (!over) return;
+    // Reset drag state
+    setActiveIntervention(null);
+    dragOriginalColumnRef.current = null;
+
+    if (!over || !originalColumn) return;
 
     const activeId = Number(active.id);
     const overId = over.id;
 
-    const activeIntervention = approvals.find(
-      (a) => a.interventionId === activeId
-    );
-    if (!activeIntervention) return;
+    const intervention = approvals.find((a) => a.interventionId === activeId);
+    if (!intervention) return;
 
-    // Check if dropped on a column
-    const overColumn = columns.find((col) => col.status === overId);
-    if (overColumn && activeIntervention.approvalStatus !== overColumn.status) {
-      // Map legacy status to review decision
-      let decision: ReviewDecision;
-      if (overColumn.status === 'approved') {
-        decision = 'approved';
-      } else if (overColumn.status === 'rejected') {
-        decision = 'rejected';
-      } else {
-        decision = 'changes_requested';
-      }
+    // Determine target column
+    let targetColumnStatus: ApprovalStatus | null = null;
 
-      try {
-        await submitReviewDecision(
-          accessToken,
-          projectId,
-          activeIntervention.interventionUid,
-          {
-            decision,
-          }
-        );
-        await loadApprovals();
-      } catch (err: any) {
-        setError(err.message || 'Failed to update status');
+    // Check if dropped directly on a column
+    const overCol = COLUMN_DEFINITIONS.find((col) => col.status === overId);
+    if (overCol) {
+      targetColumnStatus = overCol.status;
+    } else {
+      // Dropped on a card - find which column that card belongs to
+      const overIntervention = approvals.find(
+        (a) => a.interventionId === Number(overId)
+      );
+      if (overIntervention?.reviewStatus) {
+        targetColumnStatus = mapReviewStatusToLegacyStatus(overIntervention.reviewStatus);
       }
+    }
+
+    // If no target or same column, nothing to do
+    if (!targetColumnStatus || targetColumnStatus === originalColumn) return;
+
+    // Map target column to API decision
+    const decision = mapColumnStatusToDecision(targetColumnStatus);
+    if (!decision) {
+      setError('Cannot move items back to New Requests');
       return;
     }
 
-    // Check if dropped on another intervention in a different column
-    const overIntervention = approvals.find(
-      (a) => a.interventionId === Number(overId)
-    );
-    if (
-      overIntervention &&
-      activeIntervention.approvalStatus !== overIntervention.approvalStatus
-    ) {
-      // Map legacy status to review decision
-      let decision: ReviewDecision;
-      if (overIntervention.approvalStatus === 'approved') {
-        decision = 'approved';
-      } else if (overIntervention.approvalStatus === 'rejected') {
-        decision = 'rejected';
-      } else {
-        decision = 'changes_requested';
-      }
+    try {
+      setLoading(true);
+      const response = await submitReviewDecision(
+        accessToken,
+        projectId,
+        intervention.interventionUid,
+        { decision }
+      );
 
-      try {
-        await submitReviewDecision(
-          accessToken,
-          projectId,
-          activeIntervention.interventionUid,
-          {
-            decision,
-          }
-        );
+      if (response.statusCode === 200 || response.statusCode === 201) {
         await loadApprovals();
-      } catch (err: any) {
-        setError(err.message || 'Failed to update status');
+      } else {
+        setError(response.message || 'Failed to update status');
       }
+    } catch (err: any) {
+      setError(err.message || 'Failed to update status');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -572,10 +462,22 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
   if (error) {
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="space-y-4">
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => {
+            setError(null);
+            loadApprovals();
+          }}
+        >
+          Retry
+        </Button>
+      </div>
     );
   }
 
@@ -608,7 +510,6 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
         <div className="flex gap-4 overflow-x-auto pb-4">

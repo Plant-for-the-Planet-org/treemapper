@@ -261,6 +261,7 @@ const HomeHeader = (props: Props) => {
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <NewAppModal />
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
+      <ProjectInviteModal/>
       <View style={styles.sectionWrapper} />
       {v3Approved || userType === 'tpo' ? (
         <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>

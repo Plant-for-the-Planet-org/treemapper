@@ -7,7 +7,7 @@ import { Colors } from 'src/utils/constants'
 import NetInfo from '@react-native-community/netinfo'
 import { useNavigation } from '@react-navigation/native'
 
-const DOCS_URL = 'http://192.168.0.113:3004/en/docs/introduction'
+const DOCS_URL = 'https://docs-ruddy-six.vercel.app/en/docs/introduction'
 
 const GuideView = () => {
   const [loading, setLoading] = useState(true)

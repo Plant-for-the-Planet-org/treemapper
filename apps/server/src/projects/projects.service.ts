@@ -1644,6 +1644,7 @@ export class ProjectsService {
           isActive: project.isActive,
           isPublic: project.isPublic,
           isPersonal: project.isPersonal,
+          approvalBoardEnabled: project.approvalBoardEnabled,
           intensity: project.intensity,
           revisionPeriodicity: project.revisionPeriodicity,
           metadata: project.metadata,
@@ -1776,6 +1777,7 @@ export class ProjectsService {
       isPublic: (value: any) => this.cleanBooleanValue(value),
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
+      approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
       metadata: (value: any) => this.cleanJsonValue(value),

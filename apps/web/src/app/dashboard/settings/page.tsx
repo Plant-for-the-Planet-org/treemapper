@@ -679,6 +679,94 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) =>
 };
 
 
+// Features Settings Component
+const FeaturesSettings = ({
+  projectData,
+  handleToggleChange,
+  handleSubmit,
+  loading
+}) => (
+  <div className="space-y-8">
+    <div className="flex justify-between items-start">
+      <div>
+        <h2 className="text-3xl font-bold text-stone-900 mb-2">Features</h2>
+        <p className="text-stone-600">Enable or disable optional features for your project.</p>
+      </div>
+    </div>
+
+    {/* Save Button at Top */}
+    <div className="flex justify-end pb-4 border-b border-stone-200">
+      <button
+        disabled={loading}
+        type="button"
+        onClick={handleSubmit}
+        className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
+      >
+        {loading ? (
+          <>
+            <Loader className="h-4 w-4 mr-2 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save className="h-4 w-4 mr-2" />
+            Save Changes
+          </>
+        )}
+      </button>
+    </div>
+
+    <CollapsibleSection title="Approval Workflow" icon={Shield}>
+      <div className="space-y-6">
+        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6 border border-emerald-200">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <Shield className="h-5 w-5 text-emerald-600" />
+                </div>
+                <h4 className="text-lg font-semibold text-stone-800">Approval Board</h4>
+              </div>
+              <p className="text-stone-600 text-sm leading-relaxed mb-4">
+                When enabled, all interventions submitted by team members will require approval before being registered.
+                Project administrators can review, approve, request changes, or reject submissions through the Approvals tab.
+              </p>
+              <div className="bg-white/60 rounded-lg p-4 border border-emerald-100">
+                <p className="text-xs text-stone-500 font-medium mb-2">What happens when enabled:</p>
+                <ul className="text-xs text-stone-600 space-y-1.5">
+                  <li className="flex items-start">
+                    <span className="text-emerald-500 mr-2">•</span>
+                    <span>Interventions are submitted for review instead of being directly registered</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-500 mr-2">•</span>
+                    <span>Admins can approve, reject, or request changes on submissions</span>
+                  </li>
+                  <li className="flex items-start">
+                    <span className="text-emerald-500 mr-2">•</span>
+                    <span>Team members can track their submission status in the Approvals tab</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+            <div className="flex flex-col items-end">
+              <ToggleSwitch
+                checked={projectData.approvalBoardEnabled}
+                onChange={() => handleToggleChange('approvalBoardEnabled')}
+                size="default"
+              />
+              <span className={`text-xs font-medium mt-2 ${projectData.approvalBoardEnabled ? 'text-emerald-600' : 'text-stone-400'}`}>
+                {projectData.approvalBoardEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </CollapsibleSection>
+  </div>
+);
+
+
 // Enhanced Danger Zone Component
 const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, handleDeleteProject }) => {
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
@@ -877,7 +965,8 @@ const ProjectSettings = () => {
     image: null,
     location: null,
     originalGeometry: null,
-    metadata: {}
+    metadata: {},
+    approvalBoardEnabled: false
   });
 
   const [activeTab, setActiveTab] = useState('general');
@@ -912,7 +1001,8 @@ const ProjectSettings = () => {
           image: result.data.image ?? null,
           location: result.data.location ?? null,
           originalGeometry: result.data.originalGeometry || null,
-          metadata: result.data.metadata || {}
+          metadata: result.data.metadata || {},
+          approvalBoardEnabled: result.data.approvalBoardEnabled ?? false
         });
       }
 
@@ -991,6 +1081,13 @@ const ProjectSettings = () => {
         [name]: undefined
       }));
     }
+  };
+
+  const handleToggleChange = (fieldName: string) => {
+    setProjectData(prev => ({
+      ...prev,
+      [fieldName]: !prev[fieldName]
+    }));
   };
 
   const handleLocationUpdate = async (geoData) => {
@@ -1085,6 +1182,11 @@ const ProjectSettings = () => {
       cleaned.originalGeometry = data.originalGeometry;
     }
 
+    // Handle boolean fields - always include approvalBoardEnabled
+    if (typeof data.approvalBoardEnabled === 'boolean') {
+      cleaned.approvalBoardEnabled = data.approvalBoardEnabled;
+    }
+
     return cleaned;
   };
 
@@ -1124,6 +1226,7 @@ const ProjectSettings = () => {
   const navItems = [
     { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'location', label: 'Location', icon: MapPin },
+    { id: 'features', label: 'Features', icon: Shield },
     { id: 'danger', label: 'Danger Zone', icon: Trash2, danger: true },
   ];
 
@@ -1146,6 +1249,15 @@ const ProjectSettings = () => {
           <LocationSettings
             handleLocationUpdate={handleLocationUpdate}
             existingGeoJSON={projectData.originalGeometry}
+            loading={loading}
+          />
+        );
+      case 'features':
+        return (
+          <FeaturesSettings
+            projectData={projectData}
+            handleToggleChange={handleToggleChange}
+            handleSubmit={handleSubmit}
             loading={loading}
           />
         );

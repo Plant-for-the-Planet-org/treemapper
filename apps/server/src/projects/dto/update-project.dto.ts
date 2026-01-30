@@ -82,6 +82,10 @@ export class UpdateProjectDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  approvalBoardEnabled?: boolean;
+
+  @IsOptional()
   @IsString()
   image?: string;
 

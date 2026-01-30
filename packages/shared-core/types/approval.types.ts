@@ -11,7 +11,7 @@ export type ReviewStatus =
   | 'unpublished'
   | 'rejected';
 
-export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected';
+export type ReviewDecision = 'approved' | 'changes_requested' | 'rejected' | 'in_review';
 
 export type ReviewCommentType =
   | 'general'

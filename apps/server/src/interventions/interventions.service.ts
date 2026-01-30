@@ -153,6 +153,21 @@ export class InterventionsService {
     private drizzleService: DrizzleService,
   ) { }
 
+  /**
+   * Check if the project has approval board enabled
+   * @param projectId - The project ID to check
+   * @returns boolean - true if approval board is enabled
+   */
+  private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
+    const projectData = await this.drizzleService.db
+      .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+      .from(project)
+      .where(eq(project.id, projectId))
+      .limit(1);
+
+    return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
+  }
+
   async updateInterventionSpecies(
     interventionId: string,
     speciesId: string,
@@ -459,7 +474,11 @@ export class InterventionsService {
         projectSiteId = siteData[0].id;
       }
 
-      const interventionData = {
+      // Check if project has approval board enabled
+      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const now = new Date();
+
+      const interventionData: any = {
         uid: uid,
         hid: newHID,
         userId: membership.userId,
@@ -476,7 +495,13 @@ export class InterventionsService {
         captureStatus: CaptureStatus.COMPLETE,
         metadata: createInterventionDto.metadata || null,
         image: createInterventionDto.image || null,
-        totalTreeCount: treeCount
+        totalTreeCount: treeCount,
+        // Auto-submit for review if approval board is enabled
+        ...(approvalBoardEnabled && {
+          reviewStatus: 'pending',
+          submittedAt: now,
+          firstSubmittedAt: now,
+        }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)
@@ -992,6 +1017,10 @@ export class InterventionsService {
         projectSiteId = siteData[0].id;
       }
 
+      // Check if project has approval board enabled
+      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const now = new Date();
+
       const transformedInterventions: any[] = [];
       const interventionSpeciesData: any[] = [];
       const singleTreeData: any[] = [];
@@ -1031,6 +1060,12 @@ export class InterventionsService {
           metadata: el.metadata || null,
           totalTreeCount: treeCount,
           totalSampleTreeCount: 0,
+          // Auto-submit for review if approval board is enabled
+          ...(approvalBoardEnabled && {
+            reviewStatus: 'pending',
+            submittedAt: now,
+            firstSubmittedAt: now,
+          }),
         });
 
         el.species.forEach(species => {

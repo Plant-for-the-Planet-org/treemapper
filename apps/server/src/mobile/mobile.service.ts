@@ -303,6 +303,21 @@ export class MobileService {
     private userCacheService: UserCacheService,
   ) { }
 
+  /**
+   * Check if the project has approval board enabled
+   * @param projectId - The project ID to check
+   * @returns boolean - true if approval board is enabled
+   */
+  private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
+    const projectData = await this.drizzleService.db
+      .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+      .from(project)
+      .where(eq(project.id, projectId))
+      .limit(1);
+
+    return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
+  }
+
   getGeoJSONForPostGIS(locationInput: any): any {
     if (!locationInput) {
       return null;
@@ -1596,7 +1611,12 @@ export class MobileService {
         }
       }
       const uid = generateUid('inv');
-      const interventionData = {
+
+      // Check if project has approval board enabled
+      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const now = new Date();
+
+      const interventionData: any = {
         uid: uid,
         hid: newHID,
         userId: membership.userId,
@@ -1616,7 +1636,13 @@ export class MobileService {
         metadata: createInterventionDto.metadata || null,
         totalTreeCount: createInterventionDto.type === 'single-tree-registration' ? 1 : totalCount,
         flag: flag,
-        flagReason: flagReason
+        flagReason: flagReason,
+        // Auto-submit for review if approval board is enabled
+        ...(approvalBoardEnabled && {
+          reviewStatus: 'pending',
+          submittedAt: now,
+          firstSubmittedAt: now,
+        }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)
