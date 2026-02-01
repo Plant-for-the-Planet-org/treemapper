@@ -17,7 +17,7 @@ import { MobileModule } from './mobile/mobile.module';
 import { NotificationModule } from './notification/notification.module';
 import { AuditModule } from './audit/audit.module';
 import { MigrationModule } from './migrate/migrate.module.ts';
-import { ApprovalBoardModule } from './approval-board/approval-board.module';
+// import { ApprovalBoardModule } from './approval-board/approval-board.module';
 
 @Module({
   imports: [
@@ -39,7 +39,7 @@ import { ApprovalBoardModule } from './approval-board/approval-board.module';
     NotificationModule,
     AuditModule,
     MigrationModule,
-    ApprovalBoardModule,
+    // ApprovalBoardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

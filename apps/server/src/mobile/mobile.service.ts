@@ -6,7 +6,7 @@ import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateParentHID } from 'src/util/hidGenerator';
 import { CaptureStatus } from 'src/interventions/interventions.service';
-import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image, userDevice } from 'src/database/schema';
+import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image } from 'src/database/schema';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
@@ -308,15 +308,15 @@ export class MobileService {
    * @param projectId - The project ID to check
    * @returns boolean - true if approval board is enabled
    */
-  private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
-    const projectData = await this.drizzleService.db
-      .select({ approvalBoardEnabled: project.approvalBoardEnabled })
-      .from(project)
-      .where(eq(project.id, projectId))
-      .limit(1);
+  // private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
+  //   const projectData = await this.drizzleService.db
+  //     .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+  //     .from(project)
+  //     .where(eq(project.id, projectId))
+  //     .limit(1);
 
-    return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
-  }
+  //   return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
+  // }
 
   getGeoJSONForPostGIS(locationInput: any): any {
     if (!locationInput) {
@@ -609,125 +609,125 @@ export class MobileService {
 
 
 
-  async updateUserDetails(userBody: any, userData: User): Promise<any> {
-    try {
-      const pyaload: any = {}
-      let userUpdateRequires = false;
-      if (userBody.image) {
-        userUpdateRequires = true
-        pyaload['image'] = userBody.image
-      }
-      if (userBody.firstName) {
-        userUpdateRequires = true
+  // async (userBody: any, userData: User): Promise<any> {
+  //   try {
+  //     const pyaload: any = {}
+  //     let userUpdateRequires = false;
+  //     if (userBody.image) {
+  //       userUpdateRequires = true
+  //       pyaload['image'] = userBody.image
+  //     }
+  //     if (userBody.firstName) {
+  //       userUpdateRequires = true
 
-        pyaload['firstName'] = userBody.firstName
-      }
-      if (userBody.lastName) {
-        userUpdateRequires = true
+  //       pyaload['firstName'] = userBody.firstName
+  //     }
+  //     if (userBody.lastName) {
+  //       userUpdateRequires = true
 
-        pyaload['lastName'] = userBody.lastName
-      }
+  //       pyaload['lastName'] = userBody.lastName
+  //     }
 
-      if (userBody.name) {
-        userUpdateRequires = true
-        pyaload['displayName'] = userBody.name
-      }
+  //     if (userBody.name) {
+  //       userUpdateRequires = true
+  //       pyaload['displayName'] = userBody.name
+  //     }
 
-      if (userUpdateRequires) {
-        await this.drizzleService.db
-          .update(user)
-          .set({ ...pyaload })
-          .where(eq(user.id, userData.id))
-      }
+  //     if (userUpdateRequires) {
+  //       await this.drizzleService.db
+  //         .update(user)
+  //         .set({ ...pyaload })
+  //         .where(eq(user.id, userData.id))
+  //     }
 
-      if (userBody.device) {
-        const deviceData = userBody.device;
+  //     if (userBody.device) {
+  //       const deviceData = userBody.device;
         
-        // deviceId is required (installation id - unique)
-        if (!deviceData.deviceId) {
-          throw new BadRequestException('deviceId is required in device object');
-        }
+  //       // deviceId is required (installation id - unique)
+  //       if (!deviceData.deviceId) {
+  //         throw new BadRequestException('deviceId is required in device object');
+  //       }
         
-        // Check if device already exists by deviceId (installation id - unique)
-        const existingDevice = await this.drizzleService.db
-          .select()
-          .from(userDevice)
-          .where(eq(userDevice.deviceId, deviceData.deviceId))
-          .limit(1);
+  //       // Check if device already exists by deviceId (installation id - unique)
+  //       const existingDevice = await this.drizzleService.db
+  //         .select()
+  //         .from(userDevice)
+  //         .where(eq(userDevice.deviceId, deviceData.deviceId))
+  //         .limit(1);
 
-        const now = new Date();
-        const deviceUpdateData: any = {
-          userId: userData.id,
-          lastActiveAt: now,
-          updatedAt: now,
-        };
+  //       const now = new Date();
+  //       const deviceUpdateData: any = {
+  //         userId: userData.id,
+  //         lastActiveAt: now,
+  //         updatedAt: now,
+  //       };
 
-        // Map device fields from request to schema
-        if (deviceData.oneSignalId !== undefined) {
-          deviceUpdateData.oneSignalId = deviceData.oneSignalId;
-        }
-        if (deviceData.deviceOs !== undefined) {
-          deviceUpdateData.deviceOs = deviceData.deviceOs;
-        }
-        if (deviceData.deviceName !== undefined) {
-          deviceUpdateData.deviceName = deviceData.deviceName;
-        }
-        if (deviceData.deviceModel !== undefined) {
-          deviceUpdateData.deviceModel = deviceData.deviceModel;
-        }
-        if (deviceData.osVersion !== undefined) {
-          deviceUpdateData.osVersion = deviceData.osVersion;
-        }
-        if (deviceData.appVersion !== undefined) {
-          deviceUpdateData.appVersion = deviceData.appVersion;
-        }
-        if (deviceData.locale !== undefined) {
-          deviceUpdateData.locale = deviceData.locale;
-        }
-        if (deviceData.timezone !== undefined) {
-          deviceUpdateData.timezone = deviceData.timezone;
-        }
-        if (deviceData.notificationPermission !== undefined) {
-          deviceUpdateData.notificationPermission = deviceData.notificationPermission;
-        }
-        if (deviceData.isActive !== undefined) {
-          deviceUpdateData.isActive = deviceData.isActive;
-        }
+  //       // Map device fields from request to schema
+  //       if (deviceData.oneSignalId !== undefined) {
+  //         deviceUpdateData.oneSignalId = deviceData.oneSignalId;
+  //       }
+  //       if (deviceData.deviceOs !== undefined) {
+  //         deviceUpdateData.deviceOs = deviceData.deviceOs;
+  //       }
+  //       if (deviceData.deviceName !== undefined) {
+  //         deviceUpdateData.deviceName = deviceData.deviceName;
+  //       }
+  //       if (deviceData.deviceModel !== undefined) {
+  //         deviceUpdateData.deviceModel = deviceData.deviceModel;
+  //       }
+  //       if (deviceData.osVersion !== undefined) {
+  //         deviceUpdateData.osVersion = deviceData.osVersion;
+  //       }
+  //       if (deviceData.appVersion !== undefined) {
+  //         deviceUpdateData.appVersion = deviceData.appVersion;
+  //       }
+  //       if (deviceData.locale !== undefined) {
+  //         deviceUpdateData.locale = deviceData.locale;
+  //       }
+  //       if (deviceData.timezone !== undefined) {
+  //         deviceUpdateData.timezone = deviceData.timezone;
+  //       }
+  //       if (deviceData.notificationPermission !== undefined) {
+  //         deviceUpdateData.notificationPermission = deviceData.notificationPermission;
+  //       }
+  //       if (deviceData.isActive !== undefined) {
+  //         deviceUpdateData.isActive = deviceData.isActive;
+  //       }
 
-        if (existingDevice.length > 0) {
-          // Update existing device
-          await this.drizzleService.db
-            .update(userDevice)
-            .set(deviceUpdateData)
-            .where(eq(userDevice.deviceId, deviceData.deviceId));
-        } else {
-          // Create new device
-          const deviceUid = generateUid('dev');
-          await this.drizzleService.db
-            .insert(userDevice)
-            .values({
-              uid: deviceUid,
-              deviceId: deviceData.deviceId,
-              userId: userData.id,
-              oneSignalId: deviceData.oneSignalId || null,
-              deviceOs: deviceData.deviceOs || null,
-              deviceName: deviceData.deviceName || null,
-              deviceModel: deviceData.deviceModel || null,
-              osVersion: deviceData.osVersion || null,
-              appVersion: deviceData.appVersion || null,
-              locale: deviceData.locale || null,
-              timezone: deviceData.timezone || null,
-              notificationPermission: deviceData.notificationPermission !== undefined ? deviceData.notificationPermission : true,
-              isActive: deviceData.isActive !== undefined ? deviceData.isActive : true,
-              lastActiveAt: now,
-              createdAt: now,
-              updatedAt: now,
-            });
-        }
-      }
-    } catch (error) {
-    }
-  }
+  //       if (existingDevice.length > 0) {
+  //         // Update existing device
+  //         await this.drizzleService.db
+  //           .update(userDevice)
+  //           .set(deviceUpdateData)
+  //           .where(eq(userDevice.deviceId, deviceData.deviceId));
+  //       } else {
+  //         // Create new device
+  //         const deviceUid = generateUid('dev');
+  //         await this.drizzleService.db
+  //           .insert(userDevice)
+  //           .values({
+  //             uid: deviceUid,
+  //             deviceId: deviceData.deviceId,
+  //             userId: userData.id,
+  //             oneSignalId: deviceData.oneSignalId || null,
+  //             deviceOs: deviceData.deviceOs || null,
+  //             deviceName: deviceData.deviceName || null,
+  //             deviceModel: deviceData.deviceModel || null,
+  //             osVersion: deviceData.osVersion || null,
+  //             appVersion: deviceData.appVersion || null,
+  //             locale: deviceData.locale || null,
+  //             timezone: deviceData.timezone || null,
+  //             notificationPermission: deviceData.notificationPermission !== undefined ? deviceData.notificationPermission : true,
+  //             isActive: deviceData.isActive !== undefined ? deviceData.isActive : true,
+  //             lastActiveAt: now,
+  //             createdAt: now,
+  //             updatedAt: now,
+  //           });
+  //       }
+  //     }
+  //   } catch (error) {
+  //   }
+  // }
 
 
   async getProjectsAndSitesForUser(userId: number): Promise<ProjectWithSitesResponse[]> {
@@ -1613,7 +1613,7 @@ export class MobileService {
       const uid = generateUid('inv');
 
       // Check if project has approval board enabled
-      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
       const now = new Date();
 
       const interventionData: any = {
@@ -1638,11 +1638,11 @@ export class MobileService {
         flag: flag,
         flagReason: flagReason,
         // Auto-submit for review if approval board is enabled
-        ...(approvalBoardEnabled && {
-          reviewStatus: 'pending',
-          submittedAt: now,
-          firstSubmittedAt: now,
-        }),
+        // ...(approvalBoardEnabled && {
+        //   reviewStatus: 'pending',
+        //   submittedAt: now,
+        //   firstSubmittedAt: now,
+        // }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)

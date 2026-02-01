@@ -98,15 +98,15 @@ export class UsersController {
     return await this.usersService.invalidateMyCache(user);
   }
 
-  @Post('devices')
-  @ApiOperation({ summary: 'Register or update user device' })
-  @ApiResponse({ status: HttpStatus.CREATED, description: 'Device registered successfully' })
-  async registerDevice(
-    @Body() createDeviceDto: CreateDeviceDto,
-    @CurrentUser() user: User,
-  ) {
-    return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
-  }
+  // @Post('devices')
+  // @ApiOperation({ summary: 'Register or update user device' })
+  // @ApiResponse({ status: HttpStatus.CREATED, description: 'Device registered successfully' })
+  // async registerDevice(
+  //   @Body() createDeviceDto: CreateDeviceDto,
+  //   @CurrentUser() user: User,
+  // ) {
+  //   return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
+  // }
 
 
   @Patch(':id')

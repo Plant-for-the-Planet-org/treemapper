@@ -1644,7 +1644,6 @@ export class ProjectsService {
           isActive: project.isActive,
           isPublic: project.isPublic,
           isPersonal: project.isPersonal,
-          approvalBoardEnabled: project.approvalBoardEnabled,
           intensity: project.intensity,
           revisionPeriodicity: project.revisionPeriodicity,
           metadata: project.metadata,

@@ -158,15 +158,15 @@ export class InterventionsService {
    * @param projectId - The project ID to check
    * @returns boolean - true if approval board is enabled
    */
-  private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
-    const projectData = await this.drizzleService.db
-      .select({ approvalBoardEnabled: project.approvalBoardEnabled })
-      .from(project)
-      .where(eq(project.id, projectId))
-      .limit(1);
+  // private async isApprovalBoardEnabled(projectId: number): Promise<boolean> {
+  //   const projectData = await this.drizzleService.db
+  //     .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+  //     .from(project)
+  //     .where(eq(project.id, projectId))
+  //     .limit(1);
 
-    return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
-  }
+  //   return projectData.length > 0 && projectData[0].approvalBoardEnabled === true;
+  // }
 
   async updateInterventionSpecies(
     interventionId: string,
@@ -475,7 +475,7 @@ export class InterventionsService {
       }
 
       // Check if project has approval board enabled
-      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
       const now = new Date();
 
       const interventionData: any = {
@@ -497,11 +497,11 @@ export class InterventionsService {
         image: createInterventionDto.image || null,
         totalTreeCount: treeCount,
         // Auto-submit for review if approval board is enabled
-        ...(approvalBoardEnabled && {
-          reviewStatus: 'pending',
-          submittedAt: now,
-          firstSubmittedAt: now,
-        }),
+        // ...(approvalBoardEnabled && {
+        //   reviewStatus: 'pending',
+        //   submittedAt: now,
+        //   firstSubmittedAt: now,
+        // }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)
@@ -1018,7 +1018,7 @@ export class InterventionsService {
       }
 
       // Check if project has approval board enabled
-      const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
       const now = new Date();
 
       const transformedInterventions: any[] = [];
@@ -1061,11 +1061,11 @@ export class InterventionsService {
           totalTreeCount: treeCount,
           totalSampleTreeCount: 0,
           // Auto-submit for review if approval board is enabled
-          ...(approvalBoardEnabled && {
-            reviewStatus: 'pending',
-            submittedAt: now,
-            firstSubmittedAt: now,
-          }),
+          // ...(approvalBoardEnabled && {
+          //   reviewStatus: 'pending',
+          //   submittedAt: now,
+          //   firstSubmittedAt: now,
+          // }),
         });
 
         el.species.forEach(species => {
