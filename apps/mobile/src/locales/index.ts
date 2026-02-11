@@ -7,6 +7,7 @@ import delabels from './languages/de'
 import enlabels from './languages/en'
 import eslabels from './languages/es'
 import brLabels from './languages/pt-BR'
+import mglabels from './languages/mg'
 
 let userLang = undefined
 const lang = getLocales()[0]
@@ -28,6 +29,7 @@ i18next.use(initReactI18next).init({
     en: {translation: {label: enlabels}},
     es: {translation: {label: eslabels}},
     pt: {translation: {label: brLabels}},
+    mg: {translation: {label: mglabels}},
   },
 })
 
