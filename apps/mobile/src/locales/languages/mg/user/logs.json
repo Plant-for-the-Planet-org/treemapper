@@ -1,0 +1,9 @@
+{
+  "logs_page_title": "Hijery ny tatitry ny hetsika",
+  "logs_all": "Rehetra",
+  "logs_errors": "Hadisoana",
+  "logs_date": "{{date, YYYY-MM-DD hh:mm:ss}}",
+  "share_activity_logs_title": "Zarao ny tatitry ny hetsika",
+  "share_logs_file_name": "Tatitry ny TreeMapper v{{version}}",
+  "creating_logs_file_share": "Mamorona ny rakitra tatitra hozaraina.\n Mety haharitra kely izany."
+}

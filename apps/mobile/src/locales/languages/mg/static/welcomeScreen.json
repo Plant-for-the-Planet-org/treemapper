@@ -1,0 +1,17 @@
+{
+  "login": "Miditra / Misoratra anarana",
+  "fetch_all_items": "Alao ny entana rehetra",
+  "fetch_necessary_items": "Alao ireo entana ilaina",
+  "tree_mapper": "TreeMapper",
+  "tree_inventory": "Lisitry ny entana",
+  "tree_inventory_sub_header": "an'ireo fisoratana anarana mbola volavolaina sy miandry",
+  "download_maps": "Sarintany tsy mila aterineto",
+  "download_maps_sub_header": "ho an'ny fampiasana tsy mila aterineto",
+  "register_tree": "Misoratra anarana ny hazo",
+  "loading_content": "Mampiditra ny votoaty ...",
+  "add": "Ampio",
+  "plots": "Tany",
+  "map": "Sarintany",
+  "interventions":"Fandraisana an-tanana"
+
+}

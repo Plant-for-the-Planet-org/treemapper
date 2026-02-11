@@ -1,0 +1,10 @@
+{
+  "download_map_complete": "Vita ny fampidinana ny sarintany",
+  "download_map_area": "Ampidino ity faritra ity?",
+  "download_map": "Ampidino",
+  "download_map_view": "Jereo avokoa",
+  "download_map_area_failed": "Tsy afaka nampidina ny sarintany. Azafady, andramo indray any aoriana.",
+  "download_map_area_exists": "Efa nalaina sahady ny sarintany.",
+  "network_error": "Hadisoana amin'ny tambajotra",
+  "network_error_message": "Tsy misy fifandraisana amin'ny internet. Azafady, andramo indray any aoriana."
+}
