@@ -21,5 +21,7 @@
   "additional_data": "Additional Data",
   "project_config": "Project Configuration",
   "login_signup": "Login/SignUp",
-  "environment": "Environment"
+  "environment": "Environment",
+  "language": "Language",
+  "select_language": "Choose your preferred language"
 }

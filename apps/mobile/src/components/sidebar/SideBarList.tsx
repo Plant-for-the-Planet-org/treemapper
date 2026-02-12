@@ -9,9 +9,9 @@ import AdditionalDataIcon from 'assets/images/svg/AdditionalDataIcon.svg'
 import LogoutIcon from 'assets/images/svg/LogoutIcon.svg'
 import BinIcon from 'assets/images/svg/BinIcon.svg'
 import { useSelector } from 'react-redux'
+import { useTranslation } from 'react-i18next'
 import { RootState } from 'src/store'
-import i18next from 'src/locales'
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons } from '@expo/vector-icons'
 
 import { SCALE_24 } from 'src/utils/constants/spacing'
 
@@ -21,6 +21,7 @@ interface Props {
 
 const SideBarList = (props: Props) => {
   const { isLoggedIn } = props
+  const { t } = useTranslation()
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
@@ -29,28 +30,28 @@ const SideBarList = (props: Props) => {
   )
   const data: SideDrawerItem[] = [
     {
-      label: i18next.t('label.manage_species'),
+      label: t('label.manage_species'),
       screen: 'ManageSpecies',
       icon: <ManageSpeciesIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
       key: 'manage_species'
     },
     {
-      label: i18next.t('label.manage_project'),
+      label: t('label.manage_project'),
       screen: 'ManageProjects',
       icon: <ManageProjectIcon width={SCALE_24} height={SCALE_24} />,
       visible: v3Approved,
       key: 'manage_projects'
     },
     {
-      label: i18next.t('label.additional_data'),
+      label: t('label.additional_data'),
       screen: 'AdditionalData',
       icon: <AdditionalDataIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
       key: 'additional_data'
     },
     {
-      label: i18next.t('label.offline_maps'),
+      label: t('label.offline_maps'),
       screen: 'OfflineMap',
       icon: <OfflineMapIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
@@ -79,11 +80,18 @@ const SideBarList = (props: Props) => {
       key: 'features'
     },
     {
-      label: i18next.t('label.activity_logs'),
+      label: t('label.activity_logs'),
       screen: 'ActivityLog',
       icon: <ManageProjectIcon width={SCALE_24} height={SCALE_24} />,
       visible: true,
       key: 'activity_log'
+    },
+    {
+      label: t('label.language'),
+      screen: 'Language',
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="language" size={16} color="#fff" style={{paddingTop: 2}} /></View>,
+      visible: true,
+      key: 'language'
     },
     {
       label: "Delete Account",
@@ -93,7 +101,7 @@ const SideBarList = (props: Props) => {
       key: 'delete'
     },
     {
-      label: i18next.t('label.logout'),
+      label: t('label.logout'),
       screen: 'ManageSpecies',
       icon: <LogoutIcon width={SCALE_24} height={SCALE_24} />,
       visible: isLoggedIn,

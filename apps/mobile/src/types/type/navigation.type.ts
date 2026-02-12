@@ -61,6 +61,7 @@ export type RootStackParamList = {
   Guide: undefined
   Notification: undefined
   NotificationDetail: NotificationDetailView
+  Language: undefined
 }
 
 type NotificationDetailView = {

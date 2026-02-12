@@ -1,6 +1,7 @@
 import 'src/utils/initializeServices'
-import React from 'react'
+import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
+import { applyStoredLanguage } from 'src/locales'
 import RootNavigator from './src/navigation/RootNavigator'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
 import { Provider } from 'react-redux'
@@ -18,6 +19,10 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 
 export default function App() {
+  useEffect(() => {
+    applyStoredLanguage()
+  }, [])
+
   return (
     <SafeAreaProvider>
       <StatusBar translucent />

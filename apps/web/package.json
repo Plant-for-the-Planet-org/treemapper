@@ -30,6 +30,8 @@
     "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "framer-motion": "^12.7.4",
+    "i18next": "^23.16.0",
+    "react-i18next": "^15.1.0",
     "lucide-react": "^0.525.0",
     "maplibre-gl": "^5.16.0",
     "next": "15.4.2",

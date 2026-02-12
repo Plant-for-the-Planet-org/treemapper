@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
-import i18next from 'src/locales/index'
+import { useTranslation } from 'react-i18next'
 import { Typography, Colors } from 'src/utils/constants'
 import LoginButton from './LoginButton'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
@@ -11,15 +11,17 @@ interface Props {
 
 const SideBarFooter = (props: Props) => {
   const { isLoggedIn } = props
+  const { t, i18n } = useTranslation()
+  const lang = i18n.language?.split('-')[0] || 'en'
   const onPressImprint = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/imprint`);
-  };
+    openWebView(`https://pp.eco/legal/${lang}/imprint`)
+  }
   const onPressPolicy = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/privacy`);
-  };
+    openWebView(`https://pp.eco/legal/${lang}/privacy`)
+  }
   const onPressTerms = () => {
-    openWebView(`https://pp.eco/legal/${i18next.language}/terms`);
-  };
+    openWebView(`https://pp.eco/legal/${lang}/terms`)
+  }
   return (
     <View style={[styles.versionContainer]}>
       {!isLoggedIn && <LoginButton />}
@@ -32,17 +34,17 @@ const SideBarFooter = (props: Props) => {
         <View style={styles.dot} />
         <TouchableOpacity key="privacy_policy" onPress={onPressPolicy}>
           <Text style={styles.itemText}>
-            {i18next.t('label.privacy_policy')}
+            {t('label.privacy_policy')}
           </Text>
         </TouchableOpacity>
         <View style={styles.dot} />
         <TouchableOpacity key="imprint" onPress={onPressImprint}>
-          <Text style={styles.itemText}>{i18next.t('label.imprint')}</Text>
+          <Text style={styles.itemText}>{t('label.imprint')}</Text>
         </TouchableOpacity>
         <View style={styles.dot} />
         <TouchableOpacity key="terms_of_service" onPress={onPressTerms}>
           <Text style={styles.itemText}>
-            {i18next.t('label.terms_of_service')}
+            {t('label.terms_of_service')}
           </Text>
         </TouchableOpacity>
       </View>

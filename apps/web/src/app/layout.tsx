@@ -5,6 +5,7 @@ import "./globals.css";
 import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
+import I18nProvider from '@/providers/I18nProvider';
 import MobileAppRedirect from '@/component/MobileAppRedirect';
 
 const openSans = Open_Sans({
@@ -66,9 +67,11 @@ export default function RootLayout({
         
         <ResponsiveDashboardWrapper>
           <Auth0Provider>
-            {/* <SharedQueryProvider> */}
-            {children}
-            {/* </SharedQueryProvider> */}
+            <I18nProvider>
+              {/* <SharedQueryProvider> */}
+              {children}
+              {/* </SharedQueryProvider> */}
+            </I18nProvider>
           </Auth0Provider>
         </ResponsiveDashboardWrapper>
       </body>

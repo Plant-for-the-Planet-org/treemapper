@@ -53,6 +53,7 @@ import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
 import GuideView from './GuideView'
 import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
+import LanguageSettingsView from './LanguageSettingsView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -109,5 +110,6 @@ export default {
   CreateProject:CreateProjectScreen,
   Guide: GuideView,
   Notification: NotificationView,
-  NotificationDetail: NotificationDetailView
+  NotificationDetail: NotificationDetailView,
+  Language: LanguageSettingsView
 }
