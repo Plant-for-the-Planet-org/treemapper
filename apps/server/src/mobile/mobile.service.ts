@@ -6,7 +6,8 @@ import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateParentHID } from 'src/util/hidGenerator';
 import { CaptureStatus } from 'src/interventions/interventions.service';
-import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image } from 'src/database/schema';
+import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image, feedback } from 'src/database/schema';
+import { CreateFeedbackDto } from './dto/feedback.dto';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
@@ -2584,6 +2585,30 @@ export class MobileService {
 
       throw new Error('Failed to fetch favorite species');
     }
+  }
+
+  async createFeedback(dto: CreateFeedbackDto, userId: number) {
+    const uid = generateUid('feed');
+    const [result] = await this.drizzleService.db.insert(feedback).values({
+      uid,
+      userId,
+      type: dto.type,
+      description: dto.message,
+      locale: dto.locale,
+      appVersion: dto.appVersion,
+      deviceInfo: dto.deviceInfo,
+      metadata: dto.metadata,
+      image: dto.image || null,
+    }).returning();
+    return result;
+  }
+
+  async getUserFeedback(userId: number) {
+    return this.drizzleService.db
+      .select()
+      .from(feedback)
+      .where(and(eq(feedback.userId, userId), isNull(feedback.deletedAt)))
+      .orderBy(desc(feedback.createdAt));
   }
 
 }

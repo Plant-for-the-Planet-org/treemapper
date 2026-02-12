@@ -30,6 +30,7 @@ import {
   MobileNotificationQueryDto,
   MobileNotificationResponseDto,
 } from 'src/notification/dto/notification.dto';
+import { CreateFeedbackDto } from './dto/feedback.dto';
 
 
 
@@ -221,6 +222,29 @@ export class MobileController {
     @CurrentUser() userData: any,
   ): Promise<any> {
     return await this.appservice.requestMigration(userData, authorization);
+  }
+
+  // ============================================
+  // FEEDBACK ENDPOINTS
+  // ============================================
+
+  @Post('feedback')
+  @ApiOperation({ summary: 'Submit feedback from mobile app' })
+  @ApiResponse({ status: 201, description: 'Feedback submitted successfully' })
+  async createFeedback(
+    @Body() dto: CreateFeedbackDto,
+    @CurrentUser() userData: User,
+  ) {
+    return this.appservice.createFeedback(dto, userData.id);
+  }
+
+  @Get('feedback')
+  @ApiOperation({ summary: 'Get feedback history for the current user' })
+  @ApiResponse({ status: 200, description: 'Returns list of user feedback' })
+  async getUserFeedback(
+    @CurrentUser() userData: User,
+  ) {
+    return this.appservice.getUserFeedback(userData.id);
   }
 
   // ============================================

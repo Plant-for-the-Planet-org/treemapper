@@ -16,6 +16,7 @@ import { SCALE_16 } from 'src/utils/constants/spacing'
 
 interface Props {
   item: SideDrawerItem
+  onPressFeedback?: () => void
 }
 
 const SideBarCard = (props: Props) => {
@@ -31,6 +32,10 @@ const SideBarCard = (props: Props) => {
     let params = {}
     if (key === 'logout') {
       handleLogout()
+      return
+    }
+    if (key === 'feedback') {
+      props.onPressFeedback?.()
       return
     }
     if (key === 'manage_species') {

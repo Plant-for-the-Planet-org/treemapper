@@ -28,6 +28,12 @@
         "expo-build-properties"
       ],
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app require accesses to you gallery to let you share them while providing feedback."
+        }
+      ],
+      [
         "expo-location",
         {
           "locationAlwaysAndWhenInUsePermission": "We need access to location to be able to register trees on planted location."

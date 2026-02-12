@@ -3,7 +3,9 @@ CREATE TYPE "public"."audit_entity" AS ENUM('user', 'workspace', 'workspace_memb
 CREATE TYPE "public"."capture_mode" AS ENUM('on-site', 'off-site', 'external', 'unknown', 'web-upload');--> statement-breakpoint
 CREATE TYPE "public"."capture_status" AS ENUM('complete', 'partial', 'incomplete');--> statement-breakpoint
 CREATE TYPE "public"."entity_type" AS ENUM('users', 'projects', 'interventions', 'species', 'sites', 'images');--> statement-breakpoint
-CREATE TYPE "public"."image_entity" AS ENUM('project', 'site', 'user', 'intervention', 'tree', 'species');--> statement-breakpoint
+CREATE TYPE "public"."feedback_status" AS ENUM('pending', 'reviewed', 'resolved', 'dismissed');--> statement-breakpoint
+CREATE TYPE "public"."feedback_type" AS ENUM('feedback', 'issue', 'translation_fix');--> statement-breakpoint
+CREATE TYPE "public"."image_entity" AS ENUM('project', 'site', 'user', 'intervention', 'tree', 'species', 'feedback');--> statement-breakpoint
 CREATE TYPE "public"."image_type" AS ENUM('before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record');--> statement-breakpoint
 CREATE TYPE "public"."image_upload_device" AS ENUM('web', 'mobile', 'server');--> statement-breakpoint
 CREATE TYPE "public"."intervention_discriminator" AS ENUM('plot', 'intervention');--> statement-breakpoint
@@ -72,6 +74,24 @@ CREATE TABLE "bulk_invite" (
 	CONSTRAINT "expired_or_discarded_not_pending" CHECK ((status != 'expired' OR expires_at <= NOW()) AND (status != 'discarded' OR discarded_by_id IS NOT NULL)),
 	CONSTRAINT "discarded_has_timestamp" CHECK (discarded_by_id IS NULL OR discarded_at IS NOT NULL),
 	CONSTRAINT "valid_email_domains" CHECK (array_length(email_domain_restrictions, 1) IS NULL OR array_length(email_domain_restrictions, 1) > 0)
+);
+--> statement-breakpoint
+CREATE TABLE "feedback" (
+	"id" serial PRIMARY KEY NOT NULL,
+	"uid" text NOT NULL,
+	"user_id" integer NOT NULL,
+	"type" "feedback_type" NOT NULL,
+	"status" "feedback_status" DEFAULT 'pending' NOT NULL,
+	"description" text NOT NULL,
+	"locale" text,
+	"app_version" text,
+	"device_info" jsonb,
+	"image" text,
+	"metadata" jsonb,
+	"created_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"updated_at" timestamp with time zone DEFAULT now() NOT NULL,
+	"deleted_at" timestamp with time zone,
+	CONSTRAINT "feedback_uid_unique" UNIQUE("uid")
 );
 --> statement-breakpoint
 CREATE TABLE "image" (
@@ -687,6 +707,7 @@ ALTER TABLE "audit_log" ADD CONSTRAINT "audit_log_project_id_project_id_fk" FORE
 ALTER TABLE "bulk_invite" ADD CONSTRAINT "bulk_invite_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "bulk_invite" ADD CONSTRAINT "bulk_invite_invited_by_id_user_id_fk" FOREIGN KEY ("invited_by_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "bulk_invite" ADD CONSTRAINT "bulk_invite_discarded_by_id_user_id_fk" FOREIGN KEY ("discarded_by_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
+ALTER TABLE "feedback" ADD CONSTRAINT "feedback_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "image" ADD CONSTRAINT "image_uploaded_by_id_user_id_fk" FOREIGN KEY ("uploaded_by_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "intervention" ADD CONSTRAINT "intervention_user_id_user_id_fk" FOREIGN KEY ("user_id") REFERENCES "public"."user"("id") ON DELETE set null ON UPDATE no action;--> statement-breakpoint
 ALTER TABLE "intervention" ADD CONSTRAINT "intervention_project_id_project_id_fk" FOREIGN KEY ("project_id") REFERENCES "public"."project"("id") ON DELETE cascade ON UPDATE no action;--> statement-breakpoint
@@ -732,6 +753,8 @@ CREATE INDEX "audit_log_user_activity_idx" ON "audit_log" USING btree ("user_id"
 CREATE INDEX "audit_log_workspace_audit_idx" ON "audit_log" USING btree ("workspace_id","occurred_at") WHERE workspace_id IS NOT NULL;--> statement-breakpoint
 CREATE INDEX "bulk_invite_project_active_idx" ON "bulk_invite" USING btree ("project_id","status") WHERE deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "bulk_invite_token_active_idx" ON "bulk_invite" USING btree ("token","status") WHERE status = 'pending' AND deleted_at IS NULL;--> statement-breakpoint
+CREATE INDEX "feedback_user_idx" ON "feedback" USING btree ("user_id","created_at");--> statement-breakpoint
+CREATE INDEX "feedback_status_type_idx" ON "feedback" USING btree ("status","type","created_at") WHERE deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "image_entity_lookup_idx" ON "image" USING btree ("entity_type","entity_id");--> statement-breakpoint
 CREATE INDEX "image_primary_idx" ON "image" USING btree ("entity_type","entity_id","is_primary") WHERE is_primary = true AND deleted_at IS NULL;--> statement-breakpoint
 CREATE INDEX "intervention_project_date_range_idx" ON "intervention" USING btree ("project_id","intervention_start_date","status") WHERE deleted_at IS NULL;--> statement-breakpoint

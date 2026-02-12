@@ -172,10 +172,12 @@ export const recordTypeEnum = pgEnum('record_type', [
   'growth_monitoring'
 ]);
 
-export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree', 'species']);
+export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree', 'species', 'feedback']);
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
 export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
+export const feedbackTypeEnum = pgEnum('feedback_type', ['feedback', 'issue', 'translation_fix']);
+export const feedbackStatusEnum = pgEnum('feedback_status', ['pending', 'reviewed', 'resolved', 'dismissed']);
 export const migrationStatusEnum = pgEnum('migration_status', [
   'in_progress', 'completed', 'failed', 'started'
 ]);
@@ -366,6 +368,28 @@ export const survey = pgTable('survey', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
 }, (table) => ({
   userIdx: index('survey_user_idx').on(table.userId),
+}));
+
+export const feedback = pgTable('feedback', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  type: feedbackTypeEnum('type').notNull(),
+  status: feedbackStatusEnum('status').notNull().default('pending'),
+  description: text('description').notNull(),
+  locale: text('locale'),
+  appVersion: text('app_version'),
+  deviceInfo: jsonb('device_info'),
+  image: text('image'),
+  metadata: jsonb('metadata'),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+  deletedAt: timestamp('deleted_at', { withTimezone: true }),
+}, (table) => ({
+  userFeedbackIdx: index('feedback_user_idx').on(table.userId, table.createdAt),
+  statusTypeIdx: index('feedback_status_type_idx')
+    .on(table.status, table.type, table.createdAt)
+    .where(sql`deleted_at IS NULL`),
 }));
 
 export const image = pgTable('image', {
@@ -1065,6 +1089,7 @@ export const userRelations = relations(user, ({ many }) => ({
   createdWorkspaces: many(workspace, { relationName: 'createdBy' }),
   sentWorkspaceInvites: many(workspaceMember, { relationName: 'invitedBy' }),
   surveys: many(survey),
+  feedbacks: many(feedback),
 
   verifiedSpecies: many(scientificSpecies, { relationName: 'verifiedBy' }),
   uploadedImages: many(image, { relationName: 'uploadedBy' }),
@@ -1204,6 +1229,13 @@ export const speciesRequestRelations = relations(speciesRequest, ({ one }) => ({
 export const surveyRelations = relations(survey, ({ one }) => ({
   user: one(user, {
     fields: [survey.userId],
+    references: [user.id],
+  }),
+}));
+
+export const feedbackRelations = relations(feedback, ({ one }) => ({
+  user: one(user, {
+    fields: [feedback.userId],
     references: [user.id],
   }),
 }));

@@ -71,6 +71,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 20,
     width: '100%',
+    backgroundColor: Colors.BACKDROP_COLOR
   },
   termsContainer: {
     flexDirection: 'row',

@@ -1,6 +1,7 @@
 import { StyleSheet, View, FlatList } from 'react-native'
-import React from 'react'
+import React, { useState } from 'react'
 import SideBarCard from './SideBarCard'
+import FeedbackModal from './FeedbackModal'
 import { SideDrawerItem } from 'src/types/interface/app.interface'
 import ManageSpeciesIcon from 'assets/images/svg/ManageSpeciesIcon.svg'
 import ManageProjectIcon from 'assets/images/svg/ManageProjectIcon.svg'
@@ -22,6 +23,7 @@ interface Props {
 const SideBarList = (props: Props) => {
   const { isLoggedIn } = props
   const { t } = useTranslation()
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
@@ -94,6 +96,12 @@ const SideBarList = (props: Props) => {
       key: 'language'
     },
     {
+      label: t('label.feedback'),
+      icon: <View style={styles.guideIconWrapper}><Ionicons name="chatbox-ellipses" size={16} color="#fff" style={{paddingTop: 2}} /></View>,
+      visible: isLoggedIn,
+      key: 'feedback'
+    },
+    {
       label: "Delete Account",
       screen: 'DeleteAccount',
       icon: <View style={styles.binIconWrapper}><BinIcon width={15} height={15} fill={'#fff'} /></View>,
@@ -112,8 +120,19 @@ const SideBarList = (props: Props) => {
     <View style={styles.container}>
       <FlatList
         data={data}
-        renderItem={({ item }) => <SideBarCard item={item} key={item.key} />}
+        renderItem={({ item }) => (
+          <SideBarCard
+            item={item}
+            key={item.key}
+            onPressFeedback={() => setShowFeedbackModal(true)}
+          />
+        )}
       />
+      <FeedbackModal
+        isVisible={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+      <View style={{ height: 30 }} />
     </View>
   )
 }

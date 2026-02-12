@@ -22,5 +22,17 @@
     "delete_acc_imp_note":"Before proceeding, make sure you've cancelled all subscriptions.",
     "delete_info_note_1":"I also understand that account deletion of",
     "delete_info_note_2":" is irreversible.",
-    "delete_in":"You can Delete in "
+    "delete_in":"You can Delete in ",
+    "feedback":"Feedback",
+    "feedback_title":"Send Feedback",
+    "feedback_placeholder":"Describe your feedback, issue, or suggestion...",
+    "feedback_type_feedback":"Feedback",
+    "feedback_type_issue":"Issue",
+    "feedback_type_translation":"Translation Fix",
+    "feedback_submit":"Submit",
+    "feedback_success":"Thank you! Your feedback has been submitted.",
+    "feedback_error":"Failed to submit feedback. Please try again.",
+    "feedback_empty_message":"Please enter a message",
+    "feedback_add_image":"Add Image",
+    "feedback_image_permission":"Photo library permission is required to attach images"
 }

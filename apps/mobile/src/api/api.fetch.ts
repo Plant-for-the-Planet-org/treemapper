@@ -572,3 +572,9 @@ export const markAllNotificationsAsRead = async () => {
   return result;
 };
 
+export const submitFeedback = async (params: any) => {
+  const uri = `${postUrlNewApi.submitFeedback}`;
+  const result = await fetchPostCall(uri, params);
+  return result;
+};
+
