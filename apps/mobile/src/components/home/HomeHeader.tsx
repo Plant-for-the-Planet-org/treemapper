@@ -84,7 +84,7 @@ const HomeHeader = (props: Props) => {
   useEffect(() => {
     if (isLoggedIn) {
       syncUserDetails()
-      registerDevice()
+      // registerDevice()
     }
   }, [isLoggedIn])
 
@@ -259,7 +259,7 @@ const HomeHeader = (props: Props) => {
         <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid} />
       </View>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
-      <NewAppModal />
+      {/* <NewAppModal /> */}
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <ProjectInviteModal/>
       <View style={styles.sectionWrapper} />

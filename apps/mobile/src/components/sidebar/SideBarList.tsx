@@ -74,13 +74,13 @@ const SideBarList = (props: Props) => {
     //   visible: v3Approved,
     //   key: 'data_explorer'
     // },
-    {
-      label: 'New Features',
-      screen: 'TreeMapperFeaturesScreen',
-      icon: <Ionicons name={'leaf'} size={24} color="#007A49" />,
-      visible: !v3Approved && UserType!=='',
-      key: 'features'
-    },
+    // {
+    //   label: 'New Features',
+    //   screen: 'TreeMapperFeaturesScreen',
+    //   icon: <Ionicons name={'leaf'} size={24} color="#007A49" />,
+    //   visible: !v3Approved && UserType!=='',
+    //   key: 'features'
+    // },
     {
       label: t('label.activity_logs'),
       screen: 'ActivityLog',

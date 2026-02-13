@@ -1519,7 +1519,8 @@ export class MobileService {
       let flagReason: any[] = []
       const tranformedSpecies = await this.transformSpecies(createInterventionDto)
       const totalCount = tranformedSpecies.reduce((total, item) => total + item.speciesCount, 0);
-      if (tranformedSpecies.length === 0) {
+      const speciesRequiredTypes = ['single-tree-registration', 'multi-tree-registration'];
+      if (tranformedSpecies.length === 0 && speciesRequiredTypes.includes(createInterventionDto.type)) {
         flag = true
         flagReason = [{
           uid: generateUid('flag'),
@@ -1652,13 +1653,16 @@ export class MobileService {
       if (!result) {
         throw new Error('Failed to create intervention');
       }
-      const seededInterventionSpecies = tranformedSpecies.map(el => ({ ...el, interventionId: result[0].id }))
-      const interventionSpeciesData = await this.drizzleService.db
-        .insert(interventionSpecies)
-        .values(seededInterventionSpecies)
-        .returning();
-      if (!interventionSpeciesData || interventionSpeciesData.length === 0) {
-        throw new Error('Failed to create intervention');
+      let interventionSpeciesData: any[] = [];
+      if (tranformedSpecies.length > 0) {
+        const seededInterventionSpecies = tranformedSpecies.map(el => ({ ...el, interventionId: result[0].id }))
+        interventionSpeciesData = await this.drizzleService.db
+          .insert(interventionSpecies)
+          .values(seededInterventionSpecies)
+          .returning();
+        if (!interventionSpeciesData || interventionSpeciesData.length === 0) {
+          throw new Error('Failed to create intervention species');
+        }
       }
 
       let singleTreeResult: { id: string | null, hid: string | null } = {

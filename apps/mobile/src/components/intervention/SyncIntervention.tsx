@@ -34,7 +34,7 @@ interface Props {
 const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(3)
+    const [retryCount, setRetryCount] = useState(10)
     const realm = useRealm()
     const [showFullSync, setShowFullSync] = useState(false)
     const { syncRequired, isSyncing } = useSelector(
@@ -79,7 +79,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
 
     const showLogin = () => {
-        setRetryCount(3)
+        setRetryCount(10)
         if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -227,7 +227,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
     const handleRemeasurement = async (el) => {
         try {
-            const { pData, historyID, treeID } = await getRemeasurementBody(el);
+            const { pData, historyID, treeID } = await getRemeasurementBody(el,v3Approved);
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -236,7 +236,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 await handleMobileRemeasurement(el)
                 return
             }
-
             const { success } = await remeasurement(treeID, pData);
             if (success) {
                 await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
@@ -264,7 +263,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         console.log("=== handleMobileRemeasurement START ===");
         try {
             const { pData, historyID, treeID } = await getRemeasurementBody(el, v3Approved);
-            
+
             if (!pData) {
                 throw new Error("Not able to convert body");
             }
@@ -283,7 +282,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             // Handle image upload for v3Approved users
             let imageFilename: string | undefined = undefined;
             if (v3Approved && pData.imageFile) {
-                
+
                 try {
                     // Get presigned URL for image upload
                     const presignedResponse = await presingedUrl({
@@ -378,7 +377,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
                 console.error("Response:", response?.response);
                 console.error("Extra:", response?.extra);
             }
-            
+
             const { success } = response;
             if (success) {
                 console.log("✅ Remeasurement successful! Updating status...");
