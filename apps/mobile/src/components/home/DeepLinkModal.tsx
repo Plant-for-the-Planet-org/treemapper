@@ -58,7 +58,7 @@ const DeepLinkModal = () => {
 
   const isVisible = inviteId !== '';
   const inviteType = inviteId.startsWith('bulk:') ? 'bulk' : 'email';
-  const inviteCode = inviteType === 'bulk' ? inviteId.replace('bulk:', '') : inviteId;
+  const inviteCode = inviteType === 'bulk' ? inviteId.replace('bulk:', '') : inviteId.replace('email:', '');
 
   useEffect(() => {
     if (isVisible && isLoggedIn && inviteId) {
