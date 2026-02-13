@@ -50,12 +50,7 @@ const SpeciesSync = () => {
 
 
   useEffect(() => {
-    setTimeout(() => {
-      if (updateAppCount % 2 === 0) {
-        checkForAppUpdate()
-      }
-      dispatch(setUpdateAppCount())
-    }, 5000);
+    checkForAppUpdate()
   }, [])
 
   const checkForAppUpdate = async () => {
@@ -64,7 +59,7 @@ const SpeciesSync = () => {
       if (data?.currentVersion && data?.latestVersion) {
         const current = data.currentVersion.split('.').map(Number); // Convert current version to [major, minor, patch]
         const latest = data.latestVersion.split('.').map(Number); // Convert latest version to [major, minor, patch]
-  
+
         // Compare major and minor versions first
         for (let i = 0; i < current.length - 1; i++) {
           if (latest[i] > current[i]) {
@@ -74,13 +69,13 @@ const SpeciesSync = () => {
             return false; // If current version is ahead of the latest version
           }
         }
-  
+
         // If we reached here, only the patch version is different
         if (latest[2] > current[2]) {
           // Patch version incremented -> Optional update
           return showOptionalUpdateAlert(data.storeUrl || '');
         }
-  
+
         return false; // No update needed
       } else {
         return false; // Data invalid, no version info found
@@ -91,7 +86,7 @@ const SpeciesSync = () => {
     }
   };
 
-    
+
   // Show compulsory update alert (no cancel button)
   const showCompulsoryUpdateAlert = (url: string) => {
     Alert.alert(
@@ -106,7 +101,7 @@ const SpeciesSync = () => {
       { cancelable: false } // User cannot cancel the alert
     );
   };
-  
+
   // Show optional update alert (with cancel button)
   const showOptionalUpdateAlert = (url: string) => {
     Alert.alert(
@@ -132,7 +127,7 @@ const SpeciesSync = () => {
     const speciesRequireSync = realm
       .objects<any>(RealmSchema.ScientificSpecies)
       .filtered('isUploaded == true AND isUpdated == false');
-  
+
     const mapToQueueData = (el: any) => {
       const commonData = {
         guid: el.guid,
@@ -147,28 +142,28 @@ const SpeciesSync = () => {
           isUpdated: true,
         },
       };
-  
+
       if (el.guid === 'unknown') {
         return { ...commonData, type: 'skip' };
       }
-  
+
       if (el.isUserSpecies && !el.specieId) {
         return { ...commonData, type: 'addToFav' };
       }
-  
+
       if (!el.isUserSpecies) {
         return { ...commonData, type: 'removeFromFav', nextStatus: { isUploaded: false, isUpdated: true } };
       }
-  
+
       if (el.specieId) {
         return { ...commonData, type: 'edit' };
       }
-  
+
       return { ...commonData, type: 'skip' };
     };
-  
+
     const queueData = speciesRequireSync.map(mapToQueueData);
-  
+
     if (queueData.length > 0) {
       syncUploadHelper(queueData);
     }
@@ -178,7 +173,7 @@ const SpeciesSync = () => {
     const handleSkip = async (element) => {
       await updateDBSpeciesSyncStatus(element.guid, true, true, '');
     };
-  
+
     const handleAddToFav = async (element) => {
       const { success, response } = await addUserSpeciesToServer({
         "scientificSpecies": element.data.scientificSpecies,
@@ -189,12 +184,12 @@ const SpeciesSync = () => {
         await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, response.id || element.id);
       }
     };
-  
+
     const handleRemoveFromFav = async (element) => {
       await removeUserSpeciesToServer(element.id);
       await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, '');
     };
-  
+
     const handleEdit = async (element) => {
       await updateServerSpeciesDetail({
         "scientificSpecies": element.data.scientificSpecies,
@@ -203,7 +198,7 @@ const SpeciesSync = () => {
       }, element.id);
       await updateDBSpeciesSyncStatus(element.guid, element.nextStatus.isUpdated, element.nextStatus.isUploaded, element.id);
     };
-  
+
     for (const element of queeData) {
       switch (element.type) {
         case 'skip':
@@ -221,7 +216,7 @@ const SpeciesSync = () => {
       }
     }
   };
-  
+
 
 
 
