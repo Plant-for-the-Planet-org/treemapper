@@ -43,7 +43,10 @@ RUN yarn turbo build --filter=shared-core...
 RUN yarn turbo build --filter=server
 RUN yarn turbo build --filter=web
 
-# Clean up dev dependencies and caches to reduce final image size
+# Prune dev dependencies before copying to runner stage
+RUN yarn install --production --ignore-scripts --prefer-offline
+
+# Clean up caches to reduce final image size
 RUN yarn cache clean
 RUN rm -rf /tmp/*
 
