@@ -3,10 +3,5 @@ build:
     web: Dockerfile
   config:
     DOCKER_BUILDKIT: 1
-    NODE_OPTIONS: "--max-old-space-size=2048"
 run:
-  web:
-    command:
-      - yarn
-      - start
-    image: web
+  web: yarn start

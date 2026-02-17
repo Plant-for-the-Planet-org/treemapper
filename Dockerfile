@@ -1,4 +1,4 @@
-# Use Node.js 22 alpine
+# Use Node.js 23 alpine
 FROM node:22-alpine AS base
 
 # Install system dependencies once
@@ -20,34 +20,24 @@ COPY packages/shared-core/package.json ./packages/shared-core/
 # Install dependencies with optimizations
 RUN yarn install --frozen-lockfile --network-timeout 1000000
 
-# Build stage - single stage to reduce memory from layer copying
+# Build stage
 FROM base AS builder
 WORKDIR /app
 
-# Copy everything from deps
-COPY --from=deps /app ./
+# Copy installed dependencies
+COPY --from=deps /app/node_modules ./node_modules
 
-# Copy source code (excluding mobile and docs)
+# Copy source code (excluding mobile)
 COPY . .
-RUN rm -rf apps/mobile apps/docs
+RUN rm -rf apps/mobile
 
 # Build with optimizations
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
 
-# Build shared-core first
+# Build shared-core first, then web and server in parallel
 RUN yarn turbo build --filter=shared-core...
-
-# Build sequentially instead of parallel to reduce memory usage
-RUN yarn turbo build --filter=server
-RUN yarn turbo build --filter=web
-
-# Prune dev dependencies before copying to runner stage
-RUN yarn install --production --ignore-scripts --prefer-offline
-
-# Clean up caches to reduce final image size
-RUN yarn cache clean
-RUN rm -rf /tmp/*
+RUN yarn turbo build --filter=web --filter=server --parallel
 
 # Production stage
 FROM base AS runner
