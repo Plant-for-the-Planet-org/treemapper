@@ -3,5 +3,11 @@ build:
     web: Dockerfile
   config:
     DOCKER_BUILDKIT: 1
+    # Next.js public environment variables must be available at build time
+    # These will be inlined into the client bundle during next build
+    # IMPORTANT: Set these to your actual values (same as your Heroku config vars)
+    # heroku.yml doesn't support variable substitution, so values must be hardcoded here
+    NEXT_PUBLIC_CDN: "https://pub-261389c3bd084eb3a62686b2f08ce42b.r2.dev/production"
+    NEXT_PUBLIC_SERVER_URL: "http://dash.treemapper.app/api/server"
 run:
   web: yarn start
