@@ -11,7 +11,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   const items = [
     // { id: 'plantable', label: 'Plantable' },
     { id: '', label: 'Overview' },
-    { id: 'approvals', label: 'Approvals' },
+    // { id: 'approvals', label: 'Approvals' },
     { id: 'sites', label: 'Sites' },
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
