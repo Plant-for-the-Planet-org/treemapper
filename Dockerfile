@@ -34,7 +34,6 @@ RUN rm -rf apps/mobile apps/docs
 # Build with optimizations
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
-ENV NODE_OPTIONS="--max-old-space-size=2048"
 
 # Build shared-core first
 RUN yarn turbo build --filter=shared-core...
