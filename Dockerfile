@@ -15,7 +15,6 @@ COPY turbo.json ./
 # Copy all package.json files for workspace resolution
 COPY apps/web/package.json ./apps/web/
 COPY apps/server/package.json ./apps/server/
-COPY apps/docs/package.json ./apps/docs/
 COPY packages/shared-core/package.json ./packages/shared-core/
 
 # Install dependencies with optimizations
@@ -28,9 +27,9 @@ WORKDIR /app
 # Copy everything from deps
 COPY --from=deps /app ./
 
-# Copy source code (excluding mobile)
+# Copy source code (excluding mobile and docs)
 COPY . .
-RUN rm -rf apps/mobile
+RUN rm -rf apps/mobile apps/docs
 
 # Build with optimizations
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -43,7 +42,6 @@ RUN yarn turbo build --filter=shared-core...
 # Build sequentially instead of parallel to reduce memory usage
 RUN yarn turbo build --filter=server
 RUN yarn turbo build --filter=web
-RUN yarn turbo build --filter=@treemapper/docs
 
 # Clean up dev dependencies and caches to reduce final image size
 RUN yarn cache clean
@@ -58,7 +56,6 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV TURBO_TELEMETRY_DISABLED=1
 # PORT will be provided by Heroku at runtime
 ENV SERVER_PORT=3001
-ENV DOCS_PORT=3002
 
 # Add non-root user
 RUN addgroup --system --gid 1001 nodejs
@@ -71,13 +68,6 @@ COPY --from=builder --chown=nextjs:nodejs /app/apps/web/package.json ./apps/web/
 
 COPY --from=builder --chown=nextjs:nodejs /app/apps/server/dist ./apps/server/dist
 COPY --from=builder --chown=nextjs:nodejs /app/apps/server/package.json ./apps/server/
-
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/.next ./apps/docs/.next
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/public ./apps/docs/public
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/package.json ./apps/docs/
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/messages ./apps/docs/messages
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/next.config.ts ./apps/docs/
-COPY --from=builder --chown=nextjs:nodejs /app/apps/docs/middleware.ts ./apps/docs/
 
 COPY --from=builder --chown=nextjs:nodejs /app/packages ./packages
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./
