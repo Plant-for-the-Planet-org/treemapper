@@ -21,8 +21,6 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     if (!fileName) {
       throw new Error('Invalid image path - no filename found');
     }
-    // splits and stores the file parent directory which is present on last index after pop
-    const parentDirectory = splittedPath.pop();
     // splits and stores the file extension
     const fileExtension = fileName.split('.').pop();
     // splits and stores the file name
@@ -31,9 +29,9 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     // stores the destination path in which image should be stored
     const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
     const outputPath = isSpecies ? `${documentDir}/${interventionId}-${Date.now()}.${fileExtension}` : `${basePath}/${interventionId}/${fileName}.${fileExtension}`;
-    // stores the path from which the image should be copied
-    const cacheDir = Paths.cache.uri.endsWith('/') ? Paths.cache.uri.slice(0, -1) : Paths.cache.uri;
-    const inputPath = `${cacheDir}/${parentDirectory}/${fileName}.${fileExtension}`; //TESTING
+    // Use the original image path directly for compression
+    // Stripping file:// prefix if present since expo-file-system uses bare paths
+    const inputPath = imagePath.startsWith('file://') ? imagePath.slice(7) : imagePath;
     const compFile = await compressImage(inputPath, 0.7)
 
     // Copy file using Expo FileSystem

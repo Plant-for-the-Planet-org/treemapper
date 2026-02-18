@@ -55,22 +55,23 @@ const CameraMainView = (props: Props) => {
       setLoading(true)
 
       // Take picture with proper options
+      // skipProcessing must be true on iOS to avoid native image processing
+      // that can hang indefinitely on certain devices
       const data = await cameraRef.current.takePictureAsync({
-        quality: 0.8, // Balance between quality and file size
+        quality: 0.8,
         base64: false,
         exif: false,
-        skipProcessing: false, // Process the image properly
+        skipProcessing: Platform.OS === 'ios',
       })
 
       if (data && data.uri) {
-        // Pass the captured image to parent
         props.takePicture(data)
       } else {
         throw new Error('No image data returned from camera')
       }
     } catch (error: any) {
       const errorMessage = error?.message || 'Unknown error'
-      
+
       addNewLog({
         logType: 'INTERVENTION',
         message: 'Error occurred while capturing image',
@@ -82,8 +83,9 @@ const CameraMainView = (props: Props) => {
           name: error?.name
         })
       })
-      
+
       toast.show('Failed to capture image. Please try again.')
+    } finally {
       setLoading(false)
     }
   }
