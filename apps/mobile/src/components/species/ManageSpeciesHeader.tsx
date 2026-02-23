@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import i18next from 'src/locales/index'
 import { Typography, Colors } from 'src/utils/constants'
@@ -12,10 +12,13 @@ import SpeciesSyncError from './SpeciesSyncError'
 
 interface Props {
   openSearchModal: () => void
+  showProjectFilter?: boolean
+  onlyProjectSpecies?: boolean
+  onToggleProjectSpecies?: (val: boolean) => void
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { openSearchModal } = props
+  const { openSearchModal, showProjectFilter, onlyProjectSpecies, onToggleProjectSpecies } = props
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
 
   return (
@@ -38,16 +41,23 @@ const ManageSpeciesHeader = (props: Props) => {
           </Text>
         </TouchableOpacity>
       </View>}
-      <View
-        style={{
-          paddingLeft: 16,
-        }}>
-        <Text
-          style={[
-            styles.listTitle,
-          ]}>
+      <View style={styles.listTitleRow}>
+        <Text style={styles.listTitle}>
           {i18next.t('label.select_species_my_species')}
         </Text>
+        {showProjectFilter && (
+          <View style={styles.toggleWrapper}>
+            <Text style={styles.toggleLabel}>
+              {i18next.t('label.only_project_species')}
+            </Text>
+            <Switch
+              value={onlyProjectSpecies}
+              onValueChange={onToggleProjectSpecies}
+              trackColor={{ false: Colors.GRAY_LIGHT, true: Colors.NEW_PRIMARY }}
+              thumbColor={Colors.WHITE}
+            />
+          </View>
+        )}
       </View>
     </View>
   )
@@ -115,11 +125,28 @@ const styles = StyleSheet.create({
     flex: 1,
     color: Colors.PLANET_BLACK,
   },
+  listTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingLeft: 16,
+    paddingRight: 16,
+  },
   listTitle: {
     paddingTop: scaleSize(20),
     paddingBottom: scaleSize(20),
     fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
     fontSize: Typography.FONT_SIZE_16,
+    color: Colors.PLANET_BLACK,
+  },
+  toggleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  toggleLabel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: Typography.FONT_SIZE_12,
     color: Colors.PLANET_BLACK,
   },
 })

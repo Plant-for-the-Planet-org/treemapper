@@ -33,6 +33,7 @@
   "select_species_done": "Vita",
   "select_species_add_name": "Manampy Anarana",
   "select_species_my_species": "Karazana Tianao",
+  "only_project_species": "Project Species",
   "search_result": "Vokatra Fikarohana",
   "select_species_diameter_more_than_error": "Tokony ho eo anelanelan'ny {{minValue}} hatramin'ny {{maxValue}}.",
   "select_species_height_more_than_error": "Tokony ho eo anelanelan'ny {{minValue}} sy {{maxValue}} ny haavony.",

@@ -1,4 +1,5 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { AppInitialState } from 'src/types/interface/slice.interface'
 
 const initialState: AppInitialState = {
@@ -19,7 +20,8 @@ const initialState: AppInitialState = {
   imageSize: 0,
   refetchProject: '',
   showNewAppModal: false,
-  newFeatureRequest: false
+  newFeatureRequest: false,
+  userProjectSpecies: [],
 }
 
 const appStateSlice = createSlice({
@@ -58,6 +60,9 @@ const appStateSlice = createSlice({
     updateUserSpeciesadded(state, action: PayloadAction<boolean>) {
       state.userSpecies = action.payload
     },
+    updateUserPojectSpecies(state, action: PayloadAction<IScientificSpecies[]>) {
+      state.userProjectSpecies = action.payload
+    },
     updateLastSyncData(state, action: PayloadAction<number>) {
       state.lastSyncDate = action.payload
     },
@@ -95,6 +100,6 @@ const appStateSlice = createSlice({
   },
 })
 
-export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateNewAppModal, updateNewFeatureRequest } = appStateSlice.actions
+export const { clearImageSize, updateImageSize, setUpdateAppCount, updateDataMigrated, updateSpeciesDownloaded, updateUserLogin, updateUserToken, updateSpeciesSyncStatus, updateServerIntervention, updateLastServerIntervention, logoutAppUser, updateUserSpeciesadded, updateNewIntervention, updateLastSyncData, updateRefetchProject, updateNewAppModal, updateNewFeatureRequest, updateUserPojectSpecies } = appStateSlice.actions
 
 export default appStateSlice.reducer

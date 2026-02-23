@@ -61,7 +61,17 @@ const LoginButton = () => {
     }
   }, [error])
 
+    const handleUpdateUserDetails = async (serverData, auth0Data) => {
+      if (serverData && !serverData.image && auth0Data) {
+        updateApiUserDetails({
+          image: auth0Data.picture || '',
+          firstName: auth0Data.givenName || '',
+          lastName: auth0Data.familyName || '',
+          name: auth0Data.name || '',
+        })
+      }
 
+    }
 
   useEffect(() => {
     if (user && buttonMounted) {
@@ -87,17 +97,6 @@ const LoginButton = () => {
     if (!credentials?.accessToken) {
       handleLogout()
       return
-    }
-    const handleUpdateUserDetails = async (serverData, auth0Data) => {
-      if (serverData && !serverData.image && auth0Data) {
-        updateApiUserDetails({
-          image: auth0Data.picture || '',
-          firstName: auth0Data.givenName || '',
-          lastName: auth0Data.familyName || '',
-          name: auth0Data.name || '',
-        })
-      }
-
     }
     const { response } = await getMobileUserDetails()
     if (response && response.data) {

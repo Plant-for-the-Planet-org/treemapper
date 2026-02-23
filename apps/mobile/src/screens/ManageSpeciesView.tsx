@@ -152,26 +152,29 @@ const ManageSpeciesView = () => {
     dispatch(updateSpeciesUpdatedAt())
   }
 
-  const handleSpeciesPress = async (item: IScientificSpecies) => {
+  const handleSpeciesPress = async (item: IScientificSpecies, onlyProjectSpecies: boolean) => {
     const speciesData = { ...item }; // Simplified deep copy
-  
+
     if (EditInterventionSpecies) {
       return handleSelectedMultiSpecies(speciesData);
     }
-  
+
     const { is_multi_species, tree_details_required } = setUpIntervention(interventionData?.intervention_key || 'single-tree-registration');
-  
+
     if (isManageSpecies) {
       if (speciesData.guid === 'unknown') {
         return toast.show("Unknown species cannot be edited");
       }
+      if (onlyProjectSpecies) {
+        return toast.show("Project species cannot be edited. Toogle to 'Project species' to edit.")
+      }
       return navigation.navigate('SpeciesInfo', { guid: speciesData.guid });
     }
-  
+
     if (is_multi_species) {
       return handleSelectedMultiSpecies(speciesData);
     }
-  
+
     const updatedSpecies: PlantedSpecies = {
       guid: speciesData.guid,
       scientificName: speciesData.scientificName,
@@ -179,17 +182,17 @@ const ManageSpeciesView = () => {
       count: 1,
       image: speciesData.image,
     };
-  
+
     const result = await updateInterventionPlantedSpecies(interventionData?.form_id || "", updatedSpecies, isMultiTreeEdit);
-    
+
     if (!result) {
       errorHaptic();
       return toast.show('Error occurred while adding species');
     }
-  
+
     const route = tree_details_required ? 'ReviewTreeDetails' : 'LocalForm';
     const params = { id: interventionData?.form_id || "", ...(tree_details_required && { detailsCompleted: false }) };
-  
+
     navigation.navigate(route, params);
   };
 

@@ -19,7 +19,8 @@ interface SpecieCardProps {
   actionName: string
   handleRemoveFavorite?: any
   isSelectSpecies: boolean
-  allowRemove?: boolean
+  allowRemove?: boolean,
+  onlyProjectSpecies: boolean
 }
 
 export const SpecieCard: React.FC<SpecieCardProps> = ({
@@ -28,10 +29,11 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
   handleRemoveFavorite,
   actionName,
   isSelectSpecies,
-  allowRemove
+  allowRemove,
+  onlyProjectSpecies
 }) => {
 
-    const {  v3Approved } = useSelector((state: RootState) => state.userState)
+  const { v3Approved } = useSelector((state: RootState) => state.userState)
 
 
   const handlePress = () => {
@@ -56,7 +58,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
               <ExpoImage.Image
                 cachePolicy='memory-disk'
                 source={{
-                  uri: item.image.includes('/') ? `${item.image}` : v3Approved?`${process.env.EXPO_PUBLIC_V3_CDN_URL}/species/${item.image}`:`${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
+                  uri: item.image.includes('/') ? `${item.image}` : v3Approved ? `${process.env.EXPO_PUBLIC_V3_CDN_URL}/species/${item.image}` : `${process.env.EXPO_PUBLIC_API_PROTOCOL}://cdn.plant-for-the-planet.org/media/cache/species/default/${item.image}`,
                 }}
                 style={styles.imageView}
               />
@@ -86,7 +88,7 @@ export const SpecieCard: React.FC<SpecieCardProps> = ({
                 : i18next.t('label.select_species_unknown')}
             </Text>
           </View>
-          {!isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
+          {onlyProjectSpecies ? null : !isSelectSpecies && item.guid !== 'unknown' || allowRemove ? <TouchableOpacity onPress={() => handleRemoveFavorite(item)}>
             {actionName !== 'remove' ? (
               <PinkHeart />
             ) : (

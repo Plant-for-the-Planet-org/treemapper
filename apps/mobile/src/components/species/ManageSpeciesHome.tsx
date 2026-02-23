@@ -9,7 +9,7 @@ import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
-import { updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
+import { updateUserPojectSpecies, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import { getUserAllSpeceis, getUserProjectSpecies, getUserSpecies } from 'src/api/api.fetch'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { RootState } from 'src/store'
@@ -24,7 +24,7 @@ interface Props {
   isManageSpecies: boolean
   v3Approved: boolean
   currentProjectUid: string
-  handleSpeciesPress: (item: IScientificSpecies) => void
+  handleSpeciesPress: (item: IScientificSpecies, onlyProjectSpecies: boolean) => void
 }
 
 const ManageSpeciesHome = (props: Props) => {
@@ -37,12 +37,13 @@ const ManageSpeciesHome = (props: Props) => {
     currentProjectUid
   } = props
   const [loading, setLoading] = useState(false)
-
-
+  const [onlyProjectSpecies, setOnlyProjectSpecies] = useState(true)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
   const { addUserSpecies } = useManageScientificSpecies()
-  const { userSpecies, isLoggedIn } = useSelector((state: RootState) => state.appState)
+  const { isLoggedIn, userProjectSpecies } = useSelector((state: RootState) => state.appState)
+  const { currentProject } = useSelector((state: RootState) => state.projectState)
+  const showProjectFilter = isLoggedIn && !!currentProject.projectId
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -63,11 +64,9 @@ const ManageSpeciesHome = (props: Props) => {
         console.log("There was error gettting user species")
         return
       }
+      dispatch(updateUserPojectSpecies(responseData))
       if (responseData.length > 0) {
-        const result = await addUserSpecies(responseData)
-        if (result) {
-          dispatch(updateUserSpeciesadded(true))
-        }
+         await addUserSpecies(responseData)
       }
       setLoading(false)
     } catch (error) {
@@ -82,21 +81,34 @@ const ManageSpeciesHome = (props: Props) => {
     toggleFavSpecies(item, false)
   }
 
-  const renderSpecieCard = (item: IScientificSpecies) => {
+  const renderSpecieCard = (item: IScientificSpecies,onlyProjectSpecies:boolean) => {
     return (
       <SpecieCard
         item={item}
-        onPressSpecies={handleSpeciesPress}
+        onPressSpecies={()=>{handleSpeciesPress(item,onlyProjectSpecies)}}
         actionName={''}
+        onlyProjectSpecies={onlyProjectSpecies}
         handleRemoveFavorite={handleRemoveFav} isSelectSpecies={false} />
     )
   }
+
+  const displayedSpecies = showProjectFilter && onlyProjectSpecies
+    ? userProjectSpecies
+    : userFavSpecies
+
   return (
     <FlashList
-      data={userFavSpecies}
-      renderItem={({ item }) => renderSpecieCard(item)}
+      data={displayedSpecies}
+      renderItem={({ item }) => renderSpecieCard(item,onlyProjectSpecies)}
       estimatedItemSize={cardSize}
-      ListHeaderComponent={<ManageSpeciesHeader openSearchModal={handleNav} />}
+      ListHeaderComponent={
+        <ManageSpeciesHeader
+          openSearchModal={handleNav}
+          showProjectFilter={showProjectFilter}
+          onlyProjectSpecies={onlyProjectSpecies}
+          onToggleProjectSpecies={setOnlyProjectSpecies}
+        />
+      }
       ListEmptyComponent={<EmptyManageSpeciesList />}
       refreshControl={
         <RefreshControl

@@ -21,7 +21,8 @@ export interface AppInitialState {
   refetchProject: string,
   imageSize: number,
   showNewAppModal: boolean,
-  newFeatureRequest: boolean
+  newFeatureRequest: boolean,
+  userProjectSpecies: IScientificSpecies[]
 }
 
 export interface SyncSlice {

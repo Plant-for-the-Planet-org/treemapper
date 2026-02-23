@@ -33,6 +33,7 @@
   "select_species_done": "Concluído",
   "select_species_add_name": "Adicionar nome",
   "select_species_my_species": "Espécies favoritas",
+  "only_project_species": "Project Species",
   "search_result": "Resultado da pesquisa",
   "select_species_diameter_more_than_error": "O diâmetro deve estar entre {{minValue}} e {{maxValue}}.",
   "select_species_height_more_than_error": "A altura deve estar entre {{minValue}} e {{maxValue}}.",

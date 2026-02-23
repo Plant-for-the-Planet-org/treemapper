@@ -2,7 +2,7 @@
   "expo": {
     "name": "TreeMapper",
     "slug": "treemapper",
-    "version": "2.9.1",
+    "version": "2.9.2",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",

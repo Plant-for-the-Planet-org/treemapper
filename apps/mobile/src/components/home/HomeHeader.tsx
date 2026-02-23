@@ -24,7 +24,7 @@ import { SCALE_24 } from 'src/utils/constants/spacing'
 import SpeciesSync from '../common/SpeciesSync'
 import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import NetInfo from "@react-native-community/netinfo";
-import { getAllMobileProjects, getMobileUserDetails } from '../../api/api.fetch'
+import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
 import NoProjectModal from '../common/NoProjectModal'
 import NewAppModal from '../common/NewAppModal'
@@ -260,7 +260,6 @@ const HomeHeader = (props: Props) => {
       </View>
       <NoProjectModal userType={userType} v3Approved={v3Approved} />
       {/* <NewAppModal /> */}
-      <NoProjectModal userType={userType} v3Approved={v3Approved} />
       <ProjectInviteModal/>
       <View style={styles.sectionWrapper} />
       {v3Approved || userType === 'tpo' ? (
