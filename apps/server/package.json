@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.995.0",
-    "@aws-sdk/s3-request-presigner": "^3.824.0",
+    "@aws-sdk/s3-request-presigner": "^3.995.0",
     "@fastify/static": "^8.2.0",
     "@nestjs/axios": "^4.0.0",
     "@nestjs/bull": "^11.0.2",
