@@ -16,7 +16,10 @@ import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
+import MaintenanceScreen from '@/component/MaintenanceScreen';
 
+const IS_MAINTENANCE = process.env.NEXT_PUBLIC_MAINTENANCE_MODE === 'true';
+const MAINTENANCE_RESTORE_TIME = process.env.NEXT_PUBLIC_MAINTENANCE_RESTORE_TIME;
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -33,6 +36,10 @@ const STANDALONE_ROUTES = [
 type LoadingState = 'loading' | 'success' | 'error' | 'idle';
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+  if (IS_MAINTENANCE) {
+    return <MaintenanceScreen restoreTime={MAINTENANCE_RESTORE_TIME} />;
+  }
+
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
   const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
