@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import Image from 'next/image';
 import Spinner from '@/component/Spinner';
+import pftpLogo from '@/assets/pftp-logo.svg';
 
 export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
   const [formData, setFormData] = useState({
@@ -23,7 +24,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       description: 'Data is published on the Plant-for-the-Planet platform.',
       recommended: true,
       icon: <Image
-        src="/pftp-logo.svg"
+        src={pftpLogo}
         alt="TreeMapper Logo"
         width={80}
         height={80}

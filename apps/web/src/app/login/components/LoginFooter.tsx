@@ -1,7 +1,9 @@
 "use client";
 
+import Image from 'next/image';
 import { useTranslation } from "react-i18next";
 import { LoginFooterProps } from "@shared-core/types/interface.app";
+import pftpLogo from '@/assets/pftp-logo.svg';
 
 export const LoginFooter: React.FC<LoginFooterProps> = ({ onImprintClick, onPolicyClick, onTermsClick }) => {
   const { t } = useTranslation();
@@ -34,7 +36,7 @@ export const LoginFooter: React.FC<LoginFooterProps> = ({ onImprintClick, onPoli
         <p className="text-xs text-gray-500">
           {t("login.copyright", { year: new Date().getFullYear() })}
         </p>
-        <img src="/pftp-logo.svg" alt="Plant-for-the-Planet" className="w-4 h-4 ml-1" />
+        <Image src={pftpLogo} alt="Plant-for-the-Planet" width={16} height={16} className="w-4 h-4 ml-1" />
       </div>
     </footer>
   );

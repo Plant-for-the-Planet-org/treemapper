@@ -4,6 +4,10 @@ import Image from 'next/image';
 import { motion } from 'framer-motion';
 import { Wrench } from 'lucide-react';
 
+// Static import so the image is bundled and works in production (e.g. Heroku).
+// Replace src/assets/maintenance.png with your full-size image (e.g. from public/maintenance.png).
+import maintenanceImage from '@/assets/maintenance.png';
+
 interface Props {
   restoreTime?: string;
 }
@@ -30,7 +34,7 @@ export default function MaintenanceScreen({ restoreTime }: Props) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <Image
-        src="/maintenance.png"
+        src={maintenanceImage}
         alt=""
         fill
         className="object-cover"
