@@ -31,6 +31,10 @@
   "engines": {
     "node": "22.x.x"
   },
+  "overrides": {
+    "minimatch": "^10.2.1",
+    "ajv": "^8.18.0"
+  },
   "packageManager": "yarn@1.22.19",
   "workspaces": [
     "apps/*",
