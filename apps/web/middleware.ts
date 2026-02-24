@@ -11,8 +11,15 @@ export async function middleware(req: NextRequest) {
   if (path.startsWith('/api/auth/')) {
     return res;
   }
+
+  // Skip proxied server routes - mobile app authenticates via Bearer tokens,
+  // handled by the NestJS server itself, not this middleware
+  if (path.startsWith('/api/server/')) {
+    return res;
+  }
   
-  const session = await getSession(req, res);
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const session = await getSession(req as any, res as any);
   const isAuthenticated = !!session?.user;
   
   // Public routes
