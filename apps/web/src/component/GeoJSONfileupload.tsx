@@ -110,6 +110,37 @@ export default function GeoJSONUpload({
     }
   };
 
+  // Strip altitude (Z) coordinates — KML files include altitude which can
+  // cause PostGIS to reject the geometry when the column expects 2D geometry.
+  const strip2DCoordinates = (coords: any[]): any[] => {
+    if (!Array.isArray(coords)) return coords;
+    if (typeof coords[0] === "number") {
+      return coords.slice(0, 2); // [lng, lat, alt?] → [lng, lat]
+    }
+    return coords.map(strip2DCoordinates);
+  };
+
+  const stripAltitudeFromGeometry = (geometry: any): any => {
+    if (!geometry || !geometry.coordinates) return geometry;
+    return { ...geometry, coordinates: strip2DCoordinates(geometry.coordinates) };
+  };
+
+  const stripAltitudeFromGeoJSON = (geoJson: any): any => {
+    if (geoJson.type === "FeatureCollection") {
+      return {
+        ...geoJson,
+        features: geoJson.features.map((f: any) => ({
+          ...f,
+          geometry: stripAltitudeFromGeometry(f.geometry),
+        })),
+      };
+    }
+    if (geoJson.type === "Feature") {
+      return { ...geoJson, geometry: stripAltitudeFromGeometry(geoJson.geometry) };
+    }
+    return stripAltitudeFromGeometry(geoJson);
+  };
+
   // Normalize GeoJSON to FeatureCollection with single feature
   const normalizeToFeatureCollection = (geoJson: any): any => {
     // Already a FeatureCollection
@@ -267,7 +298,8 @@ export default function GeoJSONUpload({
             return;
           }
 
-          const geoJson = tj.kml(dom);
+          const rawGeoJson = tj.kml(dom);
+          const geoJson = stripAltitudeFromGeoJSON(rawGeoJson);
           processGeoJSON(geoJson, file.name);
         } else if (fileExtension === "geojson" || fileExtension === "json") {
           // Parse GeoJSON

@@ -57,6 +57,17 @@ export class SiteService {
     throw new BadRequestException('Invalid GeoJSON format');
   }
 
+  private stripCoordinatesTo2D(coords: any[]): any[] {
+    if (!Array.isArray(coords)) return coords;
+    if (typeof coords[0] === 'number') return coords.slice(0, 2);
+    return coords.map((c: any) => this.stripCoordinatesTo2D(c));
+  }
+
+  private strip2DGeometry(geometry: any): any {
+    if (!geometry || !geometry.coordinates) return geometry;
+    return { ...geometry, coordinates: this.stripCoordinatesTo2D(geometry.coordinates) };
+  }
+
 
 
   async createSite(
@@ -67,7 +78,8 @@ export class SiteService {
       let locationValue: any = null;
       if (createSiteDto.location) {
         try {
-          const geometry = this.getGeoJSONForPostGIS(createSiteDto.location);
+          const rawGeometry = this.getGeoJSONForPostGIS(createSiteDto.location);
+          const geometry = this.strip2DGeometry(rawGeometry);
           locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
         } catch (error) {
           return {
@@ -95,11 +107,18 @@ export class SiteService {
         .returning();
 
       if (!newSite) {
-        throw 'No Site Created'
+        throw new Error('No site created')
       }
       return newSite
     } catch (error) {
-      return null
+      console.error('createSite error:', error);
+      return {
+        message: 'Failed to create site',
+        statusCode: 500,
+        error: 'create_site_failed',
+        data: null,
+        code: 'create_site_failed',
+      };
     }
   }
 
@@ -587,7 +606,8 @@ export class SiteService {
     // Handle geoJSON update
     if (updateSiteDto.geoJSON !== undefined) {
       try {
-        const geometry = this.getGeoJSONForPostGIS(updateSiteDto.geoJSON);
+        const rawGeometry = this.getGeoJSONForPostGIS(updateSiteDto.geoJSON);
+        const geometry = this.strip2DGeometry(rawGeometry);
         updateData.location = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(geometry)}), 4326)`;
         updateData.originalGeometry = updateSiteDto.geoJSON;
       } catch (error) {
@@ -595,10 +615,20 @@ export class SiteService {
       }
     }
 
-    await this.drizzleService.db
-      .update(site)
-      .set(updateData)
-      .where(eq(site.id, existingSite[0].id));
+    try {
+      await this.drizzleService.db
+        .update(site)
+        .set(updateData)
+        .where(
+          and(
+            eq(site.uid, siteUid),
+            eq(site.projectId, projectId)
+          )
+        );
+    } catch (error) {
+      console.error('updateSite error:', error);
+      throw new BadRequestException('Failed to update site geometry');
+    }
 
     return '';
   }
