@@ -233,7 +233,7 @@ const AddPlantDetailsPlotView = () => {
                             value={measurementDate}
                             showPicker={toggleDatePicker}
                         />}
-                        <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} callBack={toggleSpeciesModal} />
+                        <StaticOutlineInput placeHolder={i18next.t('label.species')} value={getSpeciesNames()} italics={true} callBack={toggleSpeciesModal} />
                         {!isEdit && <>
                             <View style={styles.inputWrapper}>
                                 <OutlinedTextInput

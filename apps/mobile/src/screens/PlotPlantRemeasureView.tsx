@@ -5,6 +5,7 @@ import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRem
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import PlaceHolderSwitch from 'src/components/common/PlaceHolderSwitch'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
 import { Colors } from 'src/utils/constants'
 import { BACKDROP_COLOR } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
@@ -41,6 +42,7 @@ const PlotPlantRemeasureView = () => {
     const [isAlive, setIsAlive] = useState(true)
     const [isEdit, setIsEdit] = useState(false)
     const [disableDelete, setDisableDelete] = useState(false)
+    const [showDatePicker, setShowDatePicker] = useState(false)
 
     const toast = useToast()
     const { addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
@@ -110,6 +112,19 @@ const PlotPlantRemeasureView = () => {
         }
     }
 
+    const toggleDatePicker = () => {
+        setShowDatePicker(prev => !prev)
+    }
+
+    const handleDateSelection = (n: number) => {
+        if (!n) {
+            setShowDatePicker(false)
+            return
+        }
+        setMeasurementDate(n)
+        setShowDatePicker(false)
+    }
+
     const dateCheck = (index: number, newDate: number) => {
         if (index > 0 && newDate <= selectedTimeline.timeline[index - 1].date) {
             toast.show("Selected date cannot be less than the previous measurement.")
@@ -154,6 +169,7 @@ const PlotPlantRemeasureView = () => {
     return (
         <SafeAreaView style={styles.container}>
             <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={true} />
+            {showDatePicker && <CustomDatePicker cb={handleDateSelection} selectedData={measurementDate || Date.now()} />}
             <View style={styles.wrapper}>
                 <PlaceHolderSwitch
                     description={'This tree is still alive'}
@@ -163,7 +179,7 @@ const PlotPlantRemeasureView = () => {
                 {isAlive && <><InterventionDatePicker
                     placeHolder={'Measurement Date'}
                     value={measurementDate}
-                    callBack={setMeasurementDate}
+                    showPicker={toggleDatePicker}
                 />
                     <View style={styles.inputWrapper}>
                         <OutlinedTextInput

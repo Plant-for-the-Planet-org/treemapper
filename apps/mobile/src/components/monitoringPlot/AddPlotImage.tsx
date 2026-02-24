@@ -54,6 +54,7 @@ const SpecieInfoImageSection = (props: Props) => {
         navigation.navigate('TakePicture', {
             id: newID,
             screen: 'PLOT_IMAGE',
+            plotImage: true
         })
     }
 

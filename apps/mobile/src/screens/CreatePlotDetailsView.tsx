@@ -103,10 +103,10 @@ const CreatePlotDetailsView = () => {
 
         if (!validatePlotDimensions(plotShape)) return;
 
-        if (!isPlotImageValid(plotImage)) {
-            toast.show("Please add Plot Image");
-            return;
-        }
+        // if (!isPlotImageValid(plotImage)) {
+        //     toast.show("Please add Plot Image");
+        //     return;
+        // }
 
         const data: PlotDetailsParams = {
             name: plotName,
@@ -139,10 +139,6 @@ const CreatePlotDetailsView = () => {
             toast.show(validWidth.errorMessage);
             return false;
         }
-        if (Number(width) < 4 || Number(length) < 25) {
-            toast.show("Please add valid Dimensions as per note");
-            return false;
-        }
         return true;
     };
 
@@ -150,10 +146,6 @@ const CreatePlotDetailsView = () => {
         const validRadius = validateNumber(radius, 'Radius', 'Radius');
         if (validRadius.hasError) {
             toast.show(validRadius.errorMessage);
-            return false;
-        }
-        if (Number(radius) < 25) {
-            toast.show("Please add valid Radius as per note");
             return false;
         }
         return true;

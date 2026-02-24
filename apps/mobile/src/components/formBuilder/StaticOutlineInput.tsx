@@ -7,13 +7,14 @@ interface Props {
   placeHolder: string;
   value: string;
   callBack: () => void;
+  italics?: boolean;
 }
 
-const StaticOutlineInput = ({ placeHolder, value, callBack }: Props) => (
+const StaticOutlineInput = ({ placeHolder, value, callBack, italics }: Props) => (
   <View style={styles.containerOutline}>
     <TouchableOpacity style={styles.wrapperOutline} onPress={callBack}>
       <Text style={styles.placeHolderOutline}>{placeHolder}</Text>
-      <Text style={styles.labelOutline}>{value}</Text>
+      <Text style={[styles.labelOutline, italics && { fontStyle: 'italic' }]}>{value}</Text>
     </TouchableOpacity>
   </View>
 );

@@ -1,11 +1,10 @@
 import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native'
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { scaleSize } from 'src/utils/constants/mixins'
-import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
+import { BottomSheetBackdropProps, BottomSheetFlatList, BottomSheetModal } from '@gorhom/bottom-sheet'
 import { IScientificSpecies } from 'src/types/interface/app.interface'
 import { useRealm } from '@realm/react'
 import { Colors, Typography } from 'src/utils/constants'
-import { FlashList } from '@shopify/flash-list'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -21,8 +20,9 @@ interface Props {
 const PlantPlotListModal = (props: Props) => {
     // ref
     const bottomSheetModalRef = useRef<BottomSheetModal>(null);
+    const searchInputRef = useRef<TextInput>(null);
     // variables
-    const snapPoints = useMemo(() => ['70%'], []);
+    const snapPoints = useMemo(() => ['60%', '90%'], []);
 
     const { isVisible, toogleModal, setSpecies } = props
     const [plantData, setPlantData] = useState<IScientificSpecies[]>([])
@@ -50,7 +50,10 @@ const PlantPlotListModal = (props: Props) => {
         const specieArray: IScientificSpecies[] = Array.from(
             realm
                 .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
-                .filtered('scientificName CONTAINS $0', search),
+                .filtered(
+                    'scientificName CONTAINS[c] $0 OR aliases CONTAINS[c] $0 OR description CONTAINS[c] $0',
+                    search,
+                ),
         )
         setPlantData(specieArray)
     }
@@ -88,7 +91,7 @@ const PlantPlotListModal = (props: Props) => {
     )
 
     const renderEmptyList = () => {
-        return (<View style={styles.emptyWrapper}>
+        return (<View style={styles.emptyWrapper,{paddingBottom:plantData && plantData.length===0?'70%':10}}>
             <Text style={styles.emptyLabel}>
                 {search.length === 0 || search === `${i18next.t("label.search_for_species")}` ? i18next.t('label.species_note') : i18next.t('label.type_three_word')}
             </Text>
@@ -96,46 +99,51 @@ const PlantPlotListModal = (props: Props) => {
     }
 
 
+    const listHeader = (
+        <View style={[styles.sectionWrapper]}>
+            <View style={styles.headerWrapper}>
+                <Text style={styles.headerLabel}>
+                    {i18next.t('label.select_species')}
+                </Text>
+                <CloseIcon width={18} height={18} onPress={toogleModal} />
+            </View>
+            <View style={styles.searchWrapper}>
+                <View style={styles.searchBar}>
+                    <SearchIcon style={styles.searchIcon} />
+                    <TextInput
+                        ref={searchInputRef}
+                        style={styles.input}
+                        placeholder={'Search for species'}
+                        value={search}
+                        onChangeText={searchHandler}
+                        underlineColorAndroid="transparent"
+                    />
+                </View>
+            </View>
+        </View>
+    )
+
     return (
         <BottomSheetModal
             ref={bottomSheetModalRef}
             index={0}
             handleIndicatorStyle={styles.handleIndicatorStyle}
-            detached
-            handleStyle={styles.handleIndicatorStyle} enableContentPanningGesture={false}
+            handleStyle={styles.handleIndicatorStyle}
             snapPoints={snapPoints}
             backdropComponent={backdropModal}
+            keyboardBehavior="extend"
+            keyboardBlurBehavior="restore"
+            android_keyboardInputMode="adjustResize"
         >
-            <BottomSheetView style={styles.container} >
-                <View style={styles.sectionWrapper}>
-                    <View style={styles.headerWrapper}>
-                        <Text style={styles.headerLabel}>
-                            {i18next.t('label.select_species')}
-                        </Text>
-                        <CloseIcon width={18} height={18} onPress={toogleModal} />
-                    </View>
-                    <View style={styles.searchWrapper}>
-                        <View style={styles.searchBar}>
-                            <SearchIcon style={styles.searchIcon} />
-                            <TextInput
-                                style={styles.input}
-                                placeholder={'Search for species'}
-                                value={search}
-                                onChangeText={searchHandler}
-                                underlineColorAndroid="transparent"
-                            />
-                        </View>
-                    </View>
-                    <View style={styles.contentWrapper}>
-                        <FlashList
-                            estimatedItemSize={100}
-                            ListEmptyComponent={renderEmptyList}
-                            data={plantData}
-                            renderItem={({ item }) => renderSpecieCard(item)}
-                        />
-                    </View>
-                </View>
-            </BottomSheetView>
+            <BottomSheetFlatList
+                style={styles.container}
+                ListHeaderComponent={listHeader}
+                ListEmptyComponent={renderEmptyList}
+                data={plantData}
+                ListFooterComponent={<View style={{height:plantData && plantData.length!==0?100:10, width:'100%'}}></View>}
+                keyExtractor={(item: IScientificSpecies) => item.guid}
+                renderItem={({ item }: { item: IScientificSpecies }) => renderSpecieCard(item)}
+            />
         </BottomSheetModal>
     )
 }
@@ -152,7 +160,6 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE,
         alignItems: 'center',
         flex: 1,
-        minHeight:500
     },
     headerWrapper: {
         height: 50,

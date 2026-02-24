@@ -75,6 +75,7 @@ type SpeciesInfoView = {
 type TakePictureView = {
   id: string
   screen: AFTER_CAPTURE
+  plotImage?: boolean
 }
 
 type IntermediateFormView = {

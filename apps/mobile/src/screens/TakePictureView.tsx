@@ -18,6 +18,8 @@ const TakePicture = () => {
     uri: '',
   })
   const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
+  const plotImage = route.params?.plotImage ?? false
+
   const takePicture = (data: CameraCapturedPicture) => {
     setImageMetaData(data)
   }
@@ -32,7 +34,7 @@ const TakePicture = () => {
     <SafeAreaView style={styles.container} edges={['top']}>
       <Header
         label={i18next.t('label.take_picture')}
-        note={!imageMetaData.uri ? 'Please take a photo of the entire tree' : ''}
+        note={plotImage?"Please take a picture of the plot.":!imageMetaData.uri? 'Please take a photo of the entire tree' : ''}
       />
       {imageMetaData.uri ? (
         <ImagePreview

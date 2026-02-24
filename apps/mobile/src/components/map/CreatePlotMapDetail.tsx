@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 import MapLibreGL from '@maplibre/maplibre-react-native';
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon';
 import { useSelector } from 'react-redux';
@@ -57,6 +57,16 @@ const CreatePlotMapDetail = (props: Props) => {
   const toast = useToast()
 
 
+
+  useEffect(() => {
+    if (currentUserLocation && !initialPolygon?.length) {
+      setTimeout(() => {
+        if (cameraRef.current !== null) {
+          handleCamera()
+        }
+      }, 500)
+    }
+  }, [])
 
   useEffect(() => {
     if (currentUserLocation && cameraRef.current !== null) {
@@ -224,6 +234,8 @@ const CreatePlotMapDetail = (props: Props) => {
   }
 
 
+  const showOrientationHint = plot_shape === 'RECTANGULAR' && !isMarking
+
   return (
     <View style={styles.container}>
       <MapLibreGL.MapView
@@ -276,6 +288,18 @@ const CreatePlotMapDetail = (props: Props) => {
           }} />}
         {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
       </MapLibreGL.MapView>
+      {showOrientationHint && (
+        <View style={styles.orientationHint} pointerEvents="none">
+          <View style={styles.orientationRow}>
+            <Text style={styles.orientationArrow}>↕</Text>
+            <Text style={styles.orientationText}>{i18next.t('label.plot_length')} ({length}m) · N–S</Text>
+          </View>
+          <View style={styles.orientationRow}>
+            <Text style={styles.orientationArrow}>↔</Text>
+            <Text style={styles.orientationText}>{i18next.t('label.plot_width')} ({width}m) · E–W</Text>
+          </View>
+        </View>
+      )}
       {plotCoordinates.length === 0 || isMarking ? <ActiveMarkerIcon /> : null}
       {isEdit ? <ActiveMarkerIcon /> : null}
 
@@ -407,5 +431,35 @@ const styles = StyleSheet.create({
     color: Colors.WHITE,
     textAlign: 'center',
     fontFamily: Typography.FONT_FAMILY_BOLD
+  },
+  orientationHint: {
+    position: 'absolute',
+    top: 12,
+    left: 12,
+    backgroundColor: 'rgba(255, 255, 255, 0.92)',
+    borderRadius: 8,
+    paddingHorizontal: scaleSize(10),
+    paddingVertical: scaleSize(8),
+    gap: 4,
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+    shadowOffset: { width: 0, height: 2 },
+  },
+  orientationRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  orientationArrow: {
+    fontSize: scaleFont(14),
+    color: Colors.PRIMARY_DARK,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+  },
+  orientationText: {
+    fontSize: scaleFont(12),
+    color: Colors.TEXT_COLOR,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
   },
 });

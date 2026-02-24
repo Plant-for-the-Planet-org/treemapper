@@ -34,7 +34,8 @@ const EcosystemListHeader = (props: Props) => {
     const canopyLength = item.filter(el => el.type === 'CANOPY').length
     const soilMoistureLength = item.filter(el => el.type === 'SOIL_MOISTURE').length
     const bioacousticsLength = item.filter(el => el.type === 'BIOACOUSTICS').length
-
+    const plotDescriptionLength = item.filter(el => el.type === 'PLOT_DESCRIPTION').length
+    const grassCoverLength = item.filter(el => el.type === 'GRASS_COVER').length
 
     const headerData = [{
         key: 'all',
@@ -50,6 +51,18 @@ const EcosystemListHeader = (props: Props) => {
         key: 'soil_moisture',
         label: `${soilMoistureLength} ${i18next.t('label.soil_moisture')}`,
         hide: soilMoistureLength === 0
+
+    },
+    {
+        key: 'plot_description',
+        label: `${plotDescriptionLength} Plot Description`,
+        hide: plotDescriptionLength === 0
+
+    },
+    {
+        key: 'grass_cover',
+        label: `${grassCoverLength} Grass Cover`,
+        hide: grassCoverLength === 0
 
     },
     {

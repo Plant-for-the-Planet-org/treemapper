@@ -40,7 +40,7 @@ const CreatePlotView = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <Header label={i18next.t('label.create_plot_header')} rightComponent={<Pressable onPress={openInfo} style={styles.infoWrapper}><InfoIcon style={styles.infoWrapper} onPress={openInfo} /></Pressable>} />
+            <Header label={i18next.t('label.create_plot_header')} rightComponent={null} />
             <View style={styles.wrapper}>
                 <CreatePlotCard header={'Plot Complexity'} labelOne={{
                     key: 'STANDARD',

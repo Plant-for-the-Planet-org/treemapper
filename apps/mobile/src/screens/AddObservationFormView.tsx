@@ -1,9 +1,10 @@
-import { StyleSheet, View } from 'react-native'
+import { StyleSheet, View, Text } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import OutlinedTextInput from 'src/components/common/OutlinedTextInput'
 import InterventionDatePicker from 'src/components/formBuilder/InterventionDatePicker'
-import { Colors } from 'src/utils/constants'
+import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import { Colors, Typography } from 'src/utils/constants'
 import { BACKDROP_COLOR } from 'src/utils/constants/colors'
 import CustomButton from 'src/components/common/CustomButton'
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native'
@@ -19,6 +20,7 @@ import { useToast } from 'react-native-toast-notifications'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
+import Switch from 'src/components/common/Switch'
 
 
 
@@ -36,10 +38,25 @@ const AllObservation: Array<{
             label: 'Canopy Cover',
             value: 'CANOPY',
             index: 0,
-        }
+        },
+        {
+            label: 'Plot description',
+            value: 'PLOT_DESCRIPTION',
+            index: 0,
+        },
+        {
+            label: 'Grass cover',
+            value: 'GRASS_COVER',
+            index: 0,
+        },
     ]
 
 
+
+const DEFAULT_UNITS: Partial<Record<OBSERVATION_TYPE, string>> = {
+    SOIL_MOISTURE: 'kpa',
+    CANOPY: '%',
+}
 
 const AddObservationForm = () => {
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
@@ -54,8 +71,11 @@ const AddObservationForm = () => {
     }
     >(AllObservation[0])
     const [observationDate, setObservationDate] = useState(Date.now())
+    const [showDatePicker, setShowDatePicker] = useState(false)
     const [value, setValue] = useState('')
     const [unit, setUnit] = useState('kpa')
+    const [advancedMode, setAdvancedMode] = useState(false)
+    const [customUnit, setCustomUnit] = useState('')
 
     const { addPlotObservation, updatePlotObservation, deletePlotObservation } = useMonitoringPlotManagement()
     const toast = useToast()
@@ -65,14 +85,21 @@ const AddObservationForm = () => {
         if (obsId && obsId.length > 0) {
             const details = realm.objectForPrimaryKey<PlotObservation>(RealmSchema.PlotObservation, obsId);
             if (details) {
+                const storedUnit = String(details.unit)
                 setValue(String(details.value))
-                setUnit(String(details.unit))
                 setObservationDate(details.obs_date)
                 setType({
                     label: details.type,
                     value: details.type,
                     index: 0
                 })
+                const defaultUnit = DEFAULT_UNITS[details.type as OBSERVATION_TYPE] ?? ''
+                if (storedUnit && storedUnit !== defaultUnit) {
+                    setAdvancedMode(true)
+                    setCustomUnit(storedUnit)
+                } else {
+                    setUnit(storedUnit)
+                }
             }
         }
     }, [obsId])
@@ -83,14 +110,34 @@ const AddObservationForm = () => {
         value: OBSERVATION_TYPE
         index: number
     }) => {
-        if (d.value === 'SOIL_MOISTURE') {
-            setUnit('kpa')
-        }
-        if (d.value === 'CANOPY') {
-            setUnit('%')
+        if (!advancedMode) {
+            setUnit(DEFAULT_UNITS[d.value] ?? '')
         }
         setType(d)
     }
+
+    const toggleDatePicker = () => setShowDatePicker(prev => !prev)
+
+    const handleDateSelection = (n: number) => {
+        if (!n) {
+            setShowDatePicker(false)
+            return
+        }
+        setObservationDate(n)
+        setShowDatePicker(false)
+    }
+
+    const handleAdvancedModeToggle = () => {
+        const next = !advancedMode
+        setAdvancedMode(next)
+        if (!next) {
+            // revert to the default unit for the current type
+            setUnit(DEFAULT_UNITS[type.value] ?? '')
+            setCustomUnit('')
+        }
+    }
+
+    const activeUnit = advancedMode ? customUnit : unit
 
 
     const submitHandler = async () => {
@@ -103,7 +150,7 @@ const AddObservationForm = () => {
             type: type.value,
             obs_date: observationDate,
             value: Number(value),
-            unit: unit
+            unit: activeUnit
         }
         await addPlotObservation(plotID, obsDetails)
         navigation.goBack()
@@ -125,7 +172,7 @@ const AddObservationForm = () => {
             type: type.value,
             obs_date: observationDate,
             value: Number(value),
-            unit: unit
+            unit: activeUnit
         }
         const result = await updatePlotObservation(plotID, obsDetails)
         if (result) {
@@ -141,9 +188,10 @@ const AddObservationForm = () => {
     return (
         <SafeAreaView style={styles.container}>
             <Header label='Add Observation' />
+            {showDatePicker && <CustomDatePicker cb={handleDateSelection} selectedData={observationDate || Date.now()} />}
             <View style={styles.wrapper}>
                 <CustomDropDownPicker
-                    label={'Project'}
+                    label={'Observation type'}
                     data={AllObservation}
                     onSelect={handleDropDown}
                     selectedValue={type}
@@ -151,7 +199,7 @@ const AddObservationForm = () => {
                 <InterventionDatePicker
                     placeHolder={'Observation Date'}
                     value={observationDate}
-                    callBack={setObservationDate}
+                    showPicker={toggleDatePicker}
                 />
                 <View style={styles.inputWrapper}>
                     <OutlinedTextInput
@@ -159,8 +207,26 @@ const AddObservationForm = () => {
                         changeHandler={setValue}
                         defaultValue={value}
                         keyboardType={'decimal-pad'}
-                        trailingText={unit} errMsg={''} />
+                        trailingText={activeUnit} errMsg={''} />
                 </View>
+                <View style={styles.advancedRow}>
+                    <Text style={styles.advancedLabel}>Custom unit</Text>
+                    <Switch
+                        value={advancedMode}
+                        onValueChange={handleAdvancedModeToggle}
+                        disabled={false}
+                    />
+                </View>
+                {advancedMode && (
+                    <View style={styles.inputWrapper}>
+                        <OutlinedTextInput
+                            placeholder={'Unit (e.g. ppm, °C)'}
+                            changeHandler={setCustomUnit}
+                            defaultValue={customUnit}
+                            keyboardType={'default'}
+                            trailingText={''} errMsg={''} />
+                    </View>
+                )}
             </View>
             {obsId && obsId.length > 0 ?
                 <View style={styles.btnMinorContainer}>
@@ -274,5 +340,18 @@ const styles = StyleSheet.create({
         fontWeight: '400',
         color: Colors.WHITE,
         textAlign: 'center',
+    },
+    advancedRow: {
+        width: '95%',
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        paddingHorizontal: 4,
+        marginBottom: 8,
+    },
+    advancedLabel: {
+        fontSize: scaleFont(14),
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.TEXT_COLOR,
     },
 })
