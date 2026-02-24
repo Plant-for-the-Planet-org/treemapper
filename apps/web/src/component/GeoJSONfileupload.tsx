@@ -56,17 +56,22 @@ export default function GeoJSONUpload({
         return { valid: false, type: null, error: "No valid geometries found in the file." };
       }
 
+      // Reject MultiPolygon (single feature or mixed with Polygon)
+      if (types.has("MultiPolygon")) {
+        return {
+          valid: false,
+          type: "MultiPolygon",
+          error:
+            "MultiPolygon is not supported. Please upload a file with Polygon geometry only (single polygon per feature).",
+        };
+      }
+
       if (types.size > 1) {
-        // Check if it's just Polygon and MultiPolygon mix (allowed)
-        const allowedTypes = new Set(["Polygon", "MultiPolygon"]);
-        const hasOnlyAllowed = [...types].every((t) => allowedTypes.has(t));
-        if (!hasOnlyAllowed) {
-          return {
-            valid: false,
-            type: null,
-            error: `Mixed geometry types found (${[...types].join(", ")}). Only Polygon and MultiPolygon are allowed.`,
-          };
-        }
+        return {
+          valid: false,
+          type: null,
+          error: `Mixed geometry types found (${[...types].join(", ")}). Only Polygon is allowed.`,
+        };
       }
 
       geometryType = [...types][0];
@@ -80,8 +85,17 @@ export default function GeoJSONUpload({
       return { valid: false, type: null, error: "Could not determine geometry type." };
     }
 
-    // Only allow Polygon and MultiPolygon
-    if (geometryType !== "Polygon" && geometryType !== "MultiPolygon") {
+    // Only allow Polygon (MultiPolygon is not supported)
+    if (geometryType === "MultiPolygon") {
+      return {
+        valid: false,
+        type: geometryType,
+        error:
+          "MultiPolygon is not supported. Please upload a file with Polygon geometry only (single polygon per feature).",
+      };
+    }
+
+    if (geometryType !== "Polygon") {
       const typeMessage =
         geometryType === "Point"
           ? "Point geometries are not supported."
@@ -92,7 +106,7 @@ export default function GeoJSONUpload({
       return {
         valid: false,
         type: geometryType,
-        error: `${typeMessage} Only Polygon and MultiPolygon are allowed.`,
+        error: `${typeMessage} Only Polygon is allowed.`,
       };
     }
 
@@ -413,7 +427,7 @@ export default function GeoJSONUpload({
                     Drag & drop or click to select
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supports: KML, GeoJSON (Polygon/MultiPolygon only, max {MAX_AREA_HECTARES.toLocaleString()} ha)
+                    Supports: KML, GeoJSON (Polygon only, no MultiPolygon — max {MAX_AREA_HECTARES.toLocaleString()} ha)
                   </p>
                 </>
               )}

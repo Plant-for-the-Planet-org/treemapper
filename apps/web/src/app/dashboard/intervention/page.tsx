@@ -551,7 +551,7 @@ const TreeMapperUI = () => {
   }).length + (searchTerm ? 1 : 0);
 
   return (
-    <div className="bg-gray-50 flex flex-col h-screen">
+    <div className="bg-gray-50 flex flex-col h-screen overflow-hidden">
       <HeaderWithFilters
         filters={filters}
         setFilters={setFilters}
@@ -572,7 +572,7 @@ const TreeMapperUI = () => {
         loading={loading}
       />
 
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0 overflow-hidden">
         <InterventionListSidebar
           interventions={interventions}
           selectedIntervention={selectedIntervention}
