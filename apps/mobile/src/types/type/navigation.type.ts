@@ -62,6 +62,7 @@ export type RootStackParamList = {
   Notification: undefined
   NotificationDetail: NotificationDetailView
   Language: undefined
+  PlotGallery: PlotGalleryView
 }
 
 type NotificationDetailView = {
@@ -223,5 +224,9 @@ type TreeRemeasurementView = {
   historyId?: string
 }
 type ProjectRemeasurementConfig = {
+  id: string
+}
+
+type PlotGalleryView = {
   id: string
 }

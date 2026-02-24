@@ -2,6 +2,7 @@ import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies, PlotGroups, PlotObservation } from 'src/types/interface/slice.interface'
 import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
+import { generateUid } from 'src/utils/helpers/uidGenerator'
 
 
 export interface PlotDetailsParams {
@@ -104,6 +105,59 @@ const useMonitoringPlotManagement = () => {
     } catch (error) {
       console.error('Error during write:', error)
  return false
+    }
+  }
+
+  const deleteImageRecord = async (imageId: string): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        const record = realm.objectForPrimaryKey<{ image_id: string; local_uri: string; cdn_url: string; parent_id: string; type: string }>(RealmSchema.ImageData, imageId)
+        if (!record) return
+
+        const parentId = record.parent_id
+        const type = record.type
+        realm.delete(record)
+
+        // Update plot's local_image after deletion
+        const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, parentId)
+        if (plot) {
+          const remaining = realm.objects<{ image_id: string; local_uri: string; cdn_url: string }>(RealmSchema.ImageData)
+            .filtered('parent_id == $0 AND type == $1', parentId, type)
+          const next = remaining.length > 0 ? (remaining[0].local_uri || remaining[0].cdn_url) : ''
+          plot.local_image = next
+        }
+      })
+      return true
+    } catch (error) {
+      console.error('Error deleting image record:', error)
+      return false
+    }
+  }
+
+  const addPlotImageRecord = async (
+    plotId: string,
+    localUri: string,
+    type: string = 'monitoring_plot',
+  ): Promise<boolean> => {
+    try {
+      realm.write(() => {
+        realm.create(RealmSchema.ImageData, {
+          image_id: generateUid('img'),
+          local_uri: localUri,
+          cdn_url: '',
+          type,
+          parent_id: plotId,
+          date_taken: Date.now(),
+          lat: 0,
+          lon: 0,
+          status: 'NOT_SYNCED',
+          additional_data: '',
+        })
+      })
+      return true
+    } catch (error) {
+      console.error('Error adding image record:', error)
+      return false
     }
   }
 
@@ -454,7 +508,7 @@ const useMonitoringPlotManagement = () => {
 
 
 
-  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots }
+  return { updatePlotObservation, deletePlotObservation, deletePlotTimeline, updateTimelineDetails, deletePlantDetails: deletePlantDetails, updatePlotPlatDetails, updatePlotName, deletePlotGroup, updatePlotPlantLocation, removePlotFromGroup, addPlotToGroup, editGroupName, createNewPlotGroup, deleteMonitoringPlot, initializeNewPlot, addPlotObservation, updatePlotDetails, updatePlotLocation, updatePlotImage, addPlantDetailsPlot, addNewMeasurementPlantPlots, addPlotImageRecord, deleteImageRecord }
 }
 
 export default useMonitoringPlotManagement

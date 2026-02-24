@@ -54,6 +54,7 @@ import GuideView from './GuideView'
 import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
 import LanguageSettingsView from './LanguageSettingsView'
+import PlotGalleryView from './PlotGalleryView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -111,5 +112,6 @@ export default {
   Guide: GuideView,
   Notification: NotificationView,
   NotificationDetail: NotificationDetailView,
-  Language: LanguageSettingsView
+  Language: LanguageSettingsView,
+  PlotGallery: PlotGalleryView,
 }

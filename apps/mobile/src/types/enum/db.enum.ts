@@ -31,5 +31,6 @@ export enum RealmSchema {
   Polygons = 'Polygons',
   Species = 'Species',
   RemeasurementDate = 'RemeasurementDate',
-  PlantLocationHistory = 'PlantLocationHistory'
+  PlantLocationHistory = 'PlantLocationHistory',
+  ImageData = 'ImageData',
 }

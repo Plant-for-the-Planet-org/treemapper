@@ -1,10 +1,15 @@
 import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons'
 import i18next from 'src/locales/index'
 import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { useNavigation } from '@react-navigation/native'
+import { StackNavigationProp } from '@react-navigation/stack'
+import { RootStackParamList } from 'src/types/type/navigation.type'
+
 interface Props {
     item: MonitoringPlot
     handleSelection: (id: string, lastScreen: string) => void
@@ -12,6 +17,7 @@ interface Props {
 
 const PlotCards = (props: Props) => {
     const { handleSelection, item } = props;
+    const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
     const renderLabel = () => {
         let l = ''
@@ -25,7 +31,12 @@ const PlotCards = (props: Props) => {
     return (
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.plot_id, item.lastScreen) }}>
-                <Image source={{ uri: item.local_image }} style={styles.avatar} />
+                {item.local_image
+                    ? <Image source={{ uri: item.local_image }} style={styles.avatar} />
+                    : <View style={styles.avatar}>
+                        <MaterialCommunityIcons name="tree" size={36} color={Colors.NEW_PRIMARY} />
+                    </View>
+                }
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
                         <Text style={styles.idLabel}>{item.name}</Text>
@@ -43,6 +54,15 @@ const PlotCards = (props: Props) => {
                 {item.plot_group.length > 0 && <View style={styles.plotDetailsWrapper}>
                     <Text style={styles.plotTitle}>{item.plot_group[0].name}</Text>
                 </View>}
+                <TouchableOpacity
+                    style={styles.galleryIconWrapper}
+                    onPress={() => navigation.navigate('PlotGallery', { id: item.plot_id })}>
+                    <MaterialCommunityIcons
+                        name={item.local_image ? 'image-multiple-outline' : 'image-plus'}
+                        size={18}
+                        color={Colors.NEW_PRIMARY}
+                    />
+                </TouchableOpacity>
             </TouchableOpacity>
         </View >
     )
@@ -139,5 +159,21 @@ const styles = StyleSheet.create({
         fontSize: 10,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
         color: Colors.DARK_TEXT
+    },
+    galleryIconWrapper: {
+        position: 'absolute',
+        bottom: 8,
+        right: 8,
+        backgroundColor: Colors.WHITE,
+        borderRadius: 20,
+        width: 30,
+        height: 30,
+        justifyContent: 'center',
+        alignItems: 'center',
+        shadowColor: Colors.GRAY_TEXT,
+        shadowOffset: { width: 0, height: 1 },
+        shadowOpacity: 0.2,
+        shadowRadius: 3,
+        elevation: 2,
     }
 })

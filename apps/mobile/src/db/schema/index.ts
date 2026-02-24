@@ -31,6 +31,7 @@ import { PlotObservation } from './PlotObservation'
 import { Species } from './species'
 import { RemeasurementDate } from './remeasurementDates'
 import { PlantLocationHistory } from './plantLocationHistory'
+import { ImageData } from './image'
 
 export default [
   MonitoringPlot,
@@ -65,5 +66,6 @@ export default [
   FormElement,
   PlotObservation,
   PlantLocationHistory,
-  RemeasurementDate
+  RemeasurementDate,
+  ImageData,
 ]
