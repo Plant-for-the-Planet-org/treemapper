@@ -31,6 +31,7 @@ const IMAGE_SIZE = (width - 48) / 2
 interface ImageItem {
     uri: string
     id: string
+    dateTaken: number
 }
 
 const PlotGalleryView = () => {
@@ -47,13 +48,13 @@ const PlotGalleryView = () => {
 
     const plot = realm.objectForPrimaryKey<MonitoringPlot>(RealmSchema.MonitoringPlot, plotId)
 
-    const realmImages = useQuery<{ image_id: string; local_uri: string; cdn_url: string }>(
+    const realmImages = useQuery<{ image_id: string; local_uri: string; cdn_url: string; date_taken: number }>(
         RealmSchema.ImageData,
         collection => collection.filtered('parent_id == $0 AND type == $1', plotId, 'monitoring_plot'),
     )
 
     const images: ImageItem[] = realmImages
-        .map(img => ({ uri: img.local_uri || img.cdn_url, id: img.image_id }))
+        .map(img => ({ uri: img.local_uri || img.cdn_url, id: img.image_id, dateTaken: img.date_taken }))
         .filter(item => item.uri !== '')
 
     useEffect(() => {
@@ -103,16 +104,26 @@ const PlotGalleryView = () => {
         )
     }
 
-    const renderImage = ({ item }: { item: ImageItem }) => (
-        <View style={styles.imageWrapper}>
-            <Image source={{ uri: item.uri }} style={styles.image} resizeMode="cover" />
-            <TouchableOpacity
-                style={styles.deleteButton}
-                onPress={() => handleDeleteImage(item.id)}>
-                <MaterialCommunityIcons name="trash-can" size={18} color={Colors.WHITE} />
-            </TouchableOpacity>
-        </View>
-    )
+    const renderImage = ({ item }: { item: ImageItem }) => {
+        const dateLabel = item.dateTaken
+            ? new Date(item.dateTaken).toLocaleDateString(undefined, { day: '2-digit', month: 'short', year: 'numeric' })
+            : null
+        return (
+            <View style={styles.imageWrapper}>
+                <Image source={{ uri: item.uri }} style={styles.image} resizeMode="cover" />
+                {dateLabel && (
+                    <View style={styles.dateBadge}>
+                        <Text style={styles.dateText}>{dateLabel}</Text>
+                    </View>
+                )}
+                <TouchableOpacity
+                    style={styles.deleteButton}
+                    onPress={() => handleDeleteImage(item.id)}>
+                    <MaterialCommunityIcons name="trash-can" size={18} color={Colors.WHITE} />
+                </TouchableOpacity>
+            </View>
+        )
+    }
 
     const renderEmpty = () => (
         <View style={styles.emptyContainer}>
@@ -247,6 +258,20 @@ const styles = StyleSheet.create({
     addButtonLabel: {
         fontSize: 15,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.WHITE,
+    },
+    dateBadge: {
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(0,0,0,0.45)',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+    },
+    dateText: {
+        fontSize: 11,
+        fontFamily: Typography.FONT_FAMILY_REGULAR,
         color: Colors.WHITE,
     },
 })
