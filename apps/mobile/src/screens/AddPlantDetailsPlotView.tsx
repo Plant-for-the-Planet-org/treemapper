@@ -24,6 +24,7 @@ import { useRealm } from '@realm/react'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import i18next from 'src/locales/index'
 import CustomDatePicker from 'src/components/common/CustomDatePicker'
+import AddPlantImage from 'src/components/monitoringPlot/AddPlantImage'
 
 const AddPlantDetailsPlotView = () => {
     const route = useRoute<RouteProp<RootStackParamList, 'AddPlantDetailsPlot'>>()
@@ -41,6 +42,7 @@ const AddPlantDetailsPlotView = () => {
 
     const [plantingDate, setPlantingDate] = useState(Date.now())
     const [tag, setTag] = useState('')
+    const [plantImage, setPlantImage] = useState('')
     const [speciesModal, setSpeciesModal] = useState(false)
     const { addPlantDetailsPlot, updatePlotPlatDetails, deletePlantDetails } = useMonitoringPlotManagement()
     const toggleSpeciesModal = () => {
@@ -152,7 +154,7 @@ const AddPlantDetailsPlotView = () => {
             date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
-            image: '',
+            image: plantImage,
             timeline_id: generateUniquePlotId()
         }
         const plantDetails: PlantedPlotSpecies = {
@@ -221,6 +223,13 @@ const AddPlantDetailsPlotView = () => {
                     style={styles.container}>
                     <PlantPlotListModal isVisible={speciesModal} toogleModal={toggleSpeciesModal} setSpecies={setSpecies} />
                     <View style={styles.wrapper}>
+                        {!isEdit && (
+                            <AddPlantImage
+                                image={plantImage}
+                                screenType="PLOT_IMAGE"
+                                onImageCaptured={setPlantImage}
+                            />
+                        )}
                         <PlaceHolderSwitch
                             description={i18next.t('label.tree_planted')}
                             selectHandler={setIsPlanted}

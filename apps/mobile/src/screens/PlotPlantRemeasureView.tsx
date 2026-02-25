@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native'
+import { ScrollView, StyleSheet, View } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { SafeAreaView } from 'react-native-safe-area-context'
 import PlotPlantRemeasureHeader from 'src/components/monitoringPlot/PlotPlantRemeasureHeader'
@@ -20,13 +20,14 @@ import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/mon
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
 import { PLOT_PLANT_STATUS } from 'src/types/type/app.type'
+import AddPlantImage from 'src/components/monitoringPlot/AddPlantImage'
 
 interface Params {
     l: number,
     w: number,
     date: number,
     status: PLOT_PLANT_STATUS,
-
+    image: string,
 }
 
 const PlotPlantRemeasureView = () => {
@@ -43,6 +44,7 @@ const PlotPlantRemeasureView = () => {
     const [isEdit, setIsEdit] = useState(false)
     const [disableDelete, setDisableDelete] = useState(false)
     const [showDatePicker, setShowDatePicker] = useState(false)
+    const [timelineImage, setTimelineImage] = useState('')
 
     const toast = useToast()
     const { addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
@@ -63,6 +65,7 @@ const PlotPlantRemeasureView = () => {
                         setMeasurementDate(timelineDetails.date)
                         setIsAlive(timelineDetails.status !== 'DECEASED')
                         setDisableDelete(timelineDetails.status === 'PLANTED')
+                        setTimelineImage(timelineDetails.image ?? '')
                     }
                 }
             }
@@ -91,7 +94,7 @@ const PlotPlantRemeasureView = () => {
             date: measurementDate,
             length_unit: 'm',
             width_unit: 'cm',
-            image: '',
+            image: timelineImage,
             timeline_id: generateUniquePlotId()
         }
         await addNewMeasurementPlantPlots(plotID, plantID, updateTimeline)
@@ -156,7 +159,8 @@ const PlotPlantRemeasureView = () => {
             l: Number(height),
             w: Number(width),
             date: measurementDate,
-            status: isEdit && index === 0 ? 'PLANTED' : latestStatus()
+            status: isEdit && index === 0 ? 'PLANTED' : latestStatus(),
+            image: timelineImage,
         }
         const result = await updateTimelineDetails(plotID, plantID, timelineId, updateTimeline)
         if (result) {
@@ -170,7 +174,13 @@ const PlotPlantRemeasureView = () => {
         <SafeAreaView style={styles.container}>
             <PlotPlantRemeasureHeader label={selectedTimeline.plot_plant_id} type={selectedTimeline.type} species={selectedTimeline.scientificName} showRemeasure={true} />
             {showDatePicker && <CustomDatePicker cb={handleDateSelection} selectedData={measurementDate || Date.now()} />}
+            <ScrollView contentContainerStyle={styles.scrollContent}>
             <View style={styles.wrapper}>
+                <AddPlantImage
+                    image={timelineImage}
+                    screenType="REMEASUREMENT_IMAGE"
+                    onImageCaptured={setTimelineImage}
+                />
                 <PlaceHolderSwitch
                     description={'This tree is still alive'}
                     selectHandler={setIsAlive}
@@ -198,6 +208,7 @@ const PlotPlantRemeasureView = () => {
                             trailingText={'cm'} errMsg={''} />
                     </View></>}
             </View>
+            </ScrollView>
             {isEdit && !disableDelete ?
                 <View style={styles.btnContainer}>
                     <CustomButton
@@ -234,11 +245,15 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: Colors.WHITE
     },
+    scrollContent: {
+        flexGrow: 1,
+    },
     wrapper: {
         backgroundColor: BACKDROP_COLOR,
         flex: 1,
         alignItems: 'center',
-        paddingTop: 20
+        paddingTop: 20,
+        paddingBottom: 140,
     },
 
     inputWrapper: {

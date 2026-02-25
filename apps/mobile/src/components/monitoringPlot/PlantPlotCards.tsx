@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
 import SingleTreeIcon from 'assets/images/svg/RoundTreeIcon.svg'
 import RecruitTreeIcon from 'assets/images/svg/RecruitTreeIcon.svg'
@@ -15,6 +15,7 @@ interface Props {
 
 const PlantPlotCards = (props: Props) => {
     const { handleSelection, item } = props;
+    const plantImage = [...item.timeline].reverse().find(t => t.image)?.image ?? ''
     const handlePlantSelection = () => {
         handleSelection(item.plot_plant_id)
     }
@@ -22,7 +23,11 @@ const PlantPlotCards = (props: Props) => {
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={handlePlantSelection}>
                 <View style={styles.avatar}>
-                    {item.type === 'PLANTED' ? <SingleTreeIcon /> : <RecruitTreeIcon />}
+                    {plantImage ? (
+                        <Image source={{ uri: plantImage }} style={styles.avatarImage} />
+                    ) : (
+                        item.type === 'PLANTED' ? <SingleTreeIcon /> : <RecruitTreeIcon />
+                    )}
                 </View>
                 <View style={styles.sectionWrapper}>
                     <View style={styles.sectionHeader}>
@@ -78,6 +83,11 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.NEW_PRIMARY + '1A',
         borderRadius: 8,
         marginLeft: 10
+    },
+    avatarImage: {
+        width: 50,
+        height: 50,
+        borderRadius: 8,
     },
     idLabel: {
         fontSize: 16,

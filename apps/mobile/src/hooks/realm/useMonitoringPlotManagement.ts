@@ -282,6 +282,7 @@ const useMonitoringPlotManagement = () => {
       w: number,
       date: number,
       status: PLOT_PLANT_STATUS,
+      image: string,
     }
   ): Promise<boolean> => {
     try {
@@ -293,6 +294,7 @@ const useMonitoringPlotManagement = () => {
         timelineDetails.length = details.l
         timelineDetails.width = details.w
         timelineDetails.status = details.status
+        timelineDetails.image = details.image
         plotData.plot_updated_at = Date.now()
         plotData.plot_plants[index].is_alive = details.status !== 'DECEASED'
       })

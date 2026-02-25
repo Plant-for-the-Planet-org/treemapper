@@ -74,11 +74,12 @@ const AddPlotToGroupView = () => {
 
 
     const renderCardItems = (item: MonitoringPlot, index: number) => {
+        const totalObservations = item.observations.length + (item.plot_plants ? item.plot_plants.length : 0)
         const shouldCheck = isPlotPresent(item.plot_id)
         return (<View style={[styles.cardWrapper, { borderBottomWidth: index < plotList.length - 1 ? 0.5 : 0 }]}>
             <View style={styles.sectionWrapper}>
                 <Text style={styles.cardholder}>{item.name}</Text>
-                <Text style={styles.cardLabel}>{item.observations.length} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
+                <Text style={styles.cardLabel}>{totalObservations} observations | last updated {formatRelativeTimeCustom(item.plot_updated_at)}</Text>
             </View>
             <View style={styles.checkBoxWrapper}>
                 <BouncyCheckbox
