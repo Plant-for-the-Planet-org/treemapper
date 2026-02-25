@@ -78,10 +78,31 @@ const MobileAppRedirectInner: React.FC = () => {
     setIsIOS(iosCheck);
     setIsAndroid(androidCheck);
 
-    // Only show banner for mobile users on dashboard pages
-    if (mobileCheck && (pathname.startsWith('/dashboard') || pathname === '/')) {
-      const projectInvite = searchParams.get('project-invite');
-      const projectLink = searchParams.get('project-link');
+    // Determine when to trigger deep link logic
+    const isDashboardOrHome = pathname.startsWith('/dashboard') || pathname === '/';
+    const hasReturnTo = !!searchParams.get('returnTo');
+    const isLoginWithReturnTo = pathname.startsWith('/login') && hasReturnTo;
+
+    // Only show banner / attempt redirect for:
+    // - mobile users on dashboard/home
+    // - or login page that has a returnTo (e.g. deep link from email)
+    if (mobileCheck && (isDashboardOrHome || isLoginWithReturnTo)) {
+      // Extract invite/link either from top-level query or nested inside returnTo
+      let projectInvite = searchParams.get('project-invite');
+      let projectLink = searchParams.get('project-link');
+
+      if (!projectInvite && !projectLink) {
+        const returnTo = searchParams.get('returnTo');
+        if (returnTo) {
+          try {
+            const nestedUrl = new URL(returnTo, globalThis.location.origin);
+            projectInvite = nestedUrl.searchParams.get('project-invite');
+            projectLink = nestedUrl.searchParams.get('project-link');
+          } catch (e) {
+            console.error('Failed to parse returnTo for deep link', e);
+          }
+        }
+      }
       
       // Try silent redirect only once per session
       if (!redirectAttempted) {
@@ -162,8 +183,24 @@ const MobileAppRedirectInner: React.FC = () => {
   };
 
   const handleOpenApp = () => {
-    const projectInvite = searchParams.get('project-invite');
-    const projectLink = searchParams.get('project-link');
+    // Reuse the same resolution logic as in the effect:
+    // prefer top-level params, then fall back to values nested in returnTo
+    let projectInvite = searchParams.get('project-invite');
+    let projectLink = searchParams.get('project-link');
+
+    if (!projectInvite && !projectLink) {
+      const returnTo = searchParams.get('returnTo');
+      if (returnTo) {
+        try {
+          const nestedUrl = new URL(returnTo, globalThis.location.origin);
+          projectInvite = nestedUrl.searchParams.get('project-invite');
+          projectLink = nestedUrl.searchParams.get('project-link');
+        } catch (e) {
+          console.error('Failed to parse returnTo for deep link', e);
+        }
+      }
+    }
+
     const deepLink = buildUniversalLink(projectInvite, projectLink);
     
     // Try to open the app
