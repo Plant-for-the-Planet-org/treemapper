@@ -6,6 +6,7 @@ import { Colors, Typography } from 'src/utils/constants'
 import DividerDot from '../common/DividerDot'
 import { MonitoringPlot } from 'src/types/interface/slice.interface'
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
+import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 import { useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -32,7 +33,7 @@ const PlotCards = (props: Props) => {
         <View style={styles.container}>
             <TouchableOpacity style={styles.wrapper} onPress={() => { handleSelection(item.plot_id, item.lastScreen) }}>
                 {item.local_image
-                    ? <Image source={{ uri: item.local_image }} style={styles.avatar} />
+                    ? <Image source={{ uri: updateFilePath(item.local_image) }} style={styles.avatar} />
                     : <View style={styles.avatar}>
                         <MaterialCommunityIcons name="tree" size={36} color={Colors.NEW_PRIMARY} />
                     </View>

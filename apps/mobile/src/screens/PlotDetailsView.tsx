@@ -24,10 +24,11 @@ const PlotDetailsView = () => {
         RealmSchema.MonitoringPlot, plotID
     )
     const { shape, name, length, width, radius, complexity, plot_plants, observations, plot_group } = monitoringPlot;
+    const totalObs  = plot_plants.length + observations.length
     return (
         <View style={styles.container}>
             <PlotDetailsHeader showOptions={() => { setShowEdit(true) }} label={name} type={complexity} group={plot_group && plot_group.length > 0 ? plot_group[0].name : ''} />
-            <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={observations.length} />
+            <MainHeaderPlot shape={shape} width={width} length={length} radius={radius} plotID={plotID} obsCount={totalObs} />
             <PlotDetailsTab changeIndex={setSelectedIndex} selectedIndex={selectedIndex} />
             <View style={styles.mainSection}>
                 {selectedIndex === 0 &&

@@ -24,6 +24,7 @@ import { RootState } from 'src/store'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
 import { updateMonitoringPlotData } from 'src/store/slice/monitoringPlotStateSlice'
 import { useToast } from 'react-native-toast-notifications'
+import { updateFilePath } from 'src/utils/helpers/fileSystemHelper'
 
 const { width } = Dimensions.get('window')
 const IMAGE_SIZE = (width - 48) / 2
@@ -54,11 +55,12 @@ const PlotGalleryView = () => {
     )
 
     const images: ImageItem[] = realmImages
-        .map(img => ({ uri: img.local_uri || img.cdn_url, id: img.image_id, dateTaken: img.date_taken }))
+        .map(img => ({ uri: img.local_uri ? updateFilePath(img.local_uri) : img.cdn_url, id: img.image_id, dateTaken: img.date_taken }))
         .filter(item => item.uri !== '')
 
     useEffect(() => {
         if (imageDetails && imageDetails.id === imageId && imageId !== '') {
+            console.log('Saving image for plot:', plotId, 'with URL:', JSON.stringify(imageDetails))
             handleSaveImage(imageDetails.url)
             setImageId('')
         }

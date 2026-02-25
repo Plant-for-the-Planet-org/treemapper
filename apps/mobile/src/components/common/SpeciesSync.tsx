@@ -294,6 +294,8 @@ const SpeciesSync = () => {
         logLevel: 'info',
         statusCode: '000',
       })
+      // File missing or corrupted — re-download
+      downloadFile()
     }
   }
 

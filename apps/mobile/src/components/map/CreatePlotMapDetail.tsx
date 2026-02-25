@@ -324,7 +324,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {isMarking && (
         <CustomButton
-          label={i18next.t('label.select_center')}
+          label={plantId ? "Mark Plant Location" : i18next.t('label.mark_plot_center')}
           containerStyle={styles.btnContainer}
           pressHandler={setSampleMarker}
           disable={loading}
@@ -334,7 +334,7 @@ const CreatePlotMapDetail = (props: Props) => {
 
       {plotCoordinates.length === 0 || isEdit && updatedCoords.length === 0 ? (
         <CustomButton
-          label={"Select center of Plot"}
+          label={i18next.t('label.select_center')}
           containerStyle={styles.btnContainer}
           pressHandler={handleContinuePress}
           disable={loading}

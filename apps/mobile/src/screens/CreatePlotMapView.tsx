@@ -77,7 +77,7 @@ const CreatePlotMapView = () => {
         <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
             <Header label={i18next.t('label.center')} rightComponent={<GpsAccuracyTile showModalInfo={() => null} />} />
             <View style={styles.noteWrapper}>
-                <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>
+                {plantId ? <Text style={styles.noteLabel}>Mark the location of plant on the plot.</Text> : <Text style={styles.noteLabel}>{i18next.t('label.plot_map_note_1')} {plotName} {i18next.t('label.plot_map_note_2')}.</Text>}
             </View>
             {isEdit && <NewDimensionModal
                 isVisible={showDimensionModal} toogleModal={() => {
