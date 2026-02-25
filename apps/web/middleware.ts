@@ -53,6 +53,6 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|fonts|images|favicon.ico|vercel.svg|apple.png|googleplay.png|treemapperLogo.png).*)',
+    '/((?!_next/static|_next/image|fonts|images|favicon.ico|vercel.svg|apple.png|googleplay.png|treemapperLogo.png|\\.well-known).*)',
   ],
 };
