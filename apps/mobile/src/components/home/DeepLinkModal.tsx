@@ -11,9 +11,11 @@ import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
-import { updateInviteId, updateRefeshProject } from 'src/store/slice/tempStateSlice';
+import { updateInviteId } from 'src/store/slice/tempStateSlice';
 import { useDeepLinking } from 'src/hooks/useDeeplink';
-import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileInviteStatusEmail } from 'src/api/api.fetch';
+import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileInviteStatusEmail, getUserProjects } from 'src/api/api.fetch';
+import { updateProjectState, updateCurrentProject } from 'src/store/slice/projectStateSlice';
+import useProjectManagement from 'src/hooks/realm/useProjectManagement';
 
 type InviteStatus = 'pending' | 'accepted' | 'declined' | 'expired' | 'discarded';
 
@@ -51,9 +53,11 @@ const DeepLinkModal = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
   useDeepLinking();
+  const { addAllProjects } = useProjectManagement();
   const { inviteId } = useSelector((state: RootState) => state.tempState);
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn);
-  // Initialize deep linking
+  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved);
+  const currentProject = useSelector((state: RootState) => state.projectState.currentProject);
 
 
   const isVisible = inviteId !== '';
@@ -65,6 +69,23 @@ const DeepLinkModal = () => {
       handleInitalStatus();
     }
   }, [isVisible, isLoggedIn, inviteId]);
+
+  const refreshProjectsAfterAccept = async () => {
+    const { responseData, responseError } = await getUserProjects(v3Approved);
+    if (!responseError && responseData.length > 0) {
+      const result = await addAllProjects(responseData);
+      if (result) {
+        dispatch(updateProjectState(true));
+        if (!currentProject.projectId) {
+          const firstProject = responseData[0];
+          dispatch(updateCurrentProject({
+            name: firstProject.properties.name,
+            id: firstProject.properties.id,
+          }));
+        }
+      }
+    }
+  };
 
   const handleInitalStatus = async () => {
     if (inviteType === 'email') {
@@ -122,22 +143,18 @@ const DeepLinkModal = () => {
         const result = await acceptEmailInvite(params);
 
         if (result?.response?.code === 'invite_accepted') {
-          // Success - show success message
           setSuccessMessage(result.response.message || 'You have successfully joined the project');
-          dispatch(updateRefeshProject());
-          // Close modal after a delay
+          refreshProjectsAfterAccept();
           setTimeout(() => {
             handleClose();
           }, 2500);
         } else if (result?.response?.code === 'already_member') {
-          // Already a member - show as error
           setError(result.response.message || 'You are already a member of this project');
         } else if (result?.response?.error) {
-          // Other error responses
           setError(result.response.message || 'Failed to accept invitation. Please try again.');
         } else {
-          // Generic success if no specific code
           setSuccessMessage('Invitation accepted successfully');
+          refreshProjectsAfterAccept();
           setTimeout(() => {
             handleClose();
           }, 2500);
@@ -152,21 +169,18 @@ const DeepLinkModal = () => {
         const result = await acceptLinkInvite(params);
 
         if (result?.response?.code === 'invite_accepted') {
-          // Success - show success message
           setSuccessMessage(result.response.message || 'You have successfully joined the project');
-          // Close modal after a delay
+          refreshProjectsAfterAccept();
           setTimeout(() => {
             handleClose();
           }, 2500);
         } else if (result?.response?.code === 'already_member') {
-          // Already a member - show as error
           setError(result.response.message || 'You are already a member of this project');
         } else if (result?.response?.error) {
-          // Other error responses
           setError(result.response.message || 'Failed to accept invitation. Please try again.');
         } else {
-          // Generic success if no specific code
           setSuccessMessage('Invitation accepted successfully');
+          refreshProjectsAfterAccept();
           setTimeout(() => {
             handleClose();
           }, 2500);
