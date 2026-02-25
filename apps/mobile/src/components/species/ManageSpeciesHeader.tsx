@@ -1,5 +1,6 @@
-import { StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
+import { ActivityIndicator, StyleSheet, Switch, Text, TouchableOpacity, View } from 'react-native'
 import React from 'react'
+import InfoIcon from 'assets/images/svg/InfoIcon.svg'
 import i18next from 'src/locales/index'
 import { Typography, Colors } from 'src/utils/constants'
 import SearchIcon from 'assets/images/svg/SearchIcon.svg'
@@ -15,11 +16,15 @@ interface Props {
   showProjectFilter?: boolean
   onlyProjectSpecies?: boolean
   onToggleProjectSpecies?: (val: boolean) => void
+  isFetching?: boolean
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { openSearchModal, showProjectFilter, onlyProjectSpecies, onToggleProjectSpecies } = props
+  const { openSearchModal, showProjectFilter, onlyProjectSpecies, onToggleProjectSpecies, isFetching } = props
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
+  const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
+  const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
+  const showNoProjectBanner = isLoggedIn && !currentProject.projectId
 
   return (
     <View style={styles.container}>
@@ -34,6 +39,19 @@ const ManageSpeciesHeader = (props: Props) => {
           </Text>
           {i18next.t('label.add_species_in_fav')}
         </Text>
+        {showNoProjectBanner && (
+          <View style={styles.noProjectBanner}>
+            <View style={styles.noProjectIconWrapper}>
+              <InfoIcon width={18} height={18} />
+            </View>
+            <View style={styles.noProjectTextWrapper}>
+              <Text style={styles.noProjectTitle}>No project selected</Text>
+              <Text style={styles.noProjectText}>
+                Select a project to add project species.
+              </Text>
+            </View>
+          </View>
+        )}
         <TouchableOpacity style={styles.searchBar} onPress={openSearchModal}>
           <SearchIcon style={styles.searchIcon} width={20} height={20} />
           <Text style={[styles.searchText, { color: Colors.GRAY_LIGHTEST }]}>
@@ -42,9 +60,14 @@ const ManageSpeciesHeader = (props: Props) => {
         </TouchableOpacity>
       </View>}
       <View style={styles.listTitleRow}>
-        <Text style={styles.listTitle}>
-          {i18next.t('label.select_species_my_species')}
-        </Text>
+        <View style={styles.listTitleWrapper}>
+          <Text style={styles.listTitle}>
+            {i18next.t('label.select_species_my_species')}
+          </Text>
+          {isFetching && (
+            <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} style={styles.fetchingIndicator} />
+          )}
+        </View>
         {showProjectFilter && (
           <View style={styles.toggleWrapper}>
             <Text style={styles.toggleLabel}>
@@ -132,6 +155,13 @@ const styles = StyleSheet.create({
     paddingLeft: 16,
     paddingRight: 16,
   },
+  listTitleWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  fetchingIndicator: {
+    marginLeft: 8,
+  },
   listTitle: {
     paddingTop: scaleSize(20),
     paddingBottom: scaleSize(20),
@@ -148,5 +178,33 @@ const styles = StyleSheet.create({
     fontFamily: Typography.FONT_FAMILY_REGULAR,
     fontSize: Typography.FONT_SIZE_12,
     color: Colors.PLANET_BLACK,
+  },
+  noProjectBanner: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginTop: 12,
+    marginBottom: 4,
+    padding: 12,
+    backgroundColor: Colors.WHITE,
+    borderRadius: 10,
+  },
+  noProjectIconWrapper: {
+    marginRight: 10,
+    marginTop: 1,
+  },
+  noProjectTextWrapper: {
+    flex: 1,
+  },
+  noProjectTitle: {
+    fontSize: Typography.FONT_SIZE_14,
+    fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+    color: Colors.NEW_PRIMARY,
+    marginBottom: 2,
+  },
+  noProjectText: {
+    fontSize: Typography.FONT_SIZE_12,
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    color: Colors.DARK_TEXT_COLOR,
+    lineHeight: 18,
   },
 })

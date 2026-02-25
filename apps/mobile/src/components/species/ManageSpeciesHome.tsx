@@ -107,6 +107,7 @@ const ManageSpeciesHome = (props: Props) => {
           showProjectFilter={showProjectFilter}
           onlyProjectSpecies={onlyProjectSpecies}
           onToggleProjectSpecies={setOnlyProjectSpecies}
+          isFetching={loading}
         />
       }
       ListEmptyComponent={<EmptyManageSpeciesList />}

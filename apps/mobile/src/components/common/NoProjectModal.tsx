@@ -57,6 +57,13 @@ const NoProjectModal = ({
       const result = await addAllProjects(responseData)
       if (result) {
         dispatch(updateProjectState(true))
+        if (!currentProject.projectId && responseData.length > 0) {
+          const firstProject = responseData[0]
+          dispatch(updateCurrentProject({
+            name: firstProject.properties.name,
+            id: firstProject.properties.id,
+          }))
+        }
         addNewLog({
           logType: 'PROJECTS',
           message: "Project Fetched",
