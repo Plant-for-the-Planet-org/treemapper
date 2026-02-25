@@ -381,7 +381,7 @@ const ReviewTreeDetails = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {remeasurementIcon()}
+            {/* {remeasurementIcon()} */}
             <DeleteModal isVisible={showDeleteTree} toggleModal={() => { setShowDeleteTree(false) }} removeFavSpecie={deleteTreeData} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={null} />
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
                 maximumDate={new Date()}
