@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { File, Directory, Paths } from 'expo-file-system'
+import { File, Directory, Paths } from 'expo-file-system/next'
 import { SPECIES_SYNC_STATE } from 'src/types/enum/app.enum'
 import JSZip from 'jszip';
 import useLogManagement from './realm/useLogManagement'
@@ -35,13 +35,11 @@ const useDownloadFile = () => {
 
       // Ensure cache directory exists
       if (!cacheDir.exists) {
-        await cacheDir.create()
+        cacheDir.create()
       }
 
       // Download file using new API
-      const downloadedFile = await File.downloadFileAsync(fileUrl, cacheDir, {
-        idempotent: true // Overwrite if exists
-      })
+      const downloadedFile = await File.downloadFileAsync(fileUrl, cacheDir) as File
 
       addNewLog({
         logType: 'DATA_SYNC',
@@ -111,7 +109,7 @@ const useDownloadFile = () => {
       }
 
       // Read the zip file as base64
-      const zipData = await zipFile.base64();
+      const zipData = zipFile.base64();
 
       // Load the zip
       const zip = await JSZip.loadAsync(zipData, { base64: true });
@@ -139,7 +137,7 @@ const useDownloadFile = () => {
 
             // Write the file
             const targetFile = new File(currentDir, fileName);
-            await targetFile.write(content);
+            targetFile.write(content);
           });
           promises.push(promise);
         }

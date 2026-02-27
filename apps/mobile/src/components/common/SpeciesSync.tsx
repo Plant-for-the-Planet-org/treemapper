@@ -7,7 +7,7 @@ import {
 } from 'react-native'
 import React, { useEffect } from 'react'
 import useDownloadFile from 'src/hooks/useSpeciesDownload'
-import { File } from 'expo-file-system'
+import { File } from 'expo-file-system/next'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import { checkForMigrateSpecies, getLocalSpeciesSync, updateLocalSpeciesSync } from 'src/utils/helpers/asyncStorageHelper'
 import { isWithin90Days } from 'src/utils/helpers/timeHelper'
@@ -273,7 +273,7 @@ const SpeciesSync = () => {
       const speciesFile = new File(speciesLocalURL, 'scientific_species.json')
 
       // Read the file content as text
-      const speciesContent = await speciesFile.text()
+      const speciesContent = speciesFile.text()
       const parsedData = JSON.parse(speciesContent)
       await writeBulkSpecies(parsedData)
       await updateLocalSpeciesSync();

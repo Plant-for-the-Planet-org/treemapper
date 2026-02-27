@@ -1,6 +1,6 @@
 import { Alert } from 'react-native';
 import JSZip from 'jszip';
-import { Paths, File, Directory } from 'expo-file-system';
+import { Paths, File, Directory } from 'expo-file-system/next';
 import Share from 'react-native-share';
 
 const sharedData = async (filePath: string, id: string) => {
@@ -9,9 +9,8 @@ const sharedData = async (filePath: string, id: string) => {
     const documentDir = Paths.document.uri.endsWith('/') ? Paths.document.uri.slice(0, -1) : Paths.document.uri;
     const outputPath = `${documentDir}/${id}.zip`;
 
-    // Helper function to convert ArrayBuffer to base64
-    const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-      const bytes = new Uint8Array(buffer);
+    // Helper function to convert Uint8Array to base64
+    const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
       let binary = '';
       for (let i = 0; i < bytes.byteLength; i++) {
         binary += String.fromCharCode(bytes[i]);
@@ -21,8 +20,7 @@ const sharedData = async (filePath: string, id: string) => {
 
     // Read the file content
     const file = new File(filePath);
-    const fileBuffer = await file.arrayBuffer();
-    const fileContent = arrayBufferToBase64(fileBuffer);
+    const fileContent = uint8ArrayToBase64(file.bytes());
 
     // Get the filename from the path
     const fileName = filePath.split('/').pop();
@@ -85,7 +83,7 @@ export const convertData = async (inventory: any) => {
     }
 
     try {
-      folder.create({ idempotent: true });
+      folder.create({ intermediates: true });
       const filePath = `${folderPath}/data.json`;
       const imgData = {
         inventoryID: inventory.inventory_id,
@@ -145,7 +143,7 @@ export const onlyExportJSON = async (inventory: any) => {
     }
 
     try {
-      folder.create({ idempotent: true });
+      folder.create({ intermediates: true });
       const filePath = `${folderPath}/data.json`;
       const imgData = {
         inventoryID: inventory.inventory_id,

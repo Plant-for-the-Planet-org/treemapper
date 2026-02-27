@@ -1,6 +1,6 @@
 import { InterventionData } from 'src/types/interface/slice.interface';
 import JSZip from 'jszip';
-import { Paths, Directory, File } from 'expo-file-system';
+import { Paths, Directory, File } from 'expo-file-system/next';
 import Share from 'react-native-share';
 import Bugsnag from '@bugsnag/expo';
 
@@ -16,7 +16,7 @@ export const createNewInterventionFolder = async (id: string) => {
         const folderPath = `${basePath}/${id}`;
         const folder = new Directory(folderPath);
         if (!folder.exists) {
-            folder.create({ idempotent: true });
+            folder.create({ intermediates: true });
             return { msg: 'Intervention folder created ' + id, hasError: false }
         } else {
             return { msg: 'Intervention folder already existed ' + id, hasError: false }
@@ -64,7 +64,7 @@ export const createBasePath = async () => {
     try {
         const baseFolder = new Directory(basePath);
         if (!baseFolder.exists) {
-            baseFolder.create({ idempotent: true });
+            baseFolder.create({ intermediates: true });
             return { msg: 'Root folder created', hasError: false }
         }
         return { msg: 'Root folder exists', hasError: false, newFolder: false }
@@ -93,9 +93,8 @@ const zipAndShareFolder = async (id: string) => {
         // Create a new JSZip instance
         const zip = new JSZip();
 
-        // Helper function to convert ArrayBuffer to base64
-        const arrayBufferToBase64 = (buffer: ArrayBuffer): string => {
-            const bytes = new Uint8Array(buffer);
+        // Helper function to convert Uint8Array to base64
+        const uint8ArrayToBase64 = (bytes: Uint8Array): string => {
             let binary = '';
             for (let i = 0; i < bytes.byteLength; i++) {
                 binary += String.fromCharCode(bytes[i]);
@@ -113,15 +112,15 @@ const zipAndShareFolder = async (id: string) => {
                 const subItems = item.list();
                 for (const subItem of subItems) {
                     if (subItem instanceof File) {
-                        const content = await subItem.arrayBuffer();
-                        const base64Content = arrayBufferToBase64(content);
+                        const content = subItem.bytes();
+                        const base64Content = uint8ArrayToBase64(content);
                         zip.file(`${item.name}/${subItem.name}`, base64Content, { base64: true });
                     }
                 }
             } else if (item instanceof File) {
                 // Read and add file to zip (handles both text and binary files)
-                const content = await item.arrayBuffer();
-                const base64Content = arrayBufferToBase64(content);
+                const content = item.bytes();
+                const base64Content = uint8ArrayToBase64(content);
                 zip.file(item.name, base64Content, { base64: true });
             }
         }

@@ -20,10 +20,13 @@ interface DeepLinkParams {
     poseId?: string;
 }
 
+// Module-level set persists across hook remounts, preventing Android from
+// re-processing the same initial URL when the component unmounts and remounts.
+const processedInitialUrls = new Set<string>();
+
 export const useDeepLinking = () => {
     const navigation = useNavigation<NavigationProp<RootStackParamList>>();
     const appState = useRef(AppState.currentState);
-    const hasHandledInitialUrl = useRef(false);
     const dispatch = useDispatch();
     const parseDeepLink = useCallback((url: string): DeepLinkParams | null => {
         try {
@@ -61,20 +64,14 @@ export const useDeepLinking = () => {
     }, [navigation]);
 
     const processInitialURL = useCallback(async () => {
-        // Prevent processing initial URL multiple times
-        if (hasHandledInitialUrl.current) {
-            console.log('Initial URL already handled, skipping...');
-            return;
-        }
-
         try {
             const initialUrl = await Linking.getInitialURL();
             console.log('Initial URL:', initialUrl);
-            
-            if (initialUrl) {
-                hasHandledInitialUrl.current = true;
+
+            if (initialUrl && !processedInitialUrls.has(initialUrl)) {
+                processedInitialUrls.add(initialUrl);
                 const params = parseDeepLink(initialUrl);
-                
+
                 if (params && (params.projectLink || params.projectInvite || params.poseId)) {
                     // Wait a bit for navigation to be ready
                     setTimeout(() => {
@@ -84,7 +81,7 @@ export const useDeepLinking = () => {
                     console.log('No valid params found in initial URL');
                 }
             } else {
-                console.log('No initial URL found');
+                console.log('Initial URL already handled or not found, skipping...');
             }
         } catch (error) {
             console.error('Error getting initial URL:', error);
