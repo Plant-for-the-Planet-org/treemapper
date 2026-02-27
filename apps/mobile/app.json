@@ -17,7 +17,16 @@
       "**/*"
     ],
     "plugins": [
+      [
+        "onesignal-expo-plugin",
+        {
+          "mode": "development"
+        }
+      ],
       "@maplibre/maplibre-react-native",
+      [
+        "expo-build-properties"
+      ],
       [
         "expo-image-picker",
         {
@@ -58,22 +67,7 @@
       ],
       "expo-localization",
       "expo-secure-store",
-      [
-        "expo-splash-screen",
-        {
-          "backgroundColor": "#F0F7EA",
-          "image": "./assets/splash.png",
-          "imageWidth": 400
-        }
-      ],
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "ndkVersion": "26.1.10909125"
-          }
-        }
-      ],
+      "expo-build-properties",
       "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker"
@@ -87,6 +81,10 @@
         "applinks:treemapper.app"
       ],
       "entitlements": {
+        "aps-environment": "development",
+        "com.apple.security.application-groups": [
+          "group.org.pftp.treemapper.onesignal"
+        ],
         "com.apple.developer.associated-domains": [
           "applinks:dev.treemapper.app",
           "applinks:treemapper.app"

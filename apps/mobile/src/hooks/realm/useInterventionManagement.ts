@@ -9,7 +9,7 @@ import { FIX_REQUIRED, INTERVENTION_STATUS, LAST_SCREEN } from 'src/types/type/a
 import { isAllRemeasurementDone } from 'src/utils/helpers/remeasurementHelper'
 import { useToast } from 'react-native-toast-notifications'
 import { useDispatch } from 'react-redux'
-import { File } from 'expo-file-system/next';
+import { File } from 'expo-file-system';
 import { updateImageSize } from 'src/store/slice/appStateSlice'
 
 const useInterventionManagement = () => {
@@ -762,8 +762,9 @@ const useInterventionManagement = () => {
   const checkImageSize = async (url: string) => {
     try {
       const imageFile = new File(url);
-      if (imageFile.size !== null) {
-        dispatch(updateImageSize(imageFile.size));
+      const imageInfo = imageFile.info();
+      if (imageInfo.size !== undefined) {
+        dispatch(updateImageSize(imageInfo.size));
       }
     } catch (error) {
       addNewLog({

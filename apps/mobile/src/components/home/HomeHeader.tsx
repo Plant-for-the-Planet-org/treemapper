@@ -17,7 +17,7 @@ import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpeci
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import useAuthentication from 'src/hooks/useAuthentication'
 import useAppStartup from 'src/hooks/useAppStartup'
-// import useDeviceRegistration from 'src/hooks/useDeviceRegistration'
+import useDeviceRegistration from 'src/hooks/useDeviceRegistration'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 import { SCALE_24 } from 'src/utils/constants/spacing'
@@ -37,9 +37,9 @@ interface Props {
 
 const HomeHeader = (props: Props) => {
   const { logoutUser } = useAuthentication()
-  // const { registerDevice } = useDeviceRegistration()
+  const { registerDevice } = useDeviceRegistration()
   const { toggleFilterModal, toggleProjectModal } = props
-  // useAppStartup()
+  useAppStartup()
   const { addNewIntervention } = useInterventionManagement()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)

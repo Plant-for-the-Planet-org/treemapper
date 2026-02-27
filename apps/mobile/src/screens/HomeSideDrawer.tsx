@@ -39,7 +39,7 @@ const HomeSideDrawer = () => {
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
-      <Header label={''} rightComponent={null} />
+      <Header label={''} rightComponent={notificationIcon} />
       <SidebarHeader />
       <View style={styles.wrapper}>
         <SideBarList isLoggedIn={isLoggedIn} />

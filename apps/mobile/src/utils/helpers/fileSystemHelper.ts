@@ -1,4 +1,4 @@
-import { Paths, File } from 'expo-file-system/next';
+import { Paths, File } from 'expo-file-system';
 import { basePath } from './fileManagementHelper';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Platform } from 'react-native';
