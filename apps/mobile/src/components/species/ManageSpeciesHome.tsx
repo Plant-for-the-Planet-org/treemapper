@@ -108,6 +108,7 @@ const ManageSpeciesHome = (props: Props) => {
           onlyProjectSpecies={onlyProjectSpecies}
           onToggleProjectSpecies={setOnlyProjectSpecies}
           isFetching={loading}
+          v3Approved={v3Approved}
         />
       }
       ListEmptyComponent={<EmptyManageSpeciesList />}

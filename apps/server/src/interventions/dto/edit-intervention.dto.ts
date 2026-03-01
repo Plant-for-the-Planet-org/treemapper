@@ -9,6 +9,7 @@ import {
   IsBoolean,
   IsEnum,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 
@@ -74,13 +75,15 @@ export class EditInterventionDto {
   @IsOptional()
   species?: EditInterventionSpeciesItemDto[];
 
+  // null = remove image; undefined = no change
+  @ValidateIf((obj) => obj.image !== null && obj.image !== undefined)
   @IsString()
-  @IsOptional()
-  image?: string | null; // null to remove image
+  image?: string | null;
 
+  // null = unassign from site; undefined = no change
+  @ValidateIf((obj) => obj.siteUid !== null && obj.siteUid !== undefined)
   @IsString()
-  @IsOptional()
-  siteUid?: string | null; // null to unassign from site
+  siteUid?: string | null;
 }
 
 /**

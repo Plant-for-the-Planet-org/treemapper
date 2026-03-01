@@ -19,9 +19,7 @@ const fetchCall = async (
     }
 
     if (payload && method !== 'GET') {
-      options.body = JSON.stringify(payload, (_key, value) =>
-        value !== null ? value : {},
-      )
+      options.body = JSON.stringify(payload)
     }
 
     const response = await fetch(uri, options)

@@ -273,7 +273,7 @@ const SpeciesManagementDashboard = () => {
     setEditForm({
       ...species,
       uid: species.id,
-      favourite: false,
+      favourite: true,
       updatedAt: new Date().toISOString(),
       isNativeSpecies: false,
       disabled: false,

@@ -2808,6 +2808,35 @@ async interventionEdit(
         .set(updateData)
         .where(eq(intervention.id, currentIntervention.id));
 
+      // 6a. Sync image table when intervention image changes
+      if (editDto.image !== undefined) {
+        // Soft-delete any existing image-table records for this intervention
+        await tx
+          .update(image)
+          .set({ deletedAt: new Date() })
+          .where(
+            and(
+              eq(image.entityType, 'intervention'),
+              eq(image.entityId, currentIntervention.id),
+              isNull(image.deletedAt),
+            ),
+          );
+
+        // Insert a new record only when a real filename was provided
+        if (editDto.image !== null) {
+          await tx.insert(image).values({
+            uid: generateUid('img'),
+            type: 'overview',
+            entityId: currentIntervention.id,
+            entityType: 'intervention',
+            deviceType: 'web',
+            filename: editDto.image,
+            uploadedById: requesterId,
+            isPrimary: true,
+          });
+        }
+      }
+
       // 7. Handle species changes
       let totalTreeCount = currentIntervention.totalTreeCount || 0;
 

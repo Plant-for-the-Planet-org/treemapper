@@ -17,14 +17,15 @@ interface Props {
   onlyProjectSpecies?: boolean
   onToggleProjectSpecies?: (val: boolean) => void
   isFetching?: boolean
+  v3Approved: boolean
 }
 
 const ManageSpeciesHeader = (props: Props) => {
-  const { openSearchModal, showProjectFilter, onlyProjectSpecies, onToggleProjectSpecies, isFetching } = props
+  const { openSearchModal, showProjectFilter, onlyProjectSpecies, onToggleProjectSpecies, isFetching, v3Approved } = props
   const isSpeciesDownloaded = useSelector((state: RootState) => state.appState.speciesSync)
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
-  const showNoProjectBanner = isLoggedIn && !currentProject.projectId
+  const showNoProjectBanner = isLoggedIn && !currentProject.projectId && v3Approved
 
   return (
     <View style={styles.container}>
