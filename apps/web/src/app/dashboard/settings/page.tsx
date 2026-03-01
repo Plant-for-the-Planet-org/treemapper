@@ -7,12 +7,12 @@ import {
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock, Menu, X, Plus, UserX,
   Check, Loader, ChevronRight,
-  Video, Building, Timer, AlertCircle
+  Video, Building, Timer, AlertCircle, Image, ImagePlus
 } from 'lucide-react';
 
 import UnifiedMapComponent from '@/component/MapSelect';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
-import { deleteProject, getSingleProjectDetails, updateProjectSettings } from '@shared-core/fetchApi/api.fetch';
+import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { toast } from 'react-toastify';
@@ -289,15 +289,75 @@ const FileUpload = ({ label, accept, onChange, fileName, icon: Icon }) => (
 );
 
 
+// Project Images Gallery Component
+const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading }) => {
+  const cdnBase = process.env.NEXT_PUBLIC_CDN;
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <label className="block text-sm font-semibold text-stone-700">Project Images</label>
+        <label className="cursor-pointer bg-[#007A49] text-white py-2 px-4 rounded-lg text-sm font-medium hover:bg-[#006841] transition-all duration-200 flex items-center gap-2 relative">
+          {uploading ? (
+            <><Loader className="h-4 w-4 animate-spin" />Uploading...</>
+          ) : (
+            <><ImagePlus className="h-4 w-4" />Add Image</>
+          )}
+          <input
+            type="file"
+            accept="image/*"
+            className="sr-only"
+            disabled={uploading}
+            onChange={onUpload}
+          />
+        </label>
+      </div>
+
+      {projectImages.length === 0 ? (
+        <div className="bg-stone-50/50 rounded-xl p-8 border-2 border-dashed border-stone-300 text-center">
+          <Image className="h-10 w-10 text-stone-300 mx-auto mb-3" />
+          <p className="text-sm text-stone-500 font-medium">No images yet</p>
+          <p className="text-xs text-stone-400 mt-1">Click "Add Image" to upload project photos</p>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          {projectImages.map((img) => (
+            <div key={img.uid} className="relative group rounded-xl overflow-hidden aspect-square bg-stone-100 border border-stone-200">
+              <img
+                src={`${cdnBase}/project/${img.filename}`}
+                alt={img.originalName || 'Project image'}
+                className="w-full h-full object-cover"
+              />
+              <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center">
+                <button
+                  type="button"
+                  onClick={() => onDelete(img.uid)}
+                  className="bg-red-500 hover:bg-red-600 text-white rounded-full p-2 transition-colors duration-200"
+                  title="Delete image"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="text-xs text-stone-400">Supported formats: JPG, PNG, WebP. Images are stored permanently.</p>
+    </div>
+  );
+};
+
 // General Settings Component
 const GeneralSettings = ({
   projectData,
   handleInputChange,
   handleSubmit,
-  imageFileName,
   videoFileName,
   loading,
-  validationErrors
+  validationErrors,
+  projectImages,
+  onImageUpload,
+  onImageDelete,
+  imageUploading,
 }) => (
   <div className="space-y-8">
     <div className="flex justify-between items-start">
@@ -559,29 +619,26 @@ const GeneralSettings = ({
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FileUpload
-            label="Project Image"
-            accept="image/*"
-            onChange={handleInputChange}
-            fileName={imageFileName}
-            icon={Upload}
-          />
+        <ProjectImagesSection
+          projectImages={projectImages}
+          onUpload={onImageUpload}
+          onDelete={onImageDelete}
+          uploading={imageUploading}
+        />
 
-          <div className="space-y-2">
-            <InputField
-              label="Video URL"
-              name="videoUrl"
-              type="url"
-              value={projectData.videoUrl}
-              onChange={handleInputChange}
-              icon={Video}
-              placeholder="https://youtube.com/watch?v=..."
-              validation={{
-                hint: "YouTube, Vimeo, or direct video URL"
-              }}
-            />
-          </div>
+        <div className="space-y-2">
+          <InputField
+            label="Video URL"
+            name="videoUrl"
+            type="url"
+            value={projectData.videoUrl}
+            onChange={handleInputChange}
+            icon={Video}
+            placeholder="https://youtube.com/watch?v=..."
+            validation={{
+              hint: "YouTube, Vimeo, or direct video URL"
+            }}
+          />
         </div>
       </CollapsibleSection>
 
@@ -600,34 +657,6 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) =>
     setGeoJSON(existingGeoJSON || null);
   }, [existingGeoJSON]);
 
-  // Determine mode based on geometry type
-  const getMode = () => {
-    if (!existingGeoJSON) return 'point';
-    
-    try {
-      // Handle different GeoJSON formats
-      let geometry = null;
-      
-      if (existingGeoJSON.type === 'FeatureCollection' && existingGeoJSON.features?.[0]) {
-        geometry = existingGeoJSON.features[0].geometry;
-      } else if (existingGeoJSON.type === 'Feature') {
-        geometry = existingGeoJSON.geometry;
-      } else if (existingGeoJSON.type === 'Polygon' || existingGeoJSON.type === 'MultiPolygon' || existingGeoJSON.type === 'Point') {
-        geometry = existingGeoJSON;
-      } else if (existingGeoJSON.geometry) {
-        geometry = existingGeoJSON.geometry;
-      }
-      
-      if (geometry && (geometry.type === 'Polygon' || geometry.type === 'MultiPolygon')) {
-        return 'polygon';
-      }
-    } catch (error) {
-      console.error('Error determining mode from GeoJSON:', error);
-    }
-    
-    return 'point';
-  };
-
   const handleSave = async () => {
     setIsLoading(true);
     await handleLocationUpdate(geoJSON);
@@ -639,7 +668,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) =>
       <div className="flex justify-between items-start">
         <div>
           <h2 className="text-3xl font-bold text-stone-900 mb-2">Project Location</h2>
-          <p className="text-stone-600">Define the geographical boundaries of your project using our interactive map or by uploading location data.</p>
+          <p className="text-stone-600">Set the point location of your project using the interactive map or by uploading a point location file.</p>
         </div>
       </div>
 
@@ -667,7 +696,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) =>
 
       <CollapsibleSection title="Project Location" icon={MapPin}>
         <div className="overflow-hidden w-full h-80 lg:h-96 bg-gradient-to-br from-[#262626]/10 to-emerald-100 rounded-2xl flex items-center justify-center border-2 border-dashed border-[#262626]/30 mb-6 relative">
-          <UnifiedMapComponent mode={getMode()} updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
+          <UnifiedMapComponent mode="point" updateGeoJSON={setGeoJSON} uploadedGeoJSON={geoJSON} />
         </div>
 
         <div className="bg-stone-50/50 rounded-xl p-6 border border-stone-200">
@@ -970,12 +999,16 @@ const ProjectSettings = () => {
   });
 
   const [activeTab, setActiveTab] = useState('general');
-  const [imageFileName, setImageFileName] = useState('No file selected');
   const [videoFileName, setVideoFileName] = useState('No file selected');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [projectImages, setProjectImages] = useState<any[]>([]);
+  const [imageUploading, setImageUploading] = useState(false);
 
   useEffect(() => {
-    fetchProjectDetails();
+    if (selectedProject?.uid) {
+      fetchProjectDetails();
+      fetchImages();
+    }
   }, [selectedProject]);
 
   const fetchProjectDetails = async () => {
@@ -1005,10 +1038,83 @@ const ProjectSettings = () => {
           approvalBoardEnabled: result.data.approvalBoardEnabled ?? false
         });
       }
-
-
     } catch (error) {
       setNotification({ type: 'error', message: 'Failed to load project details' });
+    }
+  };
+
+  const fetchImages = async () => {
+    try {
+      const result = await getProjectImages(accessToken, selectedProject?.uid || '');
+      if (result.data) {
+        setProjectImages(result.data);
+      }
+    } catch {
+      // silently fail — images are non-critical
+    }
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be less than 10MB');
+      return;
+    }
+
+    setImageUploading(true);
+    try {
+      const presignResponse = await generatePreSignUrl(accessToken, {
+        fileName: file.name,
+        fileType: file.type,
+        folder: 'project',
+      });
+
+      const presignData = presignResponse?.data?.data || presignResponse?.data;
+      if (!presignData?.uploadUrl) throw new Error('Failed to get upload URL');
+
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+
+      const uploadResponse = await fetch(
+        `/api/upload-image?uploadUrl=${encodeURIComponent(presignData.uploadUrl)}`,
+        { method: 'PUT', body: uploadFormData }
+      );
+      if (!uploadResponse.ok) throw new Error('Upload to storage failed');
+
+      const saveResult = await addProjectImage(accessToken, selectedProject.uid, {
+        filename: presignData.fileName,
+        originalName: file.name,
+        mimeType: file.type,
+      });
+
+      if (saveResult.data) {
+        setProjectImages(prev => [...prev, saveResult.data]);
+        toast.success('Image uploaded successfully');
+      } else {
+        throw new Error('Failed to save image record');
+      }
+    } catch (error: any) {
+      toast.error(error?.message || 'Failed to upload image');
+    } finally {
+      setImageUploading(false);
+      // reset file input
+      e.target.value = '';
+    }
+  };
+
+  const handleImageDelete = async (imageUid: string) => {
+    try {
+      const result = await deleteProjectImage(accessToken, selectedProject.uid, imageUid);
+      if (result.statusCode === 200 || result.statusCode === 201) {
+        setProjectImages(prev => prev.filter(img => img.uid !== imageUid));
+        toast.success('Image deleted');
+      } else {
+        toast.error('Failed to delete image');
+      }
+    } catch {
+      toast.error('Failed to delete image');
     }
   };
 
@@ -1054,10 +1160,7 @@ const ProjectSettings = () => {
     const { name, value, type, checked, files } = e.target;
 
     if (type === 'file' && files?.length > 0) {
-      if (name === 'image') {
-        setProjectData(prev => ({ ...prev, image: files[0] }));
-        setImageFileName(files[0].name);
-      }
+      // file inputs are now handled by dedicated handlers
     } else if (name.includes('.')) {
       const [parent, child] = name.split('.');
       setProjectData(prev => ({
@@ -1238,10 +1341,13 @@ const ProjectSettings = () => {
             projectData={projectData}
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
-            imageFileName={imageFileName}
             videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
+            projectImages={projectImages}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            imageUploading={imageUploading}
           />
         );
       case 'location':
@@ -1276,10 +1382,13 @@ const ProjectSettings = () => {
             projectData={projectData}
             handleInputChange={handleInputChange}
             handleSubmit={handleSubmit}
-            imageFileName={imageFileName}
             videoFileName={videoFileName}
             loading={loading}
             validationErrors={validationErrors}
+            projectImages={projectImages}
+            onImageUpload={handleImageUpload}
+            onImageDelete={handleImageDelete}
+            imageUploading={imageUploading}
           />
         );
     }

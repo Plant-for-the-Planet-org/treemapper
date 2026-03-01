@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import Map, { NavigationControl, Marker, GeolocateControl, Source, Layer } from 'react-map-gl/maplibre';
 import { MapPin, RotateCcw } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
@@ -141,8 +141,15 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     }
   }, [uploadedGeoJSON]);
 
+  // Skip resetting on initial mount so existing location is preserved
+  const isMountedRef = useRef(false);
+
   // Effect to reset states when mode changes
   useEffect(() => {
+    if (!isMountedRef.current) {
+      isMountedRef.current = true;
+      return;
+    }
     setMarker(null);
     setPolygonPoints([]);
     setDrawingPolygon(false);
@@ -349,44 +356,56 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   const renderUploadedGeoJSON = () => {
     if (!displayingUploadedGeoJSON || !geoJSON) return null;
 
-    const firstFeature = geoJSON.features ? geoJSON.features[0] : geoJSON;
+    try {
+      // Resolve coordinates for point geometry (handles raw Point, Feature, or FeatureCollection)
+      let pointCoords: number[] | null = null;
 
-    if (firstFeature.geometry.type === 'Point') {
-      const [longitude, latitude] = firstFeature.geometry.coordinates;
+      if (geoJSON.type === 'Point') {
+        pointCoords = geoJSON.coordinates;
+      } else {
+        const firstFeature = geoJSON.features ? geoJSON.features[0] : geoJSON;
+        if (!firstFeature?.geometry) return null;
+
+        if (firstFeature.geometry.type === 'Point') {
+          pointCoords = firstFeature.geometry.coordinates;
+        } else if (firstFeature.geometry.type === 'Polygon') {
+          return (
+            <Source id="uploaded-polygon" type="geojson" data={firstFeature as GeoJSON.Feature}>
+              <Layer
+                id="uploaded-polygon-fill"
+                type="fill"
+                paint={{
+                  'fill-color': '#059669',
+                  'fill-opacity': 0.2
+                }}
+              />
+              <Layer
+                id="uploaded-polygon-outline"
+                type="line"
+                paint={{
+                  'line-color': '#059669',
+                  'line-width': 3,
+                  'line-dasharray': [2, 4]
+                }}
+              />
+            </Source>
+          );
+        }
+      }
+
+      if (!pointCoords) return null;
+      const [longitude, latitude] = pointCoords;
       return (
-        <Marker
-          longitude={longitude}
-          latitude={latitude}
-          anchor="bottom"
-        >
+        <Marker longitude={longitude} latitude={latitude} anchor="bottom">
           <div className="relative">
             <MapPin color="#059669" size={28} className="drop-shadow-md" />
             <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-2 h-2 bg-green-600 rounded-full animate-pulse"></div>
           </div>
         </Marker>
       );
-    } else if (firstFeature.geometry.type === 'Polygon') {
-      return (
-        <Source id="uploaded-polygon" type="geojson" data={firstFeature}>
-          <Layer
-            id="uploaded-polygon-fill"
-            type="fill"
-            paint={{
-              'fill-color': '#059669',
-              'fill-opacity': 0.2
-            }}
-          />
-          <Layer
-            id="uploaded-polygon-outline"
-            type="line"
-            paint={{
-              'line-color': '#059669',
-              'line-width': 3,
-              'line-dasharray': [2, 4]
-            }}
-          />
-        </Source>
-      );
+    } catch (error) {
+      console.error('Error rendering uploaded GeoJSON:', error);
+      return null;
     }
   };
 

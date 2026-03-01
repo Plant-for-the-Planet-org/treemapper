@@ -7,7 +7,6 @@ import * as turf from "@turf/turf";
 import * as tj from "@mapbox/togeojson";
 
 // Constants
-const MAX_AREA_HECTARES = 25000;
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
 interface GeoJSONUploadProps {
@@ -19,7 +18,6 @@ interface UploadState {
   status: "idle" | "uploading" | "success" | "error";
   message: string;
   fileName?: string;
-  area?: number;
   geometryType?: string;
 }
 
@@ -37,7 +35,7 @@ export default function GeoJSONUpload({
     onGeoJSONChange(null);
   };
 
-  // Validate that the geometry is a Polygon or MultiPolygon
+  // Validate that the geometry is a Point
   const validateGeometryType = (
     geoJson: any
   ): { valid: boolean; type: string | null; error?: string } => {
@@ -56,28 +54,18 @@ export default function GeoJSONUpload({
         return { valid: false, type: null, error: "No valid geometries found in the file." };
       }
 
-      // Reject MultiPolygon (single feature or mixed with Polygon)
-      if (types.has("MultiPolygon")) {
-        return {
-          valid: false,
-          type: "MultiPolygon",
-          error:
-            "MultiPolygon is not supported. Please upload a file with Polygon geometry only (single polygon per feature).",
-        };
-      }
-
       if (types.size > 1) {
         return {
           valid: false,
           type: null,
-          error: `Mixed geometry types found (${[...types].join(", ")}). Only Polygon is allowed.`,
+          error: `Mixed geometry types found (${[...types].join(", ")}). Only Point is allowed.`,
         };
       }
 
       geometryType = [...types][0];
     } else if (geoJson.type === "Feature" && geoJson.geometry?.type) {
       geometryType = geoJson.geometry.type;
-    } else if (geoJson.type === "Polygon" || geoJson.type === "MultiPolygon") {
+    } else if (geoJson.type === "Point") {
       geometryType = geoJson.type;
     }
 
@@ -85,43 +73,15 @@ export default function GeoJSONUpload({
       return { valid: false, type: null, error: "Could not determine geometry type." };
     }
 
-    // Only allow Polygon (MultiPolygon is not supported)
-    if (geometryType === "MultiPolygon") {
+    if (geometryType !== "Point") {
       return {
         valid: false,
         type: geometryType,
-        error:
-          "MultiPolygon is not supported. Please upload a file with Polygon geometry only (single polygon per feature).",
-      };
-    }
-
-    if (geometryType !== "Polygon") {
-      const typeMessage =
-        geometryType === "Point"
-          ? "Point geometries are not supported."
-          : geometryType === "LineString"
-            ? "LineString geometries are not supported."
-            : `${geometryType} geometries are not supported.`;
-
-      return {
-        valid: false,
-        type: geometryType,
-        error: `${typeMessage} Only Polygon is allowed.`,
+        error: `${geometryType} geometry is not supported. Only Point geometry is allowed for project location.`,
       };
     }
 
     return { valid: true, type: geometryType };
-  };
-
-  // Calculate total area of all polygons
-  const calculateTotalArea = (geoJson: any): number => {
-    try {
-      const areaInSquareMeters = turf.area(geoJson);
-      return areaInSquareMeters / 10000; // Convert to hectares
-    } catch (error) {
-      console.error("Error calculating area:", error);
-      return 0;
-    }
   };
 
   // Strip altitude (Z) coordinates — KML files include altitude which can
@@ -155,37 +115,15 @@ export default function GeoJSONUpload({
     return stripAltitudeFromGeometry(geoJson);
   };
 
-  // Normalize GeoJSON to FeatureCollection with single feature
+  // Normalize GeoJSON to a single Point feature
   const normalizeToFeatureCollection = (geoJson: any): any => {
-    // Already a FeatureCollection
+    // Already a FeatureCollection — use first feature
     if (geoJson.type === "FeatureCollection") {
-      // If multiple features, merge them into a single MultiPolygon
-      if (geoJson.features.length > 1) {
-        const polygons: any[] = [];
-
-        for (const feature of geoJson.features) {
-          if (feature.geometry.type === "Polygon") {
-            polygons.push(feature.geometry.coordinates);
-          } else if (feature.geometry.type === "MultiPolygon") {
-            polygons.push(...feature.geometry.coordinates);
-          }
-        }
-
-        return {
-          type: "FeatureCollection",
-          features: [
-            {
-              type: "Feature",
-              properties: {},
-              geometry: {
-                type: "MultiPolygon",
-                coordinates: polygons,
-              },
-            },
-          ],
-        };
-      }
-      return geoJson;
+      if (!geoJson.features?.length) return null;
+      return {
+        type: "FeatureCollection",
+        features: [geoJson.features[0]],
+      };
     }
 
     // Single Feature
@@ -196,8 +134,8 @@ export default function GeoJSONUpload({
       };
     }
 
-    // Raw Geometry (Polygon or MultiPolygon)
-    if (geoJson.type === "Polygon" || geoJson.type === "MultiPolygon") {
+    // Raw Point geometry
+    if (geoJson.type === "Point") {
       return {
         type: "FeatureCollection",
         features: [
@@ -236,26 +174,11 @@ export default function GeoJSONUpload({
       return;
     }
 
-    // Calculate and validate area
-    const areaInHectares = calculateTotalArea(normalized);
-
-    if (areaInHectares > MAX_AREA_HECTARES) {
-      setUploadState({
-        status: "error",
-        message: `Area exceeds maximum limit of ${MAX_AREA_HECTARES.toLocaleString()} hectares. Current area: ${areaInHectares.toLocaleString(undefined, { maximumFractionDigits: 2 })} ha`,
-        fileName,
-        area: Math.round(areaInHectares * 100) / 100,
-      });
-      return;
-    }
-
     // Success
-    const roundedArea = Math.round(areaInHectares * 100) / 100;
     setUploadState({
       status: "success",
       message: `File processed successfully.`,
       fileName,
-      area: roundedArea,
       geometryType: validation.type || undefined,
     });
     onGeoJSONChange(normalized);
@@ -421,13 +344,13 @@ export default function GeoJSONUpload({
                   <h3 className="text-md font-semibold text-gray-900">
                     {isDragActive
                       ? "Drop your file here"
-                      : "Upload polygon file"}
+                      : "Upload location file"}
                   </h3>
                   <p className="text-sm text-gray-600">
                     Drag & drop or click to select
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supports: KML, GeoJSON (Polygon only, no MultiPolygon — max {MAX_AREA_HECTARES.toLocaleString()} ha)
+                    Supports: KML, GeoJSON (Point geometry only)
                   </p>
                 </>
               )}
@@ -457,11 +380,6 @@ export default function GeoJSONUpload({
                     {uploadState.geometryType && (
                       <p className="text-sm text-green-600">
                         Type: {uploadState.geometryType}
-                      </p>
-                    )}
-                    {uploadState.area !== undefined && (
-                      <p className="text-sm text-green-600">
-                        Area: {uploadState.area.toLocaleString()} hectares
                       </p>
                     )}
                   </div>

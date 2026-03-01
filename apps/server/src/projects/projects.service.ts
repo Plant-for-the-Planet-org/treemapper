@@ -1,7 +1,7 @@
 // src/projects/projects.service.ts
 import { Injectable, NotFoundException, ForbiddenException, ConflictException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
-import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite } from '../database/schema';
+import { project, projectMember, user, workspace, workspaceMember, projectInvites, bulkInvite, image } from '../database/schema';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
@@ -2415,4 +2415,136 @@ export class ProjectsService {
   // //     roleDistribution
   // //   };
   // // }
+
+  async getProjectImages(projectId: number): Promise<ServiceResponse> {
+    try {
+      const images = await this.drizzleService.db
+        .select({
+          uid: image.uid,
+          filename: image.filename,
+          originalName: image.originalName,
+          mimeType: image.mimeType,
+          type: image.type,
+          isPrimary: image.isPrimary,
+          createdAt: image.createdAt,
+        })
+        .from(image)
+        .where(
+          and(
+            eq(image.entityType, 'project'),
+            eq(image.entityId, projectId),
+            isNull(image.deletedAt),
+          )
+        )
+        .orderBy(desc(image.createdAt));
+
+      return {
+        message: 'Project images fetched successfully',
+        statusCode: 200,
+        error: null,
+        data: images,
+        code: 'project_images_fetched',
+      };
+    } catch (error) {
+      console.error('Error fetching project images:', error);
+      return {
+        message: 'Failed to fetch project images',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'project_images_fetch_failed',
+      };
+    }
+  }
+
+  async addProjectImage(
+    projectId: number,
+    imageData: { filename: string; originalName?: string; mimeType?: string },
+    userId: number,
+  ): Promise<ServiceResponse> {
+    try {
+      const [inserted] = await this.drizzleService.db
+        .insert(image)
+        .values({
+          uid: generateUid('img'),
+          type: 'overview',
+          entityId: projectId,
+          entityType: 'project',
+          deviceType: 'web',
+          filename: imageData.filename,
+          originalName: imageData.originalName || null,
+          mimeType: imageData.mimeType || null,
+          uploadedById: userId,
+        })
+        .returning();
+
+      return {
+        message: 'Project image added successfully',
+        statusCode: 201,
+        error: null,
+        data: inserted,
+        code: 'project_image_added',
+      };
+    } catch (error) {
+      console.error('Error adding project image:', error);
+      return {
+        message: 'Failed to add project image',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'project_image_add_failed',
+      };
+    }
+  }
+
+  async deleteProjectImage(
+    projectId: number,
+    imageUid: string,
+    userId: number,
+  ): Promise<ServiceResponse> {
+    try {
+      const [existing] = await this.drizzleService.db
+        .select({ id: image.id, entityId: image.entityId })
+        .from(image)
+        .where(
+          and(
+            eq(image.uid, imageUid),
+            eq(image.entityType, 'project'),
+            isNull(image.deletedAt),
+          )
+        );
+
+      if (!existing || existing.entityId !== projectId) {
+        return {
+          message: 'Image not found',
+          statusCode: 404,
+          error: 'not_found',
+          data: null,
+          code: 'project_image_not_found',
+        };
+      }
+
+      await this.drizzleService.db
+        .update(image)
+        .set({ deletedAt: new Date() })
+        .where(eq(image.uid, imageUid));
+
+      return {
+        message: 'Project image deleted successfully',
+        statusCode: 200,
+        error: null,
+        data: null,
+        code: 'project_image_deleted',
+      };
+    } catch (error) {
+      console.error('Error deleting project image:', error);
+      return {
+        message: 'Failed to delete project image',
+        statusCode: 500,
+        error: error.message || 'internal_server_error',
+        data: null,
+        code: 'project_image_delete_failed',
+      };
+    }
+  }
 }

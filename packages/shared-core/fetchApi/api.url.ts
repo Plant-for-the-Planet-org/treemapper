@@ -19,6 +19,7 @@ const baseUrl = getBaseUrl();
 
 export const postUrlApi = {
   createProject: `${baseUrl}/projects`,
+  addProjectImage: `${baseUrl}/projects`,
   createProjectinvite: `${baseUrl}/projects`,
   acceptInvite: `${baseUrl}/projects/invites/accept`,
   acceptlinkInvite: `${baseUrl}/projects/invites/accept/link`,
@@ -60,6 +61,7 @@ export const postUrlApi = {
 
 export const getUrlApi = {
   health: `${baseUrl}/health`,
+  getProjectImages: `${baseUrl}/projects`,
   me: `${baseUrl}/users/me`,
   checkMigration: `${baseUrl}/migration/check`,
   projects: `${baseUrl}/projects/workspace`,
@@ -112,6 +114,7 @@ export const deleteUrlApi = {
   deletePrjSpecies: `${baseUrl}/project-species`,
   deletePrjIntervention: `${baseUrl}/interventions`,
   deleteProject: `${baseUrl}/projects`,
+  deleteProjectImage: `${baseUrl}/projects`,
 } as const;
 
 export const putUrlApi = {

@@ -410,6 +410,24 @@ export const deleteProject = async (token: string, projectGuiD:string) => {
   return result;
 };
 
+export const getProjectImages = async (token: string, projectUid: string) => {
+  const uri = `${getUrlApi.getProjectImages}/${projectUid}/images`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const addProjectImage = async (token: string, projectUid: string, params: { filename: string; originalName?: string; mimeType?: string }) => {
+  const uri = `${postUrlApi.addProjectImage}/${projectUid}/images`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
+export const deleteProjectImage = async (token: string, projectUid: string, imageUid: string) => {
+  const uri = `${deleteUrlApi.deleteProjectImage}/${projectUid}/images/${imageUid}`;
+  const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
 
 
 export const updateUserRole = async (token: string, prjId: string, memberId: string, params: any) => {

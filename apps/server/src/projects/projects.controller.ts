@@ -10,7 +10,9 @@ import {
   UseGuards,
   Req,
   ParseIntPipe,
-  Query
+  Query,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ProjectGuardResponse, ProjectMembersAndInvitesResponse, ProjectsService } from './projects.service';
 import { CreateProjectDto } from './dto/create-project.dto';
@@ -199,5 +201,34 @@ export class ProjectsController {
   @UseGuards(ProjectPermissionsGuard)
   remove(@Membership('id') member: ProjectGuardResponse, @CurrentUser() user) {
     return this.projectsService.remove(member, user);
+  }
+
+  @Get(':id/images')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  getProjectImages(@Membership() membership: ProjectGuardResponse) {
+    return this.projectsService.getProjectImages(membership.projectId);
+  }
+
+  @Post(':id/images')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  addProjectImage(
+    @Body() body: { filename: string; originalName?: string; mimeType?: string },
+    @Membership() membership: ProjectGuardResponse,
+    @CurrentUser() user: User,
+  ) {
+    return this.projectsService.addProjectImage(membership.projectId, body, membership.userId);
+  }
+
+  @Delete(':id/images/:imageUid')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  deleteProjectImage(
+    @Param('imageUid') imageUid: string,
+    @Membership() membership: ProjectGuardResponse,
+    @CurrentUser() user: User,
+  ) {
+    return this.projectsService.deleteProjectImage(membership.projectId, imageUid, membership.userId);
   }
 }
