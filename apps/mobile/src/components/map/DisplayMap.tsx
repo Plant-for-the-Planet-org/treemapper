@@ -87,6 +87,7 @@ const DisplayMap = () => {
 
 
   useEffect(() => {
+    console.log('MapBounds changed:', MapBounds)
     if (cameraRef?.current !== null) {
       handleCameraViewChange()
     }
@@ -94,6 +95,7 @@ const DisplayMap = () => {
 
 
   useEffect(() => {
+    console.log('Current user location changed:', currentUserLocation)
     if (currentUserLocation && cameraRef.current !== null) {
       handleCamera()
     }
@@ -320,6 +322,18 @@ const DisplayMap = () => {
     return null;
   };
 
+  const initLocation = (l: MapLibreGL.Location) => {
+    if (currentUserLocation && currentUserLocation.length > 0 && currentUserLocation[0] === 0 && MapBounds.bounds.length === 0) {
+      if (l && l.coords && l.coords.latitude && l.coords.longitude) {
+        cameraRef.current.setCamera({
+          centerCoordinate: [l.coords.longitude, l.coords.latitude],
+          zoomLevel: 15,
+          animationDuration: 1000,
+        })
+      }
+    }
+  }
+
   const renderSingleInterventionSource = () => {
     if (selectedIntervention && !showOverlay) {
       return (
@@ -349,7 +363,9 @@ const DisplayMap = () => {
       <MapLibreGL.UserLocation
         showsUserHeadingIndicator
         androidRenderMode="gps"
-        minDisplacement={1}
+        onUpdate={(location) => {
+          initLocation(location)
+        }}
       />
       {renderShapeSource()}
       <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} />
