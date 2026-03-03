@@ -1,5 +1,5 @@
 import { LoginFormProps } from "@shared-core/types/interface.app";
-import { Wifi, Database, BarChart3, Loader2, Mail, Apple } from "lucide-react";
+import { Wifi, Database, BarChart3, Loader2, Mail, Apple, BookOpen } from "lucide-react";
 import { TrustIndicator } from "./TrustIndicator";
 
 // Google icon as SVG component
@@ -135,8 +135,19 @@ export const LoginForm: React.FC<LoginFormProps> = ({ loading, onLogin }) => {
         </div>
       </div>
 
+      {/* Documentation button */}
+      <a
+        href="https://docs-ruddy-six.vercel.app/en"
+        target="_blank"
+        rel="noopener noreferrer"
+        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#007A49]/30 text-[#007A49] hover:bg-[#007A49]/5 hover:border-[#007A49] font-medium text-sm transition-all duration-200"
+      >
+        <BookOpen className="w-4 h-4" />
+        <span>Documentation</span>
+      </a>
+
       {/* Help link */}
-      <div className="text-center pt-2">
+      {/* <div className="text-center pt-2">
         <p className="text-sm text-gray-600">
           Need help?{' '}
           <a
@@ -146,7 +157,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ loading, onLogin }) => {
             Contact support
           </a>
         </p>
-      </div>
+      </div> */}
     </div>
   );
 };
