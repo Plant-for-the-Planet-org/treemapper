@@ -254,7 +254,7 @@ export default function ContactSupportPage() {
           <p className="text-xs text-muted-foreground mt-1">{t('messageHint')}</p>
         </div>
 
-        <div>
+        {/* <div>
           <label htmlFor="files" className="block text-sm font-medium mb-2">
             {t('filesLabel')}
           </label>
@@ -308,7 +308,7 @@ export default function ContactSupportPage() {
               ))}
             </div>
           )}
-        </div>
+        </div> */}
 
         {errorMessage && (
           <div className="p-3 rounded-md bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800">

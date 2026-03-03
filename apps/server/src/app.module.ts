@@ -17,6 +17,7 @@ import { MobileModule } from './mobile/mobile.module';
 import { NotificationModule } from './notification/notification.module';
 import { AuditModule } from './audit/audit.module';
 import { MigrationModule } from './migrate/migrate.module.ts';
+import { ContactSupportModule } from './contact-support/contact-support.module';
 // import { ApprovalBoardModule } from './approval-board/approval-board.module';
 
 @Module({
@@ -39,6 +40,7 @@ import { MigrationModule } from './migrate/migrate.module.ts';
     NotificationModule,
     AuditModule,
     MigrationModule,
+    ContactSupportModule,
     // ApprovalBoardModule,
   ],
   controllers: [AppController],

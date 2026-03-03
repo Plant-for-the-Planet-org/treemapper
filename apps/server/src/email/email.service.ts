@@ -19,11 +19,14 @@ export class EmailService {
   private readonly frontendUrl: string;
   private readonly emailTemplatesDir: string;
   private readonly fromEmail: string;
+  private readonly adminEmail: string;
 
   constructor(private configService: ConfigService) {
     // Setup email configuration from environment
     this.frontendUrl = this.configService.get<string>('DASHBOARD_URL') || '';
     this.fromEmail = this.configService.get<string>('EMAIL_FROM', 'treemapper-support@plant-for-the-planet.org');
+    this.adminEmail = this.configService.get<string>('ADMIN_EMAIL', '');
+
     this.emailTemplatesDir = path.join(process.cwd(), 'src/notification/templates');
     this.apiUrl = this.configService.get<string>('PLUNK_URL') || '';
     this.apiToken = this.configService.get<string>('PLUNK_API_TOKEN') || '';
@@ -90,10 +93,10 @@ export class EmailService {
     token: string
   }): Promise<boolean> {
     return this.sendTemplateEmail({
-      to: 'shyam.bhongle@plant-for-the-planet.org',
+      to: this.adminEmail,
       subject: `Migration request for TreeMapper:${memberName}`,
       templateName: 'migrationRequest',
-      context: {        
+      context: {
         requestedBy: memberName,
         requesterEmail: memberEmail,
         memberId,
@@ -241,6 +244,37 @@ export class EmailService {
       this.logger.error(`Failed to send email to ${to}`, error.stack);
       return false;
     }
+  }
+
+  /**
+   * Send contact support form submission to the support team
+   */
+  async sendContactSupportEmail({
+    name,
+    senderEmail,
+    subject,
+    category,
+    message,
+  }: {
+    name: string;
+    senderEmail: string;
+    subject: string;
+    category: string;
+    message: string;
+  }): Promise<boolean> {
+    return this.sendTemplateEmail({
+      to: this.adminEmail,
+      subject: `[Support] ${subject}`,
+      templateName: 'contactSupport',
+      context: {
+        name,
+        senderEmail,
+        subject,
+        category,
+        message,
+        submittedAt: new Date().toLocaleString('en-US', { timeZone: 'UTC', dateStyle: 'medium', timeStyle: 'short' }) + ' UTC',
+      },
+    });
   }
 
   /**
