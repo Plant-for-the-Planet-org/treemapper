@@ -74,6 +74,8 @@ const SpeciesManagementDashboard = () => {
 
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  const userRole = selectedProject?.userRole;
+  const canManageSpecies = ['owner', 'admin'].includes(userRole || '');
 
   // Combined species list for display
   const allSpecies = [
@@ -439,6 +441,11 @@ const SpeciesManagementDashboard = () => {
   const handleSave = async () => {
     setLoading(true);
     try {
+      if (!canManageSpecies) {
+        toast.error('You do not have permission to add or edit species.');
+        setLoading(false);
+        return;
+      }
       let payLoad = {
         isDisbaledSpecies: editForm.disabled,
         isNativeSpecies: editForm.isNativeSpecies,
@@ -720,7 +727,7 @@ const SpeciesManagementDashboard = () => {
           interventionTypeFilter={interventionTypeFilter}
           setInterventionTypeFilter={setInterventionTypeFilter}
           interventionTypes={interventionTypes}
-          onAddSpecies={handleStartAdd}
+          onAddSpecies={canManageSpecies ? handleStartAdd : undefined}
           onExport={() => downloadJsonAsCsv(allSpecies, 'species-data')}
         />
 
@@ -931,20 +938,24 @@ const SpeciesManagementDashboard = () => {
                 </>
               ) : (
                 <>
-                  {selectedSpecies.sources && !selectedSpecies.sources.includes('intervention') ? <button
-                    onClick={() => setShowConfirmModal(true)}
-                    className="px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
-                  >
-                    <Trash2 size={14} />
-                    Delete
-                  </button> : null}
-                  {!selectedSpecies.isUnknown && selectedSpecies.projectSpeciesUid ? <button
-                    onClick={handleStartEdit}
-                    className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
-                  >
-                    <Edit2 size={14} />
-                    Edit
-                  </button> : null}
+                  {canManageSpecies && selectedSpecies.sources && !selectedSpecies.sources.includes('intervention') ? (
+                    <button
+                      onClick={() => setShowConfirmModal(true)}
+                      className="px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
+                  ) : null}
+                  {canManageSpecies && !selectedSpecies.isUnknown && selectedSpecies.projectSpeciesUid ? (
+                    <button
+                      onClick={handleStartEdit}
+                      className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
+                    >
+                      <Edit2 size={14} />
+                      Edit
+                    </button>
+                  ) : null}
                 </>
               )}
             </div>
@@ -1012,7 +1023,7 @@ const SpeciesManagementDashboard = () => {
               </button>
               <button
                 onClick={handleSave}
-                disabled={loading}
+                disabled={loading || !canManageSpecies}
                 className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
               >
                 {loading ? <LoadingSpinner size="small" /> : <Plus size={14} />}

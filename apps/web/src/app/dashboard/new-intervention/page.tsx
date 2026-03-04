@@ -55,6 +55,9 @@ const InterventionCreator = ({ goBack }) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const userRole = selectedProject?.userRole;
+  const canCreateIntervention = ['owner', 'admin', 'contributor'].includes(userRole || '');
+
   useEffect(() => {
     if (selectedProject) {
       fetchAllSites();
@@ -75,6 +78,11 @@ const InterventionCreator = ({ goBack }) => {
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+
+    if (!canCreateIntervention) {
+      alert('You do not have permission to create interventions in this project.');
+      return;
+    }
 
     const validationErrors = validateForm(formData);
     setErrors(validationErrors);
@@ -208,7 +216,7 @@ const InterventionCreator = ({ goBack }) => {
             <div className="flex  sm:flex-row items-center justify-end gap-4">
               <button
                 type="submit"
-                disabled={isSubmitting}
+                disabled={isSubmitting || !canCreateIntervention}
                 className="cursor-pointer w-full sm:w-auto px-10 py-3 bg-green-700 text-white rounded-xl font-semibold hover:from-emerald-700 hover:to-green-700 transition-all duration-200 flex items-center justify-center gap-2 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {isSubmitting ? (
@@ -223,6 +231,12 @@ const InterventionCreator = ({ goBack }) => {
                 )}
               </button>
             </div>
+
+            {!canCreateIntervention && (
+              <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+                You don't have permission to create interventions for this project. Only project owners, admins, and contributors can create interventions.
+              </div>
+            )}
 
             {/* Validation Summary */}
             {Object.keys(errors).length > 0 && (

@@ -27,6 +27,8 @@ const SiteManagementPage = () => {
   const selectedProject = useProjectStore(state => state.selectedProject);
   const { accessToken } = useToken();
   const router = useRouter()
+  const userRole = selectedProject?.userRole;
+  const canManageSites = ['owner', 'admin'].includes(userRole || '');
   const [siteAccessModal, setSiteAccessModal] = useState(false)
   useEffect(() => {
     if (isEditing && selectedSite) {
@@ -162,7 +164,7 @@ const SiteManagementPage = () => {
   return (
     <div className="w-full h-full bg-gray-50/50">
       <SiteManagementHeader
-        onCreateSite={handleCreateNewSite}
+        onCreateSite={canManageSites ? handleCreateNewSite : undefined}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         statusFilter={statusFilter}

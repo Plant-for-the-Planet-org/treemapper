@@ -199,7 +199,7 @@ export class InterventionsController {
    * Allows editing: dates, description, geometry, species, image, site
    */
   @Put(':interventionId/:id/edit')
-  @ProjectRoles('owner', 'admin', 'contributor')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async editInterventionComprehensive(
     @Param('interventionId') interventionUid: string,
@@ -255,7 +255,7 @@ export class InterventionsController {
    * Returns validation results for frontend preview
    */
   @Post(':interventionId/:id/edit/validate')
-  @ProjectRoles('owner', 'admin', 'contributor')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async preValidateEdit(
     @Param('interventionId') interventionUid: string,

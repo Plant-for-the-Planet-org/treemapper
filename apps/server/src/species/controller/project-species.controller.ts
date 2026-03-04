@@ -32,7 +32,7 @@ export class ProjectSpeciesController {
   constructor(private readonly userSpeciesService: ProjectSpeciesService) { }
 
   @Post('/:id')
-  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async create(
     @Membership() membership: ProjectGuardResponse,
@@ -54,7 +54,7 @@ export class ProjectSpeciesController {
   }
 
   @Put('/:id/species/:species/fav')
-  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async updateFavourite(
     @Param('species') species: string,
@@ -69,7 +69,7 @@ export class ProjectSpeciesController {
   }
 
   @Put('/:id/species/:species/disable')
-  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async updateDisbale(
     @Param('species') species: string,
@@ -84,7 +84,7 @@ export class ProjectSpeciesController {
   }
 
   @Put('/:id/species/:species')
-  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async update(
     @Param('species') species: string,
@@ -99,7 +99,7 @@ export class ProjectSpeciesController {
   }
 
   @Delete('/:id/species/:species')
-  @ProjectRoles('owner', 'admin', 'contributor')
+  @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async delete(
     @Param('species') species: string,

@@ -4,6 +4,7 @@ import { MultiSelectDropdown } from "./MultiSelectDropdown";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import CustomButton from "@/component/CutsomButtom";
+import { toast } from "react-toastify";
 
 export const SpeciesHeader = ({
   speciesCount,
@@ -73,7 +74,16 @@ export const SpeciesHeader = ({
               <ChevronDown className={`ml-1 h-4 w-4 transition-transform ${showFilters ? 'rotate-180' : ''}`} />
             </Button>
 
-            <CustomButton variant="outline" onClick={onAddSpecies}>
+            <CustomButton
+              variant="outline"
+              onClick={() => {
+                if (!onAddSpecies) {
+                  toast.error("You don't have permission to add species in this project.");
+                  return;
+                }
+                onAddSpecies();
+              }}
+            >
               <Plus size={14} />
               Add Species
             </CustomButton>

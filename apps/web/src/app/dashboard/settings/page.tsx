@@ -358,7 +358,8 @@ const GeneralSettings = ({
   onImageUpload,
   onImageDelete,
   imageUploading,
-}) => (
+  canEdit
+}: any) => (
   <div className="space-y-8">
     <div className="flex justify-between items-start">
       <div>
@@ -370,7 +371,7 @@ const GeneralSettings = ({
     {/* Save Button at Top */}
     <div className="flex justify-end pb-4 border-b border-stone-200">
       <button
-        disabled={loading}
+        disabled={loading || !canEdit}
         type="button"
         onClick={handleSubmit}
         className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
@@ -648,7 +649,7 @@ const GeneralSettings = ({
 
 
 // Location Settings Component
-const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) => {
+const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading, canEdit }) => {
   const [geoJSON, setGeoJSON] = useState(existingGeoJSON || null);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -677,7 +678,7 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading }) =>
         <button
           type="button"
           onClick={handleSave}
-          disabled={isLoading || loading}
+          disabled={isLoading || loading || !canEdit}
           className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
         >
           {(isLoading || loading) ? (
@@ -713,7 +714,8 @@ const FeaturesSettings = ({
   projectData,
   handleToggleChange,
   handleSubmit,
-  loading
+  loading,
+  canEdit
 }) => (
   <div className="space-y-8">
     <div className="flex justify-between items-start">
@@ -726,7 +728,7 @@ const FeaturesSettings = ({
     {/* Save Button at Top */}
     <div className="flex justify-end pb-4 border-b border-stone-200">
       <button
-        disabled={loading}
+        disabled={loading || !canEdit}
         type="button"
         onClick={handleSubmit}
         className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100 relative"
@@ -797,7 +799,7 @@ const FeaturesSettings = ({
 
 
 // Enhanced Danger Zone Component
-const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, handleDeleteProject }) => {
+const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, handleDeleteProject, canEdit }) => {
   const [showArchiveConfirm, setShowArchiveConfirm] = useState(false);
 
   return (
@@ -825,7 +827,13 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                 {!showArchiveConfirm ? (
                   <button
                     type="button"
-                    onClick={() => setShowArchiveConfirm(true)}
+                    onClick={() => {
+                      if (!canEdit) {
+                        toast.error('You do not have permission to archive this project.');
+                        return;
+                      }
+                      setShowArchiveConfirm(true);
+                    }}
                     className="px-6 py-3 bg-white border-2 border-amber-500 text-amber-700 rounded-xl hover:bg-amber-50 hover:border-amber-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                   >
                     <Lock className="h-4 w-4 mr-2" />
@@ -883,10 +891,16 @@ const DangerZone = ({ projectData, showDeleteConfirm, setShowDeleteConfirm, hand
                   Permanently delete this project and all associated data. This includes all trees, locations, progress reports, and collaborator assignments. This action cannot be undone.
                 </p>
 
-                {!showDeleteConfirm ? (
+                    {!showDeleteConfirm ? (
                   <button
                     type="button"
-                    onClick={() => setShowDeleteConfirm(true)}
+                    onClick={() => {
+                      if (!canEdit) {
+                        toast.error('You do not have permission to delete this project.');
+                        return;
+                      }
+                      setShowDeleteConfirm(true);
+                    }}
                     className="px-6 py-3 bg-white border-2 border-red-500 text-red-600 rounded-xl hover:bg-red-50 hover:border-red-600 flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 relative"
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -976,6 +990,8 @@ const ProjectSettings = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  const userRole = selectedProject?.userRole;
+  const canEdit = ['owner', 'admin'].includes(userRole || '');
   const [projectData, setProjectData] = useState({
     name: '',
     slug: '',
@@ -1055,6 +1071,11 @@ const ProjectSettings = () => {
   };
 
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to modify project images.');
+      e.target.value = '';
+      return;
+    }
     const file = e.target.files?.[0];
     if (!file) return;
 
@@ -1105,6 +1126,10 @@ const ProjectSettings = () => {
   };
 
   const handleImageDelete = async (imageUid: string) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to delete project images.');
+      return;
+    }
     try {
       const result = await deleteProjectImage(accessToken, selectedProject.uid, imageUid);
       if (result.statusCode === 200 || result.statusCode === 201) {
@@ -1298,6 +1323,11 @@ const ProjectSettings = () => {
       e.preventDefault();
     }
 
+    if (!canEdit) {
+      setNotification({ type: 'error', message: 'You do not have permission to update project settings.' });
+      return;
+    }
+
     if (!validateForm()) {
       setNotification({ type: 'error', message: 'Please fix the validation errors before saving' });
       return;
@@ -1318,6 +1348,10 @@ const ProjectSettings = () => {
   };
 
   const handleDeleteProject = async () => {
+    if (!canEdit) {
+      toast.error('You do not have permission to delete this project.');
+      return;
+    }
     const response = await deleteProject(accessToken, selectedProject.uid);
     if (response.statusCode !== 200 && response.statusCode !== 201) {
       toast.error("Something went wrong")
@@ -1348,6 +1382,7 @@ const ProjectSettings = () => {
             onImageUpload={handleImageUpload}
             onImageDelete={handleImageDelete}
             imageUploading={imageUploading}
+            canEdit={canEdit}
           />
         );
       case 'location':
@@ -1356,6 +1391,7 @@ const ProjectSettings = () => {
             handleLocationUpdate={handleLocationUpdate}
             existingGeoJSON={projectData.originalGeometry}
             loading={loading}
+            canEdit={canEdit}
           />
         );
       case 'features':
@@ -1365,6 +1401,7 @@ const ProjectSettings = () => {
             handleToggleChange={handleToggleChange}
             handleSubmit={handleSubmit}
             loading={loading}
+            canEdit={canEdit}
           />
         );
       case 'danger':
@@ -1374,6 +1411,7 @@ const ProjectSettings = () => {
             showDeleteConfirm={showDeleteConfirm}
             setShowDeleteConfirm={setShowDeleteConfirm}
             handleDeleteProject={handleDeleteProject}
+            canEdit={canEdit}
           />
         );
       default:

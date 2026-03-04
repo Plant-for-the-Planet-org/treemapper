@@ -259,7 +259,7 @@ export const InterventionDetails = ({
               <Badge variant={intervention.captureStatus === 'complete' ? 'success' : 'warning'}>
                 {intervention.captureStatus}
               </Badge>
-              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin' || intervention.userId === userDetails?.id) && (
+              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -270,7 +270,7 @@ export const InterventionDetails = ({
                   Edit
                 </Button>
               )}
-              {selectedProjectDetails.userRole === 'owner' && (
+              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
                 <Button
                   variant="ghost"
                   size="sm"

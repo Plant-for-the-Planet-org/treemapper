@@ -1,4 +1,5 @@
 import CustomButton from "@/component/CutsomButtom";
+import { toast } from "react-toastify";
 import { motion } from "framer-motion";
 import { Plus, Search, Filter } from "lucide-react";
 
@@ -41,7 +42,13 @@ export const SiteManagementHeader = ({ onCreateSite, searchTerm, setSearchTerm, 
             </div>
           </div>
         </div>
-        <CustomButton onClick={onCreateSite}>
+        <CustomButton onClick={() => {
+          if (!onCreateSite) {
+            toast.error("You don't have permission to create sites in this project.");
+            return;
+          }
+          onCreateSite();
+        }}>
           <Plus className="h-4 w-4 mr-2" />
           Add Site
         </CustomButton>

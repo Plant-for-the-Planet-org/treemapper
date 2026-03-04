@@ -20,6 +20,7 @@ import {
   generatePreSignUrl,
 } from '@shared-core/fetchApi/api.fetch';
 import UnifiedMapComponent from '@/component/MapSelect';
+import useProjectStore from '@shared-core/store/useProjectStore';
 
 const TABS = [
   { id: 'basic', label: 'Basic Info', icon: Info },
@@ -55,6 +56,8 @@ export default function EditInterventionModal({
   sites,
   onSaveComplete,
 }: EditInterventionModalProps) {
+  const userRole = useProjectStore(state => state.selectedProject?.userRole);
+  const canEditIntervention = userRole === 'owner' || userRole === 'admin';
   const [activeTab, setActiveTab] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
   const [isValidating, setIsValidating] = useState(false);
@@ -618,28 +621,33 @@ export default function EditInterventionModal({
               >
                 Cancel
               </button>
-              <button
-                onClick={handleSave}
-                disabled={!isDirty || isSaving || isValidating || hasSavingDateErrors}
-                className="flex items-center gap-2 px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006B3F] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader className="animate-spin h-4 w-4" />
-                    Saving...
-                  </>
-                ) : isValidating ? (
-                  <>
-                    <Loader className="animate-spin h-4 w-4" />
-                    Validating...
-                  </>
-                ) : (
-                  <>
-                    <Check size={16} />
-                    Save Changes
-                  </>
+              <div className="flex flex-col">
+                {!canEditIntervention && (
+                  <p className="text-xs text-red-600 mb-2">You don't have permission to edit this intervention. Only project owners or admins can edit interventions.</p>
                 )}
-              </button>
+                <button
+                  onClick={handleSave}
+                  disabled={!isDirty || isSaving || isValidating || hasSavingDateErrors || !canEditIntervention}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006B3F] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader className="animate-spin h-4 w-4" />
+                      Saving...
+                    </>
+                  ) : isValidating ? (
+                    <>
+                      <Loader className="animate-spin h-4 w-4" />
+                      Validating...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
             </div>
           </div>
         </motion.div>

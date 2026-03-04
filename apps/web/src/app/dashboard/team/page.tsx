@@ -18,6 +18,7 @@ import {
 import { AnimatePresence } from 'framer-motion';
 import InviteUserModal from './component/InviteUserModal';
 import UserDetailsModal from './component/UserDetailsModal';
+import { toast } from 'react-toastify';
 import { useToken } from '@/context/useTokenContext';
 import { getTeamMemebers } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
@@ -89,6 +90,8 @@ const TeamsDashboard = () => {
     });
 
     const SelectedProject = useProjectStore((state) => state.selectedProject);
+    const userRole = SelectedProject?.userRole;
+    const canManageTeam = ['owner', 'admin'].includes(userRole || '');
 
     useEffect(() => {
         if (SelectedProject) {
@@ -314,12 +317,12 @@ const TeamsDashboard = () => {
                     </button>}
                 </div>
                 <>
-                    <CustomButton variant="outline" onClick={() => { setBulkInviteModal(true) }}>
+                    <CustomButton variant="outline" onClick={() => { if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return; } setBulkInviteModal(true) }}>
                         <Upload className="h-4 w-4 mr-2" />
                         Bulk Invite
                     </CustomButton>
 
-                    <CustomButton onClick={handleInviteUser}>
+                    <CustomButton onClick={() => { if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return; } handleInviteUser(); }}>
                         <Plus className="h-4 w-4 mr-2" />
                         Invite User
                     </CustomButton>
