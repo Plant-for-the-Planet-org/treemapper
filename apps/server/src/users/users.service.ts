@@ -239,6 +239,7 @@ export class UsersService {
             }
 
             // Generic error for unexpected cases
+            this.logger.error('Onboarding failed with unexpected error:', error);
             throw new InternalServerErrorException('Failed to onboard user');
         }
     }

@@ -21,7 +21,7 @@ export type ReviewCommentType =
   | 'resolution'
   | 'system';
 
-export type ReviewCommentAuthorRole = 'admin' | 'reviewer' | 'field_worker';
+export type ReviewCommentAuthorRole = 'admin' | 'reviewer' | 'contributor';
 
 export type IssueSeverity = 'error' | 'warning' | 'suggestion';
 

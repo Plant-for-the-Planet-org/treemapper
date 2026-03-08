@@ -475,7 +475,11 @@ export class InterventionsService {
       }
 
       // Check if project has approval board enabled
-      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const [projectData] = await this.drizzleService.db
+        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .from(project)
+        .where(eq(project.id, membership.projectId))
+        .limit(1);
       const now = new Date();
 
       const interventionData: any = {
@@ -496,12 +500,10 @@ export class InterventionsService {
         metadata: createInterventionDto.metadata || null,
         image: createInterventionDto.image || null,
         totalTreeCount: treeCount,
-        // Auto-submit for review if approval board is enabled
-        // ...(approvalBoardEnabled && {
-        //   reviewStatus: 'pending',
-        //   submittedAt: now,
-        //   firstSubmittedAt: now,
-        // }),
+        ...(projectData?.approvalBoardEnabled && {
+          reviewStatus: 'pending',
+          submittedAt: now,
+        }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)
@@ -576,6 +578,8 @@ export class InterventionsService {
   async getProjectInterventions(
     projectId: number,
     queryDto: GetProjectInterventionsQueryDto,
+    callerRole?: string,
+    callerUserId?: number,
   ): Promise<GetProjectInterventionsResponseDto> {
     const {
       limit = 20,
@@ -595,10 +599,28 @@ export class InterventionsService {
     const offset = (page - 1) * limit;
 
     // Build base where conditions for interventions
-    const whereConditions = [
+    const whereConditions: any[] = [
       eq(intervention.projectId, projectId),
       isNull(intervention.deletedAt),
     ];
+
+    // Approval board visibility: non-admins only see approved + their own pending/in_review
+    const isAdmin = callerRole === 'owner' || callerRole === 'admin';
+    if (!isAdmin && callerUserId) {
+      const [proj] = await this.drizzleService.db
+        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .from(project)
+        .where(eq(project.id, projectId))
+        .limit(1);
+      if (proj?.approvalBoardEnabled) {
+        whereConditions.push(
+          or(
+            eq(intervention.reviewStatus, 'approved'),
+            eq(intervention.userId, callerUserId),
+          ),
+        );
+      }
+    }
 
     // Add intervention filters
     if (type) {
@@ -1018,7 +1040,11 @@ export class InterventionsService {
       }
 
       // Check if project has approval board enabled
-      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const [projectData] = await this.drizzleService.db
+        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .from(project)
+        .where(eq(project.id, membership.projectId))
+        .limit(1);
       const now = new Date();
 
       const transformedInterventions: any[] = [];
@@ -1060,12 +1086,10 @@ export class InterventionsService {
           metadata: el.metadata || null,
           totalTreeCount: treeCount,
           totalSampleTreeCount: 0,
-          // Auto-submit for review if approval board is enabled
-          // ...(approvalBoardEnabled && {
-          //   reviewStatus: 'pending',
-          //   submittedAt: now,
-          //   firstSubmittedAt: now,
-          // }),
+          ...(projectData?.approvalBoardEnabled && {
+            reviewStatus: 'pending',
+            submittedAt: now,
+          }),
         });
 
         el.species.forEach(species => {

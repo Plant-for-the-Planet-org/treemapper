@@ -1615,7 +1615,11 @@ export class MobileService {
       const uid = generateUid('inv');
 
       // Check if project has approval board enabled
-      // const approvalBoardEnabled = await this.isApprovalBoardEnabled(membership.projectId);
+      const [projectData] = await this.drizzleService.db
+        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .from(project)
+        .where(eq(project.id, membership.projectId))
+        .limit(1);
       const now = new Date();
 
       const interventionData: any = {
@@ -1639,12 +1643,10 @@ export class MobileService {
         totalTreeCount: createInterventionDto.type === 'single-tree-registration' ? 1 : totalCount,
         flag: flag,
         flagReason: flagReason,
-        // Auto-submit for review if approval board is enabled
-        // ...(approvalBoardEnabled && {
-        //   reviewStatus: 'pending',
-        //   submittedAt: now,
-        //   firstSubmittedAt: now,
-        // }),
+        ...(projectData?.approvalBoardEnabled && {
+          reviewStatus: 'pending',
+          submittedAt: now,
+        }),
       }
       const result = await this.drizzleService.db
         .insert(intervention)

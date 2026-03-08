@@ -55,7 +55,12 @@ export class InterventionsController {
     @Membership() membership: ProjectGuardResponse,
     @Query() queryDto: GetProjectInterventionsQueryDto,
   ): Promise<GetProjectInterventionsResponseDto> {
-    return this.interventionsService.getProjectInterventions(membership.projectId, queryDto);
+    return this.interventionsService.getProjectInterventions(
+      membership.projectId,
+      queryDto,
+      membership.role,
+      membership.userId,
+    );
   }
 
 

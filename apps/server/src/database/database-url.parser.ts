@@ -9,7 +9,6 @@ export interface DatabaseConfig {
   ssl?: any;
 }
 
-
 export function parseDatabaseConfig(): DatabaseConfig {
   const databaseUrl = process.env.DATABASE_URL;
 
@@ -17,26 +16,20 @@ export function parseDatabaseConfig(): DatabaseConfig {
     try {
       const url = new URL(databaseUrl);
 
-      // Check if this is a Supabase connection (or other cloud DB requiring SSL)
-      const isSupabase = url.hostname.includes('supabase.co');
-      const isCloudDb = isSupabase || url.hostname.includes('rds.amazonaws.com') || url.hostname.includes('neon.tech');
-
-      // Determine SSL configuration
-      let sslConfig: any = false;
+      const isCloudDb = url.hostname.includes('rds.amazonaws.com')
+        let sslConfig: any = false;
       if (process.env.DB_SSL === 'false') {
         sslConfig = false;
-      } else if (isCloudDb || process.env.DB_SSL !== 'false') {
-        // For Supabase and cloud databases, we need SSL with rejectUnauthorized: false
+      } else if (process.env.DB_SSL === 'true' || isCloudDb) {
         sslConfig = { rejectUnauthorized: false };
       }
-
       return {
         host: url.hostname,
         port: url.port ? parseInt(url.port, 10) : 5432,
         username: url.username,
-        password: decodeURIComponent(url.password), // Decode password in case it has special chars
-        database: url.pathname.slice(1), // Remove leading slash
-        ssl: sslConfig
+        password: decodeURIComponent(url.password),
+        database: url.pathname.slice(1),
+        ssl: sslConfig,
       };
     } catch (error) {
       console.warn('Failed to parse DATABASE_URL, falling back to individual env vars:', error.message);
@@ -50,6 +43,6 @@ export function parseDatabaseConfig(): DatabaseConfig {
     username: process.env.DB_USERNAME || 'postgres',
     password: process.env.DB_PASSWORD || 'postgres',
     database: process.env.DB_NAME || 'postgres',
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : false,
   };
 }

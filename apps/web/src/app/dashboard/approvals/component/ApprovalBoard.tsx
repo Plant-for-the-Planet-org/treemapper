@@ -21,13 +21,11 @@ import {
   addAdminComment,
   addFieldWorkerComment,
   getCurrentThread,
-  getInterventionThreads,
-  getInterventionReviewDetails,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { Loader2, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { toast } from 'react-toastify';
 import {
   DndContext,
   DragEndEvent,
@@ -102,11 +100,9 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     approvals,
     selectedApproval,
     loading,
-    error,
     setApprovals,
     selectApproval,
     setLoading,
-    setError,
   } = useApprovalStore();
 
   const [entityType, setEntityType] = useState<ApprovalEntityType>('intervention');
@@ -188,7 +184,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   const loadApprovals = async () => {
     try {
       setLoading(true);
-      setError(null);
+      toast.error(null);
 
       // Fetch all submitted interventions (backend returns all statuses except draft by default)
       const response = await getReviewQueue(accessToken, projectId, {
@@ -239,10 +235,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         setApprovals(mappedInterventions);
         setSites([]);
       } else {
-        setError(response.message || 'Failed to load approvals');
+        toast.error(response.message || 'Failed to load approvals');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to load approvals');
+      toast.error(err.message || 'Failed to load approvals');
     } finally {
       setLoading(false);
     }
@@ -257,7 +253,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     } else {
       const site = sites.find((s) => s.siteId === id);
       if (site) {
-        selectApproval(site);
+        selectApproval(site as any);
       }
     }
   };
@@ -271,7 +267,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
 
     const decision = mapColumnStatusToDecision(newStatus);
     if (!decision) {
-      setError('Cannot move to this status');
+      toast.error('Cannot move to this status');
       return;
     }
 
@@ -283,7 +279,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         projectId,
         selectedApproval.interventionUid,
         {
-          decision,
+          decision: decision as 'approved' | 'rejected' | 'changes_requested',
           note: comment || undefined,
           issues:
             comment && decision === 'changes_requested'
@@ -296,10 +292,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         await loadApprovals();
         selectApproval(null);
       } else {
-        setError(response.message || 'Failed to update status');
+        toast.error(response.message || 'Failed to update status');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to update status');
+      toast.error(err.message || 'Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -322,24 +318,8 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         threadUid = currentThreadResponse.data.uid;
       }
 
-      if (!threadUid && selectedApproval.currentThreadId) {
-        const threadsResponse = await getInterventionThreads(
-          accessToken,
-          selectedApproval.interventionUid
-        );
-        if (
-          threadsResponse.statusCode === 200 &&
-          threadsResponse.data?.data?.length > 0
-        ) {
-          const currentThread = threadsResponse.data.data.find(
-            (t: any) => t.id === selectedApproval.currentThreadId
-          );
-          threadUid = currentThread?.uid;
-        }
-      }
-
       if (!threadUid) {
-        setError('No active review thread found. The intervention may need to be reviewed first.');
+        toast.error('No active review thread found.');
         return;
       }
 
@@ -359,10 +339,10 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         await loadApprovals();
         selectApproval(null);
       } else {
-        setError(response.message || 'Failed to add comment');
+        toast.error(response.message || 'Failed to add comment');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to add comment');
+      toast.error(err.message || 'Failed to add comment');
     } finally {
       setLoading(false);
     }
@@ -427,7 +407,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     // Map target column to API decision
     const decision = mapColumnStatusToDecision(targetColumnStatus);
     if (!decision) {
-      setError('Cannot move items back to New Requests');
+      toast.error('Cannot move items back to New Requests');
       return;
     }
 
@@ -437,16 +417,16 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
         accessToken,
         projectId,
         intervention.interventionUid,
-        { decision }
+        { decision: decision as 'approved' | 'rejected' | 'changes_requested' }
       );
 
       if (response.statusCode === 200 || response.statusCode === 201) {
         await loadApprovals();
       } else {
-        setError(response.message || 'Failed to update status');
+        toast.error(response.message || 'Failed to update status');
       }
     } catch (err: any) {
-      setError(err.message || 'Failed to update status');
+      toast.error(err.message || 'Failed to update status');
     } finally {
       setLoading(false);
     }
@@ -456,27 +436,6 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
     return (
       <div className="flex items-center justify-center h-96">
         <Loader2 className="h-8 w-8 animate-spin text-[#007A49]" />
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="space-y-4">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>{error}</AlertDescription>
-        </Alert>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            setError(null);
-            loadApprovals();
-          }}
-        >
-          Retry
-        </Button>
       </div>
     );
   }
@@ -507,6 +466,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
       </div>
 
       <DndContext
+        autoScroll={false}
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragStart={handleDragStart}

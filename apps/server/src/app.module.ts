@@ -18,7 +18,7 @@ import { NotificationModule } from './notification/notification.module';
 import { AuditModule } from './audit/audit.module';
 import { MigrationModule } from './migrate/migrate.module.ts';
 import { ContactSupportModule } from './contact-support/contact-support.module';
-// import { ApprovalBoardModule } from './approval-board/approval-board.module';
+import { ApprovalBoardModule } from './approval-board/approval-board.module';
 
 @Module({
   imports: [
@@ -41,7 +41,7 @@ import { ContactSupportModule } from './contact-support/contact-support.module';
     AuditModule,
     MigrationModule,
     ContactSupportModule,
-    // ApprovalBoardModule,
+    ApprovalBoardModule,
   ],
   controllers: [AppController],
   providers: [AppService],
