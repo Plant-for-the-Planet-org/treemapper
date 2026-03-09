@@ -1,12 +1,9 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
 import {
   intervention,
+  interventionSpecies,
+  tree,
   reviewThread,
   reviewComment,
   user,
@@ -29,7 +26,7 @@ import {
 
 @Injectable()
 export class ApprovalBoardService {
-  constructor(private drizzleService: DrizzleService) {}
+  constructor(private readonly drizzleService: DrizzleService) {}
 
   // ================== Review Queue (Admin) ==================
 
@@ -556,6 +553,132 @@ export class ApprovalBoardService {
       projectName: inv.projectName || 'Unknown',
       siteId: inv.siteId || undefined,
       siteName: inv.siteName || undefined,
+    };
+  }
+
+  /**
+   * Return a richer intervention details object used by the approval modal.
+   * Includes intervention fields, species distribution, a sample of trees and simple aggregates.
+   */
+  async getInterventionDetails(interventionUid: string): Promise<any> {
+    const db = this.drizzleService.db;
+
+    const [inv] = await db
+      .select({
+        id: intervention.id,
+        interventionUid: intervention.uid,
+        interventionHid: intervention.hid,
+        interventionDescription: intervention.description,
+        type: intervention.type,
+        // Return GeoJSON string for the location so we can parse it into an object
+        location: sql`ST_AsGeoJSON(${intervention.location})`,
+        image: intervention.image,
+        area: intervention.area,
+        totalTreeCount: intervention.totalTreeCount,
+        totalSampleTreeCount: intervention.totalSampleTreeCount,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        isPrivate: intervention.isPrivate,
+        captureMode: intervention.captureMode,
+        captureStatus: intervention.captureStatus,
+        metadata: intervention.metadata,
+      })
+      .from(intervention)
+      .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
+      .limit(1);
+
+    if (!inv) throw new NotFoundException('Intervention not found');
+
+    // Parse PostGIS GeoJSON string into an object (if present)
+    const parsedLocation = inv.location ? JSON.parse(inv.location as unknown as string) : null;
+
+    // Fetch species entries for this intervention
+    const speciesRows = await db
+      .select({
+        speciesName: interventionSpecies.speciesName,
+        commonName: interventionSpecies.commonName,
+        speciesCount: interventionSpecies.speciesCount,
+      })
+      .from(interventionSpecies)
+      .where(and(eq(interventionSpecies.interventionId, inv.id), isNull(interventionSpecies.deletedAt)));
+
+    const speciesDistribution: Record<string, number> = {};
+    for (const s of speciesRows) {
+      const name = s.speciesName || s.commonName || 'Unknown';
+      speciesDistribution[name] = (speciesDistribution[name] || 0) + Number(s.speciesCount || 0);
+    }
+
+    // Fetch trees sample
+    const treeRows = await db
+      .select({
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        speciesName: tree.speciesName,
+        commonName: tree.commonName,
+        height: tree.height,
+        width: tree.width,
+        latitude: tree.latitude,
+        longitude: tree.longitude,
+        image: tree.image,
+      })
+      .from(tree)
+      .where(and(eq(tree.interventionId, inv.id), isNull(tree.deletedAt)))
+      .orderBy(asc(tree.id))
+      .limit(500);
+
+    // If speciesDistribution empty, compute from trees
+    if (Object.keys(speciesDistribution).length === 0) {
+      for (const t of treeRows) {
+        const name = t.speciesName || t.commonName || 'Unknown';
+        speciesDistribution[name] = (speciesDistribution[name] || 0) + 1;
+      }
+    }
+
+    // Aggregates
+    const heights = treeRows.map((t) => (t.height !== null && t.height !== undefined ? Number(t.height) : null)).filter((v) => v !== null) as number[];
+    const widths = treeRows.map((t) => (t.width !== null && t.width !== undefined ? Number(t.width) : null)).filter((v) => v !== null) as number[];
+    const avgHeight = heights.length > 0 ? heights.reduce((a, b) => a + b, 0) / heights.length : null;
+    const avgDbh = widths.length > 0 ? widths.reduce((a, b) => a + b, 0) / widths.length : null;
+
+    // canopyCover may be stored in metadata
+    const canopyCover = inv.metadata && (inv.metadata as any).canopyCover ? Number((inv.metadata as any).canopyCover) : null;
+
+    const trees = treeRows.map((t) => ({
+      uid: t.uid,
+      hid: t.hid,
+      tag: t.tag,
+      species: t.speciesName,
+      commonName: t.commonName,
+      height: t.height,
+      width: t.width,
+      latitude: t.latitude,
+      longitude: t.longitude,
+      image: t.image,
+    }));
+
+    return {
+      interventionUid: inv.interventionUid,
+      interventionHid: inv.interventionHid,
+      interventionName: inv.interventionDescription || undefined,
+      description: inv.interventionDescription || undefined,
+      image: inv.image || null,
+      location: parsedLocation || null,
+      area: inv.area || null,
+      registrationDate: inv.registrationDate || null,
+      interventionStartDate: inv.interventionStartDate || null,
+      interventionEndDate: inv.interventionEndDate || null,
+      isPrivate: inv.isPrivate,
+      captureMode: inv.captureMode,
+      captureStatus: inv.captureStatus,
+      totalTreeCount: inv.totalTreeCount,
+      totalSampleTreeCount: inv.totalSampleTreeCount,
+      speciesDistribution,
+      trees,
+      avgHeight,
+      avgDbh,
+      canopyCover,
     };
   }
 

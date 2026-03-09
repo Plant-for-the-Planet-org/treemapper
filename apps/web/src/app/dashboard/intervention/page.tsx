@@ -5,7 +5,7 @@ import { Trees, ChevronLeft, Plus, Loader } from 'lucide-react';
 import { getProjectIntervention, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { toast } from 'react-toastify';
 
@@ -313,6 +313,8 @@ const TreeMapperUI = () => {
   const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const deeplinkUid = searchParams.get('id');
   const [filters, setFilters] = useState<Filters>({
     type: '',
     captureMode: '',
@@ -349,7 +351,7 @@ const TreeMapperUI = () => {
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
 
   // Fetch interventions data
-  const fetchInterventionData = async (page = 1, append = false) => {
+  const fetchInterventionData = async (page = 1, append = false, targetUid?: string) => {
     if (!selectedProject?.uid) return;
 
     setLoading(true);
@@ -388,7 +390,20 @@ const TreeMapperUI = () => {
         } else {
           setInterventions(newInterventions);
 
-          if (selectedIntervention) {
+          const uidToSelect = targetUid;
+          if (uidToSelect) {
+            // Deeplink: try to find the target intervention in the loaded list
+            const target = newInterventions.find((i: Intervention) => i.uid === uidToSelect);
+            if (target) {
+              setSelectedIntervention(target);
+            } else {
+              // Not in current page — fetch it directly by uid
+              const deepResponse = await getProjectIntervention(accessToken || '', selectedProject.uid, { uid: uidToSelect, limit: 1 });
+              if (deepResponse?.statusCode === 200 && deepResponse.data.intervention?.length > 0) {
+                setSelectedIntervention(deepResponse.data.intervention[0]);
+              }
+            }
+          } else if (selectedIntervention) {
             const updatedSelectedIntervention = newInterventions.find(
               (i: Intervention) => i.uid === selectedIntervention.uid || i.id === selectedIntervention.id
             );
@@ -438,18 +453,18 @@ const TreeMapperUI = () => {
   // Initial load
   useEffect(() => {
     if (selectedProject) {
-      fetchInterventionData();
+      fetchInterventionData(1, false, deeplinkUid || undefined);
       fetchSites();
     }
   }, [selectedProject]);
 
-  // Refetch when filters change
+  // Refetch when filters change (selectedProject excluded — initial load handles that)
   useEffect(() => {
     if (selectedProject) {
       setPagination(prev => ({ ...prev, page: 1 }));
       fetchInterventionData(1, false);
     }
-  }, [filters, debouncedSearchTerm, selectedProject]);
+  }, [filters, debouncedSearchTerm]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Enhanced filter handlers
   const handleFilterChange = (filterKey: string, value: string) => {
@@ -537,8 +552,14 @@ const TreeMapperUI = () => {
     }
   };
 
+  const handleSelectIntervention = (intervention: Intervention) => {
+    setSelectedIntervention(intervention);
+    router.replace(`?id=${intervention.uid}`, { scroll: false });
+  };
+
   const handleInterventionDelete = async (_uid: string) => {
     setSelectedIntervention(null);
+    router.replace('?', { scroll: false });
     fetchInterventionData(pagination.page);
   };
 
@@ -576,7 +597,7 @@ const TreeMapperUI = () => {
         <InterventionListSidebar
           interventions={interventions}
           selectedIntervention={selectedIntervention}
-          setSelectedIntervention={setSelectedIntervention}
+          setSelectedIntervention={handleSelectIntervention}
           loading={loading}
           error={error}
           pagination={pagination}
@@ -618,4 +639,10 @@ const TreeMapperUI = () => {
   );
 };
 
-export default TreeMapperUI;
+const InterventionPage = () => (
+  <React.Suspense>
+    <TreeMapperUI />
+  </React.Suspense>
+);
+
+export default InterventionPage;

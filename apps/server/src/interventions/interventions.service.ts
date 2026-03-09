@@ -594,6 +594,7 @@ export class InterventionsService {
       species,
       flag,
       searchHid,
+      uid,
       sortOrder = SortOrderEnum.DESC,
     } = queryDto;
 
@@ -654,6 +655,10 @@ export class InterventionsService {
 
     if (searchHid) {
       whereConditions.push(like(intervention.hid, `%${searchHid}%`));
+    }
+
+    if (uid) {
+      whereConditions.push(eq(intervention.uid, uid));
     }
 
     // Handle species filter - need to join with intervention species

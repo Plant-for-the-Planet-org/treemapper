@@ -171,3 +171,38 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
+
+// Detailed intervention response used by the frontend when opening the modal
+export interface InterventionReviewDetails {
+  interventionUid: string;
+  interventionHid: string;
+  interventionName?: string;
+  description?: string;
+  image?: string | null;
+  location?: any;
+  area?: number | null;
+  registrationDate?: Date | null;
+  interventionStartDate?: Date | null;
+  interventionEndDate?: Date | null;
+  isPrivate?: boolean;
+  captureMode?: string;
+  captureStatus?: string;
+  totalTreeCount?: number;
+  totalSampleTreeCount?: number;
+  speciesDistribution?: Record<string, number>;
+  trees?: Array<{
+    uid?: string;
+    hid?: string;
+    tag?: string | null;
+    species?: string | null;
+    commonName?: string | null;
+    height?: number | null;
+    width?: number | null;
+    latitude?: number | null;
+    longitude?: number | null;
+    image?: string | null;
+  }>;
+  avgHeight?: number | null;
+  avgDbh?: number | null;
+  canopyCover?: number | null;
+}

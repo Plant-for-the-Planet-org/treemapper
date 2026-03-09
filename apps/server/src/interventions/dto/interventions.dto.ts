@@ -580,6 +580,10 @@ export class GetProjectInterventionsQueryDto {
   @IsString()
   searchHid?: string;
 
+  @IsOptional()
+  @IsString()
+  uid?: string;
+
   // Sorting
   @IsOptional()
   @IsEnum(SortOrderEnum)

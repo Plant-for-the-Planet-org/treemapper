@@ -7,9 +7,13 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 interface SiteMapViewProps {
   location: any; // GeoJSON geometry
   className?: string;
+  markerInfo?: {
+    title?: string;
+    subtitle?: string;
+  } | null;
 }
 
-export const SiteMapView: React.FC<SiteMapViewProps> = ({ location, className = '' }) => {
+export const SiteMapView: React.FC<SiteMapViewProps> = ({ location, className = '', markerInfo = null }) => {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<maplibregl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
@@ -113,9 +117,16 @@ export const SiteMapView: React.FC<SiteMapViewProps> = ({ location, className = 
         map.current.fitBounds(bounds, { padding: 50 });
       } else if (location.type === 'Point') {
         // Add marker for point
-        new maplibregl.Marker({ color: '#007A49' })
+        const marker = new maplibregl.Marker({ color: '#007A49' })
           .setLngLat(location.coordinates as [number, number])
           .addTo(map.current);
+
+        // If markerInfo is provided, attach a popup
+        if (markerInfo && (markerInfo.title || markerInfo.subtitle)) {
+          const popupHtml = `<div style="font-size:13px"><strong>${markerInfo.title || ''}</strong><div style="font-size:12px;color:#555">${markerInfo.subtitle || ''}</div></div>`;
+          const popup = new maplibregl.Popup({ offset: 15 }).setHTML(popupHtml);
+          marker.setPopup(popup).togglePopup();
+        }
       }
     });
 

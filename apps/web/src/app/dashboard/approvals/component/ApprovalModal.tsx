@@ -74,6 +74,8 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [currentThread, setCurrentThread] = useState<ReviewThread | null>(null);
   const [threadComments, setThreadComments] = useState<ReviewComment[]>([]);
   const [loadingThread, setLoadingThread] = useState(false);
+  const [detailedData, setDetailedData] = useState<Record<string, any> | null>(null);
+  const [loadingDetails, setLoadingDetails] = useState(false);
 
   // Fetch review thread and comments when modal opens for interventions
   useEffect(() => {
@@ -81,6 +83,33 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
       loadReviewThread();
     }
   }, [isOpen, intervention]);
+
+  // Fetch richer intervention details when modal opens
+  useEffect(() => {
+    if (isOpen && intervention && isInterventionApproval(intervention)) {
+      loadInterventionDetails();
+    } else {
+      setDetailedData(null);
+    }
+  }, [isOpen, intervention]);
+
+  const loadInterventionDetails = async () => {
+    if (!intervention || !isInterventionApproval(intervention) || !accessToken) return;
+    try {
+      setLoadingDetails(true);
+      const resp = await getInterventionReviewDetails(accessToken, intervention.interventionUid);
+      if (resp && resp.statusCode === 200 && resp.data) {
+        setDetailedData(resp.data);
+      } else {
+        setDetailedData(null);
+      }
+    } catch (err) {
+      console.error('Failed to load intervention details:', err);
+      setDetailedData(null);
+    } finally {
+      setLoadingDetails(false);
+    }
+  };
 
   const loadReviewThread = async () => {
     if (!intervention || !isInterventionApproval(intervention) || !accessToken) return;
@@ -136,6 +165,17 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     }
   };
 
+  const topSpeciesString = (() => {
+    const dist = detailedData?.speciesDistribution;
+    if (!dist) return '';
+    const entries = Object.entries(dist).sort((a: any, b: any) => (b[1] as number) - (a[1] as number));
+    return entries.slice(0, 3).map(([k, v]) => `${k} (${v})`).join(', ');
+  })();
+  // prefer detailedData location if available
+  const mapLocation = isIntervention
+    ? (detailedData?.location || intervention.interventionData.location)
+    : (detailedData?.location || intervention.siteData.location);
+
   const getHistoryActionText = (action: ApprovalHistoryEntry['action']) => {
     const icons = {
       submitted: '📝',
@@ -184,7 +224,17 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="!max-w-[85vw] w-[85vw] max-h-[90vh] overflow-y-auto sm:!max-w-[85vw]">
         <DialogHeader>
-          <DialogTitle>{isIntervention ? 'Intervention Details' : 'Site Details'}</DialogTitle>
+          <DialogTitle>
+            <div className="flex items-center gap-3">
+              <TreesIcon className="h-5 w-5 text-green-700" />
+              <div>
+                <div className="font-semibold">{isIntervention ? 'Intervention Details' : 'Site Details'}</div>
+                <div className="text-xs text-gray-500">
+                  {isIntervention ? `#${intervention.interventionHid}` : `Site: ${intervention.siteUid}`}
+                </div>
+              </div>
+            </div>
+          </DialogTitle>
         </DialogHeader>
 
         <div className="space-y-6">
@@ -202,31 +252,45 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-8">
             {/* Left Column - Details (60% width - 3 of 5 columns) */}
             <div className="lg:col-span-3 space-y-6">
-              {/* Image or Map */}
-              {isIntervention && intervention.interventionData.image && (
-                <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden">
-                  <img
-                    src={intervention.interventionData.image}
-                    alt="Intervention"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-              )}
+              {/* Image + Map preview */}
+              {(isIntervention || isSite) && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* Intervention image */}
+                  {isIntervention && (detailedData?.image || intervention.interventionData.image) && (
+                    <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                      <img
+                        src={detailedData?.image || intervention.interventionData.image}
+                        alt="Intervention"
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
+                  )}
 
-              {isSite && intervention.siteData.location && (
-                <SiteMapView
-                  location={intervention.siteData.location}
-                  className="w-full h-64"
-                />
-              )}
-
-              {isSite && intervention.siteData.image && (
-                <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden">
-                  <img
-                    src={intervention.siteData.image}
-                    alt="Site"
-                    className="w-full h-full object-cover"
-                  />
+                  {/* Map preview for intervention or site */}
+                  {mapLocation ? (
+                    <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                      <SiteMapView
+                        location={mapLocation}
+                        className="w-full h-full"
+                        markerInfo={
+                          isIntervention
+                            ? { title: `#${intervention.interventionHid}`, subtitle: topSpeciesString }
+                            : { title: intervention.siteUid, subtitle: intervention.name || '' }
+                        }
+                      />
+                    </div>
+                  ) : (
+                    /* If no map but site image exists, show site image in second column */
+                    isSite && intervention.siteData.image && (
+                      <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                        <img
+                          src={intervention.siteData.image}
+                          alt="Site"
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )
+                  )}
                 </div>
               )}
 
@@ -344,6 +408,114 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       </div>
                     )}
                   </div>
+                </div>
+              )}
+
+              {/* Detailed data fetched on open (species, trees, canopy, etc.) */}
+              {isIntervention && (
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Detailed Data</h3>
+                  {loadingDetails ? (
+                    <div className="text-sm text-gray-500">Loading detailed data...</div>
+                  ) : detailedData ? (
+                    <div className="space-y-3 text-sm">
+                      {/* Canopy / cover / summary */}
+                      {(detailedData.canopyCover || detailedData.totalTreeCount || detailedData.speciesDistribution) && (
+                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="text-sm font-semibold">Summary</div>
+                            <div className="text-xs text-gray-500">Source: detailed API</div>
+                          </div>
+                          <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
+                            {detailedData.totalTreeCount !== undefined && (
+                              <div>
+                                <div className="text-gray-600">Total Trees</div>
+                                <div className="font-semibold">{detailedData.totalTreeCount}</div>
+                              </div>
+                            )}
+                            {detailedData.canopyCover !== undefined && (
+                              <div>
+                                <div className="text-gray-600">Canopy Cover</div>
+                                <div className="font-semibold">{`${detailedData.canopyCover}%`}</div>
+                              </div>
+                            )}
+                            {detailedData.avgHeight !== undefined && (
+                              <div>
+                                <div className="text-gray-600">Avg Height</div>
+                                <div className="font-semibold">{`${detailedData.avgHeight} m`}</div>
+                              </div>
+                            )}
+                            {detailedData.avgDbh !== undefined && (
+                              <div>
+                                <div className="text-gray-600">Avg DBH</div>
+                                <div className="font-semibold">{`${detailedData.avgDbh} cm`}</div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Species distribution */}
+                      {detailedData.speciesDistribution && Object.keys(detailedData.speciesDistribution).length > 0 && (
+                        <div>
+                          <div className="text-sm font-medium mb-2">Top Species</div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            {Object.entries(detailedData.speciesDistribution)
+                              .sort((a: any, b: any) => (b[1] as number) - (a[1] as number))
+                              .slice(0, 8)
+                              .map(([speciesName, count]: [string, any]) => {
+                                const total = detailedData.totalTreeCount || intervention.interventionData.totalTreeCount || 1;
+                                const pct = Math.round(((count as number) / total) * 100);
+                                return (
+                                  <div key={speciesName} className="flex items-center justify-between p-2 bg-white border border-gray-100 rounded">
+                                    <div className="truncate">{speciesName}</div>
+                                    <div className="text-gray-500">{count} ({pct}%)</div>
+                                  </div>
+                                );
+                              })}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Trees preview */}
+                      {Array.isArray(detailedData.trees) && detailedData.trees.length > 0 && (
+                        <div>
+                          <div className="text-sm font-medium mb-2">Trees (preview)</div>
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                            {detailedData.trees.slice(0, 12).map((t: any) => (
+                              <div key={t.treeId || t.uid || Math.random()} className="bg-white border rounded p-2 text-xs">
+                                {t.image ? (
+                                  <div className="mb-2">
+                                    <img
+                                      src={
+                                        typeof t.image === 'string' && t.image.startsWith('http')
+                                          ? t.image
+                                          : `${process.env.NEXT_PUBLIC_CDN}/tree/${t.image}`
+                                      }
+                                      alt={t.species || t.hid || 'Tree image'}
+                                      className="w-full h-24 object-cover rounded-md"
+                                    />
+                                  </div>
+                                ) : null}
+                                <div className="font-medium truncate">{t.species || 'Unknown'}</div>
+                                <div className="text-gray-500">{t.tag ? `Tag: ${t.tag}` : t.hid ? `ID: ${t.hid}` : ''}</div>
+                                <div className="mt-1 text-xs text-gray-700">
+                                  {t.height !== undefined ? `${t.height} m` : '-'} · {t.width !== undefined ? `${t.width} m` : '-'}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                          {detailedData.trees.length > 12 && (
+                            <div className="mt-2 text-xs text-gray-500 text-center">
+                              Showing 12 of {detailedData.trees.length} trees
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-sm text-gray-500">No additional details available.</div>
+                  )}
                 </div>
               )}
 

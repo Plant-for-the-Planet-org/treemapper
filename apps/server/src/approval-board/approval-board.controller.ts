@@ -146,6 +146,15 @@ export class ApprovalBoardController {
     return this.approvalBoardService.getCurrentThread(interventionUid);
   }
 
+  @Get('interventions/:interventionUid')
+  @ApiOperation({ summary: 'Get rich intervention details for approval modal' })
+  @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
+  async getInterventionDetails(
+    @Param('interventionUid') interventionUid: string,
+  ) {
+    return this.approvalBoardService.getInterventionDetails(interventionUid);
+  }
+
   // ================== Comments by Thread ==================
 
   @Get('threads/:threadUid/comments')
