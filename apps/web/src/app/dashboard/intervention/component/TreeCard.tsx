@@ -1,14 +1,32 @@
 'use client'
 
-import React, { useState } from 'react';
-import { Trees, Leaf, Calendar, Camera } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Trees, Leaf, Calendar, Camera, Pen } from 'lucide-react';
 import { Card, CardContent, Badge, Button } from './ui';
-import { NonEditableField } from './EditableField';
 import { FileUploadDialog } from './FileUploadDialog';
+import EditTreeModal from './EditTreeModal';
 
 interface TreeRecord {
   recordedAt: string;
   [key: string]: unknown;
+}
+
+interface InterventionSpecies {
+  uid: string;
+  scientificSpeciesId?: number;
+  speciesName?: string;
+  commonName?: string;
+  count: number;
+  isUnknown?: boolean;
+}
+
+interface Intervention {
+  uid: string;
+  hid: string;
+  type: string;
+  interventionStartDate?: string;
+  originalGeometry?: any;
+  species?: InterventionSpecies[];
 }
 
 interface Tree {
@@ -18,39 +36,60 @@ interface Tree {
   image?: string;
   status: string;
   speciesName?: string;
+  commonName?: string;
   height?: number;
   width?: number;
   plantingDate?: string;
+  location?: any;
+  originalGeometry?: any;
+  interventionSpeciesUid?: string;
+  interventionSpeciesId?: number;
+  scientificSpeciesId?: number;
   records?: TreeRecord[];
 }
 
 interface TreeCardProps {
   tree: Tree;
+  intervention: Intervention;
+  accessToken: string;
+  selectedProject: string;
   onUpdate?: (treeHid: string, updates: Record<string, unknown>) => void;
 }
 
-export const TreeCard = ({ tree, onUpdate }: TreeCardProps) => {
+export const TreeCard = ({
+  tree,
+  intervention,
+  accessToken,
+  selectedProject,
+  onUpdate,
+}: TreeCardProps) => {
   const [showImageDialog, setShowImageDialog] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [localTree, setLocalTree] = useState<Tree>(tree);
 
-  const handleUpdateField = async (field: string, value: unknown) => {
-    console.log(`Updating tree ${tree.hid} field ${field} to:`, value);
-    await onUpdate?.(tree.hid, { [field]: value });
-  };
+  useEffect(() => {
+    setLocalTree(tree);
+  }, [tree]);
 
   const handleImageUpload = async (file: File) => {
-    console.log(`Uploading image for tree ${tree.hid}:`, file);
-    await onUpdate?.(tree.hid, { image: file });
+    console.log(`Uploading image for tree ${localTree.hid}:`, file);
+    await onUpdate?.(localTree.hid, { image: file });
+  };
+
+  const handleSaveComplete = (updatedTree: any) => {
+    setLocalTree((prev) => ({ ...prev, ...updatedTree }));
+    onUpdate?.(localTree.hid, updatedTree);
   };
 
   return (
     <>
       <Card className="hover:shadow-md transition-shadow duration-200">
         <CardContent className="p-4">
-          {tree.image && (
+          {localTree.image && (
             <div className="mb-3 relative group">
               <img
-                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${tree.image}`}
-                alt={`Tree ${tree.tag || tree.hid}`}
+                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${localTree.image}`}
+                alt={`Tree ${localTree.tag || localTree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
             </div>
@@ -63,58 +102,73 @@ export const TreeCard = ({ tree, onUpdate }: TreeCardProps) => {
                   <Trees className="w-3 h-3 text-white" />
                 </div>
                 <div>
-                  <h4 className="font-medium text-gray-900 text-sm">{tree.tag || tree.hid}</h4>
-                  <span className="text-xs text-gray-500">{tree.hid}</span>
+                  <h4 className="font-medium text-gray-900 text-sm">{localTree.tag || localTree.hid}</h4>
+                  <span className="text-xs text-gray-500">{localTree.hid}</span>
                 </div>
               </div>
-              <Badge variant={tree.status === 'alive' ? 'success' : tree.status === 'dead' ? 'error' : 'warning'}>
-                {tree.status}
-              </Badge>
+              <div className="flex items-center gap-1">
+                <Badge
+                  variant={
+                    localTree.status === 'alive'
+                      ? 'success'
+                      : localTree.status === 'dead'
+                      ? 'error'
+                      : 'warning'
+                  }
+                >
+                  {localTree.status}
+                </Badge>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowEditModal(true)}
+                  className="p-1"
+                  title="Edit tree"
+                >
+                  <Pen className="h-3 w-3 text-gray-500" />
+                </Button>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {tree.speciesName && (
+            <div className="space-y-2">
+              {localTree.speciesName && (
                 <div className="flex items-center gap-2">
                   <Leaf className="h-3 w-3 text-gray-400" />
-                  <span className="text-sm text-gray-700 truncate">{tree.speciesName}</span>
+                  <span className="text-sm text-gray-700 truncate">{localTree.speciesName}</span>
                 </div>
               )}
 
               <div className="grid grid-cols-2 gap-3">
-                <NonEditableField
-                  label="Height (m)"
-                  value={tree.height?.toString() || ''}
-                  type="number"
-                  placeholder="0.0"
-                  onSave={(value) => handleUpdateField('height', parseFloat(value))}
-                />
-                <NonEditableField
-                  label="Width (m)"
-                  value={tree.width?.toString() || ''}
-                  type="number"
-                  placeholder="0.0"
-                  onSave={(value) => handleUpdateField('width', parseFloat(value))}
-                />
+                <div>
+                  <p className="text-xs text-gray-500">Height (m)</p>
+                  <p className="text-sm text-gray-900">{localTree.height ?? '—'}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Width (m)</p>
+                  <p className="text-sm text-gray-900">{localTree.width ?? '—'}</p>
+                </div>
               </div>
 
-              {tree.plantingDate && (
+              {localTree.plantingDate && (
                 <div className="flex items-center gap-2 text-sm text-gray-600">
                   <Calendar className="h-3 w-3 text-gray-400" />
-                  <span>Planted: {new Date(tree.plantingDate).toLocaleDateString()}</span>
+                  <span>Planted: {new Date(localTree.plantingDate).toLocaleDateString()}</span>
                 </div>
               )}
 
-              {tree.records && tree.records.length > 0 && (
+              {localTree.records && localTree.records.length > 0 && (
                 <div className="pt-2 border-t border-gray-100">
                   <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Records: {tree.records.length}</span>
-                    <span>Last: {new Date(tree.records[0]?.recordedAt).toLocaleDateString()}</span>
+                    <span>Records: {localTree.records.length}</span>
+                    <span>
+                      Last: {new Date(localTree.records[0]?.recordedAt).toLocaleDateString()}
+                    </span>
                   </div>
                 </div>
               )}
             </div>
 
-            {!tree.image && (
+            {!localTree.image && (
               <Button
                 size="sm"
                 variant="outline"
@@ -136,6 +190,16 @@ export const TreeCard = ({ tree, onUpdate }: TreeCardProps) => {
         accept="image/*"
         description="Upload a high-quality image of this tree for monitoring purposes."
         onUpload={handleImageUpload}
+      />
+
+      <EditTreeModal
+        isOpen={showEditModal}
+        onClose={() => setShowEditModal(false)}
+        tree={localTree}
+        intervention={intervention}
+        accessToken={accessToken}
+        selectedProject={selectedProject}
+        onSaveComplete={handleSaveComplete}
       />
     </>
   );

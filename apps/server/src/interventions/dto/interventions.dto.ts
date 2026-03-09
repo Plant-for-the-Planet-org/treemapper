@@ -681,10 +681,11 @@ export interface GetProjectInterventionsResponseDto {
 
 
 export class UpdateInterventionSpeciesDto {
+  @IsOptional()
   @IsNumber()
   @Type(() => Number)
   @IsPositive({ message: 'Scientific species ID must be a positive number' })
-  scientificSpeciesId: number;
+  scientificSpeciesId?: number;
 
   @IsNumber()
   @Type(() => Number)
@@ -698,6 +699,61 @@ export class TreeCountExceededError {
   currentTreeCount: number;
   requestedSpeciesCount: number;
   treeHids: string[];
+}
+
+export class EditTreeSpeciesDto {
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  scientificSpeciesId?: number;
+
+  @IsOptional()
+  @IsString()
+  speciesName?: string;
+
+  @IsOptional()
+  @IsString()
+  commonName?: string;
+
+  @IsOptional()
+  @IsString()
+  interventionSpeciesUid?: string;
+}
+
+export class EditTreeDto {
+  @IsOptional()
+  @IsString()
+  tag?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  height?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  width?: number;
+
+  @IsOptional()
+  @IsDateString()
+  plantingDate?: string;
+
+  @IsOptional()
+  @IsObject()
+  location?: Record<string, any>;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => EditTreeSpeciesDto)
+  species?: EditTreeSpeciesDto;
 }
 
 

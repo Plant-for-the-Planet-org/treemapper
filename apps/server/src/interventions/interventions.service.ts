@@ -188,16 +188,16 @@ export class InterventionsService {
       // 2. Validate intervention species exists
 
 
-      // 3. Validate new scientific species exists
-      const newSpeciesData = await this.validateScientificSpecies(
-        tx,
-        updateDto.scientificSpeciesId,
-      );
+      // 3. Validate and resolve new scientific species (optional — skip if not changing species)
+      let newSpeciesData: { scientificName: string; commonName?: string } | null = null;
+      if (updateDto.scientificSpeciesId) {
+        newSpeciesData = await this.validateScientificSpecies(tx, updateDto.scientificSpeciesId);
+      }
 
       // 4. Count existing trees and get their HIDs
       const treeData = await this.getTreeCountAndHids(tx, getInterventionSpecies[0].id);
 
-      // 5. Validate species count against tree count
+      // 5. Validate species count is not below current tree count
       if (updateDto.speciesCount < treeData.count) {
         const error = new Error('Species count cannot be less than existing tree count') as any;
         error.code = 'TREE_COUNT_EXCEEDS_SPECIES_COUNT';
@@ -215,21 +215,22 @@ export class InterventionsService {
         speciesCount: getInterventionSpecies[0].speciesCount,
       };
 
-      // 7. Update intervention species
+      // 7. Update intervention species (use existing name/commonName if species not changed)
       const updatedSpecies = await tx
         .update(interventionSpecies)
         .set({
-          scientificSpeciesId: updateDto.scientificSpeciesId,
-          speciesName: newSpeciesData.scientificName,
-          commonName: newSpeciesData.commonName,
+          scientificSpeciesId: updateDto.scientificSpeciesId ?? getInterventionSpecies[0].scientificSpeciesId,
+          speciesName: newSpeciesData?.scientificName ?? getInterventionSpecies[0].speciesName,
+          commonName: newSpeciesData?.commonName ?? getInterventionSpecies[0].commonName,
+          isUnknown: updateDto.scientificSpeciesId ? false : getInterventionSpecies[0].isUnknown,
           speciesCount: updateDto.speciesCount,
           updatedAt: new Date(),
         })
         .where(eq(interventionSpecies.id, getInterventionSpecies[0].id))
         .returning();
 
-      // 8. Update all linked trees with new species data
-      if (treeData.count > 0) {
+      // 8. Update all linked trees with new species data (only if species actually changed)
+      if (newSpeciesData && treeData.count > 0) {
         await tx
           .update(tree)
           .set({
@@ -255,9 +256,9 @@ export class InterventionsService {
 
       // 10. Create audit log
       const newValues = {
-        scientificSpeciesId: updateDto.scientificSpeciesId,
-        speciesName: newSpeciesData.scientificName,
-        commonName: newSpeciesData.commonName,
+        scientificSpeciesId: updateDto.scientificSpeciesId ?? getInterventionSpecies[0].scientificSpeciesId,
+        speciesName: newSpeciesData?.scientificName ?? getInterventionSpecies[0].speciesName,
+        commonName: newSpeciesData?.commonName ?? getInterventionSpecies[0].commonName,
         speciesCount: updateDto.speciesCount,
       };
 
@@ -811,7 +812,8 @@ export class InterventionsService {
           speciesName: tree.speciesName,
           tag: tree.tag,
           treeType: tree.treeType,
-          location: tree.location,
+          location: sql<any>`ST_AsGeoJSON(${tree.location})::json`,
+          originalGeometry: tree.originalGeometry,
           altitude: tree.altitude,
           latitude: tree.latitude,
           longitude: tree.longitude,
@@ -905,6 +907,7 @@ export class InterventionsService {
           tag: treeData.tag,
           treeType: treeData.treeType,
           location: treeData.location,
+          originalGeometry: treeData.originalGeometry,
           altitude: treeData.altitude,
           latitude: treeData.latitude,
           longitude: treeData.longitude,
@@ -3024,5 +3027,267 @@ async interventionEdit(
       };
     });
   }
-}
 
+  async editTree(
+    treeHid: string,
+    editData: {
+      tag?: string;
+      height?: number;
+      width?: number;
+      plantingDate?: string;
+      location?: any;
+      image?: string | null;
+      species?: {
+        // Single-tree fields
+        scientificSpeciesId?: number;
+        speciesName?: string;
+        commonName?: string;
+        // Multi-tree field
+        interventionSpeciesUid?: string;
+      };
+    },
+    projectId: number,
+  ): Promise<any> {
+    return await this.drizzleService.db.transaction(async (tx) => {
+      // Fetch tree with its intervention
+      const [treeData] = await tx
+        .select({
+          tree: tree,
+          intervention: {
+            id: intervention.id,
+            uid: intervention.uid,
+            hid: intervention.hid,
+            type: intervention.type,
+            projectId: intervention.projectId,
+            interventionStartDate: intervention.interventionStartDate,
+            originalGeometry: intervention.originalGeometry,
+            location: intervention.location,
+          },
+        })
+        .from(tree)
+        .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      if (!treeData) {
+        throw new NotFoundException(`Tree ${treeHid} not found`);
+      }
+
+      // Validate the tree belongs to the requested project
+      if (treeData.intervention.projectId !== projectId) {
+        throw new ForbiddenException('You do not have access to this tree');
+      }
+
+      const updates: Record<string, any> = {};
+      let locationSql: ReturnType<typeof sql> | undefined;
+
+      // Basic fields
+      if (editData.tag !== undefined) updates.tag = editData.tag;
+      if (editData.height !== undefined) updates.height = editData.height;
+      if (editData.width !== undefined) updates.width = editData.width;
+
+      // Planting date validation against intervention start date
+      if (editData.plantingDate !== undefined) {
+        const plantingDate = new Date(editData.plantingDate);
+        if (isNaN(plantingDate.getTime())) {
+          throw new BadRequestException('Invalid planting date format');
+        }
+        if (treeData.intervention.interventionStartDate) {
+          const interventionStart = new Date(treeData.intervention.interventionStartDate);
+          if (plantingDate < interventionStart) {
+            throw new BadRequestException(
+              `Planting date cannot be before intervention start date (${interventionStart.toISOString().split('T')[0]})`,
+            );
+          }
+        }
+        updates.plantingDate = plantingDate;
+      }
+
+      // Location update
+      if (editData.location !== undefined) {
+        const geometry = this.getGeoJSONForPostGIS(editData.location);
+        const geometryJson = JSON.stringify(geometry);
+        const coords = geometry?.coordinates;
+
+        if (
+          !coords ||
+          coords[0] < -180 || coords[0] > 180 ||
+          coords[1] < -90 || coords[1] > 90
+        ) {
+          throw new BadRequestException(
+            'Invalid coordinates: longitude must be -180 to 180 and latitude -90 to 90.',
+          );
+        }
+
+        const isSingleTree = treeData.intervention.type === 'single-tree-registration';
+
+        if (!isSingleTree) {
+          // Multi-tree: new point must lie within the intervention polygon
+          const [withinResult] = await tx
+            .select({
+              within: sql<boolean>`ST_Within(
+                ST_SetSRID(ST_GeomFromGeoJSON(${geometryJson}), 4326),
+                ${intervention.location}
+              )`,
+            })
+            .from(intervention)
+            .where(eq(intervention.id, treeData.intervention.id));
+
+          if (!withinResult?.within) {
+            throw new BadRequestException(
+              'Tree location must be within the intervention boundary. To place the tree outside, delete and re-register it.',
+            );
+          }
+        }
+
+        updates.latitude = coords?.[1] ?? null;
+        updates.longitude = coords?.[0] ?? null;
+        updates.originalGeometry = geometry;
+        locationSql = sql`ST_SetSRID(ST_GeomFromGeoJSON(${geometryJson}), 4326)`;
+
+        if (isSingleTree) {
+          // Single-tree: keep intervention location in sync with tree location
+          await tx
+            .update(intervention)
+            .set({
+              originalGeometry: geometry,
+              location: sql`ST_SetSRID(ST_GeomFromGeoJSON(${geometryJson}), 4326)`,
+              updatedAt: new Date(),
+            })
+            .where(eq(intervention.id, treeData.intervention.id));
+        }
+      }
+
+      // Image update
+      if (editData.image !== undefined) {
+        updates.image = editData.image;
+      }
+
+      // Species update
+      if (editData.species) {
+        const isSingleTreeType = treeData.intervention.type === 'single-tree-registration';
+
+        if (isSingleTreeType) {
+          // Single tree: update the intervention species entry in-place with new scientific species data.
+          // Only set fields that are explicitly provided — never nullify existing values.
+          const { scientificSpeciesId, speciesName, commonName } = editData.species;
+
+          if (!scientificSpeciesId || !speciesName) {
+            throw new BadRequestException(
+              'scientificSpeciesId and speciesName are required when updating species for a single-tree intervention',
+            );
+          }
+
+          if (treeData.tree.interventionSpeciesId) {
+            await tx
+              .update(interventionSpecies)
+              .set({
+                scientificSpeciesId,
+                speciesName,
+                commonName: commonName ?? null,
+                isUnknown: false,
+              })
+              .where(eq(interventionSpecies.id, treeData.tree.interventionSpeciesId));
+          }
+
+          updates.speciesName = speciesName;
+          updates.commonName = commonName ?? null;
+          updates.isUnknown = false;
+        } else {
+          // Multi tree: switch tree to an existing intervention species entry
+          const { interventionSpeciesUid } = editData.species;
+
+          if (!interventionSpeciesUid) {
+            throw new BadRequestException('interventionSpeciesUid is required for multi-tree species update');
+          }
+
+          // Validate target species belongs to this intervention
+          const [targetSpecies] = await tx
+            .select()
+            .from(interventionSpecies)
+            .where(
+              and(
+                eq(interventionSpecies.uid, interventionSpeciesUid),
+                eq(interventionSpecies.interventionId, treeData.intervention.id),
+              ),
+            )
+            .limit(1);
+
+          if (!targetSpecies) {
+            throw new NotFoundException(`Species not found in this intervention`);
+          }
+
+          // Only adjust counts if actually switching to a different species
+          if (targetSpecies.id !== treeData.tree.interventionSpeciesId) {
+            // Decrease old species count (allow reaching 0)
+            if (treeData.tree.interventionSpeciesId) {
+              await tx
+                .update(interventionSpecies)
+                .set({
+                  speciesCount: sql`GREATEST(0, ${interventionSpecies.speciesCount} - 1)`,
+                })
+                .where(eq(interventionSpecies.id, treeData.tree.interventionSpeciesId));
+            }
+
+            // Increase new species count
+            await tx
+              .update(interventionSpecies)
+              .set({
+                speciesCount: sql`${interventionSpecies.speciesCount} + 1`,
+              })
+              .where(eq(interventionSpecies.id, targetSpecies.id));
+
+            updates.interventionSpeciesId = targetSpecies.id;
+          }
+
+          updates.speciesName = targetSpecies.speciesName ?? null;
+          updates.commonName = targetSpecies.commonName ?? null;
+          updates.isUnknown = targetSpecies.isUnknown ?? false;
+        }
+      }
+
+      // Apply tree updates
+      if (Object.keys(updates).length > 0 || locationSql) {
+        const setData: any = { ...updates, updatedAt: new Date() };
+        if (locationSql) setData.location = locationSql;
+        await tx
+          .update(tree)
+          .set(setData)
+          .where(eq(tree.hid, treeHid));
+      }
+
+      // Return updated tree with GeoJSON location
+      const [updated] = await tx
+        .select({
+          id: tree.id,
+          uid: tree.uid,
+          hid: tree.hid,
+          tag: tree.tag,
+          interventionId: tree.interventionId,
+          interventionSpeciesId: tree.interventionSpeciesId,
+          speciesName: tree.speciesName,
+          commonName: tree.commonName,
+          isUnknown: tree.isUnknown,
+          treeType: tree.treeType,
+          location: sql<any>`ST_AsGeoJSON(${tree.location})::json`,
+          originalGeometry: tree.originalGeometry,
+          latitude: tree.latitude,
+          longitude: tree.longitude,
+          altitude: tree.altitude,
+          accuracy: tree.accuracy,
+          height: tree.height,
+          width: tree.width,
+          status: tree.status,
+          image: tree.image,
+          plantingDate: tree.plantingDate,
+          updatedAt: tree.updatedAt,
+          createdAt: tree.createdAt,
+        })
+        .from(tree)
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      return updated;
+    });
+  }
+}

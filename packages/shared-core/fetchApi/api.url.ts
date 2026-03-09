@@ -127,6 +127,7 @@ export const putUrlApi = {
   speicesDataUpdate: `${baseUrl}/interventions`,
   ownershipTransfer: `${baseUrl}/interventions`,
   editIntervention: `${baseUrl}/interventions`,
+  editTree: `${baseUrl}/interventions/trees`,
 
 } as const;
 

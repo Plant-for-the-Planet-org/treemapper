@@ -38,9 +38,10 @@ interface EditSpeciesModalProps {
   isOpen: boolean;
   onClose: () => void;
   species: InterventionSpecies | null;
-  accessToken: string
-  interventionId: string
-  selectedProject: string
+  accessToken: string;
+  interventionId: string;
+  selectedProject: string;
+  onSaveComplete?: (updated: InterventionSpecies) => void;
 }
 
 interface ValidationError {
@@ -58,6 +59,7 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
   accessToken,
   interventionId,
   selectedProject,
+  onSaveComplete,
 }) => {
   // State management
   const [searchQuery, setSearchQuery] = useState('');
@@ -72,7 +74,7 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
 
   // Refs
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const searchTimeoutRef = useRef<NodeJS.Timeout>();
+  const searchTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined);
 
 
 
@@ -184,7 +186,11 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
   };
 
   const handleSave = async () => {
-    if (!selectedSpecies) {
+    // For unknown species with no new selection, only count changes are valid
+    const effectiveSpeciesId = selectedSpecies?.id ?? species?.scientificSpeciesId;
+    const isUnknownNoChange = species?.isUnknown && !selectedSpecies;
+
+    if (!isUnknownNoChange && !effectiveSpeciesId) {
       setGeneralError('Please select a species before saving');
       return;
     }
@@ -199,26 +205,45 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
     setGeneralError('');
 
     try {
-      const resp = await updateInterventionSpecies(accessToken, {
-        scientificSpeciesId: selectedSpecies.id,
-        speciesCount: count
-      }, selectedProject, interventionId, species.uid)
+      const payload: { speciesCount: number; scientificSpeciesId?: number } = { speciesCount: count };
+      if (effectiveSpeciesId) payload.scientificSpeciesId = effectiveSpeciesId;
+
+      const resp = await updateInterventionSpecies(accessToken, payload, selectedProject, interventionId, species.uid);
 
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
-        throw ''
+        const err = resp.data || resp;
+        if (err?.code === 'TREE_COUNT_EXCEEDS_SPECIES_COUNT') {
+          setValidationError({
+            code: err.code,
+            message: err.message || 'Species count cannot be less than existing tree count',
+            currentTreeCount: err.currentTreeCount,
+            requestedSpeciesCount: err.requestedSpeciesCount,
+            treeHids: err.treeHids,
+          });
+        } else {
+          setGeneralError(err?.message || 'Failed to update species. Please try again.');
+        }
+        return;
       }
+
+      onSaveComplete?.({
+        ...species!,
+        speciesName: selectedSpecies?.scientificName ?? species?.speciesName,
+        commonName: selectedSpecies?.commonName ?? species?.commonName,
+        scientificSpeciesId: effectiveSpeciesId,
+        isUnknown: selectedSpecies ? false : (species?.isUnknown ?? false),
+        count,
+      });
       onClose();
     } catch (error: any) {
       console.error('Save failed:', error);
-
-      // Handle specific validation errors from your service
       if (error.code === 'TREE_COUNT_EXCEEDS_SPECIES_COUNT') {
         setValidationError({
           code: error.code,
           message: error.message || 'Species count cannot be less than existing tree count',
           currentTreeCount: error.currentTreeCount,
           requestedSpeciesCount: error.requestedSpeciesCount,
-          treeHids: error.treeHids
+          treeHids: error.treeHids,
         });
       } else {
         setGeneralError(error.message || 'Failed to update species. Please try again.');
@@ -344,26 +369,26 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
           </div>
 
           {/* Selected Species Display */}
-          {selectedSpecies && (
+          {selectedSpecies ? (
             <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
               <div className="flex items-start space-x-3">
                 <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
                 <div className="flex-1">
-                  <h4 className="text-sm font-medium text-green-900">
-                    Selected Species
-                  </h4>
+                  <h4 className="text-sm font-medium text-green-900">New Species Selected</h4>
                   <div className="mt-1">
-                    <div className="font-medium text-green-800">
-                      {selectedSpecies.scientificName}
-                    </div>
+                    <div className="font-medium text-green-800">{selectedSpecies.scientificName}</div>
                     {selectedSpecies.commonName && (
-                      <div className="text-sm text-green-700">
-                        {selectedSpecies.commonName}
-                      </div>
+                      <div className="text-sm text-green-700">{selectedSpecies.commonName}</div>
                     )}
                   </div>
                 </div>
               </div>
+            </div>
+          ) : (
+            <div className="mb-6 p-3 bg-gray-50 border border-gray-200 rounded-lg">
+              <p className="text-xs text-gray-500">
+                No new species selected — saving will keep the current species and only update the count.
+              </p>
             </div>
           )}
 
@@ -476,7 +501,7 @@ const EditSpeciesModal: React.FC<EditSpeciesModalProps> = ({
           <button
             type="button"
             onClick={handleSave}
-            disabled={!selectedSpecies || count <= 0 || isSaving}
+            disabled={count <= 0 || isSaving}
             className="px-4 py-2 text-sm font-medium text-white bg-[#007A49] border border-transparent rounded-lg hover:bg-[#007A49] disabled:opacity-50 disabled:cursor-not-allowed flex items-center space-x-2"
           >
             {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}

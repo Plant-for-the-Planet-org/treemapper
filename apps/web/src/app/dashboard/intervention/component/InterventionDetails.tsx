@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Trees,
   Leaf,
@@ -37,11 +37,14 @@ interface Site {
 }
 
 interface Species {
+  uid: string;
   speciesName?: string;
+  commonName?: string;
   otherSpeciesName?: string;
+  scientificSpeciesId?: number;
   scientificSpeciesUid?: string;
   count: number;
-  uid?: string;
+  isUnknown?: boolean;
 }
 
 interface TreeRecord {
@@ -56,9 +59,15 @@ interface Tree {
   image?: string;
   status: string;
   speciesName?: string;
+  commonName?: string;
   height?: number;
   width?: number;
   plantingDate?: string;
+  location?: any;
+  originalGeometry?: any;
+  interventionSpeciesUid?: string;
+  interventionSpeciesId?: number;
+  scientificSpeciesId?: number;
   records?: TreeRecord[];
 }
 
@@ -149,6 +158,19 @@ export const InterventionDetails = ({
   });
 
   const [editedSpecies, setEditSpecies] = useState<Species | null>(null);
+  const [localSpecies, setLocalSpecies] = useState<Species[]>(intervention.species || []);
+
+  useEffect(() => {
+    setLocalSpecies(intervention.species || []);
+  }, [intervention.species]);
+
+  const canEditSpecies =
+    selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin';
+
+  const handleSpeciesSaveComplete = (updated: Species) => {
+    setLocalSpecies((prev) => prev.map((s) => (s.uid === updated.uid ? updated : s)));
+    setEditSpecies(null);
+  };
 
   const toggleSection = (section: keyof typeof expandedSections) => {
     setExpandedSections(prev => ({
@@ -406,7 +428,7 @@ export const InterventionDetails = ({
       </Card>
 
       {/* Species Section */}
-      {intervention.species && intervention.species.length > 0 && (
+      {localSpecies.length > 0 && (
         <Card>
           <CardHeader>
             <button
@@ -415,7 +437,7 @@ export const InterventionDetails = ({
             >
               <h3 className="font-medium text-gray-900 flex items-center gap-2">
                 <Leaf className="h-4 w-4 text-[#007A49]" />
-                Species Planted ({intervention.species.length})
+                Species Planted ({localSpecies.length})
               </h3>
               <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform group-hover:text-gray-700 ${expandedSections.species ? 'rotate-180' : ''
                 }`} />
@@ -425,8 +447,13 @@ export const InterventionDetails = ({
           {expandedSections.species && (
             <CardContent>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {intervention.species.map((species, index) => (
-                  <SpeciesCard key={species.uid || index} species={species} setEditSpecies={setEditSpecies} editSpecies={editedSpecies} />
+                {localSpecies.map((sp, index) => (
+                  <SpeciesCard
+                    key={sp.uid || index}
+                    species={sp}
+                    setEditSpecies={(s) => setEditSpecies(s as Species)}
+                    canEdit={canEditSpecies}
+                  />
                 ))}
               </div>
             </CardContent>
@@ -458,8 +485,12 @@ export const InterventionDetails = ({
                   <TreeCard
                     key={tree.id}
                     tree={tree}
+                    intervention={intervention}
+                    accessToken={accessToken}
+                    selectedProject={selectedProject}
                     onUpdate={(treeHid, updates) => {
                       console.log(`Updating tree ${treeHid}:`, updates);
+                      onUpdate?.(intervention.uid, {});
                     }}
                   />
                 ))}
@@ -549,10 +580,11 @@ export const InterventionDetails = ({
       <EditSpeciesModal
         accessToken={accessToken}
         isOpen={editedSpecies !== null}
-        onClose={() => { setEditSpecies(null) }}
-        species={editedSpecies}
+        onClose={() => setEditSpecies(null)}
+        species={editedSpecies as any}
         selectedProject={selectedProject}
         interventionId={intervention.uid}
+        onSaveComplete={handleSpeciesSaveComplete as any}
       />
 
       <FileUploadMapDialog

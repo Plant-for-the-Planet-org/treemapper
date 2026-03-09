@@ -279,36 +279,24 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
     const lng = parseFloat(manualCoords.longitude);
     const lat = parseFloat(manualCoords.latitude);
 
-    if (!isNaN(lng) && !isNaN(lat)) {
-      // Clear uploaded GeoJSON display when using manual coordinates
-      if (displayingUploadedGeoJSON) {
-        setDisplayingUploadedGeoJSON(false);
-      }
-
-      const point = {
-        longitude: lng,
-        latitude: lat
-      };
-
-      setMarker(point);
-
-      // Update viewport to center on the new marker
-      setViewState({
-        ...viewState,
-        longitude: lng,
-        latitude: lat,
-        zoom: Math.max(viewState.zoom, 10)
-      });
-
-      // Create and store Point GeoJSON
-      const pointGeoJSON = {
-        type: 'Point',
-        coordinates: [Number(lng), Number(lat)]
-      }
-
-      setGeoJSON(pointGeoJSON);
-      updateGeoJSON(pointGeoJSON);
+    if (isNaN(lng) || isNaN(lat) || lat < -90 || lat > 90 || lng < -180 || lng > 180) {
+      setAreaError('Invalid coordinates. Latitude must be -90 to 90, longitude -180 to 180.');
+      return;
     }
+
+    setAreaError(null);
+
+    // Clear uploaded GeoJSON display when using manual coordinates
+    if (displayingUploadedGeoJSON) {
+      setDisplayingUploadedGeoJSON(false);
+    }
+
+    setMarker({ longitude: lng, latitude: lat });
+    setViewState({ ...viewState, longitude: lng, latitude: lat, zoom: Math.max(viewState.zoom, 10) });
+
+    const pointGeoJSON = { type: 'Point', coordinates: [lng, lat] };
+    setGeoJSON(pointGeoJSON);
+    updateGeoJSON(pointGeoJSON);
   };
 
   // Add polygon point from manual coordinates

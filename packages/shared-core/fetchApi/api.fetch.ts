@@ -791,3 +791,30 @@ export const checkProjectRequiresApproval = async (
 export const getApprovalBoard = getReviewQueue;
 export const moveInterventionStatus = submitReviewDecision;
 export const addApprovalComment = addFieldWorkerComment;
+
+
+export const editTree = async (
+  token: string,
+  treeHid: string,
+  projectId: string,
+  editData: {
+    tag?: string;
+    height?: number;
+    width?: number;
+    plantingDate?: string;
+    location?: any;
+    image?: string | null;
+    species?: {
+      scientificSpeciesId: number;
+      scientificSpeciesUid?: string;
+      speciesName: string;
+      commonName?: string;
+      interventionSpeciesUid: string;
+    };
+    speciesCount?: number;
+  }
+) => {
+  const uri = `${putUrlApi.editTree}/${treeHid}/${projectId}/edit`;
+  const result = await fetchPutCall(uri, editData, token);
+  return result;
+};

@@ -23,6 +23,7 @@ import {
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
   UpdateInterventionSpeciesDto,
+  EditTreeDto,
 } from './dto/interventions.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Adjust import path
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard'; // Adjust import path
@@ -321,6 +322,43 @@ export class InterventionsController {
         success: false,
         message: 'Failed to fetch tree data',
       });
+    }
+  }
+
+  @Put('trees/:treeHid/:id/edit')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async editTreeDetails(
+    @Param('treeHid') treeHid: string,
+    @Body() editDto: EditTreeDto,
+    @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    const requesterId = user?.id || user?.sub;
+    if (!requesterId) {
+      throw new BadRequestException('User authentication required');
+    }
+
+    try {
+      const result = await this.interventionsService.editTree(
+        treeHid,
+        editDto,
+        membership.projectId,
+      );
+      return {
+        success: true,
+        statusCode: 200,
+        message: 'Tree updated successfully',
+        data: result,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || 'Failed to update tree',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
   }
 
