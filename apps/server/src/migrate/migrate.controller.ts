@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Param, Body, UseGuards, Req, HttpException, HttpStatus, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Delete, UseGuards, Req, HttpException, HttpStatus, Headers } from '@nestjs/common';
 import { MigrationCheckResult, MigrationService } from './migrate.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -11,15 +11,11 @@ export class MigrationController {
         private readonly migrationService: MigrationService) { }
 
     @Post('start')
-    async startMigration(@Body() body: { planetId: string, token: string }, @CurrentUser() userData: User) {
-        if (userData.type !== 'superadmin') {
-            throw new Error('No authorized to migrate user');
-        }
-        if (!body.planetId) {
-            throw "Bad request"
-        }
+    async startMigration(@CurrentUser() userData: User, @Headers('authorization') authorization: string) {
+        const token = authorization?.replace('Bearer ', '') ?? '';
         this.migrationService.startUserMigration(
-            body.planetId
+            userData.id,
+            token
         ).catch(error => {
             console.error('Migration failed:', error);
         });
@@ -53,5 +49,11 @@ export class MigrationController {
     @Get('status')
     async getMigrationStatus(@Req() req) {
         return await this.migrationService.getMigrationStatus(req.user.id);
+    }
+
+    @Delete('interventions')
+    async resetInterventions(@CurrentUser() userData: User) {
+        await this.migrationService.resetInterventionMigration(userData.id);
+        return { message: 'Intervention migration data cleared. You can now retry migration.' };
     }
 }
