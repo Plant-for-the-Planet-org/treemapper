@@ -1238,11 +1238,8 @@ export class MigrationService {
         let currentPage = 1;
         let hasMore = true;
         let lastPage: number | null = null;
-        console.log(`[Migration] migrateInterventionWithSampleTrees started for userId=${userId}`)
-
         while (hasMore) {
             if (lastPage && currentPage > lastPage) break;
-
             console.log(`[Migration] Fetching interventions page=${currentPage}${lastPage ? ` of ${lastPage}` : ''}`)
             const interventionResponse = await this.makeApiCall(
                 `/treemapper/interventions?limit=${batchSize}&_scope=extended&page=${currentPage}`,
@@ -1276,26 +1273,28 @@ export class MigrationService {
             const interventionTreesMap: Record<string, any[]> = {};
             const interventionSpeciesMap: Record<string, any[]> = {};
 
-            for (const oldIntervention of items) {
-                console.log(`[Migration] Transforming intervention id=${oldIntervention.id} type=${oldIntervention.type}`)
-                let newProjectId = personalProjectId;
-                const siteId = oldIntervention.plantProjectSite ? siteMapping.get(oldIntervention.plantProjectSite) ?? null : null;
-
-                if (oldIntervention.plantProject) {
-                    const mappedProject = projectMapping.get(oldIntervention.plantProject);
-                    if (mappedProject) {
-                        newProjectId = mappedProject;
-                    } else {
-                        console.log(`[Migration] WARN: project not found for intervention=${oldIntervention.id} plantProject=${oldIntervention.plantProject}`)
-                        this.addLog(migrationId, 'warning', `Project not found for intervention: ${oldIntervention.id}`, 'interventions');
+            // Pre-build one species mapping for the entire page to avoid N DB queries
+            const allSpeciesUids: string[] = [];
+            for (const item of items) {
+                if (item.plantedSpecies?.length > 0) {
+                    for (const el of item.plantedSpecies) {
+                        if (!el.otherSpecies && el.scientificSpecies) allSpeciesUids.push(el.scientificSpecies);
                     }
                 }
+                if (item.scientificSpecies) allSpeciesUids.push(item.scientificSpecies);
+            }
+            const globalSpeciesMapping = await this.buildSpeciesMapping([...new Set(allSpeciesUids)]);
+            console.log(`[Migration] Pre-built species mapping: ${globalSpeciesMapping.size} species for page ${currentPage}`)
 
-                const { parentFinalData, treeData } = await this.transformParentIntervention(
-                    oldIntervention, newProjectId, userId, siteId, migrationId
-                );
-                console.log(`[Migration] Transform done id=${oldIntervention.id} trees=${treeData.length} species=${parentFinalData.species?.length ?? 0}`)
+            // Transform all interventions in parallel
+            const transformResults = await Promise.all(items.map(async (oldIntervention) => {
+                console.log(`[Migration] Transforming intervention id=${oldIntervention.id} type=${oldIntervention.type}`)
+                const siteId = oldIntervention.plantProjectSite ? siteMapping.get(oldIntervention.plantProjectSite) ?? null : null;
+                return this.transformParentIntervention(oldIntervention, personalProjectId, userId, siteId, migrationId, globalSpeciesMapping);
+            }));
 
+            for (const { parentFinalData, treeData } of transformResults) {
+                console.log(`[Migration] Transform done id=${parentFinalData.uid} trees=${treeData.length} species=${parentFinalData.species?.length ?? 0}`)
                 parentInterventions.push(parentFinalData);
                 interventionTreesMap[parentFinalData.uid] = treeData;
                 interventionSpeciesMap[parentFinalData.uid] = parentFinalData.species ?? [];
@@ -1334,18 +1333,11 @@ export class MigrationService {
                 failed.forEach(r => console.log(`[Migration]   FAILED intervention uid=${r.uid} error=${r.error}`))
             }
 
-            // Step 2: Insert intervention species
-            const finalSpeciesIDMapping: { id: number; uid: string; success: boolean }[] = [];
-
-            const speciesInsertPromises = finalInterventionIDMapping.map(async (inv) => {
-                if (!inv.success || !inv.id) {
-                    console.log(`[Migration] Skipping species insert for intervention uid=${inv.uid} (insert failed earlier)`)
-                    return;
-                }
+            // Step 2: Batch insert ALL intervention species
+            const allSpeciesToInsert = finalInterventionIDMapping.flatMap(inv => {
+                if (!inv.success || !inv.id) return [];
                 const rawSpecies = interventionSpeciesMap[inv.uid] ?? [];
-                if (rawSpecies.length === 0) return;
-
-                const speciesToInsert = rawSpecies.map(e => ({
+                return rawSpecies.map(e => ({
                     uid: e.uid,
                     interventionId: inv.id,
                     scientificSpeciesId: e.isUnknown ? null : (e.scientificSpeciesId || null),
@@ -1354,63 +1346,79 @@ export class MigrationService {
                     commonName: e.commonName || null,
                     speciesCount: e.speciesCount || 1,
                 }));
-
-                console.log(`[Migration] Inserting ${speciesToInsert.length} species for intervention uid=${inv.uid}`)
-                try {
-                    const result = await this.drizzleService.db
-                        .insert(interventionSpecies)
-                        .values(speciesToInsert)
-                        .onConflictDoNothing()
-                        .returning({ id: interventionSpecies.id, uid: interventionSpecies.uid });
-
-                    if (result.length === 0) {
-                        // already existed — fetch them
-                        const existingSpecies = await this.drizzleService.db
-                            .select({ id: interventionSpecies.id, uid: interventionSpecies.uid })
-                            .from(interventionSpecies)
-                            .where(inArray(interventionSpecies.uid, speciesToInsert.map(s => s.uid)));
-                        existingSpecies.forEach(el => finalSpeciesIDMapping.push({ id: el.id, uid: el.uid, success: true }));
-                        console.log(`[Migration] Species already existed: ${existingSpecies.length} for intervention uid=${inv.uid}`)
-                    } else {
-                        result.forEach(el => finalSpeciesIDMapping.push({ id: el.id, uid: el.uid, success: true }));
-                        console.log(`[Migration] Species batch insert OK: ${result.length} for intervention uid=${inv.uid}`)
-                    }
-                } catch (error) {
-                    console.log(`[Migration] Species batch insert FAILED for intervention uid=${inv.uid}. Error:`, error?.message || error)
-                    const chunkResults = await this.insertInteventionSpeciesInfcidual(speciesToInsert, migrationId);
-                    chunkResults.forEach(r => { if (r.success) finalSpeciesIDMapping.push({ id: r.id, uid: r.uid, success: true }); });
-                }
             });
-            await Promise.all(speciesInsertPromises);
-            console.log(`[Migration] Species insert phase done. Total species inserted: ${finalSpeciesIDMapping.length}`)
 
-            // Step 3: Insert trees
-            const imageUploadData: any[] = [];
-            const treeInsertPromises = finalInterventionIDMapping.map(async (inv) => {
-                if (!inv.success || !inv.id) return;
-
-                const rawTrees = interventionTreesMap[inv.uid] ?? [];
-                if (rawTrees.length === 0) return;
-
-                const treeMappedData = rawTrees.map((e) => {
-                    const speciesEntry = finalSpeciesIDMapping.find(el => el.uid === e.interventionSpeciesId);
-                    if (!speciesEntry) {
-                        console.log(`[Migration] ERROR: swapUid not found for tree interventionSpeciesId=${e.interventionSpeciesId} in intervention uid=${inv.uid}. This tree will be skipped.`)
-                        return null;
-                    }
-                    return { ...e, interventionSpeciesId: speciesEntry.id, interventionId: inv.id };
-                }).filter(Boolean);
-
-                if (treeMappedData.length === 0) return;
-
+            console.log(`[Migration] Inserting ${allSpeciesToInsert.length} species (batch)`)
+            if (allSpeciesToInsert.length > 0) {
                 try {
-                    const allTreeResult = await this.drizzleService.db
+                    await this.drizzleService.db
+                        .insert(interventionSpecies)
+                        .values(allSpeciesToInsert)
+                        .onConflictDoNothing();
+                } catch (error) {
+                    console.log(`[Migration] Species batch insert FAILED, falling back to individual inserts. Error:`, error?.message || error)
+                    await this.insertInteventionSpeciesInfcidual(allSpeciesToInsert, migrationId);
+                }
+            }
+
+            // Fetch all species IDs in one query (handles both new inserts and pre-existing rows)
+            const speciesIdByUid = new Map<string, number>();
+            if (allSpeciesToInsert.length > 0) {
+                const insertedSpecies = await this.drizzleService.db
+                    .select({ id: interventionSpecies.id, uid: interventionSpecies.uid })
+                    .from(interventionSpecies)
+                    .where(inArray(interventionSpecies.uid, allSpeciesToInsert.map(s => s.uid)));
+                insertedSpecies.forEach(s => speciesIdByUid.set(s.uid, s.id));
+            }
+            console.log(`[Migration] Species insert phase done. Total species resolved: ${speciesIdByUid.size}`)
+
+            // Step 3: Batch insert ALL trees
+            const imageUploadData: any[] = [];
+            const allTreesToInsert = finalInterventionIDMapping.flatMap(inv => {
+                if (!inv.success || !inv.id) return [];
+                const rawTrees = interventionTreesMap[inv.uid] ?? [];
+                return rawTrees.reduce((acc, e) => {
+                    let speciesId = speciesIdByUid.get(e.interventionSpeciesId);
+                    if (!speciesId) {
+                        // interventionSpeciesId was undefined/unresolved at transform time — fall back to first species of this intervention
+                        const fallbackSpecies = allSpeciesToInsert.find(s => s.interventionId === inv.id);
+                        speciesId = fallbackSpecies ? speciesIdByUid.get(fallbackSpecies.uid) : undefined;
+                        if (speciesId) {
+                            console.log(`[Migration] WARN: Using fallback species for tree interventionSpeciesId=${e.interventionSpeciesId} in intervention uid=${inv.uid}`)
+                            const existingFlagReason = Array.isArray(e.flagReason) ? e.flagReason : [];
+                            e = {
+                                ...e,
+                                flag: true,
+                                flagReason: [...existingFlagReason, {
+                                    uid: generateUid('flag'),
+                                    type: 'species',
+                                    level: 'warning',
+                                    title: 'Species auto-assigned',
+                                    message: 'Tree species could not be matched. Fallback to first available intervention species.',
+                                    updatedAt: new Date(),
+                                    createdAt: new Date()
+                                }]
+                            };
+                        } else {
+                            console.log(`[Migration] ERROR: No species found for tree in intervention uid=${inv.uid}. Skipping tree.`)
+                            return acc;
+                        }
+                    }
+                    acc.push({ ...e, interventionId: inv.id, interventionSpeciesId: speciesId });
+                    return acc;
+                }, []);
+            });
+
+            console.log(`[Migration] Inserting ${allTreesToInsert.length} trees (batch)`)
+            if (allTreesToInsert.length > 0) {
+                try {
+                    const treeResult = await this.drizzleService.db
                         .insert(tree)
-                        .values(treeMappedData)
+                        .values(allTreesToInsert)
                         .onConflictDoNothing()
                         .returning({ id: tree.id, image: tree.image });
 
-                    allTreeResult.forEach(el => {
+                    treeResult.forEach(el => {
                         if (el.image) {
                             imageUploadData.push({
                                 uid: generateUid('img'),
@@ -1424,12 +1432,11 @@ export class MigrationService {
                         }
                     });
                 } catch (error) {
-                    console.log(`[Migration] Tree batch insert FAILED for intervention uid=${inv.uid}:`, error?.message || error)
-                    const chunkResults = await this.insertTreeChunkIndividually(treeMappedData, migrationId);
+                    console.log(`[Migration] Tree batch insert FAILED, falling back to individual inserts. Error:`, error?.message || error)
+                    const chunkResults = await this.insertTreeChunkIndividually(allTreesToInsert, migrationId);
                     imageUploadData.push(...chunkResults.filter(r => r.entityId));
                 }
-            });
-            await Promise.all(treeInsertPromises);
+            }
 
             // Step 4: Insert images
             try {
@@ -1576,7 +1583,7 @@ export class MigrationService {
 
 
 
-    private async transformParentIntervention(parentData: any, newProjectId: number, userId: number, siteId: any, mgID: number) {
+    private async transformParentIntervention(parentData: any, newProjectId: number, userId: number, siteId: any, mgID: number, speciesMapping?: Map<string, number>) {
         let parentFinalData: any = {}
         let speciesList: any = []
         const interventionSampleTree: any = []
@@ -1605,11 +1612,12 @@ export class MigrationService {
                     const el = parentData.plantedSpecies[index];
                     speciesList.push({
                         "uid": generateUid("invspc"),
-                        "interventionId": 0,
-                        "speciesName": el.scientificName || 'Unknown',
-                        "scientificSpeciesId": 0,
-                        "isUnknown": el.scientificSpecies ? false : true,
-                        "commonName": null,
+                        "interventionId": null,
+                        "speciesName": el.scientificName ? el.scientificName : el.otherSpecies ? el.otherSpecies : 'Unknown',
+                        "createdAt": el.created !== null ? new Date(el.created) : new Date(),
+                        "scientificSpeciesId": null,
+                        "isUnknown": el.otherSpecies ? true : false,
+                        "commonName": el.otherSpecies || null,
                         "speciesCount": el.treeCount,
                         "scientificSpeciesUid": el.scientificSpecies
                     })
@@ -1618,12 +1626,12 @@ export class MigrationService {
             if (parentData.scientificSpecies !== null) {
                 speciesList.push({
                     "uid": generateUid("invspc"),
-                    "speciesName": parentData.scientificName || 'Unknown',
+                    "interventionId": null,
+                    "speciesName": parentData.scientificName,
                     "createdAt": parentData.interventionStartDate !== null ? new Date(parentData.interventionStartDate) : new Date(),
-                    "scientificSpeciesId": 0,
-                    "isUnknown": parentData.otherSpecies ? true : false,
-                    "commonName": parentData.otherSpecies || 'Unknown',
-                    "interventionId": 0,
+                    "scientificSpeciesId": null,
+                    "isUnknown": false,
+                    "commonName": parentData.scientificName || null,
                     "speciesCount": 1,
                     "scientificSpeciesUid": parentData.scientificSpecies
                 })
@@ -1631,22 +1639,23 @@ export class MigrationService {
             if (parentData.otherSpecies !== null) {
                 speciesList.push({
                     "uid": generateUid("invspc"),
+                    "interventionId": null,
                     "speciesName": 'Unknown',
                     "createdAt": parentData.interventionStartDate !== null ? new Date(parentData.interventionStartDate) : new Date(),
                     "scientificSpeciesId": null,
                     "isUnknown": true,
-                    "interventionId": 0,
                     "commonName": parentData.otherSpecies || 'Unknown',
                     "speciesCount": 1,
                 })
             }
-            const removedUnknown = speciesList.filter(el => !el.isUnknown).map(el => el.scientificSpeciesUid)
-            const speciesMapping = await this.buildSpeciesMapping(removedUnknown)
+            const resolvedSpeciesMapping = speciesMapping ?? await this.buildSpeciesMapping(
+                speciesList.filter(el => !el.isUnknown).map(el => el.scientificSpeciesUid)
+            )
             const finalInterventionSpeciesMapping = speciesList.map(el => {
                 if (el.isUnknown) {
                     return { ...el, scientificSpeciesId: null }
                 }
-                const speciesId = el.scientificSpeciesUid ? speciesMapping.get(el.scientificSpeciesUid) : null
+                const speciesId = el.scientificSpeciesUid ? resolvedSpeciesMapping.get(el.scientificSpeciesUid) : null
                 if (!speciesId) {
                     flag = true
                     flagReason.push({
@@ -1658,7 +1667,20 @@ export class MigrationService {
                         updatedAt: new Date(),
                         createdAt: new Date()
                     })
-                    return { ...el, scientificSpeciesId: null, isUnknown: true }
+                    return { ...el, scientificSpeciesId: null, isUnknown: true, speciesName: 'Unknown' }
+                }
+                if (typeof el.speciesCount !== 'number' || el.speciesCount <= 0) {
+                    flag = true
+                    flagReason.push({
+                        uid: generateUid('flag'),
+                        type: 'species',
+                        level: 'error',
+                        title: 'Species count issue',
+                        message: `Please check the species count for ${el.speciesName}. It should be a positive number.`,
+                        updatedAt: new Date(),
+                        createdAt: new Date()
+                    })
+                    return { ...el, scientificSpeciesId: speciesId, speciesCount: 1 }
                 }
                 return { ...el, scientificSpeciesId: speciesId }
             })
@@ -1739,17 +1761,17 @@ export class MigrationService {
                     treeFinalData['width'] = 0
                 }
 
-                if (speciesList.length > 0) {
-                    treeFinalData['interventionSpeciesId'] = speciesList[0].uid
-                    if (speciesList[0].isUnknown) {
+                if (finalInterventionSpeciesMapping.length > 0) {
+                    treeFinalData['interventionSpeciesId'] = finalInterventionSpeciesMapping[0].uid
+                    if (finalInterventionSpeciesMapping[0].isUnknown) {
                         treeFinalData['isUnknown'] = true
                         treeFinalData['speciesName'] = 'Unknown'
                     } else {
-                        treeFinalData['speciesName'] = speciesList[0].speciesName
+                        treeFinalData['speciesName'] = finalInterventionSpeciesMapping[0].speciesName
                     }
                 }
 
-                if (!speciesList || speciesList.length === 0) {
+                if (!finalInterventionSpeciesMapping || finalInterventionSpeciesMapping.length === 0) {
                     singleTreeFlag = true
                     singleTreeFlagReason.push({
                         uid: generateUid('flag'),
@@ -1772,6 +1794,16 @@ export class MigrationService {
                         longitude = latlongDetails.longitude
                     }
                 } catch (error) {
+                    singleTreeFlag = true
+                    singleTreeFlagReason.push({
+                        uid: generateUid('flag'),
+                        type: 'location',
+                        level: 'error',
+                        title: 'location fix requried',
+                        message: 'location of the tree has issue ',
+                        updatedAt: new Date(),
+                        createdAt: new Date()
+                    })
                     console.log("error in lat loing tree")
                 }
                 const imageData = parentData.coordinates && parentData.coordinates.length > 0 && parentData.coordinates[0].image ? parentData.coordinates[0].image : null
@@ -1787,26 +1819,35 @@ export class MigrationService {
                 treeFinalData['statusReason'] = parentData.statusReason || null
                 treeFinalData['longitude'] = longitude
                 treeFinalData['latitude'] = latitude
-                treeFinalData['plantingDate'] = parentData.planting_date || parentData.interventionStartDate || parentData.registrationDate || new Date()
+                treeFinalData['plantingDate'] = treeFinalData['plantingDate'] = parentData.planting_date
+                    ? new Date(parentData.planting_date)
+                    : parentData.interventionStartDate
+                        ? new Date(parentData.interventionStartDate)
+                        : parentData.registrationDate
+                            ? new Date(parentData.registrationDate)
+                            : new Date()
                 treeFinalData['flag'] = singleTreeFlag
                 treeFinalData['flagReason'] = singleTreeFlagReason
                 treeFinalData['image'] = imageData
                 treeFinalData['migratedTree'] = true
-
-
                 interventionSampleTree.push(treeFinalData)
             }
+            let transformedSample = []
+            if (parentData.sampleInterventions && parentData.sampleInterventions.length > 0) {
+                transformedSample = await this.transformSampleIntervention(parentData, userId, siteId, finalInterventionSpeciesMapping)
+            }
+            interventionSampleTree.push(...transformedSample)
+            return {
+                parentFinalData,
+                treeData: interventionSampleTree
+            }
         } catch (error) {
+            console.log(`Error transforming intervention id=${parentData.id}:`, error?.message || error)
             this.addLog(mgID, 'error', "There is error in this intervention", 'interventions', JSON.stringify(error))
-        }
-        let transformedSample = []
-        if (parentData.sampleInterventions && parentData.sampleInterventions.length > 0) {
-            transformedSample = await this.transformSampleIntervention(parentData, userId, siteId, speciesList)
-        }
-        interventionSampleTree.push(...transformedSample)
-        return {
-            parentFinalData,
-            treeData: interventionSampleTree
+            return {
+                parentFinalData,
+                treeData: interventionSampleTree
+            }
         }
     }
 
@@ -1815,7 +1856,14 @@ export class MigrationService {
 
             const allTransformedSampleTrees: any = []
             for (const sampleIntervention of parentData.sampleInterventions) {
-                let plantLocationDate = sampleIntervention.interventionStartDate || sampleIntervention.plantDate || sampleIntervention.registrationDate
+                let plantLocationDate = sampleIntervention.interventionStartDate
+                    ? new Date(sampleIntervention.interventionStartDate)
+                    : sampleIntervention.plantDate
+                        ? new Date(sampleIntervention.plantDate)
+                        : sampleIntervention.registrationDate
+                            ? new Date(sampleIntervention.registrationDate)
+                            : new Date()
+
                 let treeFinalData = {}
                 let singleTreeFlag = false
                 let singleTreeFlagReason: FlagReasonEntry[] = []
@@ -1852,6 +1900,16 @@ export class MigrationService {
                     })
                 }
 
+                if (sampleIntervention.scientificSpecies) {
+                    treeFinalData['speciesName'] = invSpeciesId?.speciesName || 'Unknown'
+                } else {
+                    treeFinalData['isUnknown'] = true
+                    treeFinalData['speciesName'] = 'Unknown'
+                }
+
+                if (invSpeciesId?.uid) {
+                    treeFinalData['interventionSpeciesId'] = invSpeciesId.uid
+                }
 
                 let singleTreeLocation;
                 const singleTreeGeometry = this.getGeoJSONForPostGIS(sampleIntervention.geometry);
@@ -1904,17 +1962,6 @@ export class MigrationService {
                     treeFinalData['width'] = 0
                 }
 
-                if (sampleIntervention.scientificSpecies) {
-                    treeFinalData['speciesName'] = invSpeciesId?.speciesName || 'Unknown'
-                } else {
-                    treeFinalData['isUnknown'] = true
-                    treeFinalData['speciesName'] = 'Unknown'
-                }
-
-                if (invSpeciesId?.uid) {
-                    treeFinalData['interventionSpeciesId'] = invSpeciesId.uid
-                }
-
                 let latitude = 0
                 let longitude = 0
                 try {
@@ -1943,7 +1990,7 @@ export class MigrationService {
                 treeFinalData['status'] = sampleIntervention.status || 'alive'
                 treeFinalData['statusReason'] = sampleIntervention.statusReason || null
                 treeFinalData['metadata'] = sampleIntervention.metadata || null
-                treeFinalData['plantingDate'] = plantLocationDate ? new Date(plantLocationDate) : new Date(),
+                treeFinalData['plantingDate'] = plantLocationDate,
                     treeFinalData['flag'] = singleTreeFlag
                 treeFinalData['migratedTree'] = true
                 treeFinalData['flagReason'] = singleTreeFlagReason
