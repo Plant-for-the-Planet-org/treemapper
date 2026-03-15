@@ -59,7 +59,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
-        data => data.filtered('status != "SYNCED" AND is_complete == true AND status != "PENDING_REMEASUREMENT_SYNC"')
+        data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {

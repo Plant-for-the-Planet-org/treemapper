@@ -47,11 +47,11 @@ const CarouselItem = (props: Props) => {
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
       </TouchableOpacity>: null} */}
-      {/* {!v3Approved && data.remeasurement_requires && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {v3Approved  && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
-      </TouchableOpacity> : null} */}
+      </TouchableOpacity> : null}
     </TouchableOpacity>
   } else {
     return <TouchableOpacity style={styles.container} onPress={() => {

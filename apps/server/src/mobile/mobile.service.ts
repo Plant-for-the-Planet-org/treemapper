@@ -1740,9 +1740,10 @@ export class MobileService {
       }
 
       const currentTree = treeDetails[0];
+      const now = new Date();
       const recordedAt = remeasurementDTO.eventDate
-        ? new Date(remeasurementDTO.eventDate)
-        : new Date();
+        ? (() => { const d = new Date(remeasurementDTO.eventDate); return d > now ? now : d; })()
+        : now;
 
       // Generate UID for tree record
       const treeRecordUid = generateUid('treerec');
@@ -2012,8 +2013,11 @@ export class MobileService {
         throw new BadRequestException('Invalid event date format');
       }
 
-      // Don't allow future dates
-      if (eventDate > new Date()) {
+      // Don't allow future dates (compare by date only, not time, to handle timezone differences)
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      tomorrow.setHours(0, 0, 0, 0);
+      if (eventDate >= tomorrow) {
         throw new BadRequestException('Event date cannot be in the future');
       }
     }

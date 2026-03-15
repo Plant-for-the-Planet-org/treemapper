@@ -87,7 +87,6 @@ const DisplayMap = () => {
 
 
   useEffect(() => {
-    console.log('MapBounds changed:', MapBounds)
     if (cameraRef?.current !== null) {
       handleCameraViewChange()
     }
@@ -95,7 +94,6 @@ const DisplayMap = () => {
 
 
   useEffect(() => {
-    console.log('Current user location changed:', currentUserLocation)
     if (currentUserLocation && cameraRef.current !== null) {
       handleCamera()
     }
