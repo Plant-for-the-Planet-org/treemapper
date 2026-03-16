@@ -43,6 +43,7 @@ const SpeciesManagementDashboard = () => {
   const [isAddingNew, setIsAddingNew] = useState(false);
   const [editForm, setEditForm] = useState({});
   const [showDisabled, setShowDisabled] = useState(true);
+  const [showUnknown, setShowUnknown] = useState(true);
   const [speciesSearchTerm, setSpeciesSearchTerm] = useState('');
   const [isSearchingSpecies, setIsSearchingSpecies] = useState(false);
   const [searchResults, setSearchResults] = useState([]);
@@ -229,10 +230,9 @@ const SpeciesManagementDashboard = () => {
 
 
   const sortedSpecies = [...filteredSpecies.filter(el => {
-    if (showDisabled) {
-      return el;
-    }
-    return !el.isDisabled && !el.disabled; // Check both possible field names
+    if (!showDisabled && (el.isDisabled || el.disabled)) return false;
+    if (!showUnknown && el.isUnknown) return false;
+    return true;
   })].sort((a, b) => {
     switch (sortBy) {
       case 'name':
@@ -720,6 +720,8 @@ const SpeciesManagementDashboard = () => {
           setSortBy={setSortBy}
           showDisabled={showDisabled}
           setShowDisabled={setShowDisabled}
+          showUnknown={showUnknown}
+          setShowUnknown={setShowUnknown}
           speciesTypeFilter={speciesTypeFilter}
           setSpeciesTypeFilter={setSpeciesTypeFilter}
           sourceFilter={sourceFilter}

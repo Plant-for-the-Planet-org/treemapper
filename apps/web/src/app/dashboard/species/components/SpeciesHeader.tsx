@@ -16,6 +16,8 @@ export const SpeciesHeader = ({
   setSortBy,
   showDisabled,
   setShowDisabled,
+  showUnknown,
+  setShowUnknown,
   speciesTypeFilter,
   setSpeciesTypeFilter,
   sourceFilter,
@@ -152,6 +154,16 @@ export const SpeciesHeader = ({
               >
                 {showDisabled ? <Eye size={14} /> : <EyeOff size={14} />}
                 {showDisabled ? 'Hide' : 'Show'} Disabled
+              </button>
+              <button
+                onClick={() => setShowUnknown(!showUnknown)}
+                className={`flex items-center gap-1 px-3 py-2 rounded-lg text-xs font-medium transition-colors ${showUnknown
+                  ? 'bg-gray-200 text-gray-700'
+                  : 'bg-gray-100 text-gray-600'
+                  }`}
+              >
+                {showUnknown ? <EyeOff size={14} /> : <Eye size={14} />}
+                {showUnknown ? 'Hide' : 'Show'} Unknown
               </button>
             </div>
           </div>
