@@ -220,6 +220,8 @@ export interface SiteApprovalData {
     email: string;
   };
   approvalStatus: ApprovalStatus;
+  reviewStatus?: ReviewStatus;
+  currentThreadId?: number;
   submittedForReviewAt: string | null;
   approvedAt: string | null;
   rejectedAt: string | null;

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type {
   InterventionApprovalData,
+  SiteApprovalData,
   ApprovalStatus,
   ReviewStatus,
 } from '../types/approval.types';
@@ -8,13 +9,15 @@ import { mapReviewStatusToLegacyStatus } from '../types/approval.types';
 
 interface ApprovalStore {
   approvals: InterventionApprovalData[];
-  selectedApproval: InterventionApprovalData | null;
+  sites: SiteApprovalData[];
+  selectedApproval: InterventionApprovalData | SiteApprovalData | null;
   loading: boolean;
   error: string | null;
   requiresApproval: boolean;
 
   setApprovals: (approvals: InterventionApprovalData[]) => void;
-  selectApproval: (approval: InterventionApprovalData | null) => void;
+  setSites: (sites: SiteApprovalData[]) => void;
+  selectApproval: (approval: InterventionApprovalData | SiteApprovalData | null) => void;
   updateApprovalStatus: (interventionId: number, newStatus: ApprovalStatus) => void;
   updateApprovalReviewStatus: (
     interventionId: number,
@@ -29,12 +32,15 @@ interface ApprovalStore {
 
 const useApprovalStore = create<ApprovalStore>((set) => ({
   approvals: [],
+  sites: [],
   selectedApproval: null,
   loading: false,
   error: null,
   requiresApproval: false,
 
   setApprovals: (approvals) => set({ approvals }),
+
+  setSites: (sites) => set({ sites }),
 
   selectApproval: (approval) => set({ selectedApproval: approval }),
 
@@ -82,6 +88,7 @@ const useApprovalStore = create<ApprovalStore>((set) => ({
   clearApprovals: () =>
     set({
       approvals: [],
+      sites: [],
       selectedApproval: null,
       error: null,
     }),

@@ -662,6 +662,11 @@ export const site = pgTable('site', {
   image: text('image'),
   createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'set null' }),
   migratedSite: boolean('migrated_site').default(false),
+  reviewStatus: reviewStatusEnum('review_status'),
+  approvedAt: timestamp('approved_at', { withTimezone: true }),
+  approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
+  rejectedAt: timestamp('rejected_at', { withTimezone: true }),
+  rejectedById: integer('rejected_by_id').references(() => user.id, { onDelete: 'set null' }),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
@@ -1092,7 +1097,8 @@ export const treeRecord = pgTable('tree_record', {
 export const reviewThread = pgTable('review_thread', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
-  interventionId: integer('intervention_id').notNull().references(() => intervention.id, { onDelete: 'cascade' }),
+  interventionId: integer('intervention_id').references(() => intervention.id, { onDelete: 'cascade' }),
+  siteId: integer('site_id').references(() => site.id, { onDelete: 'cascade' }),
   status: text('status').notNull().default('open'),
   closedAt: timestamp('closed_at', { withTimezone: true }),
   closedById: integer('closed_by_id').references(() => user.id, { onDelete: 'set null' }),
@@ -1100,10 +1106,12 @@ export const reviewThread = pgTable('review_thread', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
 }, (table) => ({
   interventionThreadIdx: index('review_thread_intervention_idx').on(table.interventionId),
+  siteThreadIdx: index('review_thread_site_idx').on(table.siteId),
   openThreadIdx: index('review_thread_open_idx')
-    .on(table.status, table.interventionId)
+    .on(table.status)
     .where(sql`status = 'open'`),
   validStatus: check('review_thread_valid_status', sql`status IN ('open', 'closed')`),
+  oneEntityPerThread: check('review_thread_one_entity', sql`(intervention_id IS NOT NULL AND site_id IS NULL) OR (site_id IS NOT NULL AND intervention_id IS NULL)`),
 }));
 
 export const reviewComment = pgTable('review_comment', {
@@ -1145,6 +1153,8 @@ export const userRelations = relations(user, ({ many }) => ({
   uploadedImages: many(image, { relationName: 'uploadedBy' }),
   approvedInterventions: many(intervention, { relationName: 'approvedBy' }),
   rejectedInterventions: many(intervention, { relationName: 'rejectedBy' }),
+  approvedSites: many(site, { relationName: 'siteApprovedBy' }),
+  rejectedSites: many(site, { relationName: 'siteRejectedBy' }),
   closedReviewThreads: many(reviewThread, { relationName: 'closedBy' }),
   reviewComments: many(reviewComment, { relationName: 'commentAuthor' }),
 }));
@@ -1206,6 +1216,10 @@ export const reviewThreadRelations = relations(reviewThread, ({ one, many }) => 
   intervention: one(intervention, {
     fields: [reviewThread.interventionId],
     references: [intervention.id],
+  }),
+  site: one(site, {
+    fields: [reviewThread.siteId],
+    references: [site.id],
   }),
   closedBy: one(user, {
     fields: [reviewThread.closedById],
@@ -1442,6 +1456,17 @@ export const siteRelations = relations(site, ({ one, many }) => ({
     relationName: 'createdBy',
   }),
   interventions: many(intervention),
+  reviewThreads: many(reviewThread),
+  approvedBy: one(user, {
+    fields: [site.approvedById],
+    references: [user.id],
+    relationName: 'siteApprovedBy',
+  }),
+  rejectedBy: one(user, {
+    fields: [site.rejectedById],
+    references: [user.id],
+    relationName: 'siteRejectedBy',
+  }),
 }));
 
 export const treeRecordRelations = relations(treeRecord, ({ one }) => ({

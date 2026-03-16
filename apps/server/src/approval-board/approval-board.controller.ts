@@ -24,6 +24,8 @@ import {
   ReviewCommentResponse,
   ReviewThreadResponse,
   InterventionReviewSummary,
+  SiteReviewSummary,
+  SiteReviewQueueResponse,
   UserReviewSummary,
 } from './dto/approval-board.dto';
 
@@ -235,5 +237,112 @@ export class ApprovalBoardController {
     @Membership() membership: ProjectGuardResponse,
   ): Promise<{ requiresApproval: boolean }> {
     return this.approvalBoardService.checkProjectRequiresApproval(membership.projectId);
+  }
+
+  // ================== Site Review Queue (Admin) ==================
+
+  @Get('projects/:id/sites/queue')
+  @ApiOperation({ summary: 'Get sites in the review queue for a project' })
+  @ApiParam({ name: 'id', description: 'Project UID' })
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async getSiteReviewQueue(
+    @Membership() membership: ProjectGuardResponse,
+    @Query() query: ReviewQueueQueryDto,
+  ): Promise<SiteReviewQueueResponse> {
+    return this.approvalBoardService.getSiteReviewQueue(membership.projectId, query);
+  }
+
+  // ================== Unified Site Review Action ==================
+
+  @Post('projects/:id/sites/:siteUid/review')
+  @ApiOperation({ summary: 'Unified site review action: move to in_review, approve, or reject' })
+  @ApiParam({ name: 'id', description: 'Project UID' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async reviewSite(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: ReviewDecisionDto,
+    @CurrentUser() user: any,
+  ): Promise<SiteReviewSummary> {
+    const adminId = user.id || user.sub;
+    if (dto.decision === 'in_review') {
+      return this.approvalBoardService.startSiteReview(siteUid, adminId);
+    }
+    return this.approvalBoardService.makeSiteDecision(siteUid, adminId, {
+      decision: dto.decision as 'approved' | 'rejected',
+      note: dto.note,
+    });
+  }
+
+  // ================== Make Site Decision (in_review → approved | rejected) ==================
+
+  @Post('projects/:id/sites/:siteUid/decide')
+  @ApiOperation({ summary: 'Approve or reject a site' })
+  @ApiParam({ name: 'id', description: 'Project UID' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async makeSiteDecision(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: MakeDecisionDto,
+    @CurrentUser() user: any,
+  ): Promise<SiteReviewSummary> {
+    const adminId = user.id || user.sub;
+    return this.approvalBoardService.makeSiteDecision(siteUid, adminId, dto);
+  }
+
+  // ================== Site Comments (Admin) ==================
+
+  @Post('projects/:id/sites/:siteUid/comment')
+  @ApiOperation({ summary: 'Admin adds a comment to an in-review site' })
+  @ApiParam({ name: 'id', description: 'Project UID' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async addAdminSiteComment(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: AddCommentDto,
+    @CurrentUser() user: any,
+  ): Promise<ReviewCommentResponse> {
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.addSiteComment(siteUid, userId, 'admin', dto);
+  }
+
+  // ================== Site Comments (Contributor) ==================
+
+  @Post('sites/:siteUid/comment')
+  @ApiOperation({ summary: 'Contributor adds a comment to their in-review site' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  async addContributorSiteComment(
+    @Param('siteUid') siteUid: string,
+    @Body() dto: AddCommentDto,
+    @CurrentUser() user: any,
+  ): Promise<ReviewCommentResponse> {
+    const userId = user.id || user.sub;
+    return this.approvalBoardService.addSiteComment(siteUid, userId, 'contributor', dto);
+  }
+
+  // ================== Current Site Thread ==================
+
+  @Get('sites/:siteUid/threads/current')
+  @ApiOperation({ summary: 'Get the current open review thread for a site' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  async getCurrentSiteThread(
+    @Param('siteUid') siteUid: string,
+  ): Promise<ReviewThreadResponse | null> {
+    return this.approvalBoardService.getCurrentSiteThread(siteUid);
+  }
+
+  // ================== Site Review Status ==================
+
+  @Get('sites/:siteUid/status')
+  @ApiOperation({ summary: 'Get review status for a site' })
+  @ApiParam({ name: 'siteUid', description: 'Site UID' })
+  async getSiteReviewStatus(
+    @Param('siteUid') siteUid: string,
+  ): Promise<SiteReviewSummary> {
+    return this.approvalBoardService.getSiteReviewStatus(siteUid);
   }
 }

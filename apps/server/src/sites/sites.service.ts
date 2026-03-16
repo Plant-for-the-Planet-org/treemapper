@@ -91,6 +91,12 @@ export class SiteService {
           };
         }
       }
+      const [projectData] = await this.drizzleService.db
+        .select({ approvalBoardEnabled: project.approvalBoardEnabled })
+        .from(project)
+        .where(eq(project.id, membership.projectId))
+        .limit(1);
+
       const [newSite] = await this.drizzleService.db
         .insert(site)
         .values({
@@ -103,6 +109,9 @@ export class SiteService {
           originalGeometry: createSiteDto.location,
           status: createSiteDto.status || 'barren',
           metadata: createSiteDto.metadata,
+          ...(projectData?.approvalBoardEnabled && {
+            reviewStatus: 'pending',
+          }),
         })
         .returning();
 

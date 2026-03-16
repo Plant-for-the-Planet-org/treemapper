@@ -110,7 +110,8 @@ export interface ReviewCommentResponse {
 export interface ReviewThreadResponse {
   id: number;
   uid: string;
-  interventionId: number;
+  interventionId?: number;
+  siteId?: number;
   status: 'open' | 'closed';
   closedAt?: Date;
   closedBy?: { id: number; displayName: string };
@@ -164,6 +165,29 @@ export interface UserReviewSummary {
 
 export interface PaginatedResponse<T> {
   data: T[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface SiteReviewSummary {
+  siteId: number;
+  siteUid: string;
+  siteName: string;
+  reviewStatus: ReviewStatus;
+  approvedAt?: Date;
+  rejectedAt?: Date;
+  userId: number;
+  userName: string;
+  projectId: number;
+  projectName: string;
+}
+
+export interface SiteReviewQueueResponse {
+  data: SiteReviewSummary[];
   pagination: {
     total: number;
     page: number;

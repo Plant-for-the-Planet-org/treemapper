@@ -56,6 +56,10 @@ export const postUrlApi = {
   markIssueAddressed: `${baseUrl}/approval-board/comments`,
   resolveIssue: `${baseUrl}/approval-board/projects`,
   getUserReviewSummary: `${baseUrl}/approval-board/users/me/summary`,
+  // Site approval
+  submitSiteReviewDecision: `${baseUrl}/approval-board/projects`,
+  addAdminSiteComment: `${baseUrl}/approval-board/projects`,
+  addFieldWorkerSiteComment: `${baseUrl}/approval-board/sites`,
 } as const;
 
 
@@ -96,6 +100,9 @@ export const getUrlApi = {
   getCurrentThread: `${baseUrl}/approval-board/interventions`,
   getThreadComments: `${baseUrl}/approval-board/threads`,
   getUserReviewSummary: `${baseUrl}/approval-board/users/me/summary`,
+  // Site approval
+  getSiteReviewQueue: `${baseUrl}/approval-board/projects`,
+  getCurrentSiteThread: `${baseUrl}/approval-board/sites`,
 } as const;
 
 export const patchUrlApi = {

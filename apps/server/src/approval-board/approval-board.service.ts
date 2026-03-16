@@ -21,6 +21,8 @@ import {
   ReviewCommentResponse,
   UserReviewSummary,
   InterventionReviewSummary,
+  SiteReviewSummary,
+  SiteReviewQueueResponse,
   ReviewStatus,
 } from './dto/approval-board.dto';
 
@@ -359,7 +361,7 @@ export class ApprovalBoardService {
     return {
       id: thread.id,
       uid: thread.uid,
-      interventionId: thread.interventionId,
+      interventionId: thread.interventionId ?? undefined,
       status: thread.status as 'open' | 'closed',
       closedAt: thread.closedAt || undefined,
       closedBy: thread.closedById
@@ -748,5 +750,348 @@ export class ApprovalBoardService {
       .limit(1);
 
     return { requiresApproval: proj?.approvalBoardEnabled ?? false };
+  }
+
+  // ================== Site Review Queue (Admin) ==================
+
+  async getSiteReviewQueue(
+    projectId: number,
+    query: ReviewQueueQueryDto,
+  ): Promise<SiteReviewQueueResponse> {
+    const { limit = 20, page = 1, status, search, sortOrder = 'desc', sortBy = 'submittedAt' } = query;
+    const offset = (page - 1) * limit;
+
+    const whereConditions: any[] = [
+      eq(site.projectId, projectId),
+      isNull(site.deletedAt),
+      isNotNull(site.reviewStatus),
+    ];
+
+    if (status) {
+      whereConditions.push(eq(site.reviewStatus, status));
+    } else {
+      whereConditions.push(
+        inArray(site.reviewStatus, ['pending', 'in_review', 'approved', 'rejected']),
+      );
+    }
+
+    if (search) {
+      const searchCondition = ilike(site.name, `%${search}%`);
+      whereConditions.push(searchCondition);
+    }
+
+    const sortColumn = sortBy === 'submittedAt' ? site.createdAt : site.updatedAt;
+
+    const [data, totalResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          siteId: site.id,
+          siteUid: site.uid,
+          siteName: site.name,
+          reviewStatus: site.reviewStatus,
+          approvedAt: site.approvedAt,
+          rejectedAt: site.rejectedAt,
+          userId: site.createdById,
+          userName: user.displayName,
+          projectId: site.projectId,
+          projectName: project.name,
+        })
+        .from(site)
+        .leftJoin(user, eq(site.createdById, user.id))
+        .leftJoin(project, eq(site.projectId, project.id))
+        .where(and(...whereConditions))
+        .orderBy(sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)` })
+        .from(site)
+        .where(and(...whereConditions)),
+    ]);
+
+    const total = Number(totalResult[0]?.count || 0);
+
+    return {
+      data: data.map((d) => ({
+        siteId: d.siteId,
+        siteUid: d.siteUid,
+        siteName: d.siteName,
+        reviewStatus: d.reviewStatus as ReviewStatus,
+        approvedAt: d.approvedAt || undefined,
+        rejectedAt: d.rejectedAt || undefined,
+        userId: d.userId,
+        userName: d.userName || 'Unknown',
+        projectId: d.projectId,
+        projectName: d.projectName || 'Unknown',
+      })),
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  // ================== Start Site Review (pending → in_review) ==================
+
+  async startSiteReview(siteUid: string, adminId: number): Promise<SiteReviewSummary> {
+    return this.drizzleService.db.transaction(async (tx) => {
+      const [s] = await tx
+        .select()
+        .from(site)
+        .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
+        .limit(1);
+
+      if (!s) throw new NotFoundException('Site not found');
+
+      if (s.reviewStatus !== 'pending') {
+        throw new BadRequestException(
+          `Cannot start review: site is in '${s.reviewStatus}' state (must be 'pending')`,
+        );
+      }
+
+      const [existingThread] = await tx
+        .select({ id: reviewThread.id })
+        .from(reviewThread)
+        .where(and(eq(reviewThread.siteId, s.id), eq(reviewThread.status, 'open')))
+        .limit(1);
+
+      await tx.update(site).set({ reviewStatus: 'in_review' }).where(eq(site.id, s.id));
+
+      if (!existingThread) {
+        await tx.insert(reviewThread).values({
+          uid: generateUid('rvth'),
+          siteId: s.id,
+          status: 'open',
+        });
+      }
+
+      return this.getSiteReviewStatus(siteUid, tx);
+    });
+  }
+
+  // ================== Make Site Decision (in_review → approved | rejected) ==================
+
+  async makeSiteDecision(
+    siteUid: string,
+    adminId: number,
+    dto: MakeDecisionDto,
+  ): Promise<SiteReviewSummary> {
+    return this.drizzleService.db.transaction(async (tx) => {
+      const [s] = await tx
+        .select()
+        .from(site)
+        .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
+        .limit(1);
+
+      if (!s) throw new NotFoundException('Site not found');
+
+      if (s.reviewStatus !== 'in_review') {
+        throw new BadRequestException(
+          `Cannot make decision: site is in '${s.reviewStatus}' state (must be 'in_review')`,
+        );
+      }
+
+      const now = new Date();
+      const updateData: any = { reviewStatus: dto.decision };
+      if (dto.decision === 'approved') {
+        updateData.approvedAt = now;
+        updateData.approvedById = adminId;
+      } else {
+        updateData.rejectedAt = now;
+        updateData.rejectedById = adminId;
+      }
+
+      await tx.update(site).set(updateData).where(eq(site.id, s.id));
+
+      const [openThread] = await tx
+        .select({ id: reviewThread.id })
+        .from(reviewThread)
+        .where(and(eq(reviewThread.siteId, s.id), eq(reviewThread.status, 'open')))
+        .limit(1);
+
+      if (openThread) {
+        await tx
+          .update(reviewThread)
+          .set({ status: 'closed', closedAt: now, closedById: adminId })
+          .where(eq(reviewThread.id, openThread.id));
+
+        if (dto.note) {
+          await tx.insert(reviewComment).values({
+            uid: generateUid('rvcm'),
+            threadId: openThread.id,
+            authorId: adminId,
+            authorRole: 'admin',
+            message: `Decision: ${dto.decision}. ${dto.note}`,
+          });
+        }
+      }
+
+      return this.getSiteReviewStatus(siteUid, tx);
+    });
+  }
+
+  // ================== Site Comments ==================
+
+  async addSiteComment(
+    siteUid: string,
+    userId: number,
+    role: 'admin' | 'contributor',
+    dto: AddCommentDto,
+  ): Promise<ReviewCommentResponse> {
+    const [s] = await this.drizzleService.db
+      .select({ id: site.id, reviewStatus: site.reviewStatus })
+      .from(site)
+      .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
+      .limit(1);
+
+    if (!s) throw new NotFoundException('Site not found');
+
+    if (s.reviewStatus !== 'in_review') {
+      throw new BadRequestException('Comments can only be added while the site is in_review');
+    }
+
+    const [openThread] = await this.drizzleService.db
+      .select({ id: reviewThread.id })
+      .from(reviewThread)
+      .where(and(eq(reviewThread.siteId, s.id), eq(reviewThread.status, 'open')))
+      .limit(1);
+
+    if (!openThread) {
+      throw new BadRequestException('No open review thread found for this site');
+    }
+
+    const [newComment] = await this.drizzleService.db
+      .insert(reviewComment)
+      .values({
+        uid: generateUid('rvcm'),
+        threadId: openThread.id,
+        authorId: userId,
+        authorRole: role,
+        message: dto.message,
+      })
+      .returning();
+
+    const [authorData] = await this.drizzleService.db
+      .select({ id: user.id, displayName: user.displayName })
+      .from(user)
+      .where(eq(user.id, userId))
+      .limit(1);
+
+    return {
+      id: newComment.id,
+      uid: newComment.uid,
+      author: { id: authorData.id, displayName: authorData.displayName },
+      authorRole: newComment.authorRole,
+      message: newComment.message,
+      createdAt: newComment.createdAt,
+      updatedAt: newComment.updatedAt,
+    };
+  }
+
+  // ================== Current Site Thread ==================
+
+  async getCurrentSiteThread(siteUid: string): Promise<ReviewThreadResponse | null> {
+    const [s] = await this.drizzleService.db
+      .select({ id: site.id, reviewStatus: site.reviewStatus })
+      .from(site)
+      .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
+      .limit(1);
+
+    if (!s) throw new NotFoundException('Site not found');
+
+    if (!s.reviewStatus) return null;
+
+    let [thread] = await this.drizzleService.db
+      .select({
+        id: reviewThread.id,
+        uid: reviewThread.uid,
+        status: reviewThread.status,
+        closedAt: reviewThread.closedAt,
+        closedById: reviewThread.closedById,
+        closedByName: user.displayName,
+        createdAt: reviewThread.createdAt,
+      })
+      .from(reviewThread)
+      .leftJoin(user, eq(reviewThread.closedById, user.id))
+      .where(and(eq(reviewThread.siteId, s.id), eq(reviewThread.status, 'open')))
+      .limit(1);
+
+    if (!thread) {
+      const [newThread] = await this.drizzleService.db
+        .insert(reviewThread)
+        .values({
+          uid: generateUid('rvth'),
+          siteId: s.id,
+          status: 'open',
+        })
+        .returning();
+
+      thread = {
+        id: newThread.id,
+        uid: newThread.uid,
+        status: newThread.status,
+        closedAt: null,
+        closedById: null,
+        closedByName: null,
+        createdAt: newThread.createdAt,
+      };
+    }
+
+    const comments = await this.getCommentsByThreadId(thread.id);
+
+    return {
+      id: thread.id,
+      uid: thread.uid,
+      siteId: s.id,
+      status: thread.status as 'open' | 'closed',
+      closedAt: thread.closedAt || undefined,
+      closedBy: thread.closedById
+        ? { id: thread.closedById, displayName: thread.closedByName || 'Unknown' }
+        : undefined,
+      createdAt: thread.createdAt,
+      comments,
+    };
+  }
+
+  // ================== Site Review Status ==================
+
+  async getSiteReviewStatus(siteUid: string, tx?: any): Promise<SiteReviewSummary> {
+    const db = tx || this.drizzleService.db;
+
+    const [s] = await db
+      .select({
+        siteId: site.id,
+        siteUid: site.uid,
+        siteName: site.name,
+        reviewStatus: site.reviewStatus,
+        approvedAt: site.approvedAt,
+        rejectedAt: site.rejectedAt,
+        userId: site.createdById,
+        userName: user.displayName,
+        projectId: site.projectId,
+        projectName: project.name,
+      })
+      .from(site)
+      .leftJoin(user, eq(site.createdById, user.id))
+      .leftJoin(project, eq(site.projectId, project.id))
+      .where(and(eq(site.uid, siteUid), isNull(site.deletedAt)))
+      .limit(1);
+
+    if (!s) throw new NotFoundException('Site not found');
+
+    return {
+      siteId: s.siteId,
+      siteUid: s.siteUid,
+      siteName: s.siteName,
+      reviewStatus: s.reviewStatus as ReviewStatus,
+      approvedAt: s.approvedAt || undefined,
+      rejectedAt: s.rejectedAt || undefined,
+      userId: s.userId,
+      userName: s.userName || 'Unknown',
+      projectId: s.projectId,
+      projectName: s.projectName || 'Unknown',
+    };
   }
 }

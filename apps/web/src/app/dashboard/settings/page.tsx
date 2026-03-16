@@ -1271,8 +1271,8 @@ const ProjectSettings = () => {
       cleaned.scale = data.scale.trim();
     }
     
-    if (data.intensity && data.intensity.trim()) {
-      cleaned.intensity = data.intensity.trim();
+    if (data.intensity != null && data.intensity !== '') {
+      cleaned.intensity = data.intensity;
     }
     
     if (data.revisionPeriodicity && data.revisionPeriodicity.trim()) {

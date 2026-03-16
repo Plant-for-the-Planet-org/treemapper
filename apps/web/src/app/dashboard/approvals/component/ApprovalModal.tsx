@@ -15,6 +15,7 @@ import {
 import {
   getInterventionReviewDetails,
   getCurrentThread,
+  getCurrentSiteThread,
   getThreadComments,
 } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
@@ -77,10 +78,14 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
   const [detailedData, setDetailedData] = useState<Record<string, any> | null>(null);
   const [loadingDetails, setLoadingDetails] = useState(false);
 
-  // Fetch review thread and comments when modal opens for interventions
+  // Fetch review thread and comments when modal opens
   useEffect(() => {
-    if (isOpen && intervention && isInterventionApproval(intervention)) {
-      loadReviewThread();
+    if (isOpen && intervention) {
+      if (isInterventionApproval(intervention)) {
+        loadReviewThread();
+      } else if (isSiteApproval(intervention)) {
+        loadSiteThread();
+      }
     }
   }, [isOpen, intervention]);
 
@@ -137,6 +142,30 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
       }
     } catch (err) {
       console.error('Failed to load review thread:', err);
+      setCurrentThread(null);
+      setThreadComments([]);
+    } finally {
+      setLoadingThread(false);
+    }
+  };
+
+  const loadSiteThread = async () => {
+    if (!intervention || !isSiteApproval(intervention) || !accessToken) return;
+    try {
+      setLoadingThread(true);
+      const threadResponse = await getCurrentSiteThread(accessToken, intervention.siteUid);
+      if (threadResponse.statusCode === 200 && threadResponse.data) {
+        setCurrentThread(threadResponse.data);
+        const commentsResponse = await getThreadComments(accessToken, threadResponse.data.uid);
+        if (commentsResponse.statusCode === 200 && commentsResponse.data) {
+          setThreadComments(commentsResponse.data);
+        }
+      } else {
+        setCurrentThread(null);
+        setThreadComments([]);
+      }
+    } catch (err) {
+      console.error('Failed to load site review thread:', err);
       setCurrentThread(null);
       setThreadComments([]);
     } finally {
