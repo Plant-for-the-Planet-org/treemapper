@@ -86,20 +86,23 @@ const ProjectDropdown = ({
 
   const handleProjectSelect = async (project: ProjectWithUserRoleI) => {
     setIsOpen(false);
-    const result = await selectProjectandWorkspace(project)
-    if (result) {
-      selectProject(project);
-      const finalWorkspace = workspace.filter(el => el.uid === project.workspace['uid'])
-      if (finalWorkspace.length > 0) {
-        setDefaultWorkspce(finalWorkspace[0])
+    try {
+      const result = await selectProjectandWorkspace(project)
+      if (result) {
+        selectProject(project);
+        const finalWorkspace = workspace.filter(el => el.uid === project.workspace['uid'])
+        if (finalWorkspace.length > 0) {
+          setDefaultWorkspce(finalWorkspace[0])
+        }
+        router.refresh();
       }
-    } else {
-
+    } catch (e) {
+      toast.error("Something went wrong")
     }
   };
 
   const selectProjectandWorkspace = async (project: ProjectWithUserRoleI) => {
-    const workspaceChange = project.workspace['uid'] !== selectedWorkspce.uid
+    const workspaceChange = project.workspace['uid'] !== selectedWorkspce?.uid
     if (workspaceChange) {
       const response = await selectOrg(accessToken, {
         workspaceUid: project.workspace['uid'],

@@ -1290,7 +1290,10 @@ export class MigrationService {
             const transformResults = await Promise.all(items.map(async (oldIntervention) => {
                 console.log(`[Migration] Transforming intervention id=${oldIntervention.id} type=${oldIntervention.type}`)
                 const siteId = oldIntervention.plantProjectSite ? siteMapping.get(oldIntervention.plantProjectSite) ?? null : null;
-                return this.transformParentIntervention(oldIntervention, personalProjectId, userId, siteId, migrationId, globalSpeciesMapping);
+                const projectId = oldIntervention.plantProject
+                    ? projectMapping.get(oldIntervention.plantProject) ?? personalProjectId
+                    : personalProjectId;
+                return this.transformParentIntervention(oldIntervention, projectId, userId, siteId, migrationId, globalSpeciesMapping);
             }));
 
             for (const { parentFinalData, treeData } of transformResults) {

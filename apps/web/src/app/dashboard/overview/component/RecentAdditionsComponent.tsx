@@ -37,25 +37,35 @@ const getActivityValue = (activity) => {
   }
 };
 
-// User Avatar component  
-const UserAvatar = ({ user, index }) => {
-  if (!user.image) {
-    return customImageGenerator(user.uid)
+// Gender-neutral default avatar SVG
+const DefaultAvatar = () => (
+  <div className="w-10 h-10 rounded-full mr-3 overflow-hidden bg-gray-200 flex-shrink-0 flex items-center justify-center">
+    <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-full h-full">
+      <circle cx="20" cy="20" r="20" fill="#D1D5DB" />
+      <circle cx="20" cy="16" r="7" fill="#9CA3AF" />
+      <path d="M6 36c0-7.732 6.268-14 14-14s14 6.268 14 14" fill="#9CA3AF" />
+    </svg>
+  </div>
+);
+
+// User Avatar component
+const UserAvatar = ({ user }) => {
+  const [imgError, setImgError] = React.useState(false);
+
+  if (!user.image || imgError) {
+    return user.image && imgError
+      ? <DefaultAvatar />
+      : customImageGenerator(user.uid);
   }
-  const imageUrl = user.image
-    ? `${user.image}`
-    : `https://avatar.iran.liara.run/public/${(index % 50) + 1}`;
 
   return (
     <div className="w-10 h-10 rounded-full mr-3 overflow-hidden bg-gray-200 flex-shrink-0">
       <img
-        src={imageUrl}
+        src={user.image}
         alt={`${user.name}'s avatar`}
         className="w-full h-full object-cover"
         referrerPolicy="no-referrer"
-        onError={(e) => {
-          e.target.src = `https://avatar.iran.liara.run/public/${(index % 50) + 1}`;
-        }}
+        onError={() => setImgError(true)}
       />
     </div>
   );
@@ -193,13 +203,13 @@ const RecentAdditionsComponent = () => {
         ) : (
           <div className="h-full overflow-y-auto px-5 py-3">
             <div className="space-y-2.5">
-              {activities.map((activity, index) => (
+              {activities.map((activity) => (
                 <div
                   key={activity.id}
                   className="flex items-center justify-between p-3 rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors group"
                 >
                   <div className="flex items-center min-w-0 flex-1">
-                    <UserAvatar user={activity.user} index={index} />
+                    <UserAvatar user={activity.user} />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <h3 className="text-sm font-medium text-gray-900 truncate">
