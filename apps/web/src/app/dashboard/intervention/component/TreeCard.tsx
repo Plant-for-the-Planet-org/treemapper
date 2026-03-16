@@ -46,6 +46,7 @@ interface Tree {
   interventionSpeciesId?: number;
   scientificSpeciesId?: number;
   records?: TreeRecord[];
+  migratedTree?: boolean;
 }
 
 interface TreeCardProps {
@@ -88,7 +89,11 @@ export const TreeCard = ({
           {localTree.image && (
             <div className="mb-3 relative group">
               <img
-                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${localTree.image}`}
+                src={
+                  localTree.migratedTree
+                    ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${localTree.image}`
+                    : `${process.env.NEXT_PUBLIC_CDN}/tree/${localTree.image}`
+                }
                 alt={`Tree ${localTree.tag || localTree.hid}`}
                 className="w-full h-24 object-cover rounded-md"
               />
