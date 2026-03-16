@@ -135,6 +135,9 @@ export interface InterventionReviewSummary {
   projectName: string;
   siteId?: number;
   siteName?: string;
+  totalTreeCount: number;
+  totalSampleTreeCount: number;
+  speciesCount: number;
 }
 
 export interface ReviewQueueResponse {

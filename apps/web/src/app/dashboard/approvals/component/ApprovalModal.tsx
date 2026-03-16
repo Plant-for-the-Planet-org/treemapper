@@ -366,14 +366,14 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     <div>
                       <span className="text-gray-600">Total Tree Count:</span>
                       <span className="ml-2 font-semibold">
-                        {intervention.interventionData.totalTreeCount || 0}
+                        {detailedData?.totalTreeCount ?? intervention.interventionData.totalTreeCount ?? 0}
                       </span>
                     </div>
-                    {intervention.interventionData.totalSampleTreeCount !== undefined && (
+                    {(detailedData?.totalSampleTreeCount !== undefined || intervention.interventionData.totalSampleTreeCount !== undefined) && (
                       <div>
                         <span className="text-gray-600">Sample Tree Count:</span>
                         <span className="ml-2 font-semibold">
-                          {intervention.interventionData.totalSampleTreeCount}
+                          {detailedData?.totalSampleTreeCount ?? intervention.interventionData.totalSampleTreeCount ?? 0}
                         </span>
                       </div>
                     )}
@@ -839,7 +839,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
               {isIntervention && (
                 <div>
                   <h3 className="text-lg font-semibold mb-3">
-                    Review Thread {currentThread && `#${currentThread.threadNumber}`}
+                    Review Thread {currentThread && `#${currentThread.id}`}
                   </h3>
                   {loadingThread ? (
                     <div className="text-sm text-gray-500">Loading thread...</div>

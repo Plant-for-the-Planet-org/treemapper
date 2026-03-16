@@ -85,6 +85,9 @@ export class ApprovalBoardService {
           projectName: project.name,
           siteId: intervention.siteId,
           siteName: site.name,
+          totalTreeCount: intervention.totalTreeCount,
+          totalSampleTreeCount: intervention.totalSampleTreeCount,
+          speciesCount: sql<number>`(SELECT COUNT(*) FROM intervention_species WHERE intervention_id = ${intervention.id} AND deleted_at IS NULL)`,
         })
         .from(intervention)
         .leftJoin(user, eq(intervention.userId, user.id))
@@ -118,6 +121,9 @@ export class ApprovalBoardService {
       projectName: d.projectName || 'Unknown',
       siteId: d.siteId || undefined,
       siteName: d.siteName || undefined,
+      totalTreeCount: d.totalTreeCount ?? 0,
+      totalSampleTreeCount: d.totalSampleTreeCount ?? 0,
+      speciesCount: Number(d.speciesCount) || 0,
     }));
 
     return {
@@ -521,6 +527,8 @@ export class ApprovalBoardService {
         type: intervention.type,
         reviewStatus: intervention.reviewStatus,
         submittedAt: intervention.submittedAt,
+        totalTreeCount: intervention.totalTreeCount,
+        totalSampleTreeCount: intervention.totalSampleTreeCount,
         approvedAt: intervention.approvedAt,
         rejectedAt: intervention.rejectedAt,
         userId: intervention.userId,
@@ -555,6 +563,9 @@ export class ApprovalBoardService {
       projectName: inv.projectName || 'Unknown',
       siteId: inv.siteId || undefined,
       siteName: inv.siteName || undefined,
+      totalTreeCount: inv.totalTreeCount ?? 0,
+      totalSampleTreeCount: inv.totalSampleTreeCount ?? 0,
+      speciesCount: 0,
     };
   }
 

@@ -57,6 +57,11 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
 
   const commentsCount = intervention.comments?.length || 0;
   const hasImage = intervention.interventionData?.image;
+  const sampleTreeCount = intervention.interventionData?.totalSampleTreeCount ?? intervention.interventionData?.sampleTrees?.length ?? 0;
+  const uniqueSpecies = intervention.interventionData?.speciesCount
+    ?? (intervention.interventionData?.sampleTrees
+      ? [...new Set(intervention.interventionData.sampleTrees.map((t) => t.species).filter(Boolean))].length
+      : 0);
 
   return (
     <Card
@@ -87,11 +92,23 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
         </div>
       </div>
 
-      <div className="flex items-center gap-3 text-xs text-gray-600 mb-3">
+      <div className="flex items-center gap-3 text-xs text-gray-600 mb-3 flex-wrap">
         <div className="flex items-center gap-1">
           <span className="font-medium">🌳</span>
-          <span>{intervention.interventionData?.totalTreeCount || 0}</span>
+          <span>{intervention.interventionData?.totalTreeCount || 0} trees</span>
         </div>
+        {sampleTreeCount > 0 && (
+          <div className="flex items-center gap-1">
+            <span className="font-medium">🔬</span>
+            <span>{sampleTreeCount} samples</span>
+          </div>
+        )}
+        {uniqueSpecies > 0 && (
+          <div className="flex items-center gap-1">
+            <span className="font-medium">🌿</span>
+            <span>{uniqueSpecies} {uniqueSpecies === 1 ? 'species' : 'species'}</span>
+          </div>
+        )}
         {intervention.interventionData?.area && (
           <div className="flex items-center gap-1">
             <span className="font-medium">📏</span>

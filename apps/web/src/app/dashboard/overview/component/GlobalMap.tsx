@@ -81,7 +81,6 @@ interface ApiResponse<T> {
 
 interface MapState {
     selectedInterventionId: number | null;
-    hoveredInterventionId: number | null;
     selectedTreeId: number | null;
     isLoadingTrees: boolean;
     showTreeDetails: boolean;
@@ -341,6 +340,77 @@ const fetchInterventionTrees = async (interventionId: number): Promise<ApiRespon
 };
 
 // ==================== COMPONENTS ====================
+// Filter panel for map controls
+const FilterPanel: React.FC<{
+    types: string[];
+    statuses: string[];
+    activeTypes: Set<string>;
+    activeStatuses: Set<string>;
+    showPolygons: boolean;
+    showPoints: boolean;
+    showHints: boolean;
+    onToggleType: (type: string) => void;
+    onToggleStatus: (status: string) => void;
+    onTogglePolygons: () => void;
+    onTogglePoints: () => void;
+    onToggleHints: () => void;
+}> = ({ types, statuses, activeTypes, activeStatuses, showPolygons, showPoints, showHints, onToggleType, onToggleStatus, onTogglePolygons, onTogglePoints, onToggleHints }) => {
+    return (
+        <div className="absolute top-4 left-4 z-40 bg-white rounded-lg shadow-lg p-3 w-64 border border-gray-100">
+            <div className="flex items-center justify-between mb-2">
+                <h4 className="text-sm font-medium text-gray-800">Map Filters</h4>
+                <span className="text-xs text-gray-500">{types.length} types</span>
+            </div>
+
+            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                <div>
+                    <div className="text-xs font-semibold text-gray-600 mb-1">Types</div>
+                    {types.map(t => (
+                        <label key={t} className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={activeTypes.has(t)}
+                                onChange={() => onToggleType(t)}
+                                className="form-checkbox"
+                            />
+                            <span className="capitalize">{t.replace(/-/g, ' ')}</span>
+                        </label>
+                    ))}
+                </div>
+                <div>
+                    <div className="text-xs font-semibold text-gray-600 mb-1">Status</div>
+                    {statuses.map(s => (
+                        <label key={s} className="flex items-center gap-2 text-sm">
+                            <input
+                                type="checkbox"
+                                checked={activeStatuses.has(s)}
+                                onChange={() => onToggleStatus(s)}
+                                className="form-checkbox"
+                            />
+                            <span className="capitalize">{s}</span>
+                        </label>
+                    ))}
+                </div>
+            </div>
+
+            <div className="border-t border-gray-100 mt-2 pt-2 text-sm space-y-2">
+                <label className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Show polygon fills</span>
+                    <input type="checkbox" checked={showPolygons} onChange={onTogglePolygons} />
+                </label>
+                <label className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Show point markers</span>
+                    <input type="checkbox" checked={showPoints} onChange={onTogglePoints} />
+                </label>
+                <label className="flex items-center justify-between">
+                    <span className="text-sm text-gray-700">Show polygon hints (low zoom)</span>
+                    <input type="checkbox" checked={showHints} onChange={onToggleHints} />
+                </label>
+            </div>
+        </div>
+    );
+};
+
 const ErrorDisplay: React.FC<{
     error: MapError;
     onRetry?: () => void;
@@ -503,60 +573,143 @@ const TreeMarker: React.FC<{
 const InterventionPanel: React.FC<{
     intervention: MapIntervention;
     onClose: () => void;
-}> = ({ intervention, onClose }) => (
-    <motion.div
-        initial={{ x: -300, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
-        exit={{ x: -300, opacity: 0 }}
-        className="absolute top-4 left-4 w-80 bg-white rounded-lg shadow-xl 
-               border border-gray-200 z-30 max-h-96 overflow-y-auto"
-    >
-        <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">{intervention.hid}</h3>
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                    <X className="w-4 h-4" />
-                </button>
-            </div>
-            <div className="flex items-center gap-2">
-                <p className="text-sm text-gray-600 capitalize">
-                    {intervention.type.replace(/-/g, ' ')}
-                </p>
-                <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded">
-                    {intervention.locationGeometryType || intervention.location.type}
-                </span>
-            </div>
-        </div>
-        <div className="p-4 space-y-3">
-            <div className="flex items-center gap-2 text-sm">
-                <Activity size={16} className="text-gray-400" />
-                <span className="capitalize font-medium">{intervention.status}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-                <Calendar size={16} className="text-gray-400" />
-                <span>{formatDate(intervention.interventionStartDate)}</span>
-            </div>
-            <div className="flex items-center gap-2 text-sm">
-                <Trees size={16} className="text-gray-400" />
-                <span>{intervention.totalTreeCount} trees</span>
-            </div>
-            {intervention.area && (
-                <div className="flex items-center gap-2 text-sm">
-                    <Ruler size={16} className="text-gray-400" />
-                    <span>{intervention.area.toFixed(2)} m²</span>
+    onLoadTrees?: (id: number) => Promise<void>;
+    isLoadingTrees?: boolean;
+    onZoomTo?: (intervention: MapIntervention) => void;
+    treesCount?: number;
+}> = ({ intervention, onClose, onLoadTrees, isLoadingTrees = false, onZoomTo, treesCount = 0 }) => {
+    const centroidText = React.useMemo(() => {
+        try {
+            let c: any;
+            if (intervention.centroid) {
+                c = intervention.centroid.coordinates;
+            } else if (intervention.location.type === 'Point') {
+                c = intervention.location.coordinates;
+            } else {
+                c = turf.centroid(intervention.location as any).geometry.coordinates;
+            }
+            return `${c[0].toFixed(5)}, ${c[1].toFixed(5)}`;
+        } catch {
+            return '—';
+        }
+    }, [intervention]);
+
+    return (
+        <motion.div
+            initial={{ x: 300, opacity: 0 }}
+            animate={{ x: 0, opacity: 1 }}
+            exit={{ x: 300, opacity: 0 }}
+            className="absolute top-4 right-4 w-96 bg-white rounded-lg shadow-2xl 
+                   border border-gray-200 z-50 max-h-[75vh] overflow-y-auto"
+        >
+            <div className="p-4 border-b border-gray-100">
+                <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1">
+                        <h3 className="font-semibold text-gray-900 text-lg">{intervention.hid}</h3>
+                        <div className="flex items-center gap-2 mt-1">
+                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                                {intervention.type.replace(/-/g, ' ')}
+                            </span>
+                            {(() => {
+                                const statusClass = intervention.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
+                                return (
+                                    <span className={`text-xs px-2 py-0.5 rounded ${statusClass}`}>
+                                        {intervention.status}
+                                    </span>
+                                );
+                            })()}
+                            <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded">
+                                {intervention.locationGeometryType || intervention.location.type}
+                            </span>
+                        </div>
+                    </div>
+                    <div className="flex-shrink-0 flex flex-col items-end gap-2">
+                        <button
+                            onClick={onClose}
+                            className="text-gray-400 hover:text-gray-600 transition-colors"
+                        >
+                            <X className="w-4 h-4" />
+                        </button>
+                        <button
+                            onClick={() => onZoomTo?.(intervention)}
+                            className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                            title="Zoom to intervention"
+                        >
+                            Zoom
+                        </button>
+                    </div>
                 </div>
-            )}
-            {intervention.description && (
-                <div className="pt-2 border-t border-gray-100">
-                    <p className="text-sm text-gray-600">{intervention.description}</p>
+            </div>
+            <div className="p-4 space-y-3">
+                <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
+                    <div className="flex items-center gap-2">
+                        <Activity size={14} className="text-gray-400" />
+                        <div>
+                            <div className="text-xs text-gray-500">Start</div>
+                            <div className="font-medium">{formatDate(intervention.interventionStartDate)}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Calendar size={14} className="text-gray-400" />
+                        <div>
+                            <div className="text-xs text-gray-500">Registered</div>
+                            <div className="font-medium">{formatDate(intervention.registrationDate)}</div>
+                        </div>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                        <Trees size={14} className="text-gray-400" />
+                        <div>
+                            <div className="text-xs text-gray-500">Total Trees</div>
+                            <div className="font-medium">{intervention.totalTreeCount ? intervention.totalTreeCount.toLocaleString() : 0}</div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Ruler size={14} className="text-gray-400" />
+                        <div>
+                            <div className="text-xs text-gray-500">Area</div>
+                            <div className="font-medium">{intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}</div>
+                        </div>
+                    </div>
+
+                    <div className="col-span-2">
+                        <div className="text-xs text-gray-500">Description</div>
+                        <p className="text-sm text-gray-700 mt-1">{intervention.description || 'No description provided.'}</p>
+                    </div>
+
+                    {intervention.image && (
+                        <div className="col-span-2">
+                            <div className="text-xs text-gray-500">Image</div>
+                            <img src={intervention.image} alt={intervention.hid} className="mt-2 w-full h-40 object-cover rounded" />
+                        </div>
+                    )}
+
+                    <div className="col-span-2 flex items-center justify-between gap-2 mt-2">
+                        <div className="text-sm text-gray-600">
+                            Sample trees: <span className="font-medium">{intervention.totalSampleTreeCount ?? '—'}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={() => onLoadTrees?.(intervention.id)}
+                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
+                            >
+                                {isLoadingTrees ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load Trees'}
+                            </button>
+                            <div className="text-xs text-gray-500">Loaded: {treesCount}</div>
+                        </div>
+                    </div>
+
+                    <div className="col-span-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
+                        <div>UID: <span className="text-gray-700 font-mono text-xs">{intervention.uid}</span></div>
+                        <div>HID: <span className="text-gray-700 font-mono text-xs">{intervention.hid}</span></div>
+                        <div>Geometry Type: <span className="text-gray-700">{intervention.locationGeometryType || intervention.location.type}</span></div>
+                        <div className="mt-1">Centroid: <span className="text-gray-700">{centroidText}</span></div>
+                    </div>
                 </div>
-            )}
-        </div>
-    </motion.div>
-);
+            </div>
+        </motion.div>
+    );
+};
 
 const TreeTooltip: React.FC<{
     tree: MapTree;
@@ -685,13 +838,27 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
+    const [filters, setFilters] = useState<{
+        types: Set<string>;
+        statuses: Set<string>;
+        showPolygons: boolean;
+        showPoints: boolean;
+        showHints: boolean;
+    }>({
+        types: new Set(),
+        statuses: new Set(),
+        showPolygons: true,
+        showPoints: true,
+        showHints: true,
+    });
     const [mapState, setMapState] = useState<MapState>({
         selectedInterventionId: null,
-        hoveredInterventionId: null,
         selectedTreeId: null,
         isLoadingTrees: false,
         showTreeDetails: false,
     });
+    const hoveredFeatureRef = React.useRef<{ source: string; id: number | string } | null>(null);
+    const prevSelectedIdRef = React.useRef<number | null>(null);
     const [mapRef, setMapRef] = useState<any>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<MapError | null>(null);
@@ -705,7 +872,21 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             const response = await fetchProjectInterventions(projectId, token);
             console.log('Interventions loaded:', response.data.interventions.length);
             
-            setInterventions(response.data.interventions);
+            const loaded = response.data.interventions;
+            setInterventions(loaded);
+            // initialize filters with available types/statuses if empty
+            setFilters(prev => {
+                if (prev.types.size === 0 && prev.statuses.size === 0) {
+                    const types = new Set(loaded.map((i: MapIntervention) => i.type));
+                    const statuses = new Set(loaded.map((i: MapIntervention) => i.status));
+                    return {
+                        ...prev,
+                        types,
+                        statuses,
+                    };
+                }
+                return prev;
+            });
             setBounds(response.data.bounds);
         } catch (error: any) {
             console.error('Failed to load interventions:', error);
@@ -756,6 +937,17 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 showTreeDetails: false,
             }));
             setTrees([]);
+            // clear previously selected feature state
+            try {
+                const prev = prevSelectedIdRef.current;
+                if (prev && mapRef) {
+                    mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
+                    mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
+                }
+                prevSelectedIdRef.current = null;
+            } catch (err) {
+                console.warn('Failed to clear selected feature state:', err);
+            }
             return;
         }
 
@@ -779,6 +971,21 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             }
         } catch (error) {
             console.warn('Failed to zoom to intervention:', error);
+        }
+        // set feature-state for selection (clear previous)
+        try {
+            const prev = prevSelectedIdRef.current;
+            if (prev && mapRef) {
+                mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
+                mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
+            }
+            if (mapRef) {
+                mapRef.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
+                mapRef.setFeatureState({ source: 'interventions-polygons', id: intervention.id }, { selected: true });
+            }
+            prevSelectedIdRef.current = intervention.id;
+        } catch (err) {
+            console.warn('Failed to set selected feature state:', err);
         }
     }, [mapRef, mapState.selectedInterventionId]);
 
@@ -822,7 +1029,10 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     // Create GeoJSON for polygon/multipolygon interventions
     const polygonGeoJSON = useMemo(() => {
         const features = interventions
-            .filter(i => i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
+            .filter(i => (i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
+                && filters.types.has(i.type)
+                && filters.statuses.has(i.status)
+            )
             .map(intervention => ({
                 type: 'Feature' as const,
                 id: intervention.id,
@@ -837,17 +1047,19 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 geometry: intervention.location,
             }));
 
-        console.log('Polygon GeoJSON features:', features.length);
         return {
             type: 'FeatureCollection' as const,
             features,
         };
-    }, [interventions]);
+    }, [interventions, filters]);
 
     // Create GeoJSON for point interventions
     const pointGeoJSON = useMemo(() => {
         const features = interventions
-            .filter(i => i.location.type === 'Point')
+            .filter(i => i.location.type === 'Point'
+                && filters.types.has(i.type)
+                && filters.statuses.has(i.status)
+            )
             .map(intervention => ({
                 type: 'Feature' as const,
                 id: intervention.id,
@@ -862,12 +1074,78 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 geometry: intervention.location,
             }));
 
-        console.log('Point GeoJSON features:', features.length);
         return {
             type: 'FeatureCollection' as const,
             features,
         };
-    }, [interventions]);
+    }, [interventions, filters]);
+
+    // Centroid hints for polygon areas at low zoom
+    const polygonCentroidGeoJSON = useMemo(() => {
+        const features = interventions
+            .filter(i => (i.location.type === 'Polygon' || i.location.type === 'MultiPolygon'))
+            .filter(i => filters.types.has(i.type) && filters.statuses.has(i.status))
+            .map(intervention => {
+                const centroid = intervention.centroid ? intervention.centroid : turf.centroid(intervention.location as any).geometry;
+                const coords = (centroid.type === 'Point' ? centroid.coordinates : (centroid as any).coordinates);
+                return {
+                    type: 'Feature' as const,
+                    id: intervention.id,
+                    properties: {
+                        id: intervention.id,
+                        hid: intervention.hid,
+                        type: intervention.type,
+                        status: intervention.status,
+                        color: getInterventionColor(intervention.type, intervention.status),
+                        isPolygonCentroid: true,
+                    },
+                    geometry: {
+                        type: 'Point',
+                        coordinates: coords,
+                    } as GeoJSON.Point,
+                };
+            });
+
+        return {
+            type: 'FeatureCollection' as const,
+            features,
+        };
+    }, [interventions, filters]);
+
+    // Derived lists for filter panel
+    const allTypes = useMemo(() => Array.from(new Set(interventions.map(i => i.type))), [interventions]);
+    const allStatuses = useMemo(() => Array.from(new Set(interventions.map(i => i.status))), [interventions]);
+
+    // Handlers for filter toggles
+    const toggleType = useCallback((type: string) => {
+        setFilters(prev => {
+            const newTypes = new Set(prev.types);
+            if (newTypes.has(type)) newTypes.delete(type);
+            else newTypes.add(type);
+            return { ...prev, types: newTypes };
+        });
+    }, []);
+
+    const toggleStatus = useCallback((status: string) => {
+        setFilters(prev => {
+            const newStatuses = new Set(prev.statuses);
+            if (newStatuses.has(status)) newStatuses.delete(status);
+            else newStatuses.add(status);
+            return { ...prev, statuses: newStatuses };
+        });
+    }, []);
+
+    const togglePolygons = useCallback(() => {
+        setFilters(prev => ({ ...prev, showPolygons: !prev.showPolygons }));
+    }, []);
+
+    const togglePoints = useCallback(() => {
+        setFilters(prev => ({ ...prev, showPoints: !prev.showPoints }));
+    }, []);
+
+    const toggleHints = useCallback(() => {
+        setFilters(prev => ({ ...prev, showHints: !prev.showHints }));
+    }, []);
 
     // Debug information
     useEffect(() => {
@@ -876,6 +1154,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             console.log('Total interventions:', interventions.length);
             console.log('Point features:', pointGeoJSON.features.length);
             console.log('Polygon features:', polygonGeoJSON.features.length);
+            console.log('Polygon centroids:', polygonCentroidGeoJSON.features.length);
             console.log('Bounds:', bounds);
             console.log('All intervention locations:', interventions.map(i => ({
                 hid: i.hid,
@@ -884,7 +1163,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
             })));
             console.log('=========================');
         }
-    }, [interventions, bounds, pointGeoJSON, polygonGeoJSON]);
+    }, [interventions, bounds, pointGeoJSON, polygonGeoJSON, polygonCentroidGeoJSON]);
 
     if (isLoading) {
         return (
@@ -953,34 +1232,50 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                 interactiveLayerIds={[
                     'interventions-polygons-fill',
                     'interventions-polygons-outline',
-                    'interventions-points-circle'
+                    'interventions-points-circle',
+                    'interventions-polygons-hint'
                 ]}
                 onClick={handlePolygonClick}
                 onMouseMove={(event) => {
-                    const feature = event.features?.[0];
-                    const hoveredId = feature && feature.properties?.id ? feature.properties.id : null;
+                    try {
+                        const feature = event.features?.[0];
+                        const map = mapRef;
+                        const prev = hoveredFeatureRef.current;
 
-                    // Only update state if the hovered ID actually changed
-                    setMapState(prev => {
-                        if (prev.hoveredInterventionId !== hoveredId) {
-                            return {
-                                ...prev,
-                                hoveredInterventionId: hoveredId
-                            };
+                        if (feature && (feature.properties?.id || feature.id != null)) {
+                            const id = feature.properties?.id ?? feature.id;
+                            const source = feature.source || feature.layer?.source;
+
+                            // if previous hovered is different, clear it
+                            if (prev && (prev.id !== id || prev.source !== source)) {
+                                map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                                hoveredFeatureRef.current = null;
+                            }
+
+                            // set new hovered state if different
+                            if (!prev || prev.id !== id || prev.source !== source) {
+                                map?.setFeatureState({ source, id }, { hover: true });
+                                hoveredFeatureRef.current = { source, id };
+                            }
+                        } else if (prev) {
+                            // clear previous if no feature
+                            map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                            hoveredFeatureRef.current = null;
                         }
-                        return prev;
-                    });
+                    } catch (err) {
+                        console.warn('Error handling mouse move hover state:', err);
+                    }
                 }}
                 onMouseLeave={() => {
-                    setMapState(prev => {
-                        if (prev.hoveredInterventionId !== null) {
-                            return {
-                                ...prev,
-                                hoveredInterventionId: null
-                            };
+                    try {
+                        const prev = hoveredFeatureRef.current;
+                        if (prev && mapRef) {
+                            mapRef.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                            hoveredFeatureRef.current = null;
                         }
-                        return prev;
-                    });
+                    } catch (err) {
+                        console.warn('Error clearing hover state:', err);
+                    }
                 }}
                 onError={(error) => {
                     console.error('Map error:', error);
@@ -992,24 +1287,25 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     });
                 }}
             >
-                {/* Polygon/MultiPolygon Interventions as Layers */}
-                {polygonGeoJSON.features.length > 0 && (
+                {/* Polygon/MultiPolygon Interventions as Layers (visible at higher zoom) */}
+                {filters.showPolygons && polygonGeoJSON.features.length > 0 && (
                     <Source
                         id="interventions-polygons"
                         type="geojson"
                         data={polygonGeoJSON}
                     >
-                        {/* Polygon fill layer */}
+                        {/* Polygon fill layer - only at closer zooms */}
                         <Layer
                             id="interventions-polygons-fill"
                             type="fill"
+                            minzoom={11}
                             paint={{
                                 'fill-color': ['get', 'color'],
                                 'fill-opacity': [
                                     'case',
-                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
-                                    0.6,
-                                    0.4
+                                    ['feature-state', 'selected'],
+                                    0.65,
+                                    0.35
                                 ]
                             }}
                         />
@@ -1017,22 +1313,52 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                         <Layer
                             id="interventions-polygons-outline"
                             type="line"
+                            minzoom={11}
                             paint={{
                                 'line-color': ['get', 'color'],
                                 'line-width': [
                                     'case',
-                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    ['feature-state', 'selected'],
                                     4,
-                                    3
+                                    2
                                 ],
-                                'line-opacity': 0.9
+                                'line-opacity': 0.95
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Polygon centroid hints - visible at low zoom to indicate polygon presence */}
+                {filters.showHints && polygonCentroidGeoJSON.features.length > 0 && (
+                    <Source
+                        id="interventions-polygons-centroids"
+                        type="geojson"
+                        data={polygonCentroidGeoJSON}
+                    >
+                        <Layer
+                            id="interventions-polygons-hint"
+                            type="circle"
+                            maxzoom={11}
+                            paint={{
+                                'circle-color': ['concat', ['get', 'color'], '80'], // add alpha-ish hint
+                                'circle-radius': [
+                                    'interpolate',
+                                    ['linear'],
+                                    ['zoom'],
+                                    0, 6,
+                                    6, 10,
+                                    10, 14
+                                ],
+                                'circle-opacity': 0.7,
+                                'circle-stroke-width': 1,
+                                'circle-stroke-color': '#ffffff'
                             }}
                         />
                     </Source>
                 )}
 
                 {/* Point Interventions as Circle Layers */}
-                {pointGeoJSON.features.length > 0 && (
+                {filters.showPoints && pointGeoJSON.features.length > 0 && (
                     <Source
                         id="interventions-points"
                         type="geojson"
@@ -1046,18 +1372,18 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                                 'circle-color': ['get', 'color'],
                                 'circle-radius': [
                                     'case',
-                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    ['feature-state', 'selected'],
                                     14, // Selected size
-                                    ['==', ['get', 'id'], mapState.hoveredInterventionId || -1],
+                                    ['feature-state', 'hover'],
                                     12, // Hovered size
                                     10  // Default size
                                 ],
                                 'circle-opacity': 1,
                                 'circle-stroke-width': [
                                     'case',
-                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    ['feature-state', 'selected'],
                                     4, // Selected stroke
-                                    3  // Default stroke
+                                    2  // Default stroke
                                 ],
                                 'circle-stroke-color': '#ffffff',
                                 'circle-stroke-opacity': 1
@@ -1074,7 +1400,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                                 'circle-stroke-color': '#3b82f6',
                                 'circle-stroke-opacity': [
                                     'case',
-                                    ['==', ['get', 'id'], mapState.selectedInterventionId || -1],
+                                    ['feature-state', 'selected'],
                                     1,
                                     0
                                 ]
@@ -1119,6 +1445,30 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                             }));
                             setTrees([]);
                         }}
+                        onLoadTrees={async (id: number) => {
+                            try {
+                                setMapState(prev => ({ ...prev, isLoadingTrees: true }));
+                                const res = await fetchInterventionTrees(id);
+                                const treesData = res?.data?.trees ?? (res as any)?.trees ?? [];
+                                setTrees(Array.isArray(treesData) ? treesData : []);
+                            } catch (err) {
+                                console.warn('Failed to load trees for intervention:', err);
+                            } finally {
+                                setMapState(prev => ({ ...prev, isLoadingTrees: false }));
+                            }
+                        }}
+                        isLoadingTrees={mapState.isLoadingTrees}
+                        onZoomTo={(intervention) => {
+                            try {
+                                const [lng, lat] = getMarkerPosition(intervention);
+                                if (lng && lat) {
+                                    mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 800 });
+                                }
+                            } catch (err) {
+                                console.warn('Failed to zoom to intervention from panel:', err);
+                            }
+                        }}
+                        treesCount={trees.length}
                     />
                 )}
             </AnimatePresence>
@@ -1144,6 +1494,22 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                     <span className="text-sm text-gray-600">Loading trees...</span>
                 </div>
             )}
+
+            {/* Filter Panel */}
+            <FilterPanel
+                types={allTypes}
+                statuses={allStatuses}
+                activeTypes={filters.types}
+                activeStatuses={filters.statuses}
+                showPolygons={filters.showPolygons}
+                showPoints={filters.showPoints}
+                showHints={filters.showHints}
+                onToggleType={toggleType}
+                onToggleStatus={toggleStatus}
+                onTogglePolygons={togglePolygons}
+                onTogglePoints={togglePoints}
+                onToggleHints={toggleHints}
+            />
 
             {/* Map Legend */}
             <MapLegend

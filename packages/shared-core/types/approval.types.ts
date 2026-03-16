@@ -193,6 +193,7 @@ export interface InterventionApprovalData {
     area: number;
     totalTreeCount: number;
     totalSampleTreeCount?: number;
+    speciesCount?: number;
     sampleTrees?: SampleTree[];
     registrationDate: string;
     interventionStartDate: string;
