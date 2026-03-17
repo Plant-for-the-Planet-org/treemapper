@@ -22,7 +22,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
       title: 'Plant-for-the-Planet Platform',
       subtitle: 'To contribute to global reforestation efforts with transparent data sharing.',
       description: 'Data is published on the Plant-for-the-Planet platform.',
-      recommended: true,
+      recommended: false,
       icon: <Image
         src={pftpLogo}
         alt="TreeMapper Logo"
@@ -74,7 +74,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
   }, []);
 
   const canProceed = useCallback(() => {
-    return formData.projectName.trim() && !errors.projectName && formData.selectedPlan && formData.selectedPlan !=='public';
+    return formData.projectName.trim() && !errors.projectName && formData.selectedPlan;
   }, [formData.projectName, formData.selectedPlan, errors.projectName]);
 
   const handleSubmit = useCallback(() => {

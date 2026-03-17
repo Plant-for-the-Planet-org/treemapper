@@ -320,14 +320,32 @@ const fetchProjectInterventions = async (projectId: string, token: string): Prom
     }
 };
 
-const fetchInterventionTrees = async (interventionId: number): Promise<ApiResponse<InterventionTreesResponse>> => {
+import { baseUrl } from '@shared-core/fetchApi/api.url';
+
+const fetchInterventionTrees = async (interventionId: number, token?: string): Promise<ApiResponse<InterventionTreesResponse>> => {
     try {
-        const response = await fetch(`/api/interventions/${interventionId}/trees`);
+        // Use shared baseUrl (usually '/api/server') so requests go to backend proxy
+        const url = `${baseUrl}/interventions/${interventionId}/map/tree`;
+        const headers: Record<string,string> = { 'Accept': 'application/json' };
+        if (token) headers['Authorization'] = `Bearer ${token}`;
+        const response = await fetch(url, { headers });
         if (!response.ok) {
             throw new Error(`HTTP ${response.status}: ${response.statusText}`);
         }
         const data = await response.json();
-        return data;
+        // Normalize response: controller returns { success: true, data: { trees, intervention, bounds } }
+        if (data?.success && data.data) {
+            return data as ApiResponse<InterventionTreesResponse>;
+        }
+        // Fallback: if API returns trees directly
+        if (Array.isArray(data?.trees)) {
+            return { success: true, data };
+        }
+        return {
+            success: false,
+            data: { trees: [], intervention: {} as MapIntervention, bounds: { bounds: [-180, -85, 180, 85], center: [0, 0] } },
+            message: 'Unexpected response format'
+        };
     } catch (error: any) {
         console.error('Error fetching trees:', error);
         throw {
@@ -1448,7 +1466,7 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
                         onLoadTrees={async (id: number) => {
                             try {
                                 setMapState(prev => ({ ...prev, isLoadingTrees: true }));
-                                const res = await fetchInterventionTrees(id);
+                                const res = await fetchInterventionTrees(id, token);
                                 const treesData = res?.data?.trees ?? (res as any)?.trees ?? [];
                                 setTrees(Array.isArray(treesData) ? treesData : []);
                             } catch (err) {

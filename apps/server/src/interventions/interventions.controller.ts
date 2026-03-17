@@ -301,16 +301,21 @@ export class InterventionsController {
   @UseGuards(ProjectPermissionsGuard)
   async getInterventionTrees(req: any, res: any, @Membership() membership: ProjectGuardResponse,) {
     try {
-      const { interventionId } = req.params;
+      // Accept interventionId from multiple locations to be resilient:
+      // - req.params.interventionId
+      // - req.params.id (route param)
+      // - req.query.interventionId
+      const rawId = req.params?.interventionId ?? req.params?.id ?? req.query?.interventionId;
+      const interventionId = Number(rawId);
 
-      if (!interventionId || isNaN(Number(interventionId))) {
+      if (!interventionId || isNaN(interventionId)) {
         return res.status(400).json({
           success: false,
           message: 'Valid intervention ID is required',
         });
       }
 
-      const data = await this.interventionsService.getInterventionTrees(membership.projectId);
+      const data = await this.interventionsService.getInterventionTrees(interventionId);
 
       res.json({
         success: true,
