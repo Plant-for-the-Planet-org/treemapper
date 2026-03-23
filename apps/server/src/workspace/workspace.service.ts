@@ -154,24 +154,10 @@ export class WorkspaceService {
   }
 
 
-  async findUsers(userData: User) {
+  async findUsers() {
     try {
-      if (!userData.primaryWorkspaceUid) {
-        throw new Error('No workspace set');
-      }
-
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
-      if (!workspaceId) {
-        throw new Error('No workspace found');
-      }
       const users = await this.drizzle.db
         .select({
-          uid: workspaceMember.uid,
-          role: workspaceMember.role,
-          status: workspaceMember.status,
-          joinedAt: workspaceMember.joinedAt,
-          invitedAt: workspaceMember.invitedAt,
-          lastActiveAt: workspaceMember.lastActiveAt,
           userUid: user.uid,
           email: user.email,
           firstName: user.firstName,
@@ -184,14 +170,13 @@ export class WorkspaceService {
           isActive: user.isActive,
           locale: user.locale,
         })
-        .from(workspaceMember)
-        .leftJoin(user, eq(workspaceMember.userId, user.id))
-        .where(eq(workspaceMember.workspaceId, workspaceId));
+        .from(user)
+        .where(isNull(user.deletedAt));
 
       return users;
 
     } catch (error) {
-      console.error('Error finding workspace users:', error);
+      console.error('Error finding users:', error);
       throw error;
     }
   }

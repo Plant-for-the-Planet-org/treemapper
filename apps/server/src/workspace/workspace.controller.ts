@@ -95,8 +95,8 @@ export class WorkspaceController {
 
 
     @Get('/members')
-    async findUsers(@CurrentUser() user: User): Promise<any[]> {
-        return await this.workspaceService.findUsers(user);
+    async findUsers(): Promise<any[]> {
+        return await this.workspaceService.findUsers();
     }
 
     @Put('/impersonate/:person')
