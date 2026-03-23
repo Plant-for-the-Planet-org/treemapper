@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Delete, UseGuards, Req, HttpException, HttpStatus, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Delete, UseGuards, Req, HttpException, HttpStatus, Headers, Query } from '@nestjs/common';
 import { MigrationCheckResult, MigrationService } from './migrate.service';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -11,10 +11,10 @@ export class MigrationController {
         private readonly migrationService: MigrationService) { }
 
     @Post('start')
-    async startMigration(@CurrentUser() userData: User, @Headers('authorization') authorization: string) {
+    async startMigration(@Headers('authorization') authorization: string, @Headers('X-Profile-ID') email: string) {
         const token = authorization?.replace('Bearer ', '') ?? '';
         this.migrationService.startUserMigration(
-            userData.id,
+            email,
             token
         ).catch(error => {
             console.error('Migration failed:', error);
@@ -49,6 +49,14 @@ export class MigrationController {
     @Get('status')
     async getMigrationStatus(@Req() req) {
         return await this.migrationService.getMigrationStatus(req.user.id);
+    }
+
+    @Get('status-by-email')
+    async getMigrationStatusByEmail(@Query('email') email: string) {
+        if (!email) {
+            throw new HttpException('email query param required', HttpStatus.BAD_REQUEST);
+        }
+        return await this.migrationService.getMigrationStatusByEmail(email);
     }
 
     @Delete('interventions')

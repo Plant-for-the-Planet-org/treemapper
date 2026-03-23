@@ -22,6 +22,7 @@ import {
 import { and, eq, inArray, sql } from 'drizzle-orm';
 import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
+import { randomPastTimestamp } from 'src/util/randomTimeStamp';
 import { UsersService } from 'src/users/users.service';
 import { ProjectsService } from 'src/projects/projects.service';
 import { createProjectTitle, removeDuplicatesByScientificSpeciesId } from 'src/common/utils/projectName.util';
@@ -212,17 +213,39 @@ export class MigrationService {
         };
     }
 
+    async getMigrationStatusByEmail(email: string): Promise<any> {
+        const [userData] = await this.drizzleService.db
+            .select({ id: user.id })
+            .from(user)
+            .where(eq(user.email, email))
+            .limit(1);
+        if (!userData) {
+            return { migrationFound: false, userFound: false };
+        }
+        return this.getMigrationStatus(userData.id);
+    }
+
     async startUserMigration(
-        userId: number,
-        token: string
+        email: string,
+        token: string,
     ): Promise<void> {
         let userMigrationRecord;
-        const [userData] = await this.drizzleService.db.select().from(user).where(eq(user.id, userId));
+        let [userData] = await this.drizzleService.db.select().from(user).where(eq(user.email, email));
+        if (!userData) {
+            const emailPrefix = email.split('@')[0];
+            const slug = emailPrefix.toLowerCase().replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-').trim().substring(0, 255) + '-' + randomPastTimestamp();
+            const [newUser] = await this.drizzleService.db.insert(user).values({
+                uid: generateUid('usr'),
+                auth0Id: `email:${email}`,
+                email: email,
+                displayName: emailPrefix,
+                slug: slug,
+                existingPlanetUser: true,
+            }).returning();
+            userData = newUser;
+        }
         if (!userData.existingPlanetUser) {
             throw 'no need to migrate user'
-        }
-        if (!userData) {
-            throw 'no user found'
         }
         let authToken = token
         if (typeof authToken !== 'string') {
@@ -230,7 +253,6 @@ export class MigrationService {
         }
         try {
             userMigrationRecord = await this.createMigrationRecord(userData.id, userData.uid);
-            console.log("userMigrationRecord added", userMigrationRecord)
             if (userMigrationRecord.status === 'completed') {
                 console.log("Migration says completed")
                 this.addLog(userMigrationRecord.id, 'info', 'Migration already done', 'users');
@@ -281,7 +303,7 @@ export class MigrationService {
 
             if (!userMigrationRecord.migratedEntities.user) {
                 console.log("User migration started")
-                stop = await this.migrateUserData(userData.id, authToken, userMigrationRecord.id);
+                stop = await this.migrateUserData(userData.id, authToken, userMigrationRecord.id, email);
             } else {
                 console.log("User migration skipped")
             }
@@ -300,7 +322,7 @@ export class MigrationService {
             // Step 2: Migrate Projects
             if (!userMigrationRecord.migratedEntities.projects) {
                 console.log("Project migration started")
-                stop = await this.migrateUserProjects(userData.id, authToken, userMigrationRecord.id);
+                stop = await this.migrateUserProjects(userData.id, authToken, userMigrationRecord.id, email);
             }
 
 
@@ -320,7 +342,7 @@ export class MigrationService {
             // // Step 3: Migrate sites
             if (!userMigrationRecord.migratedEntities.sites) {
                 console.log("Site migration started")
-                stop = await this.migrateUserSites(userData.id, authToken, userMigrationRecord.id);
+                stop = await this.migrateUserSites(userData.id, authToken, userMigrationRecord.id, email);
             }
 
 
@@ -338,7 +360,7 @@ export class MigrationService {
             // Step 4: Migrate User Species
             if (!userMigrationRecord.migratedEntities.species) {
                 console.log("Species Migration")
-                stop = await this.migrateUserSpecies(userData.id, authToken, userMigrationRecord.id);
+                stop = await this.migrateUserSpecies(userData.id, authToken, userMigrationRecord.id, email);
             }
 
 
@@ -356,7 +378,7 @@ export class MigrationService {
 
             if (!userMigrationRecord.migratedEntities.interventions) {
                 console.log("Intervention Migration started")
-                stop = await this.migrateUserInterventions(userData.id, authToken, userMigrationRecord.id);
+                stop = await this.migrateUserInterventions(userData.id, authToken, userMigrationRecord.id, email);
             }
 
 
@@ -368,16 +390,16 @@ export class MigrationService {
                 await this.updateMigrationProgress(userMigrationRecord.id, 'interventions', true, false);
             }
 
-            // await this.updateMigrationProgress(userMigrationRecord.id, 'images', true, false);
-            // await this.completeMigration(userMigrationRecord.id);
-            // await this.usersetvice.invalidateMyCache(userData)
-            // await this.drizzleService.db.update(user).set({ existingPlanetUser: true, migratedAt: new Date() }).where(eq(user.id, userData.id))
-            // await this.notificationService.createNotification({
-            //     userId: userData.id,
-            //     type: NotificationType.SYSTEM,
-            //     title: 'Migration Completed',
-            //     message: 'All your data from old TreeMapper app was migrated successfully. If you see any issue please contact us on info@plant-for-the-plant.org'
-            // })
+            await this.updateMigrationProgress(userMigrationRecord.id, 'images', true, false);
+            await this.completeMigration(userMigrationRecord.id);
+            await this.usersetvice.invalidateMyCache(userData)
+            await this.drizzleService.db.update(user).set({ existingPlanetUser: true, migratedAt: new Date() }).where(eq(user.id, userData.id))
+            await this.notificationService.createNotification({
+                userId: userData.id,
+                type: NotificationType.SYSTEM,
+                title: 'Migration Completed',
+                message: 'All your data from old TreeMapper app was migrated successfully. If you see any issue please contact us on info@plant-for-the-plant.org'
+            })
         } catch (error) {
             await this.handleMigrationError(userData.id, userMigrationRecord?.id, error);
             throw error;
@@ -587,10 +609,11 @@ export class MigrationService {
         return migrationRecord[0];
     }
 
-    private async migrateUserData(userId: number, authToken: string, migrationId: number): Promise<boolean> {
+    private async migrateUserData(userId: number, authToken: string, migrationId: number, impersonate: string): Promise<boolean> {
         try {
             this.addLog(migrationId, 'info', 'Starting user data migration', 'users');
-            const userResponse = await this.makeApiCall(`/app/profile`, authToken);
+            console.log("Starting user data migration")
+            const userResponse = await this.makeApiCall(`/treemapper/profile`, authToken, impersonate);
             if (!userResponse || userResponse === null) {
                 this.addLog(migrationId, 'error', `User migration failed. No response recieved`, 'users');
                 return true;
@@ -622,6 +645,7 @@ export class MigrationService {
     private transformUserData(oldUserData: any, userId: number): any {
         const transformedUser = {
             uid: oldUserData.id,
+            email: oldUserData.email,
             firstName: oldUserData.firstname || null,
             lastName: oldUserData.lastname || null,
             displayName: oldUserData.displayName || null,
@@ -637,7 +661,8 @@ export class MigrationService {
             createdAt: new Date(oldUserData.created) || new Date(),
             updatedAt: new Date(),
             deletedAt: null,
-            existingPlanetUser: true
+            existingPlanetUser: true,
+            auth0Id: `email:${oldUserData.email}`,
         };
         return transformedUser;
     }
@@ -718,7 +743,7 @@ export class MigrationService {
         }
     }
 
-    private async makeApiCall(endpoint: string, authToken: string, retries = 3): Promise<any> {
+    private async makeApiCall(endpoint: string, authToken: string, impersonate: string = '', retries = 3): Promise<any> {
         const baseUrl = process.env.OLD_BACKEND_URL
         for (let attempt = 1; attempt <= retries; attempt++) {
             try {
@@ -727,7 +752,9 @@ export class MigrationService {
                         headers: {
                             'Authorization': `Bearer ${authToken}`,
                             'Content-Type': 'application/json',
-                            "User-Agent": 'treemapper'
+                            "User-Agent": 'treemapper',
+                            // "X-API-Key": process.env.API_KEY || '',
+                            "X-Profile-ID": impersonate
                         },
                         timeout: 30000 // 30 second timeout
                     })
@@ -735,7 +762,7 @@ export class MigrationService {
                 return response;
 
             } catch (error) {
-                console.log("JSDcln error", error)
+                console.log("makeApiCall error", error)
 
                 if (attempt === retries) {
                     return null
@@ -746,10 +773,9 @@ export class MigrationService {
         }
     }
 
-    private async migrateUserProjects(userId: number, authToken: string, migrationId: number): Promise<boolean> {
+    private async migrateUserProjects(userId: number, authToken: string, migrationId: number, email: string): Promise<boolean> {
         try {
-            const projectsResponse = await this.makeApiCall(`/app/profile/projects?_scope=extended`, authToken);
-            console.log("Project response recieved", Boolean(projectsResponse.data))
+            const projectsResponse = await this.makeApiCall(`/treemapper/profile/projects?_scope=extended`, authToken, email);
             if (!projectsResponse || projectsResponse === null) {
                 console.log("Project no respinse")
                 this.addLog(migrationId, 'error', `Project migration failed. No response recieved`, 'projects');
@@ -847,11 +873,11 @@ export class MigrationService {
         const getTarget = (unitsTargeted, countTarget) => {
             try {
                 if (unitsTargeted && unitsTargeted.tree) {
-                    return unitsTargeted.tree;
+                    return unitsTargeted.tree > 0 ? unitsTargeted.tree : null;
                 }
-                return countTarget || 1;
+                return countTarget > 0 ? countTarget : null;
             } catch (error) {
-                return 1
+                return null
             }
         };
         const getProjectScale = (classification) => {
@@ -887,7 +913,7 @@ export class MigrationService {
             createdById: userId,
             slug: projectData.slug,
             name: projectData.name,
-            purpose: projectData.classification || 'Unknown',
+            purpose: projectData.purpose || projectData.classification || null,
             type: getProjectScale(projectData.classification),
             ecosystem: projectData.metadata?.ecosystem || 'Unknown',
             scale: getProjectScale(projectData.classification),
@@ -906,7 +932,7 @@ export class MigrationService {
             intensity: projectData.intensity ? projectData.intensity : null,
             revisionPeriodicity: projectData.revisionPeriodicityLevel || null,
             metadata: projectData.metadata || {},
-            createdAt: projectData.created,
+            createdAt: projectData.created ? new Date(projectData.created) : new Date(),
             migratedProject: true,
             updatedAt: new Date(),
             flag,
@@ -915,11 +941,10 @@ export class MigrationService {
         return transformedProject;
     }
 
-    private async migrateUserSites(uid: number, authToken: string, migrationId: number): Promise<boolean> {
+    private async migrateUserSites(uid: number, authToken: string, migrationId: number, email: string): Promise<boolean> {
         try {
             this.addLog(migrationId, 'info', 'Starting sites migration', 'sites');
-            const sitesResponse = await this.makeApiCall(`/app/profile/projects?_scope=extended`, authToken);
-            console.log("Site Response recieved", sitesResponse)
+            const sitesResponse = await this.makeApiCall(`/treemapper/profile/projects?_scope=extended`, authToken, email);
             if (!sitesResponse || sitesResponse === null) {
                 this.addLog(migrationId, 'error', `Site migration failed. No response recieved`, 'projects');
                 return true;
@@ -929,7 +954,6 @@ export class MigrationService {
             let stopProcess = false
             for (const oldSite of allProjects) {
                 try {
-                    console.log("Site oldSite before", oldSite)
                     const stopParentLoop = await this.transformSiteData(oldSite, uid, migrationId);
                     console.log("Site oldSite after", stopParentLoop)
                     if (stopParentLoop || stopProcess) {
@@ -1036,11 +1060,11 @@ export class MigrationService {
     }
 
 
-    private async migrateUserSpecies(uid: number, authToken: string, migrationId: number): Promise<boolean> {
+    private async migrateUserSpecies(uid: number, authToken: string, migrationId: number, email): Promise<boolean> {
         try {
             console.log("Species mOIgratino")
             this.addLog(migrationId, 'info', 'Starting User Species migration', 'species');
-            const speciesResponse = await this.makeApiCall(`/treemapper/species`, authToken);
+            const speciesResponse = await this.makeApiCall(`/treemapper/species`, authToken, email);
             if (!speciesResponse || speciesResponse === null) {
                 console.log("Species speciesResponse", false)
                 this.addLog(migrationId, 'error', `Species migration failed. No response recieved`, 'species');
@@ -1145,14 +1169,14 @@ export class MigrationService {
         });
     }
 
-    private async migrateUserInterventions(uid: number, authToken: string, migrationId: number): Promise<boolean> {
+    private async migrateUserInterventions(uid: number, authToken: string, migrationId: number, email): Promise<boolean> {
         try {
             this.addLog(migrationId, 'info', 'Starting User intervention migration', 'interventions');
             const { projectMapping, personalProjectId } = await this.buildProjectMapping(uid);
             console.log("Project mapping done")
             const { siteMapping } = await this.buildSiteMapping(uid);
             console.log("Site mapping done")
-            const needToStop = await this.migrateInterventionWithSampleTrees(uid, projectMapping, authToken, migrationId, personalProjectId, siteMapping)
+            const needToStop = await this.migrateInterventionWithSampleTrees(uid, projectMapping, authToken, migrationId, personalProjectId, siteMapping, email)
             if (needToStop) {
                 console.log("Site needToStop activated")
                 throw 'needToStop activated'
@@ -1233,6 +1257,7 @@ export class MigrationService {
         migrationId: number,
         personalProjectId: number,
         siteMapping: Map<string, number>,
+        email: string
     ) {
         const batchSize = 100;
         let currentPage = 1;
@@ -1243,7 +1268,8 @@ export class MigrationService {
             console.log(`[Migration] Fetching interventions page=${currentPage}${lastPage ? ` of ${lastPage}` : ''}`)
             const interventionResponse = await this.makeApiCall(
                 `/treemapper/interventions?limit=${batchSize}&_scope=extended&page=${currentPage}`,
-                authToken
+                authToken,
+                email
             );
 
             if (!interventionResponse) {
