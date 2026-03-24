@@ -102,6 +102,25 @@ export class UsersService {
         }
     }
 
+    async findByEmailAndUpdateAuth0Id(email: string, newAuth0Id: string): Promise<User | null> {
+        const result = await this.drizzleService.db
+            .select(this.FULL_USER_SELECT)
+            .from(user)
+            .where(and(eq(user.email, email), isNull(user.deletedAt)))
+            .limit(1);
+
+        if (!result[0]) return null;
+
+        const [updated] = await this.drizzleService.db
+            .update(user)
+            .set({ auth0Id: newAuth0Id })
+            .where(eq(user.id, result[0].id))
+            .returning(this.FULL_USER_SELECT);
+
+        await this.userCacheService.setUserByAuth(updated, newAuth0Id);
+        return updated;
+    }
+
 
 
     async onBoardUser(surveyDetails: CreateSurvey, userData: User): Promise<boolean> {

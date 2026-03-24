@@ -14,11 +14,10 @@ async validateUser(auth0Id: string, email: string, name: string): Promise<Extend
   try {
     let user = await this.usersService.findByAuth0Id(auth0Id);
     if (!user) {
-      user = await this.usersService.createFromAuth0(
-        auth0Id,
-        email,
-        name
-      );
+      user = await this.usersService.findByEmailAndUpdateAuth0Id(email, auth0Id);
+    }
+    if (!user) {
+      user = await this.usersService.createFromAuth0(auth0Id, email, name);
     }
     return user;
   } catch (error) {
