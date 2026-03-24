@@ -3,24 +3,18 @@
 import { useState } from 'react';
 import {
   Activity,
-  Bell,
-  Database,
   FolderOpen,
   Settings,
-  Shield,
   UserCheck,
   Users
 } from 'lucide-react';
 import { useToken } from '@/context/useTokenContext';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { ActivityAuditSection } from './components/ActivityAuditSection';
-import { DataManagementSection } from './components/DataManagementSection';
 import { GeneralSettingsSection } from './components/GeneralSettingsSection';
 import { ImpersonationSection } from './components/ImpersonationSection';
 import { MemberManagementSection } from './components/MemberManagementSection';
-import { NotificationsCommunicationSection } from './components/NotificationsCommunicationSection';
 import { ProjectManagementSection } from './components/ProjectManagementSection';
-import { SecurityAccessSection } from './components/SecurityAccessSection';
 import { Avatar } from './components/workspace-ui';
 import { mockWorkspace } from './mocks';
 
@@ -30,13 +24,10 @@ export default function WorkspaceSettings() {
   const currentUser = useUserStore((state) => state.user);
 
   const sections = [
-    { id: 'general', label: 'General Settings', icon: Settings },
+    // { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'members', label: 'Member Management', icon: Users },
     { id: 'projects', label: 'Project Management', icon: FolderOpen },
-    { id: 'security', label: 'Security & Access', icon: Shield },
-    { id: 'notifications', label: 'Notifications', icon: Bell },
     { id: 'activity', label: 'Activity & Audit', icon: Activity },
-    { id: 'data', label: 'Data Management', icon: Database },
     { id: 'impersonation', label: 'Impersonation', icon: UserCheck }
   ];
 
@@ -47,24 +38,18 @@ export default function WorkspaceSettings() {
 
   const renderActiveSection = () => {
     switch (activeSection) {
-      case 'general':
-        return <GeneralSettingsSection />;
+      // case 'general':
+      //   return <GeneralSettingsSection />;
       case 'members':
         return <MemberManagementSection />;
       case 'projects':
         return <ProjectManagementSection />;
-      case 'security':
-        return <SecurityAccessSection />;
-      case 'notifications':
-        return <NotificationsCommunicationSection />;
       case 'activity':
         return <ActivityAuditSection />;
-      case 'data':
-        return <DataManagementSection />;
       case 'impersonation':
         return <ImpersonationSection token={accessToken} goHome={goHome} />;
       default:
-        return <GeneralSettingsSection />;
+        return <MemberManagementSection />;
     }
   };
 

@@ -3,6 +3,7 @@ import {
     Controller,
     Get,
     Post,
+    Patch,
     Body,
     UseGuards,
     Req,
@@ -97,6 +98,21 @@ export class WorkspaceController {
     @Get('/members')
     async findUsers(): Promise<any[]> {
         return await this.workspaceService.findUsers();
+    }
+
+    @Get('/:uid/members')
+    async getWorkspaceMembers(@Param('uid') uid: string): Promise<any[]> {
+        return await this.workspaceService.getWorkspaceMembers(uid);
+    }
+
+    @Get('/:uid')
+    async getWorkspace(@Param('uid') uid: string) {
+        return await this.workspaceService.findByUid(uid);
+    }
+
+    @Patch('/:uid')
+    async updateWorkspace(@Param('uid') uid: string, @Body() body: any) {
+        return await this.workspaceService.updateWorkspace(uid, body);
     }
 
     @Put('/impersonate/:person')

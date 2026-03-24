@@ -475,6 +475,23 @@ export const getallstieMembers = async (token: string, prjId: string, site: stri
   return result;
 };
 
+export const getWorkspaceMembersApi = async (token: string, uid: string) => {
+  const uri = `${getUrlApi.getWorkspaceMembers}/${uid}/members`;
+  return await fetchGetCall(uri, token);
+};
+
+export const getWorkspace = async (token: string, uid: string) => {
+  const uri = `${getUrlApi.getWorkspace}/${uid}`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const updateWorkspace = async (token: string, uid: string, data: object) => {
+  const uri = `${patchUrlApi.updateWorkspace}/${uid}`;
+  const result = await fetchPatchCall(uri, data, token);
+  return result;
+};
+
 export const getWorkspaceMembers = async (token: string) => {
   const uri = `${getUrlApi.getWrokspaceMembers}`;
   const result = await fetchGetCall(uri, token);

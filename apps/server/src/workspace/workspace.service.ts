@@ -1,6 +1,6 @@
 // src/organizations/organizations.service.ts
 import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { eq, and, isNull, sql, count } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto } from './dto/organization-response.dto';
@@ -154,6 +154,112 @@ export class WorkspaceService {
   }
 
 
+  async findByUid(uid: string) {
+    const result = await this.drizzle.db
+      .select({
+        id: workspace.id,
+        uid: workspace.uid,
+        name: workspace.name,
+        slug: workspace.slug,
+        type: workspace.type,
+        description: workspace.description,
+        image: workspace.image,
+        primaryColor: workspace.primaryColor,
+        secondaryColor: workspace.secondaryColor,
+        email: workspace.email,
+        phone: workspace.phone,
+        website: workspace.website,
+        address: workspace.address,
+        isActive: workspace.isActive,
+      })
+      .from(workspace)
+      .where(eq(workspace.uid, uid))
+      .limit(1);
+
+    if (result.length === 0) {
+      throw new NotFoundException('Workspace not found');
+    }
+    return result[0];
+  }
+
+  async updateWorkspace(uid: string, data: Partial<{
+    name: string;
+    slug: string;
+    description: string;
+    email: string;
+    phone: string;
+    website: string;
+    address: string;
+    primaryColor: string;
+    secondaryColor: string;
+    type: 'platform' | 'private' | 'development' | 'premium';
+  }>) {
+    const result = await this.drizzle.db
+      .update(workspace)
+      .set(data)
+      .where(eq(workspace.uid, uid))
+      .returning({
+        id: workspace.id,
+        uid: workspace.uid,
+        name: workspace.name,
+        slug: workspace.slug,
+        type: workspace.type,
+        description: workspace.description,
+        image: workspace.image,
+        primaryColor: workspace.primaryColor,
+        secondaryColor: workspace.secondaryColor,
+        email: workspace.email,
+        phone: workspace.phone,
+        website: workspace.website,
+        address: workspace.address,
+        isActive: workspace.isActive,
+      });
+
+    if (result.length === 0) {
+      throw new NotFoundException('Workspace not found');
+    }
+    return result[0];
+  }
+
+  async getWorkspaceMembers(uid: string) {
+    const ws = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, uid))
+      .limit(1);
+
+    if (ws.length === 0) {
+      throw new NotFoundException('Workspace not found');
+    }
+
+    const members = await this.drizzle.db
+      .select({
+        memberUid: workspaceMember.uid,
+        role: workspaceMember.role,
+        status: workspaceMember.status,
+        joinedAt: workspaceMember.joinedAt,
+        lastActiveAt: workspaceMember.lastActiveAt,
+        userUid: user.uid,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        displayName: user.displayName,
+        image: user.image,
+        slug: user.slug,
+        type: user.type,
+        country: user.country,
+        isActive: user.isActive,
+        primaryProjectUid: user.primaryProjectUid,
+        primaryProjectName: project.name,
+      })
+      .from(workspaceMember)
+      .innerJoin(user, eq(workspaceMember.userId, user.id))
+      .leftJoin(project, eq(user.primaryProjectUid, project.uid))
+      .where(eq(workspaceMember.workspaceId, ws[0].id));
+
+    return members;
+  }
+
   async findUsers() {
     try {
       const users = await this.drizzle.db
@@ -169,9 +275,14 @@ export class WorkspaceService {
           country: user.country,
           isActive: user.isActive,
           locale: user.locale,
+          primaryWorkspaceUid: user.primaryWorkspaceUid,
+          primaryProjectUid: user.primaryProjectUid,
+          workspaceName: workspace.name,
+          primaryProjectName: project.name,
         })
         .from(user)
-        .where(isNull(user.deletedAt));
+        .leftJoin(workspace, eq(user.primaryWorkspaceUid, workspace.uid))
+        .leftJoin(project, eq(user.primaryProjectUid, project.uid));
 
       return users;
 

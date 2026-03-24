@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Edit3, Globe, Mail, MapPin, Palette, Phone, Save } from 'lucide-react';
-import { mockWorkspace } from '../mocks';
+import { getWorkspace, updateWorkspace } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
+import { useUserStore } from '@shared-core/store/useUserStore';
 import type { Workspace } from '../types';
 import {
   Button,
@@ -18,25 +20,36 @@ import {
 } from './workspace-ui';
 
 export function GeneralSettingsSection() {
-  const [workspace, setWorkspace] = useState<Workspace>(mockWorkspace);
+  const { accessToken } = useToken();
+  const currentUser = useUserStore((state) => state.user);
+  const [workspace, setWorkspace] = useState<Workspace | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
   const [showSaveModal, setShowSaveModal] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  useEffect(() => {
+    if (!accessToken || !currentUser?.primaryWorkspaceUid) return;
+    setIsLoading(true);
+    getWorkspace(accessToken, currentUser.primaryWorkspaceUid)
+      .then((data) => { setWorkspace(data); })
+      .finally(() => setIsLoading(false));
+  }, [accessToken, currentUser?.primaryWorkspaceUid]);
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!workspace.name.trim()) {
+    if (!workspace?.name.trim()) {
       newErrors.name = 'Workspace name is required';
     }
 
-    if (!workspace.slug.trim()) {
+    if (!workspace?.slug.trim()) {
       newErrors.slug = 'Workspace slug is required';
-    } else if (!/^[a-z0-9-]+$/.test(workspace.slug)) {
+    } else if (!/^[a-z0-9-]+$/.test(workspace?.slug)) {
       newErrors.slug = 'Slug can only contain lowercase letters, numbers, and hyphens';
     }
 
-    if (workspace.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workspace.email)) {
+    if (workspace?.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(workspace.email)) {
       newErrors.email = 'Please enter a valid email address';
     }
 
@@ -50,11 +63,34 @@ export function GeneralSettingsSection() {
     }
   };
 
-  const confirmSave = () => {
-    console.log('Saving workspace settings:', workspace);
+  const confirmSave = async () => {
+    if (!workspace || !currentUser?.primaryWorkspaceUid) return;
+    const updated = await updateWorkspace(accessToken, currentUser.primaryWorkspaceUid, {
+      name: workspace.name,
+      slug: workspace.slug,
+      description: workspace.description,
+      email: workspace.email,
+      phone: workspace.phone,
+      website: workspace.website,
+      address: workspace.address,
+      primaryColor: workspace.primaryColor,
+      secondaryColor: workspace.secondaryColor,
+      type: workspace.type,
+    });
+    if (updated && !updated.error) {
+      setWorkspace(updated);
+    }
     setIsEditing(false);
     setShowSaveModal(false);
   };
+
+  if (isLoading) {
+    return <Card><CardContent className="p-6 text-sm text-gray-500">Loading...</CardContent></Card>;
+  }
+
+  if (!workspace) {
+    return <Card><CardContent className="p-6 text-sm text-red-500">Failed to load workspace settings.</CardContent></Card>;
+  }
 
   return (
     <Card>

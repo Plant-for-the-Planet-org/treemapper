@@ -1,213 +1,184 @@
 'use client';
 
-import { useState } from 'react';
-import { Crown, Plus, Trash2, UserCheck, UserX } from 'lucide-react';
-import { mockMembers } from '../mocks';
-import type { WorkspaceMember } from '../types';
-import {
-  Avatar,
-  Badge,
-  Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  ConfirmationModal,
-  Input,
-  Modal,
-  Select,
-  SelectItem
-} from './workspace-ui';
+import { useEffect, useState } from 'react';
+import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, User as UserIcon } from 'lucide-react';
+import { getWorkspaceMembers } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
+import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle } from './workspace-ui';
+
+interface UserDetail {
+  userUid: string;
+  email: string;
+  firstName: string | null;
+  lastName: string | null;
+  displayName: string;
+  image: string | null;
+  slug: string;
+  type: string;
+  country: string | null;
+  isActive: boolean;
+  locale: string | null;
+  primaryWorkspaceUid: string | null;
+  primaryProjectUid: string | null;
+  workspaceName: string | null;
+  primaryProjectName: string | null;
+}
+
+const getUserTypeLabel = (type: string) => {
+  const map: Record<string, string> = {
+    individual: 'Individual',
+    tpo: 'TPO',
+    organization: 'Organization',
+    school: 'School',
+    superadmin: 'Super Admin',
+    other: 'Other',
+  };
+  return map[type] ?? type;
+};
+
+function UserRow({ user }: { user: UserDetail }) {
+  const [expanded, setExpanded] = useState(false);
+
+  return (
+    <>
+      <tr className="border-b hover:bg-gray-50 cursor-pointer" onClick={() => setExpanded((v) => !v)}>
+        <td className="p-3">
+          <div className="flex items-center gap-3">
+            <Avatar
+              src={user.image ?? undefined}
+              alt={user.displayName}
+              fallback={user.displayName.split(' ').map((n) => n[0]).join('').slice(0, 2)}
+              className="h-9 w-9"
+            />
+            <div>
+              <div className="font-medium text-gray-900">{user.displayName}</div>
+              <div className="text-xs text-gray-500">{user.email}</div>
+            </div>
+          </div>
+        </td>
+        <td className="p-3 text-sm text-gray-600">{getUserTypeLabel(user.type)}</td>
+        <td className="p-3">
+          <Badge variant={user.isActive ? 'success' : 'destructive'}>
+            {user.isActive ? 'Active' : 'Inactive'}
+          </Badge>
+        </td>
+        <td className="p-3 text-sm text-gray-600">
+          {user.workspaceName ? (
+            <span className="flex items-center gap-1">
+              <Globe className="h-3.5 w-3.5 text-gray-400" />
+              {user.workspaceName}
+            </span>
+          ) : (
+            <span className="text-gray-400 text-xs">—</span>
+          )}
+        </td>
+        <td className="p-3 text-sm text-gray-600">
+          {user.primaryProjectName ? (
+            <span className="flex items-center gap-1">
+              <FolderOpen className="h-3.5 w-3.5 text-gray-400" />
+              {user.primaryProjectName}
+            </span>
+          ) : (
+            <span className="text-gray-400 text-xs">—</span>
+          )}
+        </td>
+        <td className="p-3 text-right">
+          {expanded ? <ChevronUp className="h-4 w-4 text-gray-400 ml-auto" /> : <ChevronDown className="h-4 w-4 text-gray-400 ml-auto" />}
+        </td>
+      </tr>
+
+      {expanded && (
+        <tr className="bg-gray-50 border-b">
+          <td colSpan={6} className="px-6 py-4">
+            <div className="grid grid-cols-2 gap-x-12 gap-y-3 text-sm">
+              <div className="flex items-center gap-2">
+                <UserIcon className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-gray-400">Type:</span>
+                <span className="text-gray-800">{getUserTypeLabel(user.type)}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Mail className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-gray-400">Email:</span>
+                <span className="text-gray-800">{user.email}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-gray-400">Slug:</span>
+                <span className="text-gray-800">@{user.slug}</span>
+              </div>
+              {user.country && (
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-gray-400 shrink-0" />
+                  <span className="text-gray-400">Country:</span>
+                  <span className="text-gray-800 uppercase">{user.country}</span>
+                </div>
+              )}
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-gray-400">Workspace:</span>
+                <span className="text-gray-800">{user.workspaceName ?? '—'}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <FolderOpen className="h-4 w-4 text-gray-400 shrink-0" />
+                <span className="text-gray-400">Primary project:</span>
+                <span className="text-gray-800">{user.primaryProjectName ?? '—'}</span>
+              </div>
+            </div>
+          </td>
+        </tr>
+      )}
+    </>
+  );
+}
 
 export function MemberManagementSection() {
-  const [members] = useState<WorkspaceMember[]>(mockMembers);
-  const [showInviteModal, setShowInviteModal] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState<{
-    isOpen: boolean;
-    type: 'remove' | 'suspend' | 'role_change' | 'activate' | null;
-    member: WorkspaceMember | null;
-    newRole?: string;
-  }>({ isOpen: false, type: null, member: null });
-  const [inviteEmail, setInviteEmail] = useState('');
-  const [inviteRole, setInviteRole] = useState('member');
+  const { accessToken } = useToken();
+  const [users, setUsers] = useState<UserDetail[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const handleInviteMember = () => {
-    if (inviteEmail && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail)) {
-      console.log('Inviting member:', { email: inviteEmail, role: inviteRole });
-      setShowInviteModal(false);
-      setInviteEmail('');
-      setInviteRole('member');
-    }
-  };
-
-  const handleMemberAction = (
-    action: 'remove' | 'suspend' | 'role_change' | 'activate',
-    member: WorkspaceMember,
-    newRole?: string
-  ) => {
-    setShowConfirmModal({
-      isOpen: true,
-      type: action,
-      member,
-      newRole
-    });
-  };
-
-  const confirmMemberAction = () => {
-    const { type, member, newRole } = showConfirmModal;
-    console.log(`${type} action for member:`, member, newRole);
-    setShowConfirmModal({ isOpen: false, type: null, member: null });
-  };
-
-  const getRoleBadgeVariant = (role: string) => {
-    switch (role) {
-      case 'owner':
-        return 'success' as const;
-      case 'admin':
-        return 'warning' as const;
-      default:
-        return 'default' as const;
-    }
-  };
-
-  const getStatusBadgeVariant = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'success' as const;
-      case 'suspended':
-        return 'destructive' as const;
-      case 'pending':
-        return 'warning' as const;
-      default:
-        return 'default' as const;
-    }
-  };
+  useEffect(() => {
+    if (!accessToken) return;
+    setIsLoading(true);
+    getWorkspaceMembers(accessToken)
+      .then((data) => { if (Array.isArray(data)) setUsers(data); })
+      .finally(() => setIsLoading(false));
+  }, [accessToken]);
 
   return (
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Member Management</CardTitle>
-          <Button onClick={() => setShowInviteModal(true)} className="flex items-center gap-2">
-            <Plus className="h-4 w-4" />
-            Invite Member
-          </Button>
+          <CardTitle>All Users</CardTitle>
+          <span className="text-sm text-gray-500">{users.length} total</span>
         </div>
       </CardHeader>
-      <CardContent>
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b">
-                <th className="text-left p-2 font-medium text-gray-700">Member</th>
-                <th className="text-left p-2 font-medium text-gray-700">Role</th>
-                <th className="text-left p-2 font-medium text-gray-700">Status</th>
-                <th className="text-left p-2 font-medium text-gray-700">Joined</th>
-                <th className="text-left p-2 font-medium text-gray-700">Last Active</th>
-                <th className="text-left p-2 font-medium text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {members.map((member) => (
-                <tr key={member.id} className="border-b hover:bg-gray-50">
-                  <td className="p-2">
-                    <div className="flex items-center gap-3">
-                      <Avatar
-                        src={member.user.image}
-                        alt={member.user.displayName}
-                        fallback={member.user.displayName.split(' ').map((n) => n[0]).join('')}
-                      />
-                      <div>
-                        <div className="font-medium">{member.user.displayName}</div>
-                        <div className="text-sm text-gray-500">{member.user.email}</div>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="p-2">
-                    <Badge variant={getRoleBadgeVariant(member.role)}>
-                      {member.role === 'owner' && <Crown className="h-3 w-3 mr-1" />}
-                      {member.role.charAt(0).toUpperCase() + member.role.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="p-2">
-                    <Badge variant={getStatusBadgeVariant(member.status)}>
-                      {member.status.charAt(0).toUpperCase() + member.status.slice(1)}
-                    </Badge>
-                  </td>
-                  <td className="p-2 text-sm text-gray-600">{new Date(member.joinedAt).toLocaleDateString()}</td>
-                  <td className="p-2 text-sm text-gray-600">
-                    {member.lastActiveAt ? new Date(member.lastActiveAt).toLocaleDateString() : 'Never'}
-                  </td>
-                  <td className="p-2">
-                    <div className="flex gap-1">
-                      {member.role !== 'owner' && (
-                        <>
-                          <Select
-                            value={member.role}
-                            onValueChange={(newRole) => handleMemberAction('role_change', member, newRole)}
-                            placeholder="Role"
-                          >
-                            <SelectItem value="member">Member</SelectItem>
-                            <SelectItem value="admin">Admin</SelectItem>
-                          </Select>
-                          {member.status === 'active' ? (
-                            <Button variant="ghost" size="sm" onClick={() => handleMemberAction('suspend', member)}>
-                              <UserX className="h-4 w-4" />
-                            </Button>
-                          ) : (
-                            <Button variant="ghost" size="sm" onClick={() => handleMemberAction('activate', member)}>
-                              <UserCheck className="h-4 w-4" />
-                            </Button>
-                          )}
-                          <Button variant="ghost" size="sm" onClick={() => handleMemberAction('remove', member)}>
-                            <Trash2 className="h-4 w-4 text-red-500" />
-                          </Button>
-                        </>
-                      )}
-                    </div>
-                  </td>
+      <CardContent className="p-0">
+        {isLoading ? (
+          <div className="p-6 text-sm text-gray-500">Loading users...</div>
+        ) : users.length === 0 ? (
+          <div className="p-6 text-sm text-gray-500">No users found.</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wide">User</th>
+                  <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Type</th>
+                  <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Status</th>
+                  <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Workspace</th>
+                  <th className="text-left p-3 text-xs font-medium text-gray-500 uppercase tracking-wide">Primary Project</th>
+                  <th className="p-3" />
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <UserRow key={u.userUid} user={u} />
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </CardContent>
-
-      <Modal isOpen={showInviteModal} onClose={() => setShowInviteModal(false)} title="Invite New Member">
-        <div className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-            <Input
-              type="email"
-              placeholder="member@example.com"
-              value={inviteEmail}
-              onChange={(e) => setInviteEmail(e.target.value)}
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
-            <Select value={inviteRole} onValueChange={setInviteRole} placeholder="Select role">
-              <SelectItem value="member">Member</SelectItem>
-              <SelectItem value="admin">Admin</SelectItem>
-            </Select>
-          </div>
-          <div className="flex gap-2 justify-end">
-            <Button variant="outline" onClick={() => setShowInviteModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleInviteMember}>Send Invite</Button>
-          </div>
-        </div>
-      </Modal>
-
-      <ConfirmationModal
-        isOpen={showConfirmModal.isOpen}
-        onClose={() => setShowConfirmModal({ isOpen: false, type: null, member: null })}
-        onConfirm={confirmMemberAction}
-        title={`${showConfirmModal.type?.replace('_', ' ').replace(/\b\w/g, (l) => l.toUpperCase())} Member`}
-        description={`Are you sure you want to ${showConfirmModal.type?.replace('_', ' ')} ${showConfirmModal.member?.user.displayName}?`}
-        isDestructive={showConfirmModal.type === 'remove'}
-      />
     </Card>
   );
 }

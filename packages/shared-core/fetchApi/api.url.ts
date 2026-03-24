@@ -88,6 +88,8 @@ export const getUrlApi = {
   getMyOrgs: `${baseUrl}/organizations`,
   getSiteMembers: `${baseUrl}/projects`,
   getWrokspaceMembers: `${baseUrl}/workspace/members`,
+  getWorkspace: `${baseUrl}/workspace`,
+  getWorkspaceMembers: `${baseUrl}/workspace`,
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
@@ -107,6 +109,7 @@ export const getUrlApi = {
 
 export const patchUrlApi = {
   userMigrated: `${baseUrl}/users/migrated`,
+  updateWorkspace: `${baseUrl}/workspace`,
   updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
   markRead: `${baseUrl}/notifications`,
