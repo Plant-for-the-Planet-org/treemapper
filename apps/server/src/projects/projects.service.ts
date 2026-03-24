@@ -223,7 +223,21 @@ export class ProjectsService {
 
 
   async createMigrationProject(userData: User): Promise<any> {
-    const workspaceId = 1
+    const workspaceSlug = userData.type === 'tpo' ? 'platform-projects' : 'private-projects';
+    const [workspaceData] = await this.drizzleService.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.slug, workspaceSlug))
+      .limit(1);
+    if (!workspaceData) {
+      return {
+        message: `Workspace '${workspaceSlug}' not found`,
+        statusCode: 500,
+        error: 'workspace_not_found',
+        data: null,
+        code: 'personal_project_creation_failed',
+      };
+    }
     try {
       const result = await this.drizzleService.db.transaction(async (tx) => {
         const [projectData] = await tx
@@ -231,7 +245,7 @@ export class ProjectsService {
           .values({
             uid: generateUid('proj'),
             createdById: userData.id,
-            workspaceId: workspaceId,
+            workspaceId: workspaceData.id,
             slug: `${this.generateSlug(userData.displayName)}-${Date.now()}`,
             name: `${userData.displayName}'s personal project`,
             isPersonal: true,
@@ -247,6 +261,19 @@ export class ProjectsService {
             projectRole: 'owner',
             joinedAt: new Date(),
           });
+
+        await tx
+          .insert(workspaceMember)
+          .values({
+            uid: generateUid('workmem'),
+            workspaceId: workspaceData.id,
+            userId: userData.id,
+            role: 'member',
+            status: 'active',
+            joinedAt: new Date(),
+          })
+          .onConflictDoNothing();
+
         await tx.update(user)
           .set({ primaryWorkspaceUid: userData.primaryWorkspaceUid, primaryProjectUid: projectData.uid })
           .where(eq(user.id, userData.id)),

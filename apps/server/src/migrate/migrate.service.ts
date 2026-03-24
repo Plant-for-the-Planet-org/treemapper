@@ -12,6 +12,8 @@ import {
     intervention,
     projectSpecies,
     projectMember,
+    workspaceMember,
+    workspace,
     scientificSpecies,
     FlagReasonEntry,
     tree,
@@ -275,25 +277,6 @@ export class MigrationService {
             let stop = false;
             console.log("Stop init", stop)
 
-            const personalProject = await this.drizzleService.db
-                .select({ id: project.id, name: project.name })
-                .from(project)
-                .where(and(eq(project.createdById, userData.id), eq(project.isPersonal, true)))
-                .limit(1);
-            if (personalProject.length > 0) {
-                console.log("Personal Project Found", personalProject[0].name)
-                this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Found', 'projects');
-            } else {
-                this.addLog(userMigrationRecord.id, 'warning', `Personal project not found. Created new`, 'projects');
-                const newPersonalProject = await this.projectService.createMigrationProject(userData)
-                console.log("Created new project")
-                if (newPersonalProject.statusCode === 201 || newPersonalProject.statusCode === 200) {
-                    this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Created', 'projects');
-                } else {
-                    console.log("Error Occured while creating new project")
-                    stop = true
-                }
-            }
             if (stop) {
                 console.log("Stop Activated", 1)
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for user and will not proceed further', 'projects');
@@ -318,11 +301,31 @@ export class MigrationService {
                 await this.updateMigrationProgress(userMigrationRecord.id, 'user', true, false);
             }
 
+            const personalProject = await this.drizzleService.db
+                .select({ id: project.id, name: project.name })
+                .from(project)
+                .where(and(eq(project.createdById, userData.id), eq(project.isPersonal, true)))
+                .limit(1);
+            if (personalProject.length > 0) {
+                console.log("Personal Project Found", personalProject[0].name)
+                this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Found', 'projects');
+            } else {
+                this.addLog(userMigrationRecord.id, 'warning', `Personal project not found. Created new`, 'projects');
+                const newPersonalProject = await this.projectService.createMigrationProject(userData)
+                console.log("Created new project")
+                if (newPersonalProject.statusCode === 201 || newPersonalProject.statusCode === 200) {
+                    this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Created', 'projects');
+                } else {
+                    console.log("Error Occured while creating new project")
+                    stop = true
+                }
+            }
+
 
             // Step 2: Migrate Projects
             if (!userMigrationRecord.migratedEntities.projects) {
                 console.log("Project migration started")
-                stop = await this.migrateUserProjects(userData.id, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserProjects(userData, authToken, userMigrationRecord.id, email);
             }
 
 
@@ -773,7 +776,8 @@ export class MigrationService {
         }
     }
 
-    private async migrateUserProjects(userId: number, authToken: string, migrationId: number, email: string): Promise<boolean> {
+    private async migrateUserProjects(userData: User, authToken: string, migrationId: number, email: string): Promise<boolean> {
+        const userId = userData.id;
         try {
             const projectsResponse = await this.makeApiCall(`/treemapper/profile/projects?_scope=extended`, authToken, email);
             if (!projectsResponse || projectsResponse === null) {
@@ -781,6 +785,34 @@ export class MigrationService {
                 this.addLog(migrationId, 'error', `Project migration failed. No response recieved`, 'projects');
                 return true;
             }
+
+            const workspaceSlug = userData.type === 'tpo' ? 'platform-projects' : 'private-projects';
+            const [workspaceData] = await this.drizzleService.db
+                .select({ id: workspace.id })
+                .from(workspace)
+                .where(eq(workspace.slug, workspaceSlug))
+                .limit(1);
+            if (!workspaceData) {
+                this.addLog(migrationId, 'error', `Workspace '${workspaceSlug}' not found`, 'projects');
+                return true;
+            }
+
+            const existingWorkspaceMember = await this.drizzleService.db
+                .select({ id: workspaceMember.id })
+                .from(workspaceMember)
+                .where(and(eq(workspaceMember.workspaceId, workspaceData.id), eq(workspaceMember.userId, userId)))
+                .limit(1);
+            if (existingWorkspaceMember.length === 0) {
+                await this.drizzleService.db.insert(workspaceMember).values({
+                    uid: generateUid('workmem'),
+                    workspaceId: workspaceData.id,
+                    userId,
+                    role: 'member',
+                    status: 'active',
+                    joinedAt: new Date(),
+                });
+            }
+
             const oldProjects = projectsResponse.data;
             console.log("Project oldProjects", oldProjects.length)
             let stop = false;
@@ -793,6 +825,7 @@ export class MigrationService {
                 try {
                     console.log("Transofrom Project Before", oldProject.id)
                     const transformedProject = this.transformProjectData(oldProject, userId);
+                    transformedProject.workspaceId = workspaceData.id;
                     console.log("Transofrom Project After", oldProject.id)
                     const existingProject = await this.drizzleService.db
                         .select()
