@@ -453,7 +453,6 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
                           <div className="flex items-center justify-between">
                             <div className="text-sm font-semibold">Summary</div>
-                            <div className="text-xs text-gray-500">Source: detailed API</div>
                           </div>
                           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                             {detailedData.totalTreeCount !== undefined && (
@@ -465,7 +464,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                             {detailedData.canopyCover !== undefined && (
                               <div>
                                 <div className="text-gray-600">Canopy Cover</div>
-                                <div className="font-semibold">{`${detailedData.canopyCover}%`}</div>
+                                <div className="font-semibold">NA</div>
                               </div>
                             )}
                             {detailedData.avgHeight !== undefined && (

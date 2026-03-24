@@ -388,6 +388,26 @@ export class WorkspaceService {
     return result[0].settings as WorkspaceSettings;
   }
 
+  async updateProjectStatus(workspaceUid: string, projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') {
+    const ws = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, workspaceUid))
+      .limit(1);
+
+    if (ws.length === 0) throw new NotFoundException('Workspace not found');
+
+    const result = await this.drizzle.db
+      .update(project)
+      .set({ status })
+      .where(and(eq(project.uid, projectUid), eq(project.workspaceId, ws[0].id), isNull(project.deletedAt)))
+      .returning({ uid: project.uid, status: project.status });
+
+    if (result.length === 0) throw new NotFoundException('Project not found in this workspace');
+
+    return result[0];
+  }
+
   async getWorkspaceProjects(uid: string) {
     const ws = await this.drizzle.db
       .select({ id: workspace.id })
@@ -419,10 +439,17 @@ export class WorkspaceService {
         target: project.target,
         approvalBoardEnabled: project.approvalBoardEnabled,
         flag: project.flag,
+        status: project.status,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
+        ownerUid: user.uid,
+        ownerDisplayName: user.displayName,
+        ownerEmail: user.email,
+        ownerImage: user.image,
+        ownerSlug: user.slug,
       })
       .from(project)
+      .leftJoin(user, eq(project.createdById, user.id))
       .where(and(eq(project.workspaceId, workspaceId), isNull(project.deletedAt)))
       .orderBy(desc(project.createdAt));
 
@@ -478,8 +505,9 @@ export class WorkspaceService {
       sitesMap.set(s.projectId, existing);
     }
 
-    return projects.map((p) => ({
+    return projects.map(({ ownerUid, ownerDisplayName, ownerEmail, ownerImage, ownerSlug, ...p }) => ({
       ...p,
+      owner: ownerUid ? { uid: ownerUid, displayName: ownerDisplayName, email: ownerEmail, image: ownerImage, slug: ownerSlug } : null,
       memberCount: memberCountMap.get(p.id) ?? 0,
       siteCount: (sitesMap.get(p.id) ?? []).length,
       sites: sitesMap.get(p.id) ?? [],

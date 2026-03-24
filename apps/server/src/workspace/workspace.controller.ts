@@ -116,6 +116,16 @@ export class WorkspaceController {
         return await this.workspaceService.getWorkspaceProjects(uid);
     }
 
+    @Patch('/:uid/projects/:projectUid/status')
+    async updateProjectStatus(
+        @Param('uid') uid: string,
+        @Param('projectUid') projectUid: string,
+        @Body() body: { status: 'active' | 'in_review' | 'suspended' | 'disabled' },
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.updateProjectStatus(uid, projectUid, body.status);
+    }
+
     @Get('/:uid/settings')
     async getWorkspaceSettings(@Param('uid') uid: string) {
         return await this.workspaceService.getWorkspaceSettings(uid);

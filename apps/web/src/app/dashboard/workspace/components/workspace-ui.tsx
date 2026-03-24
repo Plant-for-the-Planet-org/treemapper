@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { ChevronDown, X } from 'lucide-react';
+import { sanitizeAvatarUrl } from '@shared-core/utils/avatarUrl';
 
 export const Button = ({
   children,
@@ -192,8 +193,8 @@ export const Avatar = ({
   className?: string;
 }) => (
   <div className={`relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full ${className}`}>
-    {src ? (
-      <img src={src} alt={alt} className="aspect-square h-full w-full" referrerPolicy="no-referrer" />
+    {sanitizeAvatarUrl(src) ? (
+      <img src={sanitizeAvatarUrl(src)} alt={alt} className="aspect-square h-full w-full" referrerPolicy="no-referrer" />
     ) : (
       <div className="flex h-full w-full items-center justify-center bg-gray-100 text-gray-600 text-sm font-medium">
         {fallback}

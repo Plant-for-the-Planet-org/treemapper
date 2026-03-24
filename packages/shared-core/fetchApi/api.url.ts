@@ -115,6 +115,7 @@ export const patchUrlApi = {
   userMigrated: `${baseUrl}/users/migrated`,
   updateWorkspace: `${baseUrl}/workspace`,
   updateWorkspaceSettings: `${baseUrl}/workspace`,
+  updateProjectStatus: `${baseUrl}/workspace`,
   updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
   markRead: `${baseUrl}/notifications`,

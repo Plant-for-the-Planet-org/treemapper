@@ -72,6 +72,7 @@ export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
   },
 };
 
+export type ProjectStatus = 'active' | 'in_review' | 'suspended' | 'disabled';
 export type SiteStatus = 'planted' | 'planting' | 'barren' | 'reforestation' | 'planning';
 export type ReviewStatus = 'pending' | 'in_review' | 'approved' | 'rejected';
 
@@ -96,6 +97,14 @@ export interface Site {
   updatedAt: string;
 }
 
+export interface ProjectOwner {
+  uid: string;
+  displayName: string;
+  email: string;
+  image: string | null;
+  slug: string;
+}
+
 export interface Project {
   id: number;
   uid: string;
@@ -115,6 +124,8 @@ export interface Project {
   target: number | null;
   approvalBoardEnabled: boolean;
   flag: boolean | null;
+  status: ProjectStatus;
+  owner: ProjectOwner | null;
   memberCount: number;
   siteCount: number;
   sites: Site[];

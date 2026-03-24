@@ -53,7 +53,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     <div className="flex space-x-6 overflow-x-auto">
       {items.map((item) => {
         if (selectedProject?.userRole === 'contributor') {
-          if ( item.id === 'settings' || item.id === 'team') {
+          if ( item.id === 'settings' || item.id === 'team' || item.id === 'approvals' ) {
             return null
           }
         }

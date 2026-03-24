@@ -198,7 +198,7 @@ const NotificationList = () => {
     )
   }
 
-  if (loading && notifications.length === 0) {
+  if (loading && notifications && notifications.length === 0) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={Colors.NEW_PRIMARY || '#007A49'} />

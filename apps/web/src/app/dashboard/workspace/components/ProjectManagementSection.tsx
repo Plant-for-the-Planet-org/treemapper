@@ -14,10 +14,12 @@ import {
   MapPin,
   Target,
   Trees,
+  UserCircle,
   Users,
   X,
 } from 'lucide-react';
-import { getWorkspaceProjectsApi } from '@shared-core/fetchApi/api.fetch';
+import { getWorkspaceProjectsApi, updateProjectStatusApi } from '@shared-core/fetchApi/api.fetch';
+import { sanitizeAvatarUrl } from '@shared-core/utils/avatarUrl';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import type { Project, Site } from '../types';
@@ -31,6 +33,13 @@ const siteStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'des
   planning: 'default',
   reforestation: 'warning',
   barren: 'destructive',
+};
+
+const projectStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'destructive'> = {
+  active: 'success',
+  in_review: 'warning',
+  suspended: 'destructive',
+  disabled: 'default',
 };
 
 const reviewStatusVariant: Record<string, 'success' | 'warning' | 'default' | 'destructive'> = {
@@ -91,7 +100,43 @@ function SiteRow({ site }: { site: Site }) {
 
 /* ─── ProjectDetailModal ────────────────────────────────────────────────────── */
 
-function ProjectDetailModal({ project, onClose }: { project: Project; onClose: () => void }) {
+const PROJECT_STATUSES: { value: 'active' | 'in_review' | 'suspended' | 'disabled'; label: string }[] = [
+  { value: 'active', label: 'Active' },
+  { value: 'in_review', label: 'In Review' },
+  { value: 'suspended', label: 'Suspended' },
+  { value: 'disabled', label: 'Disabled' },
+];
+
+function ProjectDetailModal({
+  project,
+  workspaceUid,
+  onClose,
+  onStatusUpdated,
+}: {
+  project: Project;
+  workspaceUid: string;
+  onClose: () => void;
+  onStatusUpdated: (projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') => void;
+}) {
+  const { accessToken } = useToken();
+  const [pendingStatus, setPendingStatus] = useState(project.status);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const isDirty = pendingStatus !== project.status;
+
+  const handleSaveStatus = async () => {
+    setSaving(true);
+    setSaveError(null);
+    const res = await updateProjectStatusApi(accessToken, workspaceUid, project.uid, pendingStatus);
+    setSaving(false);
+    if (res?.error || !res?.data) {
+      setSaveError('Failed to update status');
+      return;
+    }
+    onStatusUpdated(project.uid, pendingStatus);
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* backdrop */}
@@ -107,8 +152,8 @@ function ProjectDetailModal({ project, onClose }: { project: Project; onClose: (
               <Badge variant={project.isPublic ? 'success' : 'default'}>
                 {project.isPublic ? <><Eye className="h-3 w-3 mr-1" />Public</> : <><EyeOff className="h-3 w-3 mr-1" />Private</>}
               </Badge>
-              <Badge variant={project.isActive ? 'success' : 'default'}>
-                {project.isActive ? 'Active' : 'Inactive'}
+              <Badge variant={projectStatusVariant[project.status] ?? 'default'}>
+                {project.status.replace('_', ' ')}
               </Badge>
               {project.flag && (
                 <Badge variant="destructive"><Flag className="h-3 w-3 mr-1" />Flagged</Badge>
@@ -148,6 +193,22 @@ function ProjectDetailModal({ project, onClose }: { project: Project; onClose: (
             )}
             <StatCard icon={<Calendar className="h-4 w-4 text-purple-500" />} label="Created" value={new Date(project.createdAt).toLocaleDateString()} />
           </div>
+
+          {/* owner */}
+          {project.owner && (
+            <div className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 px-4 py-3">
+              {sanitizeAvatarUrl(project.owner.image) ? (
+                <img src={sanitizeAvatarUrl(project.owner.image)} alt={project.owner.displayName} className="h-9 w-9 rounded-full object-cover flex-shrink-0" />
+              ) : (
+                <UserCircle className="h-9 w-9 text-gray-300 flex-shrink-0" />
+              )}
+              <div className="min-w-0">
+                <div className="text-xs text-gray-400 font-medium uppercase tracking-wide mb-0.5">Project Owner</div>
+                <div className="text-sm font-semibold text-gray-900">{project.owner.displayName}</div>
+                <div className="text-xs text-gray-500 truncate">{project.owner.email}</div>
+              </div>
+            </div>
+          )}
 
           {/* meta row */}
           <div className="flex flex-wrap gap-x-6 gap-y-2 text-sm text-gray-600">
@@ -194,9 +255,34 @@ function ProjectDetailModal({ project, onClose }: { project: Project; onClose: (
           </div>
         </div>
 
-        {/* footer */}
-        <div className="px-6 py-4 border-t flex justify-end">
-          <Button variant="outline" onClick={onClose}>Close</Button>
+        {/* footer — status editor */}
+        <div className="px-6 py-4 border-t flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium text-gray-700">Project status</span>
+            <div className="flex gap-2">
+              {PROJECT_STATUSES.map(({ value, label }) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setPendingStatus(value)}
+                  className={`px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${
+                    pendingStatus === value
+                      ? 'border-transparent bg-gray-900 text-white'
+                      : 'border-gray-300 bg-white text-gray-600 hover:border-gray-500'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+            {saveError && <span className="text-xs text-red-500">{saveError}</span>}
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={onClose}>Close</Button>
+            <Button onClick={handleSaveStatus} disabled={!isDirty || saving}>
+              {saving ? 'Saving…' : 'Save Status'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -291,8 +377,8 @@ function ProjectRow({ project, onView }: { project: Project; onView: (project: P
           </Badge>
         </td>
         <td className="p-2">
-          <Badge variant={project.isActive ? 'success' : 'default'}>
-            {project.isActive ? 'Active' : 'Inactive'}
+          <Badge variant={projectStatusVariant[project.status] ?? 'default'}>
+            {project.status.replace('_', ' ')}
           </Badge>
         </td>
         <td className="p-2 text-sm text-gray-600">{project.memberCount}</td>
@@ -375,6 +461,11 @@ export function ProjectManagementSection() {
     router.replace(qs ? `?${qs}` : '?', { scroll: false });
   };
 
+  const handleStatusUpdated = (projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') => {
+    setProjects((prev) => prev.map((p) => p.uid === projectUid ? { ...p, status } : p));
+    setSelectedProject((prev) => prev ? { ...prev, status } : null);
+  };
+
   const totalSites = projects.reduce((sum, p) => sum + p.siteCount, 0);
 
   return (
@@ -431,7 +522,12 @@ export function ProjectManagementSection() {
       </Card>
 
       {selectedProject && (
-        <ProjectDetailModal project={selectedProject} onClose={handleClose} />
+        <ProjectDetailModal
+          project={selectedProject}
+          workspaceUid={selectedWorkspace?.uid ?? ''}
+          onClose={handleClose}
+          onStatusUpdated={handleStatusUpdated}
+        />
       )}
     </>
   );

@@ -534,6 +534,16 @@ export const getWorkspaceProjectsApi = async (token: string, uid: string) => {
   return await fetchGetCall(uri, token);
 };
 
+export const updateProjectStatusApi = async (
+  token: string,
+  workspaceUid: string,
+  projectUid: string,
+  status: 'active' | 'in_review' | 'suspended' | 'disabled',
+) => {
+  const uri = `${patchUrlApi.updateProjectStatus}/${workspaceUid}/projects/${projectUid}/status`;
+  return await fetchPatchCall(uri, { status }, token);
+};
+
 export const getWorkspaceMembers = async (token: string) => {
   const uri = `${getUrlApi.getWrokspaceMembers}`;
   const result = await fetchGetCall(uri, token);

@@ -106,8 +106,8 @@ export function GeneralSettingsSection() {
       getWorkspaceProjectsApi(accessToken, uid),
     ])
       .then(([settingsRes, projectsRes]) => {
-        if (settingsRes && !settingsRes.error) {
-          setSettings({ ...DEFAULT_WORKSPACE_SETTINGS, ...settingsRes });
+        if (settingsRes?.data && !settingsRes.error) {
+          setSettings({ ...DEFAULT_WORKSPACE_SETTINGS, ...settingsRes.data });
         }
         if (Array.isArray(projectsRes)) {
           setProjects(projectsRes.map((p: { uid: string; name: string }) => ({ uid: p.uid, name: p.name })));
