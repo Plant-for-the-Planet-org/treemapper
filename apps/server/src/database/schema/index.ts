@@ -114,6 +114,7 @@ export const entityEnum = pgEnum('entity_type', [
   'images'
 ]);
 export const projectRoleEnum = pgEnum('project_role', ['owner', 'admin', 'contributor', 'observer']);
+export const projectStatusEnum = pgEnum('project_status', ['active', 'in_review', 'suspended', 'disabled']);
 export const inviteStatusEnum = pgEnum('invite_status', ['pending', 'accepted', 'declined', 'expired', 'discarded']);
 export const imageUploadDeviceEnum = pgEnum('image_upload_device', ['web', 'mobile', 'server']);
 export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation', 'planning']);
@@ -316,6 +317,34 @@ export const user = pgTable('user', {
 
 
 
+export type WorkspaceSettings = {
+  approvalBoardEnabled: boolean;
+  defaultProjectVisibility: 'public' | 'private';
+  allowMemberInvites: boolean;
+  requireApprovalForNewProjects: boolean;
+  maxProjects: number | null;
+  notifications: {
+    onProjectCreate: boolean;
+    onInterventionCreate: boolean;
+    interventionProjectWhitelist: string[]; // project UIDs; empty array = all projects
+    onProfileActivity: boolean;
+  };
+};
+
+export const DEFAULT_WORKSPACE_SETTINGS: WorkspaceSettings = {
+  approvalBoardEnabled: false,
+  defaultProjectVisibility: 'private',
+  allowMemberInvites: false,
+  requireApprovalForNewProjects: false,
+  maxProjects: null,
+  notifications: {
+    onProjectCreate: false,
+    onInterventionCreate: false,
+    interventionProjectWhitelist: [],
+    onProfileActivity: false,
+  },
+};
+
 export const workspace = pgTable('workspace', {
   id: serial('id').primaryKey(),
   uid: text('uid').notNull().unique(),
@@ -331,6 +360,7 @@ export const workspace = pgTable('workspace', {
   website: text('website'),
   address: text('address'),
   isActive: boolean('is_active').default(true).notNull(),
+  settings: jsonb('settings').$type<WorkspaceSettings>().default(DEFAULT_WORKSPACE_SETTINGS),
   createdById: integer('created_by_id').references(() => user.id),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
@@ -537,6 +567,7 @@ export const project = pgTable('project', {
   intensity: integer('intensity'),
   revisionPeriodicity: text('revision_periodicity'),
   migratedProject: boolean('migrated_project').default(false),
+  status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),

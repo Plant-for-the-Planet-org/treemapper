@@ -1,10 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, User as UserIcon } from 'lucide-react';
-import { getWorkspaceMembers } from '@shared-core/fetchApi/api.fetch';
+import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, Search, User as UserIcon } from 'lucide-react';
+import { getWorkspaceMembersApi } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
-import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle } from './workspace-ui';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle, Input } from './workspace-ui';
 
 interface UserDetail {
   userUid: string;
@@ -133,30 +134,56 @@ function UserRow({ user }: { user: UserDetail }) {
 
 export function MemberManagementSection() {
   const { accessToken } = useToken();
+  const currentUser = useUserStore((state) => state.user);
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
-    if (!accessToken) return;
+    if (!accessToken || !currentUser?.primaryWorkspaceUid) return;
     setIsLoading(true);
-    getWorkspaceMembers(accessToken)
-      .then((data) => { if (Array.isArray(data)) setUsers(data); })
+    getWorkspaceMembersApi(accessToken, currentUser.primaryWorkspaceUid)
+      .then((res) => {
+        const list = Array.isArray(res) ? res : res?.data;
+        if (Array.isArray(list)) setUsers(list);
+      })
       .finally(() => setIsLoading(false));
-  }, [accessToken]);
+  }, [accessToken, currentUser?.primaryWorkspaceUid]);
+
+  const filtered = search.trim()
+    ? users.filter((u) => {
+        const q = search.toLowerCase();
+        return (
+          u.displayName.toLowerCase().includes(q) ||
+          u.email.toLowerCase().includes(q) ||
+          u.slug.toLowerCase().includes(q) ||
+          (u.primaryProjectName ?? '').toLowerCase().includes(q)
+        );
+      })
+    : users;
 
   return (
     <Card>
       <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle>All Users</CardTitle>
-          <span className="text-sm text-gray-500">{users.length} total</span>
+        <div className="flex items-center justify-between gap-4">
+          <CardTitle>Members</CardTitle>
+          <div className="relative w-64">
+            <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400 pointer-events-none" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Search by name, email…"
+              className="pl-8"
+            />
+          </div>
+          <span className="text-sm text-gray-500 shrink-0">{filtered.length} of {users.length}</span>
         </div>
       </CardHeader>
       <CardContent className="p-0">
         {isLoading ? (
-          <div className="p-6 text-sm text-gray-500">Loading users...</div>
-        ) : users.length === 0 ? (
-          <div className="p-6 text-sm text-gray-500">No users found.</div>
+          <div className="p-6 text-sm text-gray-500">Loading members...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-6 text-sm text-gray-500">{users.length === 0 ? 'No members found.' : 'No results match your search.'}</div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
@@ -171,7 +198,7 @@ export function MemberManagementSection() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {filtered.map((u) => (
                   <UserRow key={u.userUid} user={u} />
                 ))}
               </tbody>

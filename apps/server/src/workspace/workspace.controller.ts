@@ -24,6 +24,7 @@ import {
 import { Request } from 'express';
 import { WorkspaceService } from './workspace.service';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
+import { UpdateWorkspaceSettingsDto } from './dto/workspace-settings.dto';
 import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationResponseDto } from './dto/organization-response.dto';
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
@@ -95,6 +96,11 @@ export class WorkspaceController {
     }
 
 
+    @Get('/my')
+    async getMyWorkspaces(@CurrentUser() user: User): Promise<any[]> {
+        return await this.workspaceService.getMyAdminWorkspaces(user.id);
+    }
+
     @Get('/members')
     async findUsers(): Promise<any[]> {
         return await this.workspaceService.findUsers();
@@ -103,6 +109,26 @@ export class WorkspaceController {
     @Get('/:uid/members')
     async getWorkspaceMembers(@Param('uid') uid: string): Promise<any[]> {
         return await this.workspaceService.getWorkspaceMembers(uid);
+    }
+
+    @Get('/:uid/projects')
+    async getWorkspaceProjects(@Param('uid') uid: string): Promise<any[]> {
+        return await this.workspaceService.getWorkspaceProjects(uid);
+    }
+
+    @Get('/:uid/settings')
+    async getWorkspaceSettings(@Param('uid') uid: string) {
+        return await this.workspaceService.getWorkspaceSettings(uid);
+    }
+
+    @Patch('/:uid/settings')
+    async updateWorkspaceSettings(
+        @Param('uid') uid: string,
+        @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceSettingsDto,
+        @CurrentUser() user: User,
+    ) {
+        // Only owners/admins should be able to change workspace settings
+        return await this.workspaceService.updateWorkspaceSettings(uid, body);
     }
 
     @Get('/:uid')

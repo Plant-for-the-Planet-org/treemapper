@@ -432,6 +432,17 @@ export class ProjectsService {
       if (!workspaceId) {
         throw new NotFoundException('Workspace not found');
       }
+
+      const [workspaceData] = await this.drizzleService.db
+        .select({ settings: workspace.settings })
+        .from(workspace)
+        .where(eq(workspace.id, workspaceId))
+        .limit(1);
+      const workspaceSettings = workspaceData?.settings;
+
+      const projectStatus = workspaceSettings?.requireApprovalForNewProjects ? 'in_review' : 'active';
+      const approvalBoardEnabled = workspaceSettings?.approvalBoardEnabled ?? false;
+
       if (createProjectDto.location) {
         try {
           const geometry = this.getGeoJSONForPostGIS(createProjectDto.location);
@@ -457,7 +468,9 @@ export class ProjectsService {
           description: createProjectDto.description ?? null,
           target: createProjectDto.target ? Number(createProjectDto.target) : null,
           location: locationValue,
-          originalGeometry: createProjectDto.location
+          originalGeometry: createProjectDto.location,
+          status: projectStatus,
+          approvalBoardEnabled: approvalBoardEnabled,
         })
         .where(eq(project.id, membership.projectId))
 

@@ -652,7 +652,11 @@ export class MigrationService {
             firstName: oldUserData.firstname || null,
             lastName: oldUserData.lastname || null,
             displayName: oldUserData.displayName || null,
-            image: oldUserData.image || '',
+            image: oldUserData.image
+              ? /^https?:\/\//.test(oldUserData.image)
+                ? oldUserData.image
+                : `https://cdn.plant-for-the-planet.org/media/cache/profile/thumb/${oldUserData.image}`
+              : '',
             slug: oldUserData.slug || null,
             type: oldUserData.type,
             country: oldUserData.country,

@@ -16,7 +16,7 @@ export function ImpersonationSection({ token, goHome }: { token: string; goHome:
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoadingUsers, setIsLoadingUsers] = useState(false);
   const [searchResults, setSearchResults] = useState<User[]>([]);
-  const [impersonationHistory] = useState<ImpersonationRecord[]>(mockImpersonationHistory);
+  const [impersonationHistory] = useState<ImpersonationRecord[]>([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [workspaceUsers, setWorkspaceUsers] = useState<User[]>([]);
   const [, setError] = useState('');

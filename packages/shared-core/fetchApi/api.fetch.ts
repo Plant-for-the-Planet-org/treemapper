@@ -137,6 +137,12 @@ export const getMyWorkspaceProjects = async (token: string) => {
   return result
 }
 
+export const getMyAdminWorkspaces = async (token: string) => {
+  const uri = `${getUrlApi.getMyAdminWorkspaces}`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 export const getSingleProjectDetails = async (token: string, prid: string) => {
   const uri = `${getUrlApi.singleproject}/${prid}`
   const result = await fetchGetCall(uri, token)
@@ -490,6 +496,42 @@ export const updateWorkspace = async (token: string, uid: string, data: object) 
   const uri = `${patchUrlApi.updateWorkspace}/${uid}`;
   const result = await fetchPatchCall(uri, data, token);
   return result;
+};
+
+export const getWorkspaceAuditLogs = async (
+  token: string,
+  uid: string,
+  params: {
+    page?: number;
+    limit?: number;
+    action?: string;
+    entityType?: string;
+    startDate?: string;
+    endDate?: string;
+  } = {},
+) => {
+  const query = new URLSearchParams();
+  Object.entries(params).forEach(([k, v]) => {
+    if (v !== undefined && v !== '') query.set(k, String(v));
+  });
+  const qs = query.toString();
+  const uri = `${getUrlApi.getWorkspaceAuditLogs}/${uid}${qs ? `?${qs}` : ''}`;
+  return await fetchGetCall(uri, token);
+};
+
+export const getWorkspaceSettings = async (token: string, uid: string) => {
+  const uri = `${getUrlApi.getWorkspaceSettings}/${uid}/settings`;
+  return await fetchGetCall(uri, token);
+};
+
+export const updateWorkspaceSettings = async (token: string, uid: string, data: object) => {
+  const uri = `${patchUrlApi.updateWorkspaceSettings}/${uid}/settings`;
+  return await fetchPatchCall(uri, data, token);
+};
+
+export const getWorkspaceProjectsApi = async (token: string, uid: string) => {
+  const uri = `${getUrlApi.getWorkspaceProjects}/${uid}/projects`;
+  return await fetchGetCall(uri, token);
 };
 
 export const getWorkspaceMembers = async (token: string) => {

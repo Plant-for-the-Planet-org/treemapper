@@ -108,11 +108,12 @@ export class UsersService {
         try {
             this.validateOnboardingData(surveyDetails, userData);
             const workspaceSlug = this.determineWorkspaceId(surveyDetails);
-            const workspaceData = await this.drizzleService.db.select({ id: workspace.id }).from(workspace).where(eq(workspace.slug, workspaceSlug)).limit(1)
+            const workspaceData = await this.drizzleService.db.select({ id: workspace.id, settings: workspace.settings }).from(workspace).where(eq(workspace.slug, workspaceSlug)).limit(1)
             if (!workspaceData || workspaceData.length === 0) {
                 throw 'Server side workspace issue'
             }
-            const workspaceId = workspaceData[0].id
+            const workspaceId = workspaceData[0].id;
+            const workspaceSettings = workspaceData[0].settings;
             const projectSlug = this.generateUniqueProjectSlug(surveyDetails.projectName);
             const now = new Date();
             const uids = {
@@ -178,6 +179,8 @@ export class UsersService {
                         isPrimary: false,
                         isPersonal: false,
                         isPublic: false,
+                        status: workspaceSettings?.requireApprovalForNewProjects ? 'in_review' : 'active',
+                        approvalBoardEnabled: workspaceSettings?.approvalBoardEnabled ?? false,
                         createdAt: now,
                         updatedAt: now,
                     })

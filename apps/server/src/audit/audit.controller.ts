@@ -7,6 +7,29 @@ import { ApiTags, ApiOperation, ApiParam, ApiQuery } from '@nestjs/swagger';
 export class AuditController {
   constructor(private readonly auditService: AuditService) {}
 
+  @Get('workspace/:uid')
+  @ApiOperation({ summary: 'Get audit logs for a workspace' })
+  @ApiParam({ name: 'uid', type: 'string', description: 'Workspace UID' })
+  @ApiQuery({ name: 'page', required: false, type: 'number' })
+  @ApiQuery({ name: 'limit', required: false, type: 'number' })
+  @ApiQuery({ name: 'action', required: false, type: 'string' })
+  @ApiQuery({ name: 'entityType', required: false, type: 'string' })
+  @ApiQuery({ name: 'startDate', required: false, type: 'string' })
+  @ApiQuery({ name: 'endDate', required: false, type: 'string' })
+  async getWorkspaceAuditLogs(
+    @Param('uid') uid: string,
+    @Query() query: AuditLogQueryDto,
+  ) {
+    const result = await this.auditService.getWorkspaceAuditLogs(uid, query);
+    return {
+      message: 'Workspace audit logs retrieved successfully',
+      statusCode: 200,
+      error: null,
+      data: result,
+      code: 'workspace_audit_logs_retrieved',
+    };
+  }
+
   @Get('project/:projectId')
   @ApiOperation({ summary: 'Get audit logs for a project' })
   @ApiParam({ name: 'projectId', type: 'number' })

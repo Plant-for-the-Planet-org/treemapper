@@ -1,16 +1,20 @@
 // src/organizations/organizations.service.ts
 import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto } from './dto/organization-response.dto';
-import { project, user, workspace, workspaceMember } from '../database/schema/index';
+import { project, projectMember, site, user, workspace, workspaceMember, DEFAULT_WORKSPACE_SETTINGS, WorkspaceSettings } from '../database/schema/index';
 import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { UserCacheService } from 'src/cache/user-cache.service';
 import { CACHE_KEYS, CACHE_TTL } from 'src/cache/cache-keys';
 import { User } from 'src/users/entities/user.entity';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
+
+type WorkspaceSettingsPatch = Omit<Partial<WorkspaceSettings>, 'notifications'> & {
+  notifications?: Partial<WorkspaceSettings['notifications']>;
+};
 
 @Injectable()
 export class WorkspaceService {
@@ -153,6 +157,26 @@ export class WorkspaceService {
     }
   }
 
+
+  async getMyAdminWorkspaces(userId: number) {
+    const results = await this.drizzle.db
+      .select({
+        uid: workspace.uid,
+        name: workspace.name,
+        slug: workspace.slug,
+        role: workspaceMember.role,
+      })
+      .from(workspaceMember)
+      .innerJoin(workspace, eq(workspaceMember.workspaceId, workspace.id))
+      .where(
+        and(
+          eq(workspaceMember.userId, userId),
+          eq(workspaceMember.status, 'active'),
+        )
+      );
+
+    return results.filter(w => w.role === 'admin' || w.role === 'owner');
+  }
 
   async findByUid(uid: string) {
     const result = await this.drizzle.db
@@ -327,6 +351,139 @@ export class WorkspaceService {
     } catch (error) {
       return false
     }
+  }
+
+  async getWorkspaceSettings(uid: string): Promise<WorkspaceSettings> {
+    const result = await this.drizzle.db
+      .select({ settings: workspace.settings })
+      .from(workspace)
+      .where(eq(workspace.uid, uid))
+      .limit(1);
+
+    if (result.length === 0) throw new NotFoundException('Workspace not found');
+
+    return { ...DEFAULT_WORKSPACE_SETTINGS, ...result[0].settings } as WorkspaceSettings;
+  }
+
+  async updateWorkspaceSettings(uid: string, patch: WorkspaceSettingsPatch): Promise<WorkspaceSettings> {
+    const current = await this.getWorkspaceSettings(uid);
+
+    const updated: WorkspaceSettings = {
+      ...current,
+      ...patch,
+      notifications: {
+        ...current.notifications,
+        ...(patch.notifications ?? {}),
+      },
+    };
+
+    const result = await this.drizzle.db
+      .update(workspace)
+      .set({ settings: updated })
+      .where(eq(workspace.uid, uid))
+      .returning({ settings: workspace.settings });
+
+    if (result.length === 0) throw new NotFoundException('Workspace not found');
+
+    return result[0].settings as WorkspaceSettings;
+  }
+
+  async getWorkspaceProjects(uid: string) {
+    const ws = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, uid))
+      .limit(1);
+
+    if (ws.length === 0) throw new NotFoundException('Workspace not found');
+
+    const workspaceId = ws[0].id;
+
+    const projects = await this.drizzle.db
+      .select({
+        id: project.id,
+        uid: project.uid,
+        name: project.name,
+        slug: project.slug,
+        description: project.description,
+        purpose: project.purpose,
+        type: project.type,
+        ecosystem: project.ecosystem,
+        country: project.country,
+        isPublic: project.isPublic,
+        isActive: project.isActive,
+        isPrimary: project.isPrimary,
+        isPersonal: project.isPersonal,
+        website: project.website,
+        image: project.image,
+        target: project.target,
+        approvalBoardEnabled: project.approvalBoardEnabled,
+        flag: project.flag,
+        createdAt: project.createdAt,
+        updatedAt: project.updatedAt,
+      })
+      .from(project)
+      .where(and(eq(project.workspaceId, workspaceId), isNull(project.deletedAt)))
+      .orderBy(desc(project.createdAt));
+
+    if (projects.length === 0) return [];
+
+    const projectIds = projects.map((p) => p.id);
+
+    const memberCounts = await this.drizzle.db
+      .select({
+        projectId: projectMember.projectId,
+        count: sql<number>`count(*)::int`,
+      })
+      .from(projectMember)
+      .where(
+        and(
+          inArray(projectMember.projectId, projectIds),
+          isNull(projectMember.deletedAt),
+          eq(projectMember.status, 'active'),
+        ),
+      )
+      .groupBy(projectMember.projectId);
+
+    const sites = await this.drizzle.db
+      .select({
+        uid: site.uid,
+        projectId: site.projectId,
+        name: site.name,
+        description: site.description,
+        status: site.status,
+        area: site.area,
+        soilType: site.soilType,
+        elevation: site.elevation,
+        waterAccess: site.waterAccess,
+        accessibility: site.accessibility,
+        expectedTreeCount: site.expectedTreeCount,
+        image: site.image,
+        reviewStatus: site.reviewStatus,
+        plannedPlantingDate: site.plannedPlantingDate,
+        actualPlantingDate: site.actualPlantingDate,
+        flag: site.flag,
+        createdAt: site.createdAt,
+        updatedAt: site.updatedAt,
+      })
+      .from(site)
+      .where(and(inArray(site.projectId, projectIds), isNull(site.deletedAt)))
+      .orderBy(asc(site.createdAt));
+
+    const memberCountMap = new Map(memberCounts.map((m) => [m.projectId, m.count]));
+    const sitesMap = new Map<number, typeof sites>();
+    for (const s of sites) {
+      const existing = sitesMap.get(s.projectId) ?? [];
+      existing.push(s);
+      sitesMap.set(s.projectId, existing);
+    }
+
+    return projects.map((p) => ({
+      ...p,
+      memberCount: memberCountMap.get(p.id) ?? 0,
+      siteCount: (sitesMap.get(p.id) ?? []).length,
+      sites: sitesMap.get(p.id) ?? [],
+    }));
   }
 
 

@@ -1,8 +1,7 @@
-import { Injectable } from '@nestjs/common';
-import { eq, and, desc, gte, lte } from 'drizzle-orm';
-import { auditLog, auditActionEnum, auditEntityEnum } from '../database/schema/index'
+import { Injectable, NotFoundException } from '@nestjs/common';
+import { eq, and, desc, gte, lte, sql } from 'drizzle-orm';
+import { auditLog, workspace, user } from '../database/schema/index'
 import { DrizzleService } from '../database/drizzle.service'
-import { count, from } from 'rxjs';
 
 export interface CreateAuditLogDto {
   action: 'create' | 'update' | 'delete' | 'soft_delete' | 'restore' | 'login' | 'logout' | 'invite' | 'accept_invite' | 'decline_invite' | 'role_change' | 'permission_change' | 'export' | 'import' | 'archive' | 'unarchive' | 'impersonation';
@@ -96,6 +95,71 @@ export class AuditService {
       // Don't throw error to prevent breaking main operations
       return null;
     }
+  }
+
+  /**
+   * Get audit logs for an entire workspace, joined with user info
+   */
+  async getWorkspaceAuditLogs(
+    workspaceUid: string,
+    query: AuditLogQueryDto = {},
+  ): Promise<{ data: any[]; total: number; page: number; limit: number }> {
+    const wsResult = await this.drizzleService.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, workspaceUid))
+      .limit(1);
+
+    if (wsResult.length === 0) throw new NotFoundException('Workspace not found');
+    const workspaceId = wsResult[0].id;
+
+    const { page = 1, limit = 25, action, entityType, startDate, endDate } = query;
+    const offset = (Number(page) - 1) * Number(limit);
+
+    const whereConditions: any[] = [eq(auditLog.workspaceId, workspaceId)];
+    if (action) whereConditions.push(eq(auditLog.action, action as any));
+    if (entityType) whereConditions.push(eq(auditLog.entityType, entityType as any));
+    if (startDate) whereConditions.push(gte(auditLog.occurredAt, new Date(startDate)));
+    if (endDate) whereConditions.push(lte(auditLog.occurredAt, new Date(endDate)));
+
+    const whereClause = and(...whereConditions);
+
+    const [data, countResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          id: auditLog.id,
+          uid: auditLog.uid,
+          action: auditLog.action,
+          entityType: auditLog.entityType,
+          entityId: auditLog.entityId,
+          entityUid: auditLog.entityUid,
+          changedFields: auditLog.changedFields,
+          source: auditLog.source,
+          occurredAt: auditLog.occurredAt,
+          userUid: user.uid,
+          userDisplayName: user.displayName,
+          userEmail: user.email,
+          userImage: user.image,
+        })
+        .from(auditLog)
+        .leftJoin(user, eq(auditLog.userId, user.id))
+        .where(whereClause)
+        .orderBy(desc(auditLog.occurredAt))
+        .limit(Number(limit))
+        .offset(offset),
+
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)::int` })
+        .from(auditLog)
+        .where(whereClause),
+    ]);
+
+    return {
+      data,
+      total: countResult[0]?.count ?? 0,
+      page: Number(page),
+      limit: Number(limit),
+    };
   }
 
   /**
