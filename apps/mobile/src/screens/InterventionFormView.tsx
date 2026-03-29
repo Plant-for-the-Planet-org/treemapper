@@ -18,6 +18,8 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import { v4 as uuid } from 'uuid'
 import { RootState } from 'src/store'
 import { useRealm } from '@realm/react'
@@ -64,6 +66,7 @@ const InterventionFormView = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'InterventionForm'>>()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
+  const posthog = usePostHog()
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
@@ -297,6 +300,10 @@ const InterventionFormView = () => {
       })
       const result = await initializeIntervention(registerForm);
       if (result) {
+        captureAnalyticsEvent(posthog, AnalyticsEvents.INTERVENTION_CREATED, {
+          intervention_key: registerForm.intervention_key,
+          project_id: registerForm.project_id,
+        })
         await handleSuccessfulInterventionInitialization();
       } else {
         handleInterventionInitializationError();

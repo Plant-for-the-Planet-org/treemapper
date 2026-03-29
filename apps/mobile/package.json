@@ -68,6 +68,7 @@
     "moment": "^2.30.1",
     "moti": "^0.28.1",
     "onesignal-expo-plugin": "^2.0.3",
+    "posthog-react-native": "^4.39.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-i18next": "16.5.0",

@@ -16,6 +16,8 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import { Colors } from 'src/utils/constants'
 import { AvoidSoftInput, AvoidSoftInputView } from "react-native-avoid-softinput";
 import getUserLocation from 'src/utils/helpers/getUserLocation'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import i18next from 'i18next'
 import AlertModal from 'src/components/common/AlertModal'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -49,6 +51,7 @@ const AddMeasurement = () => {
 
   const id = uuid()
   const toast = useToast()
+  const posthog = usePostHog()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   useEffect(() => {
@@ -204,7 +207,13 @@ const AddMeasurement = () => {
       fix_required: 'NO'
     }
     const result = await addSampleTrees(Intervention.form_id, treeDetails)
-    if (!result) {
+    if (result) {
+      captureAnalyticsEvent(posthog, AnalyticsEvents.TREE_RECORDED, {
+        intervention_id: Intervention.intervention_id,
+        tree_type: treeDetails.tree_type,
+        species_name: treeDetails.specie_name,
+      })
+    } else {
       errorHaptic()
       toast.show("Error occurred while registering sample tree.")
     }

@@ -1,6 +1,7 @@
 import 'src/utils/initializeServices'
 import React, { useEffect } from 'react'
 import { NavigationContainer } from '@react-navigation/native'
+import { PostHogProvider } from 'posthog-react-native'
 import { applyStoredLanguage } from 'src/locales'
 import RootNavigator from './src/navigation/RootNavigator'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
@@ -36,7 +37,19 @@ export default function App() {
                 <GestureHandlerRootView style={{ flex: 1 }}>
                   <BottomSheetModalProvider>
                     <NavigationContainer>
-                      <RootNavigator />
+                      <PostHogProvider
+                        apiKey={process.env.EXPO_PUBLIC_POSTHOG_API_KEY}
+                        debug={__DEV__}
+                        options={{
+                          host: process.env.EXPO_PUBLIC_POSTHOG_HOST,
+                          disabled: __DEV__,
+                        }}
+                        autocapture={{
+                          captureScreens: false,
+                          captureTouches: true,
+                        }}>
+                        <RootNavigator />
+                      </PostHogProvider>
                     </NavigationContainer>
                   </BottomSheetModalProvider>
                 </GestureHandlerRootView>

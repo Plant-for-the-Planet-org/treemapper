@@ -13,6 +13,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import DropDownPicker from 'react-native-dropdown-picker';
 import { createMobileProject } from 'src/api/api.fetch';
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import useProjectManagement from 'src/hooks/realm/useProjectManagement';
 import { updateProjectState } from 'src/store/slice/projectStateSlice';
 import { useDispatch } from 'react-redux';
@@ -27,6 +29,7 @@ const CreateProjectScreen = () => {
     const [projectType, setProjectType] = useState('');
     const [target, setTarget] = useState('');
     const toast = useToast()
+    const posthog = usePostHog()
     const dispatch = useDispatch()
     const onBack = () => {
         navigation.goBack()
@@ -122,6 +125,9 @@ const CreateProjectScreen = () => {
             // Simulate API call
             const { response } = await createMobileProject(projectData)
             if (response.code=='success') {
+                captureAnalyticsEvent(posthog, AnalyticsEvents.PROJECT_CREATED, {
+                    project_type: projectType,
+                })
                 dispatch(updateProjectState(true))
                 setWorkspace('');
                 setProjectName('');

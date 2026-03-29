@@ -1,4 +1,6 @@
 import { Credentials, useAuth0 } from 'react-native-auth0'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import useInterventionManagement from './realm/useInterventionManagement'
 import useProjectManagement from './realm/useProjectManagement'
 import useManageScientificSpecies from './realm/useManageScientificSpecies'
@@ -8,6 +10,7 @@ import useLogManagement from './realm/useLogManagement'
 
 const useAuthentication = () => {
   const { authorize, getCredentials, clearSession, user, error } = useAuth0()
+  const posthog = usePostHog()
   const { deleteAllSyncedIntervention } = useInterventionManagement()
   const { deleteAllProjects } = useProjectManagement()
   const { deleteAllUserSpecies } = useManageScientificSpecies()
@@ -61,6 +64,7 @@ const useAuthentication = () => {
       if (!authCred) {
         throw new Error('No token found');
       }
+      captureAnalyticsEvent(posthog, AnalyticsEvents.USER_ACTIVATED)
       addNewLog({
         logType: 'USER',
         message: 'User login token generated successfully.',

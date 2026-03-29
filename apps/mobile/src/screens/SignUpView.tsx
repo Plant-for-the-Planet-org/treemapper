@@ -16,6 +16,8 @@ import SignUpOutline from 'src/components/common/SignUpOutline'
 import * as Localization from 'expo-localization';
 import { getLocales } from 'expo-localization'
 import { createUserProfile } from 'src/api/api.fetch'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import { useDispatch, useSelector } from 'react-redux'
 import Bugsnag from '@bugsnag/expo'
 import { logoutAppUser, updateUserLogin } from 'src/store/slice/appStateSlice'
@@ -55,6 +57,7 @@ const SignUpView = () => {
     const { addNewLog } = useLogManagement()
 
     const toast = useToast()
+    const posthog = usePostHog()
 
     function removeDomainFromEmail(email) {
         const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -281,6 +284,9 @@ const SignUpView = () => {
         }
 
         if(success){
+            captureAnalyticsEvent(posthog, AnalyticsEvents.USER_SIGNUP, {
+                account_type: accountType,
+            })
             addNewLog({
                 logType: 'USER',
                 message: "User profile created",

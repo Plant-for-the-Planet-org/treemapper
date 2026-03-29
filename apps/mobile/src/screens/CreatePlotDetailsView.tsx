@@ -16,6 +16,8 @@ import { RealmSchema } from 'src/types/enum/db.enum'
 import { MonitoringPlot, PlotGroups } from 'src/types/interface/slice.interface'
 import { useToast } from 'react-native-toast-notifications'
 import useMonitoringPlotManagement, { PlotDetailsParams } from 'src/hooks/realm/useMonitoringPlotManagement'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import AddPlotImage from 'src/components/monitoringPlot/AddPlotImage'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -48,6 +50,7 @@ const CreatePlotDetailsView = () => {
     })
     const [dropDownList, setDropDownList] = useState<DropdownData[]>([])
     const toast = useToast()
+    const posthog = usePostHog()
 
     useEffect(() => {
         getPlotDetails()
@@ -118,6 +121,10 @@ const CreatePlotDetailsView = () => {
 
         const result = await updatePlotDetails(plotID, data);
         if (result) {
+            captureAnalyticsEvent(posthog, AnalyticsEvents.MONITORING_PLOT_CREATED, {
+                plot_id: plotID,
+                plot_shape: plotShape,
+            })
             await handlePostUpdate();
             navigation.replace('CreatePlotMap', { id: plotID });
         } else {

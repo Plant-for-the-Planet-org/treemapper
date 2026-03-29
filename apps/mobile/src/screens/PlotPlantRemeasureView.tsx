@@ -16,6 +16,8 @@ import { MonitoringPlot, PlantTimeLine, PlantedPlotSpecies } from 'src/types/int
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import useMonitoringPlotManagement from 'src/hooks/realm/useMonitoringPlotManagement'
+import { usePostHog } from 'posthog-react-native'
+import { captureAnalyticsEvent, AnalyticsEvents } from 'src/utils/analytics'
 import { generateUniquePlotId } from 'src/utils/helpers/monitoringPlotHelper/monitoringRealmHelper'
 import { scaleSize, scaleFont } from 'src/utils/constants/mixins'
 import { useToast } from 'react-native-toast-notifications'
@@ -47,6 +49,7 @@ const PlotPlantRemeasureView = () => {
     const [timelineImage, setTimelineImage] = useState('')
 
     const toast = useToast()
+    const posthog = usePostHog()
     const { addNewMeasurementPlantPlots, updateTimelineDetails, deletePlotTimeline } = useMonitoringPlotManagement()
     const realm = useRealm()
 
@@ -98,6 +101,11 @@ const PlotPlantRemeasureView = () => {
             timeline_id: generateUniquePlotId()
         }
         await addNewMeasurementPlantPlots(plotID, plantID, updateTimeline)
+        captureAnalyticsEvent(posthog, AnalyticsEvents.TREE_MONITORED, {
+            plot_id: plotID,
+            plant_id: plantID,
+            status: updateTimeline.status,
+        })
         navigation.goBack()
     }
 
