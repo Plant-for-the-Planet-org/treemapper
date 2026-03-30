@@ -246,58 +246,53 @@ export class MigrationService {
             }).returning();
             userData = newUser;
         }
-        if (!userData.existingPlanetUser) {
-            throw 'no need to migrate user'
-        }
+        // if (!userData.existingPlanetUser) {
+        //     throw 'no need to migrate user'
+        // }
         let authToken = token
         if (typeof authToken !== 'string') {
             authToken = ''
         }
         try {
             userMigrationRecord = await this.createMigrationRecord(userData.id, userData.uid);
+            this.logger.log(`[${email}] Migration record — id=${userMigrationRecord.id} status=${userMigrationRecord.status} entities=${JSON.stringify(userMigrationRecord.migratedEntities)}`);
+
             if (userMigrationRecord.status === 'completed') {
-                console.log("Migration says completed")
+                this.logger.log(`[${email}] Migration already completed, skipping`);
                 this.addLog(userMigrationRecord.id, 'info', 'Migration already done', 'users');
-                this.logMigration()
+                await this.logMigration();
                 return;
             }
 
             if (userMigrationRecord.status === 'in_progress') {
-                console.log("Migration resumed-in progresss")
+                this.logger.warn(`[${email}] Migration already in_progress — another process may be running`);
                 this.addLog(userMigrationRecord.id, 'info', 'Migration in progress', 'users');
                 return;
             }
 
             if (userMigrationRecord.status === 'failed' || userMigrationRecord.status === 'started') {
-                console.log("Migration found to be old or new")
-                await this.continueMigration(userMigrationRecord.id)
+                this.logger.log(`[${email}] Resuming migration from status=${userMigrationRecord.status}`);
+                await this.continueMigration(userMigrationRecord.id);
                 this.addLog(userMigrationRecord.id, 'info', 'Migration resumed', 'users');
             }
 
             let stop = false;
-            console.log("Stop init", stop)
 
-            if (stop) {
-                console.log("Stop Activated", 1)
-                this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for user and will not proceed further', 'projects');
-                await this.updateMigrationProgress(userMigrationRecord.id, 'user', false, true);
-                return;
-            }
-
+            // Step 1: Migrate user profile
             if (!userMigrationRecord.migratedEntities.user) {
-                console.log("User migration started")
+                this.logger.log(`[${email}] Step 1/5: Migrating user profile`);
                 stop = await this.migrateUserData(userData.id, authToken, userMigrationRecord.id, email);
             } else {
-                console.log("User migration skipped")
+                this.logger.log(`[${email}] Step 1/5: User profile already migrated, skipping`);
             }
 
             if (stop) {
-                console.log("User migration error occurred")
+                this.logger.error(`[${email}] Step 1/5: User profile migration failed — aborting`);
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for user and will not proceed further', 'users');
                 await this.updateMigrationProgress(userMigrationRecord.id, 'user', false, true);
                 return;
             } else {
-                console.log("User migration done")
+                this.logger.log(`[${email}] Step 1/5: User profile migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'user', true, false);
             }
 
@@ -307,89 +302,113 @@ export class MigrationService {
                 .where(and(eq(project.createdById, userData.id), eq(project.isPersonal, true)))
                 .limit(1);
             if (personalProject.length > 0) {
-                console.log("Personal Project Found", personalProject[0].name)
-                this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Found', 'projects');
+                this.logger.log(`[${email}] Personal project found: "${personalProject[0].name}" (id=${personalProject[0].id})`);
+                this.addLog(userMigrationRecord.id, 'info', `Personal project found: ${personalProject[0].name}`, 'projects');
             } else {
-                this.addLog(userMigrationRecord.id, 'warning', `Personal project not found. Created new`, 'projects');
-                const newPersonalProject = await this.projectService.createMigrationProject(userData)
-                console.log("Created new project")
+                this.logger.warn(`[${email}] Personal project not found — creating new one`);
+                this.addLog(userMigrationRecord.id, 'warning', `Personal project not found. Creating new`, 'projects');
+                const newPersonalProject = await this.projectService.createMigrationProject(userData);
                 if (newPersonalProject.statusCode === 201 || newPersonalProject.statusCode === 200) {
-                    this.addLog(userMigrationRecord.id, 'info', 'Persoanl Project Created', 'projects');
+                    this.logger.log(`[${email}] Personal project created successfully`);
+                    this.addLog(userMigrationRecord.id, 'info', 'Personal project created', 'projects');
                 } else {
-                    console.log("Error Occured while creating new project")
-                    stop = true
+                    this.logger.error(`[${email}] Failed to create personal project — statusCode=${newPersonalProject.statusCode}`);
+                    this.addLog(userMigrationRecord.id, 'error', `Failed to create personal project — statusCode=${newPersonalProject.statusCode}`, 'projects');
+                    stop = true;
                 }
             }
 
-
             // Step 2: Migrate Projects
             if (!userMigrationRecord.migratedEntities.projects) {
-                console.log("Project migration started")
+                this.logger.log(`[${email}] Step 2/5: Migrating projects`);
                 stop = await this.migrateUserProjects(userData, authToken, userMigrationRecord.id, email);
+            } else {
+                this.logger.log(`[${email}] Step 2/5: Projects already migrated, skipping`);
             }
 
-
-
-
             if (stop) {
-                console.log("Project migration stoped at stop")
+                this.logger.error(`[${email}] Step 2/5: Project migration failed — aborting`);
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for project', 'projects');
-                await this.updateMigrationProgress(userMigrationRecord.id, 'projects', false, true)
-                return
+                await this.updateMigrationProgress(userMigrationRecord.id, 'projects', false, true);
+                return;
             } else {
-                console.log("Project migration done")
+                this.logger.log(`[${email}] Step 2/5: Projects migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'projects', true, false);
             }
 
-
-            // // Step 3: Migrate sites
-            if (!userMigrationRecord.migratedEntities.sites) {
-                console.log("Site migration started")
-                stop = await this.migrateUserSites(userData.id, authToken, userMigrationRecord.id, email);
+            // Set personal project as primary workspace/project for user
+            const [personalProjectData] = await this.drizzleService.db
+                .select({ uid: project.uid, workspaceUid: workspace.uid })
+                .from(project)
+                .innerJoin(workspace, eq(project.workspaceId, workspace.id))
+                .where(and(eq(project.createdById, userData.id), eq(project.isPersonal, true)))
+                .limit(1);
+            if (personalProjectData) {
+                await this.drizzleService.db
+                    .update(project)
+                    .set({ isPrimary: true })
+                    .where(and(eq(project.uid, personalProjectData.uid)));
+                await this.drizzleService.db
+                    .update(user)
+                    .set({ primaryProjectUid: personalProjectData.uid, primaryWorkspaceUid: personalProjectData.workspaceUid })
+                    .where(eq(user.id, userData.id));
+                this.logger.log(`[${email}] Primary project set — projectUid=${personalProjectData.uid} workspaceUid=${personalProjectData.workspaceUid}`);
+                this.addLog(userMigrationRecord.id, 'info', `Primary project and workspace set for user`, 'projects', personalProjectData.uid);
+            } else {
+                this.logger.warn(`[${email}] Personal project not found after migration — cannot set primary`);
+                this.addLog(userMigrationRecord.id, 'warning', `Personal project not found — primary project/workspace not set`, 'projects');
             }
 
-
+            // Step 3: Migrate sites
+            if (!userMigrationRecord.migratedEntities.sites) {
+                this.logger.log(`[${email}] Step 3/5: Migrating sites`);
+                stop = await this.migrateUserSites(userData.id, authToken, userMigrationRecord.id, email);
+            } else {
+                this.logger.log(`[${email}] Step 3/5: Sites already migrated, skipping`);
+            }
             if (stop) {
-                console.log("Site migration stoped, it's activcate", stop)
+                this.logger.error(`[${email}] Step 3/5: Site migration failed — aborting`);
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for site', 'sites');
                 await this.updateMigrationProgress(userMigrationRecord.id, 'sites', false, true);
-                return
+                return;
             } else {
-                console.log("Site Migrated")
+                this.logger.log(`[${email}] Step 3/5: Sites migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'sites', true, false);
             }
 
-
             // Step 4: Migrate User Species
             if (!userMigrationRecord.migratedEntities.species) {
-                console.log("Species Migration")
+                this.logger.log(`[${email}] Step 4/5: Migrating species`);
                 stop = await this.migrateUserSpecies(userData.id, authToken, userMigrationRecord.id, email);
+            } else {
+                this.logger.log(`[${email}] Step 4/5: Species already migrated, skipping`);
             }
 
-
             if (stop) {
-                console.log("Species Migration failed", stop)
+                this.logger.error(`[${email}] Step 4/5: Species migration failed — aborting`);
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for species', 'species');
                 await this.updateMigrationProgress(userMigrationRecord.id, 'species', false, true);
-                return
+                return;
             } else {
-                console.log("Species Migration done")
+                this.logger.log(`[${email}] Step 4/5: Species migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'species', true, false);
             }
 
-
-
+            // Step 5: Migrate Interventions
             if (!userMigrationRecord.migratedEntities.interventions) {
-                console.log("Intervention Migration started")
+                this.logger.log(`[${email}] Step 5/5: Migrating interventions`);
                 stop = await this.migrateUserInterventions(userData.id, authToken, userMigrationRecord.id, email);
+            } else {
+                this.logger.log(`[${email}] Step 5/5: Interventions already migrated, skipping`);
             }
 
-
             if (stop) {
+                this.logger.error(`[${email}] Step 5/5: Intervention migration failed — aborting`);
                 this.addLog(userMigrationRecord.id, 'error', 'Migration stopped for intervention', 'interventions');
                 await this.updateMigrationProgress(userMigrationRecord.id, 'interventions', false, true);
-                return
+                return;
             } else {
+                this.logger.log(`[${email}] Step 5/5: Interventions migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'interventions', true, false);
             }
 
@@ -615,28 +634,35 @@ export class MigrationService {
     private async migrateUserData(userId: number, authToken: string, migrationId: number, impersonate: string): Promise<boolean> {
         try {
             this.addLog(migrationId, 'info', 'Starting user data migration', 'users');
-            console.log("Starting user data migration")
             const userResponse = await this.makeApiCall(`/treemapper/profile`, authToken, impersonate);
             if (!userResponse || userResponse === null) {
-                this.addLog(migrationId, 'error', `User migration failed. No response recieved`, 'users');
+                this.logger.error(`[${impersonate}] User profile API returned null`);
+                this.addLog(migrationId, 'error', `User migration failed. No response received from /treemapper/profile`, 'users');
                 return true;
             }
             const oldUserData = userResponse.data;
+            this.logger.log(`[${impersonate}] Old profile fetched — id=${oldUserData?.id} type=${oldUserData?.type} country=${oldUserData?.country}`);
             const transformedUser = this.transformUserData(oldUserData, userId);
-            await this.usersetvice.update(userId, transformedUser).catch(async () => {
-                this.addLog(migrationId, 'error', `User migration stopped while wrtiting to db`, 'users', JSON.stringify(transformedUser));
-                throw ''
-            })
+            this.logger.log(`[${impersonate}] Transformed user — slug=${transformedUser.slug} displayName=${transformedUser.displayName}`);
+            await this.usersetvice.update(userId, transformedUser).catch(async (err) => {
+                const msg = err?.message || JSON.stringify(err);
+                this.logger.error(`[${impersonate}] Failed to write user to DB: ${msg}`);
+                this.addLog(migrationId, 'error', `User migration failed writing to DB: ${msg}`, 'users', JSON.stringify(transformedUser));
+                throw new Error(msg);
+            });
+            this.logger.log(`[${impersonate}] User profile written to DB successfully`);
             this.addLog(migrationId, 'info', 'User data migration completed', 'users');
             return false;
         } catch (error) {
-            this.addLog(migrationId, 'error', `User migration failed`, 'users', JSON.stringify(error.stack));
+            const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+            this.logger.error(`[${impersonate}] migrateUserData failed: ${msg}`, error?.stack);
+            this.addLog(migrationId, 'error', `User migration failed: ${msg}`, 'users', error?.stack);
             return true;
         }
     }
 
     private async continueMigration(migrationId: number): Promise<void> {
-        console.log("Migration state updated and continue...")
+        this.logger.log(`[migrationId:${migrationId}] Resetting status to in_progress and continuing`);
         await this.drizzleService.db
             .update(migration)
             .set({
@@ -646,6 +672,22 @@ export class MigrationService {
     }
 
     private transformUserData(oldUserData: any, userId: number): any {
+        const userFinalType = ['individual', 'tpo', 'organization', 'other', 'school', 'superadmin'].includes(oldUserData.type) ? oldUserData.type : 'other'
+        let flag = false
+        let flagReason: FlagReasonEntry[] = []
+        if (userFinalType === 'other') {
+            flag = true,
+                flagReason = [{
+                    uid: generateUid('flag'),
+                    type: 'user',
+                    level: 'error',
+                    title: 'User type mismatch',
+                    message: 'Found this user type ' + oldUserData.type + ' which does not match any of the expected types. Set to "other" for migration but needs review.',
+                    updatedAt: new Date(),
+                    createdAt: new Date(),
+                }
+                ]
+        }
         const transformedUser = {
             uid: oldUserData.id,
             email: oldUserData.email,
@@ -653,12 +695,12 @@ export class MigrationService {
             lastName: oldUserData.lastname || null,
             displayName: oldUserData.displayName || null,
             image: oldUserData.image
-              ? /^https?:\/\//.test(oldUserData.image)
-                ? oldUserData.image
-                : `https://cdn.plant-for-the-planet.org/media/cache/profile/thumb/${oldUserData.image}`
-              : '',
+                ? /^https?:\/\//.test(oldUserData.image)
+                    ? oldUserData.image
+                    : `https://cdn.plant-for-the-planet.org/media/cache/profile/thumb/${oldUserData.image}`
+                : '',
             slug: oldUserData.slug || null,
-            type: oldUserData.type,
+            type: userFinalType,
             country: oldUserData.country,
             website: oldUserData.url,
             isPrivate: oldUserData.isPrivate || false,
@@ -696,15 +738,18 @@ export class MigrationService {
     }
 
     private async handleMigrationError(userId: number, migrationId: number, error: any): Promise<void> {
+        const errorMessage = error?.message || (typeof error === 'string' ? error : JSON.stringify(error)) || 'Unknown error';
+        this.logger.error(`[userId:${userId}] Migration failed — migrationId=${migrationId} error="${errorMessage}"`, error?.stack);
         if (migrationId) {
             await this.drizzleService.db
                 .update(migration)
                 .set({
                     status: 'failed',
-                    errorMessage: ''
+                    errorMessage: errorMessage.substring(0, 1000),
                 })
                 .where(eq(migration.id, migrationId));
-            this.logMigration()
+            this.addLog(migrationId, 'error', `Migration failed: ${errorMessage}`, 'users', error?.stack);
+            await this.logMigration();
         }
     }
 
@@ -750,32 +795,34 @@ export class MigrationService {
         }
     }
 
-    private async makeApiCall(endpoint: string, authToken: string, impersonate: string = '', retries = 3): Promise<any> {
-        const baseUrl = process.env.OLD_BACKEND_URL
+    private async makeApiCall(endpoint: string, authToken: string, impersonate: string = '', API_KEY: boolean = false, retries = 3): Promise<any> {
+        const baseUrl = process.env.OLD_BACKEND_URL;
         for (let attempt = 1; attempt <= retries; attempt++) {
+            const t0 = Date.now();
             try {
+                this.logger.log(`[${impersonate}] API GET ${endpoint} (attempt ${attempt}/${retries})`);
                 const response = await firstValueFrom(
                     this.httpService.get(`${baseUrl}${endpoint}`, {
                         headers: {
-                            'Authorization': `Bearer ${authToken}`,
-                            'Content-Type': 'application/json',
-                            "User-Agent": 'treemapper',
-                            // "X-API-Key": process.env.API_KEY || '',
-                            "X-Profile-ID": impersonate
+                            "X-Profile-ID": impersonate,
+                            "X-TOKEN-API": process.env.API_TOKEN
                         },
-                        timeout: 30000 // 30 second timeout
+                        timeout: 30000
                     })
                 );
+                this.logger.log(`[${impersonate}] API GET ${endpoint} → HTTP ${response.status} (${Date.now() - t0}ms)`);
                 return response;
-
             } catch (error) {
-                console.log("makeApiCall error", error)
-
+                const status = error?.response?.status;
+                const msg = error?.message || 'unknown';
+                this.logger.error(`[${impersonate}] API GET ${endpoint} → FAILED attempt=${attempt}/${retries} status=${status ?? 'N/A'} error="${msg}" (${Date.now() - t0}ms)`);
                 if (attempt === retries) {
-                    return null
+                    this.logger.error(`[${impersonate}] API GET ${endpoint} — all ${retries} attempts exhausted, returning null`);
+                    return null;
                 }
-                // Wait before retry (exponential backoff)
-                await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000));
+                const delay = Math.pow(2, attempt) * 1000;
+                this.logger.log(`[${impersonate}] Retrying in ${delay}ms...`);
+                await new Promise(resolve => setTimeout(resolve, delay));
             }
         }
     }
@@ -785,21 +832,24 @@ export class MigrationService {
         try {
             const projectsResponse = await this.makeApiCall(`/treemapper/profile/projects?_scope=extended`, authToken, email);
             if (!projectsResponse || projectsResponse === null) {
-                console.log("Project no respinse")
-                this.addLog(migrationId, 'error', `Project migration failed. No response recieved`, 'projects');
+                this.logger.error(`[${email}] Projects API returned null`);
+                this.addLog(migrationId, 'error', `Project migration failed. No response received from /treemapper/profile/projects`, 'projects');
                 return true;
             }
 
             const workspaceSlug = userData.type === 'tpo' ? 'platform-projects' : 'private-projects';
+            this.logger.log(`[${email}] User type=${userData.type} → workspace slug="${workspaceSlug}"`);
             const [workspaceData] = await this.drizzleService.db
                 .select({ id: workspace.id })
                 .from(workspace)
                 .where(eq(workspace.slug, workspaceSlug))
                 .limit(1);
             if (!workspaceData) {
-                this.addLog(migrationId, 'error', `Workspace '${workspaceSlug}' not found`, 'projects');
+                this.logger.error(`[${email}] Workspace "${workspaceSlug}" not found in DB`);
+                this.addLog(migrationId, 'error', `Workspace '${workspaceSlug}' not found in DB`, 'projects');
                 return true;
             }
+            this.logger.log(`[${email}] Workspace found — id=${workspaceData.id} slug="${workspaceSlug}"`);
 
             const existingWorkspaceMember = await this.drizzleService.db
                 .select({ id: workspaceMember.id })
@@ -818,27 +868,55 @@ export class MigrationService {
             }
 
             const oldProjects = projectsResponse.data;
-            console.log("Project oldProjects", oldProjects.length)
+            this.logger.log(`[${email}] Found ${oldProjects.length} projects to migrate`);
+            this.addLog(migrationId, 'info', `Found ${oldProjects.length} projects from old backend`, 'projects');
             let stop = false;
+            let projectsCreated = 0, projectsSkipped = 0;
             for (const oldProject of oldProjects) {
                 if (stop) {
-                    console.log("Project Stop loop activate")
+                    this.logger.error(`[${email}] Project loop aborted due to previous error`);
                     this.addLog(migrationId, 'error', `Project loop stopped`, 'projects');
-                    return true
+                    return true;
                 }
                 try {
-                    console.log("Transofrom Project Before", oldProject.id)
                     const transformedProject = this.transformProjectData(oldProject, userId);
                     transformedProject.workspaceId = workspaceData.id;
-                    console.log("Transofrom Project After", oldProject.id)
+                    this.logger.log(`[${email}] Processing project uid=${transformedProject.uid} name="${transformedProject.name}" flag=${transformedProject.flag}`);
                     const existingProject = await this.drizzleService.db
                         .select()
                         .from(project)
                         .where(eq(project.uid, transformedProject.uid))
                         .limit(1);
                     if (existingProject.length > 0) {
-                        this.addLog(migrationId, 'warning', `Project already exist`, 'projects', JSON.stringify(transformedProject));
+                        this.logger.warn(`[${email}] Project uid=${transformedProject.uid} already exists, skipping`);
+                        this.addLog(migrationId, 'warning', `Project uid=${transformedProject.uid} already exists, skipping`, 'projects');
+                        projectsSkipped++;
                     } else {
+                        const existingSlug = await this.drizzleService.db
+                            .select()
+                            .from(project)
+                            .where(eq(project.slug, transformedProject.slug))
+                            .limit(1);
+                        if (existingSlug.length > 0) {
+                            const originalSlug = transformedProject.slug;
+                            const randomSuffix = Math.random().toString(36).slice(2, 8);
+                            transformedProject.slug = `${originalSlug}-${randomSuffix}`;
+                            transformedProject.flag = true;
+                            transformedProject.flagReason = [
+                                ...transformedProject.flagReason,
+                                {
+                                    uid: generateUid('flag'),
+                                    type: 'migration',
+                                    level: 'warning',
+                                    title: 'Slug conflict resolved',
+                                    message: `Original slug "${originalSlug}" was already taken. A random suffix was appended: "${transformedProject.slug}"`,
+                                    updatedAt: new Date(),
+                                    createdAt: new Date(),
+                                },
+                            ];
+                            this.logger.warn(`[${email}] Slug conflict for uid=${transformedProject.uid}: "${originalSlug}" → "${transformedProject.slug}"`);
+                            this.addLog(migrationId, 'warning', `Slug conflict resolved for uid=${transformedProject.uid}: "${originalSlug}" → "${transformedProject.slug}"`, 'projects');
+                        }
                         await this.drizzleService.db.transaction(async (tx) => {
                             try {
                                 const projectResult = await tx
@@ -872,34 +950,34 @@ export class MigrationService {
                                             uploadedById: userId,
                                         });
                                 }
-                                this.addLog(
-                                    migrationId,
-                                    'info',
-                                    `Successfully migrated project '${projectResult[0].uid}'`,
-                                    'projects',
-                                    projectResult[0].uid
-                                );
+                                this.logger.log(`[${email}] Project inserted — uid=${projectResult[0].uid} id=${newProjectId}`);
+                                this.addLog(migrationId, 'info', `Migrated project uid=${projectResult[0].uid}`, 'projects', projectResult[0].uid);
+                                projectsCreated++;
                                 stop = false;
                             } catch (error) {
-                                console.log("error Project Transcation", oldProject.id)
-                                this.addLog(migrationId, 'error', `Projects migration failed: At 12837`, 'projects', JSON.stringify(error.stack));
-                                stop = true
+                                const msg = error?.message || JSON.stringify(error);
+                                this.logger.error(`[${email}] Project transaction failed for uid=${oldProject?.properties?.id}: ${msg}`, error?.stack);
+                                this.addLog(migrationId, 'error', `Project transaction failed for uid=${oldProject?.properties?.id}: ${msg}`, 'projects', error?.stack);
+                                stop = true;
                             }
-                        })
+                        });
                     }
                 } catch (error) {
-                    console.log("error Project Loop", error);
-                    this.addLog(migrationId, 'error', `Project migration failed for project at catch block`, 'projects', JSON.stringify(oldProject));
+                    const msg = error?.message || JSON.stringify(error);
+                    this.logger.error(`[${email}] Project loop error for uid=${oldProject?.properties?.id}: ${msg}`, error?.stack);
+                    this.addLog(migrationId, 'error', `Project loop error for uid=${oldProject?.properties?.id}: ${msg}`, 'projects', error?.stack);
                     stop = true;
                 }
             }
+            this.logger.log(`[${email}] Projects done — created=${projectsCreated} skipped=${projectsSkipped} total=${oldProjects.length}`);
             await this.updateMigrationProgress(migrationId, 'projects', true);
-            this.addLog(migrationId, 'info', `All projects migrated`, 'projects', 'null');
-            return false
+            this.addLog(migrationId, 'info', `All projects migrated — created=${projectsCreated} skipped=${projectsSkipped}`, 'projects');
+            return false;
         } catch (error) {
-            console.log("error Main Project Loop", error);
-            this.addLog(migrationId, 'error', `Projects migration failed: ${error.message}`, 'projects', JSON.stringify(error.stack));
-            this.updateMigrationProgress(migrationId, 'projects', false, true);
+            const msg = error?.message || JSON.stringify(error);
+            this.logger.error(`[${email}] migrateUserProjects outer catch: ${msg}`, error?.stack);
+            this.addLog(migrationId, 'error', `Projects migration failed: ${msg}`, 'projects', error?.stack);
+            await this.updateMigrationProgress(migrationId, 'projects', false, true);
             return true;
         }
     }
@@ -907,12 +985,13 @@ export class MigrationService {
     private transformProjectData(oldProjectData: any, userId: number): any {
         const projectData = oldProjectData.properties
         const geometry = oldProjectData.geometry;
+        const MAX_INT = 2147483647;
         const getTarget = (unitsTargeted, countTarget) => {
             try {
                 if (unitsTargeted && unitsTargeted.tree) {
-                    return unitsTargeted.tree > 0 ? unitsTargeted.tree : null;
+                    return unitsTargeted.tree > 0 && unitsTargeted.tree <= MAX_INT ? unitsTargeted.tree : null;
                 }
-                return countTarget > 0 ? countTarget : null;
+                return countTarget > 0 && countTarget <= MAX_INT ? countTarget : null;
             } catch (error) {
                 return null
             }
@@ -934,17 +1013,37 @@ export class MigrationService {
         if (projectGeometry.isValid) {
             locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(projectGeometry.validatedGeoJSON)}), 4326)`
         } else {
-            flag = true,
-                flagReason = [{
-                    uid: generateUid('flag'),
-                    type: 'location',
-                    level: 'error',
-                    title: 'Project Location error',
-                    message: 'There was error while migrating location',
-                    updatedAt: new Date(),
-                    createdAt: new Date()
-                }]
+            flag = true;
+            flagReason.push({
+                uid: generateUid('flag'),
+                type: 'location',
+                level: 'error',
+                title: 'Project Location error',
+                message: 'There was error while migrating location',
+                updatedAt: new Date(),
+                createdAt: new Date()
+            });
         }
+        const rawTarget = (() => {
+            try {
+                if (projectData.unitsTargeted?.tree) return projectData.unitsTargeted.tree;
+                return projectData.countTarget || null;
+            } catch { return null; }
+        })();
+        const target = getTarget(projectData.unitsTargeted, projectData.countTarget);
+        if (rawTarget !== null && rawTarget !== target) {
+            flag = true;
+            flagReason.push({
+                uid: generateUid('flag'),
+                type: 'migration' as const,
+                level: 'error',
+                title: 'Invalid target value',
+                message: `Target value "${rawTarget}" is out of valid integer range and has been set to null`,
+                updatedAt: new Date(),
+                createdAt: new Date()
+            });
+        }
+
         const transformedProject = {
             uid: projectData.id,
             createdById: userId,
@@ -954,7 +1053,7 @@ export class MigrationService {
             type: getProjectScale(projectData.classification),
             ecosystem: projectData.metadata?.ecosystem || 'Unknown',
             scale: getProjectScale(projectData.classification),
-            target: getTarget(projectData.unitsTargeted, projectData.countTarget),
+            target,
             description: projectData.description || 'No description provided',
             classification: projectData.classification || null,
             image: projectData.image || '',
@@ -983,33 +1082,38 @@ export class MigrationService {
             this.addLog(migrationId, 'info', 'Starting sites migration', 'sites');
             const sitesResponse = await this.makeApiCall(`/treemapper/profile/projects?_scope=extended`, authToken, email);
             if (!sitesResponse || sitesResponse === null) {
-                this.addLog(migrationId, 'error', `Site migration failed. No response recieved`, 'projects');
+                this.logger.error(`[${email}] Sites API returned null`);
+                this.addLog(migrationId, 'error', `Site migration failed. No response received`, 'sites');
                 return true;
             }
             const allProjects = sitesResponse.data;
-            console.log("Site Response allProjects", allProjects.length)
-            let stopProcess = false
-            for (const oldSite of allProjects) {
+            this.logger.log(`[${email}] Found ${allProjects.length} projects to scan for sites`);
+            let stopProcess = false;
+            for (const oldProject of allProjects) {
                 try {
-                    const stopParentLoop = await this.transformSiteData(oldSite, uid, migrationId);
-                    console.log("Site oldSite after", stopParentLoop)
+                    const projectId = oldProject?.properties?.id;
+                    this.logger.log(`[${email}] Processing sites for project uid=${projectId}`);
+                    const stopParentLoop = await this.transformSiteData(oldProject, uid, migrationId);
                     if (stopParentLoop || stopProcess) {
-                        console.log("Site oldSite tranform stopParentLoop", stopParentLoop, stopProcess)
-                        this.addLog(migrationId, 'error', `Site Parent loop stopped`, 'sites', JSON.stringify(oldSite));
-                        return true
+                        this.logger.error(`[${email}] Site loop aborted for project uid=${projectId} — stopParentLoop=${stopParentLoop}`);
+                        this.addLog(migrationId, 'error', `Site parent loop stopped at project uid=${projectId}`, 'sites', JSON.stringify(oldProject));
+                        return true;
                     }
                 } catch (error) {
-                    console.log("Site oldSite tranform error", error)
-                    this.addLog(migrationId, 'error', `Site migration failed for project ${oldSite.properties.id}: ${error.message}`, 'sites', JSON.stringify(oldSite));
-                    stopProcess = true
+                    const msg = error?.message || JSON.stringify(error);
+                    this.logger.error(`[${email}] Site transform threw for project uid=${oldProject?.properties?.id}: ${msg}`, error?.stack);
+                    this.addLog(migrationId, 'error', `Site migration failed for project ${oldProject?.properties?.id}: ${msg}`, 'sites', error?.stack);
+                    stopProcess = true;
                 }
             }
+            this.logger.log(`[${email}] Sites migration completed`);
             this.addLog(migrationId, 'info', `Sites migration completed`, 'sites');
-            return false
+            return false;
         } catch (error) {
-            console.log("Site oldSite tranform outer loop", error)
-            this.addLog(migrationId, 'error', `Sites migration failed at parent catch ${error.message}`, 'sites');
-            return true
+            const msg = error?.message || JSON.stringify(error);
+            this.logger.error(`[${email}] migrateUserSites outer catch: ${msg}`, error?.stack);
+            this.addLog(migrationId, 'error', `Sites migration failed: ${msg}`, 'sites', error?.stack);
+            return true;
         }
     }
 
@@ -1021,18 +1125,22 @@ export class MigrationService {
             .where(eq(project.uid, projectData.id))
             .limit(1);
         if (projectExist.length === 0) {
-            this.addLog(migrationId, 'error', `Stoping site migration for project:${projectData.id}. Project dont exist in new backend`, 'sites', JSON.stringify(projectData));
-            return true
+            this.logger.warn(`[userId:${userId}] Project uid=${projectData.id} not found in new DB — skipping its sites`);
+            this.addLog(migrationId, 'error', `Project uid=${projectData.id} not found in new backend — stopping site migration for this project`, 'sites', JSON.stringify(projectData));
+            return true;
         }
         if (!projectData.sites || !Array.isArray(projectData.sites)) {
-            this.addLog(migrationId, 'warning', `skipping site migration for project:${projectData.id}. No sites in response`, 'sites', JSON.stringify(projectData));
-            return false
+            this.logger.log(`[userId:${userId}] Project uid=${projectData.id} has no sites — skipping`);
+            this.addLog(migrationId, 'warning', `Project uid=${projectData.id} has no sites in response`, 'sites');
+            return false;
         }
-        let stopProcess = false
+        this.logger.log(`[userId:${userId}] Project uid=${projectData.id} has ${projectData.sites.length} site(s) to migrate`);
+        let stopProcess = false;
+        let sitesCreated = 0, sitesSkipped = 0;
         for (const siteData of projectData.sites) {
             if (stopProcess) {
-                this.addLog(migrationId, 'error', `Site loop stopped for project:${projectData.id} `, 'sites', JSON.stringify(projectData));
-                return true
+                this.addLog(migrationId, 'error', `Site loop stopped for project uid=${projectData.id}`, 'sites');
+                return true;
             }
             const siteExist = await this.drizzleService.db
                 .select()
@@ -1040,8 +1148,10 @@ export class MigrationService {
                 .where(eq(site.uid, siteData.id))
                 .limit(1);
             if (siteExist.length > 0) {
-                this.addLog(migrationId, 'warning', `Skipping site migration for project:${projectData.id}. Site already migreated`, 'sites', JSON.stringify(projectData));
-                return false
+                this.logger.warn(`[userId:${userId}] Site uid=${siteData.id} already exists, skipping`);
+                this.addLog(migrationId, 'warning', `Site uid=${siteData.id} already migrated, skipping`, 'sites');
+                sitesSkipped++;
+                continue;
             }
             try {
                 let flag = false
@@ -1062,13 +1172,27 @@ export class MigrationService {
                             createdAt: new Date()
                         }]
                 }
+                let siteFinalStatus = siteData.status;
+                siteFinalStatus = ['planted', 'planting', 'barren', 'reforestation', 'planning'].includes(siteData.status) ? siteData.status : 'other'
+                if (siteFinalStatus === 'other') {
+                    flag = true;
+                    flagReason.push({
+                        uid: generateUid('flag'),
+                        type: 'site',
+                        level: 'warning',
+                        title: 'Status set to "other"',
+                        message: `Original status "${siteData.status}" is not recognized, set to "other". Please update your site status with accepted value if needed.`,
+                        updatedAt: new Date(),
+                        createdAt: new Date()
+                    })
+                }
                 const insertValues: any = {
                     uid: siteData.id,
                     projectId: projectExist[0].id,
                     name: siteData.name,
                     createdById: userId,
                     description: siteData.description,
-                    status: siteData.status,
+                    status: siteFinalStatus,
                     migratedSite: true,
                     flag,
                     flagReason
@@ -1083,48 +1207,54 @@ export class MigrationService {
                 await this.drizzleService.db
                     .insert(site)
                     .values(insertValues)
-                    .catch(() => {
-                        throw ''
+                    .catch((err) => {
+                        throw new Error(`DB insert failed for site ${siteData.id}: ${err?.message || JSON.stringify(err)}`);
                     });
+                this.logger.log(`[userId:${userId}] Site uid=${siteData.id} inserted — project=${projectData.id} flag=${flag}`);
+                sitesCreated++;
             } catch (error) {
-                console.log("Site oldSite tranform inner", error)
-                this.addLog(migrationId, 'error', `Failed to insert site ${siteData.id} from project ${projectData.slug}: `, 'sites', JSON.stringify(siteData));
+                const msg = error?.message || JSON.stringify(error);
+                this.logger.error(`[userId:${userId}] Failed to insert site uid=${siteData.id} for project uid=${projectData.id}: ${msg}`, error?.stack);
+                this.addLog(migrationId, 'error', `Failed to insert site uid=${siteData.id} for project uid=${projectData.id}: ${msg}`, 'sites', error?.stack);
                 stopProcess = true;
             }
         }
-        this.addLog(migrationId, 'info', `All sites are migrated for project:${projectData.id}.`, 'sites');
-        return false
+        this.logger.log(`[userId:${userId}] Project uid=${projectData.id} sites done — created=${sitesCreated} skipped=${sitesSkipped}`);
+        this.addLog(migrationId, 'info', `Sites migrated for project uid=${projectData.id} — created=${sitesCreated} skipped=${sitesSkipped}`, 'sites');
+        return false;
     }
 
 
     private async migrateUserSpecies(uid: number, authToken: string, migrationId: number, email): Promise<boolean> {
         try {
-            console.log("Species mOIgratino")
-            this.addLog(migrationId, 'info', 'Starting User Species migration', 'species');
+            this.addLog(migrationId, 'info', 'Starting user species migration', 'species');
             const speciesResponse = await this.makeApiCall(`/treemapper/species`, authToken, email);
             if (!speciesResponse || speciesResponse === null) {
-                console.log("Species speciesResponse", false)
-                this.addLog(migrationId, 'error', `Species migration failed. No response recieved`, 'species');
+                this.logger.error(`[${email}] Species API returned null`);
+                this.addLog(migrationId, 'error', `Species migration failed. No response received from /treemapper/species`, 'species');
                 return true;
             }
-            console.log("Species response", true)
             let projectId;
             const personalProject = await this.drizzleService.db
                 .select({ id: project.id })
                 .from(project)
-                .where(eq(project.isPersonal, true))
+                .where(and(eq(project.isPersonal, true), eq(project.createdById, uid)))
                 .limit(1);
             if (!personalProject || personalProject.length === 0) {
-                throw 'Project not found for this site'
+                this.logger.error(`[${email}] Personal project not found for userId=${uid} — cannot attach species`);
+                throw new Error(`Personal project not found for userId=${uid}`);
             } else {
-                projectId = personalProject[0].id
+                projectId = personalProject[0].id;
+                this.logger.log(`[${email}] Personal project found — id=${projectId}`);
             }
             if (speciesResponse.data.length === 0) {
-                console.log("No Species Found")
-                this.addLog(migrationId, 'info', `Species migration done. No species found`, 'species');
-                return false
+                this.logger.log(`[${email}] No species found in old backend`);
+                this.addLog(migrationId, 'info', `Species migration done — no species found`, 'species');
+                return false;
             }
-            const cleanData = removeDuplicatesByScientificSpeciesId(speciesResponse.data)
+            this.logger.log(`[${email}] Fetched ${speciesResponse.data.length} species from old backend`);
+            const cleanData = removeDuplicatesByScientificSpeciesId(speciesResponse.data);
+            this.logger.log(`[${email}] After dedup: ${cleanData.length} unique species`);
             const speciesIds = cleanData.map(el => el.scientificSpecies);
             const existingSciSpecies = await this.drizzleService.db
                 .select({
@@ -1134,6 +1264,7 @@ export class MigrationService {
                 })
                 .from(scientificSpecies)
                 .where(inArray(scientificSpecies.uid, speciesIds));
+            this.logger.log(`[${email}] Matched ${existingSciSpecies.length}/${cleanData.length} species by uid in scientificSpecies table`);
 
             const existingSpeciesMapByUid = new Map(
                 existingSciSpecies.map(species => [species.uid, { id: species.id, scientificName: species.scientificName }])
@@ -1151,7 +1282,13 @@ export class MigrationService {
                 existingSpeciesMapByName
             );
 
-            const filteredData = transformedData.filter(el => el.scientificSpeciesId)
+            const filteredData = transformedData.filter(el => el.scientificSpeciesId);
+            const droppedCount = transformedData.length - filteredData.length;
+            if (droppedCount > 0) {
+                this.logger.warn(`[${email}] ${droppedCount} species dropped — no matching scientificSpeciesId found`);
+                this.addLog(migrationId, 'warning', `${droppedCount} species had no matching scientificSpeciesId and were not inserted`, 'species');
+            }
+            this.logger.log(`[${email}] Inserting ${filteredData.length} species into projectSpecies`);
             const result = await this.drizzleService.db
                 .insert(projectSpecies)
                 .values(filteredData)
@@ -1159,16 +1296,18 @@ export class MigrationService {
                     target: [projectSpecies.projectId, projectSpecies.scientificSpeciesId]
                 });
             if (result) {
-                console.log(`Species migration done`, true)
-                this.addLog(migrationId, 'info', `Species migration done`, 'species');
-                return false
+                this.logger.log(`[${email}] Species migration done — inserted up to ${filteredData.length} (conflicts silently skipped)`);
+                this.addLog(migrationId, 'info', `Species migration done — attempted=${filteredData.length} dropped=${droppedCount}`, 'species');
+                return false;
             }
-            this.addLog(migrationId, 'error', `Species migration failed.(After running bulk)`, 'species');
-            return true
+            this.logger.error(`[${email}] Species bulk insert returned falsy result`);
+            this.addLog(migrationId, 'error', `Species migration failed — bulk insert returned no result`, 'species');
+            return true;
         } catch (error) {
-            console.log(`Species migration error outer`, error)
-            this.addLog(migrationId, 'error', `Species migration failed.(Catch bolck)`, 'species', JSON.stringify(error));
-            return true
+            const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+            this.logger.error(`[${email}] migrateUserSpecies failed: ${msg}`, error?.stack);
+            this.addLog(migrationId, 'error', `Species migration failed: ${msg}`, 'species', error?.stack);
+            return true;
         }
     }
 
@@ -1208,21 +1347,28 @@ export class MigrationService {
 
     private async migrateUserInterventions(uid: number, authToken: string, migrationId: number, email): Promise<boolean> {
         try {
-            this.addLog(migrationId, 'info', 'Starting User intervention migration', 'interventions');
+            this.addLog(migrationId, 'info', 'Starting user intervention migration', 'interventions');
             const { projectMapping, personalProjectId } = await this.buildProjectMapping(uid);
-            console.log("Project mapping done")
+            this.logger.log(`[${email}] Project mapping built — ${projectMapping.size} projects, personalProjectId=${personalProjectId}`);
             const { siteMapping } = await this.buildSiteMapping(uid);
-            console.log("Site mapping done")
-            const needToStop = await this.migrateInterventionWithSampleTrees(uid, projectMapping, authToken, migrationId, personalProjectId, siteMapping, email)
-            if (needToStop) {
-                console.log("Site needToStop activated")
-                throw 'needToStop activated'
+            this.logger.log(`[${email}] Site mapping built — ${siteMapping.size} sites`);
+            if (!personalProjectId) {
+                this.logger.warn(`[${email}] personalProjectId is null — interventions without a project will have no fallback project`);
+                this.addLog(migrationId, 'warning', `personalProjectId is null — some interventions may not attach to a project`, 'interventions');
             }
+            const needToStop = await this.migrateInterventionWithSampleTrees(uid, projectMapping, authToken, migrationId, personalProjectId, siteMapping, email);
+            if (needToStop) {
+                this.logger.error(`[${email}] migrateInterventionWithSampleTrees signalled stop`);
+                throw new Error('migrateInterventionWithSampleTrees signalled stop');
+            }
+            this.logger.log(`[${email}] Interventions migration completed`);
             this.addLog(migrationId, 'info', `Interventions migration completed`, 'interventions');
-            return false
+            return false;
         } catch (error) {
-            this.addLog(migrationId, 'error', `Interventions migration failed`, 'interventions', JSON.stringify(error));
-            return true
+            const msg = error?.message || (typeof error === 'string' ? error : JSON.stringify(error));
+            this.logger.error(`[${email}] migrateUserInterventions failed: ${msg}`, error?.stack);
+            this.addLog(migrationId, 'error', `Interventions migration failed: ${msg}`, 'interventions', error?.stack);
+            return true;
         }
     }
 
@@ -1296,13 +1442,11 @@ export class MigrationService {
         siteMapping: Map<string, number>,
         email: string
     ) {
-        const batchSize = 100;
+        const batchSize = 50;
         let currentPage = 1;
-        let hasMore = true;
-        let lastPage: number | null = null;
-        while (hasMore) {
-            if (lastPage && currentPage > lastPage) break;
-            console.log(`[Migration] Fetching interventions page=${currentPage}${lastPage ? ` of ${lastPage}` : ''}`)
+        let totalPages: number | null = null;
+        while (true) {
+            this.logger.log(`[${email}] Fetching interventions page=${currentPage}${totalPages ? ` of ${totalPages}` : ''}`);
             const interventionResponse = await this.makeApiCall(
                 `/treemapper/interventions?limit=${batchSize}&_scope=extended&page=${currentPage}`,
                 authToken,
@@ -1310,27 +1454,23 @@ export class MigrationService {
             );
 
             if (!interventionResponse) {
-                console.log(`[Migration] ERROR: No response from API on page=${currentPage}`)
-                this.addLog(migrationId, 'error', `interventions migration failed. No response`, 'interventions');
+                this.logger.error(`[${email}] Interventions API returned null on page=${currentPage}`);
+                this.addLog(migrationId, 'error', `Interventions migration failed — no response on page=${currentPage}`, 'interventions');
                 return true;
             }
             const responseData = interventionResponse.data;
             const items = responseData?.items;
             if (!items || items.length === 0) {
-                console.log(`[Migration] No interventions found on page=${currentPage}, exiting`)
+                this.logger.log(`[${email}] No interventions on page=${currentPage} — done`);
                 break;
             }
 
-            if (!lastPage && responseData._links?.last) {
-                const lastPageMatch = responseData._links.last.match(/page=(\d+)/);
-                if (lastPageMatch) {
-                    lastPage = parseInt(lastPageMatch[1]);
-                    console.log(`[Migration] Total pages detected: ${lastPage}`)
-                }
+            if (totalPages === null && responseData.total != null && responseData.count != null && responseData.count > 0) {
+                totalPages = Math.ceil(responseData.total / responseData.count);
+                this.logger.log(`[${email}] Total interventions: ${responseData.total}, pages: ${totalPages}`);
             }
 
-            hasMore = !!responseData._links?.next;
-            console.log(`[Migration] Page ${currentPage}: ${items.length} interventions to process`)
+            this.logger.log(`[${email}] Page ${currentPage}: ${items.length} interventions to process`);
 
             const parentInterventions: any[] = [];
             const interventionTreesMap: Record<string, any[]> = {};
@@ -1347,11 +1487,11 @@ export class MigrationService {
                 if (item.scientificSpecies) allSpeciesUids.push(item.scientificSpecies);
             }
             const globalSpeciesMapping = await this.buildSpeciesMapping([...new Set(allSpeciesUids)]);
-            console.log(`[Migration] Pre-built species mapping: ${globalSpeciesMapping.size} species for page ${currentPage}`)
+            this.logger.log(`[${email}] Species mapping built: ${globalSpeciesMapping.size}/${allSpeciesUids.length} resolved for page ${currentPage}`);
 
             // Transform all interventions in parallel
             const transformResults = await Promise.all(items.map(async (oldIntervention) => {
-                console.log(`[Migration] Transforming intervention id=${oldIntervention.id} type=${oldIntervention.type}`)
+                this.logger.log(`[${email}] Transforming intervention id=${oldIntervention.id} type=${oldIntervention.type}`);
                 const siteId = oldIntervention.plantProjectSite ? siteMapping.get(oldIntervention.plantProjectSite) ?? null : null;
                 const projectId = oldIntervention.plantProject
                     ? projectMapping.get(oldIntervention.plantProject) ?? personalProjectId
@@ -1360,14 +1500,14 @@ export class MigrationService {
             }));
 
             for (const { parentFinalData, treeData } of transformResults) {
-                console.log(`[Migration] Transform done id=${parentFinalData.uid} trees=${treeData.length} species=${parentFinalData.species?.length ?? 0}`)
+                this.logger.log(`[${email}] Transform done id=${parentFinalData.uid} trees=${treeData.length} species=${parentFinalData.species?.length ?? 0} flag=${parentFinalData.flag}`);
                 parentInterventions.push(parentFinalData);
                 interventionTreesMap[parentFinalData.uid] = treeData;
                 interventionSpeciesMap[parentFinalData.uid] = parentFinalData.species ?? [];
             }
 
             // Step 1: Insert interventions (skip duplicates)
-            console.log(`[Migration] Inserting ${parentInterventions.length} interventions (batch)`)
+            this.logger.log(`[${email}] Inserting ${parentInterventions.length} interventions (batch) for page ${currentPage}`);
             const finalInterventionIDMapping: { id: number; uid: string; success: boolean; error: string | null }[] = [];
 
             try {
@@ -1386,17 +1526,17 @@ export class MigrationService {
                     .where(inArray(intervention.uid, insertedUids));
 
                 existingResult.forEach(el => finalInterventionIDMapping.push({ id: el.id, uid: el.uid, success: true, error: null }));
-                console.log(`[Migration] Batch intervention insert OK: ${existingResult.length} total (new + already existing)`)
+                this.logger.log(`[${email}] Batch intervention insert OK: ${existingResult.length} total (new + already existing)`);
             } catch (error) {
-                console.log(`[Migration] Batch intervention insert FAILED, falling back to individual inserts. Error:`, error?.message || error)
+                this.logger.error(`[${email}] Batch intervention insert FAILED — falling back to individual inserts. Error: ${error?.message || error}`, error?.stack);
                 const chunkResults = await this.insertChunkIndividually(
                     parentInterventions.map(p => { const { species, ...rest } = p; return rest; }),
                     migrationId
                 );
                 finalInterventionIDMapping.push(...chunkResults);
                 const failed = chunkResults.filter(r => !r.success);
-                console.log(`[Migration] Individual insert results: ${chunkResults.length - failed.length} ok, ${failed.length} failed`)
-                failed.forEach(r => console.log(`[Migration]   FAILED intervention uid=${r.uid} error=${r.error}`))
+                this.logger.log(`[${email}] Individual insert results: ${chunkResults.length - failed.length} ok, ${failed.length} failed`);
+                failed.forEach(r => this.logger.error(`[${email}] FAILED intervention uid=${r.uid} error=${r.error}`));
             }
 
             // Step 2: Batch insert ALL intervention species
@@ -1414,7 +1554,7 @@ export class MigrationService {
                 }));
             });
 
-            console.log(`[Migration] Inserting ${allSpeciesToInsert.length} species (batch)`)
+            this.logger.log(`[${email}] Inserting ${allSpeciesToInsert.length} intervention species (batch)`);
             if (allSpeciesToInsert.length > 0) {
                 try {
                     await this.drizzleService.db
@@ -1422,7 +1562,7 @@ export class MigrationService {
                         .values(allSpeciesToInsert)
                         .onConflictDoNothing();
                 } catch (error) {
-                    console.log(`[Migration] Species batch insert FAILED, falling back to individual inserts. Error:`, error?.message || error)
+                    this.logger.error(`[${email}] Intervention species batch insert FAILED — falling back to individual inserts. Error: ${error?.message || error}`, error?.stack);
                     await this.insertInteventionSpeciesInfcidual(allSpeciesToInsert, migrationId);
                 }
             }
@@ -1436,7 +1576,7 @@ export class MigrationService {
                     .where(inArray(interventionSpecies.uid, allSpeciesToInsert.map(s => s.uid)));
                 insertedSpecies.forEach(s => speciesIdByUid.set(s.uid, s.id));
             }
-            console.log(`[Migration] Species insert phase done. Total species resolved: ${speciesIdByUid.size}`)
+            this.logger.log(`[${email}] Intervention species phase done — resolved=${speciesIdByUid.size} total`);
 
             // Step 3: Batch insert ALL trees
             const imageUploadData: any[] = [];
@@ -1450,7 +1590,7 @@ export class MigrationService {
                         const fallbackSpecies = allSpeciesToInsert.find(s => s.interventionId === inv.id);
                         speciesId = fallbackSpecies ? speciesIdByUid.get(fallbackSpecies.uid) : undefined;
                         if (speciesId) {
-                            console.log(`[Migration] WARN: Using fallback species for tree interventionSpeciesId=${e.interventionSpeciesId} in intervention uid=${inv.uid}`)
+                            this.logger.warn(`[${email}] Using fallback species for tree interventionSpeciesId=${e.interventionSpeciesId} in intervention uid=${inv.uid}`);
                             const existingFlagReason = Array.isArray(e.flagReason) ? e.flagReason : [];
                             e = {
                                 ...e,
@@ -1466,7 +1606,21 @@ export class MigrationService {
                                 }]
                             };
                         } else {
-                            console.log(`[Migration] ERROR: No species found for tree in intervention uid=${inv.uid}. Skipping tree.`)
+                            const existingFlagReason = Array.isArray(e.flagReason) ? e.flagReason : [];
+                            e = {
+                                ...e,
+                                flag: true,
+                                flagReason: [...existingFlagReason, {
+                                    uid: generateUid('flag'),
+                                    type: 'species',
+                                    level: 'warning',
+                                    title: 'Species not found',
+                                    message: 'No Species was found for this tree. Please review and assign a species manually.',
+                                    updatedAt: new Date(),
+                                    createdAt: new Date()
+                                }]
+                            };
+                            this.logger.error(`[${email}] No species resolved for tree in intervention uid=${inv.uid} — tree skipped`);
                             return acc;
                         }
                     }
@@ -1475,7 +1629,7 @@ export class MigrationService {
                 }, []);
             });
 
-            console.log(`[Migration] Inserting ${allTreesToInsert.length} trees (batch)`)
+            this.logger.log(`[${email}] Inserting ${allTreesToInsert.length} trees (batch) for page ${currentPage}`);
             if (allTreesToInsert.length > 0) {
                 try {
                     const treeResult = await this.drizzleService.db
@@ -1498,7 +1652,7 @@ export class MigrationService {
                         }
                     });
                 } catch (error) {
-                    console.log(`[Migration] Tree batch insert FAILED, falling back to individual inserts. Error:`, error?.message || error)
+                    this.logger.error(`[${email}] Tree batch insert FAILED — falling back to individual inserts. Error: ${error?.message || error}`, error?.stack);
                     const chunkResults = await this.insertTreeChunkIndividually(allTreesToInsert, migrationId);
                     imageUploadData.push(...chunkResults.filter(r => r.entityId));
                 }
@@ -1511,11 +1665,11 @@ export class MigrationService {
                     await this.drizzleService.db.insert(image).values(filteredImages).onConflictDoNothing();
                 }
             } catch (error) {
-                console.log(`[Migration] Error inserting images:`, error?.message || error)
+                this.logger.error(`[${email}] Image insert failed on page ${currentPage}: ${error?.message || error}`, error?.stack);
             }
 
             currentPage++;
-            if (lastPage && currentPage > lastPage) hasMore = false;
+            if (totalPages !== null && currentPage > totalPages) break;
         }
 
         return false;
@@ -1761,8 +1915,23 @@ export class MigrationService {
             parentFinalData['captureMode'] = parentData.captureMode,
                 parentFinalData['captureStatus'] = parentData.captureStatus
             parentFinalData['registrationDate'] = parentData.registrationDate ? new Date(parentData.registrationDate) : new Date()
-            parentFinalData['interventionStartDate'] = parentData.interventionStartDate !== null ? new Date(parentData.interventionStartDate) : new Date()
-            parentFinalData['interventionEndDate'] = parentData.interventionEndDate !== null ? new Date(parentData.interventionEndDate) : new Date()
+            parentFinalData['interventionStartDate'] = parentData.interventionStartDate ? new Date(parentData.interventionStartDate) : new Date()
+            const _endDate = parentData.interventionEndDate ? new Date(parentData.interventionEndDate) : null;
+            if (_endDate && !isNaN(_endDate.getTime()) && _endDate >= parentFinalData['interventionStartDate']) {
+                parentFinalData['interventionEndDate'] = _endDate;
+            } else {
+                parentFinalData['interventionEndDate'] = parentFinalData['interventionStartDate'];
+                flag = true;
+                flagReason.push({
+                    uid: generateUid('flag'),
+                    type: 'intervention',
+                    level: 'error',
+                    title: 'Invalid intervention end date',
+                    message: 'The intervention end date was missing or before the start date. It has been set to the start date.',
+                    updatedAt: new Date(),
+                    createdAt: new Date()
+                });
+            }
             parentFinalData['location'] = locationValue
             parentFinalData['originalGeometry'] = parentData.originalGeometry
             parentFinalData['deviceLocation'] = parentData.deviceLocation
@@ -1870,7 +2039,7 @@ export class MigrationService {
                         updatedAt: new Date(),
                         createdAt: new Date()
                     })
-                    console.log("error in lat loing tree")
+                    this.logger.warn(`[userId:${userId}] Could not extract lat/lng for single-tree intervention id=${parentData?.id}: ${error?.message}`);
                 }
                 const imageData = parentData.coordinates && parentData.coordinates.length > 0 && parentData.coordinates[0].image ? parentData.coordinates[0].image : null
                 let newHID = generateParentHID();
@@ -1908,8 +2077,9 @@ export class MigrationService {
                 treeData: interventionSampleTree
             }
         } catch (error) {
-            console.log(`Error transforming intervention id=${parentData.id}:`, error?.message || error)
-            this.addLog(mgID, 'error', "There is error in this intervention", 'interventions', JSON.stringify(error))
+            const msg = error?.message || JSON.stringify(error);
+            this.logger.error(`[userId:${userId}] transformParentIntervention failed for id=${parentData?.id} type=${parentData?.type}: ${msg}`, error?.stack);
+            this.addLog(mgID, 'error', `transformParentIntervention failed for id=${parentData?.id}: ${msg}`, 'interventions', error?.stack);
             return {
                 parentFinalData,
                 treeData: interventionSampleTree
@@ -2039,7 +2209,7 @@ export class MigrationService {
                         longitude = latlongDetails.longitude
                     }
                 } catch (error) {
-                    console.log("error in lat loing tree")
+                    this.logger.warn(`[userId:${userId}] Could not extract lat/lng for sample tree id=${sampleIntervention?.id}: ${error?.message}`);
                 }
 
                 const imageData = sampleIntervention.coordinates && sampleIntervention.coordinates.length > 0 && sampleIntervention.coordinates[0].image ? sampleIntervention.coordinates[0].image : null
@@ -2065,8 +2235,9 @@ export class MigrationService {
             }
             return allTransformedSampleTrees
         } catch (error) {
-            console.log("allTransformedSampleTrees error", error)
-            return []
+            const msg = error?.message || JSON.stringify(error);
+            this.logger.error(`[userId:${userId}] transformSampleIntervention failed for parent id=${parentData?.id}: ${msg}`, error?.stack);
+            return [];
         }
     }
 

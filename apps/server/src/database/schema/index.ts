@@ -26,7 +26,7 @@ interface GeoJSONGeometry {
 }
 
 export type FlagLevel = 'error' | 'warning' | 'info';
-export type FlagEntity = 'location' | 'species' | 'measurements';
+export type FlagEntity = 'location' | 'species' | 'measurements' | 'intervention' | 'other' | 'project' | 'site' | 'user' | 'migration';
 
 
 export const auditActionEnum = pgEnum('audit_action', [
@@ -117,7 +117,7 @@ export const projectRoleEnum = pgEnum('project_role', ['owner', 'admin', 'contri
 export const projectStatusEnum = pgEnum('project_status', ['active', 'in_review', 'suspended', 'disabled']);
 export const inviteStatusEnum = pgEnum('invite_status', ['pending', 'accepted', 'declined', 'expired', 'discarded']);
 export const imageUploadDeviceEnum = pgEnum('image_upload_device', ['web', 'mobile', 'server']);
-export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation', 'planning']);
+export const siteStatusEnum = pgEnum('site_status', ['planted', 'planting', 'barren', 'reforestation', 'planning', 'other']);
 export const siteAccessEnum = pgEnum('site_access', ['all_sites', 'deny_all', 'read_only', 'limited_access']);
 export const speciesRequestStatusEnum = pgEnum('species_request_status', ['pending', 'approved', 'rejected']);
 export const interventionDiscriminatorEnum = pgEnum('intervention_discriminator', ['plot', 'intervention']);

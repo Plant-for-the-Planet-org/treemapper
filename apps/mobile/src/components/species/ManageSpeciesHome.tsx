@@ -65,7 +65,7 @@ const ManageSpeciesHome = (props: Props) => {
         return
       }
       dispatch(updateUserPojectSpecies(responseData))
-      if (responseData.length > 0) {
+      if (responseData && responseData.length > 0) {
          await addUserSpecies(responseData)
       }
       setLoading(false)
