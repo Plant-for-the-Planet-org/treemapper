@@ -8,7 +8,7 @@
     "lint": "turbo lint",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "test": "turbo test",
-    "postinstall": "patch-package",
+    "postinstall": "patch-package && node scripts/check-axios.js",
     "clean": "turbo clean && rm -rf node_modules",
     "clean:deep": "rm -rf node_modules && find . -name 'node_modules' -type d -prune -exec rm -rf '{}' + && find . -name '.next' -type d -prune -exec rm -rf '{}' + && find . -name 'dist' -type d -prune -exec rm -rf '{}' + && find . -name '.turbo' -type d -prune -exec rm -rf '{}' + && find . -name 'build' -type d -prune -exec rm -rf '{}' +",
     "heroku-postbuild": "yarn install --frozen-lockfile && turbo build --filter=web && turbo build --filter=server",
@@ -66,6 +66,7 @@
     "react-dom": "18.2.0",
     "@types/react": "18.2.6",
     "react-i18next": "16.5.0",
-    "i18next": "25.7.3"
+    "i18next": "25.7.3",
+    "axios": "1.13.5"
   }
 }
