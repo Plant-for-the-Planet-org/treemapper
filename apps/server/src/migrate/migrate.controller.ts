@@ -11,11 +11,9 @@ export class MigrationController {
         private readonly migrationService: MigrationService) { }
 
     @Post('start')
-    async startMigration(@Headers('authorization') authorization: string, @Headers('X-Profile-ID') email: string) {
-        const token = authorization?.replace('Bearer ', '') ?? '';
+    async startMigration(@Headers('X-Profile-ID') email: string) {
         this.migrationService.startUserMigration(
             email,
-            token
         ).catch(error => {
             console.error('Migration failed:', error);
         });

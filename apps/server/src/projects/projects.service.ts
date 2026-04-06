@@ -461,7 +461,6 @@ export class ProjectsService {
       const result = await this.drizzleService.db
         .update(project)
         .set({
-          createdById: userData.id,
           name: createProjectDto.projectName ?? '',
           type: createProjectDto.projectType ?? 'private',
           website: createProjectDto.projectWebsite ?? null,

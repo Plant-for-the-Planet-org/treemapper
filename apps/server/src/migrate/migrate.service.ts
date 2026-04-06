@@ -17,6 +17,7 @@ import {
     scientificSpecies,
     FlagReasonEntry,
     tree,
+    treeRecord,
     user,
     image,
     interventionSpecies,
@@ -229,7 +230,6 @@ export class MigrationService {
 
     async startUserMigration(
         email: string,
-        token: string,
     ): Promise<void> {
         let userMigrationRecord;
         let [userData] = await this.drizzleService.db.select().from(user).where(eq(user.email, email));
@@ -249,10 +249,6 @@ export class MigrationService {
         // if (!userData.existingPlanetUser) {
         //     throw 'no need to migrate user'
         // }
-        let authToken = token
-        if (typeof authToken !== 'string') {
-            authToken = ''
-        }
         try {
             userMigrationRecord = await this.createMigrationRecord(userData.id, userData.uid);
             this.logger.log(`[${email}] Migration record — id=${userMigrationRecord.id} status=${userMigrationRecord.status} entities=${JSON.stringify(userMigrationRecord.migratedEntities)}`);
@@ -281,7 +277,7 @@ export class MigrationService {
             // Step 1: Migrate user profile
             if (!userMigrationRecord.migratedEntities.user) {
                 this.logger.log(`[${email}] Step 1/5: Migrating user profile`);
-                stop = await this.migrateUserData(userData.id, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserData(userData.id, '', userMigrationRecord.id, email);
             } else {
                 this.logger.log(`[${email}] Step 1/5: User profile already migrated, skipping`);
             }
@@ -294,6 +290,21 @@ export class MigrationService {
             } else {
                 this.logger.log(`[${email}] Step 1/5: User profile migrated successfully`);
                 await this.updateMigrationProgress(userMigrationRecord.id, 'user', true, false);
+
+                // Update migration record with the actual old planet user ID now that
+                // migrateUserData has written oldUserData.id into user.uid
+                const [refreshedUser] = await this.drizzleService.db
+                    .select({ uid: user.uid })
+                    .from(user)
+                    .where(eq(user.id, userData.id))
+                    .limit(1);
+                if (refreshedUser?.uid && refreshedUser.uid !== userMigrationRecord.planetId) {
+                    await this.drizzleService.db
+                        .update(migration)
+                        .set({ planetId: refreshedUser.uid })
+                        .where(eq(migration.id, userMigrationRecord.id));
+                    this.logger.log(`[${email}] Updated migration.planetId → ${refreshedUser.uid}`);
+                }
             }
 
             const personalProject = await this.drizzleService.db
@@ -321,7 +332,7 @@ export class MigrationService {
             // Step 2: Migrate Projects
             if (!userMigrationRecord.migratedEntities.projects) {
                 this.logger.log(`[${email}] Step 2/5: Migrating projects`);
-                stop = await this.migrateUserProjects(userData, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserProjects(userData, '', userMigrationRecord.id, email);
             } else {
                 this.logger.log(`[${email}] Step 2/5: Projects already migrated, skipping`);
             }
@@ -362,7 +373,7 @@ export class MigrationService {
             // Step 3: Migrate sites
             if (!userMigrationRecord.migratedEntities.sites) {
                 this.logger.log(`[${email}] Step 3/5: Migrating sites`);
-                stop = await this.migrateUserSites(userData.id, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserSites(userData.id, '', userMigrationRecord.id, email);
             } else {
                 this.logger.log(`[${email}] Step 3/5: Sites already migrated, skipping`);
             }
@@ -379,7 +390,7 @@ export class MigrationService {
             // Step 4: Migrate User Species
             if (!userMigrationRecord.migratedEntities.species) {
                 this.logger.log(`[${email}] Step 4/5: Migrating species`);
-                stop = await this.migrateUserSpecies(userData.id, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserSpecies(userData.id, '', userMigrationRecord.id, email);
             } else {
                 this.logger.log(`[${email}] Step 4/5: Species already migrated, skipping`);
             }
@@ -397,7 +408,7 @@ export class MigrationService {
             // Step 5: Migrate Interventions
             if (!userMigrationRecord.migratedEntities.interventions) {
                 this.logger.log(`[${email}] Step 5/5: Migrating interventions`);
-                stop = await this.migrateUserInterventions(userData.id, authToken, userMigrationRecord.id, email);
+                stop = await this.migrateUserInterventions(userData.id, '', userMigrationRecord.id, email);
             } else {
                 this.logger.log(`[${email}] Step 5/5: Interventions already migrated, skipping`);
             }
@@ -805,7 +816,7 @@ export class MigrationService {
                     this.httpService.get(`${baseUrl}${endpoint}`, {
                         headers: {
                             "X-Profile-ID": impersonate,
-                            "X-TOKEN-API": process.env.API_TOKEN
+                            "X-TOKEN-API": process.env.API_KEY
                         },
                         timeout: 30000
                     })
@@ -1088,22 +1099,21 @@ export class MigrationService {
             }
             const allProjects = sitesResponse.data;
             this.logger.log(`[${email}] Found ${allProjects.length} projects to scan for sites`);
-            let stopProcess = false;
             for (const oldProject of allProjects) {
                 try {
                     const projectId = oldProject?.properties?.id;
                     this.logger.log(`[${email}] Processing sites for project uid=${projectId}`);
-                    const stopParentLoop = await this.transformSiteData(oldProject, uid, migrationId);
-                    if (stopParentLoop || stopProcess) {
-                        this.logger.error(`[${email}] Site loop aborted for project uid=${projectId} — stopParentLoop=${stopParentLoop}`);
-                        this.addLog(migrationId, 'error', `Site parent loop stopped at project uid=${projectId}`, 'sites', JSON.stringify(oldProject));
+                    const hadFatalError = await this.transformSiteData(oldProject, uid, migrationId);
+                    if (hadFatalError) {
+                        this.logger.error(`[${email}] Fatal DB error processing sites for project uid=${projectId} — aborting site migration`);
+                        this.addLog(migrationId, 'error', `Fatal error while migrating sites for project uid=${projectId} — aborting`, 'sites', JSON.stringify(oldProject));
                         return true;
                     }
                 } catch (error) {
                     const msg = error?.message || JSON.stringify(error);
                     this.logger.error(`[${email}] Site transform threw for project uid=${oldProject?.properties?.id}: ${msg}`, error?.stack);
                     this.addLog(migrationId, 'error', `Site migration failed for project ${oldProject?.properties?.id}: ${msg}`, 'sites', error?.stack);
-                    stopProcess = true;
+                    return true;
                 }
             }
             this.logger.log(`[${email}] Sites migration completed`);
@@ -1126,8 +1136,8 @@ export class MigrationService {
             .limit(1);
         if (projectExist.length === 0) {
             this.logger.warn(`[userId:${userId}] Project uid=${projectData.id} not found in new DB — skipping its sites`);
-            this.addLog(migrationId, 'error', `Project uid=${projectData.id} not found in new backend — stopping site migration for this project`, 'sites', JSON.stringify(projectData));
-            return true;
+            this.addLog(migrationId, 'error', `Project uid=${projectData.id} not found in new DB — skipping its sites and continuing with remaining projects`, 'sites', JSON.stringify(projectData));
+            return false;
         }
         if (!projectData.sites || !Array.isArray(projectData.sites)) {
             this.logger.log(`[userId:${userId}] Project uid=${projectData.id} has no sites — skipping`);
@@ -1631,13 +1641,16 @@ export class MigrationService {
 
             this.logger.log(`[${email}] Inserting ${allTreesToInsert.length} trees (batch) for page ${currentPage}`);
             if (allTreesToInsert.length > 0) {
+                // Build a lookup map so we can retrieve planting fields after insert
+                const treeInsertMap = new Map(allTreesToInsert.map(t => [t.uid, t]));
                 try {
                     const treeResult = await this.drizzleService.db
                         .insert(tree)
                         .values(allTreesToInsert)
                         .onConflictDoNothing()
-                        .returning({ id: tree.id, image: tree.image });
+                        .returning({ id: tree.id, uid: tree.uid, image: tree.image });
 
+                    const treeRecordsToInsert: any[] = [];
                     treeResult.forEach(el => {
                         if (el.image) {
                             imageUploadData.push({
@@ -1650,7 +1663,20 @@ export class MigrationService {
                                 uploadedById: userId
                             });
                         }
+                        const source = treeInsertMap.get(el.uid);
+                        treeRecordsToInsert.push({
+                            uid: generateUid('treerec'),
+                            treeId: el.id,
+                            recordedById: source?.createdById ?? userId,
+                            recordType: 'planting' as const,
+                            recordedAt: source?.plantingDate ?? new Date(),
+                            height: source?.height ?? null,
+                            width: source?.width ?? null,
+                        });
                     });
+                    if (treeRecordsToInsert.length > 0) {
+                        await this.drizzleService.db.insert(treeRecord).values(treeRecordsToInsert).onConflictDoNothing();
+                    }
                 } catch (error) {
                     this.logger.error(`[${email}] Tree batch insert FAILED — falling back to individual inserts. Error: ${error?.message || error}`, error?.stack);
                     const chunkResults = await this.insertTreeChunkIndividually(allTreesToInsert, migrationId);
@@ -1729,6 +1755,15 @@ export class MigrationService {
                     filename: result[0].image,
                     uploadedById: result[0].createdById
                 });
+                await this.drizzleService.db.insert(treeRecord).values({
+                    uid: generateUid('treerec'),
+                    treeId: result[0].id,
+                    recordedById: result[0].createdById,
+                    recordType: 'planting' as const,
+                    recordedAt: chunk[j].plantingDate ?? new Date(),
+                    height: chunk[j].height ?? null,
+                    width: chunk[j].width ?? null,
+                }).onConflictDoNothing();
             } catch (error) {
                 this.addLog(migrationId, 'error', `Indivdually Failed to add intervention with id ${chunk[j].uid}`, 'interventions')
                 interventionIds.push({
