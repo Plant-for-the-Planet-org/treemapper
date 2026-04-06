@@ -222,6 +222,7 @@ export const convertInterventionBody = (d: InterventionData, projectRequire: boo
         }
         const interventionForm = setUpIntervention(d.intervention_key)
         const postData: any = {
+            clientId: d.intervention_id,
             type: d.intervention_type,
             captureMode: "on-site",
             deviceLocation: metaData.app.deviceLocation,

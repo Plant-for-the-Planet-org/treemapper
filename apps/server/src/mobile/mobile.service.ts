@@ -1621,6 +1621,34 @@ export class MobileService {
           hid: sampleResult[0].hid
         }
       }
+      // Idempotency check: if client sent a stable local ID, use it to deduplicate
+      if (createInterventionDto.clientId) {
+        const existing = await this.drizzleService.db
+          .select()
+          .from(intervention)
+          .where(eq(intervention.idempotencyKey, createInterventionDto.clientId))
+          .limit(1);
+        if (existing.length > 0) {
+          const existingIntervention = existing[0];
+          let singleTreeResult: { id: string | null, hid: string | null } = { id: null, hid: null };
+          if (existingIntervention.type === 'single-tree-registration') {
+            const existingTree = await this.drizzleService.db
+              .select({ uid: tree.uid, hid: tree.hid })
+              .from(tree)
+              .where(eq(tree.interventionId, existingIntervention.id))
+              .limit(1);
+            if (existingTree.length > 0) {
+              singleTreeResult = { id: existingTree[0].uid, hid: existingTree[0].hid };
+            }
+          }
+          return {
+            id: existingIntervention.uid,
+            hid: existingIntervention.hid,
+            singleTreeResult,
+          };
+        }
+      }
+
       const uid = generateUid('inv');
 
       // Check if project has approval board enabled
@@ -1637,7 +1665,7 @@ export class MobileService {
         userId: membership.userId,
         projectId: membership.projectId,
         siteId: siteId || null,
-        idempotencyKey: generateUid('idem'),
+        idempotencyKey: createInterventionDto.clientId || generateUid('idem'),
         type: createInterventionDto.type,
         registrationDate: new Date(),
         interventionStartDate: new Date(createInterventionDto.interventionStartDate),
