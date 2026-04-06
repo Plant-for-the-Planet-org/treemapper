@@ -555,6 +555,15 @@ export class InterventionsService {
         if (!singleResult) {
           throw new Error('Failed to create singleResult intervention');
         }
+        await this.drizzleService.db.insert(treeRecord).values({
+          uid: generateUid('treerec'),
+          treeId: singleResult[0].id,
+          recordedById: membership.userId,
+          recordType: 'planting',
+          recordedAt: new Date(createInterventionDto.interventionStartDate),
+          height: createInterventionDto.height || null,
+          width: createInterventionDto.width || null,
+        });
         this.imageUpload('during', singleResult[0].id, 'tree', 'web', createInterventionDto.image, membership.userId)
       }
       return {} as InterventionResponseDto;
@@ -1228,14 +1237,31 @@ export class InterventionsService {
 
       // Insert single trees
       if (finalSingleTrees.length > 0) {
+        let insertedTrees: { id: number; uid: string }[] = [];
         try {
-          await this.drizzleService.db
+          insertedTrees = await this.drizzleService.db
             .insert(tree)
             .values(finalSingleTrees)
             .returning({ id: tree.id, uid: tree.uid });
         } catch (error) {
           console.log('Bulk tree insert failed, trying individual inserts:', error);
-          await this.insertTreeChunkIndividually(finalSingleTrees);
+          insertedTrees = await this.insertTreeChunkIndividually(finalSingleTrees);
+        }
+
+        // Create planting treeRecord for each inserted tree
+        const treeRecordsToInsert = insertedTrees
+          .filter(t => t.id != null)
+          .map((t, i) => ({
+            uid: generateUid('treerec'),
+            treeId: t.id,
+            recordedById: membership.userId,
+            recordType: 'planting' as const,
+            recordedAt: finalSingleTrees[i]?.plantingDate ?? new Date(),
+            height: finalSingleTrees[i]?.height ?? null,
+            width: finalSingleTrees[i]?.width ?? null,
+          }));
+        if (treeRecordsToInsert.length > 0) {
+          await this.drizzleService.db.insert(treeRecord).values(treeRecordsToInsert);
         }
       }
 

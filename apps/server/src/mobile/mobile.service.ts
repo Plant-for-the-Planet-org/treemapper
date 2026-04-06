@@ -1607,6 +1607,15 @@ export class MobileService {
         if (!sampleResult) {
           throw new Error('Failed to create singleResult intervention');
         }
+        await this.drizzleService.db.insert(treeRecord).values({
+          uid: generateUid('treerec'),
+          treeId: sampleResult[0].id,
+          recordedById: membership.userId,
+          recordType: 'planting',
+          recordedAt: new Date(createInterventionDto.interventionStartDate),
+          height: createInterventionDto.measurements?.height ?? null,
+          width: createInterventionDto.measurements?.width ?? null,
+        });
         return {
           id: sampleResult[0].uid,
           hid: sampleResult[0].hid
@@ -1708,6 +1717,15 @@ export class MobileService {
         } else {
           singleTreeResult['id'] = singleResult[0].uid
           singleTreeResult['hid'] = singleResult[0].hid
+          await this.drizzleService.db.insert(treeRecord).values({
+            uid: generateUid('treerec'),
+            treeId: singleResult[0].id,
+            recordedById: membership.userId,
+            recordType: 'planting',
+            recordedAt: new Date(createInterventionDto.interventionStartDate),
+            height: createInterventionDto.measurements?.height ?? null,
+            width: createInterventionDto.measurements?.width ?? null,
+          });
         }
       }
 
