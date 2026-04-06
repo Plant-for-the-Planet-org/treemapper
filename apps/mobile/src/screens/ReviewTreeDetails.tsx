@@ -367,8 +367,8 @@ const ReviewTreeDetails = () => {
     }
 
     const remeasurementIcon = () => {
-        const canUse = type === 'tpo' || v3Approved
-        if (canUse && treeDetails.tree_type !== 'single' && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
+        const canUse = v3Approved
+        if (canUse && treeDetails.status === 'SYNCED' && treeDetails.is_alive) {
             return <TouchableOpacity style={styles.floatingIcon} onPress={addNewRemeasurement}>
                 <RemeasurementIconScalable />
                 <Text style={styles.measureLabel}>Measure</Text>
@@ -381,7 +381,7 @@ const ReviewTreeDetails = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            {/* {remeasurementIcon()} */}
+            {remeasurementIcon()}
             <DeleteModal isVisible={showDeleteTree} toggleModal={() => { setShowDeleteTree(false) }} removeFavSpecie={deleteTreeData} headerLabel={i18next.t("label.delete_intervention")} noteLabel={i18next.t("label.delete_note")} primeLabel={i18next.t("label.delete")} secondaryLabel={'Cancel'} extra={null} />
             {showDatePicker && <View style={styles.datePickerContainer}><DateTimePicker
                 maximumDate={new Date()}

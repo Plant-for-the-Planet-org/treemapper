@@ -1728,12 +1728,23 @@ export class MobileService {
     try {
       this.validateRemeasurementDto(remeasurementDTO);
       
-      // Get tree details
-      const treeDetails = await this.drizzleService.db
-        .select()
-        .from(tree)
-        .where(eq(tree.uid, remeasurementDTO.tree))
-        .limit(1);
+      // Get tree details — support both tree UIDs and intervention UIDs (single-tree interventions)
+      let treeDetails: any[];
+      if (remeasurementDTO.tree.startsWith('ivn_')) {
+        treeDetails = await this.drizzleService.db
+          .select({ tree })
+          .from(tree)
+          .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+          .where(eq(intervention.uid, remeasurementDTO.tree))
+          .limit(1)
+          .then(rows => rows.map(r => r.tree));
+      } else {
+        treeDetails = await this.drizzleService.db
+          .select()
+          .from(tree)
+          .where(eq(tree.uid, remeasurementDTO.tree))
+          .limit(1);
+      }
 
       if (treeDetails.length === 0) {
         throw new NotFoundException('Tree not found');

@@ -114,12 +114,12 @@ const DisplayMap = () => {
     const { bounds, key } = MapBounds
 
     // Check if bounds are valid (should have exactly 4 values: [minLon, minLat, maxLon, maxLat])
-    if (!bounds || bounds.length !== 4) {
-      if (userType !== 'tpo' || v3Approved) {
-        handleCamera()
-      }
-      return
-    }
+    // if (!bounds || bounds.length !== 4) {
+    //   if (userType !== 'tpo' || v3Approved) {
+    //     handleCamera()
+    //   }
+    //   return
+    // }
 
     if (key === 'DISPLAY_MAP') {
       // Use the bounding box to fit the entire polygon area
@@ -127,7 +127,7 @@ const DisplayMap = () => {
       cameraRef.current.fitBounds(
         [bounds[0], bounds[1]], // southwest corner
         [bounds[2], bounds[3]], // northeast corner
-        100, // increased padding to show more context around the polygon
+        10, // increased padding to show more context around the polygon
         1000,
       )
     } else {

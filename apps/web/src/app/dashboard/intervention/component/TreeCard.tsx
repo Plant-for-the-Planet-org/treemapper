@@ -90,7 +90,7 @@ export const TreeCard = ({
             <div className="mb-3 relative group">
               <img
                 src={
-                  localTree.migratedTree
+                  localTree.migratedTree && /\.(jpe?g|png)$/i.test(localTree.image)
                     ? `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${localTree.image}`
                     : `${process.env.NEXT_PUBLIC_CDN}/tree/${localTree.image}`
                 }
