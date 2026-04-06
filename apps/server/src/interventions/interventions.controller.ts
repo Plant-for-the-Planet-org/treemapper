@@ -196,7 +196,7 @@ export class InterventionsController {
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async deleteMyIntervention(@Param('interventionId') interventionId: string, @Membership() membership: ProjectGuardResponse,) {
-    const data = await this.interventionsService.deleteMyIntervention(interventionId);
+    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId);
     return data
   }
 

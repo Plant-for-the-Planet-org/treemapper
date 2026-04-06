@@ -121,7 +121,8 @@ async updateSite(
   const site = await this.siteService.updateSite(
     membership.projectId,
     siteUid,
-    updateSiteDto
+    updateSiteDto,
+    membership.userId,
   );
 
   return {

@@ -11,6 +11,7 @@ import { UserCacheService } from 'src/cache/user-cache.service';
 import { CACHE_KEYS, CACHE_TTL } from 'src/cache/cache-keys';
 import { User } from 'src/users/entities/user.entity';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
+import { AuditService } from 'src/audit/audit.service';
 
 type WorkspaceSettingsPatch = Omit<Partial<WorkspaceSettings>, 'notifications'> & {
   notifications?: Partial<WorkspaceSettings['notifications']>;
@@ -21,7 +22,8 @@ export class WorkspaceService {
   constructor(
     private readonly drizzle: DrizzleService,
     private userCacheService: UserCacheService,
-    private projectCacheService: ProjectCacheService, // Assuming this is the correct service for project caching
+    private projectCacheService: ProjectCacheService,
+    private readonly auditService: AuditService,
   ) { }
 
 
@@ -55,6 +57,16 @@ export class WorkspaceService {
             status: 'active',
             joinedAt: new Date(),
           });
+
+        this.auditService.log('workspace', {
+          action: 'create',
+          entityId: workspaceInsResult[0].id,
+          entityUid: workspaceInsResult[0].uid,
+          userId,
+          workspaceId: workspaceInsResult[0].id,
+          newValues: { name: workspaceInsResult[0].name, slug: workspaceInsResult[0].slug, type: workspaceInsResult[0].type },
+          source: 'web',
+        });
 
         return true;
       });
@@ -217,7 +229,7 @@ export class WorkspaceService {
     primaryColor: string;
     secondaryColor: string;
     type: 'platform' | 'private' | 'development' | 'premium';
-  }>) {
+  }>, userId?: number) {
     const result = await this.drizzle.db
       .update(workspace)
       .set(data)
@@ -242,6 +254,17 @@ export class WorkspaceService {
     if (result.length === 0) {
       throw new NotFoundException('Workspace not found');
     }
+
+    this.auditService.log('workspace', {
+      action: 'update',
+      entityId: result[0].id,
+      entityUid: result[0].uid,
+      userId,
+      workspaceId: result[0].id,
+      newValues: { ...data },
+      source: 'web',
+    });
+
     return result[0];
   }
 
@@ -338,6 +361,16 @@ export class WorkspaceService {
         throw 'no person found'
       }
 
+      this.auditService.log('user', {
+        action: 'impersonation',
+        entityId: personDetails[0].id,
+        entityUid: personDetails[0].uid,
+        userId: userData.id,
+        workspaceId: workspaceId,
+        newValues: { impersonatedEmail: personDetails[0].email, impersonatedBy: userData.email },
+        source: 'web',
+      });
+
       return await this.userCacheService.refreshAuthUser({ ...personDetails[0], auth0Id: userData.auth0Id, impersonated: true })
     } catch (error) {
       return false
@@ -365,7 +398,7 @@ export class WorkspaceService {
     return { ...DEFAULT_WORKSPACE_SETTINGS, ...result[0].settings } as WorkspaceSettings;
   }
 
-  async updateWorkspaceSettings(uid: string, patch: WorkspaceSettingsPatch): Promise<WorkspaceSettings> {
+  async updateWorkspaceSettings(uid: string, patch: WorkspaceSettingsPatch, userId?: number): Promise<WorkspaceSettings> {
     const current = await this.getWorkspaceSettings(uid);
 
     const updated: WorkspaceSettings = {
@@ -381,14 +414,23 @@ export class WorkspaceService {
       .update(workspace)
       .set({ settings: updated })
       .where(eq(workspace.uid, uid))
-      .returning({ settings: workspace.settings });
+      .returning({ id: workspace.id, settings: workspace.settings });
 
     if (result.length === 0) throw new NotFoundException('Workspace not found');
+
+    this.auditService.log('workspace', {
+      action: 'update',
+      entityId: result[0].id,
+      userId,
+      oldValues: current as any,
+      newValues: updated as any,
+      source: 'web',
+    });
 
     return result[0].settings as WorkspaceSettings;
   }
 
-  async updateProjectStatus(workspaceUid: string, projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled') {
+  async updateProjectStatus(workspaceUid: string, projectUid: string, status: 'active' | 'in_review' | 'suspended' | 'disabled', userId?: number) {
     const ws = await this.drizzle.db
       .select({ id: workspace.id })
       .from(workspace)
@@ -401,9 +443,19 @@ export class WorkspaceService {
       .update(project)
       .set({ status })
       .where(and(eq(project.uid, projectUid), eq(project.workspaceId, ws[0].id), isNull(project.deletedAt)))
-      .returning({ uid: project.uid, status: project.status });
+      .returning({ id: project.id, uid: project.uid, status: project.status });
 
     if (result.length === 0) throw new NotFoundException('Project not found in this workspace');
+
+    this.auditService.log('project', {
+      action: 'update',
+      entityId: result[0].id,
+      entityUid: result[0].uid,
+      userId,
+      workspaceId: ws[0].id,
+      newValues: { status },
+      source: 'web',
+    });
 
     return result[0];
   }

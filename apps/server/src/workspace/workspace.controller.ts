@@ -123,7 +123,7 @@ export class WorkspaceController {
         @Body() body: { status: 'active' | 'in_review' | 'suspended' | 'disabled' },
         @CurrentUser() user: User,
     ) {
-        return await this.workspaceService.updateProjectStatus(uid, projectUid, body.status);
+        return await this.workspaceService.updateProjectStatus(uid, projectUid, body.status, user.id);
     }
 
     @Get('/:uid/settings')
@@ -137,8 +137,7 @@ export class WorkspaceController {
         @Body(new ValidationPipe({ whitelist: true })) body: UpdateWorkspaceSettingsDto,
         @CurrentUser() user: User,
     ) {
-        // Only owners/admins should be able to change workspace settings
-        return await this.workspaceService.updateWorkspaceSettings(uid, body);
+        return await this.workspaceService.updateWorkspaceSettings(uid, body, user.id);
     }
 
     @Get('/:uid')
@@ -147,8 +146,8 @@ export class WorkspaceController {
     }
 
     @Patch('/:uid')
-    async updateWorkspace(@Param('uid') uid: string, @Body() body: any) {
-        return await this.workspaceService.updateWorkspace(uid, body);
+    async updateWorkspace(@Param('uid') uid: string, @Body() body: any, @CurrentUser() user: User) {
+        return await this.workspaceService.updateWorkspace(uid, body, user.id);
     }
 
     @Put('/impersonate/:person')

@@ -98,6 +98,16 @@ export class AuditService {
   }
 
   /**
+   * Fire-and-forget audit log — never throws, never awaited.
+   * Call without `await` so it never blocks the response.
+   */
+  log(tableName: string, dto: CreateAuditLogDto): void {
+    this.createAuditLog(tableName, dto).catch((e) =>
+      console.error('Audit log failed (non-fatal):', e),
+    );
+  }
+
+  /**
    * Get audit logs for an entire workspace, joined with user info
    */
   async getWorkspaceAuditLogs(

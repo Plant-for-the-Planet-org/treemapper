@@ -11,6 +11,7 @@ import { CreateUserSpeciesDto, UpdateUserSpeciesDto, UserSpeciesFilterDto } from
 import { eq, and, ilike, or, desc, sql, is, isNotNull, isNull, asc } from 'drizzle-orm';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { generateUid } from 'src/util/uidGenerator';
+import { AuditService } from 'src/audit/audit.service';
 
 
 export interface KnownSpeciesResponse {
@@ -67,6 +68,7 @@ export interface ProjectSpeciesAggregatedResponse {
 export class ProjectSpeciesService {
   constructor(
     private readonly drizzle: DrizzleService,
+    private readonly auditService: AuditService,
   ) { }
 
   async create(
@@ -118,6 +120,22 @@ export class ProjectSpeciesService {
       })
       .returning();
     this.imageUpload('during', newUserSpecies[0].id, 'species', 'web', createDto.image, membership.userId)
+
+    this.auditService.log('project_species', {
+      action: 'create',
+      entityId: newUserSpecies[0].id,
+      entityUid: newUserSpecies[0].uid,
+      userId: membership.userId,
+      projectId: membership.projectId,
+      newValues: {
+        speciesName: newUserSpecies[0].speciesName,
+        commonName: newUserSpecies[0].commonName,
+        scientificSpeciesId: newUserSpecies[0].scientificSpeciesId,
+        favourite: newUserSpecies[0].favourite,
+        isDisabled: newUserSpecies[0].isDisabled,
+      },
+      source: 'web',
+    });
 
     return newUserSpecies[0];
   }
@@ -332,6 +350,17 @@ export class ProjectSpeciesService {
     if (!updatedSpecies.length) {
       throw new NotFoundException('User species not found');
     }
+
+    this.auditService.log('project_species', {
+      action: 'update',
+      entityId: existingSpecies.id,
+      entityUid: speciesId,
+      userId: membership.userId,
+      projectId: membership.projectId,
+      newValues: { favourite: updateDto.fav },
+      source: 'web',
+    });
+
     return false
   }
 
@@ -364,6 +393,17 @@ export class ProjectSpeciesService {
       if (!updatedSpecies.length) {
         throw new NotFoundException('User species not found');
       }
+
+      this.auditService.log('project_species', {
+        action: 'update',
+        entityId: existingSpecies.id,
+        entityUid: speciesId,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: { isDisabled: updateDto.disable },
+        source: 'web',
+      });
+
       return false
     } catch (error) {
       console.log("SDC", error)
@@ -441,6 +481,21 @@ export class ProjectSpeciesService {
       throw new NotFoundException('User species not found');
     }
 
+    this.auditService.log('project_species', {
+      action: 'update',
+      entityId: existingSpecies.id,
+      entityUid: speciesId,
+      userId: membership.userId,
+      projectId: membership.projectId,
+      oldValues: {
+        speciesName: existingSpecies.scientificSpecies?.scientificName,
+        commonName: existingSpecies.commonName,
+        notes: existingSpecies.notes,
+      },
+      newValues: { ...updateDto },
+      source: 'web',
+    });
+
     return updatedSpecies[0]
   }
 
@@ -470,6 +525,20 @@ export class ProjectSpeciesService {
       if (!deletedSpecies.length) {
         throw new NotFoundException('User species not found');
       }
+
+      this.auditService.log('project_species', {
+        action: 'delete',
+        entityId: existingSpecies.id,
+        entityUid: speciesId,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        oldValues: {
+          speciesName: existingSpecies.scientificSpecies?.scientificName,
+          commonName: existingSpecies.commonName,
+        },
+        source: 'web',
+      });
+
       return { message: 'Species deleted successfully' };
     }
 

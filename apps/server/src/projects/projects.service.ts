@@ -199,8 +199,20 @@ export class ProjectsService {
           title: 'New Project Created',
           message: `Your project ${name} has been created successfully.`
         }).catch(err => console.error('Notification failed:', err));
+
+        this.auditLogsService.log('project', {
+          action: 'create',
+          entityId: projectData.id,
+          entityUid: projectData.uid,
+          userId: userData.id,
+          projectId: projectData.id,
+          newValues: { name: projectData.name, type: 'personal', workspaceId },
+          source: 'web',
+        });
+
         return project;
       });
+
       return {
         message: 'Personal project created successfully',
         statusCode: 201,
@@ -479,6 +491,20 @@ export class ProjectsService {
         title: 'New Project Created',
         message: `Your project ${createProjectDto.projectName} has been created successfully.`
       }).catch(err => console.error('Notification failed:', err));
+
+      this.auditLogsService.log('project', {
+        action: 'update',
+        entityId: membership.projectId,
+        userId: userData.id,
+        newValues: {
+          name: createProjectDto.projectName,
+          type: createProjectDto.projectType,
+          description: createProjectDto.description,
+          target: createProjectDto.target,
+        },
+        source: 'web',
+      });
+
       return {
         message: 'Project updated successfully',
         statusCode: 201,
@@ -1066,6 +1092,23 @@ export class ProjectsService {
         return membership;
       });
       await this.userCacheService.invalidateUser(userData)
+
+      // Use type cast for audit log to avoid Drizzle nested table type inference issues
+      const inv = invite as any;
+      this.auditLogsService.log('project_invite', {
+        action: 'accept_invite',
+        entityId: inv.invite.id,
+        entityUid: inv.invite.token,
+        userId,
+        projectId: inv.invite.projectId,
+        newValues: {
+          projectName: inv.project.name,
+          role: inv.invite.projectRole,
+          email: inv.invite.email,
+        },
+        source: 'web',
+      });
+
       return {
         message: `You have successfully joined ${invite.project.name}`,
         statusCode: 200,
@@ -1120,13 +1163,25 @@ export class ProjectsService {
         };
       }
 
+      const declinedInvite = invite as any;
       await this.drizzleService.db
         .update(projectInvites)
         .set({
           status: 'declined',
           updatedAt: new Date()
         })
-        .where(eq(projectInvites.id, invite.invite.id));
+        .where(eq(projectInvites.id, declinedInvite.invite.id));
+
+      this.auditLogsService.log('project_invite', {
+        action: 'decline_invite',
+        entityId: declinedInvite.invite.id,
+        entityUid: declinedInvite.invite.token,
+        userId: userData.id,
+        projectId: declinedInvite.invite.projectId,
+        newValues: { status: 'declined', email },
+        source: 'web',
+      });
+
       this.notificationService.createNotification(
         {
           userId: invite.inviter.id,
@@ -1239,6 +1294,16 @@ export class ProjectsService {
         primaryWorkspaceUid: null
       }).where(eq(user.id, memberQuery[0].user.id))
 
+      const m = memberToUpdate as any;
+      this.auditLogsService.log('project_member', {
+        action: 'role_change',
+        entityId: result.id,
+        userId: myMembership.userId,
+        projectId: myMembership.projectId,
+        oldValues: { role: m.member.projectRole, memberEmail: m.user.email },
+        newValues: { role: result.projectRole, memberEmail: m.user.email },
+        source: 'web',
+      });
 
       return {
         message: 'Member role updated successfully',
@@ -1383,6 +1448,17 @@ export class ProjectsService {
           .where(eq(user.id, currentUser.id));
       }
       await this.userCacheService.invalidateUser({ auth0Id: memberToRemove.user.auth0Id })
+
+      const mr = memberToRemove as any;
+      this.auditLogsService.log('project_member', {
+        action: 'delete',
+        entityId: mr.project_member?.id ?? 0,
+        userId: myMembership.userId,
+        projectId: myMembership.projectId,
+        oldValues: { memberEmail: mr.user?.email, role: mr.project_member?.projectRole },
+        source: 'web',
+      });
+
       return {
         message: 'Member removed successfully',
         statusCode: 200,
@@ -1760,6 +1836,16 @@ export class ProjectsService {
         };
       }
 
+      this.auditLogsService.log('project', {
+        action: 'update',
+        entityId: projectId,
+        entityUid: updatedProject.uid,
+        userId,
+        projectId,
+        newValues: { ...updateData },
+        source: 'web',
+      });
+
       return {
         message: 'Project updated successfully',
         statusCode: 200,
@@ -2094,6 +2180,15 @@ export class ProjectsService {
 
         // Always invalidate cache after transaction
         await this.userCacheService.invalidateUser(userData);
+
+        this.auditLogsService.log('project', {
+          action: 'soft_delete',
+          entityId: membership.projectId,
+          userId: membership.userId,
+          projectId: membership.projectId,
+          newValues: { deletedAt: new Date(), isActive: false },
+          source: 'web',
+        });
 
         return {
           message: 'Project deleted successfully',
@@ -2567,6 +2662,16 @@ export class ProjectsService {
         .update(image)
         .set({ deletedAt: new Date() })
         .where(eq(image.uid, imageUid));
+
+      this.auditLogsService.log('image', {
+        action: 'delete',
+        entityId: existing.id,
+        entityUid: imageUid,
+        userId,
+        projectId,
+        oldValues: { imageUid, entityId: existing.entityId },
+        source: 'web',
+      });
 
       return {
         message: 'Project image deleted successfully',

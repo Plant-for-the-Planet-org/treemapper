@@ -5,6 +5,7 @@ import { CreateSiteDto, UpdateSiteDto, UpdateSiteImagesDto } from './dto/site.dt
 import { generateUid } from 'src/util/uidGenerator';
 import { DrizzleService } from '../database/drizzle.service';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
+import { AuditService } from '../audit/audit.service';
 
 export interface SiteMemberResponse {
   id: number;
@@ -29,6 +30,7 @@ export interface RevokeAccessDto {
 export class SiteService {
   constructor(
     private drizzleService: DrizzleService,
+    private readonly auditService: AuditService,
   ) { }
 
   private getGeoJSONForPostGIS(locationInput: any): any {
@@ -118,6 +120,22 @@ export class SiteService {
       if (!newSite) {
         throw new Error('No site created')
       }
+
+      this.auditService.log('site', {
+        action: 'create',
+        entityId: newSite.id,
+        entityUid: newSite.uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          name: newSite.name,
+          description: newSite.description,
+          status: newSite.status,
+          reviewStatus: (newSite as any).reviewStatus,
+        },
+        source: 'web',
+      });
+
       return newSite
     } catch (error) {
       console.error('createSite error:', error);
@@ -434,6 +452,14 @@ export class SiteService {
       })
       .where(eq(projectMember.id, memberData.id));
 
+    this.auditService.log('project_member', {
+      action: 'permission_change',
+      entityId: memberData.id,
+      projectId: siteData[0].projectId,
+      newValues: { siteAccess: 'limited_access', siteUid, grantedTo: dto.memberUid },
+      source: 'web',
+    });
+
     return { message: 'Site access granted successfully' };
   }
 
@@ -502,6 +528,14 @@ export class SiteService {
         updatedAt: new Date(),
       })
       .where(eq(projectMember.id, memberData.id));
+
+    this.auditService.log('project_member', {
+      action: 'permission_change',
+      entityId: memberData.id,
+      projectId: siteData[0].projectId,
+      newValues: { siteAccess: newSiteAccess, siteUid, revokedFrom: dto.memberUid },
+      source: 'web',
+    });
 
     return { message: 'Site access revoked successfully' };
   }
@@ -587,7 +621,8 @@ export class SiteService {
   async updateSite(
     projectId: number,
     siteUid: string,
-    updateSiteDto: UpdateSiteDto
+    updateSiteDto: UpdateSiteDto,
+    userId?: number,
   ) {
     // First verify site exists and belongs to project
     const existingSite = await this.drizzleService.db
@@ -634,6 +669,16 @@ export class SiteService {
             eq(site.projectId, projectId)
           )
         );
+
+      this.auditService.log('site', {
+        action: 'update',
+        entityId: existingSite[0].id,
+        entityUid: siteUid,
+        userId,
+        projectId,
+        newValues: { ...updateSiteDto },
+        source: 'web',
+      });
     } catch (error) {
       console.error('updateSite error:', error);
       throw new BadRequestException('Failed to update site geometry');

@@ -37,6 +37,7 @@ import { generateParentHID } from 'src/util/hidGenerator';
 import { ProjectGuardResponse } from 'src/projects/projects.service';
 import { interventionConfigurationSeedData } from 'src/database/schema/interventionConfig';
 import { error } from 'console';
+import { AuditService } from '../audit/audit.service';
 
 import { InferInsertModel, InferSelectModel } from 'drizzle-orm';
 
@@ -151,6 +152,7 @@ export enum CaptureStatus {
 export class InterventionsService {
   constructor(
     private drizzleService: DrizzleService,
+    private readonly auditService: AuditService,
   ) { }
 
   /**
@@ -264,19 +266,14 @@ export class InterventionsService {
 
       const changedFields = this.getChangedFields(oldValues, newValues);
 
-      // await this.auditLogService.createAuditLog({
-      //   action: 'update',
-      //   entityType: 'intervention',
-      //   entityId: speciesId.toString(),
-      //   entityUid: currentSpecies.uid,
-      //   userId: userId,
-      //   workspaceId: null, // You might want to get this from intervention
-      //   projectId: interventionData.projectId,
-      //   oldValues,
-      //   newValues,
-      //   changedFields,
-      //   source: 'web',
-      // });
+      this.auditService.log('intervention', {
+        action: 'update',
+        entityId: getInterventionId[0].id,
+        userId,
+        oldValues,
+        newValues,
+        source: 'web',
+      });
 
       return {
         interventionSpecies: updatedSpecies[0],
@@ -513,6 +510,24 @@ export class InterventionsService {
       if (!result) {
         throw new Error('Failed to create intervention');
       }
+
+      this.auditService.log('intervention', {
+        action: 'create',
+        entityId: result[0].id,
+        entityUid: result[0].uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          hid: result[0].hid,
+          type: result[0].type,
+          totalTreeCount: result[0].totalTreeCount,
+          interventionStartDate: result[0].interventionStartDate,
+          interventionEndDate: result[0].interventionEndDate,
+          captureMode: result[0].captureMode,
+        },
+        source: 'web',
+      });
+
       const finalInterventionSpecies: InterventionSpeciesSelect[] = transformedSpecies.map(el => ({
         ...el,
         interventionId: result[0].id,
@@ -1460,20 +1475,16 @@ export class InterventionsService {
       // 10. Create audit log entry
       const changedFields = this.getChangedFields(oldValues, newValues);
 
-      // Uncomment when audit service is available
-      // const auditEntry = await this.auditLogService.createAuditLog({
-      //   action: 'update',
-      //   entityType: 'intervention',
-      //   entityId: interventionId.toString(),
-      //   entityUid: currentIntervention.uid,
-      //   userId: requesterId,
-      //   workspaceId: null, // You might want to get this from project
-      //   projectId: currentIntervention.projectId,
-      //   oldValues,
-      //   newValues,
-      //   changedFields,
-      //   source: 'web',
-      // });
+      this.auditService.log('intervention', {
+        action: 'update',
+        entityId: interventionId,
+        entityUid: updatedIntervention[0].uid,
+        userId: requesterId,
+        projectId: currentIntervention.projectId,
+        oldValues,
+        newValues,
+        source: 'web',
+      });
 
       // 11. Send notifications (if enabled)
       if (transferDto.notifyNewOwner || transferDto.notifyOldOwner) {
@@ -1953,7 +1964,7 @@ async interventionEdit(
 
 
 
-  async deleteMyIntervention(interventionUID: string) {
+  async deleteMyIntervention(interventionUID: string, userId?: number) {
     // Start transaction
     return await this.drizzleService.db.transaction(async (tx) => {
       try {
@@ -2009,6 +2020,17 @@ async interventionEdit(
             .set({ deletedAt })
             .where(inArray(treeRecord.treeId, treeIds));
         }
+
+        this.auditService.log('intervention', {
+          action: 'soft_delete',
+          entityId: interventionRecord.id,
+          entityUid: interventionRecord.uid,
+          userId,
+          projectId: interventionRecord.projectId,
+          oldValues: { deletedAt: null },
+          newValues: { deletedAt },
+          source: 'web',
+        });
 
         return {
           success: true,
@@ -3035,6 +3057,17 @@ async interventionEdit(
             isNull(interventionSpecies.deletedAt)
           )
         );
+
+      this.auditService.log('intervention', {
+        action: 'update',
+        entityId: currentIntervention.id,
+        entityUid: currentIntervention.uid,
+        userId: requesterId,
+        projectId,
+        oldValues,
+        newValues,
+        source: 'web',
+      });
 
       return {
         success: true,
