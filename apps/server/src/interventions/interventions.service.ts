@@ -575,7 +575,7 @@ export class InterventionsService {
           treeId: singleResult[0].id,
           recordedById: membership.userId,
           recordType: 'planting',
-          recordedAt: new Date(createInterventionDto.interventionStartDate),
+          recordedAt: (() => { const d = new Date(createInterventionDto.interventionStartDate); return d > new Date() ? new Date() : d; })(),
           height: createInterventionDto.height || null,
           width: createInterventionDto.width || null,
         });
@@ -1271,7 +1271,7 @@ export class InterventionsService {
             treeId: t.id,
             recordedById: membership.userId,
             recordType: 'planting' as const,
-            recordedAt: finalSingleTrees[i]?.plantingDate ?? new Date(),
+            recordedAt: (() => { const d = finalSingleTrees[i]?.plantingDate ?? new Date(); return d > new Date() ? new Date() : d; })(),
             height: finalSingleTrees[i]?.height ?? null,
             width: finalSingleTrees[i]?.width ?? null,
           }));

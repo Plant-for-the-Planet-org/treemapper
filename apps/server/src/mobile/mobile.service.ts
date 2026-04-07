@@ -1598,12 +1598,13 @@ export class MobileService {
         if (!sampleResult) {
           throw new Error('Failed to create singleResult intervention');
         }
+        const sampleRecordedAt = new Date(createInterventionDto.interventionStartDate);
         await this.drizzleService.db.insert(treeRecord).values({
           uid: generateUid('treerec'),
           treeId: sampleResult[0].id,
           recordedById: membership.userId,
           recordType: 'planting',
-          recordedAt: new Date(createInterventionDto.interventionStartDate),
+          recordedAt: sampleRecordedAt > new Date() ? new Date() : sampleRecordedAt,
           height: createInterventionDto.measurements?.height ?? null,
           width: createInterventionDto.measurements?.width ?? null,
         });
@@ -1736,12 +1737,13 @@ export class MobileService {
         } else {
           singleTreeResult['id'] = singleResult[0].uid
           singleTreeResult['hid'] = singleResult[0].hid
+          const singleRecordedAt = new Date(createInterventionDto.interventionStartDate);
           await this.drizzleService.db.insert(treeRecord).values({
             uid: generateUid('treerec'),
             treeId: singleResult[0].id,
             recordedById: membership.userId,
             recordType: 'planting',
-            recordedAt: new Date(createInterventionDto.interventionStartDate),
+            recordedAt: singleRecordedAt > new Date() ? new Date() : singleRecordedAt,
             height: createInterventionDto.measurements?.height ?? null,
             width: createInterventionDto.measurements?.width ?? null,
           });
