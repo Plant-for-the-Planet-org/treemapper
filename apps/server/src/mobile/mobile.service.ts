@@ -482,16 +482,7 @@ export class MobileService {
   }
 
   async requestMigration(userData: User, token: string) {
-    try {
-      await this.drizzleService.db.insert(migrationRequest).values({
-        uid: generateUid("mgrreq"),
-        userId: userData.id,
-      })
-      await this.userCacheService.setUserByAuthMigration(token, userData.auth0Id)
-      await this.emailService.sendMigrationRequestEmail({ memberEmail: userData.email, memberId: userData.uid, memberName: userData.displayName, memberType: userData.type, token })
-    } catch (error) {
-      return null
-    }
+    return null;
   }
 
 

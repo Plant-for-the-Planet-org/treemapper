@@ -1219,14 +1219,19 @@ const ProjectSettings = () => {
   };
 
   const handleLocationUpdate = async (geoData) => {
+    if (!canEdit) {
+      setNotification({ type: 'error', message: 'You do not have permission to update project location.' });
+      return;
+    }
     setLoading(true);
     try {
-      // Mock API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await updateProjectSettings(accessToken, { originalGeometry: geoData }, selectedProject.uid);
       setProjectData(prev => ({ ...prev, originalGeometry: geoData }));
       setNotification({ type: 'success', message: 'Project location updated successfully!' });
     } catch (error) {
-      setNotification({ type: 'error', message: 'Failed to update project location' });
+      console.error('Location update error:', error);
+      const errorMessage = error?.response?.data?.error || error?.message || 'Failed to update project location';
+      setNotification({ type: 'error', message: errorMessage });
     } finally {
       setLoading(false);
     }

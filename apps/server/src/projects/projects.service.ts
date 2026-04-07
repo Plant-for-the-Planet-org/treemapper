@@ -1765,7 +1765,8 @@ export class ProjectsService {
           createdById: project.createdById,
           createdAt: project.createdAt,
           updatedAt: project.updatedAt,
-          location: project.originalGeometry
+          location: project.originalGeometry,
+          approvalBoardEnabled: project.approvalBoardEnabled,
         })
         .from(project)
         .where(eq(project.id, projectId));
