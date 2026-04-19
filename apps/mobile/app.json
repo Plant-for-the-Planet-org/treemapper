@@ -74,7 +74,8 @@
       "expo-secure-store",
       "expo-router",
       "expo-web-browser",
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      ["react-native-share", {}]
     ],
     "ios": {
       "supportsTablet": true,
@@ -101,14 +102,6 @@
         "LSMinimumSystemVersion": "12.0",
         "UIBackgroundModes": [
           "remote-notification"
-        ],
-        "CFBundleURLTypes": [
-          {
-            "CFBundleURLName": "org.pftp.treemapper",
-            "CFBundleURLSchemes": [
-              "treemapper"
-            ]
-          }
         ]
       }
     },
