@@ -12811,13 +12811,6 @@ expo-build-properties@~1.0.10:
     ajv "^8.11.0"
     semver "^7.6.0"
 
-expo-camera@~17.0.10:
-  version "17.0.10"
-  resolved "https://registry.yarnpkg.com/expo-camera/-/expo-camera-17.0.10.tgz#b3a217f0eb811a6e3522c2aff9f42be578aa6456"
-  integrity sha512-w1RBw83mAGVk4BPPwNrCZyFop0VLiVSRE3c2V9onWbdFwonpRhzmB4drygG8YOUTl1H3wQvALJHyMPTbgsK1Jg==
-  dependencies:
-    invariant "^2.2.4"
-
 expo-clipboard@~8.0.8:
   version "8.0.8"
   resolved "https://registry.yarnpkg.com/expo-clipboard/-/expo-clipboard-8.0.8.tgz#5e52054a4bbaebef090ec6fe5eaa200072ff94f7"
@@ -18232,6 +18225,16 @@ react-native-modal@14.0.0-rc.1:
   dependencies:
     react-native-animatable "1.4.0"
 
+react-native-nitro-image@*:
+  version "0.13.1"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-image/-/react-native-nitro-image-0.13.1.tgz#e8e38a52008b80af9715da0690da15b568581af0"
+  integrity sha512-o2t1DNmNV57XfCtP6zX3LY7S3oJg1FrwlttuQM9nxoAPNl2bDBaKp+J3NtVFP+vriDPRTRChJP2xqGPbTGzzxw==
+
+react-native-nitro-modules@*:
+  version "0.35.4"
+  resolved "https://registry.yarnpkg.com/react-native-nitro-modules/-/react-native-nitro-modules-0.35.4.tgz#eff7f3e1e279b44568850300e9789af3fc30facd"
+  integrity sha512-4qZa+1kgR/sPRNZv+UShxyArEPpovWxw76Dfd/DtCVtkQ92wOOxGIzdYvndprabd+t+r8zNYgYEPYE74gzkuVQ==
+
 react-native-onesignal@5.2.16:
   version "5.2.16"
   resolved "https://registry.yarnpkg.com/react-native-onesignal/-/react-native-onesignal-5.2.16.tgz#9edf7da1ee55ce40ffb944d80c3f28ee4f0a061f"
@@ -18359,6 +18362,11 @@ react-native-version-check@^3.5.0:
   dependencies:
     lodash "^4.17.21"
     semver "^6.1.1"
+
+react-native-vision-camera@^5.0.0:
+  version "5.0.1"
+  resolved "https://registry.yarnpkg.com/react-native-vision-camera/-/react-native-vision-camera-5.0.1.tgz#8811accc01c05d8dc1d8dba71f6acab59626f971"
+  integrity sha512-3txUUc/E4bdA4sQr8KwYM3UEFX5QFKRPLrBXRNJmi/ExuMscPokmakLngl5EZmR4DjPEkUYw5xhxIJWB3eXG3A==
 
 react-native-web@0.21.2:
   version "0.21.2"

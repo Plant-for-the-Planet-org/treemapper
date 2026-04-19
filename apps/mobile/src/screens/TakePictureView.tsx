@@ -4,7 +4,7 @@ import Header from 'src/components/common/Header'
 import { scaleSize } from 'src/utils/constants/mixins'
 import CameraView from 'src/components/common/CameraView'
 import { Colors } from 'src/utils/constants'
-import { CameraCapturedPicture } from 'expo-camera'
+import type { CapturedPicture } from 'src/components/common/CameraView'
 import ImagePreview from 'src/components/takePicture/ImagePreview'
 import { useRoute, RouteProp } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
@@ -12,7 +12,7 @@ import { SafeAreaView } from 'react-native-safe-area-context'
 import i18next from 'src/locales/index'
 
 const TakePicture = () => {
-  const [imageMetaData, setImageMetaData] = useState<CameraCapturedPicture>({
+  const [imageMetaData, setImageMetaData] = useState<CapturedPicture>({
     width: 0,
     height: 0,
     uri: '',
@@ -20,7 +20,7 @@ const TakePicture = () => {
   const route = useRoute<RouteProp<RootStackParamList, 'TakePicture'>>()
   const plotImage = route.params?.plotImage ?? false
 
-  const takePicture = (data: CameraCapturedPicture) => {
+  const takePicture = (data: CapturedPicture) => {
     setImageMetaData(data)
   }
   const retakePicture = () => {

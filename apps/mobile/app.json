@@ -51,12 +51,6 @@
         }
       ],
       [
-        "expo-camera",
-        {
-          "cameraPermission": "To take pictures of the trees you have planted, please allow access to your camera."
-        }
-      ],
-      [
         "expo-font",
         {
           "fonts": [
@@ -96,6 +90,7 @@
         ]
       },
       "infoPlist": {
+        "NSCameraUsageDescription": "To take pictures of the trees you have planted, please allow access to your camera.",
         "NSFaceIDUsageDescription": "Allows App to use Face ID for a simpler sign in.",
         "NSLocationWhenInUseUsageDescription": "We need access to precise location to be able to register trees.",
         "ITSAppUsesNonExemptEncryption": false,
@@ -111,6 +106,7 @@
         "backgroundColor": "#007A49"
       },
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"

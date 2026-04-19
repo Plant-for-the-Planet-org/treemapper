@@ -1,6 +1,6 @@
 import { StyleSheet, View, ActivityIndicator, Text } from 'react-native'
 import React, { useState, useEffect } from 'react'
-import { CameraCapturedPicture } from 'expo-camera'
+import type { CapturedPicture } from 'src/components/common/CameraView'
 import CustomButton from 'src/components/common/CustomButton'
 import * as ExpoImage from 'expo-image'
 import { Colors, Typography } from 'src/utils/constants'
@@ -17,7 +17,7 @@ import i18next from 'src/locales'
 import { useToast } from 'react-native-toast-notifications'
 
 interface Props {
-  imageData: CameraCapturedPicture
+  imageData: CapturedPicture
   id: string
   screen: AFTER_CAPTURE
   retakePicture: () => void
