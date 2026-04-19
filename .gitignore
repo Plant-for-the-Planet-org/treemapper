@@ -46,3 +46,10 @@ notes.txt
 .vscode
 apps/native/android/
 apps/native/ios
+
+# Claude Code - settings contain personal permissions and absolute paths
+.claude/settings.json
+.claude/settings.local.json
+
+# Xcode local env (machine-specific paths)
+.xcode.env.local
