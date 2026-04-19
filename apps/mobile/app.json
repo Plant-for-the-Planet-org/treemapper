@@ -6,7 +6,7 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": false,
+    "newArchEnabled": true,
     "scheme": "treemapper",
     "splash": {
       "image": "./assets/splash.png",
@@ -25,7 +25,12 @@
       ],
       "@maplibre/maplibre-react-native",
       [
-        "expo-build-properties"
+        "expo-build-properties",
+        {
+          "android": {
+            "kotlinVersion": "2.0.21"
+          }
+        }
       ],
       [
         "expo-image-picker",
@@ -67,7 +72,6 @@
       ],
       "expo-localization",
       "expo-secure-store",
-      "expo-build-properties",
       "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker"

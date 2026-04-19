@@ -20,9 +20,9 @@ import { BottomSheetModalProvider } from '@gorhom/bottom-sheet'
 
 
 export default function App() {
-  useEffect(() => {
-    applyStoredLanguage()
-  }, [])
+  // useEffect(() => {
+  //   applyStoredLanguage()
+  // }, [])
 
   return (
     <SafeAreaProvider>
