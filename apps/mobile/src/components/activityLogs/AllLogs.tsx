@@ -1,5 +1,5 @@
 import { FlatList, RefreshControl, StyleSheet, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import LogCard from './LogCard'
 import { LogDetails } from 'src/types/interface/slice.interface'
 import { useRealm } from '@realm/react'
@@ -11,6 +11,7 @@ const AllLogs = () => {
     const [loading, setLoading] = useState(false)
     const [currentPage, setCurrentPage] = useState(0);
     const realm = useRealm()
+    const isPageIncrementPending = useRef(false)
 
 
     useEffect(() => {
@@ -31,22 +32,27 @@ const AllLogs = () => {
                 .objects<LogDetails>(RealmSchema.ActivityLogs)
                 .filtered("logLevel != 'error'")
                 .sorted('timestamp', true)
-                .slice(start, start + 20); // Inclusive range for 20 items
-    
-            setLogs(currentPage ? [...logs, ...objects] : [...objects]);
+                .slice(start, start + 20);
+
+            setLogs(prev => currentPage ? [...prev, ...objects] : [...objects]);
         } catch (error) {
             console.error("Failed to fetch logs:", error);
         } finally {
             setLoading(false);
+            isPageIncrementPending.current = false
         }
     };
+
+    const handleEndReached = () => {
+        if (isPageIncrementPending.current) return
+        isPageIncrementPending.current = true
+        setCurrentPage(prev => prev + 1)
+    }
 
     return (
         <View style={styles.container}>
             <FlatList data={logs} renderItem={({ item }) => (<LogCard data={item} />)}
-                onEndReached={() => {
-                    setCurrentPage(currentPage + 1);
-                }}
+                onEndReached={handleEndReached}
                 onEndReachedThreshold={0.5}
                 refreshControl={
                     <RefreshControl

@@ -1,5 +1,5 @@
 import { StyleSheet, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import InterventionList from 'src/components/intervention/InterventionList'
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
@@ -18,13 +18,16 @@ const InterventionView = () => {
   const [currentPage, setCurrentPage] = useState(0);
   const [loading, setLoading] = useState(true)
   const realm = useRealm()
+  const isPageIncrementPending = useRef(false)
+  const hasMoreData = useRef(true)
+  const isInitialMount = useRef(true)
 
 
   useEffect(() => {
     getRelatedIntervention()
   }, [currentPage, selectedLabel])
 
-  const getQuery = (label) => {
+  const getQuery = (label: string) => {
     if (label === 'unsync') {
       return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
     } else if (label === 'incomplete') {
@@ -44,32 +47,41 @@ const InterventionView = () => {
       .objects(RealmSchema.Intervention)
       .filtered(query)
       .slice(start, end);
-    setAllIntervention([...allIntervention, ...JSON.parse(JSON.stringify(objects))])
+    const newItems = JSON.parse(JSON.stringify(objects))
+    if (newItems.length > 0) {
+      setAllIntervention(prev => [...prev, ...newItems])
+    } else {
+      // No new items — do NOT update state (avoids new array ref → re-render → onEndReached loop)
+      hasMoreData.current = false
+    }
     setLoading(false)
+    isPageIncrementPending.current = false
   }
 
   useEffect(() => {
-    if (!loading) {
-      refreshHandler()
-      setSelectedLabel((prev) => {
-        const newLabel = prev
-        return newLabel
-      })
+    if (isInitialMount.current) {
+      isInitialMount.current = false
+      return
     }
+    refreshHandler()
   }, [intervention_updated, dataMigrated])
 
 
   const handlePageIncrement = () => {
-    setCurrentPage(currentPage + 1)
+    if (isPageIncrementPending.current || !hasMoreData.current) return
+    isPageIncrementPending.current = true
+    setCurrentPage(prev => prev + 1)
   }
 
   const handleLabel = (s: string) => {
+    hasMoreData.current = true
     setAllIntervention([])
     setSelectedLabel(s)
     setCurrentPage(0)
   }
 
   const refreshHandler = () => {
+    hasMoreData.current = true
     setLoading(true)
     setAllIntervention([])
     setCurrentPage(0);
