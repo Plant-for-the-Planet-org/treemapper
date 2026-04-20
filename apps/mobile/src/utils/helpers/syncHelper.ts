@@ -128,14 +128,14 @@ export const postDataConvertor = (d: InterventionData[]) => {
     return quae
 }
 
-export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: boolean): Promise<BodyPayload> => {
+export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
     if (r.type === 'intervention') {
         const InterventionD = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertInterventionBody(JSON.parse(JSON.stringify(InterventionD)), projectRequire)
+        return convertInterventionBody(JSON.parse(JSON.stringify(InterventionD)))
     }
     if (r.type === 'singleTree') {
         const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])), projectRequire)
+        return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])))
     }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -143,9 +143,9 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
         if (Intervention.location_id === '') {
             return null
         }
-        return convertTreeToBody(Intervention, TreeDetails, projectRequire)
+        return convertTreeToBody(Intervention, TreeDetails)
     }
-    if (r.type === 'treeImage' && projectRequire) {
+    if (r.type === 'treeImage') {
         try {
             const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
             if (TreeDetails.sloc_id === '') {
@@ -164,33 +164,14 @@ export const getPostBody = async (r: QuaeBody, uType: string, projectRequire: bo
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
     }
-    if (r.type === 'treeImage' && !projectRequire) {
-        try {
-            const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-            if (TreeDetails.sloc_id === '') {
-                return null
-            }
-            const base64Image = await getImageAsBase64(updateFilePath(TreeDetails.image_url))
-            const body = {
-                imageFile: `data:image/png;base64,${base64Image}`,
-                locationId: TreeDetails.tree_type === 'sample' ? TreeDetails.sloc_id : TreeDetails.parent_id,
-                imageId: TreeDetails.image_data.coordinateID
-            };
-            return { pData: body, message: '', fixRequired: "NO", error: "" }
-        } catch (error) {
-            return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
-        }
-    }
-
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
 
-export const getRemeasurementBody = async (r: QuaeBody, v3Approved: boolean): Promise<BodyPayload> => {
-    console.log("Remeasurement body called", v3Approved)
+export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> => {
     if (r.type === 'remeasurementData') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return convertRemeasurementBody(TreeDetails, v3Approved)
+        return convertRemeasurementBody(TreeDetails)
     }
     if (r.type === 'remeasurementStatus') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -203,7 +184,7 @@ export const getRemeasurementBody = async (r: QuaeBody, v3Approved: boolean): Pr
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
 
-export const convertInterventionBody = (d: InterventionData, projectRequire: boolean): BodyPayload => {
+export const convertInterventionBody = (d: InterventionData): BodyPayload => {
     try {
         const metaData = JSON.parse(d.meta_data);
         const additionalDataConvert = handleAdditionalData([...d.additional_data, ...d.form_data])
@@ -233,15 +214,10 @@ export const convertInterventionBody = (d: InterventionData, projectRequire: boo
             registrationDate: postTimeConvertor(Date.now()),
             metadata: finalMeta,
         }
-        if (!d.project_id && projectRequire) {
-            return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
-        }
-
-        if (d.project_id && projectRequire) {
+        if (d.project_id) {
             postData.plantProject = d.project_id
         }
-
-        if (d.site_id && d.site_id !== 'other' && projectRequire) {
+        if (d.site_id && d.site_id !== 'other') {
             postData.plantProjectSite = d.site_id
         }
         if (interventionForm.species_required) {
@@ -273,7 +249,7 @@ export const convertInterventionBody = (d: InterventionData, projectRequire: boo
 
 }
 
-export const convertTreeToBody = (i: InterventionData, d: SampleTree, projectRequire: boolean): BodyPayload => {
+export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPayload => {
     try {
         const metaData = JSON.parse(i.meta_data);
         const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
@@ -307,15 +283,12 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree, projectReq
         }
         postData.interventionStartDate = postTimeConvertor(d.plantation_date)
         postData.interventionEndDate = postTimeConvertor(d.plantation_date)
-        if (!i.project_id && projectRequire) {
-            return { pData: null, message: "Please assign a project to intervention", fixRequired: "PROJECT_ID_MISSING", error: "" }
-        }
 
-        if (i.project_id && projectRequire) {
+        if (i.project_id) {
             postData.plantProject = i.project_id
         }
 
-        if (i.site_id && i.site_id !== 'other' && projectRequire) {
+        if (i.site_id && i.site_id !== 'other') {
             postData.plantProjectSite = i.site_id
         }
         if (d.species_guid == "unknown") {
@@ -371,7 +344,7 @@ const handleAdditionalData = (aData: FormElement[]) => {
     return { privateAdd, publicAdd }
 }
 
-export const convertRemeasurementBody = async (d: SampleTree, v3Approved: boolean): Promise<BodyPayload> => {
+export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPayload> => {
     try {
         const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_DATA_UPLOAD')
         const postData: any = {
@@ -393,19 +366,12 @@ export const convertRemeasurementBody = async (d: SampleTree, v3Approved: boolea
                 }
             } : {}
         }
-        
+
         // Handle image file - for v3Approved, use file path; for others, use base64
         if (d.image_url) {
-            if (v3Approved) {
-                // For v3Approved users, use the file path for presigned URL upload
-                postData.imageFile = updateFilePath(d.image_url);
-            } else {
-                // For non-v3Approved, convert to base64 (legacy support)
-                const base64Image = await getImageAsBase64(updateFilePath(d.image_url));
-                postData.imageFile = `data:image/png;base64,${base64Image}`;
-            }
+            postData.imageFile = updateFilePath(d.image_url);
         }
-        
+
         return { pData: postData, message: "", fixRequired: 'NO', error: "", historyID: getHistory.history_id, treeID: d.sloc_id }
     } catch (error) {
         return { pData: null, message: "Unknown error ocurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }

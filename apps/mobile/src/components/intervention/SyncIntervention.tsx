@@ -1,9 +1,10 @@
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
+import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg';
 import { useQuery, useRealm } from '@realm/react';
 import { RealmSchema } from 'src/types/enum/db.enum';
 import { InterventionData, QuaeBody } from 'src/types/interface/slice.interface';
@@ -17,50 +18,64 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, remeasurement, skipRemeasurement, uploadAllIntervention, uploadInterventionImage } from 'src/api/api.fetch';
+import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, skipRemeasurement, uploadAllIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
-// import InfoIcon from 'assets/images/svg/BlueInfoIcon.svg'
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
 import { formatRelativeTimeCustom } from 'src/utils/helpers/appHelper/dataAndTimeHelper';
 import useLogManagement from 'src/hooks/realm/useLogManagement';
-import { generateUid } from 'src/utils/helpers/uidGenerator';
+
 interface Props {
     isLoggedIn: boolean
     tokenValid?: boolean
 }
 
+interface SyncItemStatus {
+    type: string
+    index: number
+    status: 'pending' | 'syncing' | 'done' | 'error'
+}
+
+const TYPE_LABELS: Record<string, string> = {
+    intervention: 'Intervention',
+    singleTree: 'Single Tree',
+    sampleTree: 'Sample Tree',
+    treeImage: 'Tree Image',
+    remeasurementData: 'Remeasurement',
+    remeasurementStatus: 'Remeasurement Status',
+    skipRemeasurement: 'Skip Remeasurement',
+}
 
 const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const [uploadData, setUploadData] = useState<QuaeBody[]>([])
     const [moreUpload, setMoreUpload] = useState(false)
     const [retryCount, setRetryCount] = useState(10)
-    const realm = useRealm()
     const [showFullSync, setShowFullSync] = useState(false)
-    const { syncRequired, isSyncing } = useSelector(
-        (state: RootState) => state.syncState,
-    )
-    const v3Approved = useSelector(
-        (state: RootState) => state.userState.v3Approved
-    )
+    const [showSyncModal, setShowSyncModal] = useState(false)
+    const [syncStatuses, setSyncStatuses] = useState<SyncItemStatus[]>([])
+
+    const { syncRequired, isSyncing } = useSelector((state: RootState) => state.syncState)
+    const realm = useRealm()
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateProjectIdMissing, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateTreeStatusFixRequire, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount } = useInterventionManagement()
+    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
-    const lastSyncDate = useSelector(
-        (state: RootState) => state.appState.lastSyncDate,
-    )
-    const uType = useSelector(
-        (state: RootState) => state.userState.type,
-    )
-    const projectRequire = v3Approved || uType === 'tpo'
+    const lastSyncDate = useSelector((state: RootState) => state.appState.lastSyncDate)
 
     const interventionData = useQuery<InterventionData>(
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
+
+    const preSyncSummary = useMemo(() => {
+        const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const counts: Record<string, number> = {}
+        qData.forEach(item => { counts[item.type] = (counts[item.type] || 0) + 1 })
+        return counts
+    }, [interventionData])
+
     useEffect(() => {
         if (uploadData.length > 0 && moreUpload) {
             if (!tokenValid) {
@@ -76,8 +91,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         }
     }, [uploadData, tokenValid])
 
-
-
     const showLogin = () => {
         setRetryCount(10)
         if (!isLoggedIn) {
@@ -88,31 +101,35 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         }
     }
 
+
     const checkForProjectId = async () => {
-        if (uType !== 'tpo' && !v3Approved) {
-            return true
-        }
         const invWithoutProjectId = realm.objects(RealmSchema.Intervention).filtered('status == "PENDING_DATA_UPLOAD" AND project_id == ""');
-        if (invWithoutProjectId && invWithoutProjectId.length > 0) {
+        if (invWithoutProjectId.length === 0) return true;
+        const { response, success } = await getPersonalProject();
+        if (!success || !response?.data?.properties?.uid) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Failed to fetch personal project uid for sync', logLevel: 'error', statusCode: '' });
             toast.show(`${invWithoutProjectId.length} of the intervention don't have project assigned. Please assign them project from intervention tab.`)
             await updateInterventionsWithEmptyProjectIdWithCount()
             return false;
         }
+        const projectUid = response.data.properties.uid;
+        realm.write(() => {
+            for (const intervention of invWithoutProjectId) {
+                (intervention as any).project_id = projectUid;
+            }
+        });
         return true;
-
     }
 
+
     const startSyncingData = async () => {
-        console.log("startSyncingData called")
         if (!isLoggedIn) {
             showLogin()
             return
         }
-        const canContinue = await checkForProjectId()
-        console.log("canContinue", canContinue)
-        if (!canContinue) {
-            return
-        }
+
+        const projectPass = await checkForProjectId();
+        if (!projectPass) return;
         if (!isSyncing) {
             dispatch(updateSyncDetails(true))
             dispatch(updateLastSyncData(Date.now()))
@@ -128,6 +145,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const prioritizeData = [...qData].sort((a, b) => a.priority - b.priority);
         if (prioritizeData.length > 0) {
+            setSyncStatuses(prioritizeData.map((item, idx) => ({ type: item.type, index: idx, status: 'pending' })))
             setMoreUpload(true)
             setUploadData(() => prioritizeData)
         } else {
@@ -144,519 +162,291 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         uploadObjectsSequentially(uploadData);
     }
 
-
-    const handleIntervention = async (el) => {
+    const handleIntervention = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
-            if (fixRequired === 'PROJECT_ID_MISSING') {
-                await updateProjectIdMissing(el.p1Id)
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                })
-            }
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
-            console.log("responseData handleIntervention", responseData)
-            if (!responseError && responseData.parentHid && responseData.parentId) {
+            const { pData } = await getPostBody(el) as any;
+            if (!pData) throw new Error("Not able to convert body");
+            const { responseData, responseError } = await uploadAllIntervention(pData);
+            if (!responseError && responseData && responseData.parentHid && responseData.parentId) {
                 await updateInterventionStatus(el.p1Id, responseData.parentHid, responseData.parentId, el.nextStatus);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
+                return true
             }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Intervention API response error', logLevel: 'error', statusCode: '' })
+            return false
         } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Intervention API response error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
+            addNewLog({ logType: 'DATA_SYNC', message: 'Intervention API response error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
         }
     };
 
-    const handleSingleTree = async (el) => {
+    const handleSingleTree = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
-            if (fixRequired === 'PROJECT_ID_MISSING') {
-                await updateProjectIdMissing(el.p1Id)
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                })
-            }
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
-            if (!responseError && responseData.treeId && responseData.parentId) {
+            const { pData } = await getPostBody(el) as any;
+            if (!pData) throw new Error("Not able to convert body");
+            const { responseData, responseError } = await uploadAllIntervention(pData);
+            if (!responseError && responseData && responseData.treeId && responseData.parentId) {
                 const result = await updateInterventionStatus(el.p1Id, responseData.parentHid, responseData.parentId, el.nextStatus);
                 if (result) {
                     await updateTreeStatus(el.p2Id, responseData.treeHid, responseData.treeId, el.nextStatus, responseData.parentId, responseData.coordinates);
                 }
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Single Tree API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
+                return true
             }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Single Tree API response error', logLevel: 'error', statusCode: '' })
+            return false
         } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Single Tree API response error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
+            addNewLog({ logType: 'DATA_SYNC', message: 'Single Tree API response error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
         }
     };
 
-    const handleRemeasurement = async (el) => {
+    const handleMobileRemeasurement = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const { pData, historyID, treeID } = await getRemeasurementBody(el,v3Approved);
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
+            const { pData, historyID, treeID } = await getRemeasurementBody(el, true) as any;
+            if (!pData) throw new Error("Not able to convert body");
 
-            if (v3Approved) {
-                await handleMobileRemeasurement(el)
-                return
-            }
-            const { success } = await remeasurement(treeID, pData);
-            if (success) {
-                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID)
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Remeasurement Tree API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            }
-        } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Remeasurement error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
-        }
-    };
+            let requestBody: any = { type: pData.type, metadata: pData.metadata || {} };
+            if (pData.eventDate) requestBody.eventDate = pData.eventDate;
 
-
-    const handleMobileRemeasurement = async (el) => {
-        console.log("=== handleMobileRemeasurement START ===");
-        try {
-            const { pData, historyID, treeID } = await getRemeasurementBody(el, v3Approved);
-
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-
-            // Build request body based on type
-            let requestBody: any = {
-                type: pData.type,
-                metadata: pData.metadata || {},
-            };
-
-            // Add eventDate if provided
-            if (pData.eventDate) {
-                requestBody.eventDate = pData.eventDate;
-            }
-
-            // Handle image upload for v3Approved users
             let imageFilename: string | undefined = undefined;
-            if (v3Approved && pData.imageFile) {
-
+            if (pData.imageFile) {
                 try {
-                    // Get presigned URL for image upload
                     const presignedResponse = await presingedUrl({
                         fileName: String(new Date().getTime()),
                         fileType: 'image/jpg',
                         folder: 'tree'
                     });
-                    console.log("Presigned URL Response:", JSON.stringify(presignedResponse, null, 2));
-
-                    if (!presignedResponse.success || presignedResponse.response?.code !== 'success') {
-                        console.warn("⚠️ Failed to get presigned URL, continuing without image");
-                        console.warn("Response:", presignedResponse);
-                    } else {
+                    if (presignedResponse.success && presignedResponse.response?.code === 'success') {
                         const signedUrl = presignedResponse.response.data.data.uploadUrl;
                         const fileName = presignedResponse.response.data.data.fileName;
-                        console.log("Upload URL:", signedUrl);
-                        console.log("File Name:", fileName);
-
-                        // Upload image to presigned URL
                         const uploadResponse = await fetch(signedUrl, {
                             method: 'PUT',
-                            body: {
-                                uri: pData.imageFile,
-                                type: 'image/jpg',
-                                name: fileName || 'image.jpg',
-                            },
-                            headers: {
-                                'Content-Type': 'image/jpg',
-                            },
+                            body: { uri: pData.imageFile, type: 'image/jpg', name: fileName || 'image.jpg' } as any,
+                            headers: { 'Content-Type': 'image/jpg' },
                         });
-
-                        if (!uploadResponse.ok) {
-                            console.warn(`⚠️ Image upload failed with status: ${uploadResponse.status}, continuing without image`);
-                        } else {
-                            imageFilename = fileName;
-                            console.log("✅ Image uploaded successfully:", imageFilename);
-                        }
+                        if (uploadResponse.ok) imageFilename = fileName;
                     }
-                } catch (imageError) {
-                    console.error("❌ Image upload error:", imageError);
-                    console.warn("⚠️ Continuing with remeasurement without image");
+                } catch (_) {
+                    // continue without image
                 }
             }
 
-            // Add type-specific fields
             if (pData.type === 'measurement') {
-                console.log("--- Building MEASUREMENT request body ---");
-                // For measurement type, include height and width
-                if (pData.measurements?.height !== undefined) {
-                    requestBody.height = pData.measurements.height;
-                    console.log("Added height:", pData.measurements.height);
-                }
-                if (pData.measurements?.width !== undefined) {
-                    requestBody.width = pData.measurements.width;
-                    console.log("Added width:", pData.measurements.width);
-                }
+                if (pData.measurements?.height !== undefined) requestBody.height = pData.measurements.height;
+                if (pData.measurements?.width !== undefined) requestBody.width = pData.measurements.width;
             } else if (pData.type === 'status') {
-                console.log("--- Building STATUS request body ---");
-                // For status type, include status and statusReason
                 requestBody.status = pData.status;
-                console.log("Added status:", pData.status);
-                if (pData.statusReason) {
-                    requestBody.statusReason = pData.statusReason;
-                    console.log("Added statusReason:", pData.statusReason);
-                }
-            } else {
-                console.warn("Unknown type:", pData.type);
+                if (pData.statusReason) requestBody.statusReason = pData.statusReason;
             }
 
-            // Add image filename if uploaded
-            if (imageFilename) {
-                requestBody.imageFilename = imageFilename;
-                console.log("Added imageFilename:", imageFilename);
-            }
+            if (imageFilename) requestBody.imageFilename = imageFilename;
 
-            console.log("--- Final Request Body ---");
-            console.log("Request Body:", JSON.stringify(requestBody, null, 2));
-            console.log("Tree ID:", treeID);
-
-            console.log("--- Making API Call ---");
-            const response = await remeasuremenMobile(treeID, requestBody);
-            console.log("--- API Response ---");
-            console.log("Full Response:", JSON.stringify(response, null, 2));
-            console.log("Success:", response?.success);
-            console.log("Status Code:", response?.status);
-            if (response?.response) {
-                console.log("Response Body:", JSON.stringify(response.response, null, 2));
+            const response = await remeasuremenMobile(treeID ?? '', requestBody);
+            if (response?.success) {
+                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID ?? '');
+                return true
             }
-            if (!response?.success) {
-                console.error("❌ API Call Failed!");
-                console.error("Status:", response?.status);
-                console.error("Response:", response?.response);
-                console.error("Extra:", response?.extra);
-            }
-
-            const { success } = response;
-            if (success) {
-                console.log("✅ Remeasurement successful! Updating status...");
-                await updateRemeasurementStatus(el.p1Id, el.p2Id, historyID);
-                console.log("✅ Status updated successfully");
-                console.log("=== handleMobileRemeasurement SUCCESS ===");
-            } else {
-                console.error("❌ API returned success: false");
-                console.error("Response:", response);
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Remeasurement Tree API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement Tree API response error', logLevel: 'error', statusCode: '' })
+            return false
         } catch (error) {
-            console.error("=== handleMobileRemeasurement ERROR ===");
-            console.error("Error message:", error?.message);
-            console.error("Error stack:", error?.stack);
-            console.error("Full error:", JSON.stringify(error, null, 2));
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Remeasurement error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
+            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
         }
     };
 
-    const handleSkipRemeasurement = async (el) => {
+    const handleSkipRemeasurement = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const dData = await getRemeasurementBody(el);
-            if (!dData) {
-                throw new Error("Not able to convert body");
-            }
-            const { success } = await skipRemeasurement(dData.treeID, {
-                "type": "skip-measurement"
-            });
+            const dData = await getRemeasurementBody(el, true) as any;
+            if (!dData) throw new Error("Not able to convert body");
+            const { success } = await skipRemeasurement(dData.treeID ?? '', { "type": "skip-measurement" });
             if (success) {
                 await updateRemeasurementStatus(el.p1Id, el.p2Id, '', true);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Remeasurement SKIP API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
+                return true
             }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement SKIP API response error', logLevel: 'error', statusCode: '' })
+            return false
         } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Remeasurement SKIP error',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
+            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement SKIP error', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
         }
     };
 
-
-    const handleSampleTree = async (el) => {
+    const handleSampleTree = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
-            if (fixRequired !== 'NO') {
-                await updateTreeStatusFixRequire(el.p1Id, el.p2Id, fixRequired)
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Sample Tree fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                })
-            }
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-            const { responseData, responseError } = await uploadAllIntervention(pData, v3Approved);
-            console.log("responseData handleSampleTree", responseData)
-
-            if (!responseError && responseData.parentHid && responseData.parentId) {
+            const { pData } = await getPostBody(el) as any;
+            if (!pData) throw new Error("Not able to convert body");
+            const { responseData, responseError } = await uploadAllIntervention(pData);
+            if (!responseError && responseData && responseData.parentHid && responseData.parentId) {
                 await updateTreeStatus(el.p2Id, responseData.parentHid, responseData.parentId, el.nextStatus, pData.parent, responseData.coordinates);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Sample Tree API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
+                return true
             }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Sample Tree API response error', logLevel: 'error', statusCode: '' })
+            return false
         } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Sample Tree API response error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
+            addNewLog({ logType: 'DATA_SYNC', message: 'Sample Tree API response error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
         }
     };
-    const handleTreeImage = async (el) => {
-        if (!v3Approved) {
-            await OldhandleTreeImage(el)
-            return
-        }
+
+    const handleTreeImage = async (el: QuaeBody): Promise<boolean> => {
         try {
-            console.log("handleTreeImage");
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType, projectRequire);
-
-            if (fixRequired !== 'NO') {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                });
-            }
-
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-
-            console.log("Image Data", pData);
-
-            // Get presigned URL
+            const { pData } = await getPostBody(el) as any;
+            if (!pData) throw new Error("Not able to convert body");
             const presignedResponse = await presingedUrl({
                 fileName: String(new Date().getMilliseconds()),
                 fileType: 'image/jpg',
                 folder: 'tree'
             });
-            console.log("presignedResponse", presignedResponse)
-
-            // Fixed: Check for success condition (was checking for failure)
-            if (presignedResponse.response.code !== 'success') {
-                throw new Error('Failed to get upload URL');
-            }
-
-
+            if (presignedResponse.response.code !== 'success') throw new Error('Failed to get upload URL');
             const signedUrl = presignedResponse.response.data.data.uploadUrl;
             const fileName = presignedResponse.response.data.data.fileName;
-
-            const formData = new FormData();
-            formData.append('file', {
-                uri: pData.imageFile, // Assuming el contains the image URI
-                type: 'image/jpg',
-                name: fileName || 'image.jpg',
-            });
-            console.log("formData", signedUrl);
-            // Upload using FormDat
             const uploadResponse = await fetch(signedUrl, {
                 method: 'PUT',
-                body: {
-                    uri: pData.imageFile,
-                    type: 'image/jpg',
-                    name: fileName || 'image.jpg',
-                },
-                headers: {
-                    'Content-Type': 'image/jpg', // Set the correct content type
-                },
+                body: { uri: pData.imageFile, type: 'image/jpg', name: fileName || 'image.jpg' } as any,
+                headers: { 'Content-Type': 'image/jpg' },
             });
-
-
-            if (!uploadResponse.ok) {
-                throw new Error(`Upload failed with status: ${uploadResponse.status}`);
-            }
-            await mobileInterventionImageUplaod({
-                treeUid: pData.treeServerId,
-                filename: fileName,
-                mimeType: 'image/jpg',
-            });
+            if (!uploadResponse.ok) throw new Error(`Upload failed with status: ${uploadResponse.status}`);
+            await mobileInterventionImageUplaod({ treeUid: pData.treeServerId, filename: fileName, mimeType: 'image/jpg' });
             await updateTreeImageStatus(el.p2Id, el.p1Id, fileName);
+            return true
         } catch (error) {
-            console.log("handleTreeImage error", error);
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Image Upload API response error (Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            });
-            return false; // Return false to indicate failure
+            addNewLog({ logType: 'DATA_SYNC', message: 'Image Upload API response error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) });
+            return false
         }
     };
-
-    const OldhandleTreeImage = async (el) => {
-        try {
-            const { pData, fixRequired, error, message } = await getPostBody(el, uType, v3Approved);
-            if (fixRequired !== 'NO') {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Intervention fix require ' + message,
-                    logLevel: 'error',
-                    statusCode: '',
-                    logStack: JSON.stringify(error),
-                })
-            }
-            if (!pData) {
-                throw new Error("Not able to convert body");
-            }
-            const { response, success } = await uploadInterventionImage(pData.locationId, pData.imageId, {
-                imageFile: pData.imageFile
-            });
-            if (success && response.status === "complete") {
-                const cdnImage = response.image || ''
-                await updateTreeImageStatus(el.p2Id, el.p1Id, cdnImage);
-            } else {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Image Upload API response error',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            }
-        } catch (error) {
-            addNewLog({
-                logType: 'DATA_SYNC',
-                message: 'Image Upload API response error(Inside Catch)',
-                logLevel: 'error',
-                statusCode: '',
-                logStack: JSON.stringify(error),
-            })
-        }
-    };
-
 
     const uploadObjectsSequentially = async (d: QuaeBody[]) => {
-        for (const el of d) {
+        for (let i = 0; i < d.length; i++) {
+            const el = d[i]
             if (!isConnected) {
                 dispatch(updateSyncDetails(false))
                 setMoreUpload(false)
                 toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
                 return;
             }
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
+            let success = false
             switch (el.type) {
-                case 'intervention':
-                    await handleIntervention(el);
-                    break;
-                case 'singleTree':
-                    await handleSingleTree(el);
-                    break;
-                case 'sampleTree':
-                    await handleSampleTree(el);
-                    break;
-                case 'treeImage':
-                    await handleTreeImage(el);
-                    break;
-                case 'remeasurementData':
-                    await handleRemeasurement(el);
-                    break
-                case 'remeasurementStatus':
-                    await handleRemeasurement(el);
-                    break;
-                case 'skipRemeasurement':
-                    await handleSkipRemeasurement(el);
-                    break;
-                default:
-                    console.log("Unknown type:", el.type);
+                case 'intervention': success = await handleIntervention(el); break;
+                case 'singleTree': success = await handleSingleTree(el); break;
+                case 'sampleTree': success = await handleSampleTree(el); break;
+                case 'treeImage': success = await handleTreeImage(el); break;
+                case 'remeasurementData': success = await handleMobileRemeasurement(el); break;
+                case 'remeasurementStatus': success = await handleMobileRemeasurement(el); break;
+                case 'skipRemeasurement': success = await handleSkipRemeasurement(el); break;
+                default: break;
             }
+
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: success ? 'done' : 'error' } : s))
         }
         startSyncingData();
     };
 
+    const totalSyncItems = Object.values(preSyncSummary).reduce((a, b) => a + b, 0)
+    const doneCount = syncStatuses.filter(s => s.status === 'done' || s.status === 'error').length
+    const errorCount = syncStatuses.filter(s => s.status === 'error').length
+
+    const renderSyncModal = () => {
+        const isActivelySyncing = isSyncing && syncStatuses.length > 0
+        return (
+            <Modal
+                visible={showSyncModal}
+                transparent
+                animationType="fade"
+                onRequestClose={() => setShowSyncModal(false)}>
+                <Pressable style={styles.modalBackdrop} onPress={() => setShowSyncModal(false)}>
+                    <Pressable style={styles.modalCard} onPress={() => { }}>
+                        <View style={styles.modalHeader}>
+                            <Text style={styles.modalTitle}>
+                                {isActivelySyncing ? i18next.t("label.syncing") : 'Upload Details'}
+                            </Text>
+                            <TouchableOpacity onPress={() => setShowSyncModal(false)}>
+                                <Text style={styles.modalClose}>✕</Text>
+                            </TouchableOpacity>
+                        </View>
+
+                        {isActivelySyncing ? (
+                            <>
+                                <View style={styles.progressRow}>
+                                    <Text style={styles.progressText}>
+                                        {doneCount} of {syncStatuses.length} uploaded
+                                    </Text>
+                                    {errorCount > 0 && (
+                                        <Text style={styles.errorBadge}>{errorCount} failed</Text>
+                                    )}
+                                </View>
+                                <ScrollView style={styles.statusList} showsVerticalScrollIndicator={false}>
+                                    {syncStatuses.map((item, idx) => (
+                                        <View key={idx} style={styles.statusRow}>
+                                            <Text style={[
+                                                styles.statusDot,
+                                                item.status === 'done' && styles.dotDone,
+                                                item.status === 'error' && styles.dotError,
+                                                item.status === 'syncing' && styles.dotSyncing,
+                                            ]}>
+                                                {item.status === 'done' ? '✓' : item.status === 'error' ? '✗' : item.status === 'syncing' ? '⟳' : '○'}
+                                            </Text>
+                                            <Text style={[
+                                                styles.statusLabel,
+                                                item.status === 'error' && { color: Colors.ALERT },
+                                                item.status === 'done' && { color: Colors.SUCCESS },
+                                            ]}>
+                                                {TYPE_LABELS[item.type] || item.type}
+                                            </Text>
+                                            {item.status === 'syncing' && (
+                                                <Text style={styles.uploadingTag}>uploading...</Text>
+                                            )}
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                            </>
+                        ) : (
+                            <>
+                                <Text style={styles.modalSubtitle}>
+                                    {totalSyncItems > 0
+                                        ? `${totalSyncItems} item${totalSyncItems !== 1 ? 's' : ''} ready to upload`
+                                        : 'Nothing to upload'}
+                                </Text>
+                                <ScrollView style={styles.statusList} showsVerticalScrollIndicator={false}>
+                                    {Object.entries(preSyncSummary).map(([type, count]) => (
+                                        <View key={type} style={styles.statusRow}>
+                                            <Text style={styles.countBadge}>{count}</Text>
+                                            <Text style={styles.statusLabel}>{TYPE_LABELS[type] || type}</Text>
+                                        </View>
+                                    ))}
+                                </ScrollView>
+                                {totalSyncItems > 0 && (
+                                    <Text style={styles.hintText}>Tap the sync button to start uploading</Text>
+                                )}
+                            </>
+                        )}
+                    </Pressable>
+                </Pressable>
+            </Modal>
+        )
+    }
 
     const renderSyncView = () => (
-        <TouchableOpacity style={styles.container}>
+        <View style={styles.container}>
             <RotatingView isClockwise={true}>
                 <RefreshIcon />
             </RotatingView>
             <Text style={styles.label}>{i18next.t("label.syncing")} • {interventionData.length} left</Text>
-        </TouchableOpacity>
+            <TouchableOpacity style={styles.infoIconWrapper} onPress={() => setShowSyncModal(true)}>
+                <InfoIcon width={18} height={18} />
+            </TouchableOpacity>
+        </View>
     )
 
     const renderUnSyncView = () => (
-        <Pressable style={styles.container} onPress={showLogin}>
-            <UnSyncIcon width={20} height={20} />
-            <Text style={styles.label}>{lastSyncDate ? formatRelativeTimeCustom(lastSyncDate) : i18next.t("label.sync_data")}{interventionData.length ? ` • ${interventionData.length} left` : ""}</Text>
-        </Pressable>
+        <View style={styles.container}>
+            <Pressable style={styles.syncPressable} onPress={showLogin}>
+                <UnSyncIcon width={20} height={20} />
+                <Text style={styles.label}>{lastSyncDate ? formatRelativeTimeCustom(lastSyncDate) : i18next.t("label.sync_data")}{interventionData.length ? ` • ${interventionData.length} left` : ""}</Text>
+            </Pressable>
+            <TouchableOpacity style={styles.infoIconWrapper} onPress={() => setShowSyncModal(true)}>
+                <InfoIcon width={18} height={18} />
+            </TouchableOpacity>
+        </View>
     )
 
     const renderFullySyncView = () => (
@@ -673,11 +463,13 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         return null
     }
 
-    return <View>
-        {renderTile()}
-    </View>
+    return (
+        <View>
+            {renderTile()}
+            {renderSyncModal()}
+        </View>
+    )
 }
-
 
 export default SyncIntervention
 
@@ -691,6 +483,10 @@ const styles = StyleSheet.create({
         backgroundColor: Colors.WHITE,
         borderRadius: 10
     },
+    syncPressable: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
     label: {
         fontSize: 14,
         fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
@@ -698,7 +494,112 @@ const styles = StyleSheet.create({
         marginLeft: 8
     },
     infoIconWrapper: {
-        marginRight: 5,
-        marginLeft: 10
+        marginLeft: 8,
+        padding: 4,
+    },
+    modalBackdrop: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.4)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalCard: {
+        width: '85%',
+        maxHeight: '70%',
+        backgroundColor: Colors.WHITE,
+        borderRadius: 16,
+        padding: 20,
+    },
+    modalHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 12,
+    },
+    modalTitle: {
+        fontSize: 16,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.TEXT_COLOR,
+    },
+    modalClose: {
+        fontSize: 16,
+        color: Colors.GRAY_LIGHTEST,
+        paddingHorizontal: 4,
+    },
+    modalSubtitle: {
+        fontSize: 13,
+        color: Colors.GRAY_LIGHTEST,
+        marginBottom: 12,
+    },
+    progressRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 12,
+        gap: 10,
+    },
+    progressText: {
+        fontSize: 13,
+        color: Colors.GRAY_LIGHTEST,
+        flex: 1,
+    },
+    errorBadge: {
+        fontSize: 12,
+        color: Colors.WHITE,
+        backgroundColor: Colors.ALERT,
+        paddingHorizontal: 8,
+        paddingVertical: 2,
+        borderRadius: 10,
+    },
+    statusList: {
+        maxHeight: 300,
+    },
+    statusRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingVertical: 7,
+        borderBottomWidth: 1,
+        borderBottomColor: Colors.GRAY_MEDIUM,
+    },
+    statusDot: {
+        fontSize: 14,
+        width: 22,
+        color: Colors.GRAY_LIGHTEST,
+    },
+    dotDone: {
+        color: Colors.SUCCESS,
+    },
+    dotError: {
+        color: Colors.ALERT,
+    },
+    dotSyncing: {
+        color: Colors.PRIMARY,
+    },
+    statusLabel: {
+        flex: 1,
+        fontSize: 14,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.TEXT_COLOR,
+    },
+    uploadingTag: {
+        fontSize: 12,
+        color: Colors.PRIMARY,
+    },
+    countBadge: {
+        fontSize: 13,
+        fontFamily: Typography.FONT_FAMILY_SEMI_BOLD,
+        color: Colors.WHITE,
+        backgroundColor: Colors.PRIMARY,
+        minWidth: 22,
+        textAlign: 'center',
+        paddingHorizontal: 6,
+        paddingVertical: 2,
+        borderRadius: 10,
+        marginRight: 10,
+    },
+    hintText: {
+        fontSize: 12,
+        color: Colors.GRAY_LIGHTEST,
+        marginTop: 12,
+        textAlign: 'center',
     },
 })

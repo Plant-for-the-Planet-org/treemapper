@@ -419,6 +419,12 @@ export const getAllMobileProjects = async () => {
   return result;
 };
 
+export const getPersonalProject = async () => {
+  const uri = `${getUrlMobileApi.getPersonalProject}`;
+  const result = await fetchGetCall(uri, true);
+  return result;
+};
+
 export const getAllProjects = async () => {
   const uri = `${getUrlApi.getAllProjects}`;
   const result = await fetchGetCall(uri, true);
@@ -468,48 +474,28 @@ export const getUserProjectSpecies = async (id: string) => {
 
 
 //Post intervention
-
-export const uploadAllIntervention = async (params: any, newBackend: boolean,) => {
-  let result: { responseData: any, responseError: boolean }
-  if (newBackend) {
-    let { response, success } = await uploadMobileIntervention(params)
-    if (success && response.data && response.data.id) {
-      result = {
-        responseData: {
-          parentHid: response.data.hid,
-          parentId: response.data.id,
-          treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.hid : '',
-          treeId: response.data.singleTreeResult ? response.data.singleTreeResult.id : "",
-          coordinates: [{
-            "image": "",
-            "created": new Date(),
-            "coordinateIndex": 0,
-            "id": generateUid('img'),
-            "updated": new Date(),
-            "status": "pending"
-          }]
-        }, responseError: false
-      }
-    } else {
-      result = { responseData: null, responseError: true }
+export const uploadAllIntervention = async (params: any) => {
+  let { response, success } = await uploadMobileIntervention(params)
+  if (success && response.data && response.data.id) {
+    return {
+      responseData: {
+        parentHid: response.data.hid,
+        parentId: response.data.id,
+        treeHid: response.data.singleTreeResult ? response.data.singleTreeResult.hid : '',
+        treeId: response.data.singleTreeResult ? response.data.singleTreeResult.id : "",
+        coordinates: [{
+          "image": "",
+          "created": new Date(),
+          "coordinateIndex": 0,
+          "id": generateUid('img'),
+          "updated": new Date(),
+          "status": "pending"
+        }]
+      }, responseError: false
     }
   } else {
-    let { response, success } = await uploadIntervention(params)
-    if (success && response.hid) {
-      result = {
-        responseData: {
-          parentHid: response.hid,
-          parentId: response.id,
-          treeHid: response.hid,
-          treeId: response.id,
-          coordinates: response.coordinates
-        }, responseError: false
-      }
-    } else {
-      result = { responseData: null, responseError: true }
-    }
+    return { responseData: null, responseError: true }
   }
-  return result
 }
 
 export const uploadMobileIntervention = async (params: any) => {

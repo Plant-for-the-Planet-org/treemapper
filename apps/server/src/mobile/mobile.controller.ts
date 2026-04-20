@@ -73,6 +73,15 @@ export class MobileController {
     return await this.appservice.getProjectsAndSitesForUser(req.user.id);
   }
 
+  @Get('user/personal-project')
+  @ApiOperation({ summary: 'Get the personal project of the current user' })
+  @ApiResponse({ status: 200, description: 'Returns the personal project with its sites' })
+  async getPersonalProject(
+    @Req() req: any,
+  ): Promise<any> {
+    return await this.appservice.getPersonalProject(req.user.id);
+  }
+
 
   @Post('project')
   async createNewProject(

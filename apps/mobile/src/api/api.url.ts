@@ -59,6 +59,7 @@ export const getUrlMobileApi = {
   getMobileHealth: `${mobileBaseUrl}/health`,
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,
+  getPersonalProject: `${mobileBaseUrl}/mobile/user/personal-project`,
   getProjectSpecies: `${mobileBaseUrl}/mobile/species`,
   getMobileInterventions: `${mobileBaseUrl}/mobile/project/interventions`,
   getMobileEmailInviteStatus: `${mobileBaseUrl}/mobile/invites`,

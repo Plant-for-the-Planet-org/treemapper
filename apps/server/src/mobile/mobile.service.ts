@@ -853,6 +853,167 @@ export class MobileService {
     }
   }
 
+  async getPersonalProject(userId: number): Promise<any> {
+    try {
+      const [personalProject] = await this.drizzleService.db
+        .select({
+          project: project,
+        })
+        .from(project)
+        .where(
+          and(
+            eq(project.isPersonal, true),
+            eq(project.createdById, userId),
+            eq(project.isActive, true),
+            isNull(project.deletedAt),
+          )
+        )
+        .limit(1);
+
+      if (!personalProject) {
+        const workspaceData = await this.drizzleService.db
+          .select({ id: workspace.id, uid: workspace.uid })
+          .from(workspace)
+          .where(eq(workspace.slug, 'private-projects'))
+          .limit(1);
+
+        if (!workspaceData || workspaceData.length === 0) {
+          throw new Error('Server side workspace issue');
+        }
+
+        const [userData] = await this.drizzleService.db
+          .select({ displayName: user.displayName, primaryProjectUid: user.primaryProjectUid })
+          .from(user)
+          .where(eq(user.id, userId))
+          .limit(1);
+
+        const projectName = userData?.displayName ? `${userData.displayName}'s Trees` : 'My Trees';
+
+        const createdPersonalProject = await this.drizzleService.db.transaction(async (tx) => {
+          let workspaceMemberRecord = await tx
+            .select()
+            .from(workspaceMember)
+            .where(
+              and(
+                eq(workspaceMember.workspaceId, workspaceData[0].id),
+                eq(workspaceMember.userId, userId),
+              )
+            )
+            .limit(1);
+
+          if (workspaceMemberRecord.length === 0) {
+            await tx
+              .insert(workspaceMember)
+              .values({
+                uid: generateUid('workmem'),
+                workspaceId: workspaceData[0].id,
+                userId: userId,
+                role: 'member',
+                status: 'active',
+                joinedAt: new Date(),
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              })
+              .returning();
+          }
+
+          const baseSlug = this.generateSlugFromName(projectName);
+          const uniqueSlug = await this.generateUniqueSlug(tx, baseSlug);
+
+          const [createdProject] = await tx
+            .insert(project)
+            .values({
+              uid: generateUid('proj'),
+              createdById: userId,
+              workspaceId: workspaceData[0].id,
+              slug: uniqueSlug,
+              name: projectName,
+              type: null,
+              target: null,
+              isActive: true,
+              isPublic: true,
+              isPrimary: false,
+              isPersonal: true,
+              migratedProject: false,
+              flag: false,
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .returning();
+
+          await tx
+            .insert(projectMember)
+            .values({
+              uid: generateUid('projmem'),
+              projectId: createdProject.id,
+              userId: userId,
+              projectRole: 'owner',
+              status: 'active',
+              siteAccess: 'all_sites',
+              restrictedSites: [],
+              joinedAt: new Date(),
+              createdAt: new Date(),
+              updatedAt: new Date(),
+            })
+            .returning();
+
+          await tx.insert(auditLog).values({
+            uid: generateUid('log'),
+            action: 'create',
+            entityType: 'project',
+            entityId: createdProject.id,
+            entityUid: createdProject.uid,
+            userId: userId,
+            workspaceId: workspaceData[0].id,
+            projectId: createdProject.id,
+            newValues: {
+              name: createdProject.name,
+              slug: createdProject.slug,
+              isPersonal: true,
+            },
+            source: 'mobile',
+            occurredAt: new Date(),
+          });
+
+          if (!userData?.primaryProjectUid) {
+            await tx
+              .update(user)
+              .set({
+                primaryProjectUid: createdProject.uid,
+                primaryWorkspaceUid: workspaceData[0].uid,
+                updatedAt: new Date(),
+              })
+              .where(eq(user.id, userId));
+          }
+
+          return createdProject;
+        });
+
+        return {
+          id: createdPersonalProject.uid,
+          geometry: createdPersonalProject.originalGeometry,
+          properties: {
+            id: createdPersonalProject.uid,
+            uid: createdPersonalProject.uid,
+          },
+        };
+      }
+
+      const proj = personalProject.project;
+      return {
+        id: proj.uid,
+        geometry: proj.originalGeometry,
+        properties: {
+          id: proj.uid,
+          uid: proj.uid,
+        },
+      };
+    } catch (error) {
+      console.error('Error fetching personal project:', error);
+      throw new Error('Failed to fetch personal project');
+    }
+  }
+
   private checkSiteAccess(
     siteRecord: typeof site.$inferSelect,
     memberData: typeof projectMember.$inferSelect

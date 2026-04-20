@@ -241,8 +241,8 @@ export interface QuaeBody {
   type: string
   priority: number
   nextStatus: INTERVENTION_STATUS
-  p1Id?: string
-  p2Id?: string
+  p1Id: string
+  p2Id: string
   p3Id?: string
 }
 
