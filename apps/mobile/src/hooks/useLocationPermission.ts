@@ -24,11 +24,12 @@ const useLocationPermission = () => {
     if (status && status.status === Location.PermissionStatus.GRANTED) {
       userCurrentLocation()
     }
-  }, [])
+  }, [status])
 
 
   useEffect(() => {
-    requestLocationPermission()
+    const timer = setTimeout(() => { requestLocationPermission() }, 0)
+    return () => clearTimeout(timer)
   }, [])
 
 
