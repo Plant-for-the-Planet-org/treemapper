@@ -16,6 +16,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
     { id: 'intervention', label: 'Interventions' },
+    { id: 'forms', label: 'Forms', adminOnly: true },
     { id: 'settings', label: 'Settings' }
   ];
 
@@ -38,7 +39,19 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
       '/dashboard/intervention': 'intervention',
       '/dashboard/settings': 'settings'
     };
-    return urlToStateMap[pathname] || '';
+    if (urlToStateMap[pathname] !== undefined) return urlToStateMap[pathname];
+    // Handle sub-routes (e.g. /dashboard/forms/[id])
+    const prefixMap = [
+      { prefix: '/dashboard/forms', value: 'forms' },
+      { prefix: '/dashboard/approvals', value: 'approvals' },
+      { prefix: '/dashboard/sites', value: 'sites' },
+      { prefix: '/dashboard/species', value: 'species' },
+      { prefix: '/dashboard/intervention', value: 'intervention' },
+    ];
+    for (const { prefix, value } of prefixMap) {
+      if (pathname.startsWith(prefix)) return value;
+    }
+    return '';
   }
 
   const handleTabClick = (id: string) => {
@@ -53,7 +66,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     <div className="flex space-x-6 overflow-x-auto">
       {items.map((item) => {
         if (selectedProject?.userRole === 'contributor') {
-          if ( item.id === 'settings' || item.id === 'team' || item.id === 'approvals' ) {
+          if (item.id === 'settings' || item.id === 'team' || item.id === 'approvals' || item.id === 'forms') {
             return null
           }
         }
