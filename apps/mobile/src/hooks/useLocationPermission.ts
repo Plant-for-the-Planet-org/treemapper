@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import * as Location from 'expo-location'
 import { useDispatch } from 'react-redux';
 import { updateAccuracy, updateUserLocation } from 'src/store/slice/gpsStateSlice';
@@ -6,31 +6,35 @@ import useLogManagement from './realm/useLogManagement';
 
 const useLocationPermission = () => {
   const [status, requestForegroundPermissionsAsync] = Location.useForegroundPermissions();
+  const hasRequestedPermission = useRef(false)
 
   const dispatch = useDispatch()
   const { addNewLog } = useLogManagement()
 
-
   useEffect(() => {
-    if (status && status.status === Location.PermissionStatus.DENIED) {
+    // status is null while the initial native fetch is in progress — wait for it
+    if (status === null) return
+
+    if (status.status === Location.PermissionStatus.UNDETERMINED && !hasRequestedPermission.current) {
+      hasRequestedPermission.current = true
+      requestLocationPermission()
+      return
+    }
+
+    if (status.status === Location.PermissionStatus.DENIED) {
       addNewLog({
         logType: 'LOCATION',
         message: "Location permission denied",
         logLevel: 'warn',
         statusCode: '',
       })
+      return
     }
 
-    if (status && status.status === Location.PermissionStatus.GRANTED) {
+    if (status.status === Location.PermissionStatus.GRANTED) {
       userCurrentLocation()
     }
   }, [status])
-
-
-  useEffect(() => {
-    const timer = setTimeout(() => { requestLocationPermission() }, 0)
-    return () => clearTimeout(timer)
-  }, [])
 
 
   const userCurrentLocation = async () => {
@@ -41,10 +45,8 @@ const useLocationPermission = () => {
       })
       if (userLocationDetails?.coords?.longitude && userLocationDetails?.coords?.latitude) {
         dispatch(updateUserLocation([userLocationDetails.coords.longitude, userLocationDetails.coords.latitude]))
-        dispatch(updateAccuracy(userLocationDetails.coords.accuracy))
+        dispatch(updateAccuracy(userLocationDetails.coords.accuracy ?? 0))
       }
-    } else {
-      await requestLocationPermission();
     }
   }
 
@@ -53,7 +55,7 @@ const useLocationPermission = () => {
       const lastLocation = await Location.getLastKnownPositionAsync()
       if (lastLocation?.coords) {
         dispatch(updateUserLocation([lastLocation.coords.longitude, lastLocation.coords.latitude]))
-        dispatch(updateAccuracy(lastLocation.coords.accuracy))
+        dispatch(updateAccuracy(lastLocation.coords.accuracy ?? 0))
       }
     } catch (error) {
       addNewLog({
@@ -65,8 +67,6 @@ const useLocationPermission = () => {
       })
     }
   }
-
-
 
   const requestLocationPermission = async () => {
     try {

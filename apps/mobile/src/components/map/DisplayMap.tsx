@@ -1,6 +1,7 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
+import * as Location from 'expo-location'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
@@ -28,6 +29,7 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
+  const [locationStatus] = Location.useForegroundPermissions()
   const realm = useRealm()
   const [overlayGeoJSON, setOverlayGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -358,13 +360,15 @@ const DisplayMap = () => {
       mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
       <MapLibreGL.Camera ref={cameraRef} />
-      <MapLibreGL.UserLocation
-        showsUserHeadingIndicator
-        androidRenderMode="gps"
-        onUpdate={(location) => {
-          initLocation(location)
-        }}
-      />
+      {locationStatus?.status === Location.PermissionStatus.GRANTED && (
+        <MapLibreGL.UserLocation
+          showsUserHeadingIndicator
+          androidRenderMode="gps"
+          onUpdate={(location) => {
+            initLocation(location)
+          }}
+        />
+      )}
       {renderShapeSource()}
       <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} />
       {renderMapMarkers()}
