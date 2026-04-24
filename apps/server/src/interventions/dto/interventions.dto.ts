@@ -237,6 +237,42 @@ export class CreateInterventionBulkDto {
   tag?: string;
 }
 
+export class CustomSpeciesItemDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(0)
+  count: number;
+}
+
+export class CustomInterventionItemDto {
+  @IsString()
+  beneficiary: string;
+
+  @IsString()
+  plantDate: string; // MM/DD/YYYY
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomSpeciesItemDto)
+  species: CustomSpeciesItemDto[];
+
+  @IsObject()
+  geometry: any; // GeoJSON geometry object
+}
+
+export class CreateCustomBulkDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomInterventionItemDto)
+  interventions: CustomInterventionItemDto[];
+
+  @IsOptional()
+  @IsString()
+  siteId?: string;
+}
+
 // src/modules/interventions/dto/update-intervention.dto.ts
 import { PartialType } from '@nestjs/swagger';
 import { is } from 'drizzle-orm';

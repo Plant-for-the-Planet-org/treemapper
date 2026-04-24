@@ -17,6 +17,7 @@ import {
 import {
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
   InterventionDto,
@@ -1294,6 +1295,53 @@ export class InterventionsService {
       console.error('Bulk intervention upload error:', error);
       throw new BadRequestException(`Failed to create interventions: ${error.message}`);
     }
+  }
+
+  async customBulkInterventionUpload(
+    dto: CreateCustomBulkDto,
+    membership: ProjectGuardResponse,
+  ): Promise<any> {
+    if (!dto.interventions?.length) {
+      throw new BadRequestException('No interventions provided');
+    }
+
+    const transformed = dto.interventions.map(item => {
+      const dateISO = this.parseCustomDate(item.plantDate);
+      const treesPlanted = item.species.reduce((sum, s) => sum + (s.count || 0), 0);
+
+      return {
+        clientId: generateUid('inv'),
+        type: InterventionType.MULTI_TREE_REGISTRATION,
+        geometry: item.geometry,
+        registrationDate: new Date().toISOString(),
+        interventionStartDate: dateISO,
+        interventionEndDate: dateISO,
+        species: item.species.map(s => ({
+          speciesName: s.name,
+          speciesCount: s.count,
+        })),
+        treesPlanted,
+        plantProjectSite: dto.siteId,
+        metadata: { beneficiary: item.beneficiary },
+        height: null,
+        width: null,
+      };
+    });
+
+    return this.bulkInterventionUpload(transformed as unknown as CreateInterventionBulkDto[], membership);
+  }
+
+  private parseCustomDate(dateStr: string): string {
+    const parts = (dateStr ?? '').split('/');
+    if (parts.length !== 3) {
+      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected MM/DD/YYYY`);
+    }
+    const [month, day, year] = parts.map(Number);
+    const date = new Date(year, month - 1, day);
+    if (isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid date: "${dateStr}"`);
+    }
+    return date.toISOString();
   }
 
   private async insertInterventionChunkIndividually(chunk: any[]): Promise<any[]> {

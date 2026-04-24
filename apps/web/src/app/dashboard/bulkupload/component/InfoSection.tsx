@@ -1,10 +1,11 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
-import { Upload, Download, FileText, CheckCircle, AlertCircle, X } from 'lucide-react';
+import { Upload, Download, FileText, CheckCircle, AlertCircle, X, Layers } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Papa from 'papaparse';
 import { downloadTreeMapperTemplate } from '@/utils/bulktemplate';
+import { useRouter } from 'next/navigation';
 
 
 const InfoSection = (props: any) => {
@@ -13,8 +14,19 @@ const InfoSection = (props: any) => {
     const [dragActive, setDragActive] = useState(false);
     const fileInputRef = useRef(null);
     const [loading, setLoading] = useState(false)
+    const router = useRouter()
 
-    const { setFileData, updateStep } = props
+    const { setFileData, updateStep, selectedProject, selectedSite } = props
+
+    const handleCustomFormatClick = () => {
+        const params = new URLSearchParams({
+            projectId: selectedProject?.id ?? '',
+            projectName: selectedProject?.name ?? '',
+            siteId: selectedSite?.id ?? '',
+            siteName: selectedSite?.name ?? '',
+        })
+        router.push(`/dashboard/bulkupload/custom-format?${params.toString()}`)
+    }
 
     const validateFile = (file) => {
         if (!file) {
@@ -281,6 +293,27 @@ const InfoSection = (props: any) => {
                             </motion.div>
                         )}
                     </div>
+
+                    {/* Custom Format Entry Point */}
+                    <button
+                        onClick={handleCustomFormatClick}
+                        className="w-full text-left bg-white border border-gray-200 rounded-lg shadow-sm p-4 hover:border-[#007A49] hover:shadow-md transition-all group"
+                    >
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="p-2 bg-green-50 rounded-lg group-hover:bg-green-100 transition-colors">
+                                    <Layers className="h-5 w-5 text-[#007A49]" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-semibold text-gray-900">Upload data as GeoJSON, KML or your own format</p>
+                                    <p className="text-xs text-gray-500 mt-0.5">Have data in a different format? We can help you map it.</p>
+                                </div>
+                            </div>
+                            <svg className="h-4 w-4 text-gray-400 group-hover:text-[#007A49] transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                        </div>
+                    </button>
 
                     {/* File Requirements */}
                     <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">

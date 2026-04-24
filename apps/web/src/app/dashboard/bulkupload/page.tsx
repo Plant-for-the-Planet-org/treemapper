@@ -150,7 +150,7 @@ const Home = () => {
 
             {currentStep === 1 && <SelectProjectSite onBack={prviousStep} accessToken={accessToken}
                 handleFinalSelection={handleFinalSelection} />}
-            {currentStep === 2 && <InfoSection setFileData={setFileData} updateStep={updateSteps} />}
+            {currentStep === 2 && <InfoSection setFileData={setFileData} updateStep={updateSteps} selectedProject={selectedProject} selectedSite={selectedSite} />}
             {currentStep === 3 && < DataValidation fileData={fileData} onBack={prviousStep} onNext={handleProjectValidations} />}
             {currentStep === 4 && <UploadSuccess validatedData={fileData} selectedProject={selectedProject} selectedSite={selectedSite} onBack={prviousStep} onStartOver={updateSteps} accessToken={accessToken} />}
         </div>
