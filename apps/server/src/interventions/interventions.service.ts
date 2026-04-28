@@ -30,7 +30,8 @@ import {
   MapIntervention,
   MapTree,
   ProjectMapBounds,
-  ProjectMapResponse
+  ProjectMapResponse,
+  AddTreeRemeasurementDto,
 } from './dto/interventions.dto';
 import { generateUid } from 'src/util/uidGenerator';
 import { generateParentHID } from 'src/util/hidGenerator';
@@ -3352,6 +3353,221 @@ async interventionEdit(
         .limit(1);
 
       return updated;
+    });
+  }
+
+  async getTreeRecords(
+    treeHid: string,
+    projectId: number,
+  ): Promise<any> {
+    const [treeRow] = await this.drizzleService.db
+      .select({ id: tree.id, uid: tree.uid, hid: tree.hid, status: tree.status, interventionId: tree.interventionId })
+      .from(tree)
+      .where(eq(tree.hid, treeHid))
+      .limit(1);
+
+    if (!treeRow) throw new NotFoundException(`Tree ${treeHid} not found`);
+
+    const [interventionRow] = await this.drizzleService.db
+      .select({ projectId: intervention.projectId })
+      .from(intervention)
+      .where(eq(intervention.id, treeRow.interventionId))
+      .limit(1);
+
+    if (!interventionRow || interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this tree');
+    }
+
+    const records = await this.drizzleService.db
+      .select({
+        id: treeRecord.id,
+        uid: treeRecord.uid,
+        recordType: treeRecord.recordType,
+        recordedAt: treeRecord.recordedAt,
+        previousStatus: treeRecord.previousStatus,
+        newStatus: treeRecord.newStatus,
+        statusReason: treeRecord.statusReason,
+        height: treeRecord.height,
+        width: treeRecord.width,
+        notes: treeRecord.notes,
+        image: treeRecord.image,
+        recordedByName: user.displayName,
+        recordedByEmail: user.email,
+        createdAt: treeRecord.createdAt,
+      })
+      .from(treeRecord)
+      .leftJoin(user, eq(treeRecord.recordedById, user.id))
+      .where(
+        and(
+          eq(treeRecord.treeId, treeRow.id),
+          isNull(treeRecord.deletedAt),
+        ),
+      )
+      .orderBy(desc(treeRecord.recordedAt));
+
+    return {
+      tree: { hid: treeRow.hid, uid: treeRow.uid, status: treeRow.status },
+      records,
+      total: records.length,
+    };
+  }
+
+  async addTreeRemeasurement(
+    treeHid: string,
+    data: AddTreeRemeasurementDto,
+    projectId: number,
+    requesterId: number,
+  ): Promise<any> {
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const [treeRow] = await tx
+        .select()
+        .from(tree)
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      if (!treeRow) {
+        throw new NotFoundException(`Tree ${treeHid} not found`);
+      }
+
+      const [interventionRow] = await tx
+        .select({ projectId: intervention.projectId })
+        .from(intervention)
+        .where(eq(intervention.id, treeRow.interventionId))
+        .limit(1);
+
+      if (!interventionRow || interventionRow.projectId !== projectId) {
+        throw new ForbiddenException('You do not have access to this tree');
+      }
+
+      if (treeRow.status === 'dead' && data.status !== 'dead') {
+        throw new BadRequestException('A tree that has been marked as dead cannot have its status changed');
+      }
+
+      if (data.status === 'dead' && !data.notes?.trim()) {
+        throw new BadRequestException('A reason is required when marking a tree as dead');
+      }
+
+      const previousStatus = treeRow.status;
+      const recordedAt = data.recordedAt
+        ? sql`LEAST(${new Date(data.recordedAt).toISOString()}::timestamptz, NOW())`
+        : sql`NOW()`;
+
+      const recordType = data.status === 'dead' ? 'death' : 'measurement';
+
+      const [record] = await tx
+        .insert(treeRecord)
+        .values({
+          uid: generateUid('treerec'),
+          treeId: treeRow.id,
+          recordedById: requesterId,
+          recordType,
+          recordedAt,
+          height: data.height ?? null,
+          width: data.width ?? null,
+          previousStatus,
+          newStatus: data.status,
+          statusReason: data.notes ?? null,
+          notes: data.notes ?? null,
+          image: data.image ?? null,
+        })
+        .returning();
+
+      const treeUpdates: Record<string, any> = {
+        status: data.status,
+        statusReason: data.notes?.trim() ?? null,
+        lastMeasurementDate: sql`NOW()`,
+        remeasured: true,
+        updatedAt: sql`NOW()`,
+      };
+      if (data.status === 'dead') treeUpdates.statusChangedAt = sql`NOW()`;
+      if (data.height !== undefined) treeUpdates.height = data.height;
+      if (data.width !== undefined) treeUpdates.width = data.width;
+      if (data.image) treeUpdates.image = data.image;
+
+      await tx.update(tree).set(treeUpdates).where(eq(tree.hid, treeHid));
+
+      if (data.image) {
+        await tx
+          .insert(image)
+          .values({
+            uid: generateUid('img'),
+            type: 'record',
+            entityId: treeRow.id,
+            entityType: 'tree',
+            deviceType: 'web',
+            filename: data.image,
+            uploadedById: requesterId,
+            isPrimary: false,
+          });
+      }
+
+      const [updatedTree] = await tx
+        .select({
+          id: tree.id,
+          uid: tree.uid,
+          hid: tree.hid,
+          tag: tree.tag,
+          status: tree.status,
+          statusReason: tree.statusReason,
+          height: tree.height,
+          width: tree.width,
+          image: tree.image,
+          speciesName: tree.speciesName,
+          commonName: tree.commonName,
+          isUnknown: tree.isUnknown,
+          plantingDate: tree.plantingDate,
+          lastMeasurementDate: tree.lastMeasurementDate,
+          remeasured: tree.remeasured,
+          updatedAt: tree.updatedAt,
+        })
+        .from(tree)
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      this.auditService.log('tree_record', {
+        action: 'create',
+        entityId: record.id,
+        entityUid: record.uid,
+        userId: requesterId,
+        projectId,
+        newValues: {
+          recordType: record.recordType,
+          treeHid,
+          status: data.status,
+          height: data.height ?? null,
+          width: data.width ?? null,
+          notes: data.notes ?? null,
+          hasImage: !!data.image,
+        },
+        source: 'web',
+      });
+
+      this.auditService.log('tree', {
+        action: 'update',
+        entityId: treeRow.id,
+        entityUid: treeRow.uid,
+        userId: requesterId,
+        projectId,
+        oldValues: {
+          status: treeRow.status,
+          height: treeRow.height,
+          width: treeRow.width,
+          image: treeRow.image,
+          statusReason: treeRow.statusReason,
+          lastMeasurementDate: treeRow.lastMeasurementDate,
+        },
+        newValues: {
+          status: updatedTree?.status,
+          height: updatedTree?.height,
+          width: updatedTree?.width,
+          image: updatedTree?.image,
+          statusReason: updatedTree?.statusReason,
+          lastMeasurementDate: updatedTree?.lastMeasurementDate,
+        },
+        source: 'web',
+      });
+
+      return { tree: updatedTree, record };
     });
   }
 }

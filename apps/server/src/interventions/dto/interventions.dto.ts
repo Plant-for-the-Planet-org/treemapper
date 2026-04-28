@@ -760,6 +760,34 @@ export class EditTreeDto {
   species?: EditTreeSpeciesDto;
 }
 
+export class AddTreeRemeasurementDto {
+  @IsEnum(['alive', 'dead'])
+  status: 'alive' | 'dead';
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  height?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  width?: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsDateString()
+  recordedAt?: string;
+}
 
 export class SearchMembersQueryDto {
   @ApiProperty({

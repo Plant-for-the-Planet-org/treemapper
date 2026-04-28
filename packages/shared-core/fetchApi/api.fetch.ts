@@ -940,3 +940,30 @@ export const editTree = async (
   const result = await fetchPutCall(uri, editData, token);
   return result;
 };
+
+export const getTreeRecords = async (
+  token: string,
+  treeHid: string,
+  projectId: string,
+) => {
+  const uri = `${getUrlApi.getTreeRecords}/${treeHid}/${projectId}/records`;
+  return fetchGetCall(uri, token);
+};
+
+export const addTreeRemeasurement = async (
+  token: string,
+  treeHid: string,
+  projectId: string,
+  data: {
+    status: 'alive' | 'dead';
+    height?: number;
+    width?: number;
+    notes?: string;
+    image?: string;
+    recordedAt?: string;
+  }
+) => {
+  const uri = `${putUrlApi.addTreeRemeasurement}/${treeHid}/${projectId}/remeasure`;
+  const result = await fetchPostCall(uri, data, token);
+  return result;
+};

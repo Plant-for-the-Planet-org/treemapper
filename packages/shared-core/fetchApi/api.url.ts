@@ -109,6 +109,7 @@ export const getUrlApi = {
   // Site approval
   getSiteReviewQueue: `${baseUrl}/approval-board/projects`,
   getCurrentSiteThread: `${baseUrl}/approval-board/sites`,
+  getTreeRecords: `${baseUrl}/interventions/trees`,
 } as const;
 
 export const patchUrlApi = {
@@ -144,6 +145,7 @@ export const putUrlApi = {
   ownershipTransfer: `${baseUrl}/interventions`,
   editIntervention: `${baseUrl}/interventions`,
   editTree: `${baseUrl}/interventions/trees`,
+  addTreeRemeasurement: `${baseUrl}/interventions/trees`,
 
 } as const;
 

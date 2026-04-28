@@ -24,6 +24,7 @@ import {
   GetProjectInterventionsResponseDto,
   UpdateInterventionSpeciesDto,
   EditTreeDto,
+  AddTreeRemeasurementDto,
 } from './dto/interventions.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard'; // Adjust import path
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard'; // Adjust import path
@@ -330,6 +331,28 @@ export class InterventionsController {
     }
   }
 
+  @Get('trees/:treeHid/:id/records')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async getTreeRecords(
+    @Param('treeHid') treeHid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      const result = await this.interventionsService.getTreeRecords(
+        treeHid,
+        membership.projectId,
+      );
+      return { success: true, statusCode: 200, data: result };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error.message || 'Failed to fetch tree records',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Put('trees/:treeHid/:id/edit')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
@@ -362,6 +385,44 @@ export class InterventionsController {
       }
       throw new HttpException(
         error.message || 'Failed to update tree',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Post('trees/:treeHid/:id/remeasure')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async addTreeRemeasurement(
+    @Param('treeHid') treeHid: string,
+    @Body() dto: AddTreeRemeasurementDto,
+    @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    const requesterId = user?.id || user?.sub;
+    if (!requesterId) {
+      throw new BadRequestException('User authentication required');
+    }
+
+    try {
+      const result = await this.interventionsService.addTreeRemeasurement(
+        treeHid,
+        dto,
+        membership.projectId,
+        requesterId,
+      );
+      return {
+        success: true,
+        statusCode: 201,
+        message: 'Remeasurement recorded successfully',
+        data: result,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || 'Failed to record remeasurement',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
