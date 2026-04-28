@@ -1,0 +1,47 @@
+import { createSlice, PayloadAction } from '@reduxjs/toolkit'
+import { UserInterface } from 'src/types/interface/slice.interface'
+
+export const initialUserState: UserInterface = {
+  country: '',
+  created: '',
+  displayName: '',
+  email: '',
+  firstName: '',
+  id: '',
+  image: '',
+  isPrivate: false,
+  lastName: '',
+  locale: '',
+  name: '',
+  slug: '',
+  type: '',
+  v3Approved: false,
+  showPlotFeature: false
+}
+
+const userStateSlice = createSlice({
+  name: 'userStateSlice',
+  initialState: initialUserState,
+  reducers: {
+    updateUserDetails(_state, action: PayloadAction<UserInterface>) {
+      return { ...action.payload }
+    },
+    resetUserDetails() {
+      return { ...initialUserState }
+    },
+    updateName(state, action: PayloadAction<{ firstName: string, lastName: string }>) {
+      state.firstName = action.payload.firstName
+      state.lastName = action.payload.lastName
+    },
+    updateLimitedFeature(state, action: PayloadAction<boolean>) {
+      state.v3Approved; action.payload
+    },
+    updatePlotFeature(state, action: PayloadAction<boolean>) {
+      state.showPlotFeature; action.payload
+    },
+  },
+})
+
+export const { updateUserDetails, resetUserDetails, updateName, updateLimitedFeature, updatePlotFeature } = userStateSlice.actions
+
+export default userStateSlice.reducer

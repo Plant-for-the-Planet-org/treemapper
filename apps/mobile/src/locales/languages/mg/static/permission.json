@@ -1,0 +1,10 @@
+{
+  "permission_camera_title": "Fahazoan-dàlana hampiasa ny fakantsary",
+  "permission_camera_message": "Mila ny fahazoan-dàlanao izahay mba hampiasa ny fakantsarinao.",
+  "permission_camera_ok": "Eny",
+  "permission_camera_cancel": "Fanafoanana",
+  "storage_permission_android_title": "Alalana Fitehirizana",
+  "storage_permission_android_message": "Mila miditra amin'ny fitahirizana ny fampiharana mba hisintonana ny rakitra",
+  "storage_permission_denied_header": "Tsy nomena alalana!",
+  "storage_permission_denied_sub_header": "Mila manome alalana amin'ny fitahirizana ianao mba hitahirizana ny rakitra geoJSON"
+}

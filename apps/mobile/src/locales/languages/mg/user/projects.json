@@ -1,0 +1,12 @@
+{
+  "add_new_project": "Manampy tetikasa vaovao",
+  "add_new_project_desc": "Manampia tetikasa mba hanehoana ny fandrosoanao teo aloha na mba handraisana fanomezana hamafazana bebe kokoa.",
+  "select_project": "Mifidiana Tetikasa",
+  "select_project_desc": "Azo ampifandraisina amin'ny tetikasa manokana ireo hazo soratanao anarana.",
+  "continue_without_project": "Manohy tsy misy Tetikasa",
+  "continue_without_project_desc": "Tsy hifandray amin'ny tetikasa ireo hazo.",
+  "dropdownpicker_placeholder": "Mifidiana zavatra iray",
+  "dropdownpicker_search_placeholder": "Mitadiava ...",
+  "dropdownpicker_selected_items_count": "Zavatra {count} no voafidy",
+  "dropdownpicker_nothing_to_show": "Tsy misy zavatra hita!"
+}
