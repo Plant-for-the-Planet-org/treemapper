@@ -268,6 +268,12 @@ export const createBulkIntervention = async (token: string, params: any, prjId: 
   return result;
 };
 
+export const createCustomBulkIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/custom-bulk`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 export const updateInterventionSpecies = async (token: string, params: any, project, intervention, species) => {

@@ -20,6 +20,7 @@ import {
   CreateInterventionDto,
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
   UpdateInterventionSpeciesDto,
@@ -100,6 +101,16 @@ export class InterventionsController {
     @Membership() membership: any
   ): Promise<InterventionResponseDto> {
     return this.interventionsService.bulkInterventionUpload(interventionData, membership);
+  }
+
+  @Post('/projects/:id/custom-bulk')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async customBulkInterventionUpload(
+    @Body() dto: CreateCustomBulkDto,
+    @Membership() membership: any
+  ): Promise<any> {
+    return this.interventionsService.customBulkInterventionUpload(dto, membership);
   }
 
   @Put(':interventionId/:id')
