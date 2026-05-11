@@ -33,7 +33,7 @@ export default function FormsList({ projectId, projectName }: FormsListProps) {
   )
 
   return (
-    <div className="p-6 max-w-6xl">
+    <div className="p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-1">Forms</h1>
@@ -41,7 +41,7 @@ export default function FormsList({ projectId, projectName }: FormsListProps) {
         </div>
         <Button
           onClick={() => router.push('/dashboard/forms/new')}
-          className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+          className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white"
         >
           <Plus className="w-4 h-4" />
           New Form
@@ -71,7 +71,7 @@ export default function FormsList({ projectId, projectName }: FormsListProps) {
           </p>
           <Button
             onClick={() => router.push('/dashboard/forms/new')}
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white"
           >
             <Plus className="w-4 h-4" />
             Create your first form
