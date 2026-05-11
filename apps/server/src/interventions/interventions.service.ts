@@ -614,6 +614,7 @@ export class InterventionsService {
       type,
       userId,
       interventionStartDate,
+      interventionStartDateTo,
       registrationDate,
       projectSiteId,
       captureMode,
@@ -661,6 +662,12 @@ export class InterventionsService {
 
     if (interventionStartDate) {
       whereConditions.push(gte(intervention.interventionStartDate, new Date(interventionStartDate)));
+    }
+
+    if (interventionStartDateTo) {
+      const toDate = new Date(interventionStartDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      whereConditions.push(lte(intervention.interventionStartDate, toDate));
     }
 
     if (registrationDate) {

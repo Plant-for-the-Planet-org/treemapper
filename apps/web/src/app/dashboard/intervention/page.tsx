@@ -102,6 +102,7 @@ interface Filters {
   captureMode: string;
   projectSiteId: string;
   interventionStartDate: string;
+  interventionStartDateTo: string;
   registrationDate: string;
   userId: string;
   species: string[];
@@ -369,6 +370,7 @@ const TreeMapperUI = () => {
     captureMode: '',
     projectSiteId: '',
     interventionStartDate: '',
+    interventionStartDateTo: '',
     registrationDate: '',
     userId: '',
     species: [],
@@ -418,6 +420,7 @@ const TreeMapperUI = () => {
         captureMode: filters.captureMode || undefined,
         projectSiteId: filters.projectSiteId ? parseInt(filters.projectSiteId) : undefined,
         interventionStartDate: filters.interventionStartDate || undefined,
+        interventionStartDateTo: filters.interventionStartDateTo || undefined,
         registrationDate: filters.registrationDate || undefined,
         userId: filters.userId ? parseInt(filters.userId) : undefined,
         species: filters.species && filters.species.length > 0 ? filters.species : undefined,
@@ -526,8 +529,8 @@ const TreeMapperUI = () => {
     });
   };
 
-  const handleDateChange = (date: string) => {
-    handleFilterChange('interventionStartDate', date);
+  const handleDateRangeChange = (from: string, to: string) => {
+    setFilters(prev => ({ ...prev, interventionStartDate: from, interventionStartDateTo: to }));
   };
 
   // Clear all filters
@@ -537,6 +540,7 @@ const TreeMapperUI = () => {
       captureMode: '',
       projectSiteId: '',
       interventionStartDate: '',
+      interventionStartDateTo: '',
       registrationDate: '',
       userId: '',
       species: [],
@@ -658,7 +662,7 @@ const TreeMapperUI = () => {
         newIntervention={() => { router.push('/dashboard/new-intervention') }}
         bulkUpload={() => { router.push('/dashboard/bulkupload') }}
         userRole={selectedProject?.userRole}
-        handleDateChange={handleDateChange}
+        handleDateRangeChange={handleDateRangeChange}
         handleFilterChange={handleFilterChange}
         clearAllFilters={clearAllFilters}
         activeFilterCount={activeFilterCount}

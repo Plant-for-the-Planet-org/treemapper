@@ -589,6 +589,10 @@ export class GetProjectInterventionsQueryDto {
 
   @IsOptional()
   @IsDateString()
+  interventionStartDateTo?: string;
+
+  @IsOptional()
+  @IsDateString()
   registrationDate?: string;
 
   @IsOptional()
