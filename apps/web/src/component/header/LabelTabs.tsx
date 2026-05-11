@@ -16,7 +16,7 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
     { id: 'species', label: 'Species' },
     { id: 'team', label: 'Team' },
     { id: 'intervention', label: 'Interventions' },
-    { id: 'forms', label: 'Forms', adminOnly: true },
+    // { id: 'forms', label: 'Forms', adminOnly: true },
     { id: 'settings', label: 'Settings' }
   ];
 

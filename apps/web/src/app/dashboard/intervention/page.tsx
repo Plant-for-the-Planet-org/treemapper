@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useMemo, useEffect, useRef } from 'react';
-import { Trees, ChevronLeft, Plus, Loader } from 'lucide-react';
+import { Trees, ChevronLeft, Plus, Loader, CheckSquare, X } from 'lucide-react';
 import { getProjectIntervention, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
@@ -15,6 +15,7 @@ import { HeaderWithFilters } from './component/HeaderWithFilters';
 import { InterventionCard } from './component/InterventionCard';
 import { InterventionDetails } from './component/InterventionDetails';
 import { useDebounce } from './component/hooks';
+import BulkUpdateModal from './component/BulkUpdateModal';
 
 // Types
 interface Site {
@@ -130,7 +131,13 @@ const InterventionListSidebar = ({
   setSidebarCollapsed,
   clearAllFilters,
   fetchInterventionData,
-  router
+  router,
+  isBulkMode,
+  selectedUids,
+  onToggleSelect,
+  onEnterBulkMode,
+  onExitBulkMode,
+  onOpenBulkUpdate,
 }: {
   interventions: Intervention[];
   selectedIntervention: Intervention | null;
@@ -146,6 +153,12 @@ const InterventionListSidebar = ({
   clearAllFilters: () => void;
   fetchInterventionData: () => void;
   router: ReturnType<typeof useRouter>;
+  isBulkMode: boolean;
+  selectedUids: Set<string>;
+  onToggleSelect: (uid: string) => void;
+  onEnterBulkMode: () => void;
+  onExitBulkMode: () => void;
+  onOpenBulkUpdate: () => void;
 }) => {
   return (
     <div className={`${sidebarCollapsed ? 'w-0 lg:w-16' : 'w-full md:w-96 lg:w-96'
@@ -178,9 +191,42 @@ const InterventionListSidebar = ({
                 {loading && (
                   <Loader className="w-4 h-4 animate-spin text-[#007A49]" />
                 )}
+                {!isBulkMode && interventions.length > 0 && (
+                  <button
+                    onClick={onEnterBulkMode}
+                    className="text-xs text-[#007A49] hover:underline font-medium"
+                  >
+                    Select
+                  </button>
+                )}
               </div>
             </div>
           </div>
+
+          {/* Bulk action bar */}
+          {isBulkMode && (
+            <div className="px-4 py-3 bg-[#007A49] flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-white text-sm font-medium">
+                <CheckSquare className="h-4 w-4" />
+                <span>{selectedUids.size} selected</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={onOpenBulkUpdate}
+                  disabled={selectedUids.size === 0}
+                  className="text-xs bg-white text-[#007A49] px-3 py-1.5 rounded-md font-medium hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Assign Site
+                </button>
+                <button
+                  onClick={onExitBulkMode}
+                  className="p-1 text-white/80 hover:text-white transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
           <div className="flex-1 overflow-y-auto">
             {interventions.length === 0 && !loading ? (
@@ -219,6 +265,9 @@ const InterventionListSidebar = ({
                     intervention={intervention}
                     isSelected={selectedIntervention?.id === intervention.id}
                     onClick={() => setSelectedIntervention(intervention)}
+                    isMultiSelectMode={isBulkMode}
+                    isChecked={selectedUids.has(intervention.uid)}
+                    onToggleSelect={(e) => { e.stopPropagation(); onToggleSelect(intervention.uid); }}
                   />
                 ))}
 
@@ -327,6 +376,9 @@ const TreeMapperUI = () => {
     sortOrder: 'desc'
   });
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [isBulkMode, setIsBulkMode] = useState(false);
+  const [selectedUids, setSelectedUids] = useState<Set<string>>(new Set());
+  const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 20,
@@ -369,7 +421,7 @@ const TreeMapperUI = () => {
         registrationDate: filters.registrationDate || undefined,
         userId: filters.userId ? parseInt(filters.userId) : undefined,
         species: filters.species && filters.species.length > 0 ? filters.species : undefined,
-        flag: filters.flag !== '' ? (filters.flag === 'true' || filters.flag === true) : undefined,
+        flag: filters.flag !== '' ? filters.flag === 'true' : undefined,
         sortOrder: filters.sortOrder || 'desc'
       };
 
@@ -557,6 +609,29 @@ const TreeMapperUI = () => {
     router.replace(`?id=${intervention.uid}`, { scroll: false });
   };
 
+  const handleToggleSelect = (uid: string) => {
+    setSelectedUids(prev => {
+      const next = new Set(prev);
+      if (next.has(uid)) next.delete(uid); else next.add(uid);
+      return next;
+    });
+  };
+
+  const handleEnterBulkMode = () => {
+    setIsBulkMode(true);
+    setSelectedUids(new Set());
+  };
+
+  const handleExitBulkMode = () => {
+    setIsBulkMode(false);
+    setSelectedUids(new Set());
+  };
+
+  const handleBulkUpdateComplete = () => {
+    handleExitBulkMode();
+    fetchInterventionData(pagination.page);
+  };
+
   const handleInterventionDelete = async (_uid: string) => {
     setSelectedIntervention(null);
     router.replace('?', { scroll: false });
@@ -609,6 +684,12 @@ const TreeMapperUI = () => {
           clearAllFilters={clearAllFilters}
           fetchInterventionData={fetchInterventionData}
           router={router}
+          isBulkMode={isBulkMode}
+          selectedUids={selectedUids}
+          onToggleSelect={handleToggleSelect}
+          onEnterBulkMode={handleEnterBulkMode}
+          onExitBulkMode={handleExitBulkMode}
+          onOpenBulkUpdate={() => setShowBulkUpdateModal(true)}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -635,6 +716,15 @@ const TreeMapperUI = () => {
           )}
         </div>
       </div>
+
+      <BulkUpdateModal
+        isOpen={showBulkUpdateModal}
+        onClose={() => setShowBulkUpdateModal(false)}
+        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        accessToken={accessToken || ''}
+        currentProjectUid={selectedProject?.uid || ''}
+        onComplete={handleBulkUpdateComplete}
+      />
     </div>
   );
 };
