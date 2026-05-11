@@ -30,16 +30,43 @@ interface FiltersSectionProps {
   onDateChange: (date: string) => void;
 }
 
+const DEFAULT_FILTERS: Filters = {
+  type: '',
+  captureMode: '',
+  projectSiteId: '',
+  interventionStartDate: '',
+  registrationDate: '',
+  userId: '',
+  species: [],
+  flag: '',
+  sortOrder: '',
+};
+
 export const FiltersSection = ({
   filters,
   setFilters,
+  searchTerm,
+  setSearchTerm,
   interventionTypes,
   sites,
   onDateChange
 }: FiltersSectionProps) => {
+  const hasActiveFilters =
+    filters.type !== '' ||
+    filters.captureMode !== '' ||
+    filters.projectSiteId !== '' ||
+    filters.interventionStartDate !== '' ||
+    filters.flag !== '' ||
+    searchTerm !== '';
+
+  const clearAll = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSearchTerm('');
+    onDateChange('');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Filter Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
         <Select
           value={filters.type}
@@ -92,6 +119,17 @@ export const FiltersSection = ({
           <option value="false">Not Flagged</option>
         </Select>
       </div>
+
+      {hasActiveFilters && (
+        <div className="flex justify-end">
+          <button
+            onClick={clearAll}
+            className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
     </div>
   );
 };
