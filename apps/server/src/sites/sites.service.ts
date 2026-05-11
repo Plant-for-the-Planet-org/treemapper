@@ -155,6 +155,7 @@ export class SiteService {
     if (membership.role === 'admin' || membership.role === 'owner') {
       const siteData = await this.drizzleService.db
         .select({
+          id: site.id,
           uid: site.uid,
           name: site.name,
           description: site.description,
@@ -188,6 +189,7 @@ export class SiteService {
         // Return all sites for the project
         const allSitesData = await this.drizzleService.db
           .select({
+            id: site.id,
             uid: site.uid,
             name: site.name,
             description: site.description,
@@ -219,6 +221,7 @@ export class SiteService {
 
         const limitedSitesData = await this.drizzleService.db
           .select({
+            id: site.id,
             uid: site.uid,
             name: site.name,
             description: site.description,
