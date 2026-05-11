@@ -28,8 +28,63 @@ export async function parseGeoJSONFile(file: File): Promise<any> {
     return JSON.parse(text);
 }
 
-// Expects filenames like: "1_Santos Moo Pot - ECA BETANIA.geojson"
-export function extractBeneficiaryFromFilename(filename: string): string | null {
-    const match = filename.match(/^\d+_(.+)\.(geojson|json)$/i);
-    return match ? match[1].trim() : null;
+// ─── KML parsing ─────────────────────────────────────────────────────────────
+
+function parseKMLCoordinates(text: string): number[][] {
+    return text
+        .trim()
+        .split(/\s+/)
+        .filter(Boolean)
+        .map(pair => {
+            const parts = pair.split(',').map(parseFloat);
+            return [parts[0], parts[1]]; // lon, lat — drop altitude
+        });
+}
+
+function kmlDocToGeoJSON(doc: Document): any {
+    const polygonEl = doc.querySelector('Polygon');
+    if (polygonEl) {
+        const outerEl = polygonEl.querySelector('outerBoundaryIs LinearRing coordinates');
+        if (outerEl) {
+            const rings: number[][][] = [parseKMLCoordinates(outerEl.textContent ?? '')];
+            polygonEl.querySelectorAll('innerBoundaryIs LinearRing coordinates').forEach(el => {
+                rings.push(parseKMLCoordinates(el.textContent ?? ''));
+            });
+            return { type: 'Feature', geometry: { type: 'Polygon', coordinates: rings } };
+        }
+    }
+
+    const multiEl = doc.querySelector('MultiGeometry');
+    if (multiEl) {
+        const coords: number[][][][] = [];
+        multiEl.querySelectorAll('Polygon').forEach(p => {
+            const outerEl = p.querySelector('outerBoundaryIs LinearRing coordinates');
+            if (outerEl) coords.push([parseKMLCoordinates(outerEl.textContent ?? '')]);
+        });
+        if (coords.length > 0) {
+            return { type: 'Feature', geometry: { type: 'MultiPolygon', coordinates: coords } };
+        }
+    }
+
+    const pointEl = doc.querySelector('Point coordinates');
+    if (pointEl) {
+        const parts = (pointEl.textContent ?? '').trim().split(',').map(parseFloat);
+        return { type: 'Feature', geometry: { type: 'Point', coordinates: [parts[0], parts[1]] } };
+    }
+
+    throw new Error('No supported geometry found in KML (expected Polygon, MultiPolygon, or Point)');
+}
+
+export async function parseKMLFile(file: File): Promise<any> {
+    const text = await file.text();
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(text, 'application/xml');
+    const parseError = doc.querySelector('parsererror');
+    if (parseError) throw new Error('Invalid KML');
+    return kmlDocToGeoJSON(doc);
+}
+
+export async function parseSpatialFile(file: File): Promise<any> {
+    if (file.name.toLowerCase().endsWith('.kml')) return parseKMLFile(file);
+    return parseGeoJSONFile(file);
 }

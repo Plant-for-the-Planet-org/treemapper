@@ -5,7 +5,7 @@ import { CheckCircle, AlertCircle, AlertTriangle, Edit2, Trash2, Plus, Minus, Ma
 import { motion } from 'framer-motion';
 import { Intervention, Species } from '../types';
 import { validateIntervention } from '../utils/parseCSV';
-import { parseGeoJSONFile, extractBeneficiaryFromFilename } from '../utils/geojsonUtils';
+import { parseSpatialFile } from '../utils/geojsonUtils';
 
 interface Props {
     intervention: Intervention;
@@ -78,8 +78,7 @@ const InterventionCard = ({ intervention, onUpdate, onDelete }: Props) => {
         if (!file) return;
         setGeojsonError('');
         try {
-            const data = await parseGeoJSONFile(file);
-            const beneficiary = extractBeneficiaryFromFilename(file.name) ?? intervention.beneficiary;
+            const data = await parseSpatialFile(file);
             const validation = validateIntervention(intervention.plantDate, intervention.species);
             onUpdate(intervention.id, {
                 geojson: data,
@@ -87,7 +86,7 @@ const InterventionCard = ({ intervention, onUpdate, onDelete }: Props) => {
                 validation: { ...validation, needsGeoJSON: false },
             });
         } catch {
-            setGeojsonError('Invalid GeoJSON file.');
+            setGeojsonError('Invalid file. Expected GeoJSON or KML.');
         }
         if (geojsonInputRef.current) geojsonInputRef.current.value = '';
     };
@@ -239,15 +238,15 @@ const InterventionCard = ({ intervention, onUpdate, onDelete }: Props) => {
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-1.5 text-xs text-yellow-600">
                             <AlertTriangle className="h-3.5 w-3.5" />
-                            <span>No GeoJSON attached</span>
+                            <span>No geometry attached</span>
                         </div>
                         <button
                             onClick={() => geojsonInputRef.current?.click()}
                             className="flex items-center gap-1 text-xs text-[#007A49] hover:text-[#006B3F] font-medium transition-colors"
                         >
-                            <MapIcon className="h-3.5 w-3.5" /> Upload GeoJSON
+                            <MapIcon className="h-3.5 w-3.5" /> Upload GeoJSON / KML
                         </button>
-                        <input ref={geojsonInputRef} type="file" accept=".geojson,.json" onChange={handleGeoJSONUpload} className="hidden" />
+                        <input ref={geojsonInputRef} type="file" accept=".geojson,.json,.kml" onChange={handleGeoJSONUpload} className="hidden" />
                     </div>
                 )}
                 {geojsonError && <p className="mt-1 text-xs text-red-500">{geojsonError}</p>}

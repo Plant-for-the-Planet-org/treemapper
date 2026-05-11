@@ -1322,6 +1322,7 @@ export class InterventionsService {
           speciesCount: s.count,
         })),
         treesPlanted,
+        plantProject: membership.projectId,
         plantProjectSite: dto.siteId,
         metadata: { beneficiary: item.beneficiary },
         height: null,

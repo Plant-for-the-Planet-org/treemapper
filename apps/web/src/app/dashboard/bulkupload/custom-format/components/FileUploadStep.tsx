@@ -4,7 +4,7 @@ import React, { useRef, useState } from 'react';
 import { Upload, FolderOpen, FileText, CheckCircle, AlertCircle, X, Map as MapIcon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { getCsvSample, parseCSVWithMapping, autoMapFields, FieldMapping } from '../utils/parseCSV';
-import { parseGeoJSONFile, extractBeneficiaryFromFilename } from '../utils/geojsonUtils';
+import { parseSpatialFile } from '../utils/geojsonUtils';
 import { Intervention } from '../types';
 import FieldMappingModal from './FieldMappingModal';
 
@@ -50,16 +50,16 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
 
     const handleFolderSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
         const files = Array.from(e.target.files ?? []);
-        const geojsonOnly = files.filter(f => f.name.match(/\.(geojson|json)$/i));
+        const spatialOnly = files.filter(f => f.name.match(/\.(geojson|json|kml)$/i));
 
         const map = new Map<string, { data: any; fileName: string }>();
         await Promise.all(
-            geojsonOnly.map(async (file) => {
-                const beneficiary = extractBeneficiaryFromFilename(file.name);
-                if (!beneficiary) return;
+            spatialOnly.map(async (file) => {
+                const stem = file.name.replace(/\.(geojson|json|kml)$/i, '').trim().toLowerCase();
+                if (!stem) return;
                 try {
-                    const data = await parseGeoJSONFile(file);
-                    map.set(beneficiary, { data, fileName: file.name });
+                    const data = await parseSpatialFile(file);
+                    map.set(stem, { data, fileName: file.name });
                 } catch {
                     // skip unparseable files
                 }
@@ -76,7 +76,8 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
             const interventions = await parseCSVWithMapping(csvFile!, mapping);
 
             const matched = interventions.map(inv => {
-                const match = geojsonFiles.get(inv.beneficiary);
+                const key = inv.beneficiary.trim().toLowerCase();
+                const match = geojsonFiles.get(key);
                 if (match) {
                     return { ...inv, geojson: match.data, geojsonFileName: match.fileName };
                 }
@@ -180,8 +181,9 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
                     <div className="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
                         <h3 className="text-lg font-semibold text-gray-900 mb-1">Select GeoJSON Location Folder</h3>
                         <p className="text-sm text-gray-500 mb-4">
-                            Select the folder containing GeoJSON files. Files must be named like{' '}
-                            <span className="font-mono text-xs bg-gray-100 px-1 rounded">1_Beneficiary Name.geojson</span>.
+                            Select the folder containing GeoJSON or KML files. File names must match the values in your mapped CSV column — e.g.{' '}
+                            <span className="font-mono text-xs bg-gray-100 px-1 rounded">1.geojson</span>,{' '}
+                            <span className="font-mono text-xs bg-gray-100 px-1 rounded">ascs.kml</span>.
                         </p>
 
                         <button
@@ -202,7 +204,7 @@ const FileUploadStep = ({ onDataLoaded }: Props) => {
                                 <p className="text-sm text-gray-600 group-hover:text-gray-800">
                                     <span className="font-medium text-[#007A49]">Select folder</span> with GeoJSON files
                                 </p>
-                                <p className="text-xs text-gray-500">Supports .geojson and .json files</p>
+                                <p className="text-xs text-gray-500">Supports .geojson, .json and .kml files</p>
                             </div>
                         </button>
 
