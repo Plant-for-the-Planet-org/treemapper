@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-// import { SharedQueryProvider } from '@shared-core/api/index'
 import { Open_Sans } from 'next/font/google'
 import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
@@ -68,9 +67,7 @@ export default function RootLayout({
         <ResponsiveDashboardWrapper>
           <Auth0Provider>
             <I18nProvider>
-              {/* <SharedQueryProvider> */}
               {children}
-              {/* </SharedQueryProvider> */}
             </I18nProvider>
           </Auth0Provider>
         </ResponsiveDashboardWrapper>
