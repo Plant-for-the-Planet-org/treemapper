@@ -94,7 +94,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
 
   const updateAvater = async () => {
-    if (User && !User.image && user.picture) {
+    if (User && !User.impersonated && !User.image && user.picture) {
       await updateUserAvatar(accessToken, { avatarUrl: user.picture, firstName: user.name || '' })
     }
   }
