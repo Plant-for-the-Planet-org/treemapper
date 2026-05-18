@@ -183,6 +183,25 @@ const getMarkerPosition = (intervention: MapIntervention): [number, number] => {
     }
 };
 
+const zoomToIntervention = (intervention: MapIntervention, mapRef: any) => {
+    if (!mapRef) return;
+    try {
+        if (intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') {
+            const [minLng, minLat, maxLng, maxLat] = turf.bbox(intervention.location as any);
+            mapRef.fitBounds([minLng, minLat, maxLng, maxLat], {
+                padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                duration: 1000,
+                maxZoom: 18,
+            });
+        } else {
+            const [lng, lat] = getMarkerPosition(intervention);
+            if (isFinite(lng) && isFinite(lat)) {
+                mapRef.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
+            }
+        }
+    } catch { /* ignore */ }
+};
+
 const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => {
     try {
         if (interventions.length === 0) {
@@ -717,7 +736,8 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     });
     const hoveredFeatureRef = React.useRef<{ source: string; id: number | string } | null>(null);
     const prevSelectedIdRef = React.useRef<number | null>(null);
-    const [mapRef, setMapRef] = useState<any>(null);
+    const mapRef = useRef<any>(null);
+    const [mapLoaded, setMapLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<MapError | null>(null);
 
@@ -753,18 +773,16 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     useEffect(() => { loadInterventions(); }, [loadInterventions]);
 
     useEffect(() => {
-        if (mapRef && bounds && interventions.length > 0) {
-            setTimeout(() => {
-                try {
-                    mapRef.fitBounds(bounds.bounds, {
-                        padding: { top: 80, bottom: 80, left: 320, right: 80 },
-                        duration: 1500,
-                        maxZoom: 15,
-                    });
-                } catch { /* ignore */ }
-            }, 500);
+        if (mapLoaded && bounds && interventions.length > 0) {
+            try {
+                mapRef.current?.fitBounds(bounds.bounds, {
+                    padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                    duration: 1500,
+                    maxZoom: 15,
+                });
+            } catch { /* ignore */ }
         }
-    }, [mapRef, bounds, interventions.length]);
+    }, [mapLoaded, bounds, interventions.length]);
 
     // Interventions filtered by HID search and type/status
     const filteredInterventions = useMemo(() => {
@@ -845,35 +863,33 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
     const selectIntervention = useCallback((intervention: MapIntervention | null) => {
         const prevId = prevSelectedIdRef.current;
+        const map = mapRef.current;
         if (!intervention) {
             setMapState(s => ({ ...s, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
             setTrees([]);
             try {
-                if (prevId != null && mapRef) {
-                    mapRef.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
-                    mapRef.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
+                if (prevId != null && map) {
+                    map.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                    map.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
                 }
                 prevSelectedIdRef.current = null;
             } catch { /* ignore */ }
             return;
         }
         setMapState(s => ({ ...s, selectedInterventionId: intervention.id, selectedTreeId: null, showTreeDetails: false }));
+        zoomToIntervention(intervention, map);
         try {
-            const [lng, lat] = getMarkerPosition(intervention);
-            if (isFinite(lng) && isFinite(lat)) mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
-        } catch { /* ignore */ }
-        try {
-            if (prevId != null && mapRef) {
-                mapRef.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
-                mapRef.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
+            if (prevId != null && map) {
+                map.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                map.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
             }
-            if (mapRef) {
-                mapRef.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
-                mapRef.setFeatureState({ source: 'interventions-polygons', id: intervention.id }, { selected: true });
+            if (map) {
+                map.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
+                map.setFeatureState({ source: 'interventions-polygons', id: intervention.id }, { selected: true });
             }
             prevSelectedIdRef.current = intervention.id;
         } catch { /* ignore */ }
-    }, [mapRef]);
+    }, []);
 
     const handlePolygonClick = useCallback((event: any) => {
         const feature = event.features?.[0];
@@ -927,7 +943,8 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     return (
         <div className="relative w-full h-full">
             <Map
-                ref={setMapRef}
+                ref={mapRef}
+                onLoad={() => setMapLoaded(true)}
                 mapStyle={{
                     version: 8,
                     name: 'Satellite',
@@ -967,21 +984,22 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 onClick={handlePolygonClick}
                 onMouseMove={event => {
                     try {
+                        const map = mapRef.current;
                         const feature = event.features?.[0];
                         const prev = hoveredFeatureRef.current;
                         if (feature && (feature.properties?.id ?? feature.id) != null) {
                             const id = feature.properties?.id ?? feature.id;
                             const source = feature.source || feature.layer?.source;
                             if (prev && (prev.id !== id || prev.source !== source)) {
-                                mapRef?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                                map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                                 hoveredFeatureRef.current = null;
                             }
                             if (!prev || prev.id !== id || prev.source !== source) {
-                                mapRef?.setFeatureState({ source, id }, { hover: true });
+                                map?.setFeatureState({ source, id }, { hover: true });
                                 hoveredFeatureRef.current = { source, id };
                             }
                         } else if (prev) {
-                            mapRef?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                            map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                             hoveredFeatureRef.current = null;
                         }
                     } catch { /* ignore */ }
@@ -989,8 +1007,8 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 onMouseLeave={() => {
                     try {
                         const prev = hoveredFeatureRef.current;
-                        if (prev && mapRef) {
-                            mapRef.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                        if (prev && mapRef.current) {
+                            mapRef.current.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                             hoveredFeatureRef.current = null;
                         }
                     } catch { /* ignore */ }
@@ -1146,14 +1164,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             }
                         }}
                         isLoadingTrees={mapState.isLoadingTrees}
-                        onZoomTo={i => {
-                            try {
-                                const [lng, lat] = getMarkerPosition(i);
-                                if (isFinite(lng) && isFinite(lat)) {
-                                    mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 800 });
-                                }
-                            } catch { /* ignore */ }
-                        }}
+                        onZoomTo={i => zoomToIntervention(i, mapRef.current)}
                         treesCount={trees.length}
                     />
                 )}
