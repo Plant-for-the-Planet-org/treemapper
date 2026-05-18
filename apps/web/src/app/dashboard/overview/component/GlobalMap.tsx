@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -690,32 +691,7 @@ const TreeTooltip: React.FC<{
 );
 
 const MapLegend: React.FC = () => (
-    <div className="absolute bottom-8 left-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-100 p-3 z-20">
-        <div className="text-xs font-medium text-gray-600 mb-2">Legend</div>
-        <div className="space-y-1.5">
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#007A49' }} />
-                <span className="text-xs text-gray-600">Intervention</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <div className="w-3 h-0.5" style={{ backgroundColor: '#007A49' }} />
-                <span className="text-xs text-gray-600">Polygon area</span>
-            </div>
-            <div className="border-t border-gray-100 my-1" />
-            <div className="flex items-center gap-2">
-                <Trees size={11} color="#10b981" />
-                <span className="text-xs text-gray-600">Alive</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Trees size={11} color="#f59e0b" />
-                <span className="text-xs text-gray-600">Sick</span>
-            </div>
-            <div className="flex items-center gap-2">
-                <Trees size={11} color="#ef4444" />
-                <span className="text-xs text-gray-600">Dead</span>
-            </div>
-        </div>
-    </div>
+     null
 );
 
 // ==================== MAIN COMPONENT ====================
