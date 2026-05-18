@@ -13,6 +13,7 @@ interface GeoJSONUploadProps {
   onGeoJSONChange: (geoJson: any | null) => void;
   className?: string;
   allowedGeometryTypes?: string[];
+  maxAreaHa?: number;
 }
 
 interface UploadState {

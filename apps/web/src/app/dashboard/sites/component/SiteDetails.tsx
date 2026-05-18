@@ -103,7 +103,7 @@ export const SiteDetails = ({ site, isEditing, editedSite, setEditedSite, onEdit
                   });
                 }
               }}
-              allowedGeometryTypes="polygon"
+              allowedGeometryTypes={["Polygon"]}
               maxAreaHa={10000}
               className="w-full"
             />

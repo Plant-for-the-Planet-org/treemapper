@@ -93,7 +93,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, mode }: Props) =>
   const [areaError, setAreaError] = useState<string | null>(null);
 
   // Max area in hectares
-  const MAX_AREA_HECTARES = 25000;
+  const MAX_AREA_HECTARES = 1000000;
 
   // Effect to handle uploaded GeoJSON
   useEffect(() => {
