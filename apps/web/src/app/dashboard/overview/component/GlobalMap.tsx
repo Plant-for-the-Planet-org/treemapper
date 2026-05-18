@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -13,7 +13,6 @@ import {
     X,
     Search,
     Filter,
-    ChevronDown,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions } from '@shared-core/fetchApi/api.fetch';
@@ -131,17 +130,19 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
     }
 };
 
+const BRAND = '#007A49';
+
 const getInterventionColor = (type: string): string => {
     const colors: Record<string, string> = {
-        'single-tree-registration': '#10b981',
-        'multi-tree-registration': '#10b981',
-        'direct-seeding': '#059669',
-        'enrichment-planting': '#0d9488',
-        'maintenance': '#0891b2',
-        'monitoring': '#7c3aed',
-        'removal-invasive-species': '#dc2626',
+        'single-tree-registration': BRAND,
+        'multi-tree-registration': BRAND,
+        'direct-seeding': '#005c37',
+        'enrichment-planting': '#009a5c',
+        'maintenance': '#00b36b',
+        'monitoring': '#004d30',
+        'removal-invasive-species': '#c53030',
     };
-    return colors[type] ?? '#6b7280';
+    return colors[type] ?? BRAND;
 };
 
 const getTreeStatusColor = (status: string): string => {
@@ -268,9 +269,10 @@ const fetchInterventionTrees = async (interventionId: number, token?: string): P
 
 // ==================== COMPONENTS ====================
 
-const ControlBar: React.FC<{
-    total: number;
-    filtered: number;
+const InterventionSidebar: React.FC<{
+    interventions: MapIntervention[];
+    selectedId: number | null;
+    onSelect: (intervention: MapIntervention) => void;
     hidSearch: string;
     onHidSearch: (v: string) => void;
     types: string[];
@@ -279,104 +281,149 @@ const ControlBar: React.FC<{
     activeStatuses: Set<string>;
     onToggleType: (t: string) => void;
     onToggleStatus: (s: string) => void;
-}> = ({ total, filtered, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus }) => {
-    const [open, setOpen] = useState(false);
+    total: number;
+}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus, total }) => {
+    const [filterOpen, setFilterOpen] = useState(false);
+    const listRef = useRef<HTMLDivElement>(null);
     const allTypesActive = types.every(t => activeTypes.has(t));
     const allStatusesActive = statuses.every(s => activeStatuses.has(s));
     const hasFilter = hidSearch || !allTypesActive || !allStatusesActive;
 
+    useEffect(() => {
+        if (selectedId == null) return;
+        const el = listRef.current?.querySelector(`[data-id="${selectedId}"]`);
+        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [selectedId]);
+
     return (
-        <div className="absolute top-4 left-4 z-40 bg-white rounded-xl shadow-lg border border-gray-100 w-72">
-            {/* Search row */}
-            <div className="flex items-center gap-2 px-3 py-2.5">
-                <Search className="w-4 h-4 text-gray-400 shrink-0" />
-                <input
-                    value={hidSearch}
-                    onChange={e => onHidSearch(e.target.value)}
-                    placeholder="Search by HID..."
-                    className="flex-1 text-sm outline-none bg-transparent placeholder-gray-400"
-                />
-                {hidSearch && (
-                    <button onClick={() => onHidSearch('')} className="text-gray-400 hover:text-gray-600">
-                        <X className="w-3.5 h-3.5" />
-                    </button>
-                )}
-                <button
-                    onClick={() => setOpen(o => !o)}
-                    className={`p-1 rounded transition-colors ${open || hasFilter ? 'text-emerald-600' : 'text-gray-400 hover:text-gray-600'}`}
-                >
-                    <Filter className="w-3.5 h-3.5" />
-                </button>
-            </div>
-
-            {/* Count */}
-            <div className="px-3 pb-2.5 flex items-center gap-2">
-                <span className="text-xs text-gray-500">
-                    {filtered === total
-                        ? `${total} interventions`
-                        : `${filtered} of ${total} shown`}
-                </span>
-                {hasFilter && filtered < total && (
-                    <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full">
-                        filtered
-                    </span>
-                )}
-            </div>
-
-            {/* Expandable filter chips */}
-            <AnimatePresence>
-                {open && (
-                    <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: 'auto', opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        className="overflow-hidden border-t border-gray-100"
+        <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            {/* Header: search + filter */}
+            <div className="shrink-0 border-b border-gray-100">
+                <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+                    <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                    <input
+                        value={hidSearch}
+                        onChange={e => onHidSearch(e.target.value)}
+                        placeholder="Search by HID..."
+                        className="flex-1 text-sm outline-none bg-transparent placeholder-gray-400"
+                    />
+                    {hidSearch && (
+                        <button onClick={() => onHidSearch('')} className="text-gray-400 hover:text-gray-600">
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setFilterOpen(o => !o)}
+                        className="p-1 rounded transition-colors"
+                        style={{ color: filterOpen || hasFilter ? '#007A49' : undefined }}
                     >
-                        <div className="px-3 py-3 space-y-3">
-                            {types.length > 0 && (
-                                <div>
-                                    <div className="text-xs font-medium text-gray-500 mb-1.5">Type</div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {types.map(t => (
-                                            <button
-                                                key={t}
-                                                onClick={() => onToggleType(t)}
-                                                className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
-                                                    activeTypes.has(t)
-                                                        ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
-                                                        : 'bg-gray-50 border-gray-200 text-gray-400'
-                                                }`}
-                                            >
-                                                {t.replace(/-/g, ' ')}
-                                            </button>
-                                        ))}
+                        <Filter className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+                <div className="px-3 pb-2 flex items-center gap-2">
+                    <span className="text-xs text-gray-500">
+                        {interventions.length === total
+                            ? `${total} interventions`
+                            : `${interventions.length} of ${total} shown`}
+                    </span>
+                    {hasFilter && interventions.length < total && (
+                        <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full">filtered</span>
+                    )}
+                </div>
+
+                <AnimatePresence>
+                    {filterOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden border-t border-gray-100"
+                        >
+                            <div className="px-3 py-3 space-y-3">
+                                {types.length > 0 && (
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Type</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {types.map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => onToggleType(t)}
+                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors"
+                                                    style={activeTypes.has(t) ? {
+                                                        backgroundColor: 'rgba(0,122,73,0.08)',
+                                                        borderColor: 'rgba(0,122,73,0.4)',
+                                                        color: '#007A49',
+                                                    } : undefined}
+                                                >
+                                                    {t.replace(/-/g, ' ')}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
-                            {statuses.length > 0 && (
-                                <div>
-                                    <div className="text-xs font-medium text-gray-500 mb-1.5">Status</div>
-                                    <div className="flex flex-wrap gap-1">
-                                        {statuses.map(s => (
-                                            <button
-                                                key={s}
-                                                onClick={() => onToggleStatus(s)}
-                                                className={`text-xs px-2 py-0.5 rounded-full border transition-colors capitalize ${
-                                                    activeStatuses.has(s)
-                                                        ? 'bg-blue-50 border-blue-300 text-blue-700'
-                                                        : 'bg-gray-50 border-gray-200 text-gray-400'
-                                                }`}
-                                            >
-                                                {s}
-                                            </button>
-                                        ))}
+                                )}
+                                {statuses.length > 0 && (
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Status</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {statuses.map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => onToggleStatus(s)}
+                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors capitalize"
+                                                    style={activeStatuses.has(s) ? {
+                                                        backgroundColor: 'rgba(0,122,73,0.08)',
+                                                        borderColor: 'rgba(0,122,73,0.4)',
+                                                        color: '#007A49',
+                                                    } : undefined}
+                                                >
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
                                     </div>
-                                </div>
-                            )}
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
+            </div>
+
+            {/* Scrollable intervention list */}
+            <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-0.5">
+                {interventions.map(i => (
+                    <button
+                        key={i.id}
+                        data-id={i.id}
+                        onClick={() => onSelect(i)}
+                        className="w-full text-left px-3 py-2.5 rounded-lg border transition-all"
+                        style={selectedId === i.id ? {
+                            borderColor: 'rgba(0,122,73,0.35)',
+                            backgroundColor: 'rgba(0,122,73,0.06)',
+                        } : undefined}
+                    >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="font-mono text-xs font-semibold text-gray-800 truncate">{i.hid}</span>
+                            <span
+                                className="text-xs px-1.5 py-0.5 rounded-full shrink-0 capitalize leading-none"
+                                style={i.status === 'complete' || i.status === 'completed' ? {
+                                    backgroundColor: 'rgba(0,122,73,0.1)',
+                                    color: '#007A49',
+                                } : undefined}
+                            >
+                                {i.status}
+                            </span>
                         </div>
-                    </motion.div>
+                        <div className="text-xs text-gray-500 capitalize mb-1">{i.type.replace(/-/g, ' ')}</div>
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span>{(i.totalTreeCount ?? 0).toLocaleString()} trees</span>
+                            {i.area && <span>{i.area.toFixed(1)} m²</span>}
+                        </div>
+                    </button>
+                ))}
+                {interventions.length === 0 && (
+                    <div className="py-10 text-center text-xs text-gray-400">No interventions match filters</div>
                 )}
-            </AnimatePresence>
+            </div>
         </div>
     );
 };
@@ -489,11 +536,13 @@ const InterventionPanel: React.FC<{
                             <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
                                 {intervention.type.replace(/-/g, ' ')}
                             </span>
-                            <span className={`text-xs px-2 py-0.5 rounded-full capitalize ${
-                                intervention.status === 'complete' || intervention.status === 'completed'
-                                    ? 'bg-emerald-50 text-emerald-700'
-                                    : 'bg-amber-50 text-amber-700'
-                            }`}>
+                            <span
+                                className="text-xs px-2 py-0.5 rounded-full capitalize"
+                                style={intervention.status === 'complete' || intervention.status === 'completed' ? {
+                                    backgroundColor: 'rgba(0,122,73,0.08)',
+                                    color: '#007A49',
+                                } : undefined}
+                            >
                                 {intervention.status}
                             </span>
                         </div>
@@ -501,7 +550,8 @@ const InterventionPanel: React.FC<{
                     <div className="flex items-center gap-1 shrink-0">
                         <button
                             onClick={() => onZoomTo?.(intervention)}
-                            className="text-xs text-blue-600 hover:text-blue-700 px-2 py-1 rounded hover:bg-blue-50 transition-colors"
+                            className="text-xs px-2 py-1 rounded transition-colors hover:bg-gray-50"
+                            style={{ color: '#007A49' }}
                         >
                             Zoom
                         </button>
@@ -556,12 +606,13 @@ const InterventionPanel: React.FC<{
                 <div className="flex items-center justify-between pt-1">
                     <span className="text-sm text-gray-500">
                         Sample trees: <span className="font-medium text-gray-700">{intervention.totalSampleTreeCount ?? '—'}</span>
-                        {treesCount > 0 && <span className="ml-2 text-emerald-600">({treesCount} loaded)</span>}
+                        {treesCount > 0 && <span className="ml-2" style={{ color: '#007A49' }}>({treesCount} loaded)</span>}
                     </span>
                     <button
                         onClick={() => onLoadTrees?.(intervention.id)}
                         disabled={isLoadingTrees}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 text-white text-xs rounded-lg hover:bg-emerald-700 disabled:opacity-60 transition-colors"
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-lg disabled:opacity-60 transition-opacity"
+                        style={{ backgroundColor: '#007A49' }}
                     >
                         {isLoadingTrees ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trees className="w-3 h-3" />}
                         {isLoadingTrees ? 'Loading...' : 'Load Trees'}
@@ -624,24 +675,24 @@ const MapLegend: React.FC = () => (
         <div className="text-xs font-medium text-gray-600 mb-2">Legend</div>
         <div className="space-y-1.5">
             <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-emerald-500" />
+                <div className="w-3 h-3 rounded-full" style={{ backgroundColor: '#007A49' }} />
                 <span className="text-xs text-gray-600">Intervention</span>
             </div>
             <div className="flex items-center gap-2">
-                <div className="w-3 h-0.5 bg-emerald-500" />
+                <div className="w-3 h-0.5" style={{ backgroundColor: '#007A49' }} />
                 <span className="text-xs text-gray-600">Polygon area</span>
             </div>
             <div className="border-t border-gray-100 my-1" />
             <div className="flex items-center gap-2">
-                <Trees size={11} className="text-emerald-500" />
+                <Trees size={11} color="#10b981" />
                 <span className="text-xs text-gray-600">Alive</span>
             </div>
             <div className="flex items-center gap-2">
-                <Trees size={11} className="text-amber-500" />
+                <Trees size={11} color="#f59e0b" />
                 <span className="text-xs text-gray-600">Sick</span>
             </div>
             <div className="flex items-center gap-2">
-                <Trees size={11} className="text-red-500" />
+                <Trees size={11} color="#ef4444" />
                 <span className="text-xs text-gray-600">Dead</span>
             </div>
         </div>
@@ -792,38 +843,29 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         });
     }, []);
 
-    const handlePolygonClick = useCallback((event: any) => {
-        const feature = event.features?.[0];
-        if (!feature?.properties?.id) return;
-        const intervention = interventions.find(i => i.id === feature.properties.id);
-        if (!intervention) return;
-
-        if (mapState.selectedInterventionId === intervention.id) {
-            setMapState(prev => ({ ...prev, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
+    const selectIntervention = useCallback((intervention: MapIntervention | null) => {
+        const prevId = prevSelectedIdRef.current;
+        if (!intervention) {
+            setMapState(s => ({ ...s, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
             setTrees([]);
             try {
-                const prev = prevSelectedIdRef.current;
-                if (prev && mapRef) {
-                    mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
-                    mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
+                if (prevId != null && mapRef) {
+                    mapRef.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                    mapRef.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
                 }
                 prevSelectedIdRef.current = null;
             } catch { /* ignore */ }
             return;
         }
-
-        setMapState(prev => ({ ...prev, selectedInterventionId: intervention.id, selectedTreeId: null, showTreeDetails: false }));
+        setMapState(s => ({ ...s, selectedInterventionId: intervention.id, selectedTreeId: null, showTreeDetails: false }));
         try {
             const [lng, lat] = getMarkerPosition(intervention);
-            if (isFinite(lng) && isFinite(lat)) {
-                mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
-            }
+            if (isFinite(lng) && isFinite(lat)) mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
         } catch { /* ignore */ }
         try {
-            const prev = prevSelectedIdRef.current;
-            if (prev && mapRef) {
-                mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
-                mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
+            if (prevId != null && mapRef) {
+                mapRef.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                mapRef.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
             }
             if (mapRef) {
                 mapRef.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
@@ -831,7 +873,19 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
             }
             prevSelectedIdRef.current = intervention.id;
         } catch { /* ignore */ }
-    }, [interventions, mapRef, mapState.selectedInterventionId]);
+    }, [mapRef]);
+
+    const handlePolygonClick = useCallback((event: any) => {
+        const feature = event.features?.[0];
+        if (!feature?.properties?.id) return;
+        const intervention = interventions.find(i => i.id === feature.properties.id);
+        if (!intervention) return;
+        if (mapState.selectedInterventionId === intervention.id) {
+            selectIntervention(null);
+        } else {
+            selectIntervention(intervention);
+        }
+    }, [interventions, mapState.selectedInterventionId, selectIntervention]);
 
     const selectedIntervention = useMemo(
         () => interventions.find(i => i.id === mapState.selectedInterventionId),
@@ -860,7 +914,8 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                     <p className="text-sm text-gray-500 mb-4">{error.message}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors"
+                        className="text-white px-4 py-2 rounded-lg text-sm transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: '#007A49' }}
                     >
                         Reload
                     </button>
@@ -884,7 +939,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
                             tileSize: 256,
                             minzoom: 0,
-                            maxzoom: 19,
+                            maxzoom: 18,
                         },
                     },
                     layers: [
@@ -893,7 +948,6 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             type: 'raster',
                             source: 'imagery',
                             minzoom: 0,
-                            maxzoom: 19,
                             layout: { visibility: 'visible' },
                         },
                     ],
@@ -941,9 +995,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                         }
                     } catch { /* ignore */ }
                 }}
-                onError={() => {
-                    setError({ type: 'mapbox', message: 'Failed to load map tiles', details: null, recoverable: true });
-                }}
+                onError={() => { /* suppress tile load errors */ }}
             >
                 {/* Polygon fills (close zoom) */}
                 {polygonGeoJSON.features.length > 0 && (
@@ -954,7 +1006,12 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             minzoom={11}
                             paint={{
                                 'fill-color': ['get', 'color'],
-                                'fill-opacity': ['case', ['feature-state', 'selected'], 0.6, 0.3],
+                                'fill-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 0.42,
+                                    ['feature-state', 'hover'], 0.28,
+                                    0.15,
+                                ],
                             }}
                         />
                         <Layer
@@ -963,8 +1020,17 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             minzoom={11}
                             paint={{
                                 'line-color': ['get', 'color'],
-                                'line-width': ['case', ['feature-state', 'selected'], 3, 1.5],
-                                'line-opacity': 0.9,
+                                'line-width': [
+                                    'case',
+                                    ['feature-state', 'selected'], 2.5,
+                                    ['feature-state', 'hover'], 2,
+                                    1.5,
+                                ],
+                                'line-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 1,
+                                    0.75,
+                                ],
                             }}
                         />
                     </Source>
@@ -979,9 +1045,12 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                             maxzoom={11}
                             paint={{
                                 'circle-color': ['get', 'color'],
-                                'circle-radius': ['interpolate', ['linear'], ['zoom'], 0, 5, 6, 9, 10, 13],
-                                'circle-opacity': 0.75,
-                                'circle-stroke-width': 1.5,
+                                'circle-radius': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    0, 4, 6, 7, 10, 11,
+                                ],
+                                'circle-opacity': ['case', ['feature-state', 'hover'], 1, 0.85],
+                                'circle-stroke-width': 2,
                                 'circle-stroke-color': '#ffffff',
                             }}
                         />
@@ -998,23 +1067,23 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                                 'circle-color': ['get', 'color'],
                                 'circle-radius': [
                                     'case',
-                                    ['feature-state', 'selected'], 14,
-                                    ['feature-state', 'hover'], 12,
-                                    9,
+                                    ['feature-state', 'selected'], 12,
+                                    ['feature-state', 'hover'], 10,
+                                    8,
                                 ],
-                                'circle-stroke-width': ['case', ['feature-state', 'selected'], 3, 2],
+                                'circle-stroke-width': [
+                                    'case',
+                                    ['feature-state', 'selected'], 3,
+                                    ['feature-state', 'hover'], 2.5,
+                                    2,
+                                ],
                                 'circle-stroke-color': '#ffffff',
-                            }}
-                        />
-                        <Layer
-                            id="interventions-points-ring"
-                            type="circle"
-                            paint={{
-                                'circle-radius': 18,
-                                'circle-color': 'transparent',
-                                'circle-stroke-width': 2.5,
-                                'circle-stroke-color': '#3b82f6',
-                                'circle-stroke-opacity': ['case', ['feature-state', 'selected'], 1, 0],
+                                'circle-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 1,
+                                    ['feature-state', 'hover'], 0.95,
+                                    0.9,
+                                ],
                             }}
                         />
                     </Source>
@@ -1042,10 +1111,11 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 )}
             </AnimatePresence>
 
-            {/* Control bar (search + filters) - top left */}
-            <ControlBar
-                total={interventions.length}
-                filtered={filteredInterventions.length}
+            {/* Sidebar - search, filter + scrollable intervention list */}
+            <InterventionSidebar
+                interventions={filteredInterventions}
+                selectedId={mapState.selectedInterventionId}
+                onSelect={selectIntervention}
                 hidSearch={hidSearch}
                 onHidSearch={setHidSearch}
                 types={allTypes}
@@ -1054,6 +1124,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 activeStatuses={filters.statuses}
                 onToggleType={toggleType}
                 onToggleStatus={toggleStatus}
+                total={interventions.length}
             />
 
             {/* Intervention detail panel - top right */}
@@ -1061,10 +1132,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 {selectedIntervention && (
                     <InterventionPanel
                         intervention={selectedIntervention}
-                        onClose={() => {
-                            setMapState(prev => ({ ...prev, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
-                            setTrees([]);
-                        }}
+                        onClose={() => selectIntervention(null)}
                         onLoadTrees={async (id: number) => {
                             setMapState(prev => ({ ...prev, isLoadingTrees: true }));
                             try {

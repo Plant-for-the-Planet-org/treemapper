@@ -471,7 +471,7 @@ const Overview = () => {
             {projectRole !== 'admin' && projectRole !== 'owner' ?
                 <>
                     <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} projectRole={projectRole} />
-                    { selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}
+                    { selectedTab === 'leaderboard' ? <ForestLeaderboard /> : selectedProject ? <ProjectMap projectId={selectedProject} token={accessToken} /> : null}
                 </> : <>     <ChildTabs selectedTab={selectedTab} setSelectedTab={setSelectedTab} projectRole={projectRole}/>
                     {selectedTab === 'overview' ? <>
                         <StatCardsContainer setTotalTrees={setTotalTrees} />
@@ -486,7 +486,7 @@ const Overview = () => {
                                     <RecentAdditionsComponent />
                                 </div>
                             </div>
-                        </div></> : selectedTab === 'leaderboard' ? <ForestLeaderboard /> : <ProjectMap projectId={selectedProject} token={accessToken} />}</>}
+                        </div></> : selectedTab === 'leaderboard' ? <ForestLeaderboard /> : selectedProject ? <ProjectMap projectId={selectedProject} token={accessToken} /> : null}</>}
         </div>
     );
 };

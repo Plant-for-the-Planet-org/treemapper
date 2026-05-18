@@ -83,7 +83,7 @@ Response style:
 Treat `graphify-out/` as the primary interface to the codebase.
 
 Avoid raw code exploration unless explicitly required.
-
+`¡
 ## Priority Order
 
 1. Graph first (always)
