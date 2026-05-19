@@ -79,7 +79,7 @@ const MapMarkers = (props: Props) => {
       </MapLibreGL.MarkerView>
     ))
   }
-  return renderMarkers()
+  return <>{renderMarkers()}</>
 }
 
 export default MapMarkers

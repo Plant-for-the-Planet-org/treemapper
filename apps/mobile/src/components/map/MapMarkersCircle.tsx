@@ -30,7 +30,7 @@ const MapMarkersCircle = (props: Props) => {
       </MapLibreGL.MarkerView>)
     })
   }
-  return renderMarkers()
+  return <>{renderMarkers()}</>
 }
 
 export default MapMarkersCircle
