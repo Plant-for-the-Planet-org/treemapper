@@ -12,6 +12,7 @@ import { ApprovalBoardService } from './approval-board.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
+import { ProjectPermissions } from '../projects/decorators/project-permissions.decorator';
 import { Membership } from '../projects/decorators/membership.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ProjectGuardResponse } from '../projects/projects.service';
@@ -41,6 +42,7 @@ export class ApprovalBoardController {
   @ApiOperation({ summary: 'Get interventions in the review queue for a project' })
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async getReviewQueue(
     @Membership() membership: ProjectGuardResponse,
@@ -56,6 +58,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async startReview(
     @Param('interventionUid') interventionUid: string,
@@ -73,6 +76,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async reviewIntervention(
     @Param('interventionUid') interventionUid: string,
@@ -96,6 +100,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async makeDecision(
     @Param('interventionUid') interventionUid: string,
@@ -113,6 +118,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminComment(
     @Param('interventionUid') interventionUid: string,
@@ -173,6 +179,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'threadUid', description: 'Thread UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminCommentByThread(
     @Param('threadUid') threadUid: string,
@@ -245,6 +252,7 @@ export class ApprovalBoardController {
   @ApiOperation({ summary: 'Get sites in the review queue for a project' })
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async getSiteReviewQueue(
     @Membership() membership: ProjectGuardResponse,
@@ -260,6 +268,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async reviewSite(
     @Param('siteUid') siteUid: string,
@@ -283,6 +292,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async makeSiteDecision(
     @Param('siteUid') siteUid: string,
@@ -300,6 +310,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminSiteComment(
     @Param('siteUid') siteUid: string,

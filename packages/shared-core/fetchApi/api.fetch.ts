@@ -448,6 +448,12 @@ export const updateUserRole = async (token: string, prjId: string, memberId: str
   return result;
 };
 
+export const updateMemberExtraPermissions = async (token: string, prjId: string, memberId: string, extraPermissions: string[]) => {
+  const uri = `${patchUrlApi.updateMemeberRole}/${prjId}/members/${memberId}/extra-permissions`;
+  const result = await fetchPatchCall(uri, { extraPermissions }, token);
+  return result;
+};
+
 
 export const updateProjectSpecies = async (token: string, params: any, prjId: string, species: string) => {
   const uri = `${putUrlApi.updatePrjSpecies}/${prjId}/species/${species}`;

@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@
 import { Reflector } from '@nestjs/core';
 import { ProjectsService } from '../projects.service';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
+import { PROJECT_PERMISSIONS_KEY } from '../decorators/project-permissions.decorator';
 
 @Injectable()
 export class ProjectPermissionsGuard implements CanActivate {
@@ -13,7 +14,8 @@ export class ProjectPermissionsGuard implements CanActivate {
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const roles = this.reflector.get<string[]>('projectRoles', context.getHandler());
-    if (!roles) {
+    const requiredPerms = this.reflector.get<string[]>(PROJECT_PERMISSIONS_KEY, context.getHandler());
+    if (!roles && !requiredPerms) {
       return true;
     }
     const request = context.switchToHttp().getRequest();
@@ -29,9 +31,12 @@ export class ProjectPermissionsGuard implements CanActivate {
     if (!membership) {
       throw new ForbiddenException('You do not have access to this project');
     }
-    const hasPermission = roles.includes(membership.role);
-    if (!hasPermission) {
-      throw new ForbiddenException(`You need one of these roles: ${roles.join(', ')} to access this resource`);
+    const hasRole = roles ? roles.includes(membership.role) : false;
+    const hasPerm = requiredPerms
+      ? requiredPerms.some(p => (membership.extraPermissions ?? []).includes(p))
+      : false;
+    if (!hasRole && !hasPerm) {
+      throw new ForbiddenException(`You need one of these roles: ${(roles ?? []).join(', ')} or a matching extra permission to access this resource`);
     }
     request.membership = membership;
     return true;

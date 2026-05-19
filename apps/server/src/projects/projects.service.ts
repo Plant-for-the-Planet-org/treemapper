@@ -6,6 +6,7 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
 import { UpdateProjectRoleDto } from './dto/update-project-role.dto';
+import { UpdateExtraPermissionsDto } from './dto/update-extra-permissions.dto';
 import { eq, and, desc, ne, asc, isNull } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { EmailService } from '../email/email.service';
@@ -21,7 +22,7 @@ import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { UserCacheService } from 'src/cache/user-cache.service';
 import { AuditService } from 'src/audit/audit.service';
 
-export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string, siteAccess: string, restrictedSites: string[] | null }
+export interface ProjectGuardResponse { projectId: number, role: string, userId: number, projectName: string, siteAccess: string, restrictedSites: string[] | null, extraPermissions: string[] | null }
 
 export interface ProjectMemberResponse {
   role: string;
@@ -412,7 +413,7 @@ export class ProjectsService {
       }
 
       const membershipQuery = await this.drizzleService.db
-        .select({ role: projectMember.projectRole, userId: projectMember.userId, siteAccess: projectMember.siteAccess, restrictedSites: projectMember.restrictedSites })
+        .select({ role: projectMember.projectRole, userId: projectMember.userId, siteAccess: projectMember.siteAccess, restrictedSites: projectMember.restrictedSites, extraPermissions: projectMember.extraPermissions })
         .from(projectMember)
         .where(
           and(
@@ -424,7 +425,7 @@ export class ProjectsService {
       if (!membershipQuery) {
         throw new NotFoundException('Role not found');
       }
-      const payload = membershipQuery.length > 0 ? { projectName: projectData.name, projectId: projectData.id, role: membershipQuery[0].role, userId: membershipQuery[0].userId, siteAccess: membershipQuery[0].siteAccess, restrictedSites: membershipQuery[0].restrictedSites } : null
+      const payload = membershipQuery.length > 0 ? { projectName: projectData.name, projectId: projectData.id, role: membershipQuery[0].role, userId: membershipQuery[0].userId, siteAccess: membershipQuery[0].siteAccess, restrictedSites: membershipQuery[0].restrictedSites, extraPermissions: membershipQuery[0].extraPermissions } : null
       if (payload) {
         await this.projectCacheService.setUserProject(projectData.uid, userId, payload)
       }
@@ -635,6 +636,7 @@ export class ProjectsService {
         role: projectMember.projectRole,
         joinedAt: projectMember.joinedAt,
         invitedAt: projectMember.invitedAt,
+        extraPermissions: projectMember.extraPermissions,
         user: {
           name: user.displayName,
           email: user.email,
@@ -1326,6 +1328,43 @@ export class ProjectsService {
         data: null,
         code: 'update_member_role_failed',
       };
+    }
+  }
+
+  async updateMemberExtraPermissions(projectUid: string, memberUserUid: string, dto: UpdateExtraPermissionsDto) {
+    try {
+      const [projectData] = await this.drizzleService.db
+        .select({ id: project.id })
+        .from(project)
+        .where(eq(project.uid, projectUid))
+        .limit(1);
+      if (!projectData) {
+        return { message: 'Project not found', statusCode: 404, error: 'not_found', data: null };
+      }
+      const [targetUser] = await this.drizzleService.db
+        .select({ id: user.id })
+        .from(user)
+        .where(eq(user.uid, memberUserUid))
+        .limit(1);
+      if (!targetUser) {
+        return { message: 'User not found', statusCode: 404, error: 'not_found', data: null };
+      }
+      const [updated] = await this.drizzleService.db
+        .update(projectMember)
+        .set({ extraPermissions: dto.extraPermissions, updatedAt: new Date() })
+        .where(
+          and(
+            eq(projectMember.projectId, projectData.id),
+            eq(projectMember.userId, targetUser.id),
+          )
+        )
+        .returning({ uid: projectMember.uid, extraPermissions: projectMember.extraPermissions });
+      if (!updated) {
+        return { message: 'Member not found in this project', statusCode: 404, error: 'not_found', data: null };
+      }
+      return { message: 'Extra permissions updated', statusCode: 200, data: updated };
+    } catch (error) {
+      return { message: error.message || 'Internal server error', statusCode: 500, error: 'internal_server_error', data: null };
     }
   }
 

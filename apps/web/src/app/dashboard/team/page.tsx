@@ -22,6 +22,7 @@ import { toast } from 'react-toastify';
 import { useToken } from '@/context/useTokenContext';
 import { getTeamMemebers } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { useUserStore } from '@shared-core/store/useUserStore';
 import Spinner from '@/component/Spinner';
 import avatar from 'animal-avatar-generator'
 import BulkInvitationModal from './component/BulkInviteModal';
@@ -38,9 +39,10 @@ function transformData(data) {
         lastActive: member.user.isActive ? member.joinedAt : null,
         joinedDate: member.joinedAt,
         status: member.user.isActive ? 'Active' : 'Inactive',
-        invitedBy: null, // No invitedBy info for members
+        invitedBy: null,
         type: 'member',
         avatar: member.user.image,
+        extraPermissions: member.extraPermissions || [],
     }));
 
     const invitations = data.invitations.map((invite, index) => ({
@@ -92,6 +94,8 @@ const TeamsDashboard = () => {
     const SelectedProject = useProjectStore((state) => state.selectedProject);
     const userRole = SelectedProject?.userRole;
     const canManageTeam = ['owner', 'admin'].includes(userRole || '');
+    const currentUser = useUserStore((state) => state.user);
+    const isImpersonating = currentUser?.impersonated === true;
 
     useEffect(() => {
         if (SelectedProject) {
@@ -448,7 +452,8 @@ const TeamsDashboard = () => {
                     isOpen={isModalUserOpen}
                     onClose={() => setIsModalUserOpen(false)}
                     user={selectedUser}
-                    handleRefresh={fetchTeamMembers} />
+                    handleRefresh={fetchTeamMembers}
+                    isImpersonating={isImpersonating} />
             </AnimatePresence>
         </div>
     );

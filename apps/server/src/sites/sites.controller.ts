@@ -14,6 +14,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { ProjectRoles } from './decorators/project-roles.decorator';
+import { ProjectPermissions } from '../projects/decorators/project-permissions.decorator';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
 import { JwtAuthGuard } from 'src/auth/jwt-auth.guard';
 import { GrantAccessDto, RevokeAccessDto, SiteService } from './sites.service';
@@ -30,6 +31,7 @@ export class SiteController {
 
 @Post()
 @ProjectRoles('owner', 'admin')
+@ProjectPermissions('add_site')
 @UseGuards(ProjectPermissionsGuard)
 async createSite(
   @Membership() membership: ProjectGuardResponse,

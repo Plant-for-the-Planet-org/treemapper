@@ -19,6 +19,8 @@ import { CreateProjectDto } from './dto/create-project.dto';
 import { UpdateProjectDto } from './dto/update-project.dto';
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
 import { UpdateProjectRoleDto } from './dto/update-project-role.dto';
+import { UpdateExtraPermissionsDto } from './dto/update-extra-permissions.dto';
+import { SuperAdminGuard } from '../auth/super-admin.guard';
 import { InviteProjectLinkDto, InviteProjectMemberDto } from './dto/invite-project-member.dto';
 import { AcceptInviteDto } from './dto/accept-invite.dto';
 import { DeclineInviteDto } from './dto/decline-invite.dto';
@@ -147,6 +149,16 @@ export class ProjectsController {
     @Body() updateRoleDto: UpdateProjectRoleDto,
   ) {
     return this.projectsService.updateMemberRole(memberId, membership, updateRoleDto);
+  }
+
+  @Patch(':id/members/:memberId/extra-permissions')
+  @UseGuards(JwtAuthGuard)
+  updateMemberExtraPermissions(
+    @Param('id') id: string,
+    @Param('memberId') memberId: string,
+    @Body() dto: UpdateExtraPermissionsDto,
+  ) {
+    return this.projectsService.updateMemberExtraPermissions(id, memberId, dto);
   }
 
 
