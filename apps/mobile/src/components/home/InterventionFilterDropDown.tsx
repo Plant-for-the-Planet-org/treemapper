@@ -1,5 +1,6 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity } from 'react-native'
 import React from 'react'
+import { BottomSheetFlatList } from '@gorhom/bottom-sheet'
 import { Colors, Typography } from 'src/utils/constants'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type';
 import { AllIntervention } from 'src/utils/constants/knownIntervention';
@@ -45,10 +46,11 @@ const InterventionFilterModal = () => {
   }
   return (
     <View style={styles.container}>
-      <FlatList
+      <BottomSheetFlatList
         showsVerticalScrollIndicator={false}
-        data={AllIntervention} renderItem={({ item, index }) => renderSection(item, index)}
-        ListFooterComponent={renderFooter}
+        data={AllIntervention}
+        renderItem={({ item, index }) => renderSection(item, index)}
+        keyExtractor={(item) => item.value}
       />
     </View>
   )
@@ -59,6 +61,7 @@ export default InterventionFilterModal
 const styles = StyleSheet.create({
   container: {
     width: '100%',
+    maxHeight: 300,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,

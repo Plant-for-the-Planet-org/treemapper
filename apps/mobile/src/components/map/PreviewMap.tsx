@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useRef } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import MapLibreGL from '@maplibre/maplibre-react-native'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
@@ -12,7 +12,7 @@ import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { updateBoundary } from 'src/store/slice/sampleTreeSlice'
 import { useDispatch } from 'react-redux'
 import { v4 as uuid } from 'uuid'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import i18next from 'src/locales/index'
@@ -35,15 +35,40 @@ const PreviewMap = (props: Props) => {
   const { geoJSON, has_sample_trees, sampleTrees, openPolygon, showEdit, isEntireSite, intervention } = props
   const cameraRef = useRef<MapLibreGL.Camera>(null)
   const mapRef = useRef<MapLibreGL.MapView>(null)
+  const isMounted = useRef(true)
+  const isActive = useRef(false)
+  const cameraTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const [mapVisible, setMapVisible] = useState(false)
+  const [markersReady, setMarkersReady] = useState(false)
   const dispatch = useDispatch()
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
+
+  useFocusEffect(
+    useCallback(() => {
+      isActive.current = true
+      setMapVisible(true)
+      return () => {
+        isActive.current = false
+        setMarkersReady(false)
+        if (cameraTimeout.current) clearTimeout(cameraTimeout.current)
+        setMapVisible(false)
+      }
+    }, [])
+  )
+
+  useEffect(() => {
+    return () => {
+      isMounted.current = false
+    }
+  }, [])
 
   // Check if the geoJSON is a point or polygon
   const isPoint = geoJSON.features[0]?.geometry?.type === 'Point' ||
     intervention.location_type === 'Point'
 
   const handleCamera = () => {
-    if (!cameraRef.current) return;
+    if (!cameraRef.current) return
+    setMarkersReady(true)
 
     // Get the bounds of the geoJSON
     const bounds = bbox(geoJSON.features[0].geometry)
@@ -56,21 +81,18 @@ const PreviewMap = (props: Props) => {
       1000, // duration in ms
     )
 
-    // After fitting to bounds, we'll zoom out based on location type
-    setTimeout(() => {
-      if (cameraRef.current) {
-        if (isPoint) {
-          // For points, zoom out to level 7
-          cameraRef.current.zoomTo(12, 4000) // 4000ms = 4 seconds animation
-        } else {
-          // For polygons, get current zoom and zoom out by 1 level
-          mapRef.current?.getZoom().then(currentZoom => {
-            const newZoom = Math.max(currentZoom - 1, 1) // Ensure we don't zoom out too far
-            cameraRef.current.zoomTo(newZoom, 4000) // 4000ms = 4 seconds animation
-          })
-        }
+    cameraTimeout.current = setTimeout(() => {
+      if (!isActive.current || !cameraRef.current) return
+      if (isPoint) {
+        cameraRef.current.zoomTo(12, 4000)
+      } else {
+        mapRef.current?.getZoom().then(currentZoom => {
+          if (!isActive.current || !cameraRef.current) return
+          const newZoom = Math.max(currentZoom - 1, 1)
+          cameraRef.current.zoomTo(newZoom, 4000)
+        })
       }
-    }, 1000) // Wait for the initial fitBounds to complete
+    }, 1000)
   }
 
   const addAnotherTree = () => {
@@ -88,7 +110,8 @@ const PreviewMap = (props: Props) => {
     return
   }
 
-  const viewTreeDetails = async (_i: number, d: SampleTree) => {
+  const viewTreeDetails = async (_i: number, d?: SampleTree) => {
+    if (!d) return
     navigation.navigate("ReviewTreeDetails", {
       detailsCompleted: false,
       interventionID: d.tree_id,
@@ -99,7 +122,7 @@ const PreviewMap = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.wrapper}>
+      {mapVisible && <View style={styles.wrapper}>
         <MapLibreGL.MapView
           ref={mapRef}
           style={styles.map}
@@ -109,16 +132,16 @@ const PreviewMap = (props: Props) => {
           mapStyle={MapStyle}>
           <MapLibreGL.Camera
             ref={cameraRef}
-            animationDuration={4000} // Ensure animations take at least 4 seconds
-            animationMode={'flyTo'} // Use flyTo for smooth animation
+            animationDuration={4000}
+            animationMode={'flyTo'}
           />
           <MapShapeSource
             geoJSON={geoJSON.features}
             onShapeSourcePress={handlePress}
           />
-          {intervention.location_type === 'Polygon' && !intervention.entire_site ?
-            <MapMarkersCircle coordinates={JSON.parse(intervention.location.coordinates)} /> : null}
-          {has_sample_trees &&
+          {/* {intervention.location_type === 'Polygon' && !intervention.entire_site ?
+            <MapMarkersCircle coordinates={JSON.parse(intervention.location.coordinates)} /> : null} */}
+          {markersReady && has_sample_trees &&
             <MapMarkers
               sampleTreeData={sampleTrees}
               hasSampleTree={has_sample_trees}
@@ -137,7 +160,7 @@ const PreviewMap = (props: Props) => {
             <Text style={styles.sampleTreeLabel}>{i18next.t("label.sample_tree")}</Text>
             <AddIcon width={12} height={12} fill={Colors.NEW_PRIMARY} />
           </TouchableOpacity> : null}
-      </View>
+      </View>}
     </View>
   )
 }
