@@ -25,7 +25,8 @@ const STANDALONE_ROUTES = [
   'new-intervention',
   'onboarding',
   'workspace',
-  'select-workspace'
+  'select-workspace',
+  "dataexplore"
 ];
 
 // Consolidated loading states

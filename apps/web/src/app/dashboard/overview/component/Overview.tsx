@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { Calendar, ChevronDown, ChevronLeft, ChevronRight, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import useMediaQuery from '@/hooks/useMediaQuery';
 import StatCardsContainer from './StatCardsContainer';
@@ -11,9 +12,7 @@ import { useAnalyticsStore } from '@shared-core/store/useAnalyticsStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { toast } from 'react-toastify'
 import ForestProgressComponent from './ForestProgressComponent';
-import { exportAllData } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
-import { downloadJsonAsCsv } from '@shared-core/utils/reportHelper';
 import ChildTabs from './ChildTabs';
 import ProjectMap from './GlobalMap';
 import ForestLeaderboard from '../../leaderboard/page';
@@ -367,106 +366,26 @@ const AdvancedDateRangePicker = ({ onDateChange, initialStartDate, initialEndDat
 };
 
 const Overview = () => {
-    const [startDate, setStartDate] = useState('');
-    const [endDate, setEndDate] = useState('');
-    const [showCalendar, setShowCalendar] = useState(false);
-    const calendarRef = useRef(null);
     const [totalTrees, setTotalTrees] = useState(0)
-    const [dowloanding, setDownloading] = useState(false)
     const Target = useProjectStore(state => state.selectedProject?.target)
     const userRole = useProjectStore(state => state.selectedProject?.userRole)
     const selectedProject = useProjectStore(state => state.selectedProject?.uid)
     const projectRole = useProjectStore(state => state.selectedProject?.userRole)
-
     const [selectedTab, setSelectedTab] = useState('overview')
-
-    const getMonthRange = () => {
-        const now = new Date();
-        const start = new Date(now.getFullYear() - 1, now.getMonth(), 1);
-        const end = new Date(now.getFullYear(), now.getMonth() + 1, 0); // last day of the month
-        return {
-            startDate: start.toISOString().split('T')[0], // YYYY-MM-DD
-            endDate: end.toISOString().split('T')[0],
-        };
-    };
-
-
-
-    // Handle clicking outside to close the calendar
-    useEffect(() => {
-        function handleClickOutside(event) {
-            if (calendarRef.current && !calendarRef.current.contains(event.target)) {
-                setShowCalendar(false);
-            }
-        }
-
-        const { startDate, endDate } = getMonthRange();
-        setStartDate(startDate);
-        setEndDate(endDate);
-
-        document.addEventListener('mousedown', handleClickOutside);
-        return () => {
-            document.removeEventListener('mousedown', handleClickOutside);
-        };
-    }, []);
-
-
-
+    const router = useRouter()
     const { accessToken } = useToken()
-    const handleDownload = async () => {
-        try {
-            console.log('Downloading data for range:', startDate, endDate);
-            if (startDate === '') {
-                toast.warn("Please select date range")
-                return
-            }
-            setDownloading(true)
-            const response = await exportAllData(accessToken, {
-                "startDate": new Date(startDate),
-                "endDate": new Date(endDate),
-            }, selectedProject)
-            console.log('Downloading data for range:', response.data.interventions);
-
-            if (response.statusCode === 200 || response.statusCode === 201) {
-                setDownloading(false)
-                const interventionsData = response.data.interventions;
-                downloadJsonAsCsv(interventionsData, 'TreeMapperReport');
-                return;
-            }
-        } catch (error) {
-            toast.error("Report not downloaded")
-        } finally {
-            setDownloading(false)
-        }
-
-    };
-
-    const handleDateChange = (start, end) => {
-        setStartDate(start);
-        setEndDate(end);
-        console.log('Date range changed:', start, end);
-        // Your analytics logic here
-    };
     return (
         <div className='w-full h-full pt-4'>
             <div className="flex justify-between items-center w-full mb-1 pl-5  pr-5">
                 <h1 className="text-3xl font-bold" style={{ letterSpacing: 1 }}>Dashboard</h1>
-                {projectRole !== 'admin' && projectRole !== 'owner' ? null : <div className="flex items-center gap-3">
-                    <div className="relative" ref={calendarRef}>
-                        <AdvancedDateRangePicker
-                            onDateChange={handleDateChange}
-                            initialStartDate={startDate}
-                            initialEndDate={endDate}
-                        />
-                    </div>
+                {(projectRole === 'admin' || projectRole === 'owner') && (
                     <button
-                        onClick={handleDownload}
-                        disabled={dowloanding}
-                        className="bg-black hover:bg-gray-700 text-white px-5 py-2 rounded text-sm"
+                        onClick={() => router.push('/dashboard/dataexplore')}
+                        className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-primary-foreground px-5 py-2 text-sm font-medium transition-colors"
                     >
-                        {dowloanding ? "Downloading..." : "Download"}
+                        Data Explore <ChevronRight className="h-4 w-4" />
                     </button>
-                </div>}
+                )}
             </div>
             {projectRole !== 'admin' && projectRole !== 'owner' ?
                 <>

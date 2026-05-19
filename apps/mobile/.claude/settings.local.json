@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//Users/plant-214/Documents/pftp/treemapper/apps/web/**)",
+      "Bash(npx shadcn@latest add tabs skeleton --yes)",
+      "Bash(npx tsc *)"
+    ]
+  }
+}
