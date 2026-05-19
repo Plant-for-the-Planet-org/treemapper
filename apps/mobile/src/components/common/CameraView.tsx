@@ -56,7 +56,7 @@ const CameraMainView = (props: Props) => {
     try {
       setLoading(true)
       const photoFile = await photoOutput.capturePhotoToFile({}, {})
-      const uri = `file://${photoFile.filePath}`
+      const uri = photoFile.filePath.startsWith('file://') ? photoFile.filePath : `file://${photoFile.filePath}`
       props.takePicture({ uri, width: 0, height: 0 })
     } catch (error: any) {
       const errorMessage = error?.message || 'Unknown error'

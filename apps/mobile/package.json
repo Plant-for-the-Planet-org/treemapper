@@ -75,7 +75,7 @@
     "react-dom": "19.1.0",
     "react-i18next": "16.5.0",
     "react-native": "0.81.5",
-    "react-native-auth0": "5.3.1",
+    "react-native-auth0": "5.0.0-beta.6",
     "react-native-avoid-softinput": "8.0.2",
     "react-native-bouncy-checkbox": "4.1.2",
     "react-native-draggable-flatlist": "4.0.3",
