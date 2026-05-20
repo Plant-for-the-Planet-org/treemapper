@@ -94,7 +94,7 @@ export interface UserInterface {
   displayName?: string;
   image?: string;
   slug?: string;
-  type: 'individual' | 'organization' | 'education' | 'tpo' | 'student'
+  type: 'individual' | 'organization' | 'education' | 'tpo' | 'student' | 'superadmin'
   country?: string;
   url?: string;
   isPrivate: boolean;

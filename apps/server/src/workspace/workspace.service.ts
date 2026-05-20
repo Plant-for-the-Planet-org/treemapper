@@ -723,4 +723,58 @@ export class WorkspaceService {
   //       projectCount: projectCountResult.count || 0,
   //     };
   //   }
+
+  async getAllWorkspaces() {
+    return await this.drizzle.db
+      .select({
+        uid: workspace.uid,
+        name: workspace.name,
+        slug: workspace.slug,
+        type: workspace.type,
+      })
+      .from(workspace)
+      .where(isNull(workspace.deletedAt))
+      .orderBy(asc(workspace.name));
+  }
+
+  async transferProject(workspaceUid: string, projectUid: string, targetWorkspaceUid: string, userId: number) {
+    if (workspaceUid === targetWorkspaceUid) {
+      throw new BadRequestException('Project is already in this workspace');
+    }
+
+    const [sourceWs] = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, workspaceUid))
+      .limit(1);
+    if (!sourceWs) throw new NotFoundException('Source workspace not found');
+
+    const [targetWs] = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, targetWorkspaceUid))
+      .limit(1);
+    if (!targetWs) throw new NotFoundException('Target workspace not found');
+
+    const result = await this.drizzle.db
+      .update(project)
+      .set({ workspaceId: targetWs.id })
+      .where(and(eq(project.uid, projectUid), eq(project.workspaceId, sourceWs.id), isNull(project.deletedAt)))
+      .returning({ id: project.id, uid: project.uid });
+
+    if (result.length === 0) throw new NotFoundException('Project not found in source workspace');
+
+    this.auditService.log('project', {
+      action: 'update',
+      entityId: result[0].id,
+      entityUid: result[0].uid,
+      userId,
+      workspaceId: targetWs.id,
+      oldValues: { workspaceId: sourceWs.id },
+      newValues: { workspaceId: targetWs.id },
+      source: 'web',
+    });
+
+    return { success: true, projectUid, targetWorkspaceUid };
+  }
 }

@@ -96,6 +96,11 @@ export class WorkspaceController {
     }
 
 
+    @Get('/all')
+    async getAllWorkspaces() {
+        return await this.workspaceService.getAllWorkspaces();
+    }
+
     @Get('/my')
     async getMyWorkspaces(@CurrentUser() user: User): Promise<any[]> {
         return await this.workspaceService.getMyAdminWorkspaces(user.id);
@@ -114,6 +119,16 @@ export class WorkspaceController {
     @Get('/:uid/projects')
     async getWorkspaceProjects(@Param('uid') uid: string): Promise<any[]> {
         return await this.workspaceService.getWorkspaceProjects(uid);
+    }
+
+    @Patch('/:uid/projects/:projectUid/transfer')
+    async transferProject(
+        @Param('uid') uid: string,
+        @Param('projectUid') projectUid: string,
+        @Body() body: { targetWorkspaceUid: string },
+        @CurrentUser() user: User,
+    ) {
+        return await this.workspaceService.transferProject(uid, projectUid, body.targetWorkspaceUid, user.id);
     }
 
     @Patch('/:uid/projects/:projectUid/status')
