@@ -69,7 +69,7 @@ export default function WorkspaceSettings() {
       case 'general':
         return <GeneralSettingsSection />;
       case 'members':
-        return <MemberManagementSection />;
+        return <MemberManagementSection goHome={goHome} />;
       case 'projects':
         return <ProjectManagementSection />;
       case 'activity':
@@ -77,7 +77,7 @@ export default function WorkspaceSettings() {
       case 'impersonation':
         return <ImpersonationSection token={accessToken} goHome={goHome} />;
       default:
-        return <MemberManagementSection />;
+        return <MemberManagementSection goHome={goHome} />;
     }
   };
 
