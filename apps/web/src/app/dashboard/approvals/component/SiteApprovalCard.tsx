@@ -77,6 +77,9 @@ export const SiteApprovalCard: React.FC<SiteApprovalCardProps> = ({
       {/* Header */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1">
+          {site.projectName && (
+            <div className="text-xs text-gray-400 truncate mb-0.5">{site.projectName}</div>
+          )}
           <h4 className="font-semibold text-gray-900 text-sm line-clamp-1">
             {site.name}
           </h4>

@@ -7,7 +7,7 @@ import { ProjectMembership, ServiceResponse, UpdateProjectDto } from './dto/upda
 import { AddProjectMemberDto } from './dto/add-project-member.dto';
 import { UpdateProjectRoleDto } from './dto/update-project-role.dto';
 import { UpdateExtraPermissionsDto } from './dto/update-extra-permissions.dto';
-import { eq, and, desc, ne, asc, isNull } from 'drizzle-orm';
+import { eq, and, desc, ne, asc, isNull, inArray } from 'drizzle-orm';
 import { sql } from 'drizzle-orm';
 import { EmailService } from '../email/email.service';
 import { v4 as uuidv4 } from 'uuid';
@@ -431,6 +431,33 @@ export class ProjectsService {
       }
       return payload
     } catch (error) {
+      return null;
+    }
+  }
+
+  async getWorkspaceAdminRoleForProject(projectUid: string, userId: number): Promise<{ projectId: number } | null> {
+    try {
+      const [proj] = await this.drizzleService.db
+        .select({ id: project.id, workspaceId: project.workspaceId })
+        .from(project)
+        .where(eq(project.uid, projectUid))
+        .limit(1);
+      if (!proj) return null;
+
+      const [member] = await this.drizzleService.db
+        .select({ role: workspaceMember.role })
+        .from(workspaceMember)
+        .where(
+          and(
+            eq(workspaceMember.workspaceId, proj.workspaceId),
+            eq(workspaceMember.userId, userId),
+            inArray(workspaceMember.role, ['owner', 'admin']),
+            eq(workspaceMember.status, 'active'),
+          ),
+        )
+        .limit(1);
+      return member ? { projectId: proj.id } : null;
+    } catch {
       return null;
     }
   }

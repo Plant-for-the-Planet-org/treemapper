@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Activity,
   ArrowLeft,
+  CheckSquare,
   ChevronDown,
   FolderOpen,
   Settings,
@@ -16,6 +17,7 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch';
 import { ActivityAuditSection } from './components/ActivityAuditSection';
+import { ApprovalsSection } from './components/ApprovalsSection';
 import { GeneralSettingsSection } from './components/GeneralSettingsSection';
 import { ImpersonationSection } from './components/ImpersonationSection';
 import { MemberManagementSection } from './components/MemberManagementSection';
@@ -55,6 +57,7 @@ export default function WorkspaceSettings() {
     { id: 'general', label: 'General Settings', icon: Settings },
     { id: 'members', label: 'Member Management', icon: Users },
     { id: 'projects', label: 'Project Management', icon: FolderOpen },
+    { id: 'approvals', label: 'Approvals', icon: CheckSquare },
     { id: 'activity', label: 'Activity & Audit', icon: Activity },
     { id: 'impersonation', label: 'Impersonation', icon: UserCheck }
   ];
@@ -72,6 +75,8 @@ export default function WorkspaceSettings() {
         return <MemberManagementSection goHome={goHome} />;
       case 'projects':
         return <ProjectManagementSection />;
+      case 'approvals':
+        return <ApprovalsSection />;
       case 'activity':
         return <ActivityAuditSection />;
       case 'impersonation':

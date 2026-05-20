@@ -208,6 +208,9 @@ export interface InterventionApprovalData {
   // New fields from backend
   unresolvedIssuesCount?: number;
   revisionCount?: number;
+  // Workspace-level fields (populated in workspace Approvals section)
+  projectUid?: string;
+  projectName?: string;
 }
 
 export interface SiteApprovalData {
@@ -248,6 +251,9 @@ export interface SiteApprovalData {
     createdAt: string;
     updatedAt: string;
   };
+  // Workspace-level fields (populated in workspace Approvals section)
+  projectUid?: string;
+  projectName?: string;
 }
 
 export type ApprovalData = InterventionApprovalData | SiteApprovalData;

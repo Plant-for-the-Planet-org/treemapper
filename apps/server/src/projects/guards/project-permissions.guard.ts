@@ -29,7 +29,19 @@ export class ProjectPermissionsGuard implements CanActivate {
       membership = await this.projectsService.getMemberRoleFromUid(projectUid, userId);
     }
     if (!membership) {
-      throw new ForbiddenException('You do not have access to this project');
+      const wsInfo = await this.projectsService.getWorkspaceAdminRoleForProject(projectUid, userId);
+      if (!wsInfo) {
+        throw new ForbiddenException('You do not have access to this project');
+      }
+      membership = {
+        projectId: wsInfo.projectId,
+        role: 'admin',
+        userId,
+        projectName: '',
+        siteAccess: 'all',
+        restrictedSites: null,
+        extraPermissions: ['approve_intervention', 'approve_site'],
+      };
     }
     const hasRole = roles ? roles.includes(membership.role) : false;
     const hasPerm = requiredPerms

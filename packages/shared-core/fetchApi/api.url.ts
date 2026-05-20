@@ -111,6 +111,9 @@ export const getUrlApi = {
   getSiteReviewQueue: `${baseUrl}/approval-board/projects`,
   getCurrentSiteThread: `${baseUrl}/approval-board/sites`,
   getTreeRecords: `${baseUrl}/interventions/trees`,
+  // Workspace-level approval queues
+  getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
+  getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
 } as const;
 
 export const patchUrlApi = {

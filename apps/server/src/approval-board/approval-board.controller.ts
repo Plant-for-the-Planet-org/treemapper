@@ -6,11 +6,13 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { ApprovalBoardService } from './approval-board.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
+import { WorkspacePermissionsGuard } from '../workspace/workspace-permissions.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
 import { ProjectPermissions } from '../projects/decorators/project-permissions.decorator';
 import { Membership } from '../projects/decorators/membership.decorator';
@@ -28,6 +30,8 @@ import {
   SiteReviewSummary,
   SiteReviewQueueResponse,
   UserReviewSummary,
+  WorkspaceReviewQueueResponse,
+  WorkspaceSiteReviewQueueResponse,
 } from './dto/approval-board.dto';
 
 @ApiTags('Approval Board')
@@ -244,6 +248,32 @@ export class ApprovalBoardController {
     @Membership() membership: ProjectGuardResponse,
   ): Promise<{ requiresApproval: boolean }> {
     return this.approvalBoardService.checkProjectRequiresApproval(membership.projectId);
+  }
+
+  // ================== Workspace Review Queues ==================
+
+  @Get('workspaces/:uid/queue')
+  @ApiOperation({ summary: 'Get interventions across all projects in a workspace' })
+  @ApiParam({ name: 'uid', description: 'Workspace UID' })
+  @UseGuards(WorkspacePermissionsGuard)
+  async getWorkspaceReviewQueue(
+    @Param('uid') workspaceUid: string,
+    @Query() query: ReviewQueueQueryDto,
+    @Req() req: any,
+  ): Promise<WorkspaceReviewQueueResponse> {
+    return this.approvalBoardService.getWorkspaceReviewQueue(req.workspace.id, query);
+  }
+
+  @Get('workspaces/:uid/sites/queue')
+  @ApiOperation({ summary: 'Get sites across all projects in a workspace' })
+  @ApiParam({ name: 'uid', description: 'Workspace UID' })
+  @UseGuards(WorkspacePermissionsGuard)
+  async getWorkspaceSiteReviewQueue(
+    @Param('uid') workspaceUid: string,
+    @Query() query: ReviewQueueQueryDto,
+    @Req() req: any,
+  ): Promise<WorkspaceSiteReviewQueueResponse> {
+    return this.approvalBoardService.getWorkspaceSiteReviewQueue(req.workspace.id, query);
   }
 
   // ================== Site Review Queue (Admin) ==================

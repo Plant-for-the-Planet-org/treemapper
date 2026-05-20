@@ -2,6 +2,7 @@
 import { Module } from '@nestjs/common';
 import { WorkspaceService } from './workspace.service';
 import { WorkspaceController } from './workspace.controller';
+import { WorkspacePermissionsGuard } from './workspace-permissions.guard';
 import { DatabaseModule } from '../database/database.module';
 import { MemoryCacheMoudle } from 'src/cache/cache.module';
 import { ProjectsModule } from 'src/projects/projects.module';
@@ -14,7 +15,7 @@ import { ProjectsModule } from 'src/projects/projects.module';
     ProjectsModule
   ],
   controllers: [WorkspaceController],
-  providers: [WorkspaceService],
-  exports: [WorkspaceService],
+  providers: [WorkspaceService, WorkspacePermissionsGuard],
+  exports: [WorkspaceService, WorkspacePermissionsGuard],
 })
 export class WorkspaceModule { }

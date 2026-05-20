@@ -936,6 +936,40 @@ export const addFieldWorkerSiteComment = async (
   return fetchPostCall(uri, dto, token);
 };
 
+export const getWorkspaceReviewQueue = async (
+  token: string,
+  workspaceUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getWorkspaceReviewQueue}/${workspaceUid}/queue?${queryString}`
+    : `${getUrlApi.getWorkspaceReviewQueue}/${workspaceUid}/queue`;
+  return fetchGetCall(uri, token);
+};
+
+export const getWorkspaceSiteReviewQueue = async (
+  token: string,
+  workspaceUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getWorkspaceSiteReviewQueue}/${workspaceUid}/sites/queue?${queryString}`
+    : `${getUrlApi.getWorkspaceSiteReviewQueue}/${workspaceUid}/sites/queue`;
+  return fetchGetCall(uri, token);
+};
+
 // Legacy functions for backward compatibility (can be removed later)
 export const getApprovalBoard = getReviewQueue;
 export const moveInterventionStatus = submitReviewDecision;

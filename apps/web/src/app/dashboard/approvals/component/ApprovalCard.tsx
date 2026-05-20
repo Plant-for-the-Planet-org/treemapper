@@ -76,6 +76,9 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
     >
       <div className="flex items-start justify-between mb-2">
         <div className="flex-1">
+          {intervention.projectName && (
+            <div className="text-xs text-gray-400 truncate mb-0.5">{intervention.projectName}</div>
+          )}
           <div className="flex items-center gap-2 mb-1">
             <span className="text-sm font-bold text-[#007A49]">
               #{intervention.interventionHid}
