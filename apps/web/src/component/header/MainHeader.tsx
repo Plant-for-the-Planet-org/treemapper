@@ -14,7 +14,7 @@ export function DashboardHeaderWeb({ createNewProject, openProfileSetting, updat
     return null
   }
   return (
-    <div className="flex-grow w-full md:w-auto sticky top-0" style={{ backgroundColor: "#fff", position:'sticky', zIndex:60 }}>
+    <div className="flex-grow w-full md:w-auto sticky top-0" style={{ backgroundColor: "#fff", position:'sticky', zIndex:50 }}>
       <ProjectTabs
         createNewProject={createNewProject}
         openProfileSetting={openProfileSetting}

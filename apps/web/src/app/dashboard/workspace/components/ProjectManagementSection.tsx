@@ -12,6 +12,7 @@ import {
   Flag,
   Globe,
   LogIn,
+  Mail,
   MapPin,
   Target,
   Trees,
@@ -38,6 +39,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 
 /* ─── variant maps ─────────────────────────────────────────────────────────── */
 
@@ -181,6 +184,158 @@ const PROJECT_STATUSES: { value: 'active' | 'in_review' | 'suspended' | 'disable
 
 type WorkspaceOption = { uid: string; name: string; slug: string; type: string };
 
+/* ─── email templates ────────────────────────────────────────────────────────── */
+
+const EMAIL_TEMPLATES = [
+  {
+    id: 'request-documents',
+    label: 'Request more documents',
+    subject: (projectName: string) => `Additional Documents Required – ${projectName}`,
+    body: (ownerName: string, projectName: string) =>
+      `Dear ${ownerName},\n\nThank you for submitting your project "${projectName}" to Plant-for-the-Planet.\n\nAfter reviewing your submission, we require additional documents to proceed. Please provide the necessary documentation at your earliest convenience.\n\nIf you have any questions, feel free to reach out.\n\nBest regards,\nPlant-for-the-Planet Team`,
+  },
+  {
+    id: 'approved-platform',
+    label: 'Approved to be displayed on platform',
+    subject: (projectName: string) => `Congratulations! Your Project Is Approved – ${projectName}`,
+    body: (ownerName: string, projectName: string) =>
+      `Dear ${ownerName},\n\nWe are pleased to inform you that your project "${projectName}" has been reviewed and approved to be displayed on the Plant-for-the-Planet platform.\n\nYour project will now be visible to our global community.\n\nThank you for your dedication to reforestation.\n\nBest regards,\nPlant-for-the-Planet Team`,
+  },
+];
+
+/* ─── ContactOwnerModal ─────────────────────────────────────────────────────── */
+
+function ContactOwnerModal({
+  open,
+  onClose,
+  ownerEmail,
+  ownerName,
+  projectName,
+}: {
+  open: boolean;
+  onClose: () => void;
+  ownerEmail: string;
+  ownerName: string;
+  projectName: string;
+}) {
+  const [subject, setSubject] = useState('');
+  const [body, setBody] = useState('');
+  const [sent, setSent] = useState(false);
+
+  const handleLoadTemplate = (templateId: string) => {
+    const tpl = EMAIL_TEMPLATES.find((t) => t.id === templateId);
+    if (!tpl) return;
+    setSubject(tpl.subject(projectName));
+    setBody(tpl.body(ownerName, projectName));
+  };
+
+  const handleSend = () => {
+    setSent(true);
+    setTimeout(() => {
+      setSent(false);
+      onClose();
+    }, 1200);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (!open) {
+      setSubject('');
+      setBody('');
+      setSent(false);
+      onClose();
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent className="w-[min(90vw,38rem)] max-w-none p-0 gap-0 flex flex-col">
+        <DialogHeader className="px-6 py-5 border-b flex-shrink-0">
+          <div className="flex items-center gap-2">
+            <Mail className="h-4 w-4 text-gray-500" />
+            <DialogTitle className="text-base font-semibold text-gray-900">
+              Contact Owner
+            </DialogTitle>
+          </div>
+        </DialogHeader>
+
+        <div className="px-6 py-5 space-y-4 flex-1">
+          {/* Template loader */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              Load Template
+            </p>
+            <Select onValueChange={handleLoadTemplate}>
+              <SelectTrigger className="h-9 text-sm bg-white">
+                <SelectValue placeholder="Select a template..." />
+              </SelectTrigger>
+              <SelectContent>
+                {EMAIL_TEMPLATES.map((tpl) => (
+                  <SelectItem key={tpl.id} value={tpl.id}>
+                    {tpl.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* To */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              To
+            </p>
+            <Input
+              value={ownerEmail}
+              readOnly
+              className="h-9 text-sm bg-gray-50 text-gray-500 cursor-default"
+            />
+          </div>
+
+          {/* Subject */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              Subject
+            </p>
+            <Input
+              value={subject}
+              onChange={(e) => setSubject(e.target.value)}
+              placeholder="Subject..."
+              className="h-9 text-sm"
+            />
+          </div>
+
+          {/* Body */}
+          <div>
+            <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-widest mb-1.5">
+              Message
+            </p>
+            <Textarea
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              placeholder="Write your message..."
+              className="text-sm resize-none min-h-[160px]"
+            />
+          </div>
+        </div>
+
+        <div className="px-6 py-4 border-t flex items-center justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={onClose}>
+            Cancel
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleSend}
+            disabled={!subject.trim() || !body.trim() || sent}
+            className="bg-gray-900 hover:bg-gray-700 text-white gap-1.5 min-w-[80px]"
+          >
+            <Mail className="h-3.5 w-3.5" />
+            {sent ? 'Sent!' : 'Send'}
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /* ─── ProjectDetailModal ────────────────────────────────────────────────────── */
 
 function ProjectDetailModal({
@@ -206,6 +361,7 @@ function ProjectDetailModal({
   const [targetWorkspaceUid, setTargetWorkspaceUid] = useState('');
   const [transferring, setTransferring] = useState(false);
   const [transferError, setTransferError] = useState<string | null>(null);
+  const [contactOwnerOpen, setContactOwnerOpen] = useState(false);
 
   useEffect(() => {
     if (!accessToken) return;
@@ -359,6 +515,15 @@ function ProjectDetailModal({
               <div className="text-sm font-semibold text-gray-900">{project.owner.displayName}</div>
               <div className="text-xs text-gray-500 truncate">{project.owner.email}</div>
             </div>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setContactOwnerOpen(true)}
+              className="flex-shrink-0 gap-1.5 text-xs"
+            >
+              <Mail className="h-3.5 w-3.5" />
+              Contact Owner
+            </Button>
           </div>
         )}
 
@@ -525,6 +690,16 @@ function ProjectDetailModal({
           </Button>
         </div>
       </div>
+
+      {project.owner && (
+        <ContactOwnerModal
+          open={contactOwnerOpen}
+          onClose={() => setContactOwnerOpen(false)}
+          ownerEmail={project.owner.email}
+          ownerName={project.owner.displayName}
+          projectName={project.name}
+        />
+      )}
     </DialogContent>
   );
 }
