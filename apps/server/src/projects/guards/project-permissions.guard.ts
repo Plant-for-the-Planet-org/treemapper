@@ -1,8 +1,18 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ProjectsService } from '../projects.service';
 import { ProjectCacheService } from 'src/cache/project-cache.service';
 import { PROJECT_PERMISSIONS_KEY } from '../decorators/project-permissions.decorator';
+
+const PROJECT_PARAM_ALIASES = ['id', 'projectId', 'projectUid', 'uid'] as const;
+
+function resolveProjectUid(params: Record<string, any> | undefined): string | undefined {
+  if (!params) return undefined;
+  for (const key of PROJECT_PARAM_ALIASES) {
+    if (params[key]) return params[key];
+  }
+  return undefined;
+}
 
 @Injectable()
 export class ProjectPermissionsGuard implements CanActivate {
@@ -20,9 +30,12 @@ export class ProjectPermissionsGuard implements CanActivate {
     }
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
-    const projectUid = request.params?.id
-    if (!userId || !projectUid) {
-      return false;
+    if (!userId) {
+      throw new UnauthorizedException('Authentication required');
+    }
+    const projectUid = resolveProjectUid(request.params);
+    if (!projectUid) {
+      throw new BadRequestException('Project identifier missing from route params');
     }
     let membership = await this.projectCacheService.getUserProject(projectUid, userId);
     if (!membership) {
@@ -40,7 +53,7 @@ export class ProjectPermissionsGuard implements CanActivate {
         projectName: '',
         siteAccess: 'all',
         restrictedSites: null,
-        extraPermissions: ['approve_intervention', 'approve_site'],
+        extraPermissions: [],
       };
     }
     const hasRole = roles ? roles.includes(membership.role) : false;

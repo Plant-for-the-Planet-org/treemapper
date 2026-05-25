@@ -29,6 +29,8 @@ import { OrganizationResponseDto, SelectOrganizationDto, UserOrganizationRespons
 import { User } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
 import { UserCacheService } from 'src/cache/user-cache.service';
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
+import { ImpersonationGuard } from 'src/auth/impersonation.guard';
 
 
 interface AuthenticatedRequest extends Request {
@@ -44,13 +46,11 @@ interface AuthenticatedRequest extends Request {
 export class WorkspaceController {
     constructor(private readonly workspaceService: WorkspaceService,private readonly userCacheService: UserCacheService) { }
     @Post()
+    @UseGuards(SuperAdminGuard)
     async createNewWorkspace(
         @Body() createOrganizationDto: CreateNewWorkspaceDto,
         @Req() req: any,
     ): Promise<Boolean> {
-        if (req.user.type !== 'superadmin') {
-            throw new HttpException('Only superadmin can create new workspace', HttpStatus.FORBIDDEN);
-        }
         return this.workspaceService.createNewWorkspace(createOrganizationDto, req.user.id);
     }
 
@@ -69,29 +69,23 @@ export class WorkspaceController {
 
 
     @Post('cache/clear')
+    @UseGuards(SuperAdminGuard)
     async clearServerCache(@CurrentUser() user: User,) {
-        if (user.type !== 'superadmin') {
-            throw 'Not permitted'
-        }
         return await this.workspaceService.clearServerCache(user);
     }
 
     @Post('cache/refresh')
+    @UseGuards(SuperAdminGuard)
     async refreshWorkspace(@CurrentUser() user: User,) {
-        if (user.type !== 'superadmin') {
-            throw 'Not permitted'
-        }
         return await this.workspaceService.cacheWorkspace();
     }
 
     @Post('cache/user/clear')
+    @UseGuards(SuperAdminGuard)
     async clearUserCache(
         @CurrentUser() user: User,
         @Body() userDetails: any,
     ) {
-        if (user.type !== 'superadmin') {
-            throw 'Not permitted'
-        }
         return await this.userCacheService.userCacheClearService(userDetails.authID);
     }
 
@@ -165,13 +159,15 @@ export class WorkspaceController {
         return await this.workspaceService.updateWorkspace(uid, body, user.id);
     }
 
-    @Put('/impersonate/:person')
-    async impoersonateUser(@Param('person') person: string, @CurrentUser() user: User): Promise<boolean> {
-        return await this.workspaceService.startImpersonation(person, user);
+    @Put('/impersonate/exit')
+    @UseGuards(ImpersonationGuard)
+    async impersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.impersonationexit(user);
     }
 
-    @Put('/impersonate/exit')
-    async impoersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
-        return await this.workspaceService.impersonationexit(user);
+    @Put('/impersonate/:person')
+    @UseGuards(ImpersonationGuard)
+    async impersonateUser(@Param('person') person: string, @CurrentUser() user: User): Promise<boolean> {
+        return await this.workspaceService.startImpersonation(person, user);
     }
 }

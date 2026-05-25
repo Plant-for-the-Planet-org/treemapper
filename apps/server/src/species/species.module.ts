@@ -6,6 +6,7 @@ import { ScientificSpeciesService } from './services/scientific-species.service'
 import { ProjectSpeciesService } from './services/project-species.service';
 import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module'; // Add this import
+import { AuthModule } from '../auth/auth.module';
 
 // Controllers
 import { SpeciesRequestController } from './controller/species-request.controller';
@@ -15,7 +16,8 @@ import { ProjectSpeciesController } from './controller/project-species.controlle
 @Module({
   imports: [
     DatabaseModule,
-    ProjectsModule
+    ProjectsModule,
+    AuthModule,
   ],
   controllers: [
     SpeciesRequestController,

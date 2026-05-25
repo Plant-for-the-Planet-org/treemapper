@@ -6,13 +6,15 @@ import { WorkspacePermissionsGuard } from './workspace-permissions.guard';
 import { DatabaseModule } from '../database/database.module';
 import { MemoryCacheMoudle } from 'src/cache/cache.module';
 import { ProjectsModule } from 'src/projects/projects.module';
+import { AuthModule } from 'src/auth/auth.module';
 
 
 @Module({
   imports: [
     DatabaseModule,
     MemoryCacheMoudle,
-    ProjectsModule
+    ProjectsModule,
+    AuthModule,
   ],
   controllers: [WorkspaceController],
   providers: [WorkspaceService, WorkspacePermissionsGuard],

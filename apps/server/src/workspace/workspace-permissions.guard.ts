@@ -1,7 +1,17 @@
-import { Injectable, CanActivate, ExecutionContext, ForbiddenException } from '@nestjs/common';
+import { Injectable, CanActivate, ExecutionContext, ForbiddenException, BadRequestException, UnauthorizedException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
 import { workspace, workspaceMember } from '../database/schema';
 import { eq, and, inArray } from 'drizzle-orm';
+
+const WORKSPACE_PARAM_ALIASES = ['uid', 'workspaceUid', 'workspaceId', 'id'] as const;
+
+function resolveWorkspaceUid(params: Record<string, any> | undefined): string | undefined {
+  if (!params) return undefined;
+  for (const key of WORKSPACE_PARAM_ALIASES) {
+    if (params[key]) return params[key];
+  }
+  return undefined;
+}
 
 @Injectable()
 export class WorkspacePermissionsGuard implements CanActivate {
@@ -10,9 +20,10 @@ export class WorkspacePermissionsGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const request = context.switchToHttp().getRequest();
     const userId = request.user?.id;
-    const workspaceUid = request.params?.uid;
+    const workspaceUid = resolveWorkspaceUid(request.params);
 
-    if (!userId || !workspaceUid) return false;
+    if (!userId) throw new UnauthorizedException('Authentication required');
+    if (!workspaceUid) throw new BadRequestException('Workspace identifier missing from route params');
 
     const [proj] = await this.drizzleService.db
       .select({ id: workspace.id, uid: workspace.uid })
