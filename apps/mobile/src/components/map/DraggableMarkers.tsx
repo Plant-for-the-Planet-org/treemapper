@@ -1,5 +1,5 @@
 import React from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Marker } from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { StyleSheet, Text, View } from 'react-native'
 import { Colors, Typography } from 'src/utils/constants'
@@ -22,31 +22,26 @@ const DraggableMarkers = (props: Props) => {
 
     return props.coordinates.map((d, i) => {
       if (props.isSinglePoint) {
-        return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)} draggable onDragEnd={(e) => {
-          props.onDragEnd(i, e.geometry.coordinates)
-        }}>
+        return <Marker lngLat={d as [number, number]} id={String(i)} key={String(d)}>
           <View style={styles.container}>
             <View style={styles.mapPinContainer}>
               <MapPin fill={Colors.NEW_PRIMARY} />
             </View>
             <Text style={styles.labelText}>{alphabet(i)}</Text>
           </View>
-        </MapLibreGL.MarkerView>
+        </Marker>
       }
       if (props.coordinates.length - 1 === i) {
         return null
       }
-      // @ts-expect-error: Property 'foo' does not exist on type 'Bar'.
-      return <MapLibreGL.MarkerView coordinate={d} id={String(i)} key={String(d)} draggable onDragEnd={(e) => {
-        props.onDragEnd(i, e.geometry.coordinates)
-      }}>
+      return <Marker lngLat={d as [number, number]} id={String(i)} key={String(d)}>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={Colors.NEW_PRIMARY} />
           </View>
           <Text style={styles.labelText}>{alphabet(i)}</Text>
         </View>
-      </MapLibreGL.MarkerView>
+      </Marker>
     })
   }
   return renderMarkers()

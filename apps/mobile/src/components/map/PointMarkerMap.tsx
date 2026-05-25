@@ -25,7 +25,7 @@ import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation } from '@maplibre/maplibre-react-native'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import MapZoomScale from './MapZoomScale'
@@ -59,8 +59,8 @@ const PointMarkerMap = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const toast = useToast()
 
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
+  const mapRef = useRef<MapRef>(null)
 
   const { species_required, is_multi_species, has_sample_trees } = setUpIntervention(interventionKey)
   const [mapRender, setMapRender] = useState(false)
@@ -88,10 +88,8 @@ const PointMarkerMap = (props: Props) => {
       const { bounds, key } = MapBounds
       if (key === 'POINT_MAP') {
         cameraRef.current.fitBounds(
-          [bounds[0], bounds[1]],
-          [bounds[2], bounds[3]],
-          40,
-          1000,
+          [bounds[0], bounds[1], bounds[2], bounds[3]],
+          { padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1000 },
         )
       } else {
         handleCamera()
@@ -105,10 +103,10 @@ const PointMarkerMap = (props: Props) => {
       return
     }
     if (cameraRef?.current) {
-      cameraRef.current.setCamera({
-        centerCoordinate: [...currentUserLocation],
-        zoomLevel: 15,
-        animationDuration: 1000,
+      cameraRef.current.easeTo({
+        center: [...currentUserLocation],
+        zoom: 15,
+        duration: 1000,
       })
     }
   }
@@ -118,10 +116,10 @@ const PointMarkerMap = (props: Props) => {
       return
     }
     if (cameraRef?.current) {
-      cameraRef.current.setCamera({
-        centerCoordinate: [...currentUserLocation],
-        zoomLevel: 15,
-        animationDuration: 1000,
+      cameraRef.current.easeTo({
+        center: [...currentUserLocation],
+        zoom: 15,
+        duration: 1000,
       })
     }
   }
@@ -236,23 +234,19 @@ const PointMarkerMap = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Map
         style={styles.map}
         ref={mapRef}
-        logoEnabled={false}
-        attributionEnabled={false}
+        logo={false}
+        attribution={false}
         onRegionDidChange={handleDrag}
         onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
         onRegionIsChanging={() => {
           setLoading(true)
         }}
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
-        <MapLibreGL.Camera ref={cameraRef} />
-        <MapLibreGL.UserLocation
-          showsUserHeadingIndicator
-          androidRenderMode="gps"
-          minDisplacement={1}
-        />
+        <Camera ref={cameraRef} />
+        <UserLocation heading minDisplacement={1} />
         {geoJSON && (
           <MapShapeSource
             geoJSON={[geoJSON]}
@@ -263,7 +257,7 @@ const PointMarkerMap = (props: Props) => {
         {has_sample_trees && <MapMarkers
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
-      </MapLibreGL.MapView>
+      </Map>
       <SatelliteIconWrapper low />
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} />
       <CustomButton

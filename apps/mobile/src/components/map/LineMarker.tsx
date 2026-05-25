@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import React, { useMemo } from 'react';
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { GeoJSONSource, Layer } from '@maplibre/maplibre-react-native';
 import { Colors } from 'src/utils/constants';
 import { point, distance } from '@turf/turf';
 
@@ -66,19 +66,20 @@ const LineMarker = (props: Props) => {
   }
 
   return (
-    <MapLibreGL.ShapeSource
+    <GeoJSONSource
       id="polygon_line_marker"
-      shape={{
+      data={{
         type: 'FeatureCollection',
         features: features,
       }}>
-      <MapLibreGL.LineLayer id="poly_line_marker" style={{ lineWidth: 4, lineColor: props.isSatellite ? "#fff" : Colors.PRIMARY_DARK }} />
-      <MapLibreGL.SymbolLayer
+      <Layer id="poly_line_marker" type="line" style={{ lineWidth: 4, lineColor: props.isSatellite ? "#fff" : Colors.PRIMARY_DARK }} />
+      <Layer
         id="distance_labels"
+        type="symbol"
         style={styles.distanceLabel}
         filter={['has', 'distance']}
       />
-    </MapLibreGL.ShapeSource>
+    </GeoJSONSource>
   );
 };
 

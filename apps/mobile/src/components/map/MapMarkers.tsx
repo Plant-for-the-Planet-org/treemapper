@@ -1,5 +1,5 @@
 import React from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Marker } from '@maplibre/maplibre-react-native'
 import MapPin from 'assets/images/svg/MapPin.svg'
 import { SampleTree } from 'src/types/interface/slice.interface'
 import { View, Text, StyleSheet, Pressable } from 'react-native'
@@ -61,11 +61,11 @@ const MapMarkers = (props: Props) => {
   }
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
-      <MapLibreGL.MarkerView
-        coordinate={[el.longitude, el.latitude]}
+      <Marker
+        lngLat={[el.longitude, el.latitude]}
         id={String(i)}
         key={String(el.longitude)}
-        anchor={{ x: 0.5, y: 1 }}>
+        anchor="bottom">
         <Pressable style={styles.container} onPress={() => {
           handleMarkerPress(i, el)
         }}>
@@ -76,7 +76,7 @@ const MapMarkers = (props: Props) => {
             {showNumber ? i + 1 : alphabet(i)}
           </Text>
         </Pressable>
-      </MapLibreGL.MarkerView>
+      </Marker>
     ))
   }
   return <>{renderMarkers()}</>

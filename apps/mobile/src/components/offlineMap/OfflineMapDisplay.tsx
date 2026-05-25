@@ -3,7 +3,7 @@ import React, { useRef, useState } from 'react'
 import { Colors } from 'src/utils/constants'
 import CustomButton from '../common/CustomButton'
 import { scaleSize } from 'src/utils/constants/mixins'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, UserLocation, OfflineManager, LngLatBounds } from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { getAreaName } from 'src/api/api.fetch'
@@ -24,6 +24,7 @@ const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 const OfflineMapDisplay = () => {
   const [isLoaderShow, setIsLoaderShow] = useState(false);
   const [areaName, setAreaName] = useState('');
+  const [visibleBounds, setVisibleBounds] = useState<LngLatBounds>([0, 0, 0, 0]);
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
   const cameraRef = useRef(null);
@@ -37,11 +38,10 @@ const OfflineMapDisplay = () => {
 
   const handleCamera = () => {
     if (currentUserLocation && cameraRef.current !== null) {
-
-      cameraRef.current.setCamera({
-        centerCoordinate: [...currentUserLocation],
-        zoomLevel: 15,
-        animationDuration: 1000,
+      cameraRef.current.easeTo({
+        center: [...currentUserLocation],
+        zoom: 15,
+        duration: 1000,
       })
     }
   }
@@ -75,23 +75,20 @@ const OfflineMapDisplay = () => {
   const onPressDownloadArea = async () => {
     setIsLoaderShow(true);
     try {
-      const offlineMapId = `TreeMapper-offline-map-id-${Date.now()}`;
       const coords = await mapRef.current.getCenter();
-      const bounds = await mapRef.current.getVisibleBounds();
-      const {response} = await getAreaName(coords)
+      const { response } = await getAreaName(coords)
       const placeName = response?.features?.[0]?.place_name || 'Not specified'
       if (placeName) {
         setAreaName(placeName);
-      }      
-      await MapLibreGL.offlineManager.createPack(
+      }
+      const pack = await OfflineManager.createPack(
         {
-          name: offlineMapId,
-          styleURL: process.env.EXPO_PUBLIC_OFFLINE_LINK,
+          mapStyle: process.env.EXPO_PUBLIC_OFFLINE_LINK,
           minZoom: 14,
           maxZoom: 20,
-          bounds: bounds,
+          bounds: visibleBounds,
         },
-        (o, s) => { progressListener(o, s, placeName, offlineMapId) },
+        (o, s) => { progressListener(o, s, placeName, o.id) },
         errorListener,
       );
     } catch (err) {
@@ -106,20 +103,16 @@ const OfflineMapDisplay = () => {
     <View style={styles.container}>
       <View style={styles.wrapper}>
         <View style={styles.mapStyle}>
-          <MapLibreGL.MapView ref={mapRef} style={styles.mainMapStyle}
-            logoEnabled={false}
-            compassViewPosition={3}
-            attributionEnabled={false}
+          <Map ref={mapRef} style={styles.mainMapStyle}
+            logo={false}
+            compassPosition={{ bottom: scaleSize(200), right: scaleSize(26) }}
+            attribution={false}
             onDidFinishLoadingMap={handleCamera}
-            compassViewMargins={{ x: scaleSize(26), y: scaleSize(200) }}
+            onRegionDidChange={(e) => setVisibleBounds(e.nativeEvent.bounds)}
             mapStyle={MapStyle}>
-            <MapLibreGL.Camera ref={cameraRef} />
-            <MapLibreGL.UserLocation
-              showsUserHeadingIndicator
-              androidRenderMode="gps"
-              minDisplacement={1}
-            />
-          </MapLibreGL.MapView>
+            <Camera ref={cameraRef} />
+            <UserLocation heading minDisplacement={1} />
+          </Map>
         </View>
         <CustomButton
           label="Save Area"

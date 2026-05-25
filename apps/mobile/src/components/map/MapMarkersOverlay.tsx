@@ -1,5 +1,5 @@
 import React from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Marker } from '@maplibre/maplibre-react-native'
 import { SampleTree } from 'src/types/interface/slice.interface'
 import { View, StyleSheet } from 'react-native'
 import { Typography } from 'src/utils/constants'
@@ -17,14 +17,14 @@ const MapMarkersOverlay = (props: Props) => {
 
   const renderMarkers = () => {
     return sampleTreeData.map((el, i) => (
-      <MapLibreGL.MarkerView
-        coordinate={[el.longitude, el.latitude]}
+      <Marker
+        lngLat={[el.longitude, el.latitude]}
         id={String(i)}
         key={String(el.longitude)}>
         <View style={styles.container}>
           <View style={styles.markerContainer} />
         </View>
-      </MapLibreGL.MarkerView>
+      </Marker>
     ))
   }
   return renderMarkers()

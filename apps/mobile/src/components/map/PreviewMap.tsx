@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef } from '@maplibre/maplibre-react-native'
 import { InterventionData, SampleTree } from 'src/types/interface/slice.interface'
 import MapShapeSource from './MapShapeSource'
 import bbox from '@turf/bbox'
@@ -33,8 +33,8 @@ interface Props {
 
 const PreviewMap = (props: Props) => {
   const { geoJSON, has_sample_trees, sampleTrees, openPolygon, showEdit, isEntireSite, intervention } = props
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
+  const mapRef = useRef<MapRef>(null)
   const isMounted = useRef(true)
   const isActive = useRef(false)
   const cameraTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -75,21 +75,19 @@ const PreviewMap = (props: Props) => {
 
     // First fit the camera to the bounds
     cameraRef.current.fitBounds(
-      [bounds[0], bounds[1]],
-      [bounds[2], bounds[3]],
-      20, // padding
-      1000, // duration in ms
+      [bounds[0], bounds[1], bounds[2], bounds[3]],
+      { padding: { top: 20, right: 20, bottom: 20, left: 20 }, duration: 1000 },
     )
 
     cameraTimeout.current = setTimeout(() => {
       if (!isActive.current || !cameraRef.current) return
       if (isPoint) {
-        cameraRef.current.zoomTo(12, 4000)
+        cameraRef.current.zoomTo(12, { duration: 4000 })
       } else {
         mapRef.current?.getZoom().then(currentZoom => {
           if (!isActive.current || !cameraRef.current) return
           const newZoom = Math.max(currentZoom - 1, 1)
-          cameraRef.current.zoomTo(newZoom, 4000)
+          cameraRef.current.zoomTo(newZoom, { duration: 4000 })
         })
       }
     }, 1000)
@@ -123,17 +121,17 @@ const PreviewMap = (props: Props) => {
   return (
     <View style={styles.container}>
       {mapVisible && <View style={styles.wrapper}>
-        <MapLibreGL.MapView
+        <Map
           ref={mapRef}
           style={styles.map}
-          attributionEnabled={false}
-          logoEnabled={false}
+          attribution={false}
+          logo={false}
           onDidFinishLoadingMap={handleCamera}
           mapStyle={MapStyle}>
-          <MapLibreGL.Camera
+          <Camera
             ref={cameraRef}
-            animationDuration={4000}
-            animationMode={'flyTo'}
+            duration={4000}
+            easing="fly"
           />
           <MapShapeSource
             geoJSON={geoJSON.features}
@@ -148,7 +146,7 @@ const PreviewMap = (props: Props) => {
               onMarkerPress={viewTreeDetails}
               showNumber
             />}
-        </MapLibreGL.MapView>
+        </Map>
         {showEdit && !isEntireSite ?
           <TouchableOpacity style={styles.deleteWrapperIcon} onPress={openPolygon}>
             <PenIcon width={30} height={30} />

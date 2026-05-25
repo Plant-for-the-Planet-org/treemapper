@@ -20,7 +20,7 @@ import SiteCreationMap from 'src/components/map/SiteCreationMap'
 import { GeoJSONObject } from '@turf/helpers'
 import AddIcon from 'assets/images/svg/AddIcon.svg'
 import CustomButton from 'src/components/common/CustomButton'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
 import PenIcon from 'assets/images/svg/EditPenIcon.svg'
 import bbox from '@turf/bbox'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
@@ -55,7 +55,7 @@ const ProjectSitesView = () => {
   })
 
   const [siteName, setSiteName] = useState('')
-  const cameraRef = React.createRef<MapLibreGL.Camera>()
+  const cameraRef = React.createRef<CameraRef>()
 
   const { currentProject } = useSelector(
     (state: RootState) => state.projectState,
@@ -176,10 +176,8 @@ const ProjectSitesView = () => {
     const bounds = bbox(geoJSON)
     if (cameraRef?.current) {
       cameraRef.current.fitBounds(
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]],
-        10,
-        1000,
+        [bounds[0], bounds[1], bounds[2], bounds[3]],
+        { padding: { top: 10, right: 10, bottom: 10, left: 10 }, duration: 1000 },
       )
     }
   }
@@ -256,34 +254,36 @@ const ProjectSitesView = () => {
           <SiteCreationMap setGeometry={handleGeometry} close={toggleSiteCreation} projectBounds={projectBounds} />
         </View>}
         {!showMap && geometry !== null ? <View style={styles.previewMap}>
-          <MapLibreGL.MapView
+          <Map
             style={styles.map}
-            logoEnabled={false}
-            attributionEnabled={false}
+            logo={false}
+            attribution={false}
             onDidFinishLoadingMap={handleGeometryBounds}
             mapStyle={MapStyle}>
-            <MapLibreGL.Camera ref={cameraRef} />
-            <MapLibreGL.ShapeSource
+            <Camera ref={cameraRef} />
+            <GeoJSONSource
               id={'polygon-site-geometry'}
-              shape={{
+              data={{
                 "type": "FeatureCollection",
                 "features": [geometry]
               }}>
-              <MapLibreGL.FillLayer
+              <Layer
                 id={'polyFill'}
+                type="fill"
                 style={{
                   fillOpacity: 0.5,
                   fillColor: Colors.NEW_PRIMARY + '1A'
                 }}
               />
-              <MapLibreGL.LineLayer
+              <Layer
                 id={'polyline-geometry'}
+                type="line"
                 style={{
                   ...polyline, lineColor: Colors.NEW_PRIMARY
                 }}
               />
-            </MapLibreGL.ShapeSource>
-          </MapLibreGL.MapView>
+            </GeoJSONSource>
+          </Map>
         </View> : null}
         {!showMap && <CustomButton
           loading={loading}

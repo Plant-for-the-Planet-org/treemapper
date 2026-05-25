@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 import React, { useEffect, useState, useRef, useCallback } from 'react';
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { GeoJSONSource, Layer, Marker } from '@maplibre/maplibre-react-native';
 import { Colors } from 'src/utils/constants';
 import MapPin from 'assets/images/svg/MapPin.svg'
 import * as turf from '@turf/turf';
@@ -228,31 +228,33 @@ const PolygonTracker: React.FC<Props> = ({ latestCoords, startCoord, isPaused, h
       return null
     }
     return (
-      <MapLibreGL.MarkerView coordinate={startCoord} id='start_cord' key={"Start"}>
+      <Marker lngLat={startCoord as [number, number]} id='start_cord'>
         <View style={styles.container}>
           <View style={styles.mapPinContainer}>
             <MapPin fill={Colors.NEW_PRIMARY} />
           </View>
         </View>
-      </MapLibreGL.MarkerView>
+      </Marker>
     )
   }
 
   if (finalGeoJSON) {
     return (
-      <MapLibreGL.ShapeSource
+      <GeoJSONSource
         key={'feature.properties.id'}
         id={'finalgeojson'}
-        shape={finalGeoJSON} >
-        <MapLibreGL.FillLayer
+        data={finalGeoJSON}>
+        <Layer
           id={'poly_map_shape_fill' + 'feature.properties.id'}
+          type="fill"
           style={{
             fillOpacity: 0.8,
             fillColor: Colors.NEW_PRIMARY,
           }}
         />
-        <MapLibreGL.LineLayer
+        <Layer
           id={'poly_map_shape_source' + 'feature.properties.id'}
+          type="line"
           style={{
             lineWidth: 2,
             lineOpacity: 0.5,
@@ -260,26 +262,27 @@ const PolygonTracker: React.FC<Props> = ({ latestCoords, startCoord, isPaused, h
             lineColor: Colors.NEW_PRIMARY,
           }}
         />
-        <MapLibreGL.SymbolLayer
+        <Layer
           id="distance_labels"
+          type="symbol"
           style={styles.distanceLabel}
           filter={['==', '$type', 'Point']}
         />
-      </MapLibreGL.ShapeSource >
+      </GeoJSONSource>
     )
   }
 
   return (
     <>
       {renderStartingPoint()}
-      {simplifiedCoordinates.length > 1 && <MapLibreGL.ShapeSource
+      {simplifiedCoordinates.length > 1 && <GeoJSONSource
         id="polygon_tracker"
-        shape={createGeoJSON()}>
-        <MapLibreGL.LineLayer id="poly_tracker" style={{
+        data={createGeoJSON()}>
+        <Layer id="poly_tracker" type="line" style={{
           lineWidth: 4,
           lineColor: isSatellite ? "#fff" : Colors.PRIMARY_DARK,
         }} />
-      </MapLibreGL.ShapeSource>}
+      </GeoJSONSource>}
     </>
   );
 };

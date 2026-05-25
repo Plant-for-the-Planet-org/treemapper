@@ -1,7 +1,7 @@
 import { StyleProp } from 'react-native'
 import React from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
-import OnPressEvent from '@maplibre/maplibre-react-native/javascript/types/OnPressEvent'
+import { GeoJSONSource, Layer, LineLayerStyle, PressEventWithFeatures } from '@maplibre/maplibre-react-native'
+import { NativeSyntheticEvent } from 'react-native'
 import { FillColor } from 'src/utils/constants/colors'
 
 
@@ -20,18 +20,19 @@ interface Props {
 
 const ClusteredShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
-  const handlePress = (e: OnPressEvent) => {
-    if (e?.features?.[0]) {
-      onShapeSourcePress(e.features[0].properties.id || '');
+  const handlePress = (e: NativeSyntheticEvent<PressEventWithFeatures>) => {
+    if (e.nativeEvent?.features?.[0]) {
+      onShapeSourcePress(e.nativeEvent.features[0].properties.id || '');
     }
   }
   return (
-    <MapLibreGL.ShapeSource
+    <GeoJSONSource
       id={'polygon_cluster'}
-      shape={geoJSON}
+      data={geoJSON}
       onPress={handlePress}>
-      <MapLibreGL.FillLayer
-        id={'inactivePolyFill'} // Unique ID for inactive FillLayer
+      <Layer
+        id={'inactivePolyFill'}
+        type="fill"
         style={{
           fillOpacity: [
             'match',
@@ -42,13 +43,14 @@ const ClusteredShapeSource = (props: Props) => {
         }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <MapLibreGL.LineLayer
+      <Layer
         id={'polygon_cluster_line'}
+        type="line"
         style={{ ...polyline, lineColor: FillColor }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <MapLibreGL.CircleLayer id={'singleEntire'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
-    </MapLibreGL.ShapeSource>
+      <Layer id={'singleEntire'} type="circle" style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
+    </GeoJSONSource>
   )
 }
 

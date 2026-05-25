@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { Map, Camera, CameraRef, MapRef, UserLocation } from '@maplibre/maplibre-react-native';
 import ActiveMarkerIcon from '../common/ActiveMarkerIcon';
 import { useSelector } from 'react-redux';
 import { RootState } from 'src/store';
@@ -44,8 +44,8 @@ interface Props {
 
 const CreatePlotMapDetail = (props: Props) => {
   const { showNewDimensionModal, isEdit, plot_shape, radius, length, width, plotId, initialPolygon, isMarking, plantId, plantedTrees } = props
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
+  const mapRef = useRef<MapRef>(null)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
@@ -95,18 +95,16 @@ const CreatePlotMapDetail = (props: Props) => {
     const { geoJSON } = makeInterventionGeoJson('Polygon', plotCoordinates[0], '');
     const bounds = bbox(geoJSON)
     cameraRef.current.fitBounds(
-      [bounds[0], bounds[1]],
-      [bounds[2], bounds[3]],
-      20,
-      1000,
+      [bounds[0], bounds[1], bounds[2], bounds[3]],
+      { padding: { top: 20, right: 20, bottom: 20, left: 20 }, duration: 1000 },
     )
   }
 
   const handleCamera = () => {
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 15,
-      animationDuration: 1000,
+    cameraRef.current.easeTo({
+      center: [...currentUserLocation],
+      zoom: 15,
+      duration: 1000,
     })
   }
 
@@ -238,11 +236,11 @@ const CreatePlotMapDetail = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      <MapLibreGL.MapView
+      <Map
         style={styles.map}
         ref={mapRef}
-        logoEnabled={false}
-        attributionEnabled={false}
+        logo={false}
+        attribution={false}
         onRegionDidChange={() => {
           setLoading(false)
         }}
@@ -250,12 +248,8 @@ const CreatePlotMapDetail = (props: Props) => {
           setLoading(true)
         }}
         mapStyle={MapStyle}>
-        <MapLibreGL.Camera ref={cameraRef} />
-        <MapLibreGL.UserLocation
-          showsUserHeadingIndicator
-          androidRenderMode="gps"
-          minDisplacement={1}
-        />
+        <Camera ref={cameraRef} />
+        <UserLocation heading minDisplacement={1} />
         {plotCoordinates.length > 0 && <PlotShapeSource
           isEdit={isEdit}
           geoJSON={{
@@ -287,7 +281,7 @@ const CreatePlotMapDetail = (props: Props) => {
             ]
           }} />}
         {plantedTrees.length > 0 && <PlotMarker sampleTreeData={plantedTrees} onMarkerPress={() => { }} />}
-      </MapLibreGL.MapView>
+      </Map>
       {showOrientationHint && (
         <View style={styles.orientationHint} pointerEvents="none">
           <View style={styles.orientationRow}>
