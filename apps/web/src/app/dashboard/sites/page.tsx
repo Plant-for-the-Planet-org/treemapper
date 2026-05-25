@@ -10,8 +10,7 @@ import { findAreaInHa } from '@/utils/geoJSON.helper';
 import { DeleteModal } from './component/DeleteModal';
 import { EmptyState } from './component/EmptyState';
 import { SiteDetails } from './component/SiteDetails';
-import { SiteManagementHeader } from './component/SiteManagementHeader';
-import { SitesList } from './component/SitesList';
+import { SitesPanel } from './component/SitesPanel';
 import { useRouter } from 'next/navigation';
 import SiteAccessModal from './component/SiteAccess';
 
@@ -23,6 +22,8 @@ const SiteManagementPage = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
+  const [sortBy, setSortBy] = useState('created');
+  const [sortDir, setSortDir] = useState('desc');
   const [loading, setLoading] = useState(false);
   const selectedProject = useProjectStore(state => state.selectedProject);
   const { accessToken } = useToken();
@@ -104,11 +105,23 @@ const SiteManagementPage = () => {
     return d ? `${d} ha` : "Not available";
   };
 
-  const filteredSites = sites.filter(site => {
-    const matchesSearch = site.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || site.status === statusFilter;
-    return matchesSearch && matchesStatus;
-  });
+  const parseArea = (a) => {
+    if (!a) return 0;
+    const m = String(a).match(/([\d,.]+)/);
+    return m ? parseFloat(m[1].replace(/,/g, '')) || 0 : 0;
+  };
+
+  const filteredSites = sites
+    .filter(site => {
+      const matchesSearch = site.name.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesStatus = statusFilter === 'all' || site.status === statusFilter;
+      return matchesSearch && matchesStatus;
+    })
+    .sort((a, b) => {
+      const dir = sortDir === 'asc' ? 1 : -1;
+      if (sortBy === 'area') return dir * (parseArea(a.area) - parseArea(b.area));
+      return dir * (new Date(a.createdAt || 0).getTime() - new Date(b.createdAt || 0).getTime());
+    });
 
   const handleEdit = () => setIsEditing(true);
   const handleSave = async () => {
@@ -162,47 +175,43 @@ const SiteManagementPage = () => {
   };
 
   return (
-    <div className="w-full h-full bg-gray-50/50">
-      <SiteManagementHeader
-        onCreateSite={canManageSites ? handleCreateNewSite : undefined}
-        searchTerm={searchTerm}
-        setSearchTerm={setSearchTerm}
-        statusFilter={statusFilter}
-        setStatusFilter={setStatusFilter}
-      />
-
-      <div className="p-6">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-          <div className="lg:col-span-1">
-            <SitesList
-              sites={sites}
-              selectedSite={selectedSite}
-              onSiteSelect={setSelectedSite}
-              loading={loading}
-              filteredSites={filteredSites}
-            />
-          </div>
-
-          <div className="lg:col-span-3">
-            {selectedSite ? (
-              <SiteDetails
-                site={selectedSite}
-                isEditing={isEditing}
-                editedSite={editedSite}
-                setEditedSite={setEditedSite}
-                onEdit={handleEdit}
-                onSave={handleSave}
-                onCancel={handleCancel}
-                setSiteAccessModal={setSiteAccessModal}
-                siteAccessModal={siteAccessModal}
-                onDelete={() => setShowDeleteModal(true)}
-              />
-            ) : (
-              <EmptyState loading={loading} />
-            )}
-          </div>
-        </div>
+    <div className="w-full flex-1 min-h-0 flex overflow-hidden bg-gray-50/50">
+      <div className="w-[280px] lg:w-[320px] flex-shrink-0 h-full">
+        <SitesPanel
+          sites={sites}
+          filteredSites={filteredSites}
+          selectedSite={selectedSite}
+          onSiteSelect={setSelectedSite}
+          loading={loading}
+          searchTerm={searchTerm}
+          setSearchTerm={setSearchTerm}
+          statusFilter={statusFilter}
+          setStatusFilter={setStatusFilter}
+          sortBy={sortBy}
+          setSortBy={setSortBy}
+          sortDir={sortDir}
+          setSortDir={setSortDir}
+        />
       </div>
+      <div className="flex-1 h-full overflow-y-auto p-4">
+        {selectedSite ? (
+          <SiteDetails
+            site={selectedSite}
+            isEditing={isEditing}
+            editedSite={editedSite}
+            setEditedSite={setEditedSite}
+            onEdit={handleEdit}
+            onSave={handleSave}
+            onCancel={handleCancel}
+            setSiteAccessModal={setSiteAccessModal}
+            siteAccessModal={siteAccessModal}
+            onDelete={() => setShowDeleteModal(true)}
+          />
+        ) : (
+          <EmptyState loading={loading} />
+        )}
+      </div>
+
       <SiteAccessModal isOpen={siteAccessModal} setIsOpen={setSiteAccessModal} site={selectedSite} refreshData={fetchProjectSites}/>
       <DeleteModal
         isOpen={showDeleteModal}

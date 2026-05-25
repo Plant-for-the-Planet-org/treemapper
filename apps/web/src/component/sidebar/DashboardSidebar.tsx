@@ -31,8 +31,8 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
-  const { state } = useSidebar()
-  const collapsed = state === 'collapsed'
+  const { state, isMobile } = useSidebar()
+  const collapsed = !isMobile && state === 'collapsed'
   const pathname = usePathname()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
