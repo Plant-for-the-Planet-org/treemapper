@@ -21,7 +21,6 @@ import RotatingView from './RotatingView'
 import RefreshIcon from 'assets/images/svg/RefreshIcon.svg';
 import { Typography, Colors } from 'src/utils/constants'
 import i18next from 'i18next'
-import VersionCheck from 'react-native-version-check-expo';
 import { useRealm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { addUserSpeciesToServer, removeUserSpeciesToServer, updateServerSpeciesDetail } from 'src/api/api.fetch'
@@ -49,42 +48,42 @@ const SpeciesSync = () => {
   }, [speciesLocalURL])
 
 
-  useEffect(() => {
-    checkForAppUpdate()
-  }, [])
+  // useEffect(() => {
+  //   checkForAppUpdate()
+  // }, [])
 
-  const checkForAppUpdate = async () => {
-    try {
-      const data = await VersionCheck.needUpdate();
-      if (data?.currentVersion && data?.latestVersion) {
-        const current = data.currentVersion.split('.').map(Number); // Convert current version to [major, minor, patch]
-        const latest = data.latestVersion.split('.').map(Number); // Convert latest version to [major, minor, patch]
+  // const checkForAppUpdate = async () => {
+  //   try {
+  //     const data = await VersionCheck.needUpdate();
+  //     if (data?.currentVersion && data?.latestVersion) {
+  //       const current = data.currentVersion.split('.').map(Number); // Convert current version to [major, minor, patch]
+  //       const latest = data.latestVersion.split('.').map(Number); // Convert latest version to [major, minor, patch]
 
-        // Compare major and minor versions first
-        for (let i = 0; i < current.length - 1; i++) {
-          if (latest[i] > current[i]) {
-            // Major or Minor version incremented -> Compulsory update
-            return showCompulsoryUpdateAlert(data.storeUrl || '');
-          } else if (latest[i] < current[i]) {
-            return false; // If current version is ahead of the latest version
-          }
-        }
+  //       // Compare major and minor versions first
+  //       for (let i = 0; i < current.length - 1; i++) {
+  //         if (latest[i] > current[i]) {
+  //           // Major or Minor version incremented -> Compulsory update
+  //           return showCompulsoryUpdateAlert(data.storeUrl || '');
+  //         } else if (latest[i] < current[i]) {
+  //           return false; // If current version is ahead of the latest version
+  //         }
+  //       }
 
-        // If we reached here, only the patch version is different
-        if (latest[2] > current[2]) {
-          // Patch version incremented -> Optional update
-          return showOptionalUpdateAlert(data.storeUrl || '');
-        }
+  //       // If we reached here, only the patch version is different
+  //       if (latest[2] > current[2]) {
+  //         // Patch version incremented -> Optional update
+  //         return showOptionalUpdateAlert(data.storeUrl || '');
+  //       }
 
-        return false; // No update needed
-      } else {
-        return false; // Data invalid, no version info found
-      }
-    } catch (error) {
-      console.error("Error checking for update: ", error);
-      return false; // Error occurred
-    }
-  };
+  //       return false; // No update needed
+  //     } else {
+  //       return false; // Data invalid, no version info found
+  //     }
+  //   } catch (error) {
+  //     console.error("Error checking for update: ", error);
+  //     return false; // Error occurred
+  //   }
+  // };
 
 
   // Show compulsory update alert (no cancel button)

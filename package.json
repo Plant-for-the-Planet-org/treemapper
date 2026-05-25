@@ -55,14 +55,10 @@
     "i18next": "25.7.3",
     "react-i18next": "16.5.0"
   },
-  "peerDependencies": {
-    "react": "18.3.1",
-    "react-dom": "18.2.0"
-  },
   "resolutions": {
-    "react-native": "0.81.5",
-    "react-dom": "18.2.0",
-    "@types/react": "18.2.6",
+    "react-native": "0.83.6",
+    "react-dom": "19.2.0",
+    "@types/react": "~19.2.10",
     "react-i18next": "16.5.0",
     "i18next": "25.7.3",
     "axios": "1.13.5"
