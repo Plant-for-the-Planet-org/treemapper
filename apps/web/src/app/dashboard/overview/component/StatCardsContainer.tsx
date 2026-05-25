@@ -149,8 +149,8 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
   };
 
   return (
-    <div className="w-full px-4 pt-3 pb-2">
-      <div className="flex gap-3 overflow-x-auto md:overflow-visible md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3">
+    <div className="w-full md:px-4 md:pt-3 md:pb-2">
+      <div className="flex gap-3 px-4 py-3 overflow-x-auto md:p-0 md:overflow-visible md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <ShimmerCard key={i} />)
           : overview.map((stat, i) => (
