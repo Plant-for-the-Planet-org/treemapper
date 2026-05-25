@@ -2,7 +2,7 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
-import DashboardHeaderWeb from '@/component/header/MainHeader';
+import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
@@ -101,10 +101,14 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   }
 
   const setDefaultProjectAndWorkspace = useCallback(() => {
-    if (!User?.primaryProjectUid || !User?.primaryWorkspaceUid) return;
+    if (!User?.primaryProjectUid) return;
 
-    const defaultProject = projects.find(p => p.uid === User.primaryProjectUid);
-    const defaultWorkspace = workspace.find(w => w.uid === User.primaryWorkspaceUid);
+    const savedProjectUid = localStorage.getItem('project') || User.primaryProjectUid;
+    const defaultProject = projects.find(p => p.uid === savedProjectUid)
+      ?? projects.find(p => p.uid === User.primaryProjectUid);
+
+    const workspaceUid = defaultProject?.workspace?.uid ?? User.primaryWorkspaceUid;
+    const defaultWorkspace = workspace.find(w => w.uid === workspaceUid);
 
     if (defaultProject && !selectedProject) {
       selectProject(defaultProject);
@@ -325,8 +329,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     return children;
   };
 
-  // Show header only when app is ready and not on standalone routes
-  const showHeader = appState === 'success' && !isStandaloneRoute;
+  const showSidebar = appState === 'success' && !isStandaloneRoute;
 
   return (
     <TokenProvider accessToken={accessToken}>
@@ -349,15 +352,15 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
-            {showHeader && (
-              <DashboardHeaderWeb
-                token={accessToken}
-                {...navigationHandlers}
-                isLoading={appState === 'idle' || appState === 'loading'}
-              />
-            )}
-            {renderMainContent()}
             <MigrationModal/>
+            <div className="flex h-full overflow-hidden">
+              {showSidebar && (
+                <DashboardSidebar {...navigationHandlers} />
+              )}
+              <div className="flex-1 h-full overflow-hidden flex flex-col">
+                {renderMainContent()}
+              </div>
+            </div>
           </div>
         </div>
       </div>

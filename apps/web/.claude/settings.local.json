@@ -1,7 +1,9 @@
 {
   "permissions": {
     "allow": [
-      "Bash(npx tsc *)"
+      "Bash(npx tsc *)",
+      "Read(//Users/plant-214/Documents/pftp/treemapper/**)",
+      "Bash(yarn install *)"
     ]
   }
 }

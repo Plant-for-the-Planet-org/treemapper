@@ -14,6 +14,8 @@ import {
     X,
     Search,
     Filter,
+    Plus,
+    Minus,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions } from '@shared-core/fetchApi/api.fetch';
@@ -132,6 +134,8 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
 };
 
 const BRAND = '#007A49';
+const FILL_COLOR = '#68B030';
+const BORDER_COLOR = '#ffffff';
 
 const getInterventionColor = (type: string): string => {
     const colors: Record<string, string> = {
@@ -316,7 +320,7 @@ const InterventionSidebar: React.FC<{
     }, [selectedId]);
 
     return (
-        <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+        <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white border border-gray-100" style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}>
             {/* Header: search + filter */}
             <div className="shrink-0 border-b border-gray-100">
                 <div className="flex items-center gap-2 px-3 pt-3 pb-2">
@@ -797,6 +801,7 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                     id: i.id,
                     hid: i.hid,
                     color: getInterventionColor(i.type),
+                    totalTreeCount: i.totalTreeCount ?? 0,
                 },
                 geometry: i.location,
             })),
@@ -867,9 +872,60 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         } catch { /* ignore */ }
     }, []);
 
-    const handlePolygonClick = useCallback((event: any) => {
+    const handleMapLoad = useCallback(() => {
+        setMapLoaded(true);
+        const map = mapRef.current;
+        if (!map) return;
+        const size = 24;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = 'rgba(255,255,255,1)';
+        // pine tree: top triangle
+        ctx.beginPath();
+        ctx.moveTo(12, 1);
+        ctx.lineTo(2, 10);
+        ctx.lineTo(22, 10);
+        ctx.closePath();
+        ctx.fill();
+        // pine tree: middle triangle
+        ctx.beginPath();
+        ctx.moveTo(12, 5);
+        ctx.lineTo(1, 16);
+        ctx.lineTo(23, 16);
+        ctx.closePath();
+        ctx.fill();
+        // trunk
+        ctx.fillRect(10, 15, 4, 7);
+        if (!map.hasImage('tree-icon')) {
+            map.addImage('tree-icon', ctx.getImageData(0, 0, size, size));
+        }
+    }, []);
+
+    const handleMapClick = useCallback((event: any) => {
         const feature = event.features?.[0];
-        if (!feature?.properties?.id) return;
+        if (!feature) return;
+        const layerId = feature.layer?.id;
+        // cluster click: zoom in to expand
+        if (layerId === 'interventions-points-clusters') {
+            const map = mapRef.current;
+            if (!map) return;
+            const clusterId = feature.properties?.cluster_id;
+            const source = map.getSource('interventions-points') as any;
+            if (source?.getClusterExpansionZoom) {
+                Promise.resolve(source.getClusterExpansionZoom(clusterId))
+                    .then((zoom: number) => {
+                        const [lng, lat] = (feature.geometry as any).coordinates;
+                        map.easeTo({ center: [lng, lat], zoom: zoom + 0.5, duration: 500 });
+                    })
+                    .catch(() => {});
+            }
+            return;
+        }
+        if (!feature.properties?.id) return;
         const intervention = interventions.find(i => i.id === feature.properties.id);
         if (!intervention) return;
         if (mapState.selectedInterventionId === intervention.id) {
@@ -917,10 +973,10 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     }
 
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full" style={{ clipPath: 'inset(0 round 12px)' }}>
             <Map
                 ref={mapRef}
-                onLoad={() => setMapLoaded(true)}
+                onLoad={handleMapLoad}
                 mapStyle={{
                     version: 8,
                     name: 'Satellite',
@@ -954,10 +1010,11 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 interactiveLayerIds={[
                     'interventions-polygons-fill',
                     'interventions-polygons-outline',
+                    'interventions-points-clusters',
                     'interventions-points-circle',
                     'interventions-centroids-circle',
                 ]}
-                onClick={handlePolygonClick}
+                onClick={handleMapClick}
                 onMouseMove={event => {
                     try {
                         const map = mapRef.current;
@@ -991,95 +1048,181 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 }}
                 onError={() => { /* suppress tile load errors */ }}
             >
-                {/* Polygon fills (close zoom) */}
+                {/* Polygon fills — visible from zoom 9 */}
                 {polygonGeoJSON.features.length > 0 && (
                     <Source id="interventions-polygons" type="geojson" data={polygonGeoJSON}>
+                        {/* Outer glow — only on hover/select */}
+                        <Layer
+                            id="interventions-polygons-glow"
+                            type="line"
+                            minzoom={9}
+                            paint={{
+                                'line-color': BORDER_COLOR,
+                                'line-width': 10,
+                                'line-blur': 6,
+                                'line-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 0.30,
+                                    ['feature-state', 'hover'], 0.15,
+                                    0,
+                                ],
+                            }}
+                        />
+                        {/* Semi-transparent fill */}
                         <Layer
                             id="interventions-polygons-fill"
                             type="fill"
-                            minzoom={11}
+                            minzoom={9}
                             paint={{
-                                'fill-color': ['get', 'color'],
+                                'fill-color': FILL_COLOR,
                                 'fill-opacity': [
                                     'case',
-                                    ['feature-state', 'selected'], 0.42,
-                                    ['feature-state', 'hover'], 0.28,
-                                    0.15,
+                                    ['feature-state', 'selected'], 0.65,
+                                    ['feature-state', 'hover'], 0.58,
+                                    0.50,
                                 ],
                             }}
                         />
+                        {/* White border */}
                         <Layer
                             id="interventions-polygons-outline"
                             type="line"
-                            minzoom={11}
+                            minzoom={9}
                             paint={{
-                                'line-color': ['get', 'color'],
+                                'line-color': BORDER_COLOR,
                                 'line-width': [
-                                    'case',
-                                    ['feature-state', 'selected'], 2.5,
-                                    ['feature-state', 'hover'], 2,
-                                    1.5,
-                                ],
-                                'line-opacity': [
-                                    'case',
-                                    ['feature-state', 'selected'], 1,
-                                    0.75,
-                                ],
-                            }}
-                        />
-                    </Source>
-                )}
-
-                {/* Centroid dots for polygons at low zoom */}
-                {centroidGeoJSON.features.length > 0 && (
-                    <Source id="interventions-centroids" type="geojson" data={centroidGeoJSON}>
-                        <Layer
-                            id="interventions-centroids-circle"
-                            type="circle"
-                            maxzoom={11}
-                            paint={{
-                                'circle-color': ['get', 'color'],
-                                'circle-radius': [
-                                    'interpolate', ['linear'], ['zoom'],
-                                    0, 4, 6, 7, 10, 11,
-                                ],
-                                'circle-opacity': ['case', ['feature-state', 'hover'], 1, 0.85],
-                                'circle-stroke-width': 2,
-                                'circle-stroke-color': '#ffffff',
-                            }}
-                        />
-                    </Source>
-                )}
-
-                {/* Point interventions */}
-                {pointGeoJSON.features.length > 0 && (
-                    <Source id="interventions-points" type="geojson" data={pointGeoJSON}>
-                        <Layer
-                            id="interventions-points-circle"
-                            type="circle"
-                            paint={{
-                                'circle-color': ['get', 'color'],
-                                'circle-radius': [
-                                    'case',
-                                    ['feature-state', 'selected'], 12,
-                                    ['feature-state', 'hover'], 10,
-                                    8,
-                                ],
-                                'circle-stroke-width': [
                                     'case',
                                     ['feature-state', 'selected'], 3,
                                     ['feature-state', 'hover'], 2.5,
                                     2,
                                 ],
-                                'circle-stroke-color': '#ffffff',
+                                'line-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 1,
+                                    ['feature-state', 'hover'], 0.95,
+                                    0.85,
+                                ],
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Centroid dots for polygon interventions at low zoom */}
+                {centroidGeoJSON.features.length > 0 && (
+                    <Source id="interventions-centroids" type="geojson" data={centroidGeoJSON}>
+                        <Layer
+                            id="interventions-centroids-circle"
+                            type="circle"
+                            maxzoom={9}
+                            paint={{
+                                'circle-color': FILL_COLOR,
+                                'circle-radius': [
+                                    'interpolate', ['linear'], ['zoom'],
+                                    0, 5, 6, 8, 9, 12,
+                                ],
+                                'circle-opacity': ['case', ['feature-state', 'hover'], 1, 0.88],
+                                'circle-stroke-width': 2.5,
+                                'circle-stroke-color': BORDER_COLOR,
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Point interventions with clustering */}
+                {pointGeoJSON.features.length > 0 && (
+                    <Source
+                        id="interventions-points"
+                        type="geojson"
+                        data={pointGeoJSON}
+                        cluster={true}
+                        clusterMaxZoom={14}
+                        clusterRadius={50}
+                        clusterProperties={{ totalTreeCount: ['+', ['get', 'totalTreeCount']] }}
+                    >
+                        {/* Cluster bubble */}
+                        <Layer
+                            id="interventions-points-clusters"
+                            type="circle"
+                            filter={['has', 'point_count']}
+                            paint={{
+                                'circle-color': FILL_COLOR,
+                                'circle-radius': [
+                                    'step', ['get', 'point_count'],
+                                    22, 5, 30, 20, 38,
+                                ],
+                                'circle-opacity': 0.92,
+                                'circle-stroke-width': 3,
+                                'circle-stroke-color': BORDER_COLOR,
+                            }}
+                        />
+                        {/* Cluster: tree icon + total tree count */}
+                        {mapLoaded && (
+                            <Layer
+                                id="interventions-points-cluster-label"
+                                type="symbol"
+                                filter={['has', 'point_count']}
+                                layout={{
+                                    'icon-image': 'tree-icon',
+                                    'icon-size': 0.75,
+                                    'icon-anchor': 'bottom',
+                                    'icon-offset': [0, 2],
+                                    'icon-allow-overlap': true,
+                                    'text-field': [
+                                        'case',
+                                        ['>', ['get', 'totalTreeCount'], 0],
+                                        ['to-string', ['get', 'totalTreeCount']],
+                                        ['to-string', ['get', 'point_count']],
+                                    ],
+                                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                                    'text-size': 11,
+                                    'text-anchor': 'top',
+                                    'text-offset': [0, -0.2],
+                                    'text-allow-overlap': true,
+                                }}
+                                paint={{ 'text-color': '#ffffff' }}
+                            />
+                        )}
+                        {/* Individual unclustered point — circle background */}
+                        <Layer
+                            id="interventions-points-circle"
+                            type="circle"
+                            filter={['!', ['has', 'point_count']]}
+                            paint={{
+                                'circle-color': FILL_COLOR,
+                                'circle-radius': [
+                                    'case',
+                                    ['feature-state', 'selected'], 18,
+                                    ['feature-state', 'hover'], 16,
+                                    14,
+                                ],
+                                'circle-stroke-width': [
+                                    'case',
+                                    ['feature-state', 'selected'], 3.5,
+                                    ['feature-state', 'hover'], 2.5,
+                                    2,
+                                ],
+                                'circle-stroke-color': BORDER_COLOR,
                                 'circle-opacity': [
                                     'case',
                                     ['feature-state', 'selected'], 1,
                                     ['feature-state', 'hover'], 0.95,
-                                    0.9,
+                                    0.90,
                                 ],
                             }}
                         />
+                        {/* Individual unclustered point — tree icon overlay */}
+                        {mapLoaded && (
+                            <Layer
+                                id="interventions-points-icon"
+                                type="symbol"
+                                filter={['!', ['has', 'point_count']]}
+                                layout={{
+                                    'icon-image': 'tree-icon',
+                                    'icon-size': 0.65,
+                                    'icon-allow-overlap': true,
+                                }}
+                            />
+                        )}
                     </Source>
                 )}
 
@@ -1166,6 +1309,24 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
             {/* Legend - bottom left */}
             <MapLegend />
+
+            {/* Zoom controls */}
+            <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
+                <button
+                    onClick={() => mapRef.current?.zoomIn()}
+                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    title="Zoom in"
+                >
+                    <Plus size={17} className="text-gray-600" strokeWidth={2.5} />
+                </button>
+                <button
+                    onClick={() => mapRef.current?.zoomOut()}
+                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    title="Zoom out"
+                >
+                    <Minus size={17} className="text-gray-600" strokeWidth={2.5} />
+                </button>
+            </div>
         </div>
     );
 };

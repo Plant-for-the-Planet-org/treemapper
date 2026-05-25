@@ -260,7 +260,7 @@ body {
     background-color: #fff;
     box-shadow: 0 0px 0.5px rgb(236, 236, 236);
     position: relative;
-    overflow-x: hidden;
+    overflow: hidden;
   }
 
   :root {
