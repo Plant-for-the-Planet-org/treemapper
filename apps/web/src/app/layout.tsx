@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Open_Sans } from 'next/font/google'
-import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
 import I18nProvider from '@/providers/I18nProvider';
 import MobileAppRedirect from '@/component/MobileAppRedirect';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from "@/lib/utils";
 
 const inter = Inter({subsets:['latin'],variable:'--font-sans'});
@@ -67,13 +67,13 @@ export default function RootLayout({
         {/* Mobile App Redirect Component */}
         <MobileAppRedirect />
         
-        <ResponsiveDashboardWrapper>
+        <TooltipProvider delayDuration={300}>
           <Auth0Provider>
             <I18nProvider>
               {children}
             </I18nProvider>
           </Auth0Provider>
-        </ResponsiveDashboardWrapper>
+        </TooltipProvider>
       </body>
     </html>
   );

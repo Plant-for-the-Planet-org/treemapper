@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings,
-  ChevronDown, ChevronRight, Plus, Trees
+  ChevronDown, ChevronRight, Plus
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
@@ -16,56 +16,23 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Button } from '@/components/ui/button'
 import { toast } from 'react-toastify'
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app'
+import {
+  Sidebar, SidebarContent, SidebarFooter, SidebarHeader,
+  SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
+  SidebarMenuButton, useSidebar,
+} from '@/components/ui/sidebar'
 
 interface SidebarProps {
   createNewProject: () => void
   openProfileSetting: () => void
   updateRoute: (route: string) => void
-  collapsed: boolean
 }
 
-const NavItem = ({
-  icon: Icon,
-  label,
-  id,
-  active,
-  onClick,
-  collapsed,
-}: {
-  icon: React.ElementType
-  label: string
-  id: string
-  active: boolean
-  onClick: (id: string) => void
-  collapsed?: boolean
-}) => (
-  <button
-    onClick={() => onClick(id)}
-    title={label}
-    className={cn(
-      'w-full flex items-center py-1.5 transition-colors',
-      collapsed ? 'justify-center px-0' : 'justify-start px-2.5 gap-2.5',
-      active
-        ? 'text-green-800 font-medium rounded-xl [background-color:#e6f1ec]'
-        : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-md'
-    )}
-  >
-    <Icon size={15} className={cn('flex-shrink-0', active ? 'text-green-700' : 'text-gray-400')} />
-    {!collapsed && <span className="text-sm">{label}</span>}
-  </button>
-)
-
-const SectionLabel = ({ label, showSeparator = false, collapsed = false }: { label: string; showSeparator?: boolean; collapsed?: boolean }) => (
-  <>
-    {showSeparator && collapsed && <div className="h-px bg-gray-100 mx-1 my-1.5" />}
-    {!collapsed && <p className="px-2.5 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider select-none">{label}</p>}
-  </>
-)
-
-export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute, collapsed }: SidebarProps) {
+export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
-  const exp = !collapsed
+  const { state } = useSidebar()
+  const collapsed = state === 'collapsed'
   const pathname = usePathname()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
@@ -157,62 +124,88 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     ? userName.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
     : 'U'
 
+  const navGroups = [
+    {
+      label: 'Planning',
+      items: [
+        { icon: LayoutDashboard, label: 'Overview', id: '' },
+        { icon: MapPin, label: 'Sites', id: 'sites' },
+        { icon: Leaf, label: 'Species', id: 'species' },
+        ...(!isContributor ? [{ icon: Users, label: 'Team', id: 'team' }] : []),
+      ],
+    },
+    {
+      label: 'Field Data',
+      items: [
+        { icon: Activity, label: 'Interventions', id: 'intervention' },
+        { icon: Upload, label: 'Bulk Upload', id: 'bulkupload' },
+        ...(!isContributor ? [{ icon: CheckSquare, label: 'Approvals', id: 'approvals' }] : []),
+        ...(!isContributor ? [{ icon: FileText, label: 'Forms', id: 'forms' }] : []),
+      ],
+    },
+    {
+      label: 'Analyse',
+      items: [
+        { icon: BarChart2, label: 'Data Explorer', id: 'dataexplore' },
+        { icon: Trophy, label: 'Leaderboard', id: 'leaderboard' },
+      ],
+    },
+  ]
+
   return (
-    <div className={cn("flex-shrink-0 h-full flex flex-col border-r border-gray-100 bg-white overflow-hidden transition-all duration-200", exp ? "w-[230px]" : "w-14")}>
+    <Sidebar collapsible="icon">
       {/* Branding */}
-      <div className={cn("py-3.5 border-b border-gray-100 flex-shrink-0", exp ? "px-4" : "px-2")}>
-        <div className={cn("flex items-center", exp ? "justify-start gap-2.5" : "justify-center")}>
+      <SidebarHeader className="border-b border-sidebar-border">
+        <div className={cn('flex items-center py-1', collapsed ? 'justify-center' : 'gap-2.5')}>
           <div className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0">
             <img src="/icon.png" alt="TreeMapper" className="w-full h-full object-cover" />
           </div>
-          {exp && (
+          {!collapsed && (
             <div>
-              <div className="text-sm font-semibold text-gray-900 leading-tight">TreeMapper</div>
-              <div className="text-xs text-gray-400 leading-tight">by Plant-for-the-Planet</div>
+              <div className="text-sm font-semibold text-sidebar-foreground leading-tight">TreeMapper</div>
+              <div className="text-xs text-sidebar-foreground/50 leading-tight">by Plant-for-the-Planet</div>
             </div>
           )}
         </div>
-      </div>
+      </SidebarHeader>
 
       {/* Project Selector */}
-      <div className={cn("py-2.5 border-b border-gray-100 flex-shrink-0", exp ? "px-3" : "px-1.5")}>
+      <SidebarHeader className="border-b border-sidebar-border">
         <div className="relative">
-          {/* Collapsed: project initial */}
-          {!exp && (
-            <div className="w-full flex justify-center p-1.5">
+          {collapsed ? (
+            <div className="flex justify-center py-1">
               <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
                 <span className="text-[10px] font-bold text-green-800 leading-none">
                   {selectedProject?.name?.[0]?.toUpperCase() || 'P'}
                 </span>
               </div>
             </div>
+          ) : (
+            <button
+              onClick={() => setProjectDropdownOpen(v => !v)}
+              className="w-full text-left px-2.5 py-2 rounded-md bg-sidebar-accent hover:bg-sidebar-accent/80 border border-sidebar-border transition-colors"
+            >
+              <div className="flex items-center justify-between gap-1">
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-semibold text-sidebar-foreground truncate leading-tight">
+                    {selectedProject?.name || 'Select Project'}
+                  </div>
+                  <div className="text-xs text-sidebar-foreground/50 truncate mt-0.5 leading-tight">
+                    {selectedWorkspce?.name || ''}
+                  </div>
+                </div>
+                <ChevronDown
+                  size={13}
+                  className={cn('text-sidebar-foreground/40 flex-shrink-0 transition-transform duration-200', projectDropdownOpen && 'rotate-180')}
+                />
+              </div>
+            </button>
           )}
 
-          {/* Expanded: full selector */}
-          {exp && <button
-            onClick={() => setProjectDropdownOpen(v => !v)}
-            className="w-full text-left px-2.5 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
-          >
-            <div className="flex items-center justify-between gap-1">
-              <div className="min-w-0 flex-1">
-                <div className="text-sm font-semibold text-gray-900 truncate leading-tight">
-                  {selectedProject?.name || 'Select Project'}
-                </div>
-                <div className="text-xs text-gray-400 truncate mt-0.5 leading-tight">
-                  {selectedWorkspce?.name || ''}
-                </div>
-              </div>
-              <ChevronDown
-                size={13}
-                className={cn('text-gray-400 flex-shrink-0 transition-transform duration-200', projectDropdownOpen && 'rotate-180')}
-              />
-            </div>
-          </button>}
-
-          {projectDropdownOpen && exp && (
+          {projectDropdownOpen && !collapsed && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setProjectDropdownOpen(false)} />
-              <div className="absolute left-0 right-0 mt-1 z-50 w-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <div className="absolute left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                 <div className="p-2 border-b border-gray-100">
                   <Button
                     variant="ghost"
@@ -265,36 +258,34 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             </>
           )}
         </div>
-      </div>
+      </SidebarHeader>
 
       {/* Navigation */}
-      <div className={cn("flex-1 overflow-y-auto py-1 scrollbar-hide", exp ? "px-2" : "px-1")}>
-        <SectionLabel label="Planning" collapsed={collapsed} />
-        <NavItem icon={LayoutDashboard} label="Overview" id="" active={activeRoute === ''} onClick={updateRoute} collapsed={collapsed} />
-        <NavItem icon={MapPin} label="Sites" id="sites" active={activeRoute === 'sites'} onClick={updateRoute} collapsed={collapsed} />
-        <NavItem icon={Leaf} label="Species" id="species" active={activeRoute === 'species'} onClick={updateRoute} collapsed={collapsed} />
-        {!isContributor && (
-          <NavItem icon={Users} label="Team" id="team" active={activeRoute === 'team'} onClick={updateRoute} collapsed={collapsed} />
-        )}
-
-        <SectionLabel label="Field Data" showSeparator collapsed={collapsed} />
-        <NavItem icon={Activity} label="Interventions" id="intervention" active={activeRoute === 'intervention'} onClick={updateRoute} collapsed={collapsed} />
-        <NavItem icon={Upload} label="Bulk Upload" id="bulkupload" active={activeRoute === 'bulkupload'} onClick={updateRoute} collapsed={collapsed} />
-        {!isContributor && (
-          <NavItem icon={CheckSquare} label="Approvals" id="approvals" active={activeRoute === 'approvals'} onClick={updateRoute} collapsed={collapsed} />
-        )}
-        {!isContributor && (
-          <NavItem icon={FileText} label="Forms" id="forms" active={activeRoute === 'forms'} onClick={updateRoute} collapsed={collapsed} />
-        )}
-
-        <SectionLabel label="Analyse" showSeparator collapsed={collapsed} />
-        <NavItem icon={BarChart2} label="Data Explorer" id="dataexplore" active={activeRoute === 'dataexplore'} onClick={updateRoute} collapsed={collapsed} />
-        <NavItem icon={Trophy} label="Leaderboard" id="leaderboard" active={activeRoute === 'leaderboard'} onClick={updateRoute} collapsed={collapsed} />
-      </div>
+      <SidebarContent>
+        {navGroups.map((group) => (
+          <SidebarGroup key={group.label}>
+            <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+            <SidebarMenu>
+              {group.items.map((item) => (
+                <SidebarMenuItem key={item.id}>
+                  <SidebarMenuButton
+                    onClick={() => updateRoute(item.id)}
+                    isActive={activeRoute === item.id}
+                    tooltip={item.label}
+                  >
+                    <item.icon />
+                    <span>{item.label}</span>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              ))}
+            </SidebarMenu>
+          </SidebarGroup>
+        ))}
+      </SidebarContent>
 
       {/* User Profile */}
-      <div className={cn("border-t border-gray-100 py-2.5 flex-shrink-0", exp ? "px-3" : "px-2")}>
-        {!exp && (
+      <SidebarFooter className="border-t border-sidebar-border">
+        {collapsed ? (
           <div className="flex justify-center">
             <button
               onClick={openProfileSetting}
@@ -304,27 +295,26 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
             </button>
           </div>
-        )}
-        {exp && (
+        ) : (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
               <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0">
                 <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
               </div>
               <div className="min-w-0">
-                <div className="text-xs font-medium text-gray-900 truncate leading-tight">{userName}</div>
-                <div className="text-[10px] text-gray-400 capitalize truncate leading-tight">{projectRole}</div>
+                <div className="text-xs font-medium text-sidebar-foreground truncate leading-tight">{userName}</div>
+                <div className="text-[10px] text-sidebar-foreground/50 capitalize truncate leading-tight">{projectRole}</div>
               </div>
             </div>
             <button
               onClick={openProfileSetting}
-              className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex-shrink-0 transition-colors"
+              className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground flex-shrink-0 transition-colors"
             >
               <Settings size={13} />
             </button>
           </div>
         )}
-      </div>
-    </div>
+      </SidebarFooter>
+    </Sidebar>
   )
 }

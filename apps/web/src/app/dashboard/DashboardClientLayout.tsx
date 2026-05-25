@@ -4,6 +4,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
 import DashboardTopBar from '@/component/header/DashboardTopBar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
@@ -42,7 +43,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const searchParams = useSearchParams();
   const User = useUserStore((state) => state.user);
   const [inviteFound, setInviteFound] = useState(false)
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // Simplified state management
   const [appState, setAppState] = useState<LoadingState>('idle');
   const [retryCount, setRetryCount] = useState(3);
@@ -354,17 +354,15 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
             <MigrationModal/>
-            <div className="flex h-full overflow-hidden">
-              {showSidebar && (
-                <DashboardSidebar {...navigationHandlers} collapsed={sidebarCollapsed} />
-              )}
-              <div className="flex-1 h-full overflow-hidden flex flex-col">
-                {showSidebar && (
-                  <DashboardTopBar onToggle={() => setSidebarCollapsed(v => !v)} />
-                )}
-                {renderMainContent()}
+            <SidebarProvider>
+              <div className="flex h-full overflow-hidden w-full">
+                {showSidebar && <DashboardSidebar {...navigationHandlers} />}
+                <SidebarInset className="flex flex-col overflow-hidden">
+                  {showSidebar && <DashboardTopBar />}
+                  {renderMainContent()}
+                </SidebarInset>
               </div>
-            </div>
+            </SidebarProvider>
         </div>
       </div>
     </TokenProvider>

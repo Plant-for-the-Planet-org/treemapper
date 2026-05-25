@@ -1,10 +1,11 @@
 'use client'
 
-import { PanelLeft, ChevronRight, BarChart2 } from 'lucide-react'
+import { ChevronRight, BarChart2 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import DateRangePicker from './DateRangePicker'
 import { Button } from '@/components/ui/button'
+import { SidebarTrigger } from '@/components/ui/sidebar'
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'Overview',
@@ -21,11 +22,7 @@ const ROUTE_LABELS: Record<string, string> = {
   '/dashboard/settings': 'Settings',
 }
 
-interface Props {
-  onToggle: () => void
-}
-
-export default function DashboardTopBar({ onToggle }: Props) {
+export default function DashboardTopBar() {
   const pathname = usePathname()
   const router = useRouter()
   const selectedProject = useProjectStore(state => state.selectedProject)
@@ -47,13 +44,7 @@ export default function DashboardTopBar({ onToggle }: Props) {
   return (
     <div className="h-11 flex items-center justify-between px-3 border-b border-gray-100 flex-shrink-0">
       <div className="flex items-center gap-2">
-        <button
-          onClick={onToggle}
-          className="p-1.5 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors"
-          title="Toggle sidebar"
-        >
-          <PanelLeft size={16} />
-        </button>
+        <SidebarTrigger />
         {selectedProject && pageLabel && (
           <div className="flex items-center gap-1.5 text-sm">
             <span className="font-medium text-gray-700 truncate max-w-[200px]">{selectedProject.name}</span>
