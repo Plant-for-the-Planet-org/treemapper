@@ -6,16 +6,19 @@ import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
 import { useAnalyticsStore } from '@shared-core/store/useAnalyticsStore'
 import { formatNumber } from '@shared-core/utils/numberFormatingHelper';
+import { Card, CardContent } from '@/components/ui/card';
 
 const ShimmerCard = () => (
-  <div className="flex-shrink-0 rounded-[20px] border border-gray-200 p-3 shadow-sm bg-white min-w-[160px] w-full animate-pulse">
-    <div className="flex justify-between items-start mb-2">
-      <div className="h-3 bg-gray-200 rounded w-20"></div>
-      <div className="h-4 w-4 bg-gray-200 rounded-xl"></div>
-    </div>
-    <div className="h-6 bg-gray-200 rounded w-16 mb-2"></div>
-    <div className="h-7 bg-gray-200 rounded w-full"></div>
-  </div>
+  <Card className="flex-shrink-0 min-w-[160px] w-full animate-pulse py-0">
+    <CardContent className="px-3 py-2.5">
+      <div className="flex justify-between items-start mb-2">
+        <div className="h-3 bg-gray-200 rounded w-20"></div>
+        <div className="h-4 w-4 bg-gray-200 rounded-xl"></div>
+      </div>
+      <div className="h-6 bg-gray-200 rounded w-16 mb-2"></div>
+      <div className="h-7 bg-gray-200 rounded w-full"></div>
+    </CardContent>
+  </Card>
 );
 
 interface StatCardProps {
@@ -38,39 +41,41 @@ const StatCard = ({ title, value, icon: Icon, changePercent, vf, sparkData, load
   const sparkColor = isPositive ? '#007A49' : '#dc2626';
 
   return (
-    <div className="flex-shrink-0 rounded-[20px] border border-gray-200 p-3 shadow-sm bg-white min-w-[160px] w-full hover:shadow-md transition-shadow duration-200">
-      <div className="flex justify-between items-start mb-2">
-        <h3 className="text-xs font-medium text-gray-500 leading-tight">{title}</h3>
-        <div className="bg-green-50 p-1.5 rounded-xl">
-          <Icon size={14} className="text-[#007A49]" />
+    <Card className="flex-shrink-0 min-w-[160px] w-full hover:shadow-md transition-shadow duration-200 py-0">
+      <CardContent className="px-3 py-2.5">
+        <div className="flex justify-between items-start mb-2">
+          <h3 className="text-xs font-medium text-gray-500 leading-tight">{title}</h3>
+          <div className="bg-green-50 p-1.5 rounded-xl">
+            <Icon size={16} className="text-[#007A49]" />
+          </div>
         </div>
-      </div>
 
-      <p className="text-xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
+        <p className="text-xl font-bold text-gray-900 mb-2 tracking-tight">{value}</p>
 
-      <div className="flex items-center justify-between gap-2">
-        <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${changeBg} flex-shrink-0`}>
-          <ChangeIcon size={9} className={changeColor} />
-          <span className={`text-[10px] font-medium ${changeColor}`}>
-            {Math.floor(Math.abs(changePercent))}% <span className="opacity-60">12m</span>
-          </span>
+        <div className="flex items-center justify-between gap-2">
+          <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full ${changeBg} flex-shrink-0`}>
+            <ChangeIcon size={12} className={changeColor} />
+            <span className={`text-xs font-medium ${changeColor}`}>
+              {Math.floor(Math.abs(changePercent))}% <span className="opacity-60">12m</span>
+            </span>
+          </div>
+          <div className="flex-1 h-7">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={sparkData}>
+                <Line
+                  type="monotone"
+                  dataKey="v"
+                  stroke={sparkColor}
+                  strokeWidth={1.5}
+                  dot={false}
+                  isAnimationActive={false}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </div>
-        <div className="flex-1 h-7">
-          <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={sparkData}>
-              <Line
-                type="monotone"
-                dataKey="v"
-                stroke={sparkColor}
-                strokeWidth={1.5}
-                dot={false}
-                isAnimationActive={false}
-              />
-            </LineChart>
-          </ResponsiveContainer>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   );
 };
 
@@ -144,7 +149,7 @@ const StatCardsContainer = ({ setTotalTrees }: { setTotalTrees: (n: number) => v
   };
 
   return (
-    <div className="w-full px-4 py-3">
+    <div className="w-full px-4 pt-3 pb-2">
       <div className="flex gap-3 overflow-x-auto md:overflow-visible md:grid md:grid-cols-2 lg:grid-cols-4 md:gap-3">
         {loading
           ? Array.from({ length: 4 }).map((_, i) => <ShimmerCard key={i} />)

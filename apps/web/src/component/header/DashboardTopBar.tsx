@@ -3,8 +3,11 @@
 import { PanelLeft, ChevronRight, BarChart2 } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import useProjectStore from '@shared-core/store/useProjectStore'
+import DateRangePicker from './DateRangePicker'
+import { Button } from '@/components/ui/button'
 
 const ROUTE_LABELS: Record<string, string> = {
+  '/dashboard': 'Overview',
   '/dashboard/overview': 'Overview',
   '/dashboard/sites': 'Sites',
   '/dashboard/species': 'Species',
@@ -31,8 +34,10 @@ export default function DashboardTopBar({ onToggle }: Props) {
   const isOverview = pathname === '/dashboard/overview' || pathname === '/dashboard'
 
   const pageLabel = (() => {
+    // exact match first
+    if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname]
     for (const [prefix, label] of Object.entries(ROUTE_LABELS)) {
-      if (pathname === prefix || pathname.startsWith(prefix + '/') || pathname.startsWith(prefix + '?')) {
+      if (pathname.startsWith(prefix + '/') || pathname.startsWith(prefix + '?')) {
         return label
       }
     }
@@ -58,13 +63,18 @@ export default function DashboardTopBar({ onToggle }: Props) {
         )}
       </div>
       {isOverview && isAdminOrOwner && (
-        <button
-          onClick={() => router.push('/dashboard/dataexplore')}
-          className="flex items-center gap-1.5 bg-[#007A49] hover:bg-[#006040] text-white px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-        >
-          <BarChart2 size={13} />
-          Data Explorer
-        </button>
+        <div className="flex items-center gap-2">
+          <DateRangePicker />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => router.push('/dashboard/dataexplore')}
+            className="h-8 gap-1.5 text-xs font-normal text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
+          >
+            <BarChart2 size={13} />
+            Data Explorer
+          </Button>
+        </div>
       )}
     </div>
   )
