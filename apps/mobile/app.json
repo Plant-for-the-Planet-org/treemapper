@@ -69,7 +69,10 @@
       "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker",
-      ["react-native-share", {}]
+      [
+        "react-native-share",
+        {}
+      ]
     ],
     "ios": {
       "supportsTablet": true,
@@ -79,6 +82,11 @@
         "applinks:dev.treemapper.app",
         "applinks:treemapper.app"
       ],
+      "splash": {
+        "image": "./assets/splash_ios.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#F0F7EA"
+      },
       "entitlements": {
         "aps-environment": "development",
         "com.apple.security.application-groups": [
