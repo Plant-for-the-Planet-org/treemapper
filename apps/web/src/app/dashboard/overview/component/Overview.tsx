@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronRight, ChevronLeft, BarChart2, X } from 'lucide-react'
+import { ChevronLeft, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { cn } from '@/lib/utils'
 import StatCardsContainer from './StatCardsContainer'
@@ -23,23 +23,6 @@ const Overview = () => {
 
     return (
         <div className="w-full h-full flex flex-col overflow-hidden">
-            {/* Top bar */}
-            <div className="flex items-center justify-between px-5 py-2.5 border-b border-gray-100 flex-shrink-0">
-                <div className="flex items-center gap-1.5 text-sm">
-                    <span className="font-semibold text-gray-900">{selectedProject?.name || 'Project'}</span>
-                    <ChevronRight size={14} className="text-gray-400" />
-                    <span className="text-gray-500">Overview</span>
-                </div>
-                {isAdminOrOwner && (
-                    <button
-                        onClick={() => router.push('/dashboard/dataexplore')}
-                        className="flex items-center gap-1.5 bg-[#007A49] hover:bg-[#006040] text-white px-3 py-1.5 rounded-full text-xs font-medium transition-colors"
-                    >
-                        <BarChart2 size={13} />
-                        Data Explorer
-                    </button>
-                )}
-            </div>
 
             {isAdminOrOwner ? (
                 <>

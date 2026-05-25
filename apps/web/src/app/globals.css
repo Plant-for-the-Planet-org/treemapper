@@ -1,6 +1,5 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -208,18 +207,12 @@ body {
 .app-container {
     width: 100%;
     height: 100vh;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     background-color: white;
-
-    /* Constrain the container to max 1920x934 */
     max-width: 1920px;
     max-height: 934px;
     margin: 0 auto;
-
-    /* Center the container on larger screens */
     position: relative;
+    overflow: hidden;
   }
 
   @layer utilities {
@@ -245,22 +238,10 @@ body {
     .app-container {
       width: 1920px;
       height: 934px;
-      /* Add the same border styling as app-content */
       border: 0.5px solid lightgray;
       border-radius: 12px;
       box-shadow: 0 0px 0.5px rgb(236, 236, 236);
     }
-  }
-
-  .app-content {
-    width: 98%;
-    height: 95%;
-    border: 0.5px solid lightgray;
-    border-radius: 12px;
-    background-color: #fff;
-    box-shadow: 0 0px 0.5px rgb(236, 236, 236);
-    position: relative;
-    overflow: hidden;
   }
 
   :root {

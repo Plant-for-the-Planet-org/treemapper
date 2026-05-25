@@ -21,6 +21,7 @@ interface SidebarProps {
   createNewProject: () => void
   openProfileSetting: () => void
   updateRoute: (route: string) => void
+  collapsed: boolean
 }
 
 const NavItem = ({
@@ -29,41 +30,42 @@ const NavItem = ({
   id,
   active,
   onClick,
+  collapsed,
 }: {
   icon: React.ElementType
   label: string
   id: string
   active: boolean
   onClick: (id: string) => void
+  collapsed?: boolean
 }) => (
   <button
     onClick={() => onClick(id)}
     title={label}
     className={cn(
-      'w-full flex items-center py-2 lg:py-1.5 transition-colors',
-      'justify-center lg:justify-start px-0 lg:px-2.5 lg:gap-2.5',
+      'w-full flex items-center py-1.5 transition-colors',
+      collapsed ? 'justify-center px-0' : 'justify-start px-2.5 gap-2.5',
       active
         ? 'text-green-800 font-medium rounded-xl [background-color:#e6f1ec]'
         : 'text-gray-500 hover:bg-gray-100 hover:text-gray-900 rounded-md'
     )}
   >
     <Icon size={15} className={cn('flex-shrink-0', active ? 'text-green-700' : 'text-gray-400')} />
-    <span className="hidden lg:inline text-sm">{label}</span>
+    {!collapsed && <span className="text-sm">{label}</span>}
   </button>
 )
 
-const SectionLabel = ({ label, showSeparator = false }: { label: string; showSeparator?: boolean }) => (
+const SectionLabel = ({ label, showSeparator = false, collapsed = false }: { label: string; showSeparator?: boolean; collapsed?: boolean }) => (
   <>
-    {showSeparator && <div className="lg:hidden h-px bg-gray-100 mx-1 my-1.5" />}
-    <p className="hidden lg:block px-2.5 pt-4 pb-1 text-[10px] font-semibold text-gray-400 uppercase tracking-wider select-none">
-      {label}
-    </p>
+    {showSeparator && collapsed && <div className="h-px bg-gray-100 mx-1 my-1.5" />}
+    {!collapsed && <p className="px-2.5 pt-4 pb-1 text-xs font-semibold text-gray-400 uppercase tracking-wider select-none">{label}</p>}
   </>
 )
 
-export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
+export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute, collapsed }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
+  const exp = !collapsed
   const pathname = usePathname()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
@@ -156,47 +158,47 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     : 'U'
 
   return (
-    <div className="w-14 lg:w-[230px] flex-shrink-0 h-full flex flex-col border-r border-gray-100 bg-white overflow-hidden">
+    <div className={cn("flex-shrink-0 h-full flex flex-col border-r border-gray-100 bg-white overflow-hidden transition-all duration-200", exp ? "w-[230px]" : "w-14")}>
       {/* Branding */}
-      <div className="px-2 lg:px-4 py-3.5 border-b border-gray-100 flex-shrink-0">
-        <div className="flex items-center justify-center lg:justify-start lg:gap-2.5">
+      <div className={cn("py-3.5 border-b border-gray-100 flex-shrink-0", exp ? "px-4" : "px-2")}>
+        <div className={cn("flex items-center", exp ? "justify-start gap-2.5" : "justify-center")}>
           <div className="w-7 h-7 rounded-md overflow-hidden flex-shrink-0">
             <img src="/icon.png" alt="TreeMapper" className="w-full h-full object-cover" />
           </div>
-          <div className="hidden lg:block">
-            <div className="text-sm font-semibold text-gray-900 leading-tight">TreeMapper</div>
-            <div className="text-[10px] text-gray-400 leading-tight">Restoration Console</div>
-          </div>
+          {exp && (
+            <div>
+              <div className="text-sm font-semibold text-gray-900 leading-tight">TreeMapper</div>
+              <div className="text-xs text-gray-400 leading-tight">by Plant-for-the-Planet</div>
+            </div>
+          )}
         </div>
       </div>
 
       {/* Project Selector */}
-      <div className="px-1.5 lg:px-3 py-2.5 border-b border-gray-100 flex-shrink-0">
+      <div className={cn("py-2.5 border-b border-gray-100 flex-shrink-0", exp ? "px-3" : "px-1.5")}>
         <div className="relative">
-          {/* Tablet: compact initial button */}
-          <button
-            onClick={() => setProjectDropdownOpen(v => !v)}
-            className="lg:hidden w-full flex justify-center p-1.5 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
-            title={selectedProject?.name || 'Select Project'}
-          >
-            <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
-              <span className="text-[10px] font-bold text-green-800 leading-none">
-                {selectedProject?.name?.[0]?.toUpperCase() || 'P'}
-              </span>
+          {/* Collapsed: project initial */}
+          {!exp && (
+            <div className="w-full flex justify-center p-1.5">
+              <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-green-800 leading-none">
+                  {selectedProject?.name?.[0]?.toUpperCase() || 'P'}
+                </span>
+              </div>
             </div>
-          </button>
+          )}
 
-          {/* Desktop: full selector */}
-          <button
+          {/* Expanded: full selector */}
+          {exp && <button
             onClick={() => setProjectDropdownOpen(v => !v)}
-            className="hidden lg:block w-full text-left px-2.5 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
+            className="w-full text-left px-2.5 py-2 rounded-md bg-gray-50 hover:bg-gray-100 border border-gray-200 transition-colors"
           >
             <div className="flex items-center justify-between gap-1">
               <div className="min-w-0 flex-1">
-                <div className="text-xs font-semibold text-gray-900 truncate leading-tight">
+                <div className="text-sm font-semibold text-gray-900 truncate leading-tight">
                   {selectedProject?.name || 'Select Project'}
                 </div>
-                <div className="text-[10px] text-gray-400 truncate mt-0.5 leading-tight">
+                <div className="text-xs text-gray-400 truncate mt-0.5 leading-tight">
                   {selectedWorkspce?.name || ''}
                 </div>
               </div>
@@ -205,13 +207,12 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                 className={cn('text-gray-400 flex-shrink-0 transition-transform duration-200', projectDropdownOpen && 'rotate-180')}
               />
             </div>
-          </button>
+          </button>}
 
-          {projectDropdownOpen && (
+          {projectDropdownOpen && exp && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setProjectDropdownOpen(false)} />
-              {/* Tablet: anchors to the right of sidebar; Desktop: drops below button */}
-              <div className="absolute left-full ml-2 top-0 lg:top-auto lg:left-0 lg:right-0 lg:ml-0 lg:mt-1 z-50 w-56 lg:w-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
+              <div className="absolute left-0 right-0 mt-1 z-50 w-auto bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
                 <div className="p-2 border-b border-gray-100">
                   <Button
                     variant="ghost"
@@ -267,60 +268,62 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       </div>
 
       {/* Navigation */}
-      <div className="flex-1 overflow-y-auto px-1 lg:px-2 py-1 scrollbar-hide">
-        <SectionLabel label="Planning" />
-        <NavItem icon={LayoutDashboard} label="Overview" id="" active={activeRoute === ''} onClick={updateRoute} />
-        <NavItem icon={MapPin} label="Sites" id="sites" active={activeRoute === 'sites'} onClick={updateRoute} />
-        <NavItem icon={Leaf} label="Species" id="species" active={activeRoute === 'species'} onClick={updateRoute} />
+      <div className={cn("flex-1 overflow-y-auto py-1 scrollbar-hide", exp ? "px-2" : "px-1")}>
+        <SectionLabel label="Planning" collapsed={collapsed} />
+        <NavItem icon={LayoutDashboard} label="Overview" id="" active={activeRoute === ''} onClick={updateRoute} collapsed={collapsed} />
+        <NavItem icon={MapPin} label="Sites" id="sites" active={activeRoute === 'sites'} onClick={updateRoute} collapsed={collapsed} />
+        <NavItem icon={Leaf} label="Species" id="species" active={activeRoute === 'species'} onClick={updateRoute} collapsed={collapsed} />
         {!isContributor && (
-          <NavItem icon={Users} label="Team" id="team" active={activeRoute === 'team'} onClick={updateRoute} />
+          <NavItem icon={Users} label="Team" id="team" active={activeRoute === 'team'} onClick={updateRoute} collapsed={collapsed} />
         )}
 
-        <SectionLabel label="Field Data" showSeparator />
-        <NavItem icon={Activity} label="Interventions" id="intervention" active={activeRoute === 'intervention'} onClick={updateRoute} />
-        <NavItem icon={Upload} label="Bulk Upload" id="bulkupload" active={activeRoute === 'bulkupload'} onClick={updateRoute} />
+        <SectionLabel label="Field Data" showSeparator collapsed={collapsed} />
+        <NavItem icon={Activity} label="Interventions" id="intervention" active={activeRoute === 'intervention'} onClick={updateRoute} collapsed={collapsed} />
+        <NavItem icon={Upload} label="Bulk Upload" id="bulkupload" active={activeRoute === 'bulkupload'} onClick={updateRoute} collapsed={collapsed} />
         {!isContributor && (
-          <NavItem icon={CheckSquare} label="Approvals" id="approvals" active={activeRoute === 'approvals'} onClick={updateRoute} />
+          <NavItem icon={CheckSquare} label="Approvals" id="approvals" active={activeRoute === 'approvals'} onClick={updateRoute} collapsed={collapsed} />
         )}
         {!isContributor && (
-          <NavItem icon={FileText} label="Forms" id="forms" active={activeRoute === 'forms'} onClick={updateRoute} />
+          <NavItem icon={FileText} label="Forms" id="forms" active={activeRoute === 'forms'} onClick={updateRoute} collapsed={collapsed} />
         )}
 
-        <SectionLabel label="Analyse" showSeparator />
-        <NavItem icon={BarChart2} label="Data Explorer" id="dataexplore" active={activeRoute === 'dataexplore'} onClick={updateRoute} />
-        <NavItem icon={Trophy} label="Leaderboard" id="leaderboard" active={activeRoute === 'leaderboard'} onClick={updateRoute} />
+        <SectionLabel label="Analyse" showSeparator collapsed={collapsed} />
+        <NavItem icon={BarChart2} label="Data Explorer" id="dataexplore" active={activeRoute === 'dataexplore'} onClick={updateRoute} collapsed={collapsed} />
+        <NavItem icon={Trophy} label="Leaderboard" id="leaderboard" active={activeRoute === 'leaderboard'} onClick={updateRoute} collapsed={collapsed} />
       </div>
 
       {/* User Profile */}
-      <div className="border-t border-gray-100 px-2 lg:px-3 py-2.5 flex-shrink-0">
-        {/* Tablet: avatar only */}
-        <div className="flex lg:hidden justify-center">
-          <button
-            onClick={openProfileSetting}
-            className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
-            title={userName}
-          >
-            <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
-          </button>
-        </div>
-        {/* Desktop: full row */}
-        <div className="hidden lg:flex items-center justify-between gap-2">
-          <div className="flex items-center gap-2 min-w-0">
-            <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0">
+      <div className={cn("border-t border-gray-100 py-2.5 flex-shrink-0", exp ? "px-3" : "px-2")}>
+        {!exp && (
+          <div className="flex justify-center">
+            <button
+              onClick={openProfileSetting}
+              className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
+              title={userName}
+            >
               <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
-            </div>
-            <div className="min-w-0">
-              <div className="text-xs font-medium text-gray-900 truncate leading-tight">{userName}</div>
-              <div className="text-[10px] text-gray-400 capitalize truncate leading-tight">{projectRole}</div>
-            </div>
+            </button>
           </div>
-          <button
-            onClick={openProfileSetting}
-            className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex-shrink-0 transition-colors"
-          >
-            <Settings size={13} />
-          </button>
-        </div>
+        )}
+        {exp && (
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0">
+                <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs font-medium text-gray-900 truncate leading-tight">{userName}</div>
+                <div className="text-[10px] text-gray-400 capitalize truncate leading-tight">{projectRole}</div>
+              </div>
+            </div>
+            <button
+              onClick={openProfileSetting}
+              className="p-1 rounded-md hover:bg-gray-100 text-gray-400 hover:text-gray-600 flex-shrink-0 transition-colors"
+            >
+              <Settings size={13} />
+            </button>
+          </div>
+        )}
       </div>
     </div>
   )

@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
+import DashboardTopBar from '@/component/header/DashboardTopBar';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
@@ -41,6 +42,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const searchParams = useSearchParams();
   const User = useUserStore((state) => state.user);
   const [inviteFound, setInviteFound] = useState(false)
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   // Simplified state management
   const [appState, setAppState] = useState<LoadingState>('idle');
   const [retryCount, setRetryCount] = useState(3);
@@ -335,7 +337,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     <TokenProvider accessToken={accessToken}>
       <div className='parent'>
         <div className="app-container">
-          <div className="app-content">
             <ToastContainer
               position="top-right"
               autoClose={4000}
@@ -355,13 +356,15 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             <MigrationModal/>
             <div className="flex h-full overflow-hidden">
               {showSidebar && (
-                <DashboardSidebar {...navigationHandlers} />
+                <DashboardSidebar {...navigationHandlers} collapsed={sidebarCollapsed} />
               )}
               <div className="flex-1 h-full overflow-hidden flex flex-col">
+                {showSidebar && (
+                  <DashboardTopBar onToggle={() => setSidebarCollapsed(v => !v)} />
+                )}
                 {renderMainContent()}
               </div>
             </div>
-          </div>
         </div>
       </div>
     </TokenProvider>
