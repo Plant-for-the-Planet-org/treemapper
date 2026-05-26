@@ -1,7 +1,7 @@
 import { StyleProp } from 'react-native'
 import React from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
-import OnPressEvent from '@maplibre/maplibre-react-native/javascript/types/OnPressEvent'
+import { GeoJSONSource, Layer, LineLayerStyle, PressEventWithFeatures } from '@maplibre/maplibre-react-native'
+import { NativeSyntheticEvent } from 'react-native'
 import { FillColor } from 'src/utils/constants/colors'
 
 
@@ -20,49 +20,51 @@ interface Props {
 
 const PolygonShapeSource = (props: Props) => {
   const { geoJSON, onShapeSourcePress } = props
-  const handlePress = (e: OnPressEvent) => {
-    if (e?.features?.[0]) {
-      onShapeSourcePress(e.features[0].properties.id || '', e.features[0].properties.isPlot || false)
+  const handlePress = (e: NativeSyntheticEvent<PressEventWithFeatures>) => {
+    if (e.nativeEvent?.features?.[0]) {
+      onShapeSourcePress(e.nativeEvent.features[0].properties.id || '', e.nativeEvent.features[0].properties.isPlot || false)
     }
   }
   return (
-    <MapLibreGL.ShapeSource
+    <GeoJSONSource
       id={'polygon'}
-      shape={geoJSON}
+      data={geoJSON}
       onPress={handlePress}>
-      <MapLibreGL.FillLayer
+      <Layer
         id={'polyFill'}
+        type="fill"
         style={{
           fillOpacity: 0.5,
           fillColor: FillColor
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      <MapLibreGL.LineLayer
+      <Layer
         id={'polyline'}
+        type="line"
         style={{
           ...polyline, lineColor: FillColor
         }}
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
-      <MapLibreGL.CircleLayer id={'singleSelectedPolyCircle'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
-      <MapLibreGL.CircleLayer id={'entireSite'} style={{
+      <Layer id={'singleSelectedPolyCircle'} type="circle" style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
+      <Layer id={'entireSite'} type="circle" style={{
         circleOpacity: 0.9, circleColor: FillColor, circleRadius: [
           'interpolate',
           ['linear'],
           ['zoom'],
-          1, 1,   // At zoom level 1, radius is 1
-          4, 1,   // At zoom level 4, radius is 5
-          8, 5,  // At zoom level 8, radius is 10
-          12, 10, // At zoom level 12, radius is 20
+          1, 1,
+          4, 1,
+          8, 5,
+          12, 10,
           20, 5,
-          22, 5  // Use the same radius as zoom level 12 for higher zoom levels
+          22, 5
         ],
         circleTranslate: [0, 0]
       }}
         filter={['==', ['get', 'site'], true]}
       />
-    </MapLibreGL.ShapeSource>
+    </GeoJSONSource>
   )
 }
 export default PolygonShapeSource

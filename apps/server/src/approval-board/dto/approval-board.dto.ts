@@ -199,6 +199,34 @@ export interface SiteReviewQueueResponse {
   };
 }
 
+export interface WorkspaceInterventionReviewSummary extends InterventionReviewSummary {
+  projectUid: string;
+}
+
+export interface WorkspaceSiteReviewSummary extends SiteReviewSummary {
+  projectUid: string;
+}
+
+export interface WorkspaceReviewQueueResponse {
+  data: WorkspaceInterventionReviewSummary[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
+export interface WorkspaceSiteReviewQueueResponse {
+  data: WorkspaceSiteReviewSummary[];
+  pagination: {
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  };
+}
+
 // Detailed intervention response used by the frontend when opening the modal
 export interface InterventionReviewDetails {
   interventionUid: string;

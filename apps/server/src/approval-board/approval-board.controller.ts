@@ -6,12 +6,15 @@ import {
   Param,
   Query,
   UseGuards,
+  Req,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiParam } from '@nestjs/swagger';
 import { ApprovalBoardService } from './approval-board.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ProjectPermissionsGuard } from '../projects/guards/project-permissions.guard';
+import { WorkspacePermissionsGuard } from '../workspace/workspace-permissions.guard';
 import { ProjectRoles } from '../projects/decorators/project-roles.decorator';
+import { ProjectPermissions } from '../projects/decorators/project-permissions.decorator';
 import { Membership } from '../projects/decorators/membership.decorator';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ProjectGuardResponse } from '../projects/projects.service';
@@ -27,6 +30,8 @@ import {
   SiteReviewSummary,
   SiteReviewQueueResponse,
   UserReviewSummary,
+  WorkspaceReviewQueueResponse,
+  WorkspaceSiteReviewQueueResponse,
 } from './dto/approval-board.dto';
 
 @ApiTags('Approval Board')
@@ -41,6 +46,7 @@ export class ApprovalBoardController {
   @ApiOperation({ summary: 'Get interventions in the review queue for a project' })
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async getReviewQueue(
     @Membership() membership: ProjectGuardResponse,
@@ -56,6 +62,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async startReview(
     @Param('interventionUid') interventionUid: string,
@@ -73,6 +80,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async reviewIntervention(
     @Param('interventionUid') interventionUid: string,
@@ -96,6 +104,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async makeDecision(
     @Param('interventionUid') interventionUid: string,
@@ -113,6 +122,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'interventionUid', description: 'Intervention UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminComment(
     @Param('interventionUid') interventionUid: string,
@@ -173,6 +183,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'threadUid', description: 'Thread UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_intervention')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminCommentByThread(
     @Param('threadUid') threadUid: string,
@@ -239,12 +250,39 @@ export class ApprovalBoardController {
     return this.approvalBoardService.checkProjectRequiresApproval(membership.projectId);
   }
 
+  // ================== Workspace Review Queues ==================
+
+  @Get('workspaces/:uid/queue')
+  @ApiOperation({ summary: 'Get interventions across all projects in a workspace' })
+  @ApiParam({ name: 'uid', description: 'Workspace UID' })
+  @UseGuards(WorkspacePermissionsGuard)
+  async getWorkspaceReviewQueue(
+    @Param('uid') workspaceUid: string,
+    @Query() query: ReviewQueueQueryDto,
+    @Req() req: any,
+  ): Promise<WorkspaceReviewQueueResponse> {
+    return this.approvalBoardService.getWorkspaceReviewQueue(req.workspace.id, query);
+  }
+
+  @Get('workspaces/:uid/sites/queue')
+  @ApiOperation({ summary: 'Get sites across all projects in a workspace' })
+  @ApiParam({ name: 'uid', description: 'Workspace UID' })
+  @UseGuards(WorkspacePermissionsGuard)
+  async getWorkspaceSiteReviewQueue(
+    @Param('uid') workspaceUid: string,
+    @Query() query: ReviewQueueQueryDto,
+    @Req() req: any,
+  ): Promise<WorkspaceSiteReviewQueueResponse> {
+    return this.approvalBoardService.getWorkspaceSiteReviewQueue(req.workspace.id, query);
+  }
+
   // ================== Site Review Queue (Admin) ==================
 
   @Get('projects/:id/sites/queue')
   @ApiOperation({ summary: 'Get sites in the review queue for a project' })
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async getSiteReviewQueue(
     @Membership() membership: ProjectGuardResponse,
@@ -260,6 +298,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async reviewSite(
     @Param('siteUid') siteUid: string,
@@ -283,6 +322,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async makeSiteDecision(
     @Param('siteUid') siteUid: string,
@@ -300,6 +340,7 @@ export class ApprovalBoardController {
   @ApiParam({ name: 'id', description: 'Project UID' })
   @ApiParam({ name: 'siteUid', description: 'Site UID' })
   @ProjectRoles('owner', 'admin')
+  @ProjectPermissions('approve_site')
   @UseGuards(ProjectPermissionsGuard)
   async addAdminSiteComment(
     @Param('siteUid') siteUid: string,

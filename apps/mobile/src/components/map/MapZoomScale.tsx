@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { View, Text, StyleSheet } from 'react-native'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { MapRef } from '@maplibre/maplibre-react-native'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 
 interface MapZoomScaleProps {
-  mapRef: React.RefObject<MapLibreGL.MapView>
+  mapRef: React.RefObject<MapRef>
   position?: 'top-right' | 'top-left' | 'bottom-right' | 'bottom-left'
   style?: object
   padTop?: number

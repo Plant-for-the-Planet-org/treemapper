@@ -1,5 +1,5 @@
 // src/modules/interventions/dto/create-intervention.dto.ts
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive, ArrayMinSize, MaxLength } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsGeoJSON } from 'src/common/decorator/validation.decorators';
@@ -235,6 +235,42 @@ export class CreateInterventionBulkDto {
   @IsOptional()
   @IsString()
   tag?: string;
+}
+
+export class CustomSpeciesItemDto {
+  @IsString()
+  name: string;
+
+  @IsNumber()
+  @Min(0)
+  count: number;
+}
+
+export class CustomInterventionItemDto {
+  @IsString()
+  beneficiary: string;
+
+  @IsString()
+  plantDate: string; // MM/DD/YYYY
+
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomSpeciesItemDto)
+  species: CustomSpeciesItemDto[];
+
+  @IsObject()
+  geometry: any; // GeoJSON geometry object
+}
+
+export class CreateCustomBulkDto {
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => CustomInterventionItemDto)
+  interventions: CustomInterventionItemDto[];
+
+  @IsOptional()
+  @IsString()
+  siteId?: string;
 }
 
 // src/modules/interventions/dto/update-intervention.dto.ts
@@ -553,6 +589,10 @@ export class GetProjectInterventionsQueryDto {
 
   @IsOptional()
   @IsDateString()
+  interventionStartDateTo?: string;
+
+  @IsOptional()
+  @IsDateString()
   registrationDate?: string;
 
   @IsOptional()
@@ -705,6 +745,78 @@ export class TreeCountExceededError {
   treeHids: string[];
 }
 
+export class BulkUpdateSpeciesDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  interventionUids: string[];
+
+  @IsBoolean()
+  sourceIsUnknown: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  sourceScientificSpeciesId?: number;
+
+  @IsOptional()
+  @IsString()
+  sourceScientificSpeciesUid?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  sourceSpeciesName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  targetScientificSpeciesId?: number;
+
+  @IsOptional()
+  @IsString()
+  targetScientificSpeciesUid?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  targetIsUnknown?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetSpeciesName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetCommonName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(1)
+  targetSpeciesCount?: number;
+}
+
+export class BulkUpdateSpeciesResponse {
+  bulkOperationId: string;
+  updatedInterventionCount: number;
+  updatedTreeCount: number;
+  changedFields: string[];
+}
+
+export class BulkUpdateStartDateDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  interventionUids: string[];
+
+  @IsDateString()
+  interventionStartDate: string;
+}
+
 export class EditTreeSpeciesDto {
   @IsOptional()
   @IsNumber()
@@ -760,6 +872,34 @@ export class EditTreeDto {
   species?: EditTreeSpeciesDto;
 }
 
+export class AddTreeRemeasurementDto {
+  @IsEnum(['alive', 'dead'])
+  status: 'alive' | 'dead';
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  height?: number;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(0)
+  width?: number;
+
+  @IsOptional()
+  @IsString()
+  notes?: string;
+
+  @IsOptional()
+  @IsString()
+  image?: string;
+
+  @IsOptional()
+  @IsDateString()
+  recordedAt?: string;
+}
 
 export class SearchMembersQueryDto {
   @ApiProperty({

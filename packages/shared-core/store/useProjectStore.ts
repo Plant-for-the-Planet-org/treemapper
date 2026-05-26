@@ -11,22 +11,26 @@ interface ProjectStore {
   selectedWorkspce: {
     name: string,
     uid: string,
-    role: string
+    role: string,
+    type: string
   } | null
   workspace: Array<{
     name: string,
     uid: string,
-    role: string
+    role: string,
+    type: string
   }>
   addWorkspace: (p: Array<{
     name: string,
     uid: string,
-    role: string
+    role: string,
+    type: string
   }>) => void
   setDefaultWorkspce: (p: {
     name: string,
     uid: string,
-    role: string
+    role: string,
+    type: string
   }) => void
 }
 

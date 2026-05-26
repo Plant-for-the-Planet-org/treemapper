@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation, useCurrentPosition } from '@maplibre/maplibre-react-native'
 import * as Location from 'expo-location'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
@@ -48,8 +48,9 @@ const DisplayMap = () => {
   )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const dispatch = useDispatch()
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
+  const mapRef = useRef<MapRef>(null)
+  const initialPosition = useCurrentPosition()
   const interventionData = useQuery<InterventionData>(
     RealmSchema.Intervention,
     data => {
@@ -101,14 +102,25 @@ const DisplayMap = () => {
     }
   }, [currentUserLocation])
 
+  useEffect(() => {
+    if (!initialPosition || !cameraRef.current) return
+    if (currentUserLocation?.[0] === 0 && MapBounds.bounds.length === 0) {
+      cameraRef.current.easeTo({
+        center: [initialPosition.coords.longitude, initialPosition.coords.latitude],
+        zoom: 15,
+        duration: 1000,
+      })
+    }
+  }, [initialPosition])
+
   const handleCamera = () => {
     if (currentUserLocation && currentUserLocation.length > 0 && currentUserLocation[0] === 0) {
       return
     }
-    cameraRef.current.setCamera({
-      centerCoordinate: [...currentUserLocation],
-      zoomLevel: 15,
-      animationDuration: 1000,
+    cameraRef.current.easeTo({
+      center: [...currentUserLocation],
+      zoom: 15,
+      duration: 1000,
     })
   }
 
@@ -127,10 +139,8 @@ const DisplayMap = () => {
       // Use the bounding box to fit the entire polygon area
       // bounds format: [minLon, minLat, maxLon, maxLat]
       cameraRef.current.fitBounds(
-        [bounds[0], bounds[1]], // southwest corner
-        [bounds[2], bounds[3]], // northeast corner
-        10, // increased padding to show more context around the polygon
-        1000,
+        [bounds[0], bounds[1], bounds[2], bounds[3]],
+        { padding: { top: 10, right: 10, bottom: 10, left: 10 }, duration: 1000 },
       )
     } else {
       handleCamera()
@@ -322,18 +332,6 @@ const DisplayMap = () => {
     return null;
   };
 
-  const initLocation = (l: MapLibreGL.Location) => {
-    if (currentUserLocation && currentUserLocation.length > 0 && currentUserLocation[0] === 0 && MapBounds.bounds.length === 0) {
-      if (l && l.coords && l.coords.latitude && l.coords.longitude) {
-        cameraRef.current.setCamera({
-          centerCoordinate: [l.coords.longitude, l.coords.latitude],
-          zoomLevel: 15,
-          animationDuration: 1000,
-        })
-      }
-    }
-  }
-
   const renderSingleInterventionSource = () => {
     if (selectedIntervention && !showOverlay) {
       return (
@@ -345,35 +343,28 @@ const DisplayMap = () => {
     return null;
   };
   return (
-    <MapLibreGL.MapView
+    <Map
       style={styles.map}
-      logoEnabled={false}
-      compassViewPosition={3}
-      attributionEnabled={false}
+      logo={false}
+      compassPosition={{ bottom: scaleSize(300), right: scaleSize(28) }}
+      attribution={false}
       onDidFinishLoadingMap={() => {
         setTimeout(() => {
           handleCameraViewChange()
         }, 500);
       }}
       ref={mapRef}
-      compassViewMargins={{ x: scaleSize(28), y: scaleSize(300) }}
       mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
-      <MapLibreGL.Camera ref={cameraRef} />
+      <Camera ref={cameraRef} />
       {locationStatus?.status === Location.PermissionStatus.GRANTED && (
-        <MapLibreGL.UserLocation
-          showsUserHeadingIndicator
-          androidRenderMode="gps"
-          onUpdate={(location) => {
-            initLocation(location)
-          }}
-        />
+        <UserLocation heading />
       )}
       {renderShapeSource()}
       <SiteMapSource isSatellite={mainMapView === 'SATELLITE'} />
       {renderMapMarkers()}
       {renderSingleInterventionSource()}
-    </MapLibreGL.MapView>
+    </Map>
   );
 }
 

@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useRef, useState } from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation } from '@maplibre/maplibre-react-native'
 import CustomButton from 'src/components/common/CustomButton'
 import { scaleFont, scaleSize } from 'src/utils/constants/mixins'
 import LineMarker from 'src/components/map/LineMarker'
@@ -32,8 +32,8 @@ const EditPolygonMap = () => {
     const Intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionId);
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
     const { updateInterventionLocation } = useInterventionManagement()
-    const cameraRef = useRef<MapLibreGL.Camera>(null)
-    const mapRef = useRef<MapLibreGL.MapView>(null)
+    const cameraRef = useRef<CameraRef>(null)
+    const mapRef = useRef<MapRef>(null)
     const [coordinates, setCoordinates] = useState([])
     const toast = useToast();
 
@@ -49,10 +49,8 @@ const EditPolygonMap = () => {
         const { geoJSON } = makeInterventionGeoJson(type, data, '')
         const bounds = bbox(geoJSON)
         cameraRef.current.fitBounds(
-            [bounds[0], bounds[1]],
-            [bounds[2], bounds[3]],
-            50,
-            1000,
+            [bounds[0], bounds[1], bounds[2], bounds[3]],
+            { padding: { top: 50, right: 50, bottom: 50, left: 50 }, duration: 1000 },
         )
     }
 
@@ -150,25 +148,21 @@ const EditPolygonMap = () => {
             <EditDisplayCurrentPolygonMarker
                 goBack={goBack}
             />
-            <MapLibreGL.MapView
+            <Map
                 style={styles.map}
                 ref={mapRef}
-                logoEnabled={false}
+                logo={false}
                 onDidFinishLoadingMap={setUpPolygon}
-                attributionEnabled={false}
+                attribution={false}
                 mapStyle={MapStyle}>
-                <MapLibreGL.Camera ref={cameraRef} />
-                <MapLibreGL.UserLocation
-                    showsUserHeadingIndicator
-                    androidRenderMode="gps"
-                    minDisplacement={1}
-                />
+                <Camera ref={cameraRef} />
+                <UserLocation heading minDisplacement={1} />
                 <LineMarker coordinates={coordinates} />
                 <DraggableMarkers coordinates={coordinates} onDragEnd={changeTheCoordinates} isSinglePoint={Intervention.location_type === 'Point'} />
                 {Intervention.has_sample_trees && <MapMarkersOverlay
                     hasSampleTree={Intervention.has_sample_trees}
                     sampleTreeData={Intervention.sample_trees} />}
-            </MapLibreGL.MapView>
+            </Map>
 
 
             <View style={styles.btnFooter}>

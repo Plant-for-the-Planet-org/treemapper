@@ -1,5 +1,5 @@
 // src/organizations/organizations.service.ts
-import { Injectable, ConflictException, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
 import { eq, and, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
@@ -17,8 +17,12 @@ type WorkspaceSettingsPatch = Omit<Partial<WorkspaceSettings>, 'notifications'> 
   notifications?: Partial<WorkspaceSettings['notifications']>;
 };
 
+const IMPERSONATION_TTL_MS = 30 * 60 * 1000;
+
 @Injectable()
 export class WorkspaceService {
+  private readonly logger = new Logger(WorkspaceService.name);
+
   constructor(
     private readonly drizzle: DrizzleService,
     private userCacheService: UserCacheService,
@@ -340,49 +344,76 @@ export class WorkspaceService {
   }
 
   async startImpersonation(person: string, userData: User) {
-    try {
-      if (!userData.primaryWorkspaceUid) {
-        throw new Error('No workspace set');
-      }
-
-
-      const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
-      if (!workspaceId) {
-        throw new Error('No workspace found');
-      }
-
-      const personDetails = await this.drizzle.db
-        .select()
-        .from(user)
-        .where(eq(user.uid, person))
-        .limit(1)
-
-      if (personDetails.length === 0) {
-        throw 'no person found'
-      }
-
-      this.auditService.log('user', {
-        action: 'impersonation',
-        entityId: personDetails[0].id,
-        entityUid: personDetails[0].uid,
-        userId: userData.id,
-        workspaceId: workspaceId,
-        newValues: { impersonatedEmail: personDetails[0].email, impersonatedBy: userData.email },
-        source: 'web',
-      });
-
-      return await this.userCacheService.refreshAuthUser({ ...personDetails[0], auth0Id: userData.auth0Id, impersonated: true })
-    } catch (error) {
-      return false
+    if (!userData.primaryWorkspaceUid) {
+      throw new BadRequestException('No primary workspace set on the requesting user');
     }
+
+    const workspaceId = await this.projectCacheService.getWorkspaceId(userData.primaryWorkspaceUid);
+    if (!workspaceId) {
+      throw new NotFoundException('Workspace not found');
+    }
+
+    const personDetails = await this.drizzle.db
+      .select()
+      .from(user)
+      .where(eq(user.uid, person))
+      .limit(1);
+
+    if (personDetails.length === 0) {
+      throw new NotFoundException('Target user not found');
+    }
+
+    const auditEntry = await this.auditService.createAuditLog('user', {
+      action: 'impersonation',
+      entityId: personDetails[0].id,
+      entityUid: personDetails[0].uid,
+      userId: userData.id,
+      workspaceId: workspaceId,
+      newValues: {
+        phase: 'start',
+        impersonatedEmail: personDetails[0].email,
+        impersonatedBy: userData.email,
+      },
+      source: 'web',
+    });
+
+    if (!auditEntry) {
+      throw new InternalServerErrorException('Failed to write impersonation audit log; impersonation aborted');
+    }
+
+    const ok = await this.userCacheService.setImpersonation(
+      userData.auth0Id,
+      {
+        target: { ...personDetails[0], impersonated: true } as any,
+        startedAt: Date.now(),
+      },
+      IMPERSONATION_TTL_MS,
+    );
+
+    if (!ok) {
+      throw new InternalServerErrorException('Failed to persist impersonation state');
+    }
+
+    return true;
   }
 
   async impersonationexit(userData: any) {
     try {
-      await this.userCacheService.invalidateUser(userData)
-      return true
+      await this.userCacheService.clearImpersonation(userData.auth0Id);
+
+      this.auditService.log('user', {
+        action: 'impersonation',
+        entityId: userData.id,
+        entityUid: userData.uid,
+        userId: userData.id,
+        newValues: { phase: 'exit', exitedBy: userData.email },
+        source: 'web',
+      });
+
+      return true;
     } catch (error) {
-      return false
+      this.logger.error('impersonationexit failed', error as any);
+      throw new InternalServerErrorException('Failed to exit impersonation');
     }
   }
 
@@ -723,4 +754,58 @@ export class WorkspaceService {
   //       projectCount: projectCountResult.count || 0,
   //     };
   //   }
+
+  async getAllWorkspaces() {
+    return await this.drizzle.db
+      .select({
+        uid: workspace.uid,
+        name: workspace.name,
+        slug: workspace.slug,
+        type: workspace.type,
+      })
+      .from(workspace)
+      .where(isNull(workspace.deletedAt))
+      .orderBy(asc(workspace.name));
+  }
+
+  async transferProject(workspaceUid: string, projectUid: string, targetWorkspaceUid: string, userId: number) {
+    if (workspaceUid === targetWorkspaceUid) {
+      throw new BadRequestException('Project is already in this workspace');
+    }
+
+    const [sourceWs] = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, workspaceUid))
+      .limit(1);
+    if (!sourceWs) throw new NotFoundException('Source workspace not found');
+
+    const [targetWs] = await this.drizzle.db
+      .select({ id: workspace.id })
+      .from(workspace)
+      .where(eq(workspace.uid, targetWorkspaceUid))
+      .limit(1);
+    if (!targetWs) throw new NotFoundException('Target workspace not found');
+
+    const result = await this.drizzle.db
+      .update(project)
+      .set({ workspaceId: targetWs.id })
+      .where(and(eq(project.uid, projectUid), eq(project.workspaceId, sourceWs.id), isNull(project.deletedAt)))
+      .returning({ id: project.id, uid: project.uid });
+
+    if (result.length === 0) throw new NotFoundException('Project not found in source workspace');
+
+    this.auditService.log('project', {
+      action: 'update',
+      entityId: result[0].id,
+      entityUid: result[0].uid,
+      userId,
+      workspaceId: targetWs.id,
+      oldValues: { workspaceId: sourceWs.id },
+      newValues: { workspaceId: targetWs.id },
+      source: 'web',
+    });
+
+    return { success: true, projectUid, targetWorkspaceUid };
+  }
 }

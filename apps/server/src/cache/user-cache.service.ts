@@ -3,12 +3,21 @@ import { ExtendedUser, User } from "src/users/entities/user.entity";
 import { CacheService } from "./cache.service";
 import { CACHE_KEYS, CACHE_TTL } from "./cache-keys";
 
+export interface ImpersonationState {
+    target: ExtendedUser;
+    startedAt: number;
+}
+
 @Injectable()
 export class UserCacheService {
     constructor(private cacheService: CacheService) { }
 
     private getUseAuthrKey(identifier: string): string {
         return CACHE_KEYS.USER.BY_AUTH0_ID(identifier)
+    }
+
+    private getImpersonationKey(adminAuth0Id: string): string {
+        return CACHE_KEYS.USER.IMPERSONATING(adminAuth0Id);
     }
 
     async getUserByAuth(auth0Id: string): Promise<User | null> {
@@ -33,6 +42,23 @@ export class UserCacheService {
         auth0Id: string,
     }): Promise<void> {
         await this.cacheService.delete(this.getUseAuthrKey(user.auth0Id));
+    }
+
+    async setImpersonation(adminAuth0Id: string, state: ImpersonationState, ttlMs: number): Promise<boolean> {
+        try {
+            await this.cacheService.set(this.getImpersonationKey(adminAuth0Id), state, ttlMs);
+            return true;
+        } catch {
+            return false;
+        }
+    }
+
+    async getImpersonation(adminAuth0Id: string): Promise<ImpersonationState | null> {
+        return this.cacheService.get(this.getImpersonationKey(adminAuth0Id));
+    }
+
+    async clearImpersonation(adminAuth0Id: string): Promise<void> {
+        await this.cacheService.delete(this.getImpersonationKey(adminAuth0Id));
     }
 
     async setUserByAuthMigration(token: string, auth0Id: string): Promise<void> {

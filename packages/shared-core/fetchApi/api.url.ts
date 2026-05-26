@@ -93,6 +93,7 @@ export const getUrlApi = {
   getMyAdminWorkspaces: `${baseUrl}/workspace/my`,
   getWorkspaceMembers: `${baseUrl}/workspace`,
   getWorkspaceProjects: `${baseUrl}/workspace`,
+  getAllWorkspaces: `${baseUrl}/workspace/all`,
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
@@ -109,6 +110,10 @@ export const getUrlApi = {
   // Site approval
   getSiteReviewQueue: `${baseUrl}/approval-board/projects`,
   getCurrentSiteThread: `${baseUrl}/approval-board/sites`,
+  getTreeRecords: `${baseUrl}/interventions/trees`,
+  // Workspace-level approval queues
+  getWorkspaceReviewQueue: `${baseUrl}/approval-board/workspaces`,
+  getWorkspaceSiteReviewQueue: `${baseUrl}/approval-board/workspaces`,
 } as const;
 
 export const patchUrlApi = {
@@ -116,6 +121,7 @@ export const patchUrlApi = {
   updateWorkspace: `${baseUrl}/workspace`,
   updateWorkspaceSettings: `${baseUrl}/workspace`,
   updateProjectStatus: `${baseUrl}/workspace`,
+  transferProject: `${baseUrl}/workspace`,
   updateMemeberRole: `${baseUrl}/projects`,
   markAllRead: `${baseUrl}/notifications/mark-all-read`,
   markRead: `${baseUrl}/notifications`,
@@ -141,9 +147,11 @@ export const putUrlApi = {
   impersonateUser: `${baseUrl}/workspace/impersonate`,
   impersonateUserExit: `${baseUrl}/workspace/impersonate/exit`,
   speicesDataUpdate: `${baseUrl}/interventions`,
+  bulkUpdateSpecies: `${baseUrl}/interventions/projects`,
   ownershipTransfer: `${baseUrl}/interventions`,
   editIntervention: `${baseUrl}/interventions`,
   editTree: `${baseUrl}/interventions/trees`,
+  addTreeRemeasurement: `${baseUrl}/interventions/trees`,
 
 } as const;
 

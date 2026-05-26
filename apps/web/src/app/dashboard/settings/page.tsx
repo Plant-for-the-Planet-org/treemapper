@@ -15,6 +15,7 @@ import GeoJSONUpload from '@/component/GeoJSONfileupload';
 import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { useUserStore } from '@shared-core/store/useUserStore';
 import { toast } from 'react-toastify';
 
 
@@ -990,8 +991,17 @@ const ProjectSettings = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const { accessToken } = useToken();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  const selectedWorkspce = useProjectStore(state => state.selectedWorkspce);
+  const currentUser = useUserStore(state => state.user);
   const userRole = selectedProject?.userRole;
-  const canEdit = ['owner', 'admin'].includes(userRole || '');
+
+  const isPlatformWorkspace = selectedWorkspce?.slug === 'platform-projects';
+  console.log(selectedWorkspce, 'selectedWorkspce')
+  const isImpersonatingSuperAdmin = currentUser?.impersonated === true && currentUser?.type === 'superadmin';
+  const isPlatformLocked = isPlatformWorkspace && !isImpersonatingSuperAdmin;
+  const isProjectInactive = selectedProject?.status !== 'active';
+
+  const canEdit = isImpersonatingSuperAdmin || (!isPlatformLocked && !isProjectInactive && ['owner', 'admin'].includes(userRole || ''));
   const [projectData, setProjectData] = useState({
     name: '',
     slug: '',
@@ -1446,6 +1456,26 @@ const ProjectSettings = () => {
           message={notification.message}
           onClose={() => setNotification(null)}
         />
+      )}
+
+      {/* Platform read-only notice */}
+      {isPlatformLocked && (
+        <div className="bg-amber-50 border-b border-amber-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+          <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0" />
+          <p className="text-sm text-amber-800">
+            This project belongs to the platform workspace. Settings are read-only and can only be updated in impersonation mode.
+          </p>
+        </div>
+      )}
+
+      {/* Inactive project read-only notice */}
+      {!isPlatformLocked && isProjectInactive && !isImpersonatingSuperAdmin && (
+        <div className="bg-stone-50 border-b border-stone-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
+          <Lock className="h-5 w-5 text-stone-500 flex-shrink-0" />
+          <p className="text-sm text-stone-700">
+            This project is not active. Settings are read-only.
+          </p>
+        </div>
       )}
 
       {/* Header */}

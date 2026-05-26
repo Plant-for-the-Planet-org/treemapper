@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import MapLibreGL from '@maplibre/maplibre-react-native';
+import { Map, Camera, CameraRef, UserLocation } from '@maplibre/maplibre-react-native';
 import { MonitoringPlot } from 'src/types/interface/slice.interface';
 import bbox from '@turf/bbox'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper';
@@ -19,7 +19,7 @@ interface Props {
 }
 
 const PlotMapDisplay = (props: Props) => {
-    const cameraRef = useRef<MapLibreGL.Camera>(null)
+    const cameraRef = useRef<CameraRef>(null)
     const [plotCoordinates, setPlotCoordinates] = useState<Array<number[]>>([])
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -47,10 +47,8 @@ const PlotMapDisplay = (props: Props) => {
         const bounds = bbox(geoJSON)
         if (cameraRef?.current) {
             cameraRef.current.fitBounds(
-                [bounds[0], bounds[1]],
-                [bounds[2], bounds[3]],
-                20,
-                1000,
+                [bounds[0], bounds[1], bounds[2], bounds[3]],
+                { padding: { top: 20, right: 20, bottom: 20, left: 20 }, duration: 1000 },
             )
         }
     }
@@ -66,18 +64,14 @@ const PlotMapDisplay = (props: Props) => {
 
     return (
         <View style={styles.page}>
-            <MapLibreGL.MapView
+            <Map
                 style={styles.map}
-                logoEnabled={false}
-                attributionEnabled={false}
+                logo={false}
+                attribution={false}
                 onDidFinishLoadingMap={setupMap}
                 mapStyle={MapStyle}>
-                <MapLibreGL.Camera ref={cameraRef} />
-                <MapLibreGL.UserLocation
-                    showsUserHeadingIndicator
-                    androidRenderMode="gps"
-                    minDisplacement={1}
-                />
+                <Camera ref={cameraRef} />
+                <UserLocation heading minDisplacement={1} />
                 {plotCoordinates.length > 0 && <PlotShapeSource geoJSON={{
                     "type": "FeatureCollection",
                     "features": [
@@ -92,7 +86,7 @@ const PlotMapDisplay = (props: Props) => {
                     ]
                 }} isEdit={false} />}
                 {props.data.plot_plants.length > 0 && <PlotMarker sampleTreeData={props.data.plot_plants} onMarkerPress={onMarkerPress} />}
-            </MapLibreGL.MapView>
+            </Map>
         </View>
     );
 }

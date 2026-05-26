@@ -16,12 +16,16 @@ import {
   CheckCircle,
   Info,
   Loader2,
+  Activity,
+  Heart,
+  HeartOff,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import {
   editTree,
   generatePreSignUrl,
   getSciencetificSpecies,
+  addTreeRemeasurement,
 } from '@shared-core/fetchApi/api.fetch';
 import UnifiedMapComponent from '@/component/MapSelect';
 
@@ -86,6 +90,7 @@ const TABS = [
   { id: 'species', label: 'Species', icon: Leaf },
   { id: 'location', label: 'Location', icon: MapPin },
   { id: 'image', label: 'Image', icon: Camera },
+  { id: 'remeasurement', label: 'Remeasurement', icon: Activity },
 ];
 
 export default function EditTreeModal({
@@ -100,6 +105,7 @@ export default function EditTreeModal({
   const [activeTab, setActiveTab] = useState('basic');
   const [isSaving, setIsSaving] = useState(false);
   const [isDirty, setIsDirty] = useState(false);
+  const [showDeadNotice, setShowDeadNotice] = useState(false);
 
   // Basic fields
   const [tag, setTag] = useState('');
@@ -130,6 +136,18 @@ export default function EditTreeModal({
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [currentImage, setCurrentImage] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Remeasurement
+  const [remStatus, setRemStatus] = useState<'alive' | 'dead' | ''>('');
+  const [remHeight, setRemHeight] = useState('');
+  const [remWidth, setRemWidth] = useState('');
+  const [remUnit, setRemUnit] = useState<'m' | 'cm'>('m');
+  const [remNotes, setRemNotes] = useState('');
+  const [remImageFile, setRemImageFile] = useState<File | null>(null);
+  const [remImagePreview, setRemImagePreview] = useState<string | null>(null);
+  const [isRemDirty, setIsRemDirty] = useState(false);
+  const [isSubmittingRem, setIsSubmittingRem] = useState(false);
+  const remImageRef = useRef<HTMLInputElement>(null);
 
   const isSingleTree = intervention.type === SINGLE_TREE_TYPE;
   const isMultiTree = !isSingleTree;
@@ -169,7 +187,18 @@ export default function EditTreeModal({
       setImageFile(null);
       setImagePreview(null);
 
+      setRemStatus(tree.status === 'dead' ? 'dead' : 'alive');
+      setRemHeight('');
+      setRemWidth('');
+      setRemUnit('m');
+      setRemNotes('');
+      setRemImageFile(null);
+      setRemImagePreview(null);
+      setIsRemDirty(false);
+      setShowDeadNotice(false);
+
       // Species initialisation
+
       setSearchQuery('');
       setSearchResults([]);
       setShowResults(false);
@@ -268,20 +297,18 @@ export default function EditTreeModal({
     markDirty();
   };
 
-  const uploadImage = async (): Promise<string | null> => {
-    if (!imageFile) return currentImage;
-
+  const uploadToR2 = async (file: File): Promise<string | null> => {
     try {
       const presignResp = await generatePreSignUrl(accessToken, {
         fileName: String(Date.now()),
-        fileType: imageFile.type,
+        fileType: file.type,
         folder: 'tree',
       });
       const presignData = presignResp?.data?.data || presignResp?.data;
       if (!presignData?.uploadUrl) throw new Error('Failed to get upload URL');
 
       const form = new FormData();
-      form.append('file', imageFile);
+      form.append('file', file);
 
       const uploadResp = await fetch(
         `/api/upload-image?uploadUrl=${encodeURIComponent(presignData.uploadUrl)}`,
@@ -291,9 +318,82 @@ export default function EditTreeModal({
 
       return presignData.fileName;
     } catch (err) {
-      console.error('Image upload error:', err);
+      console.error('R2 upload error:', err);
       toast.error('Failed to upload image');
       return null;
+    }
+  };
+
+  const uploadImage = async (): Promise<string | null> => {
+    if (!imageFile) return currentImage;
+    return uploadToR2(imageFile);
+  };
+
+  const handleRemImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.size > 10 * 1024 * 1024) {
+      toast.error('Image must be under 10 MB');
+      return;
+    }
+    setRemImageFile(file);
+    setRemImagePreview(URL.createObjectURL(file));
+    setIsRemDirty(true);
+  };
+
+  const toMeters = (value: string, unit: 'm' | 'cm'): number | undefined => {
+    const n = parseFloat(value);
+    if (isNaN(n) || n < 0) return undefined;
+    return unit === 'cm' ? n / 100 : n;
+  };
+
+  const handleSaveRemeasurement = async () => {
+    if (!remStatus) {
+      toast.error('Please select a status');
+      return;
+    }
+
+    setIsSubmittingRem(true);
+    try {
+      let imageFileName: string | undefined;
+      if (remImageFile) {
+        const uploaded = await uploadToR2(remImageFile);
+        if (!uploaded) {
+          setIsSubmittingRem(false);
+          return;
+        }
+        imageFileName = uploaded;
+      }
+
+      const payload: Parameters<typeof addTreeRemeasurement>[3] = {
+        status: remStatus as 'alive' | 'dead',
+        notes: remNotes || undefined,
+        image: imageFileName,
+      };
+
+      if (remStatus === 'alive') {
+        const h = toMeters(remHeight, remUnit);
+        const w = toMeters(remWidth, remUnit);
+        if (h !== undefined) payload.height = h;
+        if (w !== undefined) payload.width = w;
+      }
+
+      const result = await addTreeRemeasurement(accessToken, tree.hid, selectedProject, payload);
+      const isSuccess = result?.success || result?.data?.success;
+
+      if (isSuccess) {
+        toast.success('Remeasurement recorded');
+        setIsRemDirty(false);
+        const responseData = result?.data?.data || result?.data;
+        onSaveComplete(responseData?.tree || responseData || result);
+        onClose();
+      } else {
+        throw new Error(result?.message || 'Failed to record remeasurement');
+      }
+    } catch (err: any) {
+      toast.error(err.message || 'Failed to record remeasurement');
+    } finally {
+      setIsSubmittingRem(false);
     }
   };
 
@@ -420,7 +520,17 @@ export default function EditTreeModal({
               return (
                 <button
                   key={tab.id}
-                  onClick={() => setActiveTab(tab.id)}
+                  onClick={() => {
+                    setActiveTab(tab.id);
+                    if (tab.id === 'remeasurement') {
+                      if (tree.status === 'dead') {
+                        setShowDeadNotice(true);
+                      } else {
+                        setRemStatus('alive');
+                        setIsRemDirty(true);
+                      }
+                    }
+                  }}
                   className={`flex items-center gap-2 px-4 py-3 text-sm font-medium border-b-2 whitespace-nowrap transition-colors ${
                     activeTab === tab.id
                       ? 'border-[#007A49] text-[#007A49]'
@@ -673,6 +783,203 @@ export default function EditTreeModal({
               </div>
             )}
 
+            {/* Remeasurement Tab */}
+            {activeTab === 'remeasurement' && (
+              <div className="space-y-6">
+
+                {/* Dead notice modal */}
+                {showDeadNotice && (
+                  <div className="fixed inset-0 z-60 flex items-center justify-center">
+                    <div className="absolute inset-0 bg-black/40" onClick={() => setShowDeadNotice(false)} />
+                    <div className="relative bg-white rounded-xl shadow-xl w-full max-w-sm mx-4 p-6 space-y-4">
+                      <div className="flex items-center gap-3">
+                        <div className="p-2 bg-red-100 rounded-full">
+                          <HeartOff size={20} className="text-red-600" />
+                        </div>
+                        <h3 className="text-base font-semibold text-gray-900">Tree is dead</h3>
+                      </div>
+                      <p className="text-sm text-gray-600">
+                        This tree has already been marked as dead. Its status cannot be changed back. You can still add notes or a photo to record further observations.
+                      </p>
+                      <button
+                        onClick={() => setShowDeadNotice(false)}
+                        className="w-full px-4 py-2 bg-gray-900 text-white rounded-lg text-sm font-medium hover:bg-gray-800"
+                      >
+                        Got it
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {/* Status */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-3">
+                    Tree Status <span className="text-red-500">*</span>
+                  </label>
+                  {tree.status === 'dead' ? (
+                    <div className="flex items-center gap-2 px-5 py-3 rounded-lg border-2 border-red-300 bg-red-50 text-red-600 w-fit">
+                      <HeartOff size={16} />
+                      <span className="text-sm font-medium">Dead</span>
+                      <span className="ml-2 text-xs text-red-400">(cannot be changed)</span>
+                    </div>
+                  ) : (
+                    <div className="flex gap-3">
+                      <button
+                        type="button"
+                        onClick={() => { setRemStatus('alive'); setIsRemDirty(true); }}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          remStatus === 'alive'
+                            ? 'border-[#007A49] bg-[#007A49]/10 text-[#007A49]'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        <Heart size={16} />
+                        Alive
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => { setRemStatus('dead'); setIsRemDirty(true); }}
+                        className={`flex items-center gap-2 px-5 py-3 rounded-lg border-2 text-sm font-medium transition-colors ${
+                          remStatus === 'dead'
+                            ? 'border-red-500 bg-red-50 text-red-600'
+                            : 'border-gray-200 text-gray-600 hover:border-gray-300'
+                        }`}
+                      >
+                        <HeartOff size={16} />
+                        Dead
+                      </button>
+                    </div>
+                  )}
+                </div>
+
+                {/* Height + Width — only when alive */}
+                {remStatus === 'alive' && (
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium text-gray-700">Measurements</span>
+                      <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+                        <button
+                          type="button"
+                          onClick={() => setRemUnit('m')}
+                          className={`px-3 py-1.5 transition-colors ${
+                            remUnit === 'm' ? 'bg-[#007A49] text-white' : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          m
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setRemUnit('cm')}
+                          className={`px-3 py-1.5 transition-colors ${
+                            remUnit === 'cm' ? 'bg-[#007A49] text-white' : 'text-gray-600 hover:bg-gray-50'
+                          }`}
+                        >
+                          cm
+                        </button>
+                      </div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Height ({remUnit})
+                        </label>
+                        <input
+                          type="number"
+                          value={remHeight}
+                          min="0"
+                          step={remUnit === 'cm' ? '1' : '0.01'}
+                          onChange={(e) => { setRemHeight(e.target.value); setIsRemDirty(true); }}
+                          placeholder="0"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm text-gray-600 mb-1">
+                          Width ({remUnit})
+                        </label>
+                        <input
+                          type="number"
+                          value={remWidth}
+                          min="0"
+                          step={remUnit === 'cm' ? '1' : '0.01'}
+                          onChange={(e) => { setRemWidth(e.target.value); setIsRemDirty(true); }}
+                          placeholder="0"
+                          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Notes */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Notes
+                    {remStatus === 'dead' && <span className="text-red-500 ml-1">*</span>}
+                  </label>
+                  {remStatus === 'dead' && (
+                    <p className="text-xs text-red-600 mb-2">Required when marking a tree as dead -- describe the cause.</p>
+                  )}
+                  <textarea
+                    value={remNotes}
+                    onChange={(e) => { setRemNotes(e.target.value); setIsRemDirty(true); }}
+                    rows={3}
+                    maxLength={1000}
+                    placeholder={remStatus === 'dead' ? 'Describe the cause of death...' : 'Add any observations or notes...'}
+                    className={`w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent resize-none ${
+                      remStatus === 'dead' && !remNotes.trim() ? 'border-red-300 bg-red-50' : 'border-gray-200'
+                    }`}
+                  />
+                  <p className="text-xs text-gray-400 mt-1">{remNotes.length}/1000</p>
+                </div>
+
+                {/* Image */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Photo</label>
+                  <input
+                    ref={remImageRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleRemImageSelect}
+                    className="hidden"
+                  />
+                  {remImagePreview ? (
+                    <div className="space-y-3">
+                      <div className="relative w-full max-w-md">
+                        <img
+                          src={remImagePreview}
+                          alt="Remeasurement"
+                          className="w-full h-48 object-cover rounded-lg border border-gray-200"
+                        />
+                        <button
+                          onClick={() => { setRemImageFile(null); setRemImagePreview(null); }}
+                          className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                      <button
+                        onClick={() => remImageRef.current?.click()}
+                        className="flex items-center gap-2 px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 text-sm text-gray-700"
+                      >
+                        <Upload size={15} />
+                        Replace Photo
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => remImageRef.current?.click()}
+                      className="flex flex-col items-center justify-center gap-2 w-full max-w-md h-36 border-2 border-dashed border-gray-300 rounded-lg hover:bg-gray-50 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      <Upload size={22} />
+                      <span className="text-sm font-medium">Upload Photo</span>
+                      <span className="text-xs">JPG, PNG, WebP — max 10 MB</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Image Tab */}
             {activeTab === 'image' && (
               <div className="space-y-4">
@@ -746,7 +1053,11 @@ export default function EditTreeModal({
           {/* Footer */}
           <div className="flex items-center justify-between px-6 py-4 border-t border-gray-200 bg-gray-50">
             <span className="text-sm">
-              {isDirty ? (
+              {activeTab === 'remeasurement' ? (
+                isRemDirty
+                  ? <span className="text-amber-600">• Unsaved remeasurement</span>
+                  : <span className="text-gray-500">No changes</span>
+              ) : isDirty ? (
                 <span className="text-amber-600">• Unsaved changes</span>
               ) : (
                 <span className="text-gray-500">No changes</span>
@@ -755,28 +1066,48 @@ export default function EditTreeModal({
             <div className="flex gap-3">
               <button
                 onClick={handleClose}
-                disabled={isSaving}
+                disabled={isSaving || isSubmittingRem}
                 className="px-4 py-2 border border-gray-200 rounded-lg text-gray-700 hover:bg-gray-100 disabled:opacity-50"
               >
                 Cancel
               </button>
-              <button
-                onClick={handleSave}
-                disabled={!isDirty || isSaving || !!plantingDateError}
-                className="flex items-center gap-2 px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006B3F] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {isSaving ? (
-                  <>
-                    <Loader className="animate-spin h-4 w-4" />
-                    Saving…
-                  </>
-                ) : (
-                  <>
-                    <Check size={16} />
-                    Save Changes
-                  </>
-                )}
-              </button>
+              {activeTab === 'remeasurement' ? (
+                <button
+                  onClick={handleSaveRemeasurement}
+                  disabled={!isRemDirty || isSubmittingRem || !remStatus || (remStatus === 'dead' && !remNotes.trim())}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006B3F] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmittingRem ? (
+                    <>
+                      <Loader className="animate-spin h-4 w-4" />
+                      Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Activity size={16} />
+                      Save Remeasurement
+                    </>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={handleSave}
+                  disabled={!isDirty || isSaving || !!plantingDateError}
+                  className="flex items-center gap-2 px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006B3F] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSaving ? (
+                    <>
+                      <Loader className="animate-spin h-4 w-4" />
+                      Saving…
+                    </>
+                  ) : (
+                    <>
+                      <Check size={16} />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </motion.div>

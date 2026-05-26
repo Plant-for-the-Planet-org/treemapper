@@ -13,6 +13,7 @@ interface Filters {
   captureMode: string;
   projectSiteId: string;
   interventionStartDate: string;
+  interventionStartDateTo: string;
   registrationDate: string;
   userId: string;
   species: string[];
@@ -27,20 +28,49 @@ interface FiltersSectionProps {
   setSearchTerm: (value: string) => void;
   interventionTypes: string[];
   sites: Site[];
-  onDateChange: (date: string) => void;
+  onDateRangeChange: (from: string, to: string) => void;
 }
+
+const DEFAULT_FILTERS: Filters = {
+  type: '',
+  captureMode: '',
+  projectSiteId: '',
+  interventionStartDate: '',
+  interventionStartDateTo: '',
+  registrationDate: '',
+  userId: '',
+  species: [],
+  flag: '',
+  sortOrder: '',
+};
 
 export const FiltersSection = ({
   filters,
   setFilters,
+  searchTerm,
+  setSearchTerm,
   interventionTypes,
   sites,
-  onDateChange
+  onDateRangeChange,
 }: FiltersSectionProps) => {
+  const hasActiveFilters =
+    filters.type !== '' ||
+    filters.captureMode !== '' ||
+    filters.projectSiteId !== '' ||
+    filters.interventionStartDate !== '' ||
+    filters.interventionStartDateTo !== '' ||
+    filters.flag !== '' ||
+    searchTerm !== '';
+
+  const clearAll = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSearchTerm('');
+    onDateRangeChange('', '');
+  };
+
   return (
     <div className="space-y-4">
-      {/* Filter Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-3">
         <Select
           value={filters.type}
           onValueChange={(value) => setFilters(prev => ({ ...prev, type: value }))}
@@ -76,12 +106,26 @@ export const FiltersSection = ({
           ))}
         </Select>
 
-        <Input
-          type="date"
-          value={filters.interventionStartDate}
-          onChange={(e) => onDateChange(e.target.value)}
-          placeholder="Filter by date"
-        />
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-muted-foreground">Start Date</label>
+          <Input
+            type="date"
+            value={filters.interventionStartDate}
+            onChange={(e) => onDateRangeChange(e.target.value, filters.interventionStartDateTo)}
+            title="Start date from"
+          />
+        </div>
+
+        <div className="flex flex-col gap-1">
+          <label className="text-xs font-medium text-muted-foreground">End Date</label>
+          <Input
+            type="date"
+            value={filters.interventionStartDateTo}
+            onChange={(e) => onDateRangeChange(filters.interventionStartDate, e.target.value)}
+            title="Start date to"
+            min={filters.interventionStartDate || undefined}
+          />
+        </div>
 
         <Select
           value={filters.flag}
@@ -92,6 +136,17 @@ export const FiltersSection = ({
           <option value="false">Not Flagged</option>
         </Select>
       </div>
+
+      {hasActiveFilters && (
+        <div className="flex justify-end">
+          <button
+            onClick={clearAll}
+            className="text-sm text-muted-foreground hover:text-foreground underline underline-offset-2 transition-colors"
+          >
+            Clear all filters
+          </button>
+        </div>
+      )}
     </div>
   );
 };

@@ -15,6 +15,7 @@ interface Filters {
   captureMode: string;
   projectSiteId: string;
   interventionStartDate: string;
+  interventionStartDateTo: string;
   registrationDate: string;
   userId: string;
   species: string[];
@@ -29,7 +30,7 @@ interface HeaderWithFiltersProps {
   setSearchTerm: (value: string) => void;
   interventionTypes: string[];
   sites: Site[];
-  handleDateChange: (date: string) => void;
+  handleDateRangeChange: (from: string, to: string) => void;
   sidebarCollapsed: boolean;
   setSidebarCollapsed: (collapsed: boolean) => void;
   newIntervention: () => void;
@@ -49,7 +50,7 @@ export const HeaderWithFilters = ({
   setSearchTerm,
   interventionTypes,
   sites,
-  handleDateChange,
+  handleDateRangeChange,
   sidebarCollapsed,
   setSidebarCollapsed,
   newIntervention,
@@ -119,7 +120,7 @@ export const HeaderWithFilters = ({
               setSearchTerm={setSearchTerm}
               interventionTypes={interventionTypes}
               sites={sites}
-              onDateChange={handleDateChange}
+              onDateRangeChange={handleDateRangeChange}
             />
           </div>
         )}

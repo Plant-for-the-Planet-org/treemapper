@@ -12,6 +12,8 @@ const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 interface GeoJSONUploadProps {
   onGeoJSONChange: (geoJson: any | null) => void;
   className?: string;
+  allowedGeometryTypes?: string[];
+  maxAreaHa?: number;
 }
 
 interface UploadState {
@@ -24,6 +26,7 @@ interface UploadState {
 export default function GeoJSONUpload({
   onGeoJSONChange,
   className = "",
+  allowedGeometryTypes = ["Point"],
 }: GeoJSONUploadProps) {
   const [uploadState, setUploadState] = useState<UploadState>({
     status: "idle",
@@ -35,13 +38,11 @@ export default function GeoJSONUpload({
     onGeoJSONChange(null);
   };
 
-  // Validate that the geometry is a Point
   const validateGeometryType = (
     geoJson: any
   ): { valid: boolean; type: string | null; error?: string } => {
     let geometryType: string | null = null;
 
-    // Handle different GeoJSON structures
     if (geoJson.type === "FeatureCollection" && geoJson.features?.length > 0) {
       const types = new Set<string>();
       for (const feature of geoJson.features) {
@@ -58,14 +59,14 @@ export default function GeoJSONUpload({
         return {
           valid: false,
           type: null,
-          error: `Mixed geometry types found (${[...types].join(", ")}). Only Point is allowed.`,
+          error: `Mixed geometry types found (${[...types].join(", ")}). Only ${allowedGeometryTypes.join(" or ")} is allowed.`,
         };
       }
 
       geometryType = [...types][0];
     } else if (geoJson.type === "Feature" && geoJson.geometry?.type) {
       geometryType = geoJson.geometry.type;
-    } else if (geoJson.type === "Point") {
+    } else if (geoJson.type) {
       geometryType = geoJson.type;
     }
 
@@ -73,11 +74,11 @@ export default function GeoJSONUpload({
       return { valid: false, type: null, error: "Could not determine geometry type." };
     }
 
-    if (geometryType !== "Point") {
+    if (!allowedGeometryTypes.includes(geometryType)) {
       return {
         valid: false,
         type: geometryType,
-        error: `${geometryType} geometry is not supported. Only Point geometry is allowed for project location.`,
+        error: `${geometryType} geometry is not supported. Only ${allowedGeometryTypes.join(" or ")} geometry is allowed.`,
       };
     }
 
@@ -350,7 +351,7 @@ export default function GeoJSONUpload({
                     Drag & drop or click to select
                   </p>
                   <p className="text-xs text-gray-400">
-                    Supports: KML, GeoJSON (Point geometry only)
+                    Supports: KML, GeoJSON ({allowedGeometryTypes.join(", ")} geometry)
                   </p>
                 </>
               )}

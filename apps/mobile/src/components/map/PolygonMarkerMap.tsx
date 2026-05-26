@@ -1,6 +1,6 @@
 import { StyleSheet, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL, { Location, UserTrackingMode } from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation, GeolocationPosition, useCurrentPosition } from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
@@ -50,7 +50,8 @@ const PolygonMarkerMap = (props: Props) => {
   const [coordinates, setCoordinates] = useState([])
   const [trackingState, setTrackingState] = useState('')
   const [trackingGeoJSON, setTrackingGeoJSON] = useState<number[][]>([])
-  const [latestCoords, setLatestCoords] = useState<Location>(null)
+  const [latestCoords, setLatestCoords] = useState<GeolocationPosition>(null)
+  const currentPosition = useCurrentPosition({ minDisplacement: 1 })
   const [polygonComplete, setPolygonComplete] = useState(false)
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
@@ -66,8 +67,8 @@ const PolygonMarkerMap = (props: Props) => {
   const toast = useToast();
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
 
-  const cameraRef = useRef<MapLibreGL.Camera>(null)
-  const mapRef = useRef<MapLibreGL.MapView>(null)
+  const cameraRef = useRef<CameraRef>(null)
+  const mapRef = useRef<MapRef>(null)
   const [mapRender, setMapRender] = useState(false)
   const mainMapView = useSelector(
     (state: RootState) => state.displayMapState.mainMapView
@@ -88,6 +89,12 @@ const PolygonMarkerMap = (props: Props) => {
       handleCamera2()
     }
   }, [currentUserLocation])
+
+  useEffect(() => {
+    if (currentPosition) {
+      setLatestCoords(currentPosition)
+    }
+  }, [currentPosition])
 
   const handleCameraView = () => {
     if (cameraRef?.current) {
@@ -111,10 +118,10 @@ const PolygonMarkerMap = (props: Props) => {
       return
     }
     if (cameraRef?.current) {
-      cameraRef.current.setCamera({
-        centerCoordinate: [...currentUserLocation],
-        zoomLevel: 15,
-        animationDuration: 1000,
+      cameraRef.current.easeTo({
+        center: [...currentUserLocation],
+        zoom: 15,
+        duration: 1000,
       })
     }
   }
@@ -124,9 +131,9 @@ const PolygonMarkerMap = (props: Props) => {
       return
     }
     if (cameraRef?.current) {
-      cameraRef.current.setCamera({
-        centerCoordinate: [...currentUserLocation],
-        animationDuration: 1000,
+      cameraRef.current.easeTo({
+        center: [...currentUserLocation],
+        duration: 1000,
       })
     }
   }
@@ -281,18 +288,12 @@ const PolygonMarkerMap = (props: Props) => {
     setLineError(false)
   }
 
-  const handleDisplacement = (e: Location) => {
-    setLatestCoords(e)
-  }
-
   const handleTrackComplete = (e: any) => {
     const bounds = bbox(e)
     {
       cameraRef.current.fitBounds(
-        [bounds[0], bounds[1]],
-        [bounds[2], bounds[3]],
-        40,
-        1000,
+        [bounds[0], bounds[1], bounds[2], bounds[3]],
+        { padding: { top: 40, right: 40, bottom: 40, left: 40 }, duration: 1000 },
       )
     }
     setTrackingState('complete')
@@ -313,24 +314,19 @@ const PolygonMarkerMap = (props: Props) => {
         trackingPaused={trackingState === 'pause'}
 
       /> : null}
-      <MapLibreGL.MapView
+      <Map
         style={styles.map}
         ref={mapRef}
-        logoEnabled={false}
+        logo={false}
         onDidFinishLoadingMap={!mapRender ? handleCameraView : null}
         onRegionDidChange={onRegionDidChange}
         onRegionIsChanging={() => {
           setLoading(true)
         }}
-        attributionEnabled={false}
+        attribution={false}
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
-        <MapLibreGL.Camera ref={cameraRef} followUserLocation={trackingState === 'start'} followUserMode={UserTrackingMode.FollowWithCourse} />
-        <MapLibreGL.UserLocation
-          showsUserHeadingIndicator
-          androidRenderMode="gps"
-          minDisplacement={1}
-          onUpdate={handleDisplacement}
-        />
+        <Camera ref={cameraRef} trackUserLocation={trackingState === 'start' ? 'course' : undefined} />
+        <UserLocation heading minDisplacement={1} />
         {!isTracking && <>
           <LineMarker coordinates={coordinates} isSatellite={mainMapView === 'SATELLITE'} />
           <AlphabetMarkers coordinates={coordinates} />
@@ -341,7 +337,7 @@ const PolygonMarkerMap = (props: Props) => {
           handleInvalidArea={handleInvalidArea}
           handleCompletePress={trackingState === 'complete'}
           latestCoords={latestCoords} startCoord={coordinates.length > 0 ? coordinates[0] : null} isPaused={trackingState === 'pause'} />}
-      </MapLibreGL.MapView>
+      </Map>
       <SatelliteIconWrapper bottom={isTracking ? 120 : 0} />
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={coordinates.length > 0?70:20}/>
       {polygonComplete && (

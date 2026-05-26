@@ -10,45 +10,26 @@ interface MobileAppBannerProps {
   onOpenApp: () => void;
 }
 
-const MobileAppBanner: React.FC<MobileAppBannerProps> = ({ 
-  projectInvite, 
-  projectLink, 
-  onClose, 
-  onOpenApp 
-}) => {
-  const getInviteText = () => {
-    if (projectInvite) return `Project Invite: ${projectInvite.slice(0, 8)}...`;
-    if (projectLink) return `Project Link: ${projectLink.slice(0, 8)}...`;
-    return null;
-  };
-
-  return (
-    <div className="fixed top-0 left-0 right-0 bg-gradient-to-r from-green-600 to-green-500 text-white p-4 text-center z-50 shadow-lg animate-slide-down">
-      <button
-        onClick={onClose}
-        className="absolute top-2 right-4 text-white text-xl font-bold bg-transparent border-none cursor-pointer"
-        aria-label="Close banner"
-      >
-        ×
-      </button>
-      <div>
-        <div className="font-bold text-lg mb-1">🌳 Open in TreeMapper App</div>
-        <div className="text-sm mb-3">Get the full experience with our mobile app!</div>
-        {getInviteText() && (
-          <div className="text-xs mb-2 opacity-90">
-            {getInviteText()}
-          </div>
-        )}
-        <button
-          onClick={onOpenApp}
-          className="bg-white text-green-600 border-none px-4 py-2 rounded-full font-bold cursor-pointer hover:bg-gray-100 transition-colors"
-        >
-          Open App
-        </button>
-      </div>
+const MobileAppBanner: React.FC<MobileAppBannerProps> = ({ onClose, onOpenApp }) => (
+  <div className="fixed bottom-4 left-4 right-4 z-50 bg-white border border-gray-200 rounded-xl shadow-lg p-4 flex items-center gap-3">
+    <div className="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0">
+      <img src="/icon.png" alt="TreeMapper" className="w-full h-full object-cover" />
     </div>
-  );
-};
+    <div className="flex-1 min-w-0">
+      <p className="text-sm font-medium text-gray-900 leading-tight">Better on the app</p>
+      <p className="text-xs text-gray-500 mt-0.5">Open TreeMapper for the full experience</p>
+    </div>
+    <button
+      onClick={onOpenApp}
+      className="flex-shrink-0 bg-[#007A49] text-white text-xs font-medium px-3 py-1.5 rounded-full hover:bg-[#006040] transition-colors"
+    >
+      Open
+    </button>
+    <button onClick={onClose} className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors" aria-label="Close">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M1 1l12 12M13 1L1 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/></svg>
+    </button>
+  </div>
+);
 
 const MobileAppRedirectInner: React.FC = () => {
   const [showBanner, setShowBanner] = useState(false);
@@ -251,31 +232,6 @@ const MobileAppRedirectInner: React.FC = () => {
     }
   }, [showBanner]);
 
-  // Add CSS for animation
-  useEffect(() => {
-    if (showBanner) {
-      const style = document.createElement('style');
-      style.textContent = `
-        .animate-slide-down {
-          animation: slideDown 0.3s ease-out;
-        }
-        @keyframes slideDown {
-          from { transform: translateY(-100%); }
-          to { transform: translateY(0); }
-        }
-        body {
-          padding-top: ${showBanner ? '120px' : '0'};
-          transition: padding-top 0.3s ease;
-        }
-      `;
-      document.head.appendChild(style);
-      
-      return () => {
-        document.head.removeChild(style);
-        document.body.style.paddingTop = '0';
-      };
-    }
-  }, [showBanner]);
 
   if (!isMobile || !showBanner) {
     return null;

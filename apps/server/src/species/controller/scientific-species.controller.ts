@@ -6,22 +6,22 @@ import {
   Query,
   Param,
   Req,
+  UseGuards,
 } from '@nestjs/common';
 import { ScientificSpeciesService } from '../services/scientific-species.service';
 import { BulkUploadScientificSpeciesDto, ScientificSpeciesFilterDto } from '../dto/scientific-species.dto';
 import { SearchSpeciesQueryDto } from '../dto/search-species-query.dto';
 import { ExtendedUser } from 'src/users/entities/user.entity';
 import { CurrentUser } from 'src/auth/current-user.decorator';
+import { SuperAdminGuard } from 'src/auth/super-admin.guard';
 
 @Controller('scientific-species')
 export class ScientificSpeciesController {
   constructor(private readonly scientificSpeciesService: ScientificSpeciesService) { }
 
   @Post('bulk-upload')
+  @UseGuards(SuperAdminGuard)
   async bulkUpload(@Body() bulkUploadDto: BulkUploadScientificSpeciesDto, @CurrentUser() userData: ExtendedUser,) {
-    if(userData.type !== 'superadmin') {
-      throw new Error('Unauthorized');
-    } 
     return this.scientificSpeciesService.bulkUpload(bulkUploadDto);
   }
 

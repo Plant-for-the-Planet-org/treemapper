@@ -1,12 +1,14 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
-// import { SharedQueryProvider } from '@shared-core/api/index'
 import { Open_Sans } from 'next/font/google'
-import ResponsiveDashboardWrapper from "@/component/ResponsiveDashboardWrapper";
 import Auth0Provider from '@/providers/Auth0Provider';
 import I18nProvider from '@/providers/I18nProvider';
 import MobileAppRedirect from '@/component/MobileAppRedirect';
+import { TooltipProvider } from '@/components/ui/tooltip';
+import { cn } from "@/lib/utils";
+
+const inter = Inter({subsets:['latin'],variable:'--font-sans'});
 
 const openSans = Open_Sans({
   subsets: ['latin'],
@@ -47,7 +49,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={openSans.variable}>
+    <html lang="en" className={cn("font-sans", inter.variable)}>
       <head>
         {/* Apple App Site Association meta tag */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -65,15 +67,13 @@ export default function RootLayout({
         {/* Mobile App Redirect Component */}
         <MobileAppRedirect />
         
-        <ResponsiveDashboardWrapper>
+        <TooltipProvider delayDuration={300}>
           <Auth0Provider>
             <I18nProvider>
-              {/* <SharedQueryProvider> */}
               {children}
-              {/* </SharedQueryProvider> */}
             </I18nProvider>
           </Auth0Provider>
-        </ResponsiveDashboardWrapper>
+        </TooltipProvider>
       </body>
     </html>
   );

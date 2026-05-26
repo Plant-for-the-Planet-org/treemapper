@@ -82,7 +82,14 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
         {/* File Upload */}
         <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
-          <GeoJSONFileUpload onGeoJSONChange={handleGeoJSONChange} />
+          <GeoJSONFileUpload
+            onGeoJSONChange={handleGeoJSONChange}
+            allowedGeometryTypes={
+              currentConfig.type === 'single-tree-registration'
+                ? ['Point']
+                : ['Polygon', 'MultiPolygon']
+            }
+          />
         </div>
 
         {/* File Preview */}

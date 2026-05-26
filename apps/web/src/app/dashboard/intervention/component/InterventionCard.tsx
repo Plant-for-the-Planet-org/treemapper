@@ -71,9 +71,14 @@ interface InterventionCardProps {
   intervention: Intervention;
   isSelected: boolean;
   onClick: () => void;
+  isMultiSelectMode?: boolean;
+  isChecked?: boolean;
+  onToggleSelect?: (e: React.MouseEvent) => void;
+  isDisabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export const InterventionCard = ({ intervention, isSelected, onClick }: InterventionCardProps) => {
+export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSelectMode, isChecked, onToggleSelect, isDisabled, disabledTooltip }: InterventionCardProps) => {
   const IconComponent = interventionTypeIcons[intervention.type] || Target;
 
   const getCaptureStatusVariant = (status: string): 'success' | 'warning' | 'error' | 'outline' => {
@@ -95,13 +100,28 @@ export const InterventionCard = ({ intervention, isSelected, onClick }: Interven
 
   return (
     <Card
-      className={`cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-300 ${isSelected ? 'ring-2 ring-[#007A49] bg-[#007A49]/5 border-[#007A49]' : ''
-        }`}
-      onClick={onClick}
+      className={`transition-all duration-200 ${isDisabled && isMultiSelectMode ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:border-gray-300'} ${isSelected ? 'ring-2 ring-[#007A49] bg-[#007A49]/5 border-[#007A49]' : ''
+        } ${isChecked ? 'ring-2 ring-[#007A49] bg-[#007A49]/5' : ''}`}
+      title={isDisabled && isMultiSelectMode ? disabledTooltip : undefined}
+      onClick={
+        isMultiSelectMode
+          ? (isDisabled ? undefined : onToggleSelect)
+          : onClick
+      }
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
-          <div className={`relative p-2.5 rounded-lg transition-all duration-200 ${isSelected ? 'bg-[#007A49] text-white' : 'bg-gray-100 text-gray-600'
+          {isMultiSelectMode && (
+            <div
+              className="flex-shrink-0 mt-1"
+              onClick={(e) => { e.stopPropagation(); if (!isDisabled) onToggleSelect?.(e); }}
+            >
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isChecked ? 'bg-[#007A49] border-[#007A49]' : 'border-gray-300 bg-white'} ${isDisabled ? 'opacity-50' : ''}`}>
+                {isChecked && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              </div>
+            </div>
+          )}
+          <div className={`relative p-2.5 rounded-lg transition-all duration-200 ${isSelected && !isMultiSelectMode ? 'bg-[#007A49] text-white' : 'bg-gray-100 text-gray-600'
             }`}>
             <IconComponent className="h-4 w-4" />
             {intervention.flag && (
@@ -136,7 +156,7 @@ export const InterventionCard = ({ intervention, isSelected, onClick }: Interven
                   {intervention.hid}
                 </span>
                 {intervention.hasRecords && (
-                  <FileText className="h-3 w-3 text-blue-500" title="Has Records" />
+                  <FileText className="h-3 w-3 text-blue-500" aria-label="Has Records" />
                 )}
               </div>
 

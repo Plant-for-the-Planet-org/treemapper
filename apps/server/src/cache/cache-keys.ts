@@ -6,6 +6,7 @@ export const CACHE_KEYS = {
     BY_ID: (id: number) => `user:id:${id}`,
     BY_UID: (uid: string) => `user:uid:${uid}`,
     PROFILE: (userId: number) => `user:profile:${userId}`,
+    IMPERSONATING: (adminAuth0Id: string) => `user:impersonate:${adminAuth0Id}`,
   },
   AUTH: {
     JWT_BLACKLIST: (jti: string) => `auth:blacklist:${jti}`,

@@ -1,21 +1,25 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import 'maplibre-gl/dist/maplibre-gl.css';
 import Map, { Marker, Source, Layer } from 'react-map-gl/maplibre';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Trees,
-    MapPin,
     Activity,
     Calendar,
     Ruler,
     Heart,
     AlertCircle,
-    Wifi,
     RefreshCw,
     Loader2,
-    X
+    X,
+    Search,
+    Filter,
+    Plus,
+    Minus,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions } from '@shared-core/fetchApi/api.fetch';
+import { baseUrl } from '@shared-core/fetchApi/api.url';
 
 // ==================== TYPES ====================
 interface MapIntervention {
@@ -96,28 +100,31 @@ interface MapError {
 // ==================== UTILITY FUNCTIONS ====================
 const validateGeoJSONGeometry = (geometry: any): boolean => {
     try {
-        if (!geometry || !geometry.type || !geometry.coordinates) {
-            return false;
-        }
+        if (!geometry || !geometry.type || !geometry.coordinates) return false;
         switch (geometry.type) {
             case 'Point':
-                return Array.isArray(geometry.coordinates) &&
-                    geometry.coordinates.length === 2 &&
+                return (
+                    Array.isArray(geometry.coordinates) &&
+                    geometry.coordinates.length >= 2 &&
                     typeof geometry.coordinates[0] === 'number' &&
                     typeof geometry.coordinates[1] === 'number' &&
+                    isFinite(geometry.coordinates[0]) &&
+                    isFinite(geometry.coordinates[1]) &&
                     Math.abs(geometry.coordinates[0]) <= 180 &&
-                    Math.abs(geometry.coordinates[1]) <= 90;
+                    Math.abs(geometry.coordinates[1]) <= 90
+                );
             case 'Polygon':
-                return Array.isArray(geometry.coordinates) &&
+                return (
+                    Array.isArray(geometry.coordinates) &&
                     geometry.coordinates.length > 0 &&
                     Array.isArray(geometry.coordinates[0]) &&
-                    geometry.coordinates[0].length >= 4;
+                    geometry.coordinates[0].length >= 3
+                );
             case 'MultiPolygon':
-                return Array.isArray(geometry.coordinates) &&
-                    geometry.coordinates.length > 0 &&
-                    geometry.coordinates.every((polygon: any) =>
-                        Array.isArray(polygon) && polygon.length > 0
-                    );
+                return (
+                    Array.isArray(geometry.coordinates) &&
+                    geometry.coordinates.length > 0
+                );
             default:
                 return false;
         }
@@ -126,30 +133,32 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
     }
 };
 
-const getInterventionColor = (type: string, status: string): string => {
-    const colors = {
-        'single-tree-registration': '#10b981',
-        'multi-tree-registration': '#10b981',
-        'direct-seeding': '#10b981',
-        'enrichment-planting': '#059669',
-        'maintenance': '#0891b2',
-        'monitoring': '#7c3aed',
-        'removal-invasive-species': '#dc2626',
-        default: '#6b7280',
+const BRAND = '#007A49';
+const FILL_COLOR = '#68B030';
+const BORDER_COLOR = '#ffffff';
+
+const getInterventionColor = (type: string): string => {
+    const colors: Record<string, string> = {
+        'single-tree-registration': BRAND,
+        'multi-tree-registration': BRAND,
+        'direct-seeding': '#005c37',
+        'enrichment-planting': '#009a5c',
+        'maintenance': '#00b36b',
+        'monitoring': '#004d30',
+        'removal-invasive-species': '#c53030',
     };
-    const baseColor = colors[type as keyof typeof colors] || colors.default;
-    return status === 'completed' || status === 'active' ? baseColor : baseColor;
+    return colors[type] ?? BRAND;
 };
 
 const getTreeStatusColor = (status: string): string => {
-    const colors = {
+    const colors: Record<string, string> = {
         alive: '#10b981',
         dead: '#dc2626',
         sick: '#f59e0b',
         unknown: '#6b7280',
         removed: '#374151',
     };
-    return colors[status as keyof typeof colors] || colors.unknown;
+    return colors[status] ?? '#6b7280';
 };
 
 const formatDate = (dateString: string): string => {
@@ -166,264 +175,278 @@ const formatDate = (dateString: string): string => {
 
 const getMarkerPosition = (intervention: MapIntervention): [number, number] => {
     try {
-        // Handle Point geometry
         if (intervention.location.type === 'Point') {
             return intervention.location.coordinates as [number, number];
         }
-        
-        // Use centroid if available
         if (intervention.centroid) {
             return intervention.centroid.coordinates as [number, number];
         }
-        
-        // Calculate centroid for polygon geometries
         const centroid = turf.centroid(intervention.location as any);
         return centroid.geometry.coordinates as [number, number];
-    } catch (error) {
-        console.warn('Failed to get marker position for intervention:', intervention.hid, error);
+    } catch {
         return [0, 0];
     }
+};
+
+const zoomToIntervention = (intervention: MapIntervention, mapRef: any) => {
+    if (!mapRef) return;
+    try {
+        if (intervention.location.type === 'Polygon' || intervention.location.type === 'MultiPolygon') {
+            const [minLng, minLat, maxLng, maxLat] = turf.bbox(intervention.location as any);
+            mapRef.fitBounds([minLng, minLat, maxLng, maxLat], {
+                padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                duration: 1000,
+                maxZoom: 18,
+            });
+        } else {
+            const [lng, lat] = getMarkerPosition(intervention);
+            if (isFinite(lng) && isFinite(lat)) {
+                mapRef.flyTo({ center: [lng, lat], zoom: 16, duration: 1000 });
+            }
+        }
+    } catch { /* ignore */ }
 };
 
 const calculateBounds = (interventions: MapIntervention[]): ProjectMapBounds => {
     try {
         if (interventions.length === 0) {
-            return {
-                bounds: [-180, -85, 180, 85],
-                center: [0, 0],
-            };
+            return { bounds: [-180, -85, 180, 85], center: [0, 0] };
         }
-
-        const validInterventions = interventions.filter(i => 
-            validateGeoJSONGeometry(i.location)
-        );
-
-        if (validInterventions.length === 0) {
-            return {
-                bounds: [-180, -85, 180, 85],
-                center: [0, 0],
-            };
-        }
-
-        // Get all coordinates for bounds calculation
-        let allCoords: number[][] = [];
-        
-        validInterventions.forEach(intervention => {
-            if (intervention.location.type === 'Point') {
-                allCoords.push(intervention.location.coordinates as number[]);
+        const allCoords: number[][] = [];
+        interventions.forEach(i => {
+            if (i.location.type === 'Point') {
+                allCoords.push(i.location.coordinates as number[]);
             } else {
-                // For polygons, use centroid
                 try {
-                    const centroid = turf.centroid(intervention.location as any);
-                    allCoords.push(centroid.geometry.coordinates);
-                } catch (error) {
-                    console.warn('Failed to calculate centroid for intervention:', intervention.hid);
-                }
+                    const c = turf.centroid(i.location as any);
+                    allCoords.push(c.geometry.coordinates);
+                } catch { /* skip */ }
             }
         });
+        if (allCoords.length === 0) return { bounds: [-180, -85, 180, 85], center: [0, 0] };
 
-        if (allCoords.length === 0) {
-            return {
-                bounds: [-180, -85, 180, 85],
-                center: [0, 0],
-            };
-        }
-
-        // Calculate bounds from coordinates
-        const lngs = allCoords.map(coord => coord[0]);
-        const lats = allCoords.map(coord => coord[1]);
-        
+        const lngs = allCoords.map(c => c[0]);
+        const lats = allCoords.map(c => c[1]);
         const minLng = Math.min(...lngs);
         const maxLng = Math.max(...lngs);
         const minLat = Math.min(...lats);
         const maxLat = Math.max(...lats);
-
-        // Add small padding
-        const lngPadding = (maxLng - minLng) * 0.1 || 0.01;
-        const latPadding = (maxLat - minLat) * 0.1 || 0.01;
+        const lngPad = (maxLng - minLng) * 0.1 || 0.01;
+        const latPad = (maxLat - minLat) * 0.1 || 0.01;
 
         return {
-            bounds: [
-                minLng - lngPadding,
-                minLat - latPadding,
-                maxLng + lngPadding,
-                maxLat + latPadding
-            ],
+            bounds: [minLng - lngPad, minLat - latPad, maxLng + lngPad, maxLat + latPad],
             center: [(minLng + maxLng) / 2, (minLat + maxLat) / 2],
         };
-    } catch (error) {
-        console.warn('Failed to calculate bounds:', error);
-        return {
-            bounds: [-180, -85, 180, 85],
-            center: [0, 0],
-        };
+    } catch {
+        return { bounds: [-180, -85, 180, 85], center: [0, 0] };
     }
 };
 
 // ==================== API FUNCTIONS ====================
 const fetchProjectInterventions = async (projectId: string, token: string): Promise<ApiResponse<ProjectMapResponse>> => {
-    try {
-        const response = await getAllMapInterevntions(token, projectId);
+    const response = await getAllMapInterevntions(token, projectId);
+    const apiData = response.data?.data || response.data;
+    const rawInterventions = apiData?.interventions || [];
+    const apiBounds = apiData?.bounds;
 
-        // Handle the nested data structure from API response
-        const apiData = response.data?.data || response.data;
-        const rawInterventions = apiData?.interventions || [];
-        const apiBounds = apiData?.bounds;
+    const processed = rawInterventions.map((i: any) => ({
+        ...i,
+        locationGeometryType: i.locationGeometryType || i.location?.type || 'Point',
+    }));
 
-        console.log('Raw API response:', response);
-        console.log('Extracted interventions:', rawInterventions.length);
-
-        // Process interventions - add locationGeometryType if missing
-        const processedInterventions = rawInterventions.map((intervention: any) => ({
-            ...intervention,
-            locationGeometryType: intervention.locationGeometryType || intervention.location?.type || 'Point'
-        }));
-
-        // Validate geometries
-        const validInterventions = processedInterventions.filter((intervention: MapIntervention) => {
-            const isValid = validateGeoJSONGeometry(intervention.location);
-            if (!isValid) {
-                console.warn(`Invalid geometry for intervention ${intervention.hid}:`, intervention.location);
-            }
-            return isValid;
-        });
-
-        console.log('Valid interventions loaded:', validInterventions.length);
-        console.log('Sample intervention:', validInterventions[0]);
-
-        // Use API bounds if available, otherwise calculate
-        let bounds: ProjectMapBounds;
-        if (apiBounds && apiBounds.bounds && apiBounds.center) {
-            bounds = apiBounds;
-            console.log('Using API bounds:', bounds);
-        } else {
-            bounds = calculateBounds(validInterventions);
-            console.log('Calculated bounds:', bounds);
-        }
-
-        return {
-            success: true,
-            data: {
-                interventions: validInterventions,
-                bounds: bounds,
-                totalInterventions: validInterventions.length,
-            },
-        };
-    } catch (error: any) {
-        console.error('Error fetching interventions:', error);
-        throw {
-            type: 'network',
-            message: 'Failed to connect to server',
-            details: error.message,
-            recoverable: true,
-        };
+    const valid = processed.filter((i: MapIntervention) => validateGeoJSONGeometry(i.location));
+    const dropped = processed.length - valid.length;
+    if (dropped > 0) {
+        console.warn(`${dropped} interventions skipped due to invalid geometry`);
     }
+
+    const bounds = apiBounds?.bounds && apiBounds?.center
+        ? apiBounds
+        : calculateBounds(valid);
+
+    return {
+        success: true,
+        data: {
+            interventions: valid,
+            bounds,
+            totalInterventions: valid.length,
+        },
+    };
 };
 
-import { baseUrl } from '@shared-core/fetchApi/api.url';
-
 const fetchInterventionTrees = async (interventionId: number, token?: string): Promise<ApiResponse<InterventionTreesResponse>> => {
-    try {
-        // Use shared baseUrl (usually '/api/server') so requests go to backend proxy
-        const url = `${baseUrl}/interventions/${interventionId}/map/tree`;
-        const headers: Record<string,string> = { 'Accept': 'application/json' };
-        if (token) headers['Authorization'] = `Bearer ${token}`;
-        const response = await fetch(url, { headers });
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-        }
-        const data = await response.json();
-        // Normalize response: controller returns { success: true, data: { trees, intervention, bounds } }
-        if (data?.success && data.data) {
-            return data as ApiResponse<InterventionTreesResponse>;
-        }
-        // Fallback: if API returns trees directly
-        if (Array.isArray(data?.trees)) {
-            return { success: true, data };
-        }
-        return {
-            success: false,
-            data: { trees: [], intervention: {} as MapIntervention, bounds: { bounds: [-180, -85, 180, 85], center: [0, 0] } },
-            message: 'Unexpected response format'
-        };
-    } catch (error: any) {
-        console.error('Error fetching trees:', error);
-        throw {
-            type: 'network',
-            message: 'Failed to load tree data',
-            details: error.message,
-            recoverable: true,
-        };
-    }
+    const url = `${baseUrl}/interventions/${interventionId}/map/tree`;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const data = await response.json();
+    if (data?.success && data.data) return data as ApiResponse<InterventionTreesResponse>;
+    if (Array.isArray(data?.trees)) return { success: true, data };
+    return {
+        success: false,
+        data: { trees: [], intervention: {} as MapIntervention, bounds: { bounds: [-180, -85, 180, 85], center: [0, 0] } },
+        message: 'Unexpected response format',
+    };
 };
 
 // ==================== COMPONENTS ====================
-// Filter panel for map controls
-const FilterPanel: React.FC<{
+
+const InterventionSidebar: React.FC<{
+    interventions: MapIntervention[];
+    selectedId: number | null;
+    onSelect: (intervention: MapIntervention) => void;
+    hidSearch: string;
+    onHidSearch: (v: string) => void;
     types: string[];
     statuses: string[];
     activeTypes: Set<string>;
     activeStatuses: Set<string>;
-    showPolygons: boolean;
-    showPoints: boolean;
-    showHints: boolean;
-    onToggleType: (type: string) => void;
-    onToggleStatus: (status: string) => void;
-    onTogglePolygons: () => void;
-    onTogglePoints: () => void;
-    onToggleHints: () => void;
-}> = ({ types, statuses, activeTypes, activeStatuses, showPolygons, showPoints, showHints, onToggleType, onToggleStatus, onTogglePolygons, onTogglePoints, onToggleHints }) => {
+    onToggleType: (t: string) => void;
+    onToggleStatus: (s: string) => void;
+    total: number;
+}> = ({ interventions, selectedId, onSelect, hidSearch, onHidSearch, types, statuses, activeTypes, activeStatuses, onToggleType, onToggleStatus, total }) => {
+    const [filterOpen, setFilterOpen] = useState(false);
+    const listRef = useRef<HTMLDivElement>(null);
+    const allTypesActive = types.every(t => activeTypes.has(t));
+    const allStatusesActive = statuses.every(s => activeStatuses.has(s));
+    const hasFilter = hidSearch || !allTypesActive || !allStatusesActive;
+
+    useEffect(() => {
+        if (selectedId == null) return;
+        const el = listRef.current?.querySelector(`[data-id="${selectedId}"]`);
+        el?.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    }, [selectedId]);
+
     return (
-        <div className="absolute top-4 left-4 z-40 bg-white rounded-lg shadow-lg p-3 w-64 border border-gray-100">
-            <div className="flex items-center justify-between mb-2">
-                <h4 className="text-sm font-medium text-gray-800">Map Filters</h4>
-                <span className="text-xs text-gray-500">{types.length} types</span>
+        <div className="absolute top-4 left-4 bottom-20 z-40 w-72 flex flex-col bg-white border border-gray-100" style={{ borderRadius: 16, overflow: 'hidden', boxShadow: '0 8px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.10)' }}>
+            {/* Header: search + filter */}
+            <div className="shrink-0 border-b border-gray-100">
+                <div className="flex items-center gap-2 px-3 pt-3 pb-2">
+                    <Search className="w-4 h-4 text-gray-400 shrink-0" />
+                    <input
+                        value={hidSearch}
+                        onChange={e => onHidSearch(e.target.value)}
+                        placeholder="Search by HID..."
+                        className="flex-1 text-sm outline-none bg-transparent placeholder-gray-400"
+                    />
+                    {hidSearch && (
+                        <button onClick={() => onHidSearch('')} className="text-gray-400 hover:text-gray-600">
+                            <X className="w-3.5 h-3.5" />
+                        </button>
+                    )}
+                    <button
+                        onClick={() => setFilterOpen(o => !o)}
+                        className="p-1 rounded transition-colors"
+                        style={{ color: filterOpen || hasFilter ? '#007A49' : undefined }}
+                    >
+                        <Filter className="w-3.5 h-3.5" />
+                    </button>
+                </div>
+                <div className="px-3 pb-2 flex items-center gap-2">
+                    <span className="text-xs text-gray-500">
+                        {interventions.length === total
+                            ? `${total} interventions`
+                            : `${interventions.length} of ${total} shown`}
+                    </span>
+                    {hasFilter && interventions.length < total && (
+                        <span className="text-xs bg-amber-50 text-amber-600 border border-amber-200 px-1.5 py-0.5 rounded-full">filtered</span>
+                    )}
+                </div>
+
+                <AnimatePresence>
+                    {filterOpen && (
+                        <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="overflow-hidden border-t border-gray-100"
+                        >
+                            <div className="px-3 py-3 space-y-3">
+                                {types.length > 0 && (
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Type</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {types.map(t => (
+                                                <button
+                                                    key={t}
+                                                    onClick={() => onToggleType(t)}
+                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors"
+                                                    style={activeTypes.has(t) ? {
+                                                        backgroundColor: 'rgba(0,122,73,0.08)',
+                                                        borderColor: 'rgba(0,122,73,0.4)',
+                                                        color: '#007A49',
+                                                    } : undefined}
+                                                >
+                                                    {t.replace(/-/g, ' ')}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                                {statuses.length > 0 && (
+                                    <div>
+                                        <div className="text-xs font-medium text-gray-500 mb-1.5">Status</div>
+                                        <div className="flex flex-wrap gap-1">
+                                            {statuses.map(s => (
+                                                <button
+                                                    key={s}
+                                                    onClick={() => onToggleStatus(s)}
+                                                    className="text-xs px-2 py-0.5 rounded-full border transition-colors capitalize"
+                                                    style={activeStatuses.has(s) ? {
+                                                        backgroundColor: 'rgba(0,122,73,0.08)',
+                                                        borderColor: 'rgba(0,122,73,0.4)',
+                                                        color: '#007A49',
+                                                    } : undefined}
+                                                >
+                                                    {s}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
-            <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
-                <div>
-                    <div className="text-xs font-semibold text-gray-600 mb-1">Types</div>
-                    {types.map(t => (
-                        <label key={t} className="flex items-center gap-2 text-sm">
-                            <input
-                                type="checkbox"
-                                checked={activeTypes.has(t)}
-                                onChange={() => onToggleType(t)}
-                                className="form-checkbox"
-                            />
-                            <span className="capitalize">{t.replace(/-/g, ' ')}</span>
-                        </label>
-                    ))}
-                </div>
-                <div>
-                    <div className="text-xs font-semibold text-gray-600 mb-1">Status</div>
-                    {statuses.map(s => (
-                        <label key={s} className="flex items-center gap-2 text-sm">
-                            <input
-                                type="checkbox"
-                                checked={activeStatuses.has(s)}
-                                onChange={() => onToggleStatus(s)}
-                                className="form-checkbox"
-                            />
-                            <span className="capitalize">{s}</span>
-                        </label>
-                    ))}
-                </div>
-            </div>
-
-            <div className="border-t border-gray-100 mt-2 pt-2 text-sm space-y-2">
-                <label className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Show polygon fills</span>
-                    <input type="checkbox" checked={showPolygons} onChange={onTogglePolygons} />
-                </label>
-                <label className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Show point markers</span>
-                    <input type="checkbox" checked={showPoints} onChange={onTogglePoints} />
-                </label>
-                <label className="flex items-center justify-between">
-                    <span className="text-sm text-gray-700">Show polygon hints (low zoom)</span>
-                    <input type="checkbox" checked={showHints} onChange={onToggleHints} />
-                </label>
+            {/* Scrollable intervention list */}
+            <div ref={listRef} className="flex-1 overflow-y-auto p-2 space-y-0.5">
+                {interventions.map(i => (
+                    <button
+                        key={i.id}
+                        data-id={i.id}
+                        onClick={() => onSelect(i)}
+                        className="w-full text-left px-3 py-2.5 rounded-lg border transition-all"
+                        style={selectedId === i.id ? {
+                            borderColor: 'rgba(0,122,73,0.35)',
+                            backgroundColor: 'rgba(0,122,73,0.06)',
+                        } : undefined}
+                    >
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                            <span className="font-mono text-xs font-semibold text-gray-800 truncate">{i.hid}</span>
+                            <span
+                                className="text-xs px-1.5 py-0.5 rounded-full shrink-0 capitalize leading-none"
+                                style={i.status === 'complete' || i.status === 'completed' ? {
+                                    backgroundColor: 'rgba(0,122,73,0.1)',
+                                    color: '#007A49',
+                                } : undefined}
+                            >
+                                {i.status}
+                            </span>
+                        </div>
+                        <div className="text-xs text-gray-500 capitalize mb-1">{i.type.replace(/-/g, ' ')}</div>
+                        <div className="flex items-center gap-3 text-xs text-gray-400">
+                            <span>{(i.totalTreeCount ?? 0).toLocaleString()} trees</span>
+                            {i.area && <span>{i.area.toFixed(1)} m²</span>}
+                        </div>
+                    </button>
+                ))}
+                {interventions.length === 0 && (
+                    <div className="py-10 text-center text-xs text-gray-400">No interventions match filters</div>
+                )}
             </div>
         </div>
     );
@@ -438,35 +461,26 @@ const ErrorDisplay: React.FC<{
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: -20 }}
-        className="absolute top-4 left-1/2 transform -translate-x-1/2 z-50
-               bg-white rounded-lg shadow-xl border border-red-200 max-w-md"
+        className="absolute top-4 left-1/2 -translate-x-1/2 z-50 bg-white rounded-lg shadow-xl border border-red-200 max-w-md"
     >
         <div className="p-4">
             <div className="flex items-start gap-3">
-                <div className="flex-shrink-0">
-                    <AlertCircle className="w-5 h-5 text-red-500" />
-                </div>
+                <AlertCircle className="w-5 h-5 text-red-500 shrink-0 mt-0.5" />
                 <div className="flex-1">
                     <h3 className="font-medium text-gray-900 mb-1">Map Error</h3>
                     <p className="text-sm text-gray-600 mb-3">{error.message}</p>
-                    <div className="flex gap-2">
-                        {error.recoverable && onRetry && (
-                            <button
-                                onClick={onRetry}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm
-                                 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-                            >
-                                <RefreshCw className="w-3 h-3" />
-                                Retry
-                            </button>
-                        )}
-                    </div>
+                    {error.recoverable && onRetry && (
+                        <button
+                            onClick={onRetry}
+                            className="inline-flex items-center gap-1 px-3 py-1.5 text-sm bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                        >
+                            <RefreshCw className="w-3 h-3" />
+                            Retry
+                        </button>
+                    )}
                 </div>
                 {onDismiss && (
-                    <button
-                        onClick={onDismiss}
-                        className="flex-shrink-0 text-gray-400 hover:text-gray-600 transition-colors"
-                    >
+                    <button onClick={onDismiss} className="text-gray-400 hover:text-gray-600 shrink-0">
                         <X className="w-4 h-4" />
                     </button>
                 )}
@@ -475,86 +489,14 @@ const ErrorDisplay: React.FC<{
     </motion.div>
 );
 
-const LoadingDisplay: React.FC<{ message?: string }> = ({ message = "Loading map..." }) => (
+const LoadingDisplay: React.FC<{ message?: string }> = ({ message = 'Loading map...' }) => (
     <div className="absolute inset-0 bg-gray-50 flex items-center justify-center z-40">
         <div className="text-center">
-            <Loader2 className="w-8 h-8 animate-spin text-gray-600 mx-auto mb-4" />
-            <p className="text-gray-600">{message}</p>
+            <Loader2 className="w-8 h-8 animate-spin text-gray-400 mx-auto mb-3" />
+            <p className="text-sm text-gray-500">{message}</p>
         </div>
     </div>
 );
-
-const InterventionMarker: React.FC<{
-    intervention: MapIntervention;
-    isSelected: boolean;
-    isHovered: boolean;
-    onClick: () => void;
-    onMouseEnter: () => void;
-    onMouseLeave: () => void;
-}> = ({ intervention, isSelected, isHovered, onClick, onMouseEnter, onMouseLeave }) => {
-    const color = getInterventionColor(intervention.type, intervention.status);
-    const size = isSelected ? 28 : isHovered ? 24 : 20; // Increased sizes for better visibility
-    const [lng, lat] = getMarkerPosition(intervention);
-
-    // Don't render if coordinates are invalid
-    if (!lng || !lat || Math.abs(lng) > 180 || Math.abs(lat) > 90) {
-        console.warn(`Invalid coordinates for intervention ${intervention.hid}:`, lng, lat);
-        return null;
-    }
-
-    return (
-        <Marker
-            longitude={lng}
-            latitude={lat}
-            onClick={(e) => {
-                e.originalEvent.stopPropagation();
-                onClick();
-            }}
-        >
-            <motion.div
-                className="cursor-pointer relative"
-                onMouseEnter={onMouseEnter}
-                onMouseLeave={onMouseLeave}
-                animate={{ scale: isSelected ? 1.2 : isHovered ? 1.1 : 1 }}
-                transition={{ duration: 0.2 }}
-                style={{ zIndex: isSelected ? 1000 : isHovered ? 999 : 10 }}
-            >
-                <div
-                    className={`rounded-full border-3 border-white shadow-lg ${
-                        isSelected ? 'ring-4 ring-blue-500 ring-offset-2' : ''
-                    }`}
-                    style={{
-                        backgroundColor: color,
-                        width: size,
-                        height: size,
-                    }}
-                />
-
-                {(intervention.locationGeometryType === 'Polygon' ||
-                  intervention.locationGeometryType === 'MultiPolygon') && (
-                    <div
-                        className="absolute -bottom-1 -right-1 w-4 h-4 bg-white rounded-full border-2 border-gray-300 flex items-center justify-center shadow-md"
-                        title={`${intervention.locationGeometryType} geometry`}
-                    >
-                        <div className="w-2 h-2 bg-gray-600 rounded-sm"></div>
-                    </div>
-                )}
-
-                {isHovered && !isSelected && (
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        className="absolute -top-12 left-1/2 transform -translate-x-1/2
-                               bg-gray-900 text-white text-xs px-2 py-1 rounded
-                               whitespace-nowrap z-10 shadow-lg"
-                    >
-                        {intervention.hid} - {intervention.type.replace(/-/g, ' ')}
-                    </motion.div>
-                )}
-            </motion.div>
-        </Marker>
-    );
-};
 
 const TreeMarker: React.FC<{
     tree: MapTree;
@@ -563,27 +505,16 @@ const TreeMarker: React.FC<{
 }> = ({ tree, isSelected, onClick }) => {
     const color = getTreeStatusColor(tree.status);
     const [lng, lat] = tree.location.coordinates as [number, number];
-
-    if (!lng || !lat || Math.abs(lng) > 180 || Math.abs(lat) > 90) {
-        return null;
-    }
+    if (!isFinite(lng) || !isFinite(lat) || Math.abs(lng) > 180 || Math.abs(lat) > 90) return null;
 
     return (
         <Marker longitude={lng} latitude={lat} onClick={onClick}>
-            <motion.div
-                className="cursor-pointer"
-                animate={{ scale: isSelected ? 1.3 : 1 }}
-                transition={{ duration: 0.2 }}
-            >
-                <Trees
-                    size={isSelected ? 20 : 16}
-                    color={color}
-                    fill={color}
-                    className={`drop-shadow-sm ${
-                        isSelected ? 'ring-2 ring-blue-500 ring-offset-1 rounded' : ''
-                    }`}
-                />
-            </motion.div>
+            <Trees
+                size={isSelected ? 20 : 16}
+                color={color}
+                fill={color}
+                className="cursor-pointer drop-shadow-sm"
+            />
         </Marker>
     );
 };
@@ -596,7 +527,7 @@ const InterventionPanel: React.FC<{
     onZoomTo?: (intervention: MapIntervention) => void;
     treesCount?: number;
 }> = ({ intervention, onClose, onLoadTrees, isLoadingTrees = false, onZoomTo, treesCount = 0 }) => {
-    const centroidText = React.useMemo(() => {
+    const centroidText = useMemo(() => {
         try {
             let c: any;
             if (intervention.centroid) {
@@ -614,114 +545,114 @@ const InterventionPanel: React.FC<{
 
     return (
         <motion.div
-            initial={{ x: 300, opacity: 0 }}
+            initial={{ x: 320, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 300, opacity: 0 }}
-            className="absolute top-4 right-4 w-96 bg-white rounded-lg shadow-2xl 
-                   border border-gray-200 z-50 max-h-[75vh] overflow-y-auto"
+            exit={{ x: 320, opacity: 0 }}
+            className="absolute top-4 right-4 w-88 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[80vh] overflow-y-auto"
+            style={{ width: 360 }}
         >
+            {/* Header */}
             <div className="p-4 border-b border-gray-100">
                 <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                        <h3 className="font-semibold text-gray-900 text-lg">{intervention.hid}</h3>
-                        <div className="flex items-center gap-2 mt-1">
-                            <span className="text-xs bg-gray-100 text-gray-700 px-2 py-0.5 rounded">
+                    <div className="flex-1 min-w-0">
+                        <div className="font-semibold text-gray-900 truncate">{intervention.hid}</div>
+                        <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
+                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
                                 {intervention.type.replace(/-/g, ' ')}
                             </span>
-                            {(() => {
-                                const statusClass = intervention.status === 'completed' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800';
-                                return (
-                                    <span className={`text-xs px-2 py-0.5 rounded ${statusClass}`}>
-                                        {intervention.status}
-                                    </span>
-                                );
-                            })()}
-                            <span className="text-xs bg-gray-50 text-gray-500 px-2 py-0.5 rounded">
-                                {intervention.locationGeometryType || intervention.location.type}
+                            <span
+                                className="text-xs px-2 py-0.5 rounded-full capitalize"
+                                style={intervention.status === 'complete' || intervention.status === 'completed' ? {
+                                    backgroundColor: 'rgba(0,122,73,0.08)',
+                                    color: '#007A49',
+                                } : undefined}
+                            >
+                                {intervention.status}
                             </span>
                         </div>
                     </div>
-                    <div className="flex-shrink-0 flex flex-col items-end gap-2">
-                        <button
-                            onClick={onClose}
-                            className="text-gray-400 hover:text-gray-600 transition-colors"
-                        >
-                            <X className="w-4 h-4" />
-                        </button>
+                    <div className="flex items-center gap-1 shrink-0">
                         <button
                             onClick={() => onZoomTo?.(intervention)}
-                            className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
-                            title="Zoom to intervention"
+                            className="text-xs px-2 py-1 rounded transition-colors hover:bg-gray-50"
+                            style={{ color: '#007A49' }}
                         >
                             Zoom
+                        </button>
+                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
+                            <X className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
             </div>
-            <div className="p-4 space-y-3">
-                <div className="grid grid-cols-2 gap-3 text-sm text-gray-700">
-                    <div className="flex items-center gap-2">
-                        <Activity size={14} className="text-gray-400" />
-                        <div>
-                            <div className="text-xs text-gray-500">Start</div>
-                            <div className="font-medium">{formatDate(intervention.interventionStartDate)}</div>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-2">
-                        <Calendar size={14} className="text-gray-400" />
-                        <div>
-                            <div className="text-xs text-gray-500">Registered</div>
-                            <div className="font-medium">{formatDate(intervention.registrationDate)}</div>
-                        </div>
-                    </div>
 
-                    <div className="flex items-center gap-2">
-                        <Trees size={14} className="text-gray-400" />
-                        <div>
-                            <div className="text-xs text-gray-500">Total Trees</div>
-                            <div className="font-medium">{intervention.totalTreeCount ? intervention.totalTreeCount.toLocaleString() : 0}</div>
+            {/* Body */}
+            <div className="p-4 space-y-4">
+                <div className="grid grid-cols-2 gap-3">
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Start</div>
+                        <div className="text-sm text-gray-800">{formatDate(intervention.interventionStartDate)}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Registered</div>
+                        <div className="text-sm text-gray-800">{formatDate(intervention.registrationDate)}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Trees</div>
+                        <div className="text-sm font-medium text-gray-800">
+                            {intervention.totalTreeCount?.toLocaleString() ?? 0}
                         </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                        <Ruler size={14} className="text-gray-400" />
-                        <div>
-                            <div className="text-xs text-gray-500">Area</div>
-                            <div className="font-medium">{intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}</div>
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Area</div>
+                        <div className="text-sm text-gray-800">
+                            {intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}
                         </div>
                     </div>
+                </div>
 
-                    <div className="col-span-2">
-                        <div className="text-xs text-gray-500">Description</div>
-                        <p className="text-sm text-gray-700 mt-1">{intervention.description || 'No description provided.'}</p>
+                {intervention.description && (
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Description</div>
+                        <p className="text-sm text-gray-700">{intervention.description}</p>
                     </div>
+                )}
 
-                    {intervention.image && (
-                        <div className="col-span-2">
-                            <div className="text-xs text-gray-500">Image</div>
-                            <img src={intervention.image} alt={intervention.hid} className="mt-2 w-full h-40 object-cover rounded" />
-                        </div>
-                    )}
+                {intervention.image && (
+                    <img
+                        src={intervention.image}
+                        alt={intervention.hid}
+                        className="w-full h-36 object-cover rounded-lg"
+                    />
+                )}
 
-                    <div className="col-span-2 flex items-center justify-between gap-2 mt-2">
-                        <div className="text-sm text-gray-600">
-                            Sample trees: <span className="font-medium">{intervention.totalSampleTreeCount ?? '—'}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={() => onLoadTrees?.(intervention.id)}
-                                className="inline-flex items-center gap-2 px-3 py-1.5 bg-green-600 text-white text-sm rounded hover:bg-green-700"
-                            >
-                                {isLoadingTrees ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Load Trees'}
-                            </button>
-                            <div className="text-xs text-gray-500">Loaded: {treesCount}</div>
-                        </div>
+                {/* Load Trees */}
+                <div className="flex items-center justify-between pt-1">
+                    <span className="text-sm text-gray-500">
+                        Sample trees: <span className="font-medium text-gray-700">{intervention.totalSampleTreeCount ?? '—'}</span>
+                        {treesCount > 0 && <span className="ml-2" style={{ color: '#007A49' }}>({treesCount} loaded)</span>}
+                    </span>
+                    <button
+                        onClick={() => onLoadTrees?.(intervention.id)}
+                        disabled={isLoadingTrees}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-lg disabled:opacity-60 transition-opacity"
+                        style={{ backgroundColor: '#007A49' }}
+                    >
+                        {isLoadingTrees ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trees className="w-3 h-3" />}
+                        {isLoadingTrees ? 'Loading...' : 'Load Trees'}
+                    </button>
+                </div>
+
+                {/* Meta */}
+                <div className="pt-2 border-t border-gray-100 space-y-1">
+                    <div className="text-xs text-gray-400">
+                        HID: <span className="font-mono text-gray-600">{intervention.hid}</span>
                     </div>
-
-                    <div className="col-span-2 pt-2 border-t border-gray-100 text-xs text-gray-500">
-                        <div>UID: <span className="text-gray-700 font-mono text-xs">{intervention.uid}</span></div>
-                        <div>HID: <span className="text-gray-700 font-mono text-xs">{intervention.hid}</span></div>
-                        <div>Geometry Type: <span className="text-gray-700">{intervention.locationGeometryType || intervention.location.type}</span></div>
-                        <div className="mt-1">Centroid: <span className="text-gray-700">{centroidText}</span></div>
+                    <div className="text-xs text-gray-400">
+                        Geometry: <span className="text-gray-600">{intervention.locationGeometryType || intervention.location.type}</span>
+                    </div>
+                    <div className="text-xs text-gray-400">
+                        Centroid: <span className="font-mono text-gray-600">{centroidText}</span>
                     </div>
                 </div>
             </div>
@@ -734,141 +665,49 @@ const TreeTooltip: React.FC<{
     onClose: () => void;
 }> = ({ tree, onClose }) => (
     <motion.div
-        initial={{ scale: 0.8, opacity: 0 }}
+        initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.8, opacity: 0 }}
-        className="absolute top-4 right-4 w-72 bg-white rounded-lg shadow-xl 
-               border border-gray-200 z-30"
+        exit={{ scale: 0.9, opacity: 0 }}
+        className="absolute top-4 right-4 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-30"
     >
-        <div className="p-4 border-b border-gray-100">
-            <div className="flex items-center justify-between">
-                <h3 className="font-semibold text-gray-900">
-                    {tree.tag || tree.hid}
-                </h3>
-                <button
-                    onClick={onClose}
-                    className="text-gray-400 hover:text-gray-600 transition-colors"
-                >
-                    <X className="w-4 h-4" />
-                </button>
+        <div className="p-3 border-b border-gray-100 flex items-center justify-between">
+            <div>
+                <div className="font-medium text-gray-900 text-sm">{tree.tag || tree.hid}</div>
+                {tree.speciesName && <div className="text-xs text-gray-500">{tree.speciesName}</div>}
             </div>
-            {tree.speciesName && (
-                <p className="text-sm text-gray-600">{tree.speciesName}</p>
-            )}
+            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+                <X className="w-4 h-4" />
+            </button>
         </div>
-        <div className="p-4 space-y-3">
+        <div className="p-3 space-y-2">
             <div className="flex items-center gap-2 text-sm">
-                <Activity size={16} className="text-gray-400" />
-                <span className="capitalize font-medium">{tree.status}</span>
-                <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: getTreeStatusColor(tree.status) }}
-                />
+                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getTreeStatusColor(tree.status) }} />
+                <span className="capitalize text-gray-700">{tree.status}</span>
             </div>
             {tree.currentHeight && (
-                <div className="flex items-center gap-2 text-sm">
-                    <Ruler size={16} className="text-gray-400" />
-                    <span>Height: {tree.currentHeight}cm</span>
-                </div>
+                <div className="text-xs text-gray-600">Height: {tree.currentHeight} cm</div>
             )}
             {tree.currentHealthScore && (
-                <div className="flex items-center gap-2 text-sm">
-                    <Heart size={16} className="text-gray-400" />
-                    <span>Health: {tree.currentHealthScore}/100</span>
-                </div>
+                <div className="text-xs text-gray-600">Health: {tree.currentHealthScore}/100</div>
             )}
         </div>
     </motion.div>
 );
 
-const MapLegend: React.FC<{
-    selectedIntervention?: MapIntervention;
-    treeCount: number;
-}> = ({ selectedIntervention, treeCount }) => (
-    <div className="absolute bottom-[23%] left-4 bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-gray-100 p-3 max-w-[280px] z-20">
-        <div className="flex items-center gap-2 mb-3">
-            <div className="w-1 h-4 bg-emerald-500 rounded-full"></div>
-            <h4 className="font-medium text-gray-800 text-sm">Legend</h4>
-        </div>
-        
-        <div className="space-y-2">
-            <div className="space-y-1.5">
-                <div className="flex items-center gap-2.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1 ring-emerald-500/20"></div>
-                    <span className="text-xs text-gray-700">Active Interventions</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <div className="w-2.5 h-2.5 rounded-full bg-emerald-300 ring-1 ring-emerald-300/30"></div>
-                    <span className="text-xs text-gray-700">Planned Interventions</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <div className="relative">
-                        <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 ring-1 ring-white ring-offset-1 ring-offset-emerald-500/20"></div>
-                        <div className="absolute -bottom-0.5 -right-0.5 w-1 h-1 bg-gray-500 rounded-sm"></div>
-                    </div>
-                    <span className="text-xs text-gray-700">Polygon Areas</span>
-                </div>
-            </div>
-            
-            <div className="border-t border-gray-100 my-2"></div>
-            
-            <div className="space-y-1.5">
-                <div className="flex items-center gap-2.5">
-                    <Trees size={12} className="text-emerald-500" strokeWidth={2.5} />
-                    <span className="text-xs text-gray-700">Healthy Trees</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <Trees size={12} className="text-amber-500" strokeWidth={2.5} />
-                    <span className="text-xs text-gray-700">Sick Trees</span>
-                </div>
-                <div className="flex items-center gap-2.5">
-                    <Trees size={12} className="text-red-500" strokeWidth={2.5} />
-                    <span className="text-xs text-gray-700">Dead Trees</span>
-                </div>
-            </div>
-        </div>
-    </div>
-);
-
-const MapStats: React.FC<{
-    interventions: MapIntervention[];
-    selectedIntervention?: MapIntervention;
-    treeCount: number;
-}> = ({ interventions, selectedIntervention, treeCount }) => (
-    <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-4 min-w-48 z-20">
-        <div className="space-y-2">
-            <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Total Interventions:</span>
-                <span className="font-semibold">{interventions.length}</span>
-            </div>
-            <div className="flex justify-between items-center text-sm">
-                <span className="text-gray-600">Total Trees:</span>
-                <span className="font-semibold">
-                    {interventions.reduce((sum, i) => sum + i.totalTreeCount, 0).toLocaleString()}
-                </span>
-            </div>
-        </div>
-    </div>
+const MapLegend: React.FC = () => (
+     null
 );
 
 // ==================== MAIN COMPONENT ====================
-const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId, token }) => {
+const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId, token }) => {
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
+    const [hidSearch, setHidSearch] = useState('');
     const [filters, setFilters] = useState<{
         types: Set<string>;
         statuses: Set<string>;
-        showPolygons: boolean;
-        showPoints: boolean;
-        showHints: boolean;
-    }>({
-        types: new Set(),
-        statuses: new Set(),
-        showPolygons: true,
-        showPoints: true,
-        showHints: true,
-    });
+    }>({ types: new Set(), statuses: new Set() });
     const [mapState, setMapState] = useState<MapState>({
         selectedInterventionId: null,
         selectedTreeId: null,
@@ -877,7 +716,8 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     });
     const hoveredFeatureRef = React.useRef<{ source: string; id: number | string } | null>(null);
     const prevSelectedIdRef = React.useRef<number | null>(null);
-    const [mapRef, setMapRef] = useState<any>(null);
+    const mapRef = useRef<any>(null);
+    const [mapLoaded, setMapLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<MapError | null>(null);
 
@@ -885,308 +725,230 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
         try {
             setIsLoading(true);
             setError(null);
-            console.log('Loading interventions for project:', projectId);
-            
             const response = await fetchProjectInterventions(projectId, token);
-            console.log('Interventions loaded:', response.data.interventions.length);
-            
             const loaded = response.data.interventions;
             setInterventions(loaded);
-            // initialize filters with available types/statuses if empty
             setFilters(prev => {
                 if (prev.types.size === 0 && prev.statuses.size === 0) {
-                    const types = new Set(loaded.map((i: MapIntervention) => i.type));
-                    const statuses = new Set(loaded.map((i: MapIntervention) => i.status));
                     return {
-                        ...prev,
-                        types,
-                        statuses,
+                        types: new Set(loaded.map((i: MapIntervention) => i.type)),
+                        statuses: new Set(loaded.map((i: MapIntervention) => i.status)),
                     };
                 }
                 return prev;
             });
             setBounds(response.data.bounds);
-        } catch (error: any) {
-            console.error('Failed to load interventions:', error);
-            setError(error);
+        } catch (err: any) {
+            setError({
+                type: 'network',
+                message: err?.message || 'Failed to load interventions',
+                details: err,
+                recoverable: true,
+            });
         } finally {
             setIsLoading(false);
         }
     }, [projectId, token]);
 
+    useEffect(() => { loadInterventions(); }, [loadInterventions]);
+
     useEffect(() => {
-        loadInterventions();
-    }, [loadInterventions]);
-
-    // Fit map to bounds when interventions load - FIXED VERSION
-    useEffect(() => {
-        if (mapRef && bounds && interventions.length > 0) {
+        if (mapLoaded && bounds && interventions.length > 0) {
             try {
-                console.log('Fitting map to bounds:', bounds);
-                console.log('Interventions to show:', interventions.length);
-
-                // Use a longer delay to ensure map is fully initialized
-                setTimeout(() => {
-                    try {
-                        mapRef.fitBounds(bounds.bounds, {
-                            padding: { top: 100, bottom: 100, left: 400, right: 300 },
-                            duration: 2000,
-                            maxZoom: 15, // Reduced from 16 to prevent zooming too close
-                        });
-                        console.log('Map bounds fitted successfully');
-                    } catch (err) {
-                        console.warn('Failed to fit bounds:', err);
-                    }
-                }, 500); // Increased delay
-            } catch (error) {
-                console.warn('Failed to fit bounds:', error);
-            }
-        }
-    }, [mapRef, bounds, interventions.length]);
-
-    const handleInterventionClick = useCallback(async (intervention: MapIntervention) => {
-        console.log('Intervention clicked:', intervention.hid);
-        
-        if (mapState.selectedInterventionId === intervention.id) {
-            setMapState(prev => ({
-                ...prev,
-                selectedInterventionId: null,
-                selectedTreeId: null,
-                showTreeDetails: false,
-            }));
-            setTrees([]);
-            // clear previously selected feature state
-            try {
-                const prev = prevSelectedIdRef.current;
-                if (prev && mapRef) {
-                    mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
-                    mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
-                }
-                prevSelectedIdRef.current = null;
-            } catch (err) {
-                console.warn('Failed to clear selected feature state:', err);
-            }
-            return;
-        }
-
-        setMapState(prev => ({
-            ...prev,
-            selectedInterventionId: intervention.id,
-            isLoadingTrees: false,
-            selectedTreeId: null,
-            showTreeDetails: false,
-        }));
-
-        // Zoom to the intervention
-        try {
-            const [lng, lat] = getMarkerPosition(intervention);
-            if (lng && lat) {
-                mapRef?.flyTo({
-                    center: [lng, lat],
-                    zoom: 16,
-                    duration: 1000,
+                mapRef.current?.fitBounds(bounds.bounds, {
+                    padding: { top: 80, bottom: 80, left: 320, right: 80 },
+                    duration: 1500,
+                    maxZoom: 15,
                 });
-            }
-        } catch (error) {
-            console.warn('Failed to zoom to intervention:', error);
+            } catch { /* ignore */ }
         }
-        // set feature-state for selection (clear previous)
-        try {
-            const prev = prevSelectedIdRef.current;
-            if (prev && mapRef) {
-                mapRef.setFeatureState({ source: 'interventions-points', id: prev }, { selected: false });
-                mapRef.setFeatureState({ source: 'interventions-polygons', id: prev }, { selected: false });
-            }
-            if (mapRef) {
-                mapRef.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
-                mapRef.setFeatureState({ source: 'interventions-polygons', id: intervention.id }, { selected: true });
-            }
-            prevSelectedIdRef.current = intervention.id;
-        } catch (err) {
-            console.warn('Failed to set selected feature state:', err);
-        }
-    }, [mapRef, mapState.selectedInterventionId]);
+    }, [mapLoaded, bounds, interventions.length]);
 
-    const handleTreeClick = useCallback((tree: MapTree) => {
-        setMapState(prev => ({
-            ...prev,
-            selectedTreeId: tree.id,
-            showTreeDetails: true,
-        }));
-    }, []);
+    // Interventions filtered by HID search and type/status
+    const filteredInterventions = useMemo(() => {
+        return interventions.filter(i => {
+            if (hidSearch && !i.hid.toLowerCase().includes(hidSearch.toLowerCase())) return false;
+            if (!filters.types.has(i.type)) return false;
+            if (!filters.statuses.has(i.status)) return false;
+            return true;
+        });
+    }, [interventions, hidSearch, filters]);
 
-    const handlePolygonClick = useCallback((event: any) => {
-        const feature = event.features?.[0];
-        if (feature && feature.properties?.id) {
-            const interventionId = feature.properties.id;
-            const intervention = interventions.find(i => i.id === interventionId);
-            if (intervention) {
-                handleInterventionClick(intervention);
-            }
-        }
-    }, [interventions, handleInterventionClick]);
-
-    const handleRetry = useCallback(() => {
-        loadInterventions();
-    }, [loadInterventions]);
-
-    const handleErrorDismiss = useCallback(() => {
-        setError(null);
-    }, []);
-
-    const selectedIntervention = useMemo(() =>
-        interventions.find(i => i.id === mapState.selectedInterventionId),
-        [interventions, mapState.selectedInterventionId]
-    );
-
-    const selectedTree = useMemo(() =>
-        trees.find(t => t.id === mapState.selectedTreeId),
-        [trees, mapState.selectedTreeId]
-    );
-
-    // Create GeoJSON for polygon/multipolygon interventions
-    const polygonGeoJSON = useMemo(() => {
-        const features = interventions
-            .filter(i => (i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
-                && filters.types.has(i.type)
-                && filters.statuses.has(i.status)
-            )
-            .map(intervention => ({
+    const polygonGeoJSON = useMemo(() => ({
+        type: 'FeatureCollection' as const,
+        features: filteredInterventions
+            .filter(i => i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
+            .map(i => ({
                 type: 'Feature' as const,
-                id: intervention.id,
+                id: i.id,
                 properties: {
-                    id: intervention.id,
-                    hid: intervention.hid,
-                    type: intervention.type,
-                    status: intervention.status,
-                    color: getInterventionColor(intervention.type, intervention.status),
-                    isPolygon: true,
+                    id: i.id,
+                    hid: i.hid,
+                    color: getInterventionColor(i.type),
                 },
-                geometry: intervention.location,
-            }));
+                geometry: i.location,
+            })),
+    }), [filteredInterventions]);
 
-        return {
-            type: 'FeatureCollection' as const,
-            features,
-        };
-    }, [interventions, filters]);
-
-    // Create GeoJSON for point interventions
-    const pointGeoJSON = useMemo(() => {
-        const features = interventions
-            .filter(i => i.location.type === 'Point'
-                && filters.types.has(i.type)
-                && filters.statuses.has(i.status)
-            )
-            .map(intervention => ({
+    const pointGeoJSON = useMemo(() => ({
+        type: 'FeatureCollection' as const,
+        features: filteredInterventions
+            .filter(i => i.location.type === 'Point')
+            .map(i => ({
                 type: 'Feature' as const,
-                id: intervention.id,
+                id: i.id,
                 properties: {
-                    id: intervention.id,
-                    hid: intervention.hid,
-                    type: intervention.type,
-                    status: intervention.status,
-                    color: getInterventionColor(intervention.type, intervention.status),
-                    isPolygon: false,
+                    id: i.id,
+                    hid: i.hid,
+                    color: getInterventionColor(i.type),
+                    totalTreeCount: i.totalTreeCount ?? 0,
                 },
-                geometry: intervention.location,
-            }));
+                geometry: i.location,
+            })),
+    }), [filteredInterventions]);
 
-        return {
-            type: 'FeatureCollection' as const,
-            features,
-        };
-    }, [interventions, filters]);
-
-    // Centroid hints for polygon areas at low zoom
-    const polygonCentroidGeoJSON = useMemo(() => {
-        const features = interventions
-            .filter(i => (i.location.type === 'Polygon' || i.location.type === 'MultiPolygon'))
-            .filter(i => filters.types.has(i.type) && filters.statuses.has(i.status))
-            .map(intervention => {
-                const centroid = intervention.centroid ? intervention.centroid : turf.centroid(intervention.location as any).geometry;
-                const coords = (centroid.type === 'Point' ? centroid.coordinates : (centroid as any).coordinates);
+    // Centroid dots for polygons at low zoom
+    const centroidGeoJSON = useMemo(() => ({
+        type: 'FeatureCollection' as const,
+        features: filteredInterventions
+            .filter(i => i.location.type === 'Polygon' || i.location.type === 'MultiPolygon')
+            .map(i => {
+                const c = i.centroid ?? turf.centroid(i.location as any).geometry;
                 return {
                     type: 'Feature' as const,
-                    id: intervention.id,
-                    properties: {
-                        id: intervention.id,
-                        hid: intervention.hid,
-                        type: intervention.type,
-                        status: intervention.status,
-                        color: getInterventionColor(intervention.type, intervention.status),
-                        isPolygonCentroid: true,
-                    },
-                    geometry: {
-                        type: 'Point',
-                        coordinates: coords,
-                    } as GeoJSON.Point,
+                    id: i.id,
+                    properties: { id: i.id, hid: i.hid, color: getInterventionColor(i.type) },
+                    geometry: { type: 'Point' as const, coordinates: (c as any).coordinates },
                 };
-            });
+            }),
+    }), [filteredInterventions]);
 
-        return {
-            type: 'FeatureCollection' as const,
-            features,
-        };
-    }, [interventions, filters]);
-
-    // Derived lists for filter panel
     const allTypes = useMemo(() => Array.from(new Set(interventions.map(i => i.type))), [interventions]);
     const allStatuses = useMemo(() => Array.from(new Set(interventions.map(i => i.status))), [interventions]);
 
-    // Handlers for filter toggles
     const toggleType = useCallback((type: string) => {
         setFilters(prev => {
-            const newTypes = new Set(prev.types);
-            if (newTypes.has(type)) newTypes.delete(type);
-            else newTypes.add(type);
-            return { ...prev, types: newTypes };
+            const t = new Set(prev.types);
+            t.has(type) ? t.delete(type) : t.add(type);
+            return { ...prev, types: t };
         });
     }, []);
 
     const toggleStatus = useCallback((status: string) => {
         setFilters(prev => {
-            const newStatuses = new Set(prev.statuses);
-            if (newStatuses.has(status)) newStatuses.delete(status);
-            else newStatuses.add(status);
-            return { ...prev, statuses: newStatuses };
+            const s = new Set(prev.statuses);
+            s.has(status) ? s.delete(status) : s.add(status);
+            return { ...prev, statuses: s };
         });
     }, []);
 
-    const togglePolygons = useCallback(() => {
-        setFilters(prev => ({ ...prev, showPolygons: !prev.showPolygons }));
-    }, []);
-
-    const togglePoints = useCallback(() => {
-        setFilters(prev => ({ ...prev, showPoints: !prev.showPoints }));
-    }, []);
-
-    const toggleHints = useCallback(() => {
-        setFilters(prev => ({ ...prev, showHints: !prev.showHints }));
-    }, []);
-
-    // Debug information
-    useEffect(() => {
-        if (interventions.length > 0) {
-            console.log('=== INTERVENTIONS DEBUG ===');
-            console.log('Total interventions:', interventions.length);
-            console.log('Point features:', pointGeoJSON.features.length);
-            console.log('Polygon features:', polygonGeoJSON.features.length);
-            console.log('Polygon centroids:', polygonCentroidGeoJSON.features.length);
-            console.log('Bounds:', bounds);
-            console.log('All intervention locations:', interventions.map(i => ({
-                hid: i.hid,
-                type: i.locationGeometryType || i.location.type,
-                coords: i.location.type === 'Point' ? i.location.coordinates : 'polygon'
-            })));
-            console.log('=========================');
+    const selectIntervention = useCallback((intervention: MapIntervention | null) => {
+        const prevId = prevSelectedIdRef.current;
+        const map = mapRef.current;
+        if (!intervention) {
+            setMapState(s => ({ ...s, selectedInterventionId: null, selectedTreeId: null, showTreeDetails: false }));
+            setTrees([]);
+            try {
+                if (prevId != null && map) {
+                    map.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                    map.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
+                }
+                prevSelectedIdRef.current = null;
+            } catch { /* ignore */ }
+            return;
         }
-    }, [interventions, bounds, pointGeoJSON, polygonGeoJSON, polygonCentroidGeoJSON]);
+        setMapState(s => ({ ...s, selectedInterventionId: intervention.id, selectedTreeId: null, showTreeDetails: false }));
+        zoomToIntervention(intervention, map);
+        try {
+            if (prevId != null && map) {
+                map.setFeatureState({ source: 'interventions-points', id: prevId }, { selected: false });
+                map.setFeatureState({ source: 'interventions-polygons', id: prevId }, { selected: false });
+            }
+            if (map) {
+                map.setFeatureState({ source: 'interventions-points', id: intervention.id }, { selected: true });
+                map.setFeatureState({ source: 'interventions-polygons', id: intervention.id }, { selected: true });
+            }
+            prevSelectedIdRef.current = intervention.id;
+        } catch { /* ignore */ }
+    }, []);
+
+    const handleMapLoad = useCallback(() => {
+        setMapLoaded(true);
+        const map = mapRef.current;
+        if (!map) return;
+        const size = 24;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+        ctx.clearRect(0, 0, size, size);
+        ctx.fillStyle = 'rgba(255,255,255,1)';
+        // pine tree: top triangle
+        ctx.beginPath();
+        ctx.moveTo(12, 1);
+        ctx.lineTo(2, 10);
+        ctx.lineTo(22, 10);
+        ctx.closePath();
+        ctx.fill();
+        // pine tree: middle triangle
+        ctx.beginPath();
+        ctx.moveTo(12, 5);
+        ctx.lineTo(1, 16);
+        ctx.lineTo(23, 16);
+        ctx.closePath();
+        ctx.fill();
+        // trunk
+        ctx.fillRect(10, 15, 4, 7);
+        if (!map.hasImage('tree-icon')) {
+            map.addImage('tree-icon', ctx.getImageData(0, 0, size, size));
+        }
+    }, []);
+
+    const handleMapClick = useCallback((event: any) => {
+        const feature = event.features?.[0];
+        if (!feature) return;
+        const layerId = feature.layer?.id;
+        // cluster click: zoom in to expand
+        if (layerId === 'interventions-points-clusters') {
+            const map = mapRef.current;
+            if (!map) return;
+            const clusterId = feature.properties?.cluster_id;
+            const source = map.getSource('interventions-points') as any;
+            if (source?.getClusterExpansionZoom) {
+                Promise.resolve(source.getClusterExpansionZoom(clusterId))
+                    .then((zoom: number) => {
+                        const [lng, lat] = (feature.geometry as any).coordinates;
+                        map.easeTo({ center: [lng, lat], zoom: zoom + 0.5, duration: 500 });
+                    })
+                    .catch(() => {});
+            }
+            return;
+        }
+        if (!feature.properties?.id) return;
+        const intervention = interventions.find(i => i.id === feature.properties.id);
+        if (!intervention) return;
+        if (mapState.selectedInterventionId === intervention.id) {
+            selectIntervention(null);
+        } else {
+            selectIntervention(intervention);
+        }
+    }, [interventions, mapState.selectedInterventionId, selectIntervention]);
+
+    const selectedIntervention = useMemo(
+        () => interventions.find(i => i.id === mapState.selectedInterventionId),
+        [interventions, mapState.selectedInterventionId],
+    );
+
+    const selectedTree = useMemo(
+        () => trees.find(t => t.id === mapState.selectedTreeId),
+        [trees, mapState.selectedTreeId],
+    );
 
     if (isLoading) {
         return (
             <div className="relative w-full h-screen">
-                <LoadingDisplay message="Loading project map..." />
+                <LoadingDisplay message="Loading interventions..." />
             </div>
         );
     }
@@ -1194,15 +956,16 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     if (error && !error.recoverable) {
         return (
             <div className="w-full h-screen flex items-center justify-center bg-gray-50">
-                <div className="text-center max-w-md">
-                    <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-                    <h2 className="text-2xl font-bold text-gray-900 mb-2">Unable to Load Map</h2>
-                    <p className="text-gray-600 mb-4">{error.message}</p>
+                <div className="text-center max-w-sm">
+                    <AlertCircle className="w-12 h-12 text-red-400 mx-auto mb-3" />
+                    <h2 className="text-lg font-semibold text-gray-900 mb-2">Unable to load map</h2>
+                    <p className="text-sm text-gray-500 mb-4">{error.message}</p>
                     <button
                         onClick={() => window.location.reload()}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors"
+                        className="text-white px-4 py-2 rounded-lg text-sm transition-opacity hover:opacity-90"
+                        style={{ backgroundColor: '#007A49' }}
                     >
-                        Reload Page
+                        Reload
                     </button>
                 </div>
             </div>
@@ -1210,348 +973,360 @@ const ProjectMap: React.FC<{ projectId: string, token: string }> = ({ projectId,
     }
 
     return (
-        <div className="relative w-full h-full">
+        <div className="relative w-full h-full" style={{ clipPath: 'inset(0 round 12px)' }}>
             <Map
-                ref={setMapRef}
+                ref={mapRef}
+                onLoad={handleMapLoad}
                 mapStyle={{
-                    "version": 8,
-                    "metadata": "Tree Intervention Map",
-                    "name": "Tree Map",
-                    "bearing": 0,
-                    "pitch": 0,
-                    "sources": {
-                        "imagery": {
-                            "type": "raster",
-                            "tiles": [
-                                "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
-                            ],
-                            "tileSize": 256,
-                            "minzoom": 0,
-                            "maxzoom": 19
-                        }
+                    version: 8,
+                    name: 'Satellite',
+                    bearing: 0,
+                    pitch: 0,
+                    sources: {
+                        imagery: {
+                            type: 'raster',
+                            tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                            tileSize: 256,
+                            minzoom: 0,
+                            maxzoom: 18,
+                        },
                     },
-                    "layers": [
+                    layers: [
                         {
-                            "id": "imagery",
-                            "type": "raster",
-                            "source": "imagery",
-                            "minzoom": 0,
-                            "maxzoom": 19,
-                            "layout": { "visibility": "visible" }
-                        }
-                    ]
+                            id: 'imagery',
+                            type: 'raster',
+                            source: 'imagery',
+                            minzoom: 0,
+                            layout: { visibility: 'visible' },
+                        },
+                    ],
                 }}
                 initialViewState={{
-                    longitude: bounds?.center[0] || 0,
-                    latitude: bounds?.center[1] || 0,
-                    zoom: 5, // Changed from 2 to 5 for better initial visibility
+                    longitude: bounds?.center[0] ?? 0,
+                    latitude: bounds?.center[1] ?? 0,
+                    zoom: 5,
                 }}
                 style={{ width: '100%', height: '100%' }}
                 interactiveLayerIds={[
                     'interventions-polygons-fill',
                     'interventions-polygons-outline',
+                    'interventions-points-clusters',
                     'interventions-points-circle',
-                    'interventions-polygons-hint'
+                    'interventions-centroids-circle',
                 ]}
-                onClick={handlePolygonClick}
-                onMouseMove={(event) => {
+                onClick={handleMapClick}
+                onMouseMove={event => {
                     try {
+                        const map = mapRef.current;
                         const feature = event.features?.[0];
-                        const map = mapRef;
                         const prev = hoveredFeatureRef.current;
-
-                        if (feature && (feature.properties?.id || feature.id != null)) {
+                        if (feature && (feature.properties?.id ?? feature.id) != null) {
                             const id = feature.properties?.id ?? feature.id;
                             const source = feature.source || feature.layer?.source;
-
-                            // if previous hovered is different, clear it
                             if (prev && (prev.id !== id || prev.source !== source)) {
                                 map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                                 hoveredFeatureRef.current = null;
                             }
-
-                            // set new hovered state if different
                             if (!prev || prev.id !== id || prev.source !== source) {
                                 map?.setFeatureState({ source, id }, { hover: true });
                                 hoveredFeatureRef.current = { source, id };
                             }
                         } else if (prev) {
-                            // clear previous if no feature
                             map?.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                             hoveredFeatureRef.current = null;
                         }
-                    } catch (err) {
-                        console.warn('Error handling mouse move hover state:', err);
-                    }
+                    } catch { /* ignore */ }
                 }}
                 onMouseLeave={() => {
                     try {
                         const prev = hoveredFeatureRef.current;
-                        if (prev && mapRef) {
-                            mapRef.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
+                        if (prev && mapRef.current) {
+                            mapRef.current.setFeatureState({ source: prev.source, id: prev.id }, { hover: false });
                             hoveredFeatureRef.current = null;
                         }
-                    } catch (err) {
-                        console.warn('Error clearing hover state:', err);
-                    }
+                    } catch { /* ignore */ }
                 }}
-                onError={(error) => {
-                    console.error('Map error:', error);
-                    setError({
-                        type: 'mapbox',
-                        message: 'Failed to load map tiles',
-                        details: error,
-                        recoverable: true,
-                    });
-                }}
+                onError={() => { /* suppress tile load errors */ }}
             >
-                {/* Polygon/MultiPolygon Interventions as Layers (visible at higher zoom) */}
-                {filters.showPolygons && polygonGeoJSON.features.length > 0 && (
-                    <Source
-                        id="interventions-polygons"
-                        type="geojson"
-                        data={polygonGeoJSON}
-                    >
-                        {/* Polygon fill layer - only at closer zooms */}
+                {/* Polygon fills — visible from zoom 9 */}
+                {polygonGeoJSON.features.length > 0 && (
+                    <Source id="interventions-polygons" type="geojson" data={polygonGeoJSON}>
+                        {/* Outer glow — only on hover/select */}
+                        <Layer
+                            id="interventions-polygons-glow"
+                            type="line"
+                            minzoom={9}
+                            paint={{
+                                'line-color': BORDER_COLOR,
+                                'line-width': 10,
+                                'line-blur': 6,
+                                'line-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 0.30,
+                                    ['feature-state', 'hover'], 0.15,
+                                    0,
+                                ],
+                            }}
+                        />
+                        {/* Semi-transparent fill */}
                         <Layer
                             id="interventions-polygons-fill"
                             type="fill"
-                            minzoom={11}
+                            minzoom={9}
                             paint={{
-                                'fill-color': ['get', 'color'],
+                                'fill-color': FILL_COLOR,
                                 'fill-opacity': [
                                     'case',
-                                    ['feature-state', 'selected'],
-                                    0.65,
-                                    0.35
-                                ]
+                                    ['feature-state', 'selected'], 0.65,
+                                    ['feature-state', 'hover'], 0.58,
+                                    0.50,
+                                ],
                             }}
                         />
-                        {/* Polygon outline layer */}
+                        {/* White border */}
                         <Layer
                             id="interventions-polygons-outline"
                             type="line"
-                            minzoom={11}
+                            minzoom={9}
                             paint={{
-                                'line-color': ['get', 'color'],
+                                'line-color': BORDER_COLOR,
                                 'line-width': [
                                     'case',
-                                    ['feature-state', 'selected'],
-                                    4,
-                                    2
+                                    ['feature-state', 'selected'], 3,
+                                    ['feature-state', 'hover'], 2.5,
+                                    2,
                                 ],
-                                'line-opacity': 0.95
+                                'line-opacity': [
+                                    'case',
+                                    ['feature-state', 'selected'], 1,
+                                    ['feature-state', 'hover'], 0.95,
+                                    0.85,
+                                ],
                             }}
                         />
                     </Source>
                 )}
 
-                {/* Polygon centroid hints - visible at low zoom to indicate polygon presence */}
-                {filters.showHints && polygonCentroidGeoJSON.features.length > 0 && (
-                    <Source
-                        id="interventions-polygons-centroids"
-                        type="geojson"
-                        data={polygonCentroidGeoJSON}
-                    >
+                {/* Centroid dots for polygon interventions at low zoom */}
+                {centroidGeoJSON.features.length > 0 && (
+                    <Source id="interventions-centroids" type="geojson" data={centroidGeoJSON}>
                         <Layer
-                            id="interventions-polygons-hint"
+                            id="interventions-centroids-circle"
                             type="circle"
-                            maxzoom={11}
+                            maxzoom={9}
                             paint={{
-                                'circle-color': ['concat', ['get', 'color'], '80'], // add alpha-ish hint
+                                'circle-color': FILL_COLOR,
                                 'circle-radius': [
-                                    'interpolate',
-                                    ['linear'],
-                                    ['zoom'],
-                                    0, 6,
-                                    6, 10,
-                                    10, 14
+                                    'interpolate', ['linear'], ['zoom'],
+                                    0, 5, 6, 8, 9, 12,
                                 ],
-                                'circle-opacity': 0.7,
-                                'circle-stroke-width': 1,
-                                'circle-stroke-color': '#ffffff'
+                                'circle-opacity': ['case', ['feature-state', 'hover'], 1, 0.88],
+                                'circle-stroke-width': 2.5,
+                                'circle-stroke-color': BORDER_COLOR,
                             }}
                         />
                     </Source>
                 )}
 
-                {/* Point Interventions as Circle Layers */}
-                {filters.showPoints && pointGeoJSON.features.length > 0 && (
+                {/* Point interventions with clustering */}
+                {pointGeoJSON.features.length > 0 && (
                     <Source
                         id="interventions-points"
                         type="geojson"
                         data={pointGeoJSON}
+                        cluster={true}
+                        clusterMaxZoom={14}
+                        clusterRadius={50}
+                        clusterProperties={{ totalTreeCount: ['+', ['get', 'totalTreeCount']] }}
                     >
-                        {/* Point circle layer */}
+                        {/* Cluster bubble */}
+                        <Layer
+                            id="interventions-points-clusters"
+                            type="circle"
+                            filter={['has', 'point_count']}
+                            paint={{
+                                'circle-color': FILL_COLOR,
+                                'circle-radius': [
+                                    'step', ['get', 'point_count'],
+                                    22, 5, 30, 20, 38,
+                                ],
+                                'circle-opacity': 0.92,
+                                'circle-stroke-width': 3,
+                                'circle-stroke-color': BORDER_COLOR,
+                            }}
+                        />
+                        {/* Cluster: tree icon + total tree count */}
+                        {mapLoaded && (
+                            <Layer
+                                id="interventions-points-cluster-label"
+                                type="symbol"
+                                filter={['has', 'point_count']}
+                                layout={{
+                                    'icon-image': 'tree-icon',
+                                    'icon-size': 0.75,
+                                    'icon-anchor': 'bottom',
+                                    'icon-offset': [0, 2],
+                                    'icon-allow-overlap': true,
+                                    'text-field': [
+                                        'case',
+                                        ['>', ['get', 'totalTreeCount'], 0],
+                                        ['to-string', ['get', 'totalTreeCount']],
+                                        ['to-string', ['get', 'point_count']],
+                                    ],
+                                    'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                                    'text-size': 11,
+                                    'text-anchor': 'top',
+                                    'text-offset': [0, -0.2],
+                                    'text-allow-overlap': true,
+                                }}
+                                paint={{ 'text-color': '#ffffff' }}
+                            />
+                        )}
+                        {/* Individual unclustered point — circle background */}
                         <Layer
                             id="interventions-points-circle"
                             type="circle"
+                            filter={['!', ['has', 'point_count']]}
                             paint={{
-                                'circle-color': ['get', 'color'],
+                                'circle-color': FILL_COLOR,
                                 'circle-radius': [
                                     'case',
-                                    ['feature-state', 'selected'],
-                                    14, // Selected size
-                                    ['feature-state', 'hover'],
-                                    12, // Hovered size
-                                    10  // Default size
+                                    ['feature-state', 'selected'], 18,
+                                    ['feature-state', 'hover'], 16,
+                                    14,
                                 ],
-                                'circle-opacity': 1,
                                 'circle-stroke-width': [
                                     'case',
-                                    ['feature-state', 'selected'],
-                                    4, // Selected stroke
-                                    2  // Default stroke
+                                    ['feature-state', 'selected'], 3.5,
+                                    ['feature-state', 'hover'], 2.5,
+                                    2,
                                 ],
-                                'circle-stroke-color': '#ffffff',
-                                'circle-stroke-opacity': 1
-                            }}
-                        />
-                        {/* Selection ring for selected points */}
-                        <Layer
-                            id="interventions-points-selected-ring"
-                            type="circle"
-                            paint={{
-                                'circle-radius': 18,
-                                'circle-color': 'transparent',
-                                'circle-stroke-width': 3,
-                                'circle-stroke-color': '#3b82f6',
-                                'circle-stroke-opacity': [
+                                'circle-stroke-color': BORDER_COLOR,
+                                'circle-opacity': [
                                     'case',
-                                    ['feature-state', 'selected'],
-                                    1,
-                                    0
-                                ]
+                                    ['feature-state', 'selected'], 1,
+                                    ['feature-state', 'hover'], 0.95,
+                                    0.90,
+                                ],
                             }}
                         />
+                        {/* Individual unclustered point — tree icon overlay */}
+                        {mapLoaded && (
+                            <Layer
+                                id="interventions-points-icon"
+                                type="symbol"
+                                filter={['!', ['has', 'point_count']]}
+                                layout={{
+                                    'icon-image': 'tree-icon',
+                                    'icon-size': 0.65,
+                                    'icon-allow-overlap': true,
+                                }}
+                            />
+                        )}
                     </Source>
                 )}
 
-                {/* Trees Markers */}
-                {trees.map((tree) => (
+                {/* Tree markers */}
+                {trees.map(tree => (
                     <TreeMarker
                         key={tree.id}
                         tree={tree}
                         isSelected={mapState.selectedTreeId === tree.id}
-                        onClick={() => handleTreeClick(tree)}
+                        onClick={() => setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }))}
                     />
                 ))}
             </Map>
 
-            {/* Error Display */}
+            {/* Error */}
             <AnimatePresence>
-                {error && error.recoverable && (
+                {error?.recoverable && (
                     <ErrorDisplay
                         error={error}
-                        onRetry={handleRetry}
-                        onDismiss={handleErrorDismiss}
+                        onRetry={loadInterventions}
+                        onDismiss={() => setError(null)}
                     />
                 )}
             </AnimatePresence>
 
-            {/* Intervention Details Panel */}
+            {/* Sidebar - search, filter + scrollable intervention list */}
+            <InterventionSidebar
+                interventions={filteredInterventions}
+                selectedId={mapState.selectedInterventionId}
+                onSelect={selectIntervention}
+                hidSearch={hidSearch}
+                onHidSearch={setHidSearch}
+                types={allTypes}
+                statuses={allStatuses}
+                activeTypes={filters.types}
+                activeStatuses={filters.statuses}
+                onToggleType={toggleType}
+                onToggleStatus={toggleStatus}
+                total={interventions.length}
+            />
+
+            {/* Intervention detail panel - top right */}
             <AnimatePresence>
                 {selectedIntervention && (
                     <InterventionPanel
                         intervention={selectedIntervention}
-                        onClose={() => {
-                            setMapState(prev => ({
-                                ...prev,
-                                selectedInterventionId: null,
-                                selectedTreeId: null,
-                                showTreeDetails: false,
-                            }));
-                            setTrees([]);
-                        }}
+                        onClose={() => selectIntervention(null)}
                         onLoadTrees={async (id: number) => {
+                            setMapState(prev => ({ ...prev, isLoadingTrees: true }));
                             try {
-                                setMapState(prev => ({ ...prev, isLoadingTrees: true }));
                                 const res = await fetchInterventionTrees(id, token);
                                 const treesData = res?.data?.trees ?? (res as any)?.trees ?? [];
                                 setTrees(Array.isArray(treesData) ? treesData : []);
                             } catch (err) {
-                                console.warn('Failed to load trees for intervention:', err);
+                                console.warn('Failed to load trees:', err);
                             } finally {
                                 setMapState(prev => ({ ...prev, isLoadingTrees: false }));
                             }
                         }}
                         isLoadingTrees={mapState.isLoadingTrees}
-                        onZoomTo={(intervention) => {
-                            try {
-                                const [lng, lat] = getMarkerPosition(intervention);
-                                if (lng && lat) {
-                                    mapRef?.flyTo({ center: [lng, lat], zoom: 16, duration: 800 });
-                                }
-                            } catch (err) {
-                                console.warn('Failed to zoom to intervention from panel:', err);
-                            }
-                        }}
+                        onZoomTo={i => zoomToIntervention(i, mapRef.current)}
                         treesCount={trees.length}
                     />
                 )}
             </AnimatePresence>
 
-            {/* Tree Details Tooltip */}
+            {/* Tree tooltip - only when no intervention panel */}
             <AnimatePresence>
-                {selectedTree && mapState.showTreeDetails && (
+                {selectedTree && mapState.showTreeDetails && !selectedIntervention && (
                     <TreeTooltip
                         tree={selectedTree}
-                        onClose={() => setMapState(prev => ({
-                            ...prev,
-                            selectedTreeId: null,
-                            showTreeDetails: false,
-                        }))}
+                        onClose={() => setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }))}
                     />
                 )}
             </AnimatePresence>
 
-            {/* Loading Trees Indicator */}
+            {/* Trees loading indicator */}
             {mapState.isLoadingTrees && (
-                <div className="absolute top-4 right-4 bg-white rounded-lg shadow-lg p-3 flex items-center gap-2 z-20">
-                    <Loader2 className="w-4 h-4 animate-spin text-gray-900" />
-                    <span className="text-sm text-gray-600">Loading trees...</span>
+                <div className="absolute bottom-8 right-4 bg-white rounded-lg shadow border border-gray-100 px-3 py-2 flex items-center gap-2 z-20">
+                    <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-500" />
+                    <span className="text-xs text-gray-600">Loading trees...</span>
                 </div>
             )}
 
-            {/* Filter Panel */}
-            <FilterPanel
-                types={allTypes}
-                statuses={allStatuses}
-                activeTypes={filters.types}
-                activeStatuses={filters.statuses}
-                showPolygons={filters.showPolygons}
-                showPoints={filters.showPoints}
-                showHints={filters.showHints}
-                onToggleType={toggleType}
-                onToggleStatus={toggleStatus}
-                onTogglePolygons={togglePolygons}
-                onTogglePoints={togglePoints}
-                onToggleHints={toggleHints}
-            />
+            {/* Legend - bottom left */}
+            <MapLegend />
 
-            {/* Map Legend */}
-            <MapLegend
-                selectedIntervention={selectedIntervention}
-                treeCount={trees.length}
-            />
-
-            {/* Map Stats */}
-            <MapStats
-                interventions={interventions}
-                selectedIntervention={selectedIntervention}
-                treeCount={trees.length}
-            />
-
-            {/* Debug Info (remove in production) */}
-            {process.env.NODE_ENV === 'development' && (
-                <div className="absolute bottom-4 right-4 bg-black/80 text-white text-xs p-2 rounded max-w-xs">
-                    <div>Interventions: {interventions.length}</div>
-                    <div>Points: {pointGeoJSON.features.length}</div>
-                    <div>Polygons: {polygonGeoJSON.features.length}</div>
-                    <div>Bounds: {bounds ? `[${bounds.center[0].toFixed(2)}, ${bounds.center[1].toFixed(2)}]` : 'None'}</div>
-                    <div>Map Ready: {mapRef ? 'Yes' : 'No'}</div>
-                </div>
-            )}
+            {/* Zoom controls */}
+            <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
+                <button
+                    onClick={() => mapRef.current?.zoomIn()}
+                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    title="Zoom in"
+                >
+                    <Plus size={17} className="text-gray-600" strokeWidth={2.5} />
+                </button>
+                <button
+                    onClick={() => mapRef.current?.zoomOut()}
+                    className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"
+                    title="Zoom out"
+                >
+                    <Minus size={17} className="text-gray-600" strokeWidth={2.5} />
+                </button>
+            </div>
         </div>
     );
 };

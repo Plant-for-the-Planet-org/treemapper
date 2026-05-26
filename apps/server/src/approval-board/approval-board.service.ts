@@ -24,6 +24,10 @@ import {
   SiteReviewSummary,
   SiteReviewQueueResponse,
   ReviewStatus,
+  WorkspaceReviewQueueResponse,
+  WorkspaceSiteReviewQueueResponse,
+  WorkspaceInterventionReviewSummary,
+  WorkspaceSiteReviewSummary,
 } from './dto/approval-board.dto';
 
 @Injectable()
@@ -841,6 +845,183 @@ export class ApprovalBoardService {
         limit,
         totalPages: Math.ceil(total / limit),
       },
+    };
+  }
+
+  // ================== Workspace Review Queues ==================
+
+  async getWorkspaceReviewQueue(
+    workspaceId: number,
+    query: ReviewQueueQueryDto,
+  ): Promise<WorkspaceReviewQueueResponse> {
+    const { limit = 20, page = 1, status, search, sortOrder = 'desc', sortBy = 'submittedAt' } = query;
+    const offset = (page - 1) * limit;
+
+    const whereConditions: any[] = [
+      eq(project.workspaceId, workspaceId),
+      isNull(intervention.deletedAt),
+      isNotNull(intervention.reviewStatus),
+    ];
+
+    if (status) {
+      whereConditions.push(eq(intervention.reviewStatus, status));
+    } else {
+      whereConditions.push(
+        inArray(intervention.reviewStatus, ['pending', 'in_review', 'approved', 'rejected']),
+      );
+    }
+
+    if (search) {
+      const searchCondition = or(
+        ilike(intervention.hid, `%${search}%`),
+        ilike(intervention.description, `%${search}%`),
+      );
+      if (searchCondition) whereConditions.push(searchCondition);
+    }
+
+    const sortColumn = sortBy === 'submittedAt' ? intervention.submittedAt : intervention.updatedAt;
+
+    const [data, totalResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          interventionId: intervention.id,
+          interventionUid: intervention.uid,
+          interventionHid: intervention.hid,
+          interventionDescription: intervention.description,
+          type: intervention.type,
+          reviewStatus: intervention.reviewStatus,
+          submittedAt: intervention.submittedAt,
+          approvedAt: intervention.approvedAt,
+          rejectedAt: intervention.rejectedAt,
+          userId: intervention.userId,
+          userName: user.displayName,
+          projectId: intervention.projectId,
+          projectUid: project.uid,
+          projectName: project.name,
+          siteId: intervention.siteId,
+          siteName: site.name,
+          totalTreeCount: intervention.totalTreeCount,
+          totalSampleTreeCount: intervention.totalSampleTreeCount,
+          speciesCount: sql<number>`(SELECT COUNT(*) FROM intervention_species WHERE intervention_id = ${intervention.id} AND deleted_at IS NULL)`,
+        })
+        .from(intervention)
+        .innerJoin(project, eq(intervention.projectId, project.id))
+        .leftJoin(user, eq(intervention.userId, user.id))
+        .leftJoin(site, eq(intervention.siteId, site.id))
+        .where(and(...whereConditions))
+        .orderBy(sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)` })
+        .from(intervention)
+        .innerJoin(project, eq(intervention.projectId, project.id))
+        .where(and(...whereConditions)),
+    ]);
+
+    const total = Number(totalResult[0]?.count || 0);
+
+    const formattedData: WorkspaceInterventionReviewSummary[] = data.map((d) => ({
+      interventionId: d.interventionId,
+      interventionUid: d.interventionUid,
+      interventionHid: d.interventionHid,
+      interventionName: d.interventionDescription || undefined,
+      type: d.type,
+      reviewStatus: d.reviewStatus as ReviewStatus,
+      submittedAt: d.submittedAt || undefined,
+      approvedAt: d.approvedAt || undefined,
+      rejectedAt: d.rejectedAt || undefined,
+      userId: d.userId,
+      userName: d.userName || 'Unknown',
+      projectId: d.projectId,
+      projectUid: d.projectUid,
+      projectName: d.projectName || 'Unknown',
+      siteId: d.siteId || undefined,
+      siteName: d.siteName || undefined,
+      totalTreeCount: d.totalTreeCount ?? 0,
+      totalSampleTreeCount: d.totalSampleTreeCount ?? 0,
+      speciesCount: Number(d.speciesCount) || 0,
+    }));
+
+    return {
+      data: formattedData,
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
+    };
+  }
+
+  async getWorkspaceSiteReviewQueue(
+    workspaceId: number,
+    query: ReviewQueueQueryDto,
+  ): Promise<WorkspaceSiteReviewQueueResponse> {
+    const { limit = 20, page = 1, status, search, sortOrder = 'desc', sortBy = 'submittedAt' } = query;
+    const offset = (page - 1) * limit;
+
+    const whereConditions: any[] = [
+      eq(project.workspaceId, workspaceId),
+      isNull(site.deletedAt),
+      isNotNull(site.reviewStatus),
+    ];
+
+    if (status) {
+      whereConditions.push(eq(site.reviewStatus, status));
+    } else {
+      whereConditions.push(
+        inArray(site.reviewStatus, ['pending', 'in_review', 'approved', 'rejected']),
+      );
+    }
+
+    if (search) {
+      whereConditions.push(ilike(site.name, `%${search}%`));
+    }
+
+    const sortColumn = sortBy === 'submittedAt' ? site.createdAt : site.updatedAt;
+
+    const [data, totalResult] = await Promise.all([
+      this.drizzleService.db
+        .select({
+          siteId: site.id,
+          siteUid: site.uid,
+          siteName: site.name,
+          reviewStatus: site.reviewStatus,
+          approvedAt: site.approvedAt,
+          rejectedAt: site.rejectedAt,
+          userId: site.createdById,
+          userName: user.displayName,
+          projectId: site.projectId,
+          projectUid: project.uid,
+          projectName: project.name,
+        })
+        .from(site)
+        .innerJoin(project, eq(site.projectId, project.id))
+        .leftJoin(user, eq(site.createdById, user.id))
+        .where(and(...whereConditions))
+        .orderBy(sortOrder === 'asc' ? asc(sortColumn) : desc(sortColumn))
+        .limit(limit)
+        .offset(offset),
+      this.drizzleService.db
+        .select({ count: sql<number>`count(*)` })
+        .from(site)
+        .innerJoin(project, eq(site.projectId, project.id))
+        .where(and(...whereConditions)),
+    ]);
+
+    const total = Number(totalResult[0]?.count || 0);
+
+    return {
+      data: data.map((d) => ({
+        siteId: d.siteId,
+        siteUid: d.siteUid,
+        siteName: d.siteName,
+        reviewStatus: d.reviewStatus as ReviewStatus,
+        approvedAt: d.approvedAt || undefined,
+        rejectedAt: d.rejectedAt || undefined,
+        userId: d.userId,
+        userName: d.userName || 'Unknown',
+        projectId: d.projectId,
+        projectUid: d.projectUid,
+        projectName: d.projectName || 'Unknown',
+      })),
+      pagination: { total, page, limit, totalPages: Math.ceil(total / limit) },
     };
   }
 

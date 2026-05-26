@@ -265,6 +265,7 @@ const MapSection = ({
             <div className="space-y-3">
                 <GeoJSONFileUpload
                     onGeoJSONChange={onGeoJSONChange}
+                    allowedGeometryTypes={["Polygon"]}
                     maxAreaHa={500}
                     className="w-full"
                 />

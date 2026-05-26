@@ -114,6 +114,14 @@ export const entityEnum = pgEnum('entity_type', [
   'images'
 ]);
 export const projectRoleEnum = pgEnum('project_role', ['owner', 'admin', 'contributor', 'observer']);
+
+export const PROJECT_PERMISSIONS = [
+  'approve_intervention',
+  'approve_site',
+  'add_site',
+  'request_species',
+] as const;
+export type ProjectPermission = (typeof PROJECT_PERMISSIONS)[number];
 export const projectStatusEnum = pgEnum('project_status', ['active', 'in_review', 'suspended', 'disabled']);
 export const inviteStatusEnum = pgEnum('invite_status', ['pending', 'accepted', 'declined', 'expired', 'discarded']);
 export const imageUploadDeviceEnum = pgEnum('image_upload_device', ['web', 'mobile', 'server']);
@@ -606,6 +614,7 @@ export const projectMember = pgTable('project_member', {
   status: memberStatusEnum('status').default('active'),
   siteAccess: siteAccessEnum('site_access').default('all_sites').notNull(),
   restrictedSites: text('restricted_sites').array().default([]),
+  extraPermissions: text('extra_permissions').array(),
   bulkInviteId: integer('bulk_invite_id').references(() => bulkInvite.id, { onDelete: 'set null' }),
   createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),

@@ -6,7 +6,6 @@
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "newArchEnabled": true,
     "scheme": "treemapper",
     "splash": {
       "image": "./assets/splash.png",
@@ -28,7 +27,12 @@
         "expo-build-properties",
         {
           "android": {
-            "kotlinVersion": "2.0.21"
+            "kotlinVersion": "2.0.21",
+            "minSdkVersion": 24,
+            "compileSdkVersion": 35
+          },
+          "ios": {
+            "deploymentTarget": "15.1"
           }
         }
       ],
@@ -69,16 +73,24 @@
       "expo-router",
       "expo-web-browser",
       "@react-native-community/datetimepicker",
-      ["react-native-share", {}]
+      [
+        "react-native-share",
+        {}
+      ],
+      "expo-image"
     ],
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "org.pftp.treemapper",
-      "deploymentTarget": "15.1",
       "associatedDomains": [
         "applinks:dev.treemapper.app",
         "applinks:treemapper.app"
       ],
+      "splash": {
+        "image": "./assets/splash_ios.png",
+        "resizeMode": "cover",
+        "backgroundColor": "#F0F7EA"
+      },
       "entitlements": {
         "aps-environment": "development",
         "com.apple.security.application-groups": [
@@ -111,8 +123,6 @@
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION"
       ],
-      "minSdkVersion": 24,
-      "compileSdkVersion": 35,
       "package": "org.pftp.treemapper",
       "intentFilters": [
         {
@@ -137,14 +147,6 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    },
-    "hooks": {
-      "postPublish": [
-        {
-          "file": "@bugsnag/expo/hooks/post-publish.js",
-          "config": {}
-        }
-      ]
     }
   }
 }

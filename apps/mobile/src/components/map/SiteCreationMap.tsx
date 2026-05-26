@@ -1,6 +1,6 @@
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
-import MapLibreGL from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation } from '@maplibre/maplibre-react-native'
 import { useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
@@ -40,8 +40,8 @@ const SiteCreationMap = (props: Props) => {
     )
     const toast = useToast();
 
-    const cameraRef = useRef<MapLibreGL.Camera>(null)
-    const mapRef = useRef<MapLibreGL.MapView>(null)
+    const cameraRef = useRef<CameraRef>(null)
+    const mapRef = useRef<MapRef>(null)
 
     const mainMapView = useSelector(
         (state: RootState) => state.displayMapState.mainMapView
@@ -63,20 +63,18 @@ const SiteCreationMap = (props: Props) => {
         }
         if (cameraRef?.current) {
             cameraRef.current.fitBounds(
-                [projectBounds[0], projectBounds[1]],
-                [projectBounds[2], projectBounds[3]],
-                50,
-                1000,
+                [projectBounds[0], projectBounds[1], projectBounds[2], projectBounds[3]],
+                { padding: { top: 50, right: 50, bottom: 50, left: 50 }, duration: 1000 },
             )
         }
     }
 
     const handleCamera = () => {
         if (cameraRef?.current) {
-            cameraRef.current.setCamera({
-                centerCoordinate: [...currentUserLocation],
-                zoomLevel: 15,
-                animationDuration: 1000,
+            cameraRef.current.easeTo({
+                center: [...currentUserLocation],
+                zoom: 15,
+                duration: 1000,
             })
         }
     }
@@ -162,26 +160,22 @@ const SiteCreationMap = (props: Props) => {
                     color={Colors.GRAY_DARK}
                 />
             </TouchableOpacity>}
-            <MapLibreGL.MapView
+            <Map
                 style={styles.mapSite}
                 ref={mapRef}
-                logoEnabled={false}
+                logo={false}
                 onDidFinishLoadingMap={handleCameraViewChange}
                 onRegionDidChange={onRegionDidChange}
                 onRegionIsChanging={() => {
                     setLoadingSite(true)
                 }}
-                attributionEnabled={false}
+                attribution={false}
                 mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
-                <MapLibreGL.Camera ref={cameraRef} />
-                <MapLibreGL.UserLocation
-                    showsUserHeadingIndicator
-                    androidRenderMode="gps"
-                    minDisplacement={1}
-                />
+                <Camera ref={cameraRef} />
+                <UserLocation heading minDisplacement={1} />
                 <LineMarker coordinates={coordinates} />
                 <AlphabetMarkers coordinates={coordinates} />
-            </MapLibreGL.MapView>
+            </Map>
             <SatelliteIconWrapper />
             {polygonComplete && (
                 <View style={styles.btnFooterSite}>

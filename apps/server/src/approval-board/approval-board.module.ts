@@ -3,9 +3,10 @@ import { ApprovalBoardController } from './approval-board.controller';
 import { ApprovalBoardService } from './approval-board.service';
 import { DatabaseModule } from '../database/database.module';
 import { ProjectsModule } from '../projects/projects.module';
+import { WorkspaceModule } from '../workspace/workspace.module';
 
 @Module({
-  imports: [DatabaseModule, ProjectsModule],
+  imports: [DatabaseModule, ProjectsModule, WorkspaceModule],
   controllers: [ApprovalBoardController],
   providers: [ApprovalBoardService],
   exports: [ApprovalBoardService],

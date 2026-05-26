@@ -104,7 +104,7 @@ const ProjectItem = ({
 }) => {
   const isProjectSelected = selectedProjectId === item.id
   let country: any = handleFilter(item.country)
-  if (country) {
+  if (country && country.length > 0) {
     country = country[0].countryName
   }
   return (

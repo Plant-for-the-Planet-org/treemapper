@@ -13,6 +13,7 @@ const nextConfig: NextConfig = {
     removeConsole: process.env.NODE_ENV === 'production',
   },
   async headers() {
+    const isProduction = process.env.APP_ENV === 'production';
     return [
       {
         source: '/.well-known/apple-app-site-association',
@@ -22,6 +23,9 @@ const nextConfig: NextConfig = {
         source: '/.well-known/assetlinks.json',
         headers: [{ key: 'Content-Type', value: 'application/json' }],
       },
+      ...(!isProduction
+        ? [{ source: '/(.*)', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] }]
+        : []),
     ];
   },
   async rewrites() {

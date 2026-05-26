@@ -1,10 +1,11 @@
 'use client'
 
 import React, { useState, useEffect } from 'react';
-import { Trees, Leaf, Calendar, Camera, Pen } from 'lucide-react';
+import { Trees, Leaf, Calendar, Camera, Pen, Activity } from 'lucide-react';
 import { Card, CardContent, Badge, Button } from './ui';
 import { FileUploadDialog } from './FileUploadDialog';
 import EditTreeModal from './EditTreeModal';
+import TreeRecordsModal from './TreeRecordsModal';
 
 interface TreeRecord {
   recordedAt: string;
@@ -46,6 +47,7 @@ interface Tree {
   interventionSpeciesId?: number;
   scientificSpeciesId?: number;
   records?: TreeRecord[];
+  remeasured?: boolean;
   migratedTree?: boolean;
 }
 
@@ -66,6 +68,7 @@ export const TreeCard = ({
 }: TreeCardProps) => {
   const [showImageDialog, setShowImageDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showRecordsModal, setShowRecordsModal] = useState(false);
   const [localTree, setLocalTree] = useState<Tree>(tree);
 
   useEffect(() => {
@@ -161,14 +164,20 @@ export const TreeCard = ({
                 </div>
               )}
 
-              {localTree.records && localTree.records.length > 0 && (
+              {(localTree.remeasured || (localTree.records && localTree.records.length > 0)) && (
                 <div className="pt-2 border-t border-gray-100">
-                  <div className="flex items-center justify-between text-xs text-gray-500">
-                    <span>Records: {localTree.records.length}</span>
-                    <span>
-                      Last: {new Date(localTree.records[0]?.recordedAt).toLocaleDateString()}
-                    </span>
-                  </div>
+                  <button
+                    onClick={() => setShowRecordsModal(true)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#007A49]/10 text-[#007A49] hover:bg-[#007A49]/20 transition-colors text-xs font-medium"
+                  >
+                    <Activity size={11} />
+                    View records
+                    {localTree.records && localTree.records.length > 0 && (
+                      <span className="ml-0.5 bg-[#007A49] text-white rounded-full px-1.5 py-0.5 text-[10px] leading-none">
+                        {localTree.records.length}
+                      </span>
+                    )}
+                  </button>
                 </div>
               )}
             </div>
@@ -205,6 +214,15 @@ export const TreeCard = ({
         accessToken={accessToken}
         selectedProject={selectedProject}
         onSaveComplete={handleSaveComplete}
+      />
+
+      <TreeRecordsModal
+        isOpen={showRecordsModal}
+        onClose={() => setShowRecordsModal(false)}
+        treeHid={localTree.hid}
+        treeTag={localTree.tag}
+        accessToken={accessToken}
+        selectedProject={selectedProject}
       />
     </>
   );

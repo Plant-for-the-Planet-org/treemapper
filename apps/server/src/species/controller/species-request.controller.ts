@@ -13,6 +13,7 @@ import { SpeciesRequestService } from '../services/species-request.service';
 import { CreateSpeciesRequestDto, SpeciesRequestFilterDto } from '../dto/species-request.dto';
 import { ProjectPermissionsGuard } from '../../projects/guards/project-permissions.guard';
 import { ProjectRoles } from '../../projects/decorators/project-roles.decorator';
+import { ProjectPermissions } from '../../projects/decorators/project-permissions.decorator';
 import { Membership } from 'src/projects/decorators/membership.decorator';
 
 @ApiTags('Species Requests')
@@ -22,6 +23,7 @@ export class SpeciesRequestController {
 
   @Post('/:id')
   @ProjectRoles('owner', 'admin', 'contributor')
+  @ProjectPermissions('request_species')
   @UseGuards(ProjectPermissionsGuard)
   async createRequest(
     @Body() createDto: CreateSpeciesRequestDto,

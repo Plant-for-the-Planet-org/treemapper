@@ -1,6 +1,6 @@
 import { StyleProp } from 'react-native'
 import React, { useEffect, useState } from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import { GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
 import { FillColor } from 'src/utils/constants/colors'
@@ -45,22 +45,24 @@ const SingleInterventionSource = (props: Props) => {
     return null
   }
   return (
-    <MapLibreGL.ShapeSource
+    <GeoJSONSource
       id={'polygon_shape_source'}
-      shape={geoJSON}>
-      <MapLibreGL.FillLayer
-        id={'poly_shape_source_fill'} // Unique ID for active FillLayer
+      data={geoJSON}>
+      <Layer
+        id={'poly_shape_source_fill'}
+        type="fill"
         style={{ fillOpacity: 0.5, fillColor: FillColor }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <MapLibreGL.LineLayer
+      <Layer
         id={'poly_line_shape_source'}
+        type="line"
         style={{ ...polyline, lineColor: FillColor }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <MapLibreGL.CircleLayer id={'singleEsntire'} style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
+      <Layer id={'singleEsntire'} type="circle" style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
 
-    </MapLibreGL.ShapeSource>
+    </GeoJSONSource>
   )
 }
 

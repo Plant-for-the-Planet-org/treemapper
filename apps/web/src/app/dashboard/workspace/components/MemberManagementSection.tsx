@@ -1,11 +1,11 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, Search, User as UserIcon } from 'lucide-react';
-import { getWorkspaceMembersApi } from '@shared-core/fetchApi/api.fetch';
+import { ChevronDown, ChevronUp, FolderOpen, Globe, Mail, MapPin, Search, User as UserIcon, UserCheck } from 'lucide-react';
+import { getWorkspaceMembersApi, startImpersonationWork } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import { useUserStore } from '@shared-core/store/useUserStore';
-import { Avatar, Badge, Card, CardContent, CardHeader, CardTitle, Input } from './workspace-ui';
+import { Avatar, Badge, Button, Card, CardContent, CardHeader, CardTitle, ConfirmationModal, Input } from './workspace-ui';
 
 interface UserDetail {
   userUid: string;
@@ -37,8 +37,21 @@ const getUserTypeLabel = (type: string) => {
   return map[type] ?? type;
 };
 
-function UserRow({ user }: { user: UserDetail }) {
+function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goHome: () => void }) {
   const [expanded, setExpanded] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
+  const [isImpersonating, setIsImpersonating] = useState(false);
+
+  const handleImpersonate = async () => {
+    setShowConfirm(false);
+    setIsImpersonating(true);
+    try {
+      const resp = await startImpersonationWork(token, user.userUid);
+      if (resp.statusCode === 200) goHome();
+    } finally {
+      setIsImpersonating(false);
+    }
+  };
 
   return (
     <>
@@ -125,16 +138,38 @@ function UserRow({ user }: { user: UserDetail }) {
                 <span className="text-gray-800">{user.primaryProjectName ?? '—'}</span>
               </div>
             </div>
+            <div className="mt-4 pt-3 border-t flex justify-end">
+              <Button
+                onClick={(e) => { e.stopPropagation(); setShowConfirm(true); }}
+                disabled={isImpersonating}
+                className="flex items-center gap-2 text-sm"
+              >
+                <UserCheck className="h-4 w-4" />
+                {isImpersonating ? 'Starting...' : 'Impersonate'}
+              </Button>
+            </div>
           </td>
         </tr>
       )}
+
+      <ConfirmationModal
+        isOpen={showConfirm}
+        onClose={() => setShowConfirm(false)}
+        onConfirm={handleImpersonate}
+        title="Start Impersonation"
+        description={`Are you sure you want to impersonate ${user.displayName}? This action will be logged for audit purposes.`}
+        confirmText="Start Impersonation"
+        isDestructive={false}
+      />
     </>
   );
 }
 
-export function MemberManagementSection() {
+export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
   const { accessToken } = useToken();
   const currentUser = useUserStore((state) => state.user);
+  const defaultGoHome = () => { window.location.replace('/'); window.location.reload(); };
+  const resolvedGoHome = goHome ?? defaultGoHome;
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState('');
@@ -199,7 +234,7 @@ export function MemberManagementSection() {
               </thead>
               <tbody>
                 {filtered.map((u) => (
-                  <UserRow key={u.userUid} user={u} />
+                  <UserRow key={u.userUid} user={u} token={accessToken} goHome={resolvedGoHome} />
                 ))}
               </tbody>
             </table>

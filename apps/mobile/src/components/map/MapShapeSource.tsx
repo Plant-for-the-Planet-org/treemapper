@@ -1,6 +1,6 @@
 import {StyleProp} from 'react-native'
 import React from 'react'
-import MapLibreGL, { LineLayerStyle } from '@maplibre/maplibre-react-native'
+import { GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
 import {Colors} from 'src/utils/constants'
 
 const polyline: StyleProp<LineLayerStyle> = {
@@ -56,55 +56,58 @@ const MapShapeSource = (props: Props) => {
         switch (feature.geometry.type) {
           case 'Point':
             return (
-              <MapLibreGL.ShapeSource
+              <GeoJSONSource
                 key={feature.properties.id}
                 id={id}
-                shape={feature}
+                data={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.CircleLayer
+                <Layer
                   id={'singleSelectedPolyCircle' + feature.properties.id}
+                  type="circle"
                   style={bigCircleStyle}
                 />
-              </MapLibreGL.ShapeSource>
+              </GeoJSONSource>
             )
           case 'Polygon':
             return (
-              <MapLibreGL.ShapeSource
+              <GeoJSONSource
                 key={feature.properties.id}
                 id={id}
-                shape={feature}
+                data={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.FillLayer
+                <Layer
                   id={'poly_map_shape_fill' + feature.properties.id}
+                  type="fill"
                   style={{
                     ...fillStyle,
                     fillColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
-                <MapLibreGL.LineLayer
+                <Layer
                   id={'poly_map_shape_source' + feature.properties.id}
+                  type="line"
                   style={{
                     ...polyline,
                     lineColor: showError ? Colors.LIGHT_RED : FillColor,
                   }}
                 />
-              </MapLibreGL.ShapeSource>
+              </GeoJSONSource>
             )
           case 'LineString':
             return (
-              <MapLibreGL.ShapeSource
+              <GeoJSONSource
                 key={feature.properties.id}
                 id={id}
-                shape={feature}
+                data={feature}
                 onPress={() => {
                   pressHandle(feature)
                 }}>
-                <MapLibreGL.LineLayer id={`${feature.properties.id}-layer`} />
-              </MapLibreGL.ShapeSource>
+                <Layer id={`${feature.properties.id}-layer`} type="line" />
+              </GeoJSONSource>
             )
           default:
             return null

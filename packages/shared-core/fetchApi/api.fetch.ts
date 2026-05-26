@@ -268,11 +268,52 @@ export const createBulkIntervention = async (token: string, params: any, prjId: 
   return result;
 };
 
+export const createCustomBulkIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/custom-bulk`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 
 
 export const updateInterventionSpecies = async (token: string, params: any, project, intervention, species) => {
   const uri = `${putUrlApi.speicesDataUpdate}/${intervention}/${project}/${species}`
   const result = await fetchPutCall(uri, params, token)
+  return result
+}
+
+export const bulkUpdateInterventionSpecies = async (
+  token: string,
+  projectId: string,
+  payload: {
+    interventionUids: string[];
+    sourceIsUnknown: boolean;
+    sourceScientificSpeciesId?: number;
+    sourceScientificSpeciesUid?: string;
+    sourceSpeciesName?: string;
+    targetScientificSpeciesId?: number;
+    targetScientificSpeciesUid?: string;
+    targetIsUnknown?: boolean;
+    targetSpeciesName?: string;
+    targetCommonName?: string;
+    targetSpeciesCount?: number;
+  },
+) => {
+  const uri = `${putUrlApi.bulkUpdateSpecies}/${projectId}/species/bulk`
+  const result = await fetchPutCall(uri, payload, token)
+  return result
+}
+
+export const bulkUpdateInterventionStartDate = async (
+  token: string,
+  projectId: string,
+  payload: {
+    interventionUids: string[];
+    interventionStartDate: string;
+  },
+) => {
+  const uri = `${putUrlApi.bulkUpdateSpecies}/${projectId}/start-date/bulk`
+  const result = await fetchPutCall(uri, payload, token)
   return result
 }
 
@@ -442,6 +483,12 @@ export const updateUserRole = async (token: string, prjId: string, memberId: str
   return result;
 };
 
+export const updateMemberExtraPermissions = async (token: string, prjId: string, memberId: string, extraPermissions: string[]) => {
+  const uri = `${patchUrlApi.updateMemeberRole}/${prjId}/members/${memberId}/extra-permissions`;
+  const result = await fetchPatchCall(uri, { extraPermissions }, token);
+  return result;
+};
+
 
 export const updateProjectSpecies = async (token: string, params: any, prjId: string, species: string) => {
   const uri = `${putUrlApi.updatePrjSpecies}/${prjId}/species/${species}`;
@@ -532,6 +579,21 @@ export const updateWorkspaceSettings = async (token: string, uid: string, data: 
 export const getWorkspaceProjectsApi = async (token: string, uid: string) => {
   const uri = `${getUrlApi.getWorkspaceProjects}/${uid}/projects`;
   return await fetchGetCall(uri, token);
+};
+
+export const getAllWorkspacesApi = async (token: string) => {
+  const uri = `${getUrlApi.getAllWorkspaces}`;
+  return await fetchGetCall(uri, token);
+};
+
+export const transferProjectApi = async (
+  token: string,
+  workspaceUid: string,
+  projectUid: string,
+  targetWorkspaceUid: string,
+) => {
+  const uri = `${patchUrlApi.transferProject}/${workspaceUid}/projects/${projectUid}/transfer`;
+  return await fetchPatchCall(uri, { targetWorkspaceUid }, token);
 };
 
 export const updateProjectStatusApi = async (
@@ -909,6 +971,40 @@ export const addFieldWorkerSiteComment = async (
   return fetchPostCall(uri, dto, token);
 };
 
+export const getWorkspaceReviewQueue = async (
+  token: string,
+  workspaceUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getWorkspaceReviewQueue}/${workspaceUid}/queue?${queryString}`
+    : `${getUrlApi.getWorkspaceReviewQueue}/${workspaceUid}/queue`;
+  return fetchGetCall(uri, token);
+};
+
+export const getWorkspaceSiteReviewQueue = async (
+  token: string,
+  workspaceUid: string,
+  query?: { limit?: number; page?: number; status?: string; search?: string }
+) => {
+  const queryParams = new URLSearchParams();
+  if (query?.limit) queryParams.append('limit', query.limit.toString());
+  if (query?.page) queryParams.append('page', query.page.toString());
+  if (query?.status) queryParams.append('status', query.status);
+  if (query?.search) queryParams.append('search', query.search);
+  const queryString = queryParams.toString();
+  const uri = queryString
+    ? `${getUrlApi.getWorkspaceSiteReviewQueue}/${workspaceUid}/sites/queue?${queryString}`
+    : `${getUrlApi.getWorkspaceSiteReviewQueue}/${workspaceUid}/sites/queue`;
+  return fetchGetCall(uri, token);
+};
+
 // Legacy functions for backward compatibility (can be removed later)
 export const getApprovalBoard = getReviewQueue;
 export const moveInterventionStatus = submitReviewDecision;
@@ -938,5 +1034,32 @@ export const editTree = async (
 ) => {
   const uri = `${putUrlApi.editTree}/${treeHid}/${projectId}/edit`;
   const result = await fetchPutCall(uri, editData, token);
+  return result;
+};
+
+export const getTreeRecords = async (
+  token: string,
+  treeHid: string,
+  projectId: string,
+) => {
+  const uri = `${getUrlApi.getTreeRecords}/${treeHid}/${projectId}/records`;
+  return fetchGetCall(uri, token);
+};
+
+export const addTreeRemeasurement = async (
+  token: string,
+  treeHid: string,
+  projectId: string,
+  data: {
+    status: 'alive' | 'dead';
+    height?: number;
+    width?: number;
+    notes?: string;
+    image?: string;
+    recordedAt?: string;
+  }
+) => {
+  const uri = `${putUrlApi.addTreeRemeasurement}/${treeHid}/${projectId}/remeasure`;
+  const result = await fetchPostCall(uri, data, token);
   return result;
 };

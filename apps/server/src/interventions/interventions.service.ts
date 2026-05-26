@@ -17,6 +17,7 @@ import {
 import {
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
   InterventionDto,
@@ -26,11 +27,15 @@ import {
   InterventionType,
   CaptureModeEnum,
   UpdateInterventionSpeciesDto,
+  BulkUpdateSpeciesDto,
+  BulkUpdateSpeciesResponse,
+  BulkUpdateStartDateDto,
   InterventionTreesResponse,
   MapIntervention,
   MapTree,
   ProjectMapBounds,
-  ProjectMapResponse
+  ProjectMapResponse,
+  AddTreeRemeasurementDto,
 } from './dto/interventions.dto';
 import { generateUid } from 'src/util/uidGenerator';
 import { generateParentHID } from 'src/util/hidGenerator';
@@ -283,6 +288,371 @@ export class InterventionsService {
     });
   }
 
+
+  async bulkUpdateInterventionSpecies(
+    dto: BulkUpdateSpeciesDto,
+    membership: ProjectGuardResponse,
+  ): Promise<BulkUpdateSpeciesResponse> {
+    if (
+      dto.sourceIsUnknown
+        ? !dto.sourceSpeciesName
+        : !dto.sourceScientificSpeciesId && !dto.sourceScientificSpeciesUid
+    ) {
+      throw new BadRequestException({
+        code: 'INVALID_SOURCE',
+        message: dto.sourceIsUnknown
+          ? 'sourceSpeciesName is required when sourceIsUnknown is true'
+          : 'sourceScientificSpeciesId or sourceScientificSpeciesUid is required when sourceIsUnknown is false',
+      });
+    }
+
+    // Resolve UIDs to numeric IDs before transaction
+    let sourceScientificSpeciesId = dto.sourceScientificSpeciesId;
+    if (!sourceScientificSpeciesId && dto.sourceScientificSpeciesUid) {
+      const resolved = await this.drizzleService.db
+        .select({ id: scientificSpecies.id })
+        .from(scientificSpecies)
+        .where(eq(scientificSpecies.uid, dto.sourceScientificSpeciesUid))
+        .limit(1);
+      if (!resolved.length) {
+        throw new BadRequestException({
+          code: 'SCIENTIFIC_SPECIES_NOT_FOUND',
+          message: 'Source scientific species not found',
+        });
+      }
+      sourceScientificSpeciesId = resolved[0].id;
+    }
+
+    let targetScientificSpeciesId = dto.targetScientificSpeciesId;
+    if (!targetScientificSpeciesId && dto.targetScientificSpeciesUid) {
+      const resolved = await this.drizzleService.db
+        .select({ id: scientificSpecies.id })
+        .from(scientificSpecies)
+        .where(eq(scientificSpecies.uid, dto.targetScientificSpeciesUid))
+        .limit(1);
+      if (!resolved.length) {
+        throw new BadRequestException({
+          code: 'SCIENTIFIC_SPECIES_NOT_FOUND',
+          message: 'Target scientific species not found',
+        });
+      }
+      targetScientificSpeciesId = resolved[0].id;
+    }
+
+    const targetIsUnknown = dto.targetIsUnknown ?? dto.sourceIsUnknown;
+    if (!targetIsUnknown && targetScientificSpeciesId === undefined && dto.sourceIsUnknown) {
+      throw new BadRequestException({
+        code: 'INVALID_TARGET',
+        message: 'targetScientificSpeciesId is required when promoting unknown species to scientific',
+      });
+    }
+    if (targetIsUnknown && !dto.sourceIsUnknown && !dto.targetSpeciesName) {
+      throw new BadRequestException({
+        code: 'INVALID_TARGET',
+        message: 'targetSpeciesName is required when demoting scientific species to unknown',
+      });
+    }
+
+    const hasMutation =
+      targetScientificSpeciesId !== undefined ||
+      dto.targetIsUnknown !== undefined ||
+      dto.targetSpeciesName !== undefined ||
+      dto.targetCommonName !== undefined ||
+      dto.targetSpeciesCount !== undefined;
+    if (!hasMutation) {
+      throw new BadRequestException({
+        code: 'NO_CHANGES',
+        message: 'At least one target field must be provided',
+      });
+    }
+
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const interventions = await tx
+        .select({
+          id: intervention.id,
+          uid: intervention.uid,
+          projectId: intervention.projectId,
+          type: intervention.type,
+        })
+        .from(intervention)
+        .where(
+          and(
+            inArray(intervention.uid, dto.interventionUids),
+            eq(intervention.projectId, membership.projectId),
+            isNull(intervention.deletedAt),
+          ),
+        );
+
+      if (interventions.length !== dto.interventionUids.length) {
+        const foundUids = new Set(interventions.map((i) => i.uid));
+        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        throw new BadRequestException({
+          code: 'INVALID_SELECTION',
+          message: 'Some interventions do not belong to this project or were not found',
+          details: { interventionUids: missing },
+        });
+      }
+
+      const types = new Set(interventions.map((i) => i.type));
+      if (types.size > 1) {
+        throw new BadRequestException({
+          code: 'MIXED_INTERVENTION_TYPES',
+          message: 'All selected interventions must share the same type',
+          details: { types: Array.from(types) },
+        });
+      }
+      const interventionType = interventions[0].type;
+      const isSingleTree = interventionType === 'single-tree-registration';
+      if (isSingleTree && dto.targetSpeciesCount !== undefined && dto.targetSpeciesCount !== 1) {
+        throw new BadRequestException({
+          code: 'INVALID_COUNT_FOR_TYPE',
+          message: 'single-tree-registration interventions must have a species count of 1',
+        });
+      }
+
+      let resolvedTargetSpecies: { id: number; scientificName: string; commonName?: string } | null = null;
+      if (!targetIsUnknown) {
+        const targetId = targetScientificSpeciesId ?? sourceScientificSpeciesId;
+        if (!targetId) {
+          throw new BadRequestException({
+            code: 'INVALID_TARGET',
+            message: 'targetScientificSpeciesId is required when target is scientific',
+          });
+        }
+        const resolved = await this.validateScientificSpecies(tx, targetId);
+        resolvedTargetSpecies = { id: targetId, ...resolved } as any;
+      }
+
+      const interventionIds = interventions.map((i) => i.id);
+      const sourceMatch = dto.sourceIsUnknown
+        ? and(
+            inArray(interventionSpecies.interventionId, interventionIds),
+            eq(interventionSpecies.isUnknown, true),
+            eq(interventionSpecies.speciesName, dto.sourceSpeciesName!),
+            isNull(interventionSpecies.deletedAt),
+          )
+        : and(
+            inArray(interventionSpecies.interventionId, interventionIds),
+            eq(interventionSpecies.scientificSpeciesId, sourceScientificSpeciesId!),
+            isNull(interventionSpecies.deletedAt),
+          );
+
+      const sourceRows = await tx
+        .select()
+        .from(interventionSpecies)
+        .where(sourceMatch);
+
+      const coveredInterventionIds = new Set(sourceRows.map((r) => r.interventionId));
+      const missingInterventionIds = interventionIds.filter((id) => !coveredInterventionIds.has(id));
+      if (missingInterventionIds.length > 0) {
+        const missingUids = interventions
+          .filter((i) => missingInterventionIds.includes(i.id))
+          .map((i) => i.uid);
+        throw new BadRequestException({
+          code: 'MISSING_SOURCE_SPECIES',
+          message: 'Source species not found in every selected intervention',
+          details: { interventionUids: missingUids },
+        });
+      }
+
+      const speciesIdsToUpdate = sourceRows.map((r) => r.id);
+
+      if (dto.targetSpeciesCount !== undefined) {
+        const treeCounts = await tx
+          .select({
+            interventionSpeciesId: tree.interventionSpeciesId,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(tree)
+          .where(
+            and(
+              inArray(tree.interventionSpeciesId, speciesIdsToUpdate),
+              isNull(tree.deletedAt),
+            ),
+          )
+          .groupBy(tree.interventionSpeciesId);
+
+        const violations = treeCounts.filter((tc) => tc.count > dto.targetSpeciesCount!);
+        if (violations.length > 0) {
+          const violatedSpeciesIds = new Set(violations.map((v) => v.interventionSpeciesId));
+          const violatedInterventionIds = sourceRows
+            .filter((r) => violatedSpeciesIds.has(r.id))
+            .map((r) => r.interventionId);
+          const violatedUids = interventions
+            .filter((i) => violatedInterventionIds.includes(i.id))
+            .map((i) => i.uid);
+          throw new BadRequestException({
+            code: 'TREE_COUNT_EXCEEDS_SPECIES_COUNT',
+            message: 'Species count cannot be less than existing tree count',
+            details: {
+              interventionUids: violatedUids,
+              requestedCount: dto.targetSpeciesCount,
+            },
+          });
+        }
+      }
+
+      const speciesChanged = !dto.sourceIsUnknown
+        ? !targetIsUnknown && resolvedTargetSpecies!.id !== sourceScientificSpeciesId
+        : !targetIsUnknown;
+
+      const nameChanged =
+        speciesChanged ||
+        (targetIsUnknown && dto.targetSpeciesName !== undefined) ||
+        (targetIsUnknown && dto.targetCommonName !== undefined);
+
+      const updateSet: Record<string, any> = { updatedAt: new Date() };
+      if (!targetIsUnknown) {
+        updateSet.scientificSpeciesId = resolvedTargetSpecies!.id;
+        updateSet.isUnknown = false;
+        updateSet.speciesName = resolvedTargetSpecies!.scientificName;
+        updateSet.commonName = resolvedTargetSpecies!.commonName ?? null;
+      } else {
+        updateSet.scientificSpeciesId = null;
+        updateSet.isUnknown = true;
+        if (dto.targetSpeciesName !== undefined) updateSet.speciesName = dto.targetSpeciesName;
+        if (dto.targetCommonName !== undefined) updateSet.commonName = dto.targetCommonName;
+      }
+      if (dto.targetSpeciesCount !== undefined) updateSet.speciesCount = dto.targetSpeciesCount;
+
+      await tx
+        .update(interventionSpecies)
+        .set(updateSet)
+        .where(inArray(interventionSpecies.id, speciesIdsToUpdate));
+
+      let updatedTreeCount = 0;
+      if (nameChanged) {
+        const treeUpdateSet: Record<string, any> = { updatedAt: new Date() };
+        if (!targetIsUnknown) {
+          treeUpdateSet.speciesName = resolvedTargetSpecies!.scientificName;
+          treeUpdateSet.commonName = resolvedTargetSpecies!.commonName ?? null;
+          treeUpdateSet.isUnknown = false;
+        } else {
+          if (dto.targetSpeciesName !== undefined) treeUpdateSet.speciesName = dto.targetSpeciesName;
+          if (dto.targetCommonName !== undefined) treeUpdateSet.commonName = dto.targetCommonName;
+          treeUpdateSet.isUnknown = true;
+        }
+
+        const updatedTrees = await tx
+          .update(tree)
+          .set(treeUpdateSet)
+          .where(
+            and(
+              inArray(tree.interventionSpeciesId, speciesIdsToUpdate),
+              isNull(tree.deletedAt),
+            ),
+          )
+          .returning({ id: tree.id });
+        updatedTreeCount = updatedTrees.length;
+      }
+
+      await tx
+        .update(intervention)
+        .set({ updatedAt: new Date(), editedAt: new Date() })
+        .where(inArray(intervention.id, interventionIds));
+
+      const bulkOperationId = `bulk_${require('crypto').randomBytes(12).toString('hex')}`;
+
+      const oldByIntervention = new Map<number, typeof sourceRows[number]>();
+      sourceRows.forEach((r) => oldByIntervention.set(r.interventionId, r));
+
+      const newSnapshot = {
+        scientificSpeciesId: updateSet.scientificSpeciesId,
+        isUnknown: updateSet.isUnknown,
+        speciesName: updateSet.speciesName,
+        commonName: updateSet.commonName,
+        speciesCount: updateSet.speciesCount,
+      };
+
+      const changedFieldsAggregate = new Set<string>();
+      for (const interventionRow of interventions) {
+        const old = oldByIntervention.get(interventionRow.id)!;
+        const oldValues = {
+          scientificSpeciesId: old.scientificSpeciesId,
+          isUnknown: old.isUnknown,
+          speciesName: old.speciesName,
+          commonName: old.commonName,
+          speciesCount: old.speciesCount,
+        };
+        const newValues = {
+          scientificSpeciesId: updateSet.scientificSpeciesId ?? old.scientificSpeciesId,
+          isUnknown: updateSet.isUnknown ?? old.isUnknown,
+          speciesName: updateSet.speciesName ?? old.speciesName,
+          commonName: updateSet.commonName ?? old.commonName,
+          speciesCount: updateSet.speciesCount ?? old.speciesCount,
+        };
+        this.getChangedFields(oldValues, newValues).forEach((f) => changedFieldsAggregate.add(f));
+        this.auditService.log('intervention', {
+          action: 'update',
+          entityId: interventionRow.id,
+          userId: membership.userId,
+          oldValues,
+          newValues: { ...newValues, bulkOperationId },
+          source: 'web',
+        });
+      }
+
+      return {
+        bulkOperationId,
+        updatedInterventionCount: interventions.length,
+        updatedTreeCount,
+        changedFields: Array.from(changedFieldsAggregate),
+      };
+    });
+  }
+
+
+  async bulkUpdateInterventionStartDate(
+    dto: BulkUpdateStartDateDto,
+    membership: ProjectGuardResponse,
+  ): Promise<{ updatedCount: number }> {
+    const parsedDate = new Date(dto.interventionStartDate);
+    if (isNaN(parsedDate.getTime())) {
+      throw new BadRequestException({ code: 'INVALID_DATE', message: 'Invalid interventionStartDate' });
+    }
+
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const rows = await tx
+        .select({ id: intervention.id, uid: intervention.uid, interventionEndDate: intervention.interventionEndDate })
+        .from(intervention)
+        .where(
+          and(
+            inArray(intervention.uid, dto.interventionUids),
+            eq(intervention.projectId, membership.projectId),
+            isNull(intervention.deletedAt),
+          ),
+        );
+
+      if (rows.length !== dto.interventionUids.length) {
+        const foundUids = new Set(rows.map((r) => r.uid));
+        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        throw new BadRequestException({
+          code: 'INVALID_SELECTION',
+          message: 'Some interventions do not belong to this project or were not found',
+          details: { interventionUids: missing },
+        });
+      }
+
+      const endDateViolations = rows
+        .filter((r) => r.interventionEndDate && parsedDate > r.interventionEndDate)
+        .map((r) => r.uid);
+      if (endDateViolations.length > 0) {
+        throw new BadRequestException({
+          code: 'DATE_AFTER_END',
+          message: 'Start date cannot be after the intervention end date for some interventions',
+          details: { interventionUids: endDateViolations },
+        });
+      }
+
+      const ids = rows.map((r) => r.id);
+      await tx
+        .update(intervention)
+        .set({ interventionStartDate: parsedDate, updatedAt: new Date() })
+        .where(inArray(intervention.id, ids));
+
+      return { updatedCount: rows.length };
+    });
+  }
 
   private async validateScientificSpecies(tx: any, scientificSpeciesId: number) {
     const species = await tx
@@ -612,6 +982,7 @@ export class InterventionsService {
       type,
       userId,
       interventionStartDate,
+      interventionStartDateTo,
       registrationDate,
       projectSiteId,
       captureMode,
@@ -659,6 +1030,12 @@ export class InterventionsService {
 
     if (interventionStartDate) {
       whereConditions.push(gte(intervention.interventionStartDate, new Date(interventionStartDate)));
+    }
+
+    if (interventionStartDateTo) {
+      const toDate = new Date(interventionStartDateTo);
+      toDate.setHours(23, 59, 59, 999);
+      whereConditions.push(lte(intervention.interventionStartDate, toDate));
     }
 
     if (registrationDate) {
@@ -1294,6 +1671,54 @@ export class InterventionsService {
       console.error('Bulk intervention upload error:', error);
       throw new BadRequestException(`Failed to create interventions: ${error.message}`);
     }
+  }
+
+  async customBulkInterventionUpload(
+    dto: CreateCustomBulkDto,
+    membership: ProjectGuardResponse,
+  ): Promise<any> {
+    if (!dto.interventions?.length) {
+      throw new BadRequestException('No interventions provided');
+    }
+
+    const transformed = dto.interventions.map(item => {
+      const dateISO = this.parseCustomDate(item.plantDate);
+      const treesPlanted = item.species.reduce((sum, s) => sum + (s.count || 0), 0);
+
+      return {
+        clientId: generateUid('inv'),
+        type: InterventionType.MULTI_TREE_REGISTRATION,
+        geometry: item.geometry,
+        registrationDate: new Date().toISOString(),
+        interventionStartDate: dateISO,
+        interventionEndDate: dateISO,
+        species: item.species.map(s => ({
+          speciesName: s.name,
+          speciesCount: s.count,
+        })),
+        treesPlanted,
+        plantProject: membership.projectId,
+        plantProjectSite: dto.siteId,
+        metadata: { beneficiary: item.beneficiary },
+        height: null,
+        width: null,
+      };
+    });
+
+    return this.bulkInterventionUpload(transformed as unknown as CreateInterventionBulkDto[], membership);
+  }
+
+  private parseCustomDate(dateStr: string): string {
+    const parts = (dateStr ?? '').split('/');
+    if (parts.length !== 3) {
+      throw new BadRequestException(`Invalid date format: "${dateStr}". Expected MM/DD/YYYY`);
+    }
+    const [month, day, year] = parts.map(Number);
+    const date = new Date(year, month - 1, day);
+    if (isNaN(date.getTime())) {
+      throw new BadRequestException(`Invalid date: "${dateStr}"`);
+    }
+    return date.toISOString();
   }
 
   private async insertInterventionChunkIndividually(chunk: any[]): Promise<any[]> {
@@ -3352,6 +3777,221 @@ async interventionEdit(
         .limit(1);
 
       return updated;
+    });
+  }
+
+  async getTreeRecords(
+    treeHid: string,
+    projectId: number,
+  ): Promise<any> {
+    const [treeRow] = await this.drizzleService.db
+      .select({ id: tree.id, uid: tree.uid, hid: tree.hid, status: tree.status, interventionId: tree.interventionId })
+      .from(tree)
+      .where(eq(tree.hid, treeHid))
+      .limit(1);
+
+    if (!treeRow) throw new NotFoundException(`Tree ${treeHid} not found`);
+
+    const [interventionRow] = await this.drizzleService.db
+      .select({ projectId: intervention.projectId })
+      .from(intervention)
+      .where(eq(intervention.id, treeRow.interventionId))
+      .limit(1);
+
+    if (!interventionRow || interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this tree');
+    }
+
+    const records = await this.drizzleService.db
+      .select({
+        id: treeRecord.id,
+        uid: treeRecord.uid,
+        recordType: treeRecord.recordType,
+        recordedAt: treeRecord.recordedAt,
+        previousStatus: treeRecord.previousStatus,
+        newStatus: treeRecord.newStatus,
+        statusReason: treeRecord.statusReason,
+        height: treeRecord.height,
+        width: treeRecord.width,
+        notes: treeRecord.notes,
+        image: treeRecord.image,
+        recordedByName: user.displayName,
+        recordedByEmail: user.email,
+        createdAt: treeRecord.createdAt,
+      })
+      .from(treeRecord)
+      .leftJoin(user, eq(treeRecord.recordedById, user.id))
+      .where(
+        and(
+          eq(treeRecord.treeId, treeRow.id),
+          isNull(treeRecord.deletedAt),
+        ),
+      )
+      .orderBy(desc(treeRecord.recordedAt));
+
+    return {
+      tree: { hid: treeRow.hid, uid: treeRow.uid, status: treeRow.status },
+      records,
+      total: records.length,
+    };
+  }
+
+  async addTreeRemeasurement(
+    treeHid: string,
+    data: AddTreeRemeasurementDto,
+    projectId: number,
+    requesterId: number,
+  ): Promise<any> {
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const [treeRow] = await tx
+        .select()
+        .from(tree)
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      if (!treeRow) {
+        throw new NotFoundException(`Tree ${treeHid} not found`);
+      }
+
+      const [interventionRow] = await tx
+        .select({ projectId: intervention.projectId })
+        .from(intervention)
+        .where(eq(intervention.id, treeRow.interventionId))
+        .limit(1);
+
+      if (!interventionRow || interventionRow.projectId !== projectId) {
+        throw new ForbiddenException('You do not have access to this tree');
+      }
+
+      if (treeRow.status === 'dead' && data.status !== 'dead') {
+        throw new BadRequestException('A tree that has been marked as dead cannot have its status changed');
+      }
+
+      if (data.status === 'dead' && !data.notes?.trim()) {
+        throw new BadRequestException('A reason is required when marking a tree as dead');
+      }
+
+      const previousStatus = treeRow.status;
+      const recordedAt = data.recordedAt
+        ? sql`LEAST(${new Date(data.recordedAt).toISOString()}::timestamptz, NOW())`
+        : sql`NOW()`;
+
+      const recordType = data.status === 'dead' ? 'death' : 'measurement';
+
+      const [record] = await tx
+        .insert(treeRecord)
+        .values({
+          uid: generateUid('treerec'),
+          treeId: treeRow.id,
+          recordedById: requesterId,
+          recordType,
+          recordedAt,
+          height: data.height ?? null,
+          width: data.width ?? null,
+          previousStatus,
+          newStatus: data.status,
+          statusReason: data.notes ?? null,
+          notes: data.notes ?? null,
+          image: data.image ?? null,
+        })
+        .returning();
+
+      const treeUpdates: Record<string, any> = {
+        status: data.status,
+        statusReason: data.notes?.trim() ?? null,
+        lastMeasurementDate: sql`NOW()`,
+        remeasured: true,
+        updatedAt: sql`NOW()`,
+      };
+      if (data.status === 'dead') treeUpdates.statusChangedAt = sql`NOW()`;
+      if (data.height !== undefined) treeUpdates.height = data.height;
+      if (data.width !== undefined) treeUpdates.width = data.width;
+      if (data.image) treeUpdates.image = data.image;
+
+      await tx.update(tree).set(treeUpdates).where(eq(tree.hid, treeHid));
+
+      if (data.image) {
+        await tx
+          .insert(image)
+          .values({
+            uid: generateUid('img'),
+            type: 'record',
+            entityId: treeRow.id,
+            entityType: 'tree',
+            deviceType: 'web',
+            filename: data.image,
+            uploadedById: requesterId,
+            isPrimary: false,
+          });
+      }
+
+      const [updatedTree] = await tx
+        .select({
+          id: tree.id,
+          uid: tree.uid,
+          hid: tree.hid,
+          tag: tree.tag,
+          status: tree.status,
+          statusReason: tree.statusReason,
+          height: tree.height,
+          width: tree.width,
+          image: tree.image,
+          speciesName: tree.speciesName,
+          commonName: tree.commonName,
+          isUnknown: tree.isUnknown,
+          plantingDate: tree.plantingDate,
+          lastMeasurementDate: tree.lastMeasurementDate,
+          remeasured: tree.remeasured,
+          updatedAt: tree.updatedAt,
+        })
+        .from(tree)
+        .where(eq(tree.hid, treeHid))
+        .limit(1);
+
+      this.auditService.log('tree_record', {
+        action: 'create',
+        entityId: record.id,
+        entityUid: record.uid,
+        userId: requesterId,
+        projectId,
+        newValues: {
+          recordType: record.recordType,
+          treeHid,
+          status: data.status,
+          height: data.height ?? null,
+          width: data.width ?? null,
+          notes: data.notes ?? null,
+          hasImage: !!data.image,
+        },
+        source: 'web',
+      });
+
+      this.auditService.log('tree', {
+        action: 'update',
+        entityId: treeRow.id,
+        entityUid: treeRow.uid,
+        userId: requesterId,
+        projectId,
+        oldValues: {
+          status: treeRow.status,
+          height: treeRow.height,
+          width: treeRow.width,
+          image: treeRow.image,
+          statusReason: treeRow.statusReason,
+          lastMeasurementDate: treeRow.lastMeasurementDate,
+        },
+        newValues: {
+          status: updatedTree?.status,
+          height: updatedTree?.height,
+          width: updatedTree?.width,
+          image: updatedTree?.image,
+          statusReason: updatedTree?.statusReason,
+          lastMeasurementDate: updatedTree?.lastMeasurementDate,
+        },
+        source: 'web',
+      });
+
+      return { tree: updatedTree, record };
     });
   }
 }

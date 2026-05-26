@@ -1,18 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle } from 'lucide-react';
-import { expireInvite, removeProjectMember, updateUserRole } from '@shared-core/fetchApi/api.fetch';
+import { X, Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle, Key } from 'lucide-react';
+import { expireInvite, removeProjectMember, updateUserRole, updateMemberExtraPermissions } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { toast } from 'react-toastify';
 import avatar from 'animal-avatar-generator'
 
-const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
+const ALL_PERMISSIONS = [
+  { key: 'approve_intervention', label: 'Approve Intervention' },
+  { key: 'approve_site', label: 'Approve Site' },
+  { key: 'add_site', label: 'Add Site' },
+  { key: 'request_species', label: 'Request Species' },
+] as const;
+
+const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh, isImpersonating = false }) => {
   const [currentRole, setCurrentRole] = useState('');
   const [isEdited, setIsEdited] = useState(false);
   const [isRemoving, setIsRemoving] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [saveSuccess, setSaveSuccess] = useState(false);
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
+  const [isSavingPermissions, setIsSavingPermissions] = useState(false);
+  const [permissionsSaveSuccess, setPermissionsSaveSuccess] = useState(false);
   const { accessToken } = useToken()
   const selectedProject = useProjectStore((state) => state.selectedProject);
   function capitalize(str) {
@@ -27,14 +37,53 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
     />
   }
 
-  // Reset state when user changes or modal opens
   useEffect(() => {
     if (user && isOpen) {
       setCurrentRole(user.role ? capitalize(user?.role) : '');
       setIsEdited(false);
       setSaveSuccess(false);
+      setSelectedPermissions(user.extraPermissions || []);
+      setPermissionsSaveSuccess(false);
     }
   }, [user, isOpen]);
+
+  const canEditExtraPermissions =
+    isImpersonating &&
+    user?.type !== 'invitation' &&
+    ['Admin', 'Contributor'].includes(user?.role);
+
+  const handlePermissionToggle = (key: string) => {
+    setSelectedPermissions(prev =>
+      prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key]
+    );
+    setPermissionsSaveSuccess(false);
+  };
+
+  const handleSavePermissions = async () => {
+    setIsSavingPermissions(true);
+    try {
+      const response = await updateMemberExtraPermissions(
+        accessToken || '',
+        selectedProject?.uid || '',
+        user.uid,
+        selectedPermissions,
+      );
+      if (response && response.statusCode === 200) {
+        toast.success('Permissions updated successfully');
+        setPermissionsSaveSuccess(true);
+        setTimeout(() => {
+          setPermissionsSaveSuccess(false);
+          handleRefresh();
+        }, 2000);
+        return;
+      }
+      toast.error('Failed to update permissions: ' + String(response.message));
+    } catch {
+      toast.error('Failed to update permissions');
+    } finally {
+      setIsSavingPermissions(false);
+    }
+  };
 
   if (!isOpen || !user) return null;
 
@@ -313,6 +362,52 @@ const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh }) => {
                 </div>
               </div>
             </div>) : null}
+
+            {canEditExtraPermissions && (
+              <div className="bg-green-50 rounded-xl p-6">
+                <h4 className="text-lg font-semibold text-gray-900 mb-1">Special Permissions</h4>
+                <p className="text-sm text-gray-500 mb-4">
+                  Grant additional capabilities beyond the standard role. Only visible to super admins.
+                </p>
+                <div className="flex items-start gap-4">
+                  <Key className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
+                  <div className="flex-1 space-y-3">
+                    {ALL_PERMISSIONS.map(({ key, label }) => (
+                      <label key={key} className="flex items-center gap-3 cursor-pointer group">
+                        <input
+                          type="checkbox"
+                          checked={selectedPermissions.includes(key)}
+                          onChange={() => handlePermissionToggle(key)}
+                          className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
+                        />
+                        <span className="text-sm text-gray-700 group-hover:text-gray-900">{label}</span>
+                      </label>
+                    ))}
+                    <div className="pt-2">
+                      {permissionsSaveSuccess ? (
+                        <div className="flex items-center text-sm text-green-600 font-medium">
+                          <CheckCircle className="w-4 h-4 mr-1" />
+                          Permissions updated!
+                        </div>
+                      ) : (
+                        <button
+                          onClick={handleSavePermissions}
+                          disabled={isSavingPermissions}
+                          className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                            isSavingPermissions
+                              ? 'bg-green-300 text-green-700 cursor-not-allowed'
+                              : 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
+                          }`}
+                        >
+                          <Save className="w-4 h-4 mr-2" />
+                          {isSavingPermissions ? 'Saving...' : 'Update Permissions'}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {user.role !== 'Owner' && user.type === 'invitation' && (
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">

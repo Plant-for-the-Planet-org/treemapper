@@ -24,6 +24,14 @@ import { intervention, projectMember, project, tree, user, site, interventionSpe
 import { console } from 'inspector';
 
 
+export interface MonthlyHistoryPoint {
+  month: string; // YYYY-MM
+  trees: number;
+  species: number;
+  area: number;
+  contributors: number;
+}
+
 // Updated interface for the response
 export interface ProjectKPIsResponse {
   kpis: {
@@ -35,6 +43,7 @@ export interface ProjectKPIsResponse {
     totalAreaCoveredChange: { value: string | number; type: 'increase' | 'decrease' | 'no_change' | 'new' };
     totalContributors: number;
     totalContributorsChange: { value: string | number; type: 'increase' | 'decrease' | 'no_change' | 'new' };
+    monthlyHistory: MonthlyHistoryPoint[];
   };
 }
 
@@ -384,19 +393,81 @@ export class AnalyticsService {
   async getProjectKPIs(projectId: number): Promise<ProjectKPIsResponse> {
     const now = new Date();
 
-    // End of current month
     const currentMonthEnd = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+    const twelveMonthsAgoEnd = new Date(twelveMonthsAgo.getFullYear(), twelveMonthsAgo.getMonth(), 0, 23, 59, 59, 999);
 
-    // End of previous month
-    const previousMonthEnd = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+    const [currentTotalStats, previousTotalStats, monthlyTreesArea, monthlySpecies, monthlyContributors] =
+      await Promise.all([
+        this.getCumulativeStats(projectId, currentMonthEnd),
+        this.getCumulativeStats(projectId, twelveMonthsAgoEnd),
+        this.drizzleService.db
+          .select({
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${intervention.interventionStartDate}), 'YYYY-MM')`,
+            trees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`,
+            area: sql<number>`COALESCE(SUM(
+              CASE
+                WHEN ${intervention.area} IS NOT NULL THEN ${intervention.area}
+                WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography)
+                ELSE 0
+              END
+            ), 0)`,
+          })
+          .from(intervention)
+          .where(and(
+            eq(intervention.projectId, projectId),
+            gte(intervention.interventionStartDate, twelveMonthsAgo),
+            isNull(intervention.deletedAt),
+          ))
+          .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
+          .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
 
-    // Get total cumulative stats till end of current month
-    const currentTotalStats = await this.getCumulativeStats(projectId, currentMonthEnd);
+        this.drizzleService.db
+          .select({
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${intervention.interventionStartDate}), 'YYYY-MM')`,
+            species: sql<number>`COUNT(DISTINCT ${interventionSpecies.scientificSpeciesId})`,
+          })
+          .from(interventionSpecies)
+          .innerJoin(intervention, eq(interventionSpecies.interventionId, intervention.id))
+          .where(and(
+            eq(intervention.projectId, projectId),
+            gte(intervention.interventionStartDate, twelveMonthsAgo),
+            isNull(intervention.deletedAt),
+          ))
+          .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
+          .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
 
-    // Get total cumulative stats till end of previous month
-    const previousTotalStats = await this.getCumulativeStats(projectId, previousMonthEnd);
+        this.drizzleService.db
+          .select({
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${projectMember.joinedAt}), 'YYYY-MM')`,
+            contributors: sql<number>`COUNT(DISTINCT ${projectMember.userId})`,
+          })
+          .from(projectMember)
+          .where(and(
+            eq(projectMember.projectId, projectId),
+            gte(projectMember.joinedAt, twelveMonthsAgo),
+            isNull(projectMember.deletedAt),
+          ))
+          .groupBy(sql`DATE_TRUNC('month', ${projectMember.joinedAt})`)
+          .orderBy(sql`DATE_TRUNC('month', ${projectMember.joinedAt})`),
+      ]);
 
-    // Calculate changes
+    // Build 12-month array, filling missing months with 0
+    const monthlyHistory: MonthlyHistoryPoint[] = Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+      const ta = monthlyTreesArea.find(m => m.month === key);
+      const sp = monthlySpecies.find(m => m.month === key);
+      const co = monthlyContributors.find(m => m.month === key);
+      return {
+        month: key,
+        trees: Number(ta?.trees ?? 0),
+        species: Number(sp?.species ?? 0),
+        area: Math.round(Number(ta?.area ?? 0)),
+        contributors: Number(co?.contributors ?? 0),
+      };
+    });
+
     const treesChange = this.calculateChange(previousTotalStats.totalTrees, currentTotalStats.totalTrees);
     const speciesChange = this.calculateChange(previousTotalStats.uniqueSpecies, currentTotalStats.uniqueSpecies);
     const areaChange = this.calculateChange(previousTotalStats.totalArea, currentTotalStats.totalArea);
@@ -412,6 +483,7 @@ export class AnalyticsService {
         totalAreaCoveredChange: areaChange,
         totalContributors: currentTotalStats.totalContributors,
         totalContributorsChange: contributorsChange,
+        monthlyHistory,
       },
     };
   }

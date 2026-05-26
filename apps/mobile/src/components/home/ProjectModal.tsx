@@ -334,6 +334,7 @@ const ProjectModal = (props: Props) => {
                     style={styles.siteWrapper}
                     ListEmptyComponent={emptySiteListRender}
                     showsVerticalScrollIndicator={false}
+                    ListFooterComponent={()=><View style={{width:'100%',height:300}}></View>}
                   />
                 </View>
               </>
