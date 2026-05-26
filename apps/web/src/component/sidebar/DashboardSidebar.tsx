@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import { usePathname } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings,
-  ChevronDown, ChevronRight, Plus
+  ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
@@ -31,6 +32,15 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
+  const { theme, setTheme } = useTheme()
+
+  const themeOrder = ['light', 'dark', 'system'] as const
+  const cycleTheme = () => {
+    const idx = themeOrder.indexOf(theme as typeof themeOrder[number])
+    setTheme(themeOrder[(idx + 1) % themeOrder.length])
+  }
+  const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
+  const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'Auto'
   const { state, isMobile } = useSidebar()
   const collapsed = !isMobile && state === 'collapsed'
   const pathname = usePathname()
@@ -286,7 +296,14 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       {/* User Profile */}
       <SidebarFooter className="border-t border-sidebar-border">
         {collapsed ? (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-1">
+            <button
+              onClick={cycleTheme}
+              className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+              title={`Theme: ${themeLabel}`}
+            >
+              <ThemeIcon size={14} />
+            </button>
             <button
               onClick={openProfileSetting}
               className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
@@ -306,12 +323,21 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                 <div className="text-[10px] text-sidebar-foreground/50 capitalize truncate leading-tight">{projectRole}</div>
               </div>
             </div>
-            <button
-              onClick={openProfileSetting}
-              className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground flex-shrink-0 transition-colors"
-            >
-              <Settings size={14} />
-            </button>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <button
+                onClick={cycleTheme}
+                className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+                title={`Theme: ${themeLabel}`}
+              >
+                <ThemeIcon size={14} />
+              </button>
+              <button
+                onClick={openProfileSetting}
+                className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+              >
+                <Settings size={14} />
+              </button>
+            </div>
           </div>
         )}
       </SidebarFooter>

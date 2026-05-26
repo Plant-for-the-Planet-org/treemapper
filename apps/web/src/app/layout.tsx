@@ -4,6 +4,7 @@ import "./globals.css";
 import { Open_Sans } from 'next/font/google'
 import Auth0Provider from '@/providers/Auth0Provider';
 import I18nProvider from '@/providers/I18nProvider';
+import ThemeProvider from '@/providers/ThemeProvider';
 import MobileAppRedirect from '@/component/MobileAppRedirect';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from "@/lib/utils";
@@ -49,7 +50,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", inter.variable)}>
+    <html lang="en" className={cn("font-sans", inter.variable)} suppressHydrationWarning>
       <head>
         {/* Apple App Site Association meta tag */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -67,13 +68,15 @@ export default function RootLayout({
         {/* Mobile App Redirect Component */}
         <MobileAppRedirect />
         
-        <TooltipProvider delayDuration={300}>
-          <Auth0Provider>
-            <I18nProvider>
-              {children}
-            </I18nProvider>
-          </Auth0Provider>
-        </TooltipProvider>
+        <ThemeProvider>
+          <TooltipProvider delayDuration={300}>
+            <Auth0Provider>
+              <I18nProvider>
+                {children}
+              </I18nProvider>
+            </Auth0Provider>
+          </TooltipProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
