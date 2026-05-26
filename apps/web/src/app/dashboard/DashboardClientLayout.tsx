@@ -2,7 +2,9 @@
 
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
-import DashboardHeaderWeb from '@/component/header/MainHeader';
+import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
+import DashboardTopBar from '@/component/header/DashboardTopBar';
+import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
@@ -101,10 +103,14 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   }
 
   const setDefaultProjectAndWorkspace = useCallback(() => {
-    if (!User?.primaryProjectUid || !User?.primaryWorkspaceUid) return;
+    if (!User?.primaryProjectUid) return;
 
-    const defaultProject = projects.find(p => p.uid === User.primaryProjectUid);
-    const defaultWorkspace = workspace.find(w => w.uid === User.primaryWorkspaceUid);
+    const savedProjectUid = localStorage.getItem('project') || User.primaryProjectUid;
+    const defaultProject = projects.find(p => p.uid === savedProjectUid)
+      ?? projects.find(p => p.uid === User.primaryProjectUid);
+
+    const workspaceUid = defaultProject?.workspace?.uid ?? User.primaryWorkspaceUid;
+    const defaultWorkspace = workspace.find(w => w.uid === workspaceUid);
 
     if (defaultProject && !selectedProject) {
       selectProject(defaultProject);
@@ -325,14 +331,12 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     return children;
   };
 
-  // Show header only when app is ready and not on standalone routes
-  const showHeader = appState === 'success' && !isStandaloneRoute;
+  const showSidebar = appState === 'success' && !isStandaloneRoute;
 
   return (
     <TokenProvider accessToken={accessToken}>
       <div className='parent'>
         <div className="app-container">
-          <div className="app-content">
             <ToastContainer
               position="top-right"
               autoClose={4000}
@@ -349,16 +353,16 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             />
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
-            {showHeader && (
-              <DashboardHeaderWeb
-                token={accessToken}
-                {...navigationHandlers}
-                isLoading={appState === 'idle' || appState === 'loading'}
-              />
-            )}
-            {renderMainContent()}
             <MigrationModal/>
-          </div>
+            <SidebarProvider>
+              <div className="flex h-full overflow-hidden w-full">
+                {showSidebar && <DashboardSidebar {...navigationHandlers} />}
+                <SidebarInset className="flex flex-col overflow-hidden">
+                  {showSidebar && <DashboardTopBar />}
+                  {renderMainContent()}
+                </SidebarInset>
+              </div>
+            </SidebarProvider>
         </div>
       </div>
     </TokenProvider>

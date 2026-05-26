@@ -1,0 +1,4 @@
+{
+  "skills": ["./shadcn-skill.md"],
+  "guidelines": "Always use shadcn/ui for components. Run 'npx shadcn@latest add' before importing new components."
+}
