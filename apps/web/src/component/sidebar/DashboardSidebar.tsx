@@ -229,12 +229,12 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           {projectDropdownOpen && !collapsed && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setProjectDropdownOpen(false)} />
-              <div className="absolute left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                <div className="p-2 border-b border-gray-100">
+              <div className="absolute left-0 right-0 mt-1 z-50 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg overflow-hidden">
+                <div className="p-2 border-b border-border">
                   <Button
                     variant="ghost"
                     onClick={() => { createNewProject(); setProjectDropdownOpen(false) }}
-                    className="w-full justify-center [background-color:#e6f1ec] hover:[background-color:#d4e8dc] text-green-800 h-auto py-1.5 text-xs gap-1 font-medium"
+                    className="w-full justify-center bg-[#e6f1ec] hover:bg-[#d4e8dc] dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-800 dark:text-green-300 h-auto py-1.5 text-xs gap-1 font-medium"
                   >
                     <Plus size={14} />
                     Create New Project
@@ -248,26 +248,28 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                       onOpenChange={() => toggleWorkspace(group.workspace.uid)}
                     >
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-between h-auto py-1.5 rounded-none hover:bg-gray-50 font-normal text-left px-3">
-                          <span className="text-xs font-medium text-gray-700">{group.workspace.name}</span>
-                          <ChevronRight className={cn('w-3 h-3 text-gray-400 transition-transform duration-200', !collapsedWorkspaces.has(group.workspace.uid) && 'rotate-90')} />
+                        <Button variant="ghost" className="w-full justify-between h-auto py-1.5 rounded-none hover:bg-accent font-normal text-left px-3">
+                          <span className="text-xs font-medium text-foreground">{group.workspace.name}</span>
+                          <ChevronRight className={cn('w-3 h-3 text-muted-foreground transition-transform duration-200', !collapsedWorkspaces.has(group.workspace.uid) && 'rotate-90')} />
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="ml-3 border-l border-gray-100 pl-2 py-0.5">
+                        <div className="ml-3 border-l border-border pl-2 py-0.5">
                           {group.projects.map(project => (
                             <Button
                               key={project.uid}
                               variant="ghost"
                               onClick={() => handleProjectSelect(project)}
                               className={cn(
-                                'w-full justify-start h-auto py-1.5 rounded-sm text-left',
-                                project.uid === selectedProject?.uid && '[background-color:#e6f1ec]'
+                                'w-full justify-start h-auto py-1.5 rounded-sm text-left hover:bg-accent',
+                                project.uid === selectedProject?.uid && 'bg-[#e6f1ec] dark:bg-green-900/30'
                               )}
                             >
                               <span className={cn(
                                 'text-xs truncate',
-                                project.uid === selectedProject?.uid ? 'text-green-800 font-medium' : 'text-gray-700'
+                                project.uid === selectedProject?.uid
+                                  ? 'text-green-800 dark:text-green-300 font-medium'
+                                  : 'text-foreground'
                               )}>
                                 {project.name}
                               </span>
