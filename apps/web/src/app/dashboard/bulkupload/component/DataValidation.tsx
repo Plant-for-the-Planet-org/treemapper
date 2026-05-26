@@ -22,6 +22,16 @@ import {
   Minus
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { cn } from '@/lib/utils';
 
 const DataValidation = ({ fileData, onBack, onNext }) => {
   const [isValidating, setIsValidating] = useState(true);
@@ -495,160 +505,90 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
   if (isValidating) {
     return (
-      <div className="flex items-center justify-center">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center bg-white p-8 rounded-2xl shadow-xl"
-        >
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-6">
-            <RefreshCw className="h-8 w-8 animate-spin text-[#007A49]" />
-          </div>
-          <h2 className="text-2xl font-bold text-gray-900 mb-3">Validating Your Data</h2>
-          <p className="text-gray-600 max-w-md">Please wait while we process and validate your CSV file. This ensures data quality and consistency.</p>
-          <div className="mt-6 flex justify-center">
-            <div className="flex space-x-1">
-              {[0, 1, 2].map((i) => (
-                <motion.div
-                  key={i}
-                  animate={{ scale: [1, 1.2, 1] }}
-                  transition={{ duration: 0.6, delay: i * 0.2, repeat: Infinity }}
-                  className="w-2 h-2 bg-[#007A49] rounded-full"
-                />
-              ))}
-            </div>
-          </div>
-        </motion.div>
+      <div className="space-y-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <RefreshCw size={14} className="animate-spin text-primary" />
+          Validating your data...
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} className="h-64 w-full rounded-lg" />
+          ))}
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-gray-50 min-w-full" style={{flex:1}}>
-      <div className="bg-gray-50 min-w-full mx-auto py-8 px-4 sm:px-6 lg:px-8 bg-gray-50">
-        {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => onBack(3)}
-              className="flex items-center px-4 py-2 text-gray-600 hover:text-[#007A49] hover:bg-white rounded-lg transition-all duration-200"
-            >
-              <ArrowLeft className="h-5 w-5 mr-2" />
-            </button>
-              <h1 className="text-4xl font-bold text-gray-900" style={{margin:0,padding:0}}>Data Validation</h1>
-          </div>
+    <div className="w-full">
+      {/* Header */}
+      <div className="flex items-center gap-2 mb-5">
+        <Button variant="ghost" size="icon" onClick={() => onBack(3)} className="h-8 w-8">
+          <ArrowLeft size={14} />
+        </Button>
+        <h2 className="text-lg font-semibold text-foreground">Data validation</h2>
+      </div>
 
-          <button
-            onClick={() => onNext(validationResults.map(r => r.processedData), 3)}
-            disabled={!canProceed}
-            className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${canProceed
-                ? 'bg-[#007A49] hover:bg-[#006B3F] text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
+      {/* Instructions */}
+      <div className="bg-muted/40 border-l-4 border-primary rounded-r-lg p-4 mb-5">
+        <div className="flex items-start gap-2">
+          <AlertCircle size={14} className="text-primary mt-0.5 flex-shrink-0" />
+          <div className="space-y-1.5 text-sm text-muted-foreground">
+            <p className="font-semibold text-foreground">Data validation guidelines:</p>
+            <ul className="list-disc list-inside space-y-0.5 ml-2 text-xs">
+              <li>Review the imported CSV data and correct any validation errors</li>
+              <li><strong className="text-foreground">Single plantation:</strong> Must have exactly 1 tree and 1 species only</li>
+              <li><strong className="text-foreground">Multi plantation:</strong> Must have 2+ trees and can have multiple species</li>
+              <li>For multi plantations, specify tree count for each species</li>
+              <li>Changes are auto-saved as you edit</li>
+              <li>Required fields are marked with an asterisk (*)</li>
+              <li>Date format must be MM/DD/YYYY</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Summary and Filters */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
+        <div className="flex items-center gap-2">
+          <Card className="py-0 gap-0">
+            <CardContent className="px-4 py-2 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Total</span>
+              <span className="font-semibold text-foreground">{data.length}</span>
+            </CardContent>
+          </Card>
+          <Card className={cn('py-0 gap-0', totalErrors > 0 && 'border-destructive/40 bg-destructive/5')}>
+            <CardContent className="px-4 py-2 flex items-center gap-2">
+              <span className="text-xs text-muted-foreground">Errors</span>
+              <span className={cn('font-semibold', totalErrors > 0 ? 'text-destructive' : 'text-primary')}>
+                {totalErrors}
+              </span>
+            </CardContent>
+          </Card>
+        </div>
+
+        <div className="flex bg-muted/40 border border-border rounded-lg p-0.5">
+          <Button
+            variant={filterType === 'all' ? 'default' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterType('all')}
           >
-            {canProceed ? (
-              <>
-                Continue to Upload
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </>
-            ) : (
-              <>
-                <AlertCircle className="mr-2 h-5 w-5" />
-                Fix {totalErrors} errors to continue
-              </>
-            )}
-          </button>
-        </motion.div>
-
-        {/* Instructions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="bg-gradient-to-r from-blue-50 to-indigo-50 border-l-4 border-blue-400 rounded-xl p-6 mb-8 shadow-sm"
-        >
-          <div className="flex items-start space-x-3">
-            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
-              <AlertCircle className="h-4 w-4 text-blue-600" />
-            </div>
-            <div className="space-y-2 text-sm text-blue-800">
-              <p className="font-semibold">Data Validation Guidelines:</p>
-              <ul className="list-disc list-inside space-y-1 ml-4">
-                <li>Review the imported CSV data and correct any validation errors</li>
-                <li><strong>Single Plantation:</strong> Must have exactly 1 tree and 1 species only</li>
-                <li><strong>Multi Plantation:</strong> Must have 2+ trees and can have multiple species</li>
-                <li>For Multi plantations, specify tree count for each species</li>
-                <li>Changes are auto-saved as you edit</li>
-                <li>Required fields are marked with an asterisk (*)</li>
-                <li>Date format must be MM/DD/YYYY</li>
-              </ul>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Summary and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-          className="flex items-center justify-between mb-8"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="bg-white px-6 py-3 rounded-xl border border-gray-200 shadow-sm">
-              <div className="flex items-center space-x-2">
-                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                <span className="text-sm font-medium text-gray-600">Total Records</span>
-                <span className="font-bold text-gray-900 text-lg">{data.length}</span>
-              </div>
-            </div>
-            <div className={`px-6 py-3 rounded-xl border shadow-sm ${totalErrors > 0
-                ? 'bg-red-50 border-red-200'
-                : 'bg-green-50 border-green-200'
-              }`}>
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${totalErrors > 0 ? 'bg-red-500' : 'bg-green-500'
-                  }`}></div>
-                <span className="text-sm font-medium text-gray-600">Validation Errors</span>
-                <span className={`font-bold text-lg ${totalErrors > 0 ? 'text-red-800' : 'text-green-800'
-                  }`}>
-                  {totalErrors}
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex items-center space-x-3">
-            <div className="flex bg-white border border-gray-200 rounded-xl p-1 shadow-sm">
-              <button
-                onClick={() => setFilterType('all')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center space-x-2 ${filterType === 'all'
-                    ? 'bg-[#007A49] text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-              >
-                <Eye className="h-4 w-4" />
-                <span>All Records</span>
-              </button>
-              <button
-                onClick={() => setFilterType('errors')}
-                className={`px-4 py-2 text-sm font-medium rounded-lg transition-all duration-200 flex items-center space-x-2 ${filterType === 'errors'
-                    ? 'bg-red-600 text-white shadow-md'
-                    : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-              >
-                <AlertCircle className="h-4 w-4" />
-                <span>Errors ({totalErrors})</span>
-              </button>
-            </div>
-          </div>
-        </motion.div>
+            <Eye size={14} className="mr-1.5" />
+            All records
+          </Button>
+          <Button
+            variant={filterType === 'errors' ? 'destructive' : 'ghost'}
+            size="sm"
+            onClick={() => setFilterType('errors')}
+          >
+            <AlertCircle size={14} className="mr-1.5" />
+            Errors ({totalErrors})
+          </Button>
+        </div>
+      </div>
 
         {/* Data Cards */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4 mb-5">
           <AnimatePresence>
             {filteredResults.map((result, idx) => (
               <motion.div
@@ -658,27 +598,27 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                 animate={{ opacity: 1, scale: 1, y: 0 }}
                 exit={{ opacity: 0, scale: 0.9, y: -20 }}
                 transition={{ delay: idx * 0.05 }}
-                className={`bg-white rounded-2xl shadow-lg border-2 transition-all duration-300 hover:shadow-xl ${result.hasErrors
-                    ? 'border-red-300 hover:border-red-400'
-                    : 'border-green-300 hover:border-green-400'
-                  }`}
+                className={cn(
+                  'bg-background rounded-lg shadow-sm border transition-all duration-200 hover:shadow-md',
+                  result.hasErrors ? 'border-destructive/40 hover:border-destructive/60' : 'border-border hover:border-border/60'
+                )}
               >
                 <div className="p-6">
                   {/* Card Header */}
                   <div className="flex items-center justify-between mb-6">
                     <div className="flex items-center space-x-3">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${result.hasErrors ? 'bg-red-100' : 'bg-green-100'
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${result.hasErrors ? 'bg-destructive/20' : 'bg-primary/20'
                         }`}>
-                        <span className={`font-bold text-sm ${result.hasErrors ? 'text-red-800' : 'text-green-800'
+                        <span className={`font-bold text-sm ${result.hasErrors ? 'text-destructive' : 'text-primary'
                           }`}>
                           #{result.index + 1}
                         </span>
                       </div>
                       <div>
-                        <h3 className="text-lg font-bold text-gray-900">
+                        <h3 className="text-lg font-bold text-foreground">
                           Record {result.index + 1}
                         </h3>
-                        <p className="text-sm text-gray-500">
+                        <p className="text-sm text-muted-foreground">
                           {data[result.index]['TYPE'] || 'Unknown Type'}
                         </p>
                       </div>
@@ -688,7 +628,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       {result.hasErrors && (
                         <button
                           onClick={() => showErrors(result.errors)}
-                          className="px-3 py-1 bg-red-100 text-red-800 text-xs font-medium rounded-full hover:bg-red-200 transition-colors flex items-center space-x-1"
+                          className="px-3 py-1 bg-destructive/20 text-destructive text-xs font-medium rounded-full hover:bg-destructive/30 transition-colors flex items-center space-x-1"
                         >
                           <AlertCircle className="h-3 w-3" />
                           <span>{result.errors.length} errors</span>
@@ -699,15 +639,15 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           onClick={() => setEditingCard(editingCard === result.index ? null : result.index)}
                           className={`p-2 rounded-lg transition-all duration-200 ${
                             editingCard === result.index 
-                              ? 'text-[#007A49] bg-green-50' 
-                              : 'text-gray-400 hover:text-[#007A49] hover:bg-green-50'
+                              ? 'text-primary bg-primary/10' 
+                              : 'text-muted-foreground/60 hover:text-primary hover:bg-primary/10'
                           }`}
                         >
                           <Edit3 className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(result.index)}
-                          className="p-2 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          className="p-2 text-muted-foreground/60 hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -720,49 +660,50 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                     // Edit Mode
                     <div className="space-y-4">
                       {/* Type Dropdown */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">PLANTATION TYPE *</label>
-                        <select
-                          value={data[result.index]['TYPE']?data[result.index]['TYPE'].toLowerCase(): ''}
-                          onChange={(e) => handleFieldChange(result.index, 'TYPE', e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                      <div className="space-y-1.5">
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Plantation type *</Label>
+                        <Select
+                          value={data[result.index]['TYPE'] ? data[result.index]['TYPE'].toLowerCase() : ''}
+                          onValueChange={(value) => handleFieldChange(result.index, 'TYPE', value)}
                         >
-                          <option value="">Select Type...</option>
-                          <option value="single">Single</option>
-                          <option value="multi">Multi</option>
-                        </select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="single">Single</SelectItem>
+                            <SelectItem value="multi">Multi</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
 
                       {/* Species Section */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">
-                          SPECIES & TREE COUNT *
-                        </label>
+                      <div className="space-y-1.5">
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground mb-2 block">
+                          Species & tree count *
+                        </Label>
                         <div className="space-y-3">
                           {data[result.index]['SPECIES_DATA']?.map((species, speciesIndex) => (
-                            <div key={speciesIndex} className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
-                              <input
+                            <div key={speciesIndex} className="flex items-center space-x-2 p-3 bg-muted/40 rounded-lg">
+                              <Input
                                 type="text"
                                 placeholder="Species name"
                                 value={species.name}
                                 onChange={(e) => handleSpeciesChange(result.index, speciesIndex, 'name', e.target.value)}
-                                className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                                className="flex-1"
                               />
-                              <input
+                              <Input
                                 type="number"
                                 placeholder="Count"
                                 min="1"
                                 value={species.count}
                                 onChange={(e) => handleSpeciesChange(result.index, speciesIndex, 'count', e.target.value)}
-                                disabled={data[result.index]['TYPE'] === 'single' || data[result.index]['TYPE'] === 'single'}
-                                className={`w-20 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 ${
-                                  data[result.index]['TYPE'] === 'single' ? 'bg-gray-100 cursor-not-allowed' : ''
-                                }`}
+                                disabled={data[result.index]['TYPE'] === 'single'}
+                                className="w-20"
                               />
                               {data[result.index]['TYPE'] === 'multi' && data[result.index]['SPECIES_DATA']?.length > 1 && (
                                 <button
                                   onClick={() => removeSpecies(result.index, speciesIndex)}
-                                  className="p-2 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-all duration-200"
+                                  className="p-2 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200"
                                 >
                                   <Minus className="h-4 w-4" />
                                 </button>
@@ -773,7 +714,7 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           {data[result.index]['TYPE'] === 'multi' && (
                             <button
                               onClick={() => addSpecies(result.index)}
-                              className="w-full flex items-center justify-center space-x-2 py-2 px-4 border-2 border-dashed border-gray-300 rounded-lg text-gray-600 hover:border-[#007A49] hover:text-[#007A49] transition-all duration-200"
+                              className="w-full flex items-center justify-center space-x-2 py-2 px-4 border-2 border-dashed border-input rounded-lg text-muted-foreground hover:border-primary hover:text-primary transition-all duration-200"
                             >
                               <Plus className="h-4 w-4" />
                               <span className="text-sm font-medium">Add Another Species</span>
@@ -782,10 +723,10 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                         </div>
                         
                         {/* Total Trees Display */}
-                        <div className="mt-2 p-2 bg-blue-50 rounded-lg">
+                        <div className="mt-2 p-2 bg-muted/40 rounded-lg">
                           <div className="flex items-center justify-between text-sm">
-                            <span className="text-blue-600 font-medium">Total Trees:</span>
-                            <span className="font-bold text-blue-800">
+                            <span className="text-foreground font-medium">Total Trees:</span>
+                            <span className="font-bold text-foreground">
                               {data[result.index]['SPECIES_DATA']?.reduce((sum, species) => sum + species.count, 0) || 0}
                             </span>
                           </div>
@@ -794,164 +735,164 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Dates */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">START DATE *</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">start date *</Label>
+                          <Input
                             type="text"
                             placeholder="MM/DD/YYYY"
                             value={data[result.index]['PLANTATION START DATE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'PLANTATION START DATE', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">END DATE</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">end date</Label>
+                          <Input
                             type="text"
                             placeholder="MM/DD/YYYY (defaults to start date)"
                             value={data[result.index]['PLANTATION END DATE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'PLANTATION END DATE', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* Location - Both Required */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">LATITUDE *</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">latitude *</Label>
+                          <Input
                             type="text"
                             placeholder="e.g., 12.9221"
                             value={data[result.index]['LATITUDE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'LATITUDE', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">LONGITUDE *</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">longitude *</Label>
+                          <Input
                             type="text"
                             placeholder="e.g., 77.5937"
                             value={data[result.index]['LONGITUDE'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'LONGITUDE', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* Measurements */}
                       <div className="grid grid-cols-3 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">ELEVATION</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">elevation</Label>
+                          <Input
                             type="text"
                             placeholder="meters"
                             value={data[result.index]['ELEVATION'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'ELEVATION', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">HEIGHT</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">height</Label>
+                          <Input
                             type="text"
                             placeholder="meters"
                             value={data[result.index]['AVERAGE PLANT HEIGHT'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'AVERAGE PLANT HEIGHT', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">DIAMETER</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">diameter</Label>
+                          <Input
                             type="text"
                             placeholder="cm"
                             value={data[result.index]['AVERAGE PLANT DIAMETER'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'AVERAGE PLANT DIAMETER', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* People and Tag */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">PEOPLE INVOLVED</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">people involved</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['NUMBER OF PEOPLE INVOLVED'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'NUMBER OF PEOPLE INVOLVED', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">TAG</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">tag</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['TAG'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'TAG', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* Location and Person */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">LOCATION NAME</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">location name</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['LOCATION NAME'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'LOCATION NAME', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">PERSON NAME</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">person name</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['PERSON NAME'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'PERSON NAME', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* ID and Designation */}
                       <div className="grid grid-cols-2 gap-3">
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">ID</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">id</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['ID'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'ID', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
-                        <div>
-                          <label className="block text-xs font-semibold text-gray-700 mb-2">DESIGNATION</label>
-                          <input
+                        <div className="space-y-1.5">
+                          <Label className="text-xs uppercase tracking-wide text-muted-foreground">designation</Label>
+                          <Input
                             type="text"
                             value={data[result.index]['DESIGNATION'] || ''}
                             onChange={(e) => handleFieldChange(result.index, 'DESIGNATION', e.target.value)}
-                            className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200"
+                            
                           />
                         </div>
                       </div>
 
                       {/* Comment */}
-                      <div>
-                        <label className="block text-xs font-semibold text-gray-700 mb-2">COMMENT</label>
-                        <textarea
+                      <div className="space-y-1.5">
+                        <Label className="text-xs uppercase tracking-wide text-muted-foreground">Comment</Label>
+                        <Textarea
                           rows={3}
                           maxLength={200}
                           placeholder="Maximum 200 characters"
                           value={data[result.index]['COMMENT'] || ''}
                           onChange={(e) => handleFieldChange(result.index, 'COMMENT', e.target.value)}
-                          className="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#007A49] focus:border-transparent transition-all duration-200 resize-none"
+                          className="resize-none"
                         />
-                        <div className="text-xs text-gray-500 mt-1">
+                        <div className="text-xs text-muted-foreground text-right">
                           {(data[result.index]['COMMENT'] || '').length}/200 characters
                         </div>
                       </div>
@@ -962,15 +903,15 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       {/* Key Information */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center space-x-2">
-                          <TreePine className="h-4 w-4 text-green-600" />
+                          <TreePine className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Plantation Type</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs font-medium text-muted-foreground">Plantation Type</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {data[result.index]['TYPE'] || 'N/A'}
                               <span className={`ml-2 px-2 py-1 text-xs rounded-full ${
                                 data[result.index]['TYPE'] === 'single' 
-                                  ? 'bg-blue-100 text-blue-800' 
-                                  : 'bg-purple-100 text-purple-800'
+                                  ? 'bg-muted text-foreground' 
+                                  : 'bg-muted text-foreground'
                               }`}>
                                 {data[result.index]['TYPE'].toLowerCase() === 'single' ? '1 Tree' : 'Multi Trees'}
                               </span>
@@ -978,12 +919,12 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <div className="w-4 h-4 bg-green-100 rounded-full flex items-center justify-center">
-                            <TreePine className="h-3 w-3 text-green-600" />
+                          <div className="w-4 h-4 bg-primary/20 rounded-full flex items-center justify-center">
+                            <TreePine className="h-3 w-3 text-primary" />
                           </div>
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Total Trees</p>
-                            <p className="text-sm font-bold text-green-800">
+                            <p className="text-xs font-medium text-muted-foreground">Total Trees</p>
+                            <p className="text-sm font-bold text-primary">
                               {data[result.index]['TREES PLANTED'] || '0'}
                             </p>
                           </div>
@@ -992,21 +933,21 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Species with Counts */}
                       <div className="flex items-start space-x-2">
-                        <Tag className="h-4 w-4 text-purple-600 mt-0.5" />
+                        <Tag className="h-4 w-4 text-foreground mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500">Species & Tree Count</p>
+                          <p className="text-xs font-medium text-muted-foreground">Species & Tree Count</p>
                           <div className="space-y-2 mt-1">
                             {data[result.index]['SPECIES_DATA']?.map((species, idx) => (
-                              <div key={idx} className="flex items-center justify-between p-2 bg-purple-50 rounded-lg">
-                                <span className="text-sm font-medium text-purple-800">
+                              <div key={idx} className="flex items-center justify-between p-2 bg-muted/40 rounded-lg">
+                                <span className="text-sm font-medium text-foreground">
                                   {species.name || 'Unknown Species'}
                                 </span>
-                                <span className="px-2 py-1 bg-purple-100 text-purple-800 text-xs rounded-full font-bold">
+                                <span className="px-2 py-1 bg-muted text-foreground text-xs rounded-full font-bold">
                                   {species.count} {species.count === 1 ? 'tree' : 'trees'}
                                 </span>
                               </div>
                             )) || (
-                              <span className="text-sm text-gray-500 italic">No species data</span>
+                              <span className="text-sm text-muted-foreground italic">No species data</span>
                             )}
                           </div>
                         </div>
@@ -1015,19 +956,19 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       {/* Dates */}
                       <div className="grid grid-cols-2 gap-4">
                         <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-blue-600" />
+                          <Calendar className="h-4 w-4 text-foreground" />
                           <div>
-                            <p className="text-xs font-medium text-gray-500">Start Date</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs font-medium text-muted-foreground">Start Date</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {data[result.index]['PLANTATION START DATE'] || 'N/A'}
                             </p>
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <Calendar className="h-4 w-4 text-green-600" />
+                          <Calendar className="h-4 w-4 text-primary" />
                           <div>
-                            <p className="text-xs font-medium text-gray-500">End Date</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs font-medium text-muted-foreground">End Date</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {data[result.index]['PLANTATION END DATE'] || 'Same as start'}
                             </p>
                           </div>
@@ -1036,13 +977,13 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Location */}
                       <div className="flex items-start space-x-2">
-                        <MapPin className="h-4 w-4 text-red-600 mt-0.5" />
+                        <MapPin className="h-4 w-4 text-destructive mt-0.5" />
                         <div className="flex-1">
-                          <p className="text-xs font-medium text-gray-500">Location</p>
-                          <p className="text-sm font-semibold text-gray-900">
+                          <p className="text-xs font-medium text-muted-foreground">Location</p>
+                          <p className="text-sm font-semibold text-foreground">
                             {data[result.index]['LOCATION NAME'] || 'Unnamed Location'}
                           </p>
-                          <p className="text-xs text-gray-600">
+                          <p className="text-xs text-muted-foreground">
                             {data[result.index]['LATITUDE'] && data[result.index]['LONGITUDE']
                               ? `${parseFloat(data[result.index]['LATITUDE']).toFixed(4)}, ${parseFloat(data[result.index]['LONGITUDE']).toFixed(4)}`
                               : 'Coordinates missing'}
@@ -1053,10 +994,10 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
                       {/* People */}
                       {data[result.index]['NUMBER OF PEOPLE INVOLVED'] && (
                         <div className="flex items-center space-x-2">
-                          <Users className="h-4 w-4 text-orange-600" />
+                          <Users className="h-4 w-4 text-foreground" />
                           <div>
-                            <p className="text-xs font-medium text-gray-500">People Involved</p>
-                            <p className="text-sm font-semibold text-gray-900">
+                            <p className="text-xs font-medium text-muted-foreground">People Involved</p>
+                            <p className="text-sm font-semibold text-foreground">
                               {data[result.index]['NUMBER OF PEOPLE INVOLVED']}
                             </p>
                           </div>
@@ -1065,17 +1006,17 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Person Details */}
                       {(data[result.index]['PERSON NAME'] || data[result.index]['DESIGNATION'] || data[result.index]['ID']) && (
-                        <div className="bg-gray-50 rounded-lg p-3">
-                          <p className="text-xs font-medium text-gray-500 mb-2">Contact Person</p>
+                        <div className="bg-muted/40 rounded-lg p-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">Contact Person</p>
                           <div className="space-y-1">
                             {data[result.index]['PERSON NAME'] && (
-                              <p className="text-sm font-semibold text-gray-900">
+                              <p className="text-sm font-semibold text-foreground">
                                 {data[result.index]['PERSON NAME']}
                               </p>
                             )}
-                            <div className="flex items-center space-x-3 text-xs text-gray-600">
+                            <div className="flex items-center space-x-3 text-xs text-muted-foreground">
                               {data[result.index]['DESIGNATION'] && (
-                                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                <span className="bg-muted text-foreground px-2 py-1 rounded">
                                   {data[result.index]['DESIGNATION']}
                                 </span>
                               )}
@@ -1089,30 +1030,30 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Additional Details */}
                       {(data[result.index]['ELEVATION'] || data[result.index]['AVERAGE PLANT HEIGHT'] || data[result.index]['AVERAGE PLANT DIAMETER'] || data[result.index]['TAG']) && (
-                        <div className="border-t border-gray-100 pt-3">
-                          <p className="text-xs font-medium text-gray-500 mb-2">Additional Details</p>
+                        <div className="border-t border-border pt-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-2">Additional Details</p>
                           <div className="grid grid-cols-2 gap-2 text-xs">
                             {data[result.index]['ELEVATION'] && (
                               <div>
-                                <span className="text-gray-500">Elevation:</span>
+                                <span className="text-muted-foreground">Elevation:</span>
                                 <span className="ml-1 font-medium">{data[result.index]['ELEVATION']}m</span>
                               </div>
                             )}
                             {data[result.index]['AVERAGE PLANT HEIGHT'] && (
                               <div>
-                                <span className="text-gray-500">Height:</span>
+                                <span className="text-muted-foreground">Height:</span>
                                 <span className="ml-1 font-medium">{data[result.index]['AVERAGE PLANT HEIGHT']}m</span>
                               </div>
                             )}
                             {data[result.index]['AVERAGE PLANT DIAMETER'] && (
                               <div>
-                                <span className="text-gray-500">Diameter:</span>
+                                <span className="text-muted-foreground">Diameter:</span>
                                 <span className="ml-1 font-medium">{data[result.index]['AVERAGE PLANT DIAMETER']}cm</span>
                               </div>
                             )}
                             {data[result.index]['TAG'] && (
                               <div>
-                                <span className="text-gray-500">Tag:</span>
+                                <span className="text-muted-foreground">Tag:</span>
                                 <span className="ml-1 font-medium">{data[result.index]['TAG']}</span>
                               </div>
                             )}
@@ -1122,9 +1063,9 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
 
                       {/* Comment */}
                       {data[result.index]['COMMENT'] && (
-                        <div className="bg-blue-50 rounded-lg p-3">
-                          <p className="text-xs font-medium text-gray-500 mb-1">Comment</p>
-                          <p className="text-sm text-gray-700">{data[result.index]['COMMENT']}</p>
+                        <div className="bg-muted/40 rounded-lg p-3">
+                          <p className="text-xs font-medium text-muted-foreground mb-1">Comment</p>
+                          <p className="text-sm text-foreground/80">{data[result.index]['COMMENT']}</p>
                         </div>
                       )}
                     </div>
@@ -1142,119 +1083,68 @@ const DataValidation = ({ fileData, onBack, onNext }) => {
             animate={{ opacity: 1 }}
             className="text-center py-16"
           >
-            <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <EyeOff className="h-8 w-8 text-gray-400" />
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
+              <EyeOff className="h-8 w-8 text-muted-foreground/60" />
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">No Records Found</h3>
-            <p className="text-gray-600">No records match your current filter criteria.</p>
+            <h3 className="text-lg font-semibold text-foreground mb-2">No Records Found</h3>
+            <p className="text-muted-foreground">No records match your current filter criteria.</p>
           </motion.div>
         )}
 
-        {/* Bottom Actions */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="flex justify-between items-center bg-white rounded-xl p-6 shadow-lg border border-gray-200"
-        >
-          <div className="flex items-center space-x-4">
-            <div className="text-sm text-gray-600">
-              <span className="font-semibold">{filteredResults.length}</span> of{' '}
-              <span className="font-semibold">{data.length}</span> records shown
-            </div>
+      {/* Bottom Actions */}
+      <Card className="py-0 gap-0">
+        <CardContent className="px-5 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span><span className="font-semibold text-foreground">{filteredResults.length}</span> of <span className="font-semibold text-foreground">{data.length}</span> records shown</span>
             {totalErrors > 0 && (
-              <div className="flex items-center space-x-2 text-red-600">
-                <AlertCircle className="h-4 w-4" />
-                <span className="text-sm font-medium">{totalErrors} validation errors need attention</span>
-              </div>
+              <span className="flex items-center gap-1 text-destructive">
+                <AlertCircle size={14} />
+                {totalErrors} validation errors need attention
+              </span>
             )}
           </div>
 
-          <button
+          <Button
             onClick={() => onNext(validationResults.map(r => r.processedData), 3)}
             disabled={!canProceed}
-            className={`flex items-center px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 ${canProceed
-                ? 'bg-[#007A49] hover:bg-[#006B3F] text-white shadow-lg hover:shadow-xl'
-                : 'bg-gray-300 text-gray-500 cursor-not-allowed'
-              }`}
           >
             {canProceed ? (
-              <>
-                Continue to Upload
-                <ArrowRight className="ml-2 h-5 w-5" />
-              </>
+              <>Continue to upload<ArrowRight size={14} className="ml-1.5" /></>
             ) : (
-              <>
-                <AlertCircle className="mr-2 h-5 w-5" />
-                Fix {totalErrors} errors to continue
-              </>
+              <><AlertCircle size={14} className="mr-1.5" />Fix {totalErrors} errors to continue</>
             )}
-          </button>
-        </motion.div>
+          </Button>
+        </CardContent>
+      </Card>
 
-        {/* Error Modal */}
-        <AnimatePresence>
-          {showErrorModal && (
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0  bg-black/10 bg-opacity-10  backdrop-blur-sm z-50 flex items-center justify-center z-50 p-4"
-              onClick={() => setShowErrorModal(false)}
-            >
-              <motion.div
-                initial={{ scale: 0.9, opacity: 0, y: 20 }}
-                animate={{ scale: 1, opacity: 1, y: 0 }}
-                exit={{ scale: 0.9, opacity: 0, y: 20 }}
-                className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl"
-                onClick={e => e.stopPropagation()}
+      {/* Error Modal */}
+      <Dialog open={showErrorModal} onOpenChange={setShowErrorModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertCircle size={16} className="text-destructive" />
+              Validation errors
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground -mt-2">{selectedCardErrors.length} issues found</p>
+
+          <div className="space-y-2 max-h-80 overflow-y-auto">
+            {selectedCardErrors.map((error, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-2 p-3 bg-destructive/10 rounded-lg border border-destructive/20"
               >
-                <div className="flex items-center justify-between mb-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
-                      <AlertCircle className="h-6 w-6 text-red-600" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-red-800">Validation Errors</h3>
-                      <p className="text-sm text-red-600">{selectedCardErrors.length} issues found</p>
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setShowErrorModal(false)}
-                    className="text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100 transition-all duration-200"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
+                <AlertCircle size={14} className="text-destructive mt-0.5 flex-shrink-0" />
+                <p className="text-sm text-destructive font-medium">{error}</p>
+              </div>
+            ))}
+          </div>
 
-                <div className="space-y-3 max-h-80 overflow-y-auto">
-                  {selectedCardErrors.map((error, index) => (
-                    <motion.div
-                      key={index}
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ delay: index * 0.05 }}
-                      className="flex items-start space-x-3 p-3 bg-red-50 rounded-lg border border-red-200"
-                    >
-                      <AlertCircle className="h-4 w-4 text-red-500 mt-0.5 flex-shrink-0" />
-                      <p className="text-sm text-red-800 font-medium">{error}</p>
-                    </motion.div>
-                  ))}
-                </div>
-
-                <div className="mt-6 flex justify-end">
-                  <button
-                    onClick={() => setShowErrorModal(false)}
-                    className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all duration-200 font-medium"
-                  >
-                    Close
-                  </button>
-                </div>
-              </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+          <div className="flex justify-end">
+            <Button variant="destructive" onClick={() => setShowErrorModal(false)}>Close</Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

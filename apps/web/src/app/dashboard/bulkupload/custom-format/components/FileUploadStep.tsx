@@ -1,5 +1,6 @@
 'use client';
 
+// TODO: shadcn migration — follow apps/web/UI_MIGRATION_GUIDE.md (sibling /bulkupload main flow already migrated)
 import React, { useRef, useState } from 'react';
 import { Upload, FolderOpen, FileText, CheckCircle, AlertCircle, X, Map as MapIcon } from 'lucide-react';
 import { motion } from 'framer-motion';

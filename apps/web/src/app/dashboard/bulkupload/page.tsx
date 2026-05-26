@@ -1,161 +1,159 @@
-'use client';
+'use client'
 
-import React, { useState, useRef } from 'react';
-
-import InfoSection from './component/InfoSection';
-import SelectProjectSite from './component/SelectProjectSite';
-import DataValidation from './component/DataValidation';
-import UploadSuccess from './component/UploadSuccess';
-import { ArrowLeft, CheckCircle } from 'lucide-react';
+import React, { useState } from 'react'
+import InfoSection from './component/InfoSection'
+import SelectProjectSite from './component/SelectProjectSite'
+import DataValidation from './component/DataValidation'
+import UploadSuccess from './component/UploadSuccess'
+import { ArrowLeft, Check } from 'lucide-react'
 import { useToken } from '@/context/useTokenContext'
-import { useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+type StepStatus = 'complete' | 'current' | 'upcoming'
+type Step = { id: number; name: string; status: StepStatus }
+
+const INITIAL_STEPS: Step[] = [
+  { id: 1, name: 'Site', status: 'current' },
+  { id: 2, name: 'Upload', status: 'upcoming' },
+  { id: 3, name: 'Validate', status: 'upcoming' },
+  { id: 4, name: 'Success', status: 'upcoming' },
+]
+
+const buildSteps = (current: number): Step[] =>
+  INITIAL_STEPS.map((s) => ({
+    ...s,
+    status: s.id < current ? 'complete' : s.id === current ? 'current' : 'upcoming',
+  }))
 
 const Home = () => {
-    const { accessToken } = useToken()
-    const [currentStep, setCurrentStep] = useState(1)
-    const [fileData, setFileData] = useState([]);
-    const [selectedProject, setSelectedProject] = useState({ name: '', id: '' });
-    const [selectedSite, setSelectedSite] = useState({ name: '', id: '' });
-    const router = useRouter()
-    const [steps, setSteps] = useState([
-        { id: 1, name: 'Project', status: 'current' },
-        { id: 2, name: 'Upload', status: 'upcoming' },
-        { id: 3, name: 'Validate', status: 'upcoming' },
-        { id: 4, name: 'Success', status: 'upcoming' }
-    ])
+  const { accessToken } = useToken()
+  const [currentStep, setCurrentStep] = useState(1)
+  const [fileData, setFileData] = useState([])
+  const [selectedProject, setSelectedProject] = useState({ name: '', id: '' })
+  const [selectedSite, setSelectedSite] = useState({ name: '', id: '' })
+  const router = useRouter()
+  const steps = buildSteps(currentStep)
 
-    const updateSteps = (i: number) => {
-        if (i === 1) {
-            setCurrentStep(2)
-            setSteps([
-                { id: 1, name: 'Project', status: 'complete' },
-                { id: 2, name: 'Upload', status: 'current' },
-                { id: 3, name: 'Validate', status: 'upcoming' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-        if (i === 2) {
-            setCurrentStep(3)
-            setSteps([
-                { id: 1, name: 'Project', status: 'complete' },
-                { id: 2, name: 'Upload', status: 'complete' },
-                { id: 3, name: 'Validate', status: 'upcoming' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-        if (i === 3) {
-            setCurrentStep(4)
-            setSteps([
-                { id: 1, name: 'Project', status: 'complete' },
-                { id: 2, name: 'Upload', status: 'complete' },
-                { id: 3, name: 'Validate', status: 'complete' },
-                { id: 4, name: 'Success', status: 'current' }
-            ])
-        }
-        if (i === 4) {
-            setCurrentStep(0)
-            setSteps([
-                { id: 1, name: 'Project', status: 'current' },
-                { id: 2, name: 'Upload', status: 'upcoming' },
-                { id: 3, name: 'Validate', status: 'upcoming' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-    }
+  const handleBack = () => {
+    if (currentStep <= 1) router.back()
+    else previousStep(currentStep)
+  }
 
-    const prviousStep = (i: number) => {
-        if (i === 4) {
-            setCurrentStep(3)
-            setSteps([
-                { id: 1, name: 'Project', status: 'complete' },
-                { id: 2, name: 'Upload', status: 'complete' },
-                { id: 3, name: 'Validate', status: 'current' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-        if (i === 3) {
-            setCurrentStep(2)
-            setSteps([
-                { id: 1, name: 'Project', status: 'complete' },
-                { id: 2, name: 'Upload', status: 'current' },
-                { id: 3, name: 'Validate', status: 'upcoming' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-        if (i === 2) {
-            setCurrentStep(1)
-            setSteps([
-                { id: 1, name: 'Project', status: 'current' },
-                { id: 2, name: 'Upload', status: 'upcoming' },
-                { id: 3, name: 'Validate', status: 'upcoming' },
-                { id: 4, name: 'Success', status: 'upcoming' }
-            ])
-        }
-    }
+  const updateSteps = (i: number) => {
+    if (i === 4) setCurrentStep(0)
+    else setCurrentStep(i + 1)
+  }
 
-    const handleProjectValidations = (valdiatedData, i) => {
-        updateSteps(i)
-        setFileData(valdiatedData);
-    }
+  const previousStep = (i: number) => {
+    if (i > 1) setCurrentStep(i - 1)
+  }
 
-    const handleFinalSelection = ({ projectName, siteName, projectId, siteId }, i) => {
-        setSelectedProject({ name: projectName, id: projectId });
-        setSelectedSite({ name: siteName, id: siteId || null});
-        updateSteps(i)
+  const handleProjectValidations = (validatedData: any, i: number) => {
+    updateSteps(i)
+    setFileData(validatedData)
+  }
 
-    }
+  const handleFinalSelection = ({ projectName, siteName, projectId, siteId }: any, i: number) => {
+    setSelectedProject({ name: projectName, id: projectId })
+    setSelectedSite({ name: siteName, id: siteId || null })
+    updateSteps(i)
+  }
 
-    return (
-        <div className="bg-gray-50 py-8 px-4 sm:px-6 lg:px-8 w-full h-full">
-            <button
-                onClick={router.back}
-                className="pb-2 flex items-center gap-1 text-gray-600 hover:text-gray-900 transition-colors group"
-            >
-                <div className="rounded-lg group-hover:bg-gray-100 transition-colors">
-                    <ArrowLeft size={20} />
-                </div>
-                <span className="font-medium">Back</span>
-            </button>
-            <h1 className="text-3xl font-bold text-gray-900">Bulk Upload Intervention</h1>
-            <div style={{ marginTop: 40, marginBottom: 30 }}>
-                <nav aria-label="Progress">
-                    <ol className="flex items-center">
-                        {steps.map((step, stepIdx) => (
-                            <li key={step.name} className={`relative ${stepIdx !== steps.length - 1 ? 'pr-8 sm:pr-20' : ''} flex-1`}>
-                                {stepIdx !== steps.length - 1 && (
-                                    <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                                        <div className={`h-0.5 w-full ${step.status === 'complete' ? 'bg-[#007A49]' : 'bg-gray-200'}`} />
-                                    </div>
-                                )}
-
-                                {/* Step Circle */}
-                                <div className="relative flex h-8 w-8 items-center justify-center rounded-full border-2 bg-white" style={{borderColor:'lightgray'}}>
-                                    {step.status === 'complete' ? (
-                                        <CheckCircle className="h-5 w-5 text-[#007A49]" />
-                                    ) : step.status === 'current' ? (
-                                        <span className="h-2.5 w-2.5 rounded-full bg-[#007A49]" />
-                                    ) : (
-                                        <span className="h-2.5 w-2.5 rounded-full bg-gray-300" />
-                                    )}
-                                    <div className={`absolute -top-8 text-sm font-medium ${step.status === 'current' ? 'text-[#007A49]' : 'text-gray-500'
-                                        }`}>
-                                        {step.name}
-                                    </div>
-                                </div>
-                            </li>
-                        ))}
-                    </ol>
-                </nav>
-            </div>
-
-            {currentStep === 1 && <SelectProjectSite onBack={prviousStep} accessToken={accessToken}
-                handleFinalSelection={handleFinalSelection} />}
-            {currentStep === 2 && <InfoSection setFileData={setFileData} updateStep={updateSteps} selectedProject={selectedProject} selectedSite={selectedSite} />}
-            {currentStep === 3 && < DataValidation fileData={fileData} onBack={prviousStep} onNext={handleProjectValidations} />}
-            {currentStep === 4 && <UploadSuccess validatedData={fileData} selectedProject={selectedProject} selectedSite={selectedSite} onBack={prviousStep} onStartOver={updateSteps} accessToken={accessToken} />}
+  return (
+    <div className="py-6 px-4 sm:px-6 lg:px-8 w-full h-full">
+      {currentStep > 1 && (
+        <div className="flex items-center justify-between gap-3 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleBack}
+            className="-ml-2 text-muted-foreground hover:text-foreground"
+          >
+            <ArrowLeft size={14} className="mr-1" />
+            Back
+          </Button>
+          {selectedSite.name && selectedSite.name !== 'No site selected' && (
+            <span className="text-xs text-muted-foreground truncate">
+              Site: <span className="font-medium text-foreground">{selectedSite.name}</span>
+            </span>
+          )}
         </div>
-    )
+      )}
 
-};
+      <nav aria-label="Progress" className="mb-8">
+        <ol className="flex items-center w-full">
+          {steps.map((step, stepIdx) => (
+            <React.Fragment key={step.name}>
+              <li className="flex items-center gap-2 flex-shrink-0">
+                <div
+                  className={cn(
+                    'flex h-7 w-7 items-center justify-center rounded-full border-2 bg-background',
+                    step.status === 'upcoming' ? 'border-border' : 'border-primary',
+                  )}
+                >
+                  {step.status === 'complete' ? (
+                    <Check size={12} className="text-primary" />
+                  ) : step.status === 'current' ? (
+                    <span className="h-2 w-2 rounded-full bg-primary" />
+                  ) : (
+                    <span className="h-2 w-2 rounded-full bg-muted-foreground/40" />
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    'text-xs font-medium whitespace-nowrap hidden sm:inline',
+                    step.status === 'current' ? 'text-foreground' : 'text-muted-foreground',
+                  )}
+                >
+                  {step.name}
+                </span>
+              </li>
+              {stepIdx !== steps.length - 1 && (
+                <div
+                  aria-hidden="true"
+                  className={cn(
+                    'flex-1 h-0.5 mx-2 sm:mx-3',
+                    step.status === 'complete' ? 'bg-primary' : 'bg-border',
+                  )}
+                />
+              )}
+            </React.Fragment>
+          ))}
+        </ol>
+      </nav>
 
-export default Home;
+      {currentStep === 1 && (
+        <SelectProjectSite
+          onBack={previousStep}
+          accessToken={accessToken}
+          handleFinalSelection={handleFinalSelection}
+        />
+      )}
+      {currentStep === 2 && (
+        <InfoSection
+          setFileData={setFileData}
+          updateStep={updateSteps}
+          selectedProject={selectedProject}
+          selectedSite={selectedSite}
+        />
+      )}
+      {currentStep === 3 && (
+        <DataValidation fileData={fileData} onBack={previousStep} onNext={handleProjectValidations} />
+      )}
+      {currentStep === 4 && (
+        <UploadSuccess
+          validatedData={fileData}
+          selectedProject={selectedProject}
+          selectedSite={selectedSite}
+          onBack={previousStep}
+          onStartOver={updateSteps}
+          accessToken={accessToken}
+        />
+      )}
+    </div>
+  )
+}
+
+export default Home

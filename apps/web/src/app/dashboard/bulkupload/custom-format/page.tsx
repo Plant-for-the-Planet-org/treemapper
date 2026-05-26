@@ -1,5 +1,6 @@
 'use client';
 
+// TODO: shadcn migration — follow apps/web/UI_MIGRATION_GUIDE.md (sibling /bulkupload main flow already migrated)
 import React, { useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { ArrowLeft } from 'lucide-react';

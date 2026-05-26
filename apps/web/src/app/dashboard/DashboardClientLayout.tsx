@@ -24,7 +24,6 @@ const STANDALONE_ROUTES = [
   'profile',
   'project',
   'newsite',
-  'bulkupload',
   'new-intervention',
   'onboarding',
   'workspace',

@@ -1,5 +1,6 @@
 'use client';
 
+// TODO: shadcn migration — follow apps/web/UI_MIGRATION_GUIDE.md (sibling /bulkupload main flow already migrated)
 import React from 'react';
 import { Loader2 } from 'lucide-react';
 
