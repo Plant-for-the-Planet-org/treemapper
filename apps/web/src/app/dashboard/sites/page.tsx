@@ -31,6 +31,8 @@ const SiteManagementPage = () => {
   const userRole = selectedProject?.userRole;
   const canManageSites = ['owner', 'admin'].includes(userRole || '');
   const [siteAccessModal, setSiteAccessModal] = useState(false)
+  const [mobileView, setMobileView] = useState<'list' | 'detail'>('list')
+
   useEffect(() => {
     if (isEditing && selectedSite) {
       setEditedSite({ ...selectedSite });
@@ -175,13 +177,14 @@ const SiteManagementPage = () => {
   };
 
   return (
-    <div className="w-full flex-1 min-h-0 flex overflow-hidden bg-gray-50/50">
-      <div className="w-[280px] lg:w-[320px] flex-shrink-0 h-full">
+    <div className="w-full flex-1 min-h-0 flex overflow-hidden bg-muted/30">
+      {/* Sidebar: always visible on md+, hidden on mobile when viewing detail */}
+      <div className={`w-full md:w-[280px] lg:w-[320px] flex-shrink-0 h-full ${mobileView === 'detail' ? 'hidden md:flex' : 'flex'} flex-col`}>
         <SitesPanel
           sites={sites}
           filteredSites={filteredSites}
           selectedSite={selectedSite}
-          onSiteSelect={setSelectedSite}
+          onSiteSelect={(s) => { setSelectedSite(s); setMobileView('detail') }}
           loading={loading}
           searchTerm={searchTerm}
           setSearchTerm={setSearchTerm}
@@ -193,7 +196,8 @@ const SiteManagementPage = () => {
           setSortDir={setSortDir}
         />
       </div>
-      <div className="flex-1 h-full overflow-y-auto p-4">
+      {/* Detail: always visible on md+, hidden on mobile when viewing list */}
+      <div className={`flex-1 h-full overflow-y-auto p-4 ${mobileView === 'list' ? 'hidden md:block' : 'block'}`}>
         {selectedSite ? (
           <SiteDetails
             site={selectedSite}
@@ -206,6 +210,7 @@ const SiteManagementPage = () => {
             setSiteAccessModal={setSiteAccessModal}
             siteAccessModal={siteAccessModal}
             onDelete={() => setShowDeleteModal(true)}
+            onBack={() => setMobileView('list')}
           />
         ) : (
           <EmptyState loading={loading} />

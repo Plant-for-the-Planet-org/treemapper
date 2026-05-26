@@ -5,6 +5,8 @@ import { useDropzone } from "react-dropzone";
 import { Upload, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import * as turf from "@turf/turf";
 import * as tj from "@mapbox/togeojson";
+import { Button } from "@/components/ui/button";
+import { cn } from "@/lib/utils";
 
 // Constants
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
@@ -296,29 +298,29 @@ export default function GeoJSONUpload({
   const getStatusIcon = () => {
     switch (uploadState.status) {
       case "uploading":
-        return <Loader2 className="h-6 w-6 text-blue-500 animate-spin" />;
+        return <Loader2 className="h-6 w-6 text-primary animate-spin" />;
       case "success":
-        return <CheckCircle className="h-6 w-6 text-green-500" />;
+        return <CheckCircle className="h-6 w-6 text-primary" />;
       case "error":
-        return <XCircle className="h-6 w-6 text-red-500" />;
+        return <XCircle className="h-6 w-6 text-destructive" />;
       default:
-        return <Upload className="h-6 w-6 text-gray-400" />;
+        return <Upload className="h-6 w-6 text-muted-foreground/60" />;
     }
   };
 
   const getStatusColor = () => {
-    if (isDragReject) return "border-red-300 bg-red-50";
-    if (isDragActive) return "border-green-300 bg-green-50";
+    if (isDragReject) return "border-destructive/50 bg-destructive/5";
+    if (isDragActive) return "border-primary/50 bg-primary/5";
 
     switch (uploadState.status) {
       case "uploading":
-        return "border-blue-300 bg-blue-50";
+        return "border-primary/30 bg-primary/5";
       case "success":
-        return "border-green-300 bg-green-50";
+        return "border-primary/50 bg-primary/5";
       case "error":
-        return "border-red-300 bg-red-50";
+        return "border-destructive/50 bg-destructive/5";
       default:
-        return "border-gray-200 bg-gray-50 hover:border-gray-300 hover:bg-gray-100";
+        return "border-border bg-muted/50 hover:border-border hover:bg-muted";
     }
   };
 
@@ -327,30 +329,24 @@ export default function GeoJSONUpload({
       <div className="space-y-4">
         <div
           {...getRootProps()}
-          className={`
-            relative border-2 border-dashed rounded-xl px-8 py-4 text-center cursor-pointer
-            transition-all duration-200 ${getStatusColor()}
-          `}
+          className={cn(
+            "relative border-2 border-dashed rounded-xl px-8 py-4 text-center cursor-pointer transition-all duration-200",
+            getStatusColor()
+          )}
         >
           <input {...getInputProps()} />
 
           <div className="space-y-3">
-            {/* Status Icon */}
             <div className="flex justify-center">{getStatusIcon()}</div>
 
-            {/* Main Content */}
             <div className="space-y-2">
               {uploadState.status === "idle" && (
                 <>
-                  <h3 className="text-md font-semibold text-gray-900">
-                    {isDragActive
-                      ? "Drop your file here"
-                      : "Upload location file"}
+                  <h3 className="text-sm font-semibold text-foreground">
+                    {isDragActive ? "Drop your file here" : "Upload location file"}
                   </h3>
-                  <p className="text-sm text-gray-600">
-                    Drag & drop or click to select
-                  </p>
-                  <p className="text-xs text-gray-400">
+                  <p className="text-sm text-muted-foreground">Drag & drop or click to select</p>
+                  <p className="text-xs text-muted-foreground/60">
                     Supports: KML, GeoJSON ({allowedGeometryTypes.join(", ")} geometry)
                   </p>
                 </>
@@ -358,30 +354,20 @@ export default function GeoJSONUpload({
 
               {uploadState.status === "uploading" && (
                 <>
-                  <h3 className="text-md font-semibold text-blue-900">
-                    Processing your file...
-                  </h3>
+                  <h3 className="text-sm font-semibold text-foreground">Processing your file...</h3>
                   {uploadState.fileName && (
-                    <p className="text-sm text-blue-700">
-                      {uploadState.fileName}
-                    </p>
+                    <p className="text-sm text-muted-foreground">{uploadState.fileName}</p>
                   )}
                 </>
               )}
 
               {uploadState.status === "success" && (
                 <>
-                  <h3 className="text-md font-semibold text-green-900">
-                    File uploaded successfully!
-                  </h3>
+                  <h3 className="text-sm font-semibold text-primary">File uploaded successfully</h3>
                   <div className="space-y-1">
-                    <p className="text-sm text-green-700 font-medium">
-                      {uploadState.fileName}
-                    </p>
+                    <p className="text-sm text-foreground font-medium">{uploadState.fileName}</p>
                     {uploadState.geometryType && (
-                      <p className="text-sm text-green-600">
-                        Type: {uploadState.geometryType}
-                      </p>
+                      <p className="text-xs text-muted-foreground">Type: {uploadState.geometryType}</p>
                     )}
                   </div>
                 </>
@@ -389,54 +375,35 @@ export default function GeoJSONUpload({
 
               {uploadState.status === "error" && (
                 <>
-                  <h3 className="text-md font-semibold text-red-900">
-                    Upload failed
-                  </h3>
+                  <h3 className="text-sm font-semibold text-destructive">Upload failed</h3>
                   <div className="space-y-1">
                     {uploadState.fileName && (
-                      <p className="text-sm text-red-700 font-medium">
-                        {uploadState.fileName}
-                      </p>
+                      <p className="text-sm text-foreground font-medium">{uploadState.fileName}</p>
                     )}
-                    <p className="text-sm text-red-600">
-                      {uploadState.message}
-                    </p>
+                    <p className="text-sm text-destructive/80">{uploadState.message}</p>
                   </div>
                 </>
               )}
             </div>
 
-            {/* Action Buttons */}
-            {uploadState.status !== "idle" &&
-              uploadState.status !== "uploading" && (
-                <div className="flex justify-center gap-3 pt-2">
-                  <button
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      resetUploadState();
-                    }}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                      uploadState.status === "success"
-                        ? "text-green-700 bg-green-100 hover:bg-green-200"
-                        : "text-red-700 bg-red-100 hover:bg-red-200"
-                    }`}
-                  >
-                    {uploadState.status === "success"
-                      ? "Upload Different File"
-                      : "Try Again"}
-                  </button>
-                </div>
-              )}
+            {uploadState.status !== "idle" && uploadState.status !== "uploading" && (
+              <div className="flex justify-center pt-2">
+                <Button
+                  size="sm"
+                  variant={uploadState.status === "error" ? "destructive" : "outline"}
+                  onClick={(e) => { e.stopPropagation(); resetUploadState(); }}
+                >
+                  {uploadState.status === "success" ? "Upload Different File" : "Try Again"}
+                </Button>
+              </div>
+            )}
           </div>
 
-          {/* Drag Overlay */}
           {isDragActive && (
-            <div className="absolute inset-0 bg-green-500 bg-opacity-10 border-2 border-green-400 border-dashed rounded-xl flex items-center justify-center">
+            <div className="absolute inset-0 bg-primary/10 border-2 border-primary border-dashed rounded-xl flex items-center justify-center">
               <div className="text-center">
-                <Upload className="h-12 w-12 text-green-500 mx-auto mb-2" />
-                <p className="text-md font-semibold text-green-700">
-                  Drop your file here
-                </p>
+                <Upload className="h-12 w-12 text-primary mx-auto mb-2" />
+                <p className="text-sm font-semibold text-primary">Drop your file here</p>
               </div>
             </div>
           )}

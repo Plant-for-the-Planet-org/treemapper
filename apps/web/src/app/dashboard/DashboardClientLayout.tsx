@@ -5,6 +5,7 @@ import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
 import DashboardTopBar from '@/component/header/DashboardTopBar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { TopBarActionsProvider } from '@/component/header/TopBarActions';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { TestingModeManager } from '@/component/TestingModeManager';
@@ -360,8 +361,10 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             >
               {showSidebar && <DashboardSidebar {...navigationHandlers} />}
               <SidebarInset className="flex flex-col overflow-hidden min-h-0">
-                {showSidebar && <DashboardTopBar />}
-                {renderMainContent()}
+                <TopBarActionsProvider>
+                  {showSidebar && <DashboardTopBar />}
+                  {renderMainContent()}
+                </TopBarActionsProvider>
               </SidebarInset>
             </SidebarProvider>
         </div>

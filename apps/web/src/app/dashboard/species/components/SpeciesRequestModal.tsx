@@ -1,151 +1,107 @@
-import { Check } from "lucide-react";
-import { LoadingSpinner } from "./LoadingSpinner";
-import { Modal } from "./Modal";
-import { useState } from "react";
+import { Check, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Textarea } from '@/components/ui/textarea'
+import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { Modal } from './Modal'
 
 export const SpeciesRequestModal = ({
-    showRequestModal,
-    setShowRequestModal,
-    requestForm,
-    setRequestForm,
-    requestLoading,
-    handleSubmitRequest
-}) => {
-    const [errors, setErrors] = useState({});
+  showRequestModal,
+  setShowRequestModal,
+  requestForm,
+  setRequestForm,
+  requestLoading,
+  handleSubmitRequest,
+}: any) => {
+  const [errors, setErrors] = useState<Record<string, string | null>>({})
 
-    const validateForm = () => {
-        const newErrors = {};
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+    if (!requestForm.scientificName?.trim()) newErrors.scientificName = 'Scientific name is required'
+    if (!requestForm.commonName?.trim()) newErrors.commonName = 'Common name is required'
+    if (!requestForm.description?.trim()) newErrors.description = 'Description is required'
+    if (!requestForm.requestReason?.trim()) newErrors.requestReason = 'Request reason is required'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
-        if (!requestForm.scientificName?.trim()) {
-            newErrors.scientificName = "Scientific name is required";
-        }
+  const handleSubmit = () => {
+    if (validateForm()) handleSubmitRequest()
+  }
 
-        if (!requestForm.commonName?.trim()) {
-            newErrors.commonName = "Common name is required";
-        }
+  const handleInputChange = (field: string, value: string) => {
+    setRequestForm((prev: any) => ({ ...prev, [field]: value }))
+    if (errors[field]) setErrors(prev => ({ ...prev, [field]: null }))
+  }
 
-        if (!requestForm.description?.trim()) {
-            newErrors.description = "Description is required";
-        }
+  const errClass = (field: string) => errors[field] ? 'border-destructive/40 focus-visible:ring-destructive/30' : ''
 
-        if (!requestForm.requestReason?.trim()) {
-            newErrors.requestReason = "Request reason is required";
-        }
+  return (
+    <Modal
+      isOpen={showRequestModal}
+      onClose={() => setShowRequestModal(false)}
+      title="Request New Species"
+      size="default"
+    >
+      <div className="space-y-5">
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium">Scientific Name *</Label>
+          <Input
+            value={requestForm.scientificName || ''}
+            onChange={(e) => handleInputChange('scientificName', e.target.value)}
+            placeholder="e.g. Acer saccharum"
+            className={cn('italic', errClass('scientificName'))}
+          />
+          {errors.scientificName && <p className="text-xs text-destructive">{errors.scientificName}</p>}
+        </div>
 
-        setErrors(newErrors);
-        return Object.keys(newErrors).length === 0;
-    };
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium">Common Name *</Label>
+          <Input
+            value={requestForm.commonName || ''}
+            onChange={(e) => handleInputChange('commonName', e.target.value)}
+            placeholder="e.g. Sugar Maple"
+            className={errClass('commonName')}
+          />
+          {errors.commonName && <p className="text-xs text-destructive">{errors.commonName}</p>}
+        </div>
 
-    const handleSubmit = () => {
-        if (validateForm()) {
-            handleSubmitRequest();
-        }
-    };
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium">Description *</Label>
+          <Textarea
+            value={requestForm.description || ''}
+            onChange={(e) => handleInputChange('description', e.target.value)}
+            rows={3}
+            placeholder="Brief description of the species..."
+            className={cn('resize-none', errClass('description'))}
+          />
+          {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
+        </div>
 
-    const handleInputChange = (field, value) => {
-        setRequestForm(prev => ({ ...prev, [field]: value }));
-        // Clear error when user starts typing
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: null }));
-        }
-    };
+        <div className="space-y-1.5">
+          <Label className="text-xs font-medium">Request Reason *</Label>
+          <Textarea
+            value={requestForm.requestReason || ''}
+            onChange={(e) => handleInputChange('requestReason', e.target.value)}
+            rows={3}
+            placeholder="Why do you need this species in the database?"
+            className={cn('resize-none', errClass('requestReason'))}
+          />
+          {errors.requestReason && <p className="text-xs text-destructive">{errors.requestReason}</p>}
+        </div>
 
-    const getInputClassName = (fieldName) => {
-        const baseClasses = "w-full px-3 py-2 text-sm border rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none";
-        const errorClasses = errors[fieldName] ? "border-red-300 bg-red-50" : "border-gray-200";
-        return `${baseClasses} ${errorClasses}`;
-    };
-
-    return (
-        <Modal
-            isOpen={showRequestModal}
-            onClose={() => setShowRequestModal(false)}
-            title="Request New Species"
-            size="default"
-        >
-            <div className="space-y-4">
-                <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Scientific Name *
-                    </label>
-                    <input
-                        type="text"
-                        value={requestForm.scientificName || ""}
-                        onChange={(e) => handleInputChange('scientificName', e.target.value)}
-                        className={`${getInputClassName('scientificName')} italic`}
-                        placeholder="e.g. Acer saccharum"
-                    />
-                    {errors.scientificName && (
-                        <p className="text-xs text-red-600 mt-1">{errors.scientificName}</p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Common Name *
-                    </label>
-                    <input
-                        type="text"
-                        value={requestForm.commonName || ""}
-                        onChange={(e) => handleInputChange('commonName', e.target.value)}
-                        className={getInputClassName('commonName')}
-                        placeholder="e.g. Sugar Maple"
-                    />
-                    {errors.commonName && (
-                        <p className="text-xs text-red-600 mt-1">{errors.commonName}</p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Description *
-                    </label>
-                    <textarea
-                        value={requestForm.description || ""}
-                        onChange={(e) => handleInputChange('description', e.target.value)}
-                        rows={3}
-                        className={`${getInputClassName('description')} resize-none`}
-                        placeholder="Brief description of the species..."
-                    />
-                    {errors.description && (
-                        <p className="text-xs text-red-600 mt-1">{errors.description}</p>
-                    )}
-                </div>
-
-                <div>
-                    <label className="block text-xs font-medium text-gray-700 mb-1">
-                        Request Reason *
-                    </label>
-                    <textarea
-                        value={requestForm.requestReason || ""}
-                        onChange={(e) => handleInputChange('requestReason', e.target.value)}
-                        rows={3}
-                        className={`${getInputClassName('requestReason')} resize-none`}
-                        placeholder="Why do you need this species in the database?"
-                    />
-                    {errors.requestReason && (
-                        <p className="text-xs text-red-600 mt-1">{errors.requestReason}</p>
-                    )}
-                </div>
-
-                <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-                    <button
-                        onClick={() => setShowRequestModal(false)}
-                        disabled={requestLoading}
-                        className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSubmit}
-                        disabled={requestLoading}
-                        className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
-                    >
-                        {requestLoading ? <LoadingSpinner size="small" /> : <Check size={14} />}
-                        {requestLoading ? 'Submitting...' : 'Submit Request'}
-                    </button>
-                </div>
-            </div>
-        </Modal>
-    );
-};
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" size="sm" onClick={() => setShowRequestModal(false)} disabled={requestLoading} className="h-8">
+            Cancel
+          </Button>
+          <Button size="sm" onClick={handleSubmit} disabled={requestLoading} className="h-8 gap-1.5">
+            {requestLoading ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />}
+            {requestLoading ? 'Submitting...' : 'Submit Request'}
+          </Button>
+        </div>
+      </div>
+    </Modal>
+  )
+}

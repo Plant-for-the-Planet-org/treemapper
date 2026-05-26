@@ -1,72 +1,69 @@
-import { motion } from "framer-motion";
-import { Search, AlertCircle } from "lucide-react";
-import { LoadingSpinner } from "./LoadingSpinner";
+import { motion } from 'framer-motion'
+import { Search, AlertCircle, Loader2 } from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 
-export const SpeciesSearch = ({ 
-  searchTerm, 
-  onSearchChange, 
-  searchResults, 
-  isSearching, 
-  onSelectSpecies, 
-  onRequestNew 
-}) => (
-  <div className="space-y-4">
+export const SpeciesSearch = ({
+  searchTerm,
+  onSearchChange,
+  searchResults,
+  isSearching,
+  onSelectSpecies,
+  onRequestNew,
+}: any) => (
+  <div className="space-y-3">
     <div className="relative">
-      <Search size={16} className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
-      <input
-        type="text"
+      <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+      <Input
         value={searchTerm}
-        onChange={(e) => onSearchChange(e.target.value)}
+        onChange={(e: any) => onSearchChange(e.target.value)}
         placeholder="Search species database..."
-        className="w-full pl-10 pr-3 py-3 text-sm border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none"
+        className="pl-9 h-10"
       />
     </div>
 
     {isSearching && (
-      <div className="flex items-center justify-center py-8">
-        <LoadingSpinner />
+      <div className="flex items-center justify-center py-6 text-muted-foreground">
+        <Loader2 size={20} className="animate-spin" />
       </div>
     )}
 
     {searchResults.length > 0 && (
-      <div className="space-y-2 max-h-64 overflow-y-auto">
-        {searchResults.map((species) => (
-          <motion.div
+      <div className="space-y-1.5 max-h-64 overflow-y-auto">
+        {searchResults.map((species: any) => (
+          <motion.button
             key={species.id}
-            whileHover={{ scale: 1.01 }}
+            type="button"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             onClick={() => onSelectSpecies(species)}
-            className="p-3 border border-gray-200 rounded-lg cursor-pointer hover:border-green-500 hover:bg-green-50/50 transition-colors"
+            className="w-full text-left p-3 border border-border rounded-md hover:border-primary hover:bg-primary/5 transition-colors"
           >
-            <h4 className="text-sm font-medium text-gray-900 italic">
-              {species.scientificName}
-            </h4>
-            <p className="text-xs text-gray-600">{species.commonName}</p>
-          </motion.div>
+            <h4 className="text-sm font-medium italic">{species.scientificName}</h4>
+            <p className="text-xs text-muted-foreground">{species.commonName}</p>
+          </motion.button>
         ))}
       </div>
     )}
 
     {searchTerm.length >= 3 && !isSearching && searchResults.length === 0 && (
-      <div className="text-center py-8">
-        <AlertCircle className="w-12 h-12 text-gray-400 mx-auto mb-3" />
-        <h3 className="text-sm font-medium text-gray-900 mb-2">Species not found</h3>
-        <p className="text-xs text-gray-600 mb-4">
+      <div className="text-center py-6">
+        <AlertCircle size={32} className="text-muted-foreground/60 mx-auto mb-2" />
+        <h3 className="text-sm font-medium mb-1">Species not found</h3>
+        <p className="text-xs text-muted-foreground mb-3">
           Can't find "{searchTerm}" in our database
         </p>
-        <button
-          onClick={onRequestNew}
-          className="px-4 py-2 bg-green-600 text-white text-xs font-medium rounded-lg hover:bg-green-700 transition-colors"
-        >
+        <Button size="sm" onClick={onRequestNew}>
           Request this species
-        </button>
+        </Button>
       </div>
     )}
 
     {searchTerm.length < 3 && (
-      <div className="text-center py-8 text-gray-500">
-        <Search className="w-12 h-12 text-gray-300 mx-auto mb-3" />
+      <div className="text-center py-6 text-muted-foreground">
+        <Search size={32} className="mx-auto mb-2 opacity-50" />
         <p className="text-sm">Enter at least 3 characters to search</p>
       </div>
     )}
   </div>
-);
+)

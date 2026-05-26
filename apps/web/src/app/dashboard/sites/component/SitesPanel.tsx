@@ -26,9 +26,9 @@ interface Props {
 }
 
 const STATUS_DOT: Record<string, string> = {
-  planting: 'bg-[#007A49]',
-  planning: 'bg-[#7FB89A]',
-  completed: 'bg-gray-400',
+  planting: 'bg-primary',
+  planning: 'bg-primary/50',
+  completed: 'bg-muted-foreground/40',
   barren: 'bg-amber-500',
 }
 
@@ -56,8 +56,8 @@ export const SitesPanel = ({
         className={cn(
           'flex items-center gap-0.5 h-8 px-2 rounded-md border text-xs transition-colors',
           active
-            ? 'bg-[#e6f1ec] border-[#007A49]/30 text-[#007A49]'
-            : 'bg-white border-gray-200 text-gray-500 hover:bg-gray-50'
+            ? 'bg-primary/10 border-primary/30 text-primary'
+            : 'bg-background border-border text-muted-foreground hover:bg-muted/50'
         )}
       >
         <Icon size={14} />
@@ -66,11 +66,11 @@ export const SitesPanel = ({
     )
   }
   return (
-    <div className="w-full h-full flex flex-col bg-white border-r border-gray-100">
+    <div className="w-full h-full flex flex-col bg-background border-r border-border/50">
       {/* Search + filter */}
-      <div className="p-3 space-y-2 border-b border-gray-100 flex-shrink-0">
+      <div className="p-3 space-y-2 border-b border-border/50 flex-shrink-0">
         <div className="relative">
-          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-gray-400" size={14} />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground/60" size={14} />
           <Input
             placeholder="Search sites..."
             value={searchTerm}
@@ -94,7 +94,7 @@ export const SitesPanel = ({
           <SortIcon field="created" Icon={Calendar} label="date" />
           <SortIcon field="area" Icon={LandPlot} label="area" />
         </div>
-        <div className="flex items-center justify-between text-[10px] text-gray-500 pt-1">
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground pt-1">
           <span>{filteredSites.length} site{filteredSites.length !== 1 ? 's' : ''}</span>
         </div>
       </div>
@@ -119,11 +119,11 @@ export const SitesPanel = ({
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                className="p-6 text-center text-gray-500"
+                className="p-6 text-center text-muted-foreground"
               >
-                <Search className="w-10 h-10 text-gray-300 mx-auto mb-2" />
-                <h3 className="text-xs font-medium text-gray-700 mb-1">No sites found</h3>
-                <p className="text-[10px] text-gray-500">Try adjusting your search</p>
+                <Search className="w-10 h-10 text-muted-foreground/40 mx-auto mb-2" />
+                <h3 className="text-xs font-medium text-foreground/80 mb-1">No sites found</h3>
+                <p className="text-[10px] text-muted-foreground">Try adjusting your search</p>
               </motion.div>
             )}
           </div>

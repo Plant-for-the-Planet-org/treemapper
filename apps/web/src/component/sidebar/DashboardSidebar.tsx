@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import {
@@ -41,8 +41,22 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   }
   const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
   const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'Auto'
-  const { state, isMobile } = useSidebar()
+  const { state, isMobile, setOpenMobile, setOpen } = useSidebar()
   const collapsed = !isMobile && state === 'collapsed'
+
+  const [isTablet, setIsTablet] = useState(false)
+  useEffect(() => {
+    const check = () => setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const handleNavClick = (id: string) => {
+    updateRoute(id)
+    if (isMobile) setOpenMobile(false)
+    else if (isTablet) setOpen(false)
+  }
   const pathname = usePathname()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
@@ -279,7 +293,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => updateRoute(item.id)}
+                    onClick={() => handleNavClick(item.id)}
                     isActive={activeRoute === item.id}
                     tooltip={item.label}
                   >

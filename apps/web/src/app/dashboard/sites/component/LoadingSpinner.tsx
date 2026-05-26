@@ -14,7 +14,7 @@ export const LoadingSpinner = ({ size = 'default' }) => {
       transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       className="flex items-center justify-center"
     >
-      <Loader2 className={`${sizeClasses[size]} text-gray-400`} />
+      <Loader2 className={`${sizeClasses[size]} text-muted-foreground/60`} />
     </motion.div>
   );
 };

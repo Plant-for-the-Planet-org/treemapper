@@ -1,174 +1,142 @@
-import { motion } from "framer-motion";
-import { CheckSquare, Square, Leaf, Heart, EyeOff, Eye, TreePine, Users, LeafIcon, HelpCircle } from "lucide-react";
+import { motion } from 'framer-motion'
+import { Leaf, Heart, EyeOff, Eye, TreePine, LeafIcon, HelpCircle } from 'lucide-react'
+import { format, parseISO, formatDistanceToNow } from 'date-fns'
+import { Card, CardContent } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { cn } from '@/lib/utils'
 
-const formatRelativeTime = (date) => {
-  const now = new Date();
-  const then = new Date(date);
-  const diffMs = now - then;
-  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-  const diffHours = Math.floor(diffMs / (1000 * 60 * 60));
-  const diffMinutes = Math.floor(diffMs / (1000 * 60));
+const formatRelativeTime = (d?: string) => {
+  if (!d) return ''
+  try {
+    const date = parseISO(d)
+    const diffDays = (Date.now() - date.getTime()) / 86400000
+    if (diffDays < 7) return formatDistanceToNow(date, { addSuffix: true })
+    return format(date, 'MMM d, yyyy')
+  } catch { return d }
+}
 
-  if (diffMinutes < 5) return 'just now';
-  if (diffMinutes < 60) return `${diffMinutes}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
-  if (diffDays === 1) return '1 day ago';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  
-  return then.toLocaleDateString('en-US', { 
-    month: 'long', 
-    day: 'numeric', 
-    year: now.getFullYear() !== then.getFullYear() ? 'numeric' : undefined 
-  });
-};
-
-export const SpeciesCard = ({ 
-  species, 
-  isSelected, 
-  onClick, 
-  onToggleFavorite, 
+export const SpeciesCard = ({
+  species,
+  isSelected,
+  onClick,
+  onToggleFavorite,
   onToggleDisabled,
   isUnknown,
-  showCheckbox,
-  isChecked,
-  onCheckboxChange
-}) => {
+}: any) => {
+  const isDisabled = species.isDisabled || species.disabled
+  const trees = species.totalCount || species.totalSpecimenCount || species.count || 0
+  const interventions = species.interventionCount || species.interventionUsageCount || (isUnknown ? 1 : 0)
+  const lastUpdated = formatRelativeTime(species.updatedAt || species.createdAt)
+
   return (
-    <motion.div
-      layout
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -2 }}
-      onClick={onClick}
-      className={`cursor-pointer border rounded-lg p-3 transition-all h-32 ${
-        isSelected 
-          ? 'border-green-800 bg-green-[#007A49] shadow-sm' 
-          : 'border-gray-200 bg-white hover:border-gray-300 hover:shadow-sm'
-      } ${(species.isDisabled || species.disabled) ? 'opacity-60' : ''}`}
-    >
-      <div className="flex items-start gap-3 h-full">
-        {/* {showCheckbox && (
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onCheckboxChange(species.uid);
-            }}
-            className="mt-1 p-0.5 hover:bg-gray-100 rounded transition-colors"
-          >
-            {isChecked ? (
-              <CheckSquare size={16} className="text-[#007A49]" />
+    <motion.div layout initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}>
+      <Card
+        onClick={onClick}
+        className={cn(
+          'py-0 gap-0 cursor-pointer transition-colors',
+          isSelected ? 'ring-2 ring-primary border-primary' : 'hover:border-border/80',
+          isDisabled && 'opacity-60'
+        )}
+      >
+        <CardContent className="p-3 flex gap-3">
+          {/* Image */}
+          <div className="w-14 h-14 bg-muted/40 rounded-md overflow-hidden flex-shrink-0">
+            {species.image ? (
+              <img
+                src={`${process.env.NEXT_PUBLIC_CDN}/species/${species.image}`}
+                alt={species.commonName || species.speciesName}
+                className="w-full h-full object-cover"
+              />
             ) : (
-              <Square size={16} className="text-gray-400" />
+              <div className="w-full h-full flex items-center justify-center">
+                <Leaf size={20} className="text-muted-foreground/60" />
+              </div>
             )}
-          </button>
-        )} */}
+          </div>
 
-        <div className="w-12 h-12 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-          {species.image ? (
-            <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${species.image}`} alt={species.commonName || species.speciesName} className="w-full h-full object-cover" />
-          ) : (
-            <div className="w-full h-full flex items-center justify-center">
-              <Leaf className="w-5 h-5 text-gray-400" />
-            </div>
-          )}
-        </div>
-
-        <div className="flex-1 min-w-0 flex flex-col h-full">
-          <div className="flex items-start justify-between">
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-1">
-                <h3 className="text-sm font-medium text-gray-900 truncate italic">
-                  {species.scientificName || species.speciesName}
-                </h3>
-                {isUnknown && (
-                  <div className="flex items-center gap-1">
-                    <HelpCircle size={12} className="text-gray-400" />
-                    <span className="text-xs text-gray-500 italic">unknown</span>
-                  </div>
+          {/* Content */}
+          <div className="flex-1 min-w-0 flex flex-col gap-1.5">
+            {/* Title + actions */}
+            <div className="flex items-start justify-between gap-2">
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  <h3 className="text-sm font-medium truncate italic">
+                    {species.scientificName || species.speciesName}
+                  </h3>
+                  {isUnknown && <HelpCircle size={12} className="text-muted-foreground flex-shrink-0" />}
+                </div>
+                <p className="text-xs text-muted-foreground truncate leading-tight">
+                  {species.commonName || species.speciesName}
+                </p>
+              </div>
+              <div className="flex items-center gap-0.5 flex-shrink-0 -mt-1 -mr-1">
+                {species.projectSpeciesUid && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleFavorite(species.uid, !species.favourite, species.projectSpeciesUid)
+                    }}
+                    className={cn(
+                      'p-1 rounded transition-colors',
+                      species.favourite ? 'text-red-500 hover:text-red-600' : 'text-muted-foreground/50 hover:text-red-400'
+                    )}
+                    title={species.favourite ? 'Unfavorite' : 'Favorite'}
+                  >
+                    <Heart size={12} fill={species.favourite ? 'currentColor' : 'none'} />
+                  </button>
+                )}
+                {species.projectSpeciesUid && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onToggleDisabled(species.uid, !isDisabled, species.projectSpeciesUid)
+                    }}
+                    className={cn(
+                      'p-1 rounded transition-colors',
+                      isDisabled ? 'text-muted-foreground hover:text-foreground' : 'text-primary hover:text-primary/80'
+                    )}
+                    title={isDisabled ? 'Enable' : 'Disable'}
+                  >
+                    {isDisabled ? <EyeOff size={12} /> : <Eye size={12} />}
+                  </button>
                 )}
               </div>
-              <p className="text-xs text-gray-600 truncate">
-                {species.commonName || species.speciesName}
-              </p>
             </div>
 
-            <div className="flex items-center gap-1 ml-2">
-              {species.projectSpeciesUid && (
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onToggleFavorite(species.uid, !species.favourite, species.projectSpeciesUid);
-                  }}
-                  className={`p-1 rounded transition-colors ${
-                    species.favourite 
-                      ? 'text-red-500 hover:text-red-600' 
-                      : 'text-gray-300 hover:text-red-400'
-                  }`}
-                >
-                  <Heart size={12} fill={species.favourite ? 'currentColor' : 'none'} />
-                </button>
+            {/* Stats row */}
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap">
+              {trees > 0 && (
+                <div className="flex items-center gap-1">
+                  <TreePine size={12} className="text-muted-foreground/60" />
+                  <span className="font-medium text-foreground">{trees.toLocaleString('en-US')}</span>
+                </div>
               )}
-              {species.projectSpeciesUid && <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onToggleDisabled(species.uid, !(species.isDisabled || species.disabled), species.projectSpeciesUid);
-                }}
-                className={`p-1 rounded transition-colors ${
-                  (species.isDisabled || species.disabled)
-                    ? 'text-gray-400 hover:text-gray-600' 
-                  : 'text-[#007A49] hover:text-[#006B3F]'
-                }`}
-              >
-                {(species.isDisabled || species.disabled) ? <EyeOff size={12} /> : <Eye size={12} />}
-              </button>}
-            </div>
-          </div>
-
-          {species.description && (
-            <p className="text-xs text-gray-500 line-clamp-2">
-              {species.description}
-            </p>
-          )}
-
-          {/* Usage Stats */}
-          <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-            {(species.totalCount > 0 || species.totalSpecimenCount > 0 || species.count > 0) && (
-              <div className="flex items-center gap-1">
-                <TreePine size={10} />
-                <span>{species.totalCount || species.totalSpecimenCount || species.count} trees</span>
-              </div>
-            )}
-            {(species.interventionCount > 0 || species.interventionUsageCount > 0 || (isUnknown && 1)) && (
-              <div className="flex items-center gap-1">
-                <LeafIcon size={10} />
-                <span>{species.interventionCount || species.interventionUsageCount || (isUnknown ? 1 : 0)} interventions</span>
-              </div>
-            )}
-          </div>
-
-          {/* Sources */}
-          {species.sources && (
-            <div className="flex items-center gap-1 mt-1">
-              {species.sources.map((source, index) => (
-                <span
+              {interventions > 0 && (
+                <div className="flex items-center gap-1">
+                  <LeafIcon size={12} className="text-muted-foreground/60" />
+                  <span className="font-medium text-foreground">{interventions}</span>
+                </div>
+              )}
+              {species.sources?.map((source: string) => (
+                <Badge
                   key={source}
-                  className={`px-2 py-0.5 text-xs rounded-full ${
-                    source === 'project' 
-                      ? 'bg-blue-100 text-blue-700'
-                      : 'bg-[#007A49] text-white'
-                  }`}
+                  variant="secondary"
+                  className={cn(
+                    'text-[10px] px-1.5 py-0 capitalize',
+                    source === 'project' && 'bg-primary/10 text-primary'
+                  )}
                 >
                   {source}
-                </span>
+                </Badge>
               ))}
             </div>
-          )}
 
-          <div className="flex items-end justify-start mt-auto text-xs text-gray-400">
-            <span>Updated: {formatRelativeTime(species.updatedAt || species.createdAt)}</span>
+            {lastUpdated && (
+              <span className="text-[10px] text-muted-foreground/70 truncate">{lastUpdated}</span>
+            )}
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </motion.div>
-  );
-};
+  )
+}

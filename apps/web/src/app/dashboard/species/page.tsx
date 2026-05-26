@@ -3,29 +3,19 @@
 import React, { useState, useEffect } from 'react';
 import { AnimatePresence } from 'framer-motion';
 import {
-
-  Plus,
-  Edit2,
-  Trash2,
-  Leaf,
-  Heart,
-  Save,
-
-  AlertCircle,
-
-  Check,
-  ArrowLeft,
-  Users,
-  TreePine,
-  LeafIcon,
-
+  Plus, Edit2, Trash2, Leaf, Heart, Save, ArrowLeft, TreePine, LeafIcon, Loader2,
 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
+import { format, parseISO } from 'date-fns';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { createNewProjectSpecies, generatePreSignUrl, getProjectSpecies, getSciencetificSpecies, removePrjSpecies, requestNewSpecies, updateDisbaleSpecies, updateProjectSpecies, updateSpciesFav } from '@shared-core/fetchApi/api.fetch';
 import { toast } from 'react-toastify';
+import { Download } from 'lucide-react';
+import { useTopBarActions } from '@/component/header/TopBarActions';
 import { BulkActionBar } from './components/BulkActionBar';
-import { LoadingSpinner } from './components/LoadingSpinner';
 import { Modal } from './components/Modal';
 import { SpeciesCard } from './components/SpeciesCard';
 import { SpeciesForm } from './components/SpeciesForm';
@@ -696,8 +686,28 @@ const SpeciesManagementDashboard = () => {
     }
   };
 
+  useTopBarActions(
+    [
+      ...(canManageSpecies ? [{
+        label: 'Add Species',
+        onClick: handleStartAdd,
+        icon: Plus,
+        variant: 'primary' as const,
+        hideLabelOnMobile: true,
+      }] : []),
+      {
+        label: 'Export',
+        onClick: () => downloadJsonAsCsv(allSpecies, 'species-data'),
+        icon: Download,
+        variant: 'outline' as const,
+        hideLabelOnMobile: true,
+      },
+    ],
+    [canManageSpecies, allSpecies.length]
+  );
+
   return (
-    <div className="bg-gray-50 flex flex-col h-screen w-full">
+    <div className="bg-muted/20 flex flex-col h-screen w-full">
       {/* Bulk Action Bar */}
       <AnimatePresence>
         {selectedUnknownSpecies.length > 0 && (
@@ -729,20 +739,18 @@ const SpeciesManagementDashboard = () => {
           interventionTypeFilter={interventionTypeFilter}
           setInterventionTypeFilter={setInterventionTypeFilter}
           interventionTypes={interventionTypes}
-          onAddSpecies={canManageSpecies ? handleStartAdd : undefined}
-          onExport={() => downloadJsonAsCsv(allSpecies, 'species-data')}
         />
 
         <div className="flex-1 overflow-hidden p-6">
           {loading ? (
-            <div className="flex justify-center items-center h-full">
-              <LoadingSpinner size="large" />
+            <div className="flex justify-center items-center h-full text-muted-foreground/60">
+              <Loader2 size={32} className="animate-spin" />
             </div>
           ) : sortedSpecies.length === 0 ? (
             <div className="text-center py-12">
-              <Leaf size={48} className="mx-auto text-gray-400 mb-4" />
-              <p className="text-gray-500 mb-2">No species found</p>
-              <p className="text-gray-400 text-sm">Start adding species to this project</p>
+              <Leaf size={48} className="mx-auto text-muted-foreground/60 mb-4" />
+              <p className="text-muted-foreground mb-2">No species found</p>
+              <p className="text-muted-foreground/60 text-sm">Start adding species to this project</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
@@ -774,7 +782,7 @@ const SpeciesManagementDashboard = () => {
         size="large"
       >
         {selectedSpecies && (
-          <div className="space-y-6">
+          <div className="space-y-5">
             {isEditing ? (
               <SpeciesForm
                 species={selectedSpecies}
@@ -785,179 +793,152 @@ const SpeciesManagementDashboard = () => {
                 isAddingNew={imageDetails || isAddingNew}
               />
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-5">
                 <div className="flex items-start gap-4">
-                  <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
+                  <div className="w-20 h-20 bg-muted/40 rounded-md overflow-hidden flex-shrink-0">
                     {selectedSpecies.image ? (
                       <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${selectedSpecies.image}`} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
-                        <Leaf className="w-8 h-8 text-gray-400" />
+                        <Leaf size={28} className="text-muted-foreground/60" />
                       </div>
                     )}
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h3 className="text-lg font-semibold text-gray-900 italic">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
+                      <h3 className="text-base font-semibold text-foreground italic break-words">
                         {selectedSpecies.scientificName || selectedSpecies.speciesName}
                       </h3>
                       {selectedSpecies.isUnknown && (
-                        <span className="px-2 py-1 bg-orange-100 text-orange-700 text-xs rounded-full font-medium">
-                          Unknown
-                        </span>
+                        <Badge variant="secondary" className="bg-amber-50 text-amber-700 text-[10px]">Unknown</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 mb-2">
+                    <p className="text-sm text-muted-foreground mb-2">
                       {selectedSpecies.commonName || `Intervention: ${selectedSpecies.interventionHid}`}
                     </p>
-                    <div className="flex items-center gap-3 text-xs">
+                    <div className="flex items-center gap-2 flex-wrap">
                       {selectedSpecies.favourite && (
-                        <span className="flex items-center gap-1 text-red-600">
-                          <Heart size={12} fill="currentColor" />
-                          Favorite
-                        </span>
+                        <Badge variant="secondary" className="bg-red-50 text-red-600 text-[10px] gap-1">
+                          <Heart size={10} fill="currentColor" /> Favorite
+                        </Badge>
                       )}
                       {selectedSpecies.isNativeSpecies && (
-                        <span className="px-2 py-1 bg-green-100 text-green-700 rounded-full">
-                          Native
-                        </span>
+                        <Badge variant="secondary" className="bg-primary/10 text-primary text-[10px]">Native</Badge>
                       )}
-                      <span className={`px-2 py-1 rounded-full ${selectedSpecies.disabled
-                        ? 'bg-red-100 text-red-700'
-                        : 'bg-green-100 text-green-700'
-                        }`}>
+                      <Badge
+                        variant="secondary"
+                        className={cn('text-[10px]',
+                          selectedSpecies.disabled
+                            ? 'bg-muted text-muted-foreground'
+                            : 'bg-primary/10 text-primary'
+                        )}
+                      >
                         {selectedSpecies.disabled ? 'Disabled' : 'Active'}
-                      </span>
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
                 {/* Usage Stats */}
-                {(selectedSpecies.totalCount > 0 || selectedSpecies.interventionCount > 0 || selectedSpecies.count > 0) && (
-                  <div className="bg-gray-50 p-3 rounded-lg">
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Usage Statistics</h4>
-                    <div className="flex items-center gap-4 text-sm text-gray-600">
-                      {selectedSpecies.totalCount > 0 && (
-                        <div className="flex items-center gap-1">
-                          <TreePine size={14} />
-                          <span>{selectedSpecies.totalCount} trees total</span>
-                        </div>
-                      )}
-                      {selectedSpecies.interventionCount > 0 && (
-                        <div className="flex items-center gap-1">
-                          <LeafIcon size={14} />
-                          <span>Used in {selectedSpecies.interventionCount} interventions</span>
-                        </div>
-                      )}
-                      {selectedSpecies.count && (
-                        <div className="flex items-center gap-1">
-                          <TreePine size={14} />
-                          <span>{selectedSpecies.count} trees</span>
-                        </div>
-                      )}
+                {(() => {
+                  const trees = selectedSpecies.totalCount || selectedSpecies.count || 0
+                  const interventions = selectedSpecies.interventionCount || 0
+                  if (trees === 0 && interventions === 0) return null
+                  return (
+                    <div>
+                      <h4 className="text-xs font-medium text-foreground uppercase tracking-wide mb-2">Usage</h4>
+                      <div className="flex items-center gap-5 text-sm text-foreground flex-wrap">
+                        {trees > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <TreePine size={14} className="text-muted-foreground/60" />
+                            <span><span className="font-medium">{trees.toLocaleString('en-US')}</span> trees</span>
+                          </div>
+                        )}
+                        {interventions > 0 && (
+                          <div className="flex items-center gap-1.5">
+                            <LeafIcon size={14} className="text-muted-foreground/60" />
+                            <span><span className="font-medium">{interventions}</span> interventions</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )
+                })()}
 
                 {selectedSpecies.description && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Description</h4>
-                    <p className="text-sm text-gray-600">{selectedSpecies.description}</p>
+                    <h4 className="text-xs font-medium text-foreground uppercase tracking-wide mb-2">Description</h4>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{selectedSpecies.description}</p>
                   </div>
                 )}
 
-                <div className="grid grid-cols-2 gap-4 text-sm">
-                  {selectedSpecies.metadata?.habitat && (
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-1">Habitat</h5>
-                      <p className="text-gray-600">{selectedSpecies.metadata.habitat}</p>
-                    </div>
-                  )}
-                  {selectedSpecies.metadata?.height && (
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-1">Height</h5>
-                      <p className="text-gray-600">{selectedSpecies.metadata.height}</p>
-                    </div>
-                  )}
-                  {selectedSpecies.metadata?.flowers && (
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-1">Flowers/Fruits</h5>
-                      <p className="text-gray-600">{selectedSpecies.metadata.flowers}</p>
-                    </div>
-                  )}
-                  {selectedSpecies.metadata?.bloomingSeason && (
-                    <div>
-                      <h5 className="font-medium text-gray-900 mb-1">Blooming Season</h5>
-                      <p className="text-gray-600">{selectedSpecies.metadata.bloomingSeason}</p>
-                    </div>
-                  )}
-                </div>
+                {(selectedSpecies.metadata?.habitat || selectedSpecies.metadata?.height || selectedSpecies.metadata?.flowers || selectedSpecies.metadata?.bloomingSeason) && (
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    {selectedSpecies.metadata?.habitat && (
+                      <div><div className="text-[11px] text-muted-foreground">Habitat</div><p className="text-foreground">{selectedSpecies.metadata.habitat}</p></div>
+                    )}
+                    {selectedSpecies.metadata?.height && (
+                      <div><div className="text-[11px] text-muted-foreground">Height</div><p className="text-foreground">{selectedSpecies.metadata.height}</p></div>
+                    )}
+                    {selectedSpecies.metadata?.flowers && (
+                      <div><div className="text-[11px] text-muted-foreground">Flowers/Fruits</div><p className="text-foreground">{selectedSpecies.metadata.flowers}</p></div>
+                    )}
+                    {selectedSpecies.metadata?.bloomingSeason && (
+                      <div><div className="text-[11px] text-muted-foreground">Blooming Season</div><p className="text-foreground">{selectedSpecies.metadata.bloomingSeason}</p></div>
+                    )}
+                  </div>
+                )}
 
-                {/* Sources */}
                 {selectedSpecies.sources && (
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900 mb-2">Sources</h4>
+                    <h4 className="text-xs font-medium text-foreground uppercase tracking-wide mb-2">Sources</h4>
                     <div className="flex items-center gap-2">
-                      {selectedSpecies.sources.map((source) => (
-                        <span
+                      {selectedSpecies.sources.map((source: string) => (
+                        <Badge
                           key={source}
-                          className={`px-2 py-1 text-xs rounded-full ${source === 'project'
-                            ? 'bg-blue-100 text-blue-700'
-                            : 'bg-green-100 text-green-700'
-                            }`}
+                          variant="secondary"
+                          className={cn('text-[10px] capitalize',
+                            source === 'project' ? 'bg-primary/10 text-primary' : 'bg-muted text-muted-foreground'
+                          )}
                         >
                           {source}
-                        </span>
+                        </Badge>
                       ))}
                     </div>
                   </div>
                 )}
 
-                <div className="text-xs text-gray-500">
-                  Last updated: {new Date(selectedSpecies.updatedAt || selectedSpecies.createdAt).toLocaleString()}
+                <div className="text-[11px] text-muted-foreground/60">
+                  Last updated: {format(parseISO(selectedSpecies.updatedAt || selectedSpecies.createdAt), 'MMMM d, yyyy')}
                 </div>
               </div>
             )}
 
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
+            <div className="flex justify-end gap-2">
               {isEditing ? (
                 <>
-                  <button
-                    onClick={handleCancel}
-                    disabled={loading}
-                    className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-                  >
+                  <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
                     Cancel
-                  </button>
-                  <button
-                    onClick={handleSave}
-                    disabled={loading}
-                    className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
-                  >
-                    {loading ? <LoadingSpinner size="small" /> : <Save size={14} />}
+                  </Button>
+                  <Button size="sm" onClick={handleSave} disabled={loading} className="h-8 gap-1.5 ">
+                    {loading ? <Loader2 size={14} className="animate-spin" /> : <Save size={14} />}
                     {loading ? 'Saving...' : 'Save Changes'}
-                  </button>
+                  </Button>
                 </>
               ) : (
                 <>
-                  {canManageSpecies && selectedSpecies.sources && !selectedSpecies.sources.includes('intervention') ? (
-                    <button
-                      onClick={() => setShowConfirmModal(true)}
-                      className="px-4 py-2 text-sm text-red-600 bg-red-50 rounded-lg hover:bg-red-100 transition-colors flex items-center gap-2"
-                    >
+                  {canManageSpecies && selectedSpecies.sources && !selectedSpecies.sources.includes('intervention') && (
+                    <Button variant="ghost" size="sm" onClick={() => setShowConfirmModal(true)} className="h-8 gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive">
                       <Trash2 size={14} />
                       Delete
-                    </button>
-                  ) : null}
-                  {canManageSpecies && !selectedSpecies.isUnknown && selectedSpecies.projectSpeciesUid ? (
-                    <button
-                      onClick={handleStartEdit}
-                      className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors flex items-center gap-2"
-                    >
+                    </Button>
+                  )}
+                  {canManageSpecies && !selectedSpecies.isUnknown && selectedSpecies.projectSpeciesUid && (
+                    <Button size="sm" onClick={handleStartEdit} className="h-8 gap-1.5 ">
                       <Edit2 size={14} />
                       Edit
-                    </button>
-                  ) : null}
+                    </Button>
+                  )}
                 </>
               )}
             </div>
@@ -972,10 +953,10 @@ const SpeciesManagementDashboard = () => {
         title="Add New Species"
         size="large"
       >
-        <div className="space-y-6">
+        <div className="space-y-5">
           {!selectedFromSearch ? (
             <div>
-              <h4 className="text-sm font-medium text-gray-900 mb-4">
+              <h4 className="text-xs font-medium text-foreground uppercase tracking-wide mb-3">
                 Search Species Database
               </h4>
               <SpeciesSearch
@@ -989,19 +970,16 @@ const SpeciesManagementDashboard = () => {
             </div>
           ) : (
             <div>
-              <div className="flex items-center gap-3 mb-4">
-                <button
-                  onClick={() => {
-                    setSelectedFromSearch(false);
-                    setEditForm({});
-                  }}
-                  className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              <div className="flex items-center gap-2 mb-3">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => { setSelectedFromSearch(false); setEditForm({}); }}
+                  className="h-7 w-7"
                 >
-                  <ArrowLeft size={16} />
-                </button>
-                <h4 className="text-sm font-medium text-gray-900">
-                  Species Details
-                </h4>
+                  <ArrowLeft size={14} />
+                </Button>
+                <h4 className="text-xs font-medium text-foreground uppercase tracking-wide">Species Details</h4>
               </div>
               <SpeciesForm
                 species={editForm}
@@ -1015,22 +993,14 @@ const SpeciesManagementDashboard = () => {
           )}
 
           {selectedFromSearch && (
-            <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-              <button
-                onClick={handleCancel}
-                disabled={loading}
-                className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-              >
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
                 Cancel
-              </button>
-              <button
-                onClick={handleSave}
-                disabled={loading || !canManageSpecies}
-                className="px-4 py-2 text-sm bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 flex items-center gap-2"
-              >
-                {loading ? <LoadingSpinner size="small" /> : <Plus size={14} />}
+              </Button>
+              <Button size="sm" onClick={handleSave} disabled={loading || !canManageSpecies} className="h-8 gap-1.5 ">
+                {loading ? <Loader2 size={14} className="animate-spin" /> : <Plus size={14} />}
                 {loading ? 'Adding...' : 'Add Species'}
-              </button>
+              </Button>
             </div>
           )}
         </div>
@@ -1043,9 +1013,9 @@ const SpeciesManagementDashboard = () => {
         title={`Assign Scientific Species to ${selectedUnknownSpecies.length} Unknown Species`}
         size="large"
       >
-        <div className="space-y-6">
-          <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-blue-800">
+        <div className="space-y-5">
+          <div className="bg-primary/10/60 border border-primary/20 p-3 rounded-md">
+            <p className="text-sm text-primary">
               Search and select a scientific species to assign to all {selectedUnknownSpecies.length} selected unknown species.
             </p>
           </div>
@@ -1055,16 +1025,14 @@ const SpeciesManagementDashboard = () => {
             onSearchChange={setSpeciesSearchTerm}
             searchResults={searchResults}
             isSearching={isSearchingSpecies}
-            onRequestNew={handleRequestNew} onSelectSpecies={undefined} />
+            onRequestNew={handleRequestNew}
+            onSelectSpecies={undefined}
+          />
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-gray-200">
-            <button
-              onClick={handleCancel}
-              disabled={loading}
-              className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-            >
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" size="sm" onClick={handleCancel} disabled={loading} className="h-8">
               Cancel
-            </button>
+            </Button>
           </div>
         </div>
       </Modal>

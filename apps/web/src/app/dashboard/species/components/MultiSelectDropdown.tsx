@@ -1,46 +1,61 @@
-import { ChevronDown } from "lucide-react";
-import { useState } from "react";
+import { ChevronDown, Check } from 'lucide-react'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
 
-export const MultiSelectDropdown = ({ options, selected, onChange, placeholder }) => {
-  const [isOpen, setIsOpen] = useState(false);
+interface Option { value: string; label: string }
 
-  const handleToggle = (value) => {
-    const newSelected = selected.includes(value)
-      ? selected.filter(item => item !== value)
-      : [...selected, value];
-    onChange(newSelected);
-  };
+interface Props {
+  options: Option[]
+  selected: string[]
+  onChange: (next: string[]) => void
+  placeholder?: string
+}
+
+export const MultiSelectDropdown = ({ options, selected, onChange, placeholder = 'Select...' }: Props) => {
+  const toggle = (value: string) => {
+    onChange(selected.includes(value) ? selected.filter(v => v !== value) : [...selected, value])
+  }
 
   return (
-    <div className="relative">
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center justify-between w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:ring-2 focus:ring-green-500/20 focus:border-green-500 outline-none bg-white"
-      >
-        <span className="truncate">
-          {selected.length === 0 ? placeholder : `${selected.length} selected`}
-        </span>
-        <ChevronDown size={14} className={`transform transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-      </button>
-      
-      {isOpen && (
-        <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-lg shadow-lg max-h-48 overflow-y-auto">
-          {options.map((option) => (
-            <label
-              key={option.value}
-              className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer text-xs"
-            >
-              <input
-                type="checkbox"
-                checked={selected.includes(option.value)}
-                onChange={() => handleToggle(option.value)}
-                className="mr-2 rounded border-gray-300 text-green-600 focus:ring-green-500"
-              />
-              {option.label}
-            </label>
-          ))}
-        </div>
-      )}
-    </div>
-  );
-};
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size="sm" className="h-8 w-full justify-between text-xs font-normal">
+          <span className="truncate">
+            {selected.length === 0 ? placeholder : `${selected.length} selected`}
+          </span>
+          <ChevronDown size={14} className="text-muted-foreground" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Search..." className="h-8 text-xs" />
+          <CommandList>
+            <CommandEmpty>No results</CommandEmpty>
+            <CommandGroup>
+              {options.map((option) => {
+                const isSelected = selected.includes(option.value)
+                return (
+                  <CommandItem
+                    key={option.value}
+                    onSelect={() => toggle(option.value)}
+                    className="text-xs cursor-pointer"
+                  >
+                    <div className={cn(
+                      'mr-2 flex h-3.5 w-3.5 items-center justify-center rounded-sm border',
+                      isSelected ? 'bg-primary border-primary text-primary-foreground' : 'border-input'
+                    )}>
+                      {isSelected && <Check size={10} />}
+                    </div>
+                    {option.label}
+                  </CommandItem>
+                )
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
+  )
+}

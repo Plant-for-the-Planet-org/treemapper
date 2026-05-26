@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useIsMobile } from '@/hooks/use-mobile'
+import { useRegisteredTopBarActions } from './TopBarActions'
+import { cn } from '@/lib/utils'
 
 const ROUTE_LABELS: Record<string, string> = {
   '/dashboard': 'Overview',
@@ -33,6 +35,7 @@ export default function DashboardTopBar() {
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
   const isOverview = pathname === '/dashboard/overview' || pathname === '/dashboard'
   const isSites = pathname === '/dashboard/sites' || pathname.startsWith('/dashboard/sites/')
+  const registeredActions = useRegisteredTopBarActions()
 
   const pageLabel = (() => {
     // exact match first
@@ -46,14 +49,14 @@ export default function DashboardTopBar() {
   })()
 
   return (
-    <div className="h-11 flex items-center justify-between px-3 border-b border-gray-100 flex-shrink-0">
+    <div className="h-11 flex items-center justify-between px-3 border-b border-border/50 flex-shrink-0">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
         {selectedProject && pageLabel && (
           <div className="flex items-center gap-1.5 text-sm min-w-0">
-            <span className="hidden sm:inline font-medium text-gray-700 truncate max-w-[150px] md:max-w-[200px]">{selectedProject.name}</span>
-            <ChevronRight size={14} className="hidden sm:inline text-gray-300 flex-shrink-0" />
-            <span className="text-gray-700 sm:text-gray-500 font-medium sm:font-normal truncate">{pageLabel}</span>
+            <span className="hidden sm:inline font-medium text-foreground/80 truncate max-w-[150px] md:max-w-[200px]">{selectedProject.name}</span>
+            <ChevronRight size={14} className="hidden sm:inline text-muted-foreground/40 flex-shrink-0" />
+            <span className="text-foreground/80 sm:text-muted-foreground font-medium sm:font-normal truncate">{pageLabel}</span>
           </div>
         )}
       </div>
@@ -61,11 +64,55 @@ export default function DashboardTopBar() {
         <Button
           size="sm"
           onClick={() => router.push('/dashboard/newsite')}
-          className="h-8 gap-1.5 text-xs bg-[#007A49] hover:bg-[#006040]"
+          className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90"
         >
           <Plus size={14} />
           <span className="hidden sm:inline">Add Site</span>
         </Button>
+      )}
+      {registeredActions.length > 0 && (
+        isMobile ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-8 w-8">
+                <MoreVertical size={16} />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48">
+              {registeredActions.map((a, i) => {
+                const Icon = a.icon
+                return (
+                  <DropdownMenuItem key={i} onClick={a.onClick}>
+                    {Icon && <Icon size={14} />}
+                    {a.label}
+                  </DropdownMenuItem>
+                )
+              })}
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex items-center gap-2">
+            {registeredActions.map((a, i) => {
+              const Icon = a.icon
+              const isPrimary = a.variant === 'primary' || (!a.variant && i === registeredActions.length - 1)
+              return (
+                <Button
+                  key={i}
+                  size="sm"
+                  variant={isPrimary ? undefined : (a.variant === 'ghost' ? 'ghost' : 'outline')}
+                  onClick={a.onClick}
+                  className={cn(
+                    'h-8 gap-1.5 text-xs',
+                    isPrimary && 'bg-primary hover:bg-primary/90'
+                  )}
+                >
+                  {Icon && <Icon size={14} />}
+                  <span className={a.hideLabelOnMobile ? 'hidden sm:inline' : ''}>{a.label}</span>
+                </Button>
+              )
+            })}
+          </div>
+        )
       )}
       {isOverview && isAdminOrOwner && (
         isMobile ? (
@@ -79,7 +126,7 @@ export default function DashboardTopBar() {
               <DropdownMenuItem disabled>
                 <CalendarIcon size={14} />
                 <span>All Time</span>
-                <span className="ml-auto text-[10px] text-gray-400">Soon</span>
+                <span className="ml-auto text-[10px] text-muted-foreground/60">Soon</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => router.push('/dashboard/dataexplore')}>
