@@ -3,13 +3,11 @@
 import React from 'react';
 import { InterventionApprovalData } from '@shared-core/types/approval.types';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { formatDistanceToNow } from 'date-fns';
-import { MessageSquare, ImageIcon, User, Calendar, Pencil } from 'lucide-react';
+import { MessageSquare, ImageIcon, User, Calendar } from 'lucide-react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
-import { useRouter } from 'next/navigation';
 
 interface ApprovalCardProps {
   intervention: InterventionApprovalData;
@@ -22,7 +20,6 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
   onClick,
   isDragging = false,
 }) => {
-  const router = useRouter();
   const {
     attributes,
     listeners,
@@ -151,21 +148,6 @@ export const ApprovalCard: React.FC<ApprovalCardProps> = ({
         </Badge>
       )}
 
-      {intervention.reviewStatus === 'in_review' && (
-        <Button
-          size="sm"
-          variant="outline"
-          className="mt-3 w-full h-7 text-xs border-[#007A49] text-[#007A49] hover:bg-[#007A49] hover:text-white"
-          onPointerDown={(e) => e.stopPropagation()}
-          onClick={(e) => {
-            e.stopPropagation();
-            router.push(`/dashboard/intervention?id=${intervention.interventionUid}`);
-          }}
-        >
-          <Pencil className="h-3 w-3 mr-1" />
-          Edit
-        </Button>
-      )}
     </Card>
   );
 };

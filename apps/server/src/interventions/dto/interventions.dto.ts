@@ -1,5 +1,5 @@
 // src/modules/interventions/dto/create-intervention.dto.ts
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive, ArrayMinSize, MaxLength } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsGeoJSON } from 'src/common/decorator/validation.decorators';
@@ -743,6 +743,68 @@ export class TreeCountExceededError {
   currentTreeCount: number;
   requestedSpeciesCount: number;
   treeHids: string[];
+}
+
+export class BulkUpdateSpeciesDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  interventionUids: string[];
+
+  @IsBoolean()
+  sourceIsUnknown: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  sourceScientificSpeciesId?: number;
+
+  @IsOptional()
+  @IsString()
+  sourceScientificSpeciesUid?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  sourceSpeciesName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @IsPositive()
+  targetScientificSpeciesId?: number;
+
+  @IsOptional()
+  @IsString()
+  targetScientificSpeciesUid?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  targetIsUnknown?: boolean;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetSpeciesName?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  targetCommonName?: string;
+
+  @IsOptional()
+  @IsNumber()
+  @Type(() => Number)
+  @Min(1)
+  targetSpeciesCount?: number;
+}
+
+export class BulkUpdateSpeciesResponse {
+  bulkOperationId: string;
+  updatedInterventionCount: number;
+  updatedTreeCount: number;
+  changedFields: string[];
 }
 
 export class EditTreeSpeciesDto {

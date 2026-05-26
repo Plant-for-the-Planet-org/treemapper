@@ -24,6 +24,7 @@ import {
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
   UpdateInterventionSpeciesDto,
+  BulkUpdateSpeciesDto,
   EditTreeDto,
   AddTreeRemeasurementDto,
 } from './dto/interventions.dto';
@@ -202,6 +203,24 @@ export class InterventionsController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
+  }
+
+  @Put('/projects/:id/species/bulk')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async bulkUpdateInterventionSpecies(
+    @Body() dto: BulkUpdateSpeciesDto,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    const result = await this.interventionsService.bulkUpdateInterventionSpecies(
+      dto,
+      membership,
+    );
+    return {
+      success: true,
+      message: 'Bulk species update applied successfully',
+      data: result,
+    };
   }
 
   @Delete(':id/:interventionId')

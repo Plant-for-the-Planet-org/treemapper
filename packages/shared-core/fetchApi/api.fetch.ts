@@ -282,6 +282,28 @@ export const updateInterventionSpecies = async (token: string, params: any, proj
   return result
 }
 
+export const bulkUpdateInterventionSpecies = async (
+  token: string,
+  projectId: string,
+  payload: {
+    interventionUids: string[];
+    sourceIsUnknown: boolean;
+    sourceScientificSpeciesId?: number;
+    sourceScientificSpeciesUid?: string;
+    sourceSpeciesName?: string;
+    targetScientificSpeciesId?: number;
+    targetScientificSpeciesUid?: string;
+    targetIsUnknown?: boolean;
+    targetSpeciesName?: string;
+    targetCommonName?: string;
+    targetSpeciesCount?: number;
+  },
+) => {
+  const uri = `${putUrlApi.bulkUpdateSpecies}/${projectId}/species/bulk`
+  const result = await fetchPutCall(uri, payload, token)
+  return result
+}
+
 export const ownerrhsipTranferCall = async (token: string, params: any, project, intervention) => {
   const uri = `${putUrlApi.ownershipTransfer}/${intervention}/${project}}/owner`
   const result = await fetchPutCall(uri, params, token)

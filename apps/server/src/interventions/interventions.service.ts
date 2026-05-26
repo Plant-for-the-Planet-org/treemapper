@@ -27,6 +27,8 @@ import {
   InterventionType,
   CaptureModeEnum,
   UpdateInterventionSpeciesDto,
+  BulkUpdateSpeciesDto,
+  BulkUpdateSpeciesResponse,
   InterventionTreesResponse,
   MapIntervention,
   MapTree,
@@ -281,6 +283,319 @@ export class InterventionsService {
         interventionSpecies: updatedSpecies[0],
         updatedTreeCount: treeData.count,
         changedFields,
+      };
+    });
+  }
+
+
+  async bulkUpdateInterventionSpecies(
+    dto: BulkUpdateSpeciesDto,
+    membership: ProjectGuardResponse,
+  ): Promise<BulkUpdateSpeciesResponse> {
+    if (
+      dto.sourceIsUnknown
+        ? !dto.sourceSpeciesName
+        : !dto.sourceScientificSpeciesId && !dto.sourceScientificSpeciesUid
+    ) {
+      throw new BadRequestException({
+        code: 'INVALID_SOURCE',
+        message: dto.sourceIsUnknown
+          ? 'sourceSpeciesName is required when sourceIsUnknown is true'
+          : 'sourceScientificSpeciesId or sourceScientificSpeciesUid is required when sourceIsUnknown is false',
+      });
+    }
+
+    // Resolve UIDs to numeric IDs before transaction
+    let sourceScientificSpeciesId = dto.sourceScientificSpeciesId;
+    if (!sourceScientificSpeciesId && dto.sourceScientificSpeciesUid) {
+      const resolved = await this.drizzleService.db
+        .select({ id: scientificSpecies.id })
+        .from(scientificSpecies)
+        .where(eq(scientificSpecies.uid, dto.sourceScientificSpeciesUid))
+        .limit(1);
+      if (!resolved.length) {
+        throw new BadRequestException({
+          code: 'SCIENTIFIC_SPECIES_NOT_FOUND',
+          message: 'Source scientific species not found',
+        });
+      }
+      sourceScientificSpeciesId = resolved[0].id;
+    }
+
+    let targetScientificSpeciesId = dto.targetScientificSpeciesId;
+    if (!targetScientificSpeciesId && dto.targetScientificSpeciesUid) {
+      const resolved = await this.drizzleService.db
+        .select({ id: scientificSpecies.id })
+        .from(scientificSpecies)
+        .where(eq(scientificSpecies.uid, dto.targetScientificSpeciesUid))
+        .limit(1);
+      if (!resolved.length) {
+        throw new BadRequestException({
+          code: 'SCIENTIFIC_SPECIES_NOT_FOUND',
+          message: 'Target scientific species not found',
+        });
+      }
+      targetScientificSpeciesId = resolved[0].id;
+    }
+
+    const targetIsUnknown = dto.targetIsUnknown ?? dto.sourceIsUnknown;
+    if (!targetIsUnknown && targetScientificSpeciesId === undefined && dto.sourceIsUnknown) {
+      throw new BadRequestException({
+        code: 'INVALID_TARGET',
+        message: 'targetScientificSpeciesId is required when promoting unknown species to scientific',
+      });
+    }
+    if (targetIsUnknown && !dto.sourceIsUnknown && !dto.targetSpeciesName) {
+      throw new BadRequestException({
+        code: 'INVALID_TARGET',
+        message: 'targetSpeciesName is required when demoting scientific species to unknown',
+      });
+    }
+
+    const hasMutation =
+      targetScientificSpeciesId !== undefined ||
+      dto.targetIsUnknown !== undefined ||
+      dto.targetSpeciesName !== undefined ||
+      dto.targetCommonName !== undefined ||
+      dto.targetSpeciesCount !== undefined;
+    if (!hasMutation) {
+      throw new BadRequestException({
+        code: 'NO_CHANGES',
+        message: 'At least one target field must be provided',
+      });
+    }
+
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const interventions = await tx
+        .select({
+          id: intervention.id,
+          uid: intervention.uid,
+          projectId: intervention.projectId,
+          type: intervention.type,
+        })
+        .from(intervention)
+        .where(
+          and(
+            inArray(intervention.uid, dto.interventionUids),
+            eq(intervention.projectId, membership.projectId),
+            isNull(intervention.deletedAt),
+          ),
+        );
+
+      if (interventions.length !== dto.interventionUids.length) {
+        const foundUids = new Set(interventions.map((i) => i.uid));
+        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        throw new BadRequestException({
+          code: 'INVALID_SELECTION',
+          message: 'Some interventions do not belong to this project or were not found',
+          details: { interventionUids: missing },
+        });
+      }
+
+      const types = new Set(interventions.map((i) => i.type));
+      if (types.size > 1) {
+        throw new BadRequestException({
+          code: 'MIXED_INTERVENTION_TYPES',
+          message: 'All selected interventions must share the same type',
+          details: { types: Array.from(types) },
+        });
+      }
+      const interventionType = interventions[0].type;
+      const isSingleTree = interventionType === 'single-tree-registration';
+      if (isSingleTree && dto.targetSpeciesCount !== undefined && dto.targetSpeciesCount !== 1) {
+        throw new BadRequestException({
+          code: 'INVALID_COUNT_FOR_TYPE',
+          message: 'single-tree-registration interventions must have a species count of 1',
+        });
+      }
+
+      let resolvedTargetSpecies: { id: number; scientificName: string; commonName?: string } | null = null;
+      if (!targetIsUnknown) {
+        const targetId = targetScientificSpeciesId ?? sourceScientificSpeciesId;
+        if (!targetId) {
+          throw new BadRequestException({
+            code: 'INVALID_TARGET',
+            message: 'targetScientificSpeciesId is required when target is scientific',
+          });
+        }
+        const resolved = await this.validateScientificSpecies(tx, targetId);
+        resolvedTargetSpecies = { id: targetId, ...resolved } as any;
+      }
+
+      const interventionIds = interventions.map((i) => i.id);
+      const sourceMatch = dto.sourceIsUnknown
+        ? and(
+            inArray(interventionSpecies.interventionId, interventionIds),
+            eq(interventionSpecies.isUnknown, true),
+            eq(interventionSpecies.speciesName, dto.sourceSpeciesName!),
+            isNull(interventionSpecies.deletedAt),
+          )
+        : and(
+            inArray(interventionSpecies.interventionId, interventionIds),
+            eq(interventionSpecies.scientificSpeciesId, sourceScientificSpeciesId!),
+            isNull(interventionSpecies.deletedAt),
+          );
+
+      const sourceRows = await tx
+        .select()
+        .from(interventionSpecies)
+        .where(sourceMatch);
+
+      const coveredInterventionIds = new Set(sourceRows.map((r) => r.interventionId));
+      const missingInterventionIds = interventionIds.filter((id) => !coveredInterventionIds.has(id));
+      if (missingInterventionIds.length > 0) {
+        const missingUids = interventions
+          .filter((i) => missingInterventionIds.includes(i.id))
+          .map((i) => i.uid);
+        throw new BadRequestException({
+          code: 'MISSING_SOURCE_SPECIES',
+          message: 'Source species not found in every selected intervention',
+          details: { interventionUids: missingUids },
+        });
+      }
+
+      const speciesIdsToUpdate = sourceRows.map((r) => r.id);
+
+      if (dto.targetSpeciesCount !== undefined) {
+        const treeCounts = await tx
+          .select({
+            interventionSpeciesId: tree.interventionSpeciesId,
+            count: sql<number>`count(*)::int`,
+          })
+          .from(tree)
+          .where(
+            and(
+              inArray(tree.interventionSpeciesId, speciesIdsToUpdate),
+              isNull(tree.deletedAt),
+            ),
+          )
+          .groupBy(tree.interventionSpeciesId);
+
+        const violations = treeCounts.filter((tc) => tc.count > dto.targetSpeciesCount!);
+        if (violations.length > 0) {
+          const violatedSpeciesIds = new Set(violations.map((v) => v.interventionSpeciesId));
+          const violatedInterventionIds = sourceRows
+            .filter((r) => violatedSpeciesIds.has(r.id))
+            .map((r) => r.interventionId);
+          const violatedUids = interventions
+            .filter((i) => violatedInterventionIds.includes(i.id))
+            .map((i) => i.uid);
+          throw new BadRequestException({
+            code: 'TREE_COUNT_EXCEEDS_SPECIES_COUNT',
+            message: 'Species count cannot be less than existing tree count',
+            details: {
+              interventionUids: violatedUids,
+              requestedCount: dto.targetSpeciesCount,
+            },
+          });
+        }
+      }
+
+      const speciesChanged = !dto.sourceIsUnknown
+        ? !targetIsUnknown && resolvedTargetSpecies!.id !== sourceScientificSpeciesId
+        : !targetIsUnknown;
+
+      const nameChanged =
+        speciesChanged ||
+        (targetIsUnknown && dto.targetSpeciesName !== undefined) ||
+        (targetIsUnknown && dto.targetCommonName !== undefined);
+
+      const updateSet: Record<string, any> = { updatedAt: new Date() };
+      if (!targetIsUnknown) {
+        updateSet.scientificSpeciesId = resolvedTargetSpecies!.id;
+        updateSet.isUnknown = false;
+        updateSet.speciesName = resolvedTargetSpecies!.scientificName;
+        updateSet.commonName = resolvedTargetSpecies!.commonName ?? null;
+      } else {
+        updateSet.scientificSpeciesId = null;
+        updateSet.isUnknown = true;
+        if (dto.targetSpeciesName !== undefined) updateSet.speciesName = dto.targetSpeciesName;
+        if (dto.targetCommonName !== undefined) updateSet.commonName = dto.targetCommonName;
+      }
+      if (dto.targetSpeciesCount !== undefined) updateSet.speciesCount = dto.targetSpeciesCount;
+
+      await tx
+        .update(interventionSpecies)
+        .set(updateSet)
+        .where(inArray(interventionSpecies.id, speciesIdsToUpdate));
+
+      let updatedTreeCount = 0;
+      if (nameChanged) {
+        const treeUpdateSet: Record<string, any> = { updatedAt: new Date() };
+        if (!targetIsUnknown) {
+          treeUpdateSet.speciesName = resolvedTargetSpecies!.scientificName;
+          treeUpdateSet.commonName = resolvedTargetSpecies!.commonName ?? null;
+          treeUpdateSet.isUnknown = false;
+        } else {
+          if (dto.targetSpeciesName !== undefined) treeUpdateSet.speciesName = dto.targetSpeciesName;
+          if (dto.targetCommonName !== undefined) treeUpdateSet.commonName = dto.targetCommonName;
+          treeUpdateSet.isUnknown = true;
+        }
+
+        const updatedTrees = await tx
+          .update(tree)
+          .set(treeUpdateSet)
+          .where(
+            and(
+              inArray(tree.interventionSpeciesId, speciesIdsToUpdate),
+              isNull(tree.deletedAt),
+            ),
+          )
+          .returning({ id: tree.id });
+        updatedTreeCount = updatedTrees.length;
+      }
+
+      await tx
+        .update(intervention)
+        .set({ updatedAt: new Date(), editedAt: new Date() })
+        .where(inArray(intervention.id, interventionIds));
+
+      const bulkOperationId = `bulk_${require('crypto').randomBytes(12).toString('hex')}`;
+
+      const oldByIntervention = new Map<number, typeof sourceRows[number]>();
+      sourceRows.forEach((r) => oldByIntervention.set(r.interventionId, r));
+
+      const newSnapshot = {
+        scientificSpeciesId: updateSet.scientificSpeciesId,
+        isUnknown: updateSet.isUnknown,
+        speciesName: updateSet.speciesName,
+        commonName: updateSet.commonName,
+        speciesCount: updateSet.speciesCount,
+      };
+
+      const changedFieldsAggregate = new Set<string>();
+      for (const interventionRow of interventions) {
+        const old = oldByIntervention.get(interventionRow.id)!;
+        const oldValues = {
+          scientificSpeciesId: old.scientificSpeciesId,
+          isUnknown: old.isUnknown,
+          speciesName: old.speciesName,
+          commonName: old.commonName,
+          speciesCount: old.speciesCount,
+        };
+        const newValues = {
+          scientificSpeciesId: updateSet.scientificSpeciesId ?? old.scientificSpeciesId,
+          isUnknown: updateSet.isUnknown ?? old.isUnknown,
+          speciesName: updateSet.speciesName ?? old.speciesName,
+          commonName: updateSet.commonName ?? old.commonName,
+          speciesCount: updateSet.speciesCount ?? old.speciesCount,
+        };
+        this.getChangedFields(oldValues, newValues).forEach((f) => changedFieldsAggregate.add(f));
+        this.auditService.log('intervention', {
+          action: 'update',
+          entityId: interventionRow.id,
+          userId: membership.userId,
+          oldValues,
+          newValues: { ...newValues, bulkOperationId },
+          source: 'web',
+        });
+      }
+
+      return {
+        bulkOperationId,
+        updatedInterventionCount: interventions.length,
+        updatedTreeCount,
+        changedFields: Array.from(changedFieldsAggregate),
       };
     });
   }

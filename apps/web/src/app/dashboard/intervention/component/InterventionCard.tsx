@@ -74,9 +74,11 @@ interface InterventionCardProps {
   isMultiSelectMode?: boolean;
   isChecked?: boolean;
   onToggleSelect?: (e: React.MouseEvent) => void;
+  isDisabled?: boolean;
+  disabledTooltip?: string;
 }
 
-export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSelectMode, isChecked, onToggleSelect }: InterventionCardProps) => {
+export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSelectMode, isChecked, onToggleSelect, isDisabled, disabledTooltip }: InterventionCardProps) => {
   const IconComponent = interventionTypeIcons[intervention.type] || Target;
 
   const getCaptureStatusVariant = (status: string): 'success' | 'warning' | 'error' | 'outline' => {
@@ -98,18 +100,23 @@ export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSel
 
   return (
     <Card
-      className={`cursor-pointer transition-all duration-200 hover:shadow-md hover:border-gray-300 ${isSelected ? 'ring-2 ring-[#007A49] bg-[#007A49]/5 border-[#007A49]' : ''
+      className={`transition-all duration-200 ${isDisabled && isMultiSelectMode ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:border-gray-300'} ${isSelected ? 'ring-2 ring-[#007A49] bg-[#007A49]/5 border-[#007A49]' : ''
         } ${isChecked ? 'ring-2 ring-[#007A49] bg-[#007A49]/5' : ''}`}
-      onClick={isMultiSelectMode ? onToggleSelect : onClick}
+      title={isDisabled && isMultiSelectMode ? disabledTooltip : undefined}
+      onClick={
+        isMultiSelectMode
+          ? (isDisabled ? undefined : onToggleSelect)
+          : onClick
+      }
     >
       <CardContent className="p-4">
         <div className="flex items-start gap-3">
           {isMultiSelectMode && (
             <div
               className="flex-shrink-0 mt-1"
-              onClick={(e) => { e.stopPropagation(); onToggleSelect?.(e); }}
+              onClick={(e) => { e.stopPropagation(); if (!isDisabled) onToggleSelect?.(e); }}
             >
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isChecked ? 'bg-[#007A49] border-[#007A49]' : 'border-gray-300 bg-white'}`}>
+              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isChecked ? 'bg-[#007A49] border-[#007A49]' : 'border-gray-300 bg-white'} ${isDisabled ? 'opacity-50' : ''}`}>
                 {isChecked && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </div>
             </div>

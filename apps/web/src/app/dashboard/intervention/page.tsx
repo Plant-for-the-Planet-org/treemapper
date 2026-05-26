@@ -16,6 +16,7 @@ import { InterventionCard } from './component/InterventionCard';
 import { InterventionDetails } from './component/InterventionDetails';
 import { useDebounce } from './component/hooks';
 import BulkUpdateModal from './component/BulkUpdateModal';
+import BulkSpeciesEditModal from './component/BulkSpeciesEditModal';
 
 // Types
 interface Site {
@@ -139,6 +140,8 @@ const InterventionListSidebar = ({
   onEnterBulkMode,
   onExitBulkMode,
   onOpenBulkUpdate,
+  onOpenBulkSpeciesEdit,
+  lockedType,
 }: {
   interventions: Intervention[];
   selectedIntervention: Intervention | null;
@@ -160,6 +163,8 @@ const InterventionListSidebar = ({
   onEnterBulkMode: () => void;
   onExitBulkMode: () => void;
   onOpenBulkUpdate: () => void;
+  onOpenBulkSpeciesEdit: () => void;
+  lockedType: string | null;
 }) => {
   return (
     <div className={`${sidebarCollapsed ? 'w-0 lg:w-16' : 'w-full md:w-96 lg:w-96'
@@ -220,6 +225,13 @@ const InterventionListSidebar = ({
                   Assign Site
                 </button>
                 <button
+                  onClick={onOpenBulkSpeciesEdit}
+                  disabled={selectedUids.size === 0}
+                  className="text-xs bg-white text-[#007A49] px-3 py-1.5 rounded-md font-medium hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Edit Species
+                </button>
+                <button
                   onClick={onExitBulkMode}
                   className="p-1 text-white/80 hover:text-white transition-colors"
                 >
@@ -269,6 +281,8 @@ const InterventionListSidebar = ({
                     isMultiSelectMode={isBulkMode}
                     isChecked={selectedUids.has(intervention.uid)}
                     onToggleSelect={(e) => { e.stopPropagation(); onToggleSelect(intervention.uid); }}
+                    isDisabled={isBulkMode && lockedType !== null && intervention.type !== lockedType}
+                    disabledTooltip="Bulk edit requires same intervention type"
                   />
                 ))}
 
@@ -381,6 +395,7 @@ const TreeMapperUI = () => {
   const [isBulkMode, setIsBulkMode] = useState(false);
   const [selectedUids, setSelectedUids] = useState<Set<string>>(new Set());
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
+  const [showBulkSpeciesModal, setShowBulkSpeciesModal] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 20,
@@ -400,6 +415,13 @@ const TreeMapperUI = () => {
   const interventionTypes = useMemo(() => {
     return [...new Set(interventions.map(i => i.type))];
   }, [interventions]);
+
+  // Lock to the type of the first selected intervention during bulk mode
+  const lockedType = useMemo<string | null>(() => {
+    if (!isBulkMode || selectedUids.size === 0) return null;
+    const first = interventions.find(i => selectedUids.has(i.uid));
+    return first?.type ?? null;
+  }, [interventions, selectedUids, isBulkMode]);
 
   // Debounced search
   const debouncedSearchTerm = useDebounce(searchTerm, 500);
@@ -694,6 +716,8 @@ const TreeMapperUI = () => {
           onEnterBulkMode={handleEnterBulkMode}
           onExitBulkMode={handleExitBulkMode}
           onOpenBulkUpdate={() => setShowBulkUpdateModal(true)}
+          onOpenBulkSpeciesEdit={() => setShowBulkSpeciesModal(true)}
+          lockedType={lockedType}
         />
 
         <div className="flex-1 flex flex-col overflow-hidden">
@@ -724,6 +748,15 @@ const TreeMapperUI = () => {
       <BulkUpdateModal
         isOpen={showBulkUpdateModal}
         onClose={() => setShowBulkUpdateModal(false)}
+        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        accessToken={accessToken || ''}
+        currentProjectUid={selectedProject?.uid || ''}
+        onComplete={handleBulkUpdateComplete}
+      />
+
+      <BulkSpeciesEditModal
+        isOpen={showBulkSpeciesModal}
+        onClose={() => setShowBulkSpeciesModal(false)}
         selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
         accessToken={accessToken || ''}
         currentProjectUid={selectedProject?.uid || ''}

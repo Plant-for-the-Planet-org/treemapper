@@ -147,6 +147,7 @@ export const putUrlApi = {
   impersonateUser: `${baseUrl}/workspace/impersonate`,
   impersonateUserExit: `${baseUrl}/workspace/impersonate/exit`,
   speicesDataUpdate: `${baseUrl}/interventions`,
+  bulkUpdateSpecies: `${baseUrl}/interventions/projects`,
   ownershipTransfer: `${baseUrl}/interventions`,
   editIntervention: `${baseUrl}/interventions`,
   editTree: `${baseUrl}/interventions/trees`,
