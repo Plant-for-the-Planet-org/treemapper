@@ -354,14 +354,15 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
             <MigrationModal/>
-            <SidebarProvider>
-              <div className="flex h-full overflow-hidden w-full">
-                {showSidebar && <DashboardSidebar {...navigationHandlers} />}
-                <SidebarInset className="flex flex-col overflow-hidden">
-                  {showSidebar && <DashboardTopBar />}
-                  {renderMainContent()}
-                </SidebarInset>
-              </div>
+            <SidebarProvider
+              defaultOpen={typeof window !== 'undefined' ? window.innerWidth >= 1280 : true}
+              className="!min-h-0 h-full overflow-hidden"
+            >
+              {showSidebar && <DashboardSidebar {...navigationHandlers} />}
+              <SidebarInset className="flex flex-col overflow-hidden min-h-0">
+                {showSidebar && <DashboardTopBar />}
+                {renderMainContent()}
+              </SidebarInset>
             </SidebarProvider>
         </div>
       </div>

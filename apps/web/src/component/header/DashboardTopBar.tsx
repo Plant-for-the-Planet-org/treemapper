@@ -1,6 +1,6 @@
 'use client'
 
-import { ChevronRight, BarChart2, MoreVertical, CalendarIcon } from 'lucide-react'
+import { ChevronRight, BarChart2, MoreVertical, CalendarIcon, Plus } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import DateRangePicker from './DateRangePicker'
@@ -32,6 +32,7 @@ export default function DashboardTopBar() {
   const projectRole = useProjectStore(state => state.selectedProject?.userRole)
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
   const isOverview = pathname === '/dashboard/overview' || pathname === '/dashboard'
+  const isSites = pathname === '/dashboard/sites' || pathname.startsWith('/dashboard/sites/')
 
   const pageLabel = (() => {
     // exact match first
@@ -51,11 +52,21 @@ export default function DashboardTopBar() {
         {selectedProject && pageLabel && (
           <div className="flex items-center gap-1.5 text-sm min-w-0">
             <span className="hidden sm:inline font-medium text-gray-700 truncate max-w-[150px] md:max-w-[200px]">{selectedProject.name}</span>
-            <ChevronRight size={13} className="hidden sm:inline text-gray-300 flex-shrink-0" />
+            <ChevronRight size={14} className="hidden sm:inline text-gray-300 flex-shrink-0" />
             <span className="text-gray-700 sm:text-gray-500 font-medium sm:font-normal truncate">{pageLabel}</span>
           </div>
         )}
       </div>
+      {isSites && isAdminOrOwner && (
+        <Button
+          size="sm"
+          onClick={() => router.push('/dashboard/newsite')}
+          className="h-8 gap-1.5 text-xs bg-[#007A49] hover:bg-[#006040]"
+        >
+          <Plus size={14} />
+          <span className="hidden sm:inline">Add Site</span>
+        </Button>
+      )}
       {isOverview && isAdminOrOwner && (
         isMobile ? (
           <DropdownMenu>
@@ -86,7 +97,7 @@ export default function DashboardTopBar() {
               onClick={() => router.push('/dashboard/dataexplore')}
               className="h-8 gap-1.5 text-xs font-normal text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
             >
-              <BarChart2 size={13} />
+              <BarChart2 size={14} />
               Data Explorer
             </Button>
           </div>

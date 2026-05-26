@@ -85,7 +85,7 @@ const MapComponent = ({
     return (
       <div
         className="flex flex-col items-center justify-center bg-gray-100 border-2 border-dashed border-gray-300 rounded-lg"
-        style={{ width, height: '40vh' }}
+        style={{ width: '100%', height: '100%' }}
       >
         <AlertTriangle className="w-12 h-12 text-gray-400 mb-4" />
         <h3 className="text-lg font-semibold text-gray-600 mb-2">Map Unavailable</h3>
@@ -95,7 +95,7 @@ const MapComponent = ({
   }
 
   return (
-    <div className="relative rounded-lg overflow-hidden border border-gray-200" style={{ width: '100%', height: '40vh' }}>
+    <div className="relative w-full h-full overflow-hidden">
       <Map
         ref={mapRef}
         style={{ width: '100%', height: '100%' }}

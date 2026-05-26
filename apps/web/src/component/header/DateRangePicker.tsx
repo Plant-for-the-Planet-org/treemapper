@@ -59,7 +59,7 @@ export default function DateRangePicker() {
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="outline" size="sm" disabled className="h-8 gap-1.5 text-xs font-normal">
-          <CalendarIcon size={13} />
+          <CalendarIcon size={14} />
           {label}
         </Button>
       </PopoverTrigger>

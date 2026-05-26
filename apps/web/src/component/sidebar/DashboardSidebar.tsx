@@ -174,9 +174,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         <div className="relative">
           {collapsed ? (
             <div className="flex justify-center py-1">
-              <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-green-800 leading-none">
-                  {selectedProject?.name?.[0]?.toUpperCase() || 'P'}
+              <div className="px-1.5 h-6 rounded bg-green-100 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-green-800 leading-none tracking-wider">
+                  {selectedProject?.name?.slice(0, 3).toUpperCase() || 'PRJ'}
                 </span>
               </div>
             </div>
@@ -195,7 +195,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                   </div>
                 </div>
                 <ChevronDown
-                  size={13}
+                  size={14}
                   className={cn('text-sidebar-foreground/40 flex-shrink-0 transition-transform duration-200', projectDropdownOpen && 'rotate-180')}
                 />
               </div>
@@ -212,7 +212,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                     onClick={() => { createNewProject(); setProjectDropdownOpen(false) }}
                     className="w-full justify-center [background-color:#e6f1ec] hover:[background-color:#d4e8dc] text-green-800 h-auto py-1.5 text-xs gap-1 font-medium"
                   >
-                    <Plus size={12} />
+                    <Plus size={14} />
                     Create New Project
                   </Button>
                 </div>
@@ -310,7 +310,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               onClick={openProfileSetting}
               className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground flex-shrink-0 transition-colors"
             >
-              <Settings size={13} />
+              <Settings size={14} />
             </button>
           </div>
         )}
