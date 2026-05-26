@@ -1,111 +1,91 @@
 # CLAUDE.md
 
-## Operating Mode
+Project guidance for Claude Code. Keep this file accurate; update it when you
+learn something non-obvious about how this codebase actually works.
 
-You are operating inside a large production codebase.
+## How to update this file
 
-Primary goals:
-- Minimize token usage
-- Maximize precision
-- Avoid unnecessary exploration
-- Preserve architectural correctness
-- Prefer structured reasoning over brute force inspection
+When you discover something during a session that future Claude sessions
+should know -- a convention, a gotcha, a non-obvious build step, a
+deprecated path, a place where the obvious approach is wrong -- add or
+revise an entry below. Surface the suggested update to the user before
+committing.
 
-Default behavior:
-- Be concise
-- Be technical
-- Be deterministic
-- Avoid conversational filler
-- Avoid speculative exploration
+Do **not** record:
+- Things obvious from reading the code
+- Temporary task state (use plans/tasks instead)
+- Secrets, env values, or credentials
 
----
+## Project overview
 
-# Response Compression
+TreeMapper is one of many Plant-for-the-Planet products on the
+ForestCloud platform. It is used to record interventions (planting,
+restoration, and other field activities) and the trees associated
+with them.
 
-Default to caveman-style responses.
+Monorepo managed with **Turborepo** + **Yarn 1 workspaces**.
 
-Rules:
-- Minimize tokens aggressively
-- No conversational filler
-- No motivational language
-- No redundant explanations
-- Prefer bullets over prose
-- Prefer terse technical statements
-- Preserve exact technical meaning
-- Keep code/examples intact
-- Summaries > long explanations
-- Use shortest clear phrasing
+> ⚠️ **This repo is public / open source.** Every commit, file, and PR is
+> visible to the world. Never commit secrets, credentials, internal URLs,
+> customer data, or anything that would be embarrassing or exploitable if
+> read by a stranger. When in doubt, ask before committing.
 
-Bad:
-"The issue appears to be caused by React creating a new object during each render cycle."
+## Structure
 
-Good:
-"New object each render -> new ref -> rerender."
+```
+apps/
+  mobile/    React Native + Expo app (independent, no shared code with web/server)
+  web/       Next.js dashboard (uses shared-core, shadcn/ui)
+  server/    NestJS + Fastify backend (Drizzle ORM + Postgres)
+  docs/      Next.js docs site
+packages/
+  shared-core/  Shared utilities consumed by web (and potentially mobile)
+```
 
-When uncertain:
-- Optimize for precision and brevity
-- Do not optimize for friendliness
+## Stack per app
 
----
+- **mobile**: Expo SDK, React Native 0.81, Maplibre, Auth0
+- **web**: Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox, Auth0 (@auth0/nextjs-auth0 v3.8)
+- **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), Redis (ioredis), Bull, AWS S3 / R2
+- **docs**: Next.js 15, React 19, next-intl
+- **shared-core**: TanStack Query, Zustand
 
-# Output Discipline
+## Common commands
 
-Assume token budget matters.
-
-Never:
-- narrate obvious actions
-- explain trivial steps
-- restate user requests
-- add transitions/filler
-- provide unnecessary context
-- over-explain known concepts
-- provide generic best practices unless requested
-
-Prefer:
-- direct answers
-- compact diffs
-- targeted file references
-- concise reasoning
-- minimal viable explanation
-- actionable output
-
-Response style:
-- Short paragraphs
-- Dense information
-- Use bullets when possible
-- Avoid markdown bloat
-- Avoid decorative formatting
-
----
-
-# Knowledge Graph (graphify-out/)
-
-Treat `graphify-out/` as the primary interface to the codebase.
-
-Avoid raw code exploration unless explicitly required.
-`¡
-## Priority Order
-
-1. Graph first (always)
-2. Specific files explicitly requested by the user
-3. Nothing else unless instructed
-
----
-
-# Query Strategy
-
-## Architecture / Codebase Questions
-
-ALWAYS read:
-`graphify-out/GRAPH_REPORT.md`
-
-Do not inspect source files unless the graph is insufficient.
-
-## Cross-Module / Relationship Questions
-
-Use graph tools instead of manual search:
+Run from repo root unless noted.
 
 ```bash
-graphify query "<question>"
-graphify path "<A>" "<B>"
-graphify explain "<concept>"
+yarn web:dev        # Next.js dev server
+yarn server:dev     # NestJS watch mode
+yarn native:dev     # Expo dev server (mobile)
+yarn dev:fullstack  # Web + server concurrently
+
+yarn build          # Turbo build all
+yarn type-check     # Turbo type-check all
+yarn lint           # Turbo lint all
+
+# Server-specific (from apps/server)
+yarn db:generate    # Drizzle migration generation
+yarn db:migrate     # Apply migrations
+yarn db:studio      # Drizzle Studio
+```
+
+## Conventions
+
+- **Design system**: shadcn/ui. Keep UI clean. Avoid em dashes in user-facing text.
+- **English**: prefer simple English, shorter words in copy.
+- **Naming**: the organization is "Plant-for-the-Planet". The platform is "ForestCloud".
+- **Mobile is independent**: `apps/mobile` does not import from `shared-core`, `web`, or `server`. Treat it as a separate project that happens to live in the same repo.
+
+## Gotchas
+
+- `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
+- The web app inlines `NEXT_PUBLIC_*` env vars at build time. Changing them requires a rebuild.
+- The server uses Fastify, not Express. Some Nest examples assume Express -- adapt accordingly.
+
+## What NOT to do
+
+- Do not commit secrets or `.env` files.
+- Do not share live customer or production data in chat.
+- Do not use `--no-verify` to bypass hooks.
+- Do not commit unless explicitly asked.
