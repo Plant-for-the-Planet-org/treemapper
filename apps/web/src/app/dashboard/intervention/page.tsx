@@ -17,6 +17,7 @@ import { InterventionDetails } from './component/InterventionDetails';
 import { useDebounce } from './component/hooks';
 import BulkUpdateModal from './component/BulkUpdateModal';
 import BulkSpeciesEditModal from './component/BulkSpeciesEditModal';
+import BulkStartDateEditModal from './component/BulkStartDateEditModal';
 
 // Types
 interface Site {
@@ -141,6 +142,7 @@ const InterventionListSidebar = ({
   onExitBulkMode,
   onOpenBulkUpdate,
   onOpenBulkSpeciesEdit,
+  onOpenBulkStartDateEdit,
   lockedType,
 }: {
   interventions: Intervention[];
@@ -164,6 +166,7 @@ const InterventionListSidebar = ({
   onExitBulkMode: () => void;
   onOpenBulkUpdate: () => void;
   onOpenBulkSpeciesEdit: () => void;
+  onOpenBulkStartDateEdit: () => void;
   lockedType: string | null;
 }) => {
   return (
@@ -230,6 +233,13 @@ const InterventionListSidebar = ({
                   className="text-xs bg-white text-[#007A49] px-3 py-1.5 rounded-md font-medium hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   Edit Species
+                </button>
+                <button
+                  onClick={onOpenBulkStartDateEdit}
+                  disabled={selectedUids.size === 0}
+                  className="text-xs bg-white text-[#007A49] px-3 py-1.5 rounded-md font-medium hover:bg-gray-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                >
+                  Edit Date
                 </button>
                 <button
                   onClick={onExitBulkMode}
@@ -396,6 +406,7 @@ const TreeMapperUI = () => {
   const [selectedUids, setSelectedUids] = useState<Set<string>>(new Set());
   const [showBulkUpdateModal, setShowBulkUpdateModal] = useState(false);
   const [showBulkSpeciesModal, setShowBulkSpeciesModal] = useState(false);
+  const [showBulkStartDateModal, setShowBulkStartDateModal] = useState(false);
   const [pagination, setPagination] = useState<Pagination>({
     page: 1,
     limit: 20,
@@ -717,6 +728,7 @@ const TreeMapperUI = () => {
           onExitBulkMode={handleExitBulkMode}
           onOpenBulkUpdate={() => setShowBulkUpdateModal(true)}
           onOpenBulkSpeciesEdit={() => setShowBulkSpeciesModal(true)}
+          onOpenBulkStartDateEdit={() => setShowBulkStartDateModal(true)}
           lockedType={lockedType}
         />
 
@@ -757,6 +769,15 @@ const TreeMapperUI = () => {
       <BulkSpeciesEditModal
         isOpen={showBulkSpeciesModal}
         onClose={() => setShowBulkSpeciesModal(false)}
+        selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
+        accessToken={accessToken || ''}
+        currentProjectUid={selectedProject?.uid || ''}
+        onComplete={handleBulkUpdateComplete}
+      />
+
+      <BulkStartDateEditModal
+        isOpen={showBulkStartDateModal}
+        onClose={() => setShowBulkStartDateModal(false)}
         selectedInterventions={interventions.filter(i => selectedUids.has(i.uid))}
         accessToken={accessToken || ''}
         currentProjectUid={selectedProject?.uid || ''}

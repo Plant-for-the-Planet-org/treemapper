@@ -29,6 +29,7 @@ import {
   UpdateInterventionSpeciesDto,
   BulkUpdateSpeciesDto,
   BulkUpdateSpeciesResponse,
+  BulkUpdateStartDateDto,
   InterventionTreesResponse,
   MapIntervention,
   MapTree,
@@ -600,6 +601,58 @@ export class InterventionsService {
     });
   }
 
+
+  async bulkUpdateInterventionStartDate(
+    dto: BulkUpdateStartDateDto,
+    membership: ProjectGuardResponse,
+  ): Promise<{ updatedCount: number }> {
+    const parsedDate = new Date(dto.interventionStartDate);
+    if (isNaN(parsedDate.getTime())) {
+      throw new BadRequestException({ code: 'INVALID_DATE', message: 'Invalid interventionStartDate' });
+    }
+
+    return await this.drizzleService.db.transaction(async (tx) => {
+      const rows = await tx
+        .select({ id: intervention.id, uid: intervention.uid, interventionEndDate: intervention.interventionEndDate })
+        .from(intervention)
+        .where(
+          and(
+            inArray(intervention.uid, dto.interventionUids),
+            eq(intervention.projectId, membership.projectId),
+            isNull(intervention.deletedAt),
+          ),
+        );
+
+      if (rows.length !== dto.interventionUids.length) {
+        const foundUids = new Set(rows.map((r) => r.uid));
+        const missing = dto.interventionUids.filter((u) => !foundUids.has(u));
+        throw new BadRequestException({
+          code: 'INVALID_SELECTION',
+          message: 'Some interventions do not belong to this project or were not found',
+          details: { interventionUids: missing },
+        });
+      }
+
+      const endDateViolations = rows
+        .filter((r) => r.interventionEndDate && parsedDate > r.interventionEndDate)
+        .map((r) => r.uid);
+      if (endDateViolations.length > 0) {
+        throw new BadRequestException({
+          code: 'DATE_AFTER_END',
+          message: 'Start date cannot be after the intervention end date for some interventions',
+          details: { interventionUids: endDateViolations },
+        });
+      }
+
+      const ids = rows.map((r) => r.id);
+      await tx
+        .update(intervention)
+        .set({ interventionStartDate: parsedDate, updatedAt: new Date() })
+        .where(inArray(intervention.id, ids));
+
+      return { updatedCount: rows.length };
+    });
+  }
 
   private async validateScientificSpecies(tx: any, scientificSpeciesId: number) {
     const species = await tx

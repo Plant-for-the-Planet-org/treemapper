@@ -304,6 +304,19 @@ export const bulkUpdateInterventionSpecies = async (
   return result
 }
 
+export const bulkUpdateInterventionStartDate = async (
+  token: string,
+  projectId: string,
+  payload: {
+    interventionUids: string[];
+    interventionStartDate: string;
+  },
+) => {
+  const uri = `${putUrlApi.bulkUpdateSpecies}/${projectId}/start-date/bulk`
+  const result = await fetchPutCall(uri, payload, token)
+  return result
+}
+
 export const ownerrhsipTranferCall = async (token: string, params: any, project, intervention) => {
   const uri = `${putUrlApi.ownershipTransfer}/${intervention}/${project}}/owner`
   const result = await fetchPutCall(uri, params, token)

@@ -807,6 +807,16 @@ export class BulkUpdateSpeciesResponse {
   changedFields: string[];
 }
 
+export class BulkUpdateStartDateDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  interventionUids: string[];
+
+  @IsDateString()
+  interventionStartDate: string;
+}
+
 export class EditTreeSpeciesDto {
   @IsOptional()
   @IsNumber()

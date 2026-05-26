@@ -25,6 +25,7 @@ import {
   GetProjectInterventionsResponseDto,
   UpdateInterventionSpeciesDto,
   BulkUpdateSpeciesDto,
+  BulkUpdateStartDateDto,
   EditTreeDto,
   AddTreeRemeasurementDto,
 } from './dto/interventions.dto';
@@ -219,6 +220,21 @@ export class InterventionsController {
     return {
       success: true,
       message: 'Bulk species update applied successfully',
+      data: result,
+    };
+  }
+
+  @Put('/projects/:id/start-date/bulk')
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
+  async bulkUpdateInterventionStartDate(
+    @Body() dto: BulkUpdateStartDateDto,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    const result = await this.interventionsService.bulkUpdateInterventionStartDate(dto, membership);
+    return {
+      success: true,
+      message: 'Bulk start date update applied successfully',
       data: result,
     };
   }
