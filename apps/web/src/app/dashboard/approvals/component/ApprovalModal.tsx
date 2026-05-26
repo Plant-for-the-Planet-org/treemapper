@@ -255,10 +255,10 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
         <DialogHeader>
           <DialogTitle>
             <div className="flex items-center gap-3">
-              <TreesIcon className="h-5 w-5 text-green-700" />
+              <TreesIcon className="h-5 w-5 text-primary" />
               <div>
                 <div className="font-semibold">{isIntervention ? 'Intervention Details' : 'Site Details'}</div>
-                <div className="text-xs text-gray-500">
+                <div className="text-xs text-muted-foreground">
                   {isIntervention ? `#${intervention.interventionHid}` : `Site: ${intervention.siteUid}`}
                 </div>
               </div>
@@ -269,10 +269,10 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
         <div className="space-y-6">
           {/* Header */}
           <div>
-            <div className="text-sm font-bold text-[#007A49] mb-1">
+            <div className="text-sm font-bold text-primary mb-1">
               {isIntervention ? `#${intervention.interventionHid}` : `Site: ${intervention.siteUid}`}
             </div>
-            <h2 className="text-2xl font-bold text-gray-900">
+            <h2 className="text-2xl font-bold text-foreground">
               {isIntervention ? formatType(intervention.type) : intervention.name}
             </h2>
           </div>
@@ -286,7 +286,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {/* Intervention image */}
                   {isIntervention && (detailedData?.image || intervention.interventionData.image) && (
-                    <div className="relative w-full h-64 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                    <div className="relative w-full h-64 bg-muted rounded-lg overflow-hidden shadow-sm">
                       <img
                         src={detailedData?.image || intervention.interventionData.image}
                         alt="Intervention"
@@ -297,7 +297,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
                   {/* Map preview for intervention or site */}
                   {mapLocation ? (
-                    <div className="w-full h-64 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                    <div className="w-full h-64 bg-muted rounded-lg overflow-hidden shadow-sm">
                       <SiteMapView
                         location={mapLocation}
                         className="w-full h-full"
@@ -311,7 +311,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   ) : (
                     /* If no map but site image exists, show site image in second column */
                     isSite && intervention.siteData.image && (
-                      <div className="relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden shadow-sm">
+                      <div className="relative w-full h-48 bg-muted rounded-lg overflow-hidden shadow-sm">
                         <img
                           src={intervention.siteData.image}
                           alt="Site"
@@ -328,20 +328,20 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <h3 className="text-lg font-semibold mb-3">Overview</h3>
                 <div className="space-y-3 text-sm">
                   <div>
-                    <span className="text-gray-600">Created by:</span>
+                    <span className="text-muted-foreground">Created by:</span>
                     <span className="ml-2 font-semibold">
                       {intervention.createdBy.name}
                     </span>
                   </div>
                   <div>
-                    <span className="text-gray-600">Email:</span>
+                    <span className="text-muted-foreground">Email:</span>
                     <span className="ml-2 font-semibold">
                       {intervention.createdBy.email}
                     </span>
                   </div>
                   {isIntervention && (
                     <div>
-                      <span className="text-gray-600">Intervention Type:</span>
+                      <span className="text-muted-foreground">Intervention Type:</span>
                       <span className="ml-2 font-semibold">
                         {formatType(intervention.type)}
                       </span>
@@ -349,7 +349,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   )}
                   {isSite && (
                     <div>
-                      <span className="text-gray-600">Site Status:</span>
+                      <span className="text-muted-foreground">Site Status:</span>
                       <Badge className="ml-2" variant="outline">
                         {formatType(intervention.siteData.status)}
                       </Badge>
@@ -364,14 +364,14 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   <h3 className="text-lg font-semibold mb-3">Intervention Details</h3>
                   <div className="space-y-2 text-sm">
                     <div>
-                      <span className="text-gray-600">Total Tree Count:</span>
+                      <span className="text-muted-foreground">Total Tree Count:</span>
                       <span className="ml-2 font-semibold">
                         {detailedData?.totalTreeCount ?? intervention.interventionData.totalTreeCount ?? 0}
                       </span>
                     </div>
                     {(detailedData?.totalSampleTreeCount !== undefined || intervention.interventionData.totalSampleTreeCount !== undefined) && (
                       <div>
-                        <span className="text-gray-600">Sample Tree Count:</span>
+                        <span className="text-muted-foreground">Sample Tree Count:</span>
                         <span className="ml-2 font-semibold">
                           {detailedData?.totalSampleTreeCount ?? intervention.interventionData.totalSampleTreeCount ?? 0}
                         </span>
@@ -379,7 +379,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.interventionData.area && (
                       <div>
-                        <span className="text-gray-600">Area:</span>
+                        <span className="text-muted-foreground">Area:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.interventionData.area.toFixed(2)} m²
                         </span>
@@ -387,7 +387,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.interventionData.status && (
                       <div>
-                        <span className="text-gray-600">Intervention Status:</span>
+                        <span className="text-muted-foreground">Intervention Status:</span>
                         <Badge className="ml-2" variant="outline">
                           {formatType(intervention.interventionData.status)}
                         </Badge>
@@ -395,7 +395,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.interventionData.captureMode && (
                       <div>
-                        <span className="text-gray-600">Capture Mode:</span>
+                        <span className="text-muted-foreground">Capture Mode:</span>
                         <span className="ml-2 font-semibold">
                           {formatType(intervention.interventionData.captureMode)}
                         </span>
@@ -403,7 +403,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.interventionData.captureStatus && (
                       <div>
-                        <span className="text-gray-600">Capture Status:</span>
+                        <span className="text-muted-foreground">Capture Status:</span>
                         <Badge
                           className="ml-2"
                           variant={
@@ -417,20 +417,20 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       </div>
                     )}
                     <div>
-                      <span className="text-gray-600">Start Date:</span>
+                      <span className="text-muted-foreground">Start Date:</span>
                       <span className="ml-2 font-semibold">
                         {formatDate(intervention.interventionData.interventionStartDate)}
                       </span>
                     </div>
                     <div>
-                      <span className="text-gray-600">End Date:</span>
+                      <span className="text-muted-foreground">End Date:</span>
                       <span className="ml-2 font-semibold">
                         {formatDate(intervention.interventionData.interventionEndDate)}
                       </span>
                     </div>
                     {intervention.interventionData.isPrivate !== undefined && (
                       <div>
-                        <span className="text-gray-600">Visibility:</span>
+                        <span className="text-muted-foreground">Visibility:</span>
                         <Badge className="ml-2" variant="outline">
                           {intervention.interventionData.isPrivate ? '🔒 Private' : '🌐 Public'}
                         </Badge>
@@ -445,37 +445,37 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                 <div>
                   <h3 className="text-lg font-semibold mb-3">Detailed Data</h3>
                   {loadingDetails ? (
-                    <div className="text-sm text-gray-500">Loading detailed data...</div>
+                    <div className="text-sm text-muted-foreground">Loading detailed data...</div>
                   ) : detailedData ? (
                     <div className="space-y-3 text-sm">
                       {/* Canopy / cover / summary */}
                       {(detailedData.canopyCover || detailedData.totalTreeCount || detailedData.speciesDistribution) && (
-                        <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+                        <div className="bg-muted/40 border border-border rounded-lg p-3">
                           <div className="flex items-center justify-between">
                             <div className="text-sm font-semibold">Summary</div>
                           </div>
                           <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
                             {detailedData.totalTreeCount !== undefined && (
                               <div>
-                                <div className="text-gray-600">Total Trees</div>
+                                <div className="text-muted-foreground">Total Trees</div>
                                 <div className="font-semibold">{detailedData.totalTreeCount}</div>
                               </div>
                             )}
                             {detailedData.canopyCover !== undefined && (
                               <div>
-                                <div className="text-gray-600">Canopy Cover</div>
+                                <div className="text-muted-foreground">Canopy Cover</div>
                                 <div className="font-semibold">NA</div>
                               </div>
                             )}
                             {detailedData.avgHeight !== undefined && (
                               <div>
-                                <div className="text-gray-600">Avg Height</div>
+                                <div className="text-muted-foreground">Avg Height</div>
                                 <div className="font-semibold">{`${detailedData.avgHeight} m`}</div>
                               </div>
                             )}
                             {detailedData.avgDbh !== undefined && (
                               <div>
-                                <div className="text-gray-600">Avg DBH</div>
+                                <div className="text-muted-foreground">Avg DBH</div>
                                 <div className="font-semibold">{`${detailedData.avgDbh} cm`}</div>
                               </div>
                             )}
@@ -495,9 +495,9 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                 const total = detailedData.totalTreeCount || intervention.interventionData.totalTreeCount || 1;
                                 const pct = Math.round(((count as number) / total) * 100);
                                 return (
-                                  <div key={speciesName} className="flex items-center justify-between p-2 bg-white border border-gray-100 rounded">
+                                  <div key={speciesName} className="flex items-center justify-between p-2 bg-background border border-border rounded">
                                     <div className="truncate">{speciesName}</div>
-                                    <div className="text-gray-500">{count} ({pct}%)</div>
+                                    <div className="text-muted-foreground">{count} ({pct}%)</div>
                                   </div>
                                 );
                               })}
@@ -511,7 +511,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                           <div className="text-sm font-medium mb-2">Trees (preview)</div>
                           <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
                             {detailedData.trees.slice(0, 12).map((t: any) => (
-                              <div key={t.treeId || t.uid || Math.random()} className="bg-white border rounded p-2 text-xs">
+                              <div key={t.treeId || t.uid || Math.random()} className="bg-background border border-border rounded p-2 text-xs">
                                 {t.image ? (
                                   <div className="mb-2">
                                     <img
@@ -526,15 +526,15 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                   </div>
                                 ) : null}
                                 <div className="font-medium truncate">{t.species || 'Unknown'}</div>
-                                <div className="text-gray-500">{t.tag ? `Tag: ${t.tag}` : t.hid ? `ID: ${t.hid}` : ''}</div>
-                                <div className="mt-1 text-xs text-gray-700">
+                                <div className="text-muted-foreground">{t.tag ? `Tag: ${t.tag}` : t.hid ? `ID: ${t.hid}` : ''}</div>
+                                <div className="mt-1 text-xs text-foreground/80">
                                   {t.height !== undefined ? `${t.height} m` : '-'} · {t.width !== undefined ? `${t.width} m` : '-'}
                                 </div>
                               </div>
                             ))}
                           </div>
                           {detailedData.trees.length > 12 && (
-                            <div className="mt-2 text-xs text-gray-500 text-center">
+                            <div className="mt-2 text-xs text-muted-foreground text-center">
                               Showing 12 of {detailedData.trees.length} trees
                             </div>
                           )}
@@ -542,7 +542,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       )}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500">No additional details available.</div>
+                    <div className="text-sm text-muted-foreground">No additional details available.</div>
                   )}
                 </div>
               )}
@@ -553,7 +553,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   <div className="space-y-2 text-sm">
                     {intervention.siteData.area && (
                       <div>
-                        <span className="text-gray-600">Area:</span>
+                        <span className="text-muted-foreground">Area:</span>
                         <span className="ml-2 font-semibold">
                           {(intervention.siteData.area / 10000).toFixed(2)} hectares
                         </span>
@@ -561,7 +561,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.expectedTreeCount && (
                       <div>
-                        <span className="text-gray-600">Expected Tree Count:</span>
+                        <span className="text-muted-foreground">Expected Tree Count:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.siteData.expectedTreeCount.toLocaleString()}
                         </span>
@@ -569,7 +569,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.soilType && (
                       <div>
-                        <span className="text-gray-600">Soil Type:</span>
+                        <span className="text-muted-foreground">Soil Type:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.siteData.soilType}
                         </span>
@@ -577,7 +577,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.elevation !== null && (
                       <div>
-                        <span className="text-gray-600">Elevation:</span>
+                        <span className="text-muted-foreground">Elevation:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.siteData.elevation} m
                         </span>
@@ -585,21 +585,21 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.slope !== null && (
                       <div>
-                        <span className="text-gray-600">Slope:</span>
+                        <span className="text-muted-foreground">Slope:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.siteData.slope}°
                         </span>
                       </div>
                     )}
                     <div>
-                      <span className="text-gray-600">Water Access:</span>
+                      <span className="text-muted-foreground">Water Access:</span>
                       <Badge className="ml-2" variant="outline">
                         {intervention.siteData.waterAccess ? '✓ Available' : '✗ Not Available'}
                       </Badge>
                     </div>
                     {intervention.siteData.accessibility && (
                       <div>
-                        <span className="text-gray-600">Accessibility:</span>
+                        <span className="text-muted-foreground">Accessibility:</span>
                         <span className="ml-2 font-semibold">
                           {intervention.siteData.accessibility}
                         </span>
@@ -607,7 +607,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.plannedPlantingDate && (
                       <div>
-                        <span className="text-gray-600">Planned Planting Date:</span>
+                        <span className="text-muted-foreground">Planned Planting Date:</span>
                         <span className="ml-2 font-semibold">
                           {formatDate(intervention.siteData.plannedPlantingDate)}
                         </span>
@@ -615,7 +615,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     )}
                     {intervention.siteData.actualPlantingDate && (
                       <div>
-                        <span className="text-gray-600">Actual Planting Date:</span>
+                        <span className="text-muted-foreground">Actual Planting Date:</span>
                         <span className="ml-2 font-semibold">
                           {formatDate(intervention.siteData.actualPlantingDate)}
                         </span>
@@ -633,7 +633,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   </h3>
                   <div className="overflow-x-auto">
                     <table className="min-w-full text-xs">
-                      <thead className="bg-gray-100">
+                      <thead className="bg-muted">
                         <tr>
                           <th className="px-2 py-2 text-left font-semibold">Tag</th>
                           <th className="px-2 py-2 text-left font-semibold">Species</th>
@@ -643,14 +643,14 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                           <th className="px-2 py-2 text-left font-semibold">Image</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-200">
+                      <tbody className="divide-y divide-border">
                         {intervention.interventionData.sampleTrees.slice(0, 10).map((tree) => (
-                          <tr key={tree.treeId} className="hover:bg-gray-50">
+                          <tr key={tree.treeId} className="hover:bg-muted/40">
                             <td className="px-2 py-2">{tree.treeTag || '-'}</td>
                             <td className="px-2 py-2">
                               <div className="font-medium">{tree.species}</div>
                               {tree.scientificName && (
-                                <div className="text-gray-500 italic text-xs">{tree.scientificName}</div>
+                                <div className="text-muted-foreground italic text-xs">{tree.scientificName}</div>
                               )}
                             </td>
                             <td className="px-2 py-2">{tree.height ? `${tree.height.toFixed(1)}m` : '-'}</td>
@@ -658,15 +658,12 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                             <td className="px-2 py-2">
                               {tree.health && (
                                 <Badge
-                                  variant="outline"
-                                  className={
-                                    tree.health === 'excellent'
-                                      ? 'bg-green-50 text-green-700 border-green-200'
-                                      : tree.health === 'good'
-                                      ? 'bg-blue-50 text-blue-700 border-blue-200'
+                                  variant={
+                                    tree.health === 'excellent' || tree.health === 'good'
+                                      ? 'default'
                                       : tree.health === 'fair'
-                                      ? 'bg-yellow-50 text-yellow-700 border-yellow-200'
-                                      : 'bg-red-50 text-red-700 border-red-200'
+                                      ? 'secondary'
+                                      : 'destructive'
                                   }
                                 >
                                   {tree.health}
@@ -675,7 +672,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                             </td>
                             <td className="px-2 py-2">
                               {tree.image ? (
-                                <a href={tree.image} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">
+                                <a href={tree.image} target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">
                                   View
                                 </a>
                               ) : (
@@ -687,7 +684,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       </tbody>
                     </table>
                     {intervention.interventionData.sampleTrees.length > 10 && (
-                      <div className="mt-2 text-xs text-gray-500 text-center">
+                      <div className="mt-2 text-xs text-muted-foreground text-center">
                         Showing 10 of {intervention.interventionData.sampleTrees.length} sample trees
                       </div>
                     )}
@@ -701,7 +698,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   <h3 className="text-lg font-semibold mb-3">Location</h3>
                   <div className="space-y-3">
                     <div className="text-sm">
-                      <span className="text-gray-600">Coordinates:</span>
+                      <span className="text-muted-foreground">Coordinates:</span>
                       <span className="ml-2 font-mono text-xs">
                         {typeof intervention.interventionData.location === 'object' &&
                         intervention.interventionData.location.lat &&
@@ -740,7 +737,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
               {isIntervention && intervention.interventionData.description && (
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-foreground/80">
                     {intervention.interventionData.description}
                   </p>
                 </div>
@@ -749,7 +746,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
               {isSite && intervention.description && (
                 <div>
                   <h3 className="text-lg font-semibold mb-2">Description</h3>
-                  <p className="text-sm text-gray-700">
+                  <p className="text-sm text-foreground/80">
                     {intervention.description}
                   </p>
                 </div>
@@ -759,11 +756,11 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
             {/* Right Column - Status, Comments & Actions (40% width - 2 of 5 columns) */}
             <div className="lg:col-span-2 space-y-6">
               {/* Current Status */}
-              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="bg-muted/40 border border-border rounded-lg p-4">
                 <h3 className="text-lg font-semibold mb-3">Current Status</h3>
                 <div className="space-y-2 text-sm">
                   <div>
-                    <span className="text-gray-600">Approval Status:</span>
+                    <span className="text-muted-foreground">Approval Status:</span>
                     <Badge
                       className="ml-2"
                       variant={
@@ -779,7 +776,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   </div>
                   {intervention.submittedForReviewAt && (
                     <div>
-                      <span className="text-gray-600">Submitted for Review:</span>
+                      <span className="text-muted-foreground">Submitted for Review:</span>
                       <span className="ml-2 font-semibold">
                         {formatDate(intervention.submittedForReviewAt)}
                       </span>
@@ -787,7 +784,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   )}
                   {isIntervention && intervention.interventionData.editedAt && (
                     <div>
-                      <span className="text-gray-600">Last Edited:</span>
+                      <span className="text-muted-foreground">Last Edited:</span>
                       <span className="ml-2 font-semibold">
                         {formatDate(intervention.interventionData.editedAt)}
                       </span>
@@ -795,7 +792,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   )}
                   {isIntervention && intervention.interventionData.registrationDate && (
                     <div>
-                      <span className="text-gray-600">Registration Date:</span>
+                      <span className="text-muted-foreground">Registration Date:</span>
                       <span className="ml-2 font-semibold">
                         {formatDate(intervention.interventionData.registrationDate)}
                       </span>
@@ -804,13 +801,13 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   {isSite && (
                     <>
                       <div>
-                        <span className="text-gray-600">Created:</span>
+                        <span className="text-muted-foreground">Created:</span>
                         <span className="ml-2 font-semibold">
                           {formatDate(intervention.siteData.createdAt)}
                         </span>
                       </div>
                       <div>
-                        <span className="text-gray-600">Last Updated:</span>
+                        <span className="text-muted-foreground">Last Updated:</span>
                         <span className="ml-2 font-semibold">
                           {formatDate(intervention.siteData.updatedAt)}
                         </span>
@@ -822,12 +819,13 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
 
               {/* Approval Info */}
               {intervention.approvedBy && (
-                <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-                  <div className="text-sm font-semibold text-green-800">
-                    ✓ Approved by {intervention.approvedBy.name}
+                <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
+                  <div className="text-sm font-semibold text-primary flex items-center gap-1.5">
+                    <CheckCircle2 size={14} />
+                    Approved by {intervention.approvedBy.name}
                   </div>
                   {intervention.approvedAt && (
-                    <div className="text-xs text-green-700 mt-1">
+                    <div className="text-xs text-primary/80 mt-1">
                       on {formatDate(intervention.approvedAt)}
                     </div>
                   )}
@@ -841,10 +839,10 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     Review Thread {currentThread && `#${currentThread.id}`}
                   </h3>
                   {loadingThread ? (
-                    <div className="text-sm text-gray-500">Loading thread...</div>
+                    <div className="text-sm text-muted-foreground">Loading thread...</div>
                   ) : currentThread ? (
                     <div className="space-y-3">
-                      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-sm">
+                      <div className="bg-muted/40 border border-border rounded-lg p-3 text-sm">
                         <div className="flex items-center justify-between mb-2">
                           <Badge
                             variant={
@@ -857,7 +855,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                           >
                             {currentThread.status}
                           </Badge>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(
                               typeof currentThread.createdAt === 'string'
                                 ? currentThread.createdAt
@@ -867,7 +865,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                         </div>
                         {currentThread.resolution && (
                           <div className="mt-2">
-                            <span className="text-xs text-gray-600">Resolution: </span>
+                            <span className="text-xs text-muted-foreground">Resolution: </span>
                             <Badge variant="outline">{currentThread.resolution}</Badge>
                           </div>
                         )}
@@ -886,16 +884,14 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                             <div
                               key={comment.uid}
                               className={`rounded-lg p-3 text-sm border ${
-                                comment.authorRole === 'admin'
-                                  ? 'bg-blue-50 border-blue-200'
-                                  : comment.authorRole === 'reviewer'
-                                  ? 'bg-purple-50 border-purple-200'
-                                  : 'bg-white border-gray-200'
+                                comment.authorRole === 'admin' || comment.authorRole === 'reviewer'
+                                  ? 'bg-muted/40 border-border'
+                                  : 'bg-background border-border'
                               }`}
                             >
                               <div className="flex items-start justify-between mb-2">
                                 <div>
-                                  <div className="font-semibold text-gray-900">
+                                  <div className="font-semibold text-foreground">
                                     {comment.author.displayName}
                                     <Badge className="ml-2 text-xs" variant="outline">
                                       {comment.authorRole}
@@ -920,7 +916,7 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                       </Badge>
                                     )}
                                   </div>
-                                  <div className="text-xs text-gray-500">
+                                  <div className="text-xs text-muted-foreground">
                                     {formatDate(
                                       typeof comment.createdAt === 'string'
                                         ? comment.createdAt
@@ -934,9 +930,9 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                   </Badge>
                                 )}
                               </div>
-                              <p className="text-gray-700">{comment.message}</p>
+                              <p className="text-foreground/80">{comment.message}</p>
                               {comment.targetField && (
-                                <div className="text-xs text-gray-500 mt-1">
+                                <div className="text-xs text-muted-foreground mt-1">
                                   Field: {comment.targetField}
                                 </div>
                               )}
@@ -946,13 +942,13 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                       )}
 
                       {threadComments.length === 0 && (
-                        <div className="text-sm text-gray-500 text-center py-4">
+                        <div className="text-sm text-muted-foreground text-center py-4">
                           No comments yet
                         </div>
                       )}
                     </div>
                   ) : (
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-muted-foreground">
                       No active review thread. Intervention may not be submitted for review yet.
                     </div>
                   )}
@@ -969,13 +965,13 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                         key={comment.uid}
                         className={`rounded-lg p-3 text-sm border ${
                           comment.isInternal
-                            ? 'bg-yellow-50 border-yellow-200'
-                            : 'bg-white border-gray-200'
+                            ? 'bg-amber-50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800'
+                            : 'bg-background border-border'
                         }`}
                       >
                         <div className="flex items-start justify-between mb-2">
                           <div>
-                            <div className="font-semibold text-gray-900">
+                            <div className="font-semibold text-foreground">
                               {comment.userName}
                               {comment.isInternal && (
                                 <Badge className="ml-2 text-xs" variant="outline">
@@ -983,12 +979,12 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                                 </Badge>
                               )}
                             </div>
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-muted-foreground">
                               {comment.userRole} • {formatDate(comment.createdAt)}
                             </div>
                           </div>
                         </div>
-                        <p className="text-gray-700">{comment.comment}</p>
+                        <p className="text-foreground/80">{comment.comment}</p>
                       </div>
                     ))}
                   </div>
@@ -1003,24 +999,24 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                     {intervention.history.map((entry: ApprovalHistoryEntry) => (
                       <div
                         key={entry.uid}
-                        className="bg-gray-50 rounded-lg p-3 text-sm"
+                        className="bg-muted/40 rounded-lg p-3 text-sm"
                       >
                         <div className="flex items-center justify-between mb-1">
                           <span className="font-semibold">
                             {getHistoryActionText(entry.action)}
                           </span>
-                          <span className="text-xs text-gray-500">
+                          <span className="text-xs text-muted-foreground">
                             {formatDate(entry.timestamp)}
                           </span>
                         </div>
-                        <div className="text-xs text-gray-600">{entry.userName}</div>
+                        <div className="text-xs text-muted-foreground">{entry.userName}</div>
                         {entry.comment && (
-                          <div className="text-xs text-gray-700 mt-2 italic">
+                          <div className="text-xs text-foreground/80 mt-2 italic">
                             "{entry.comment}"
                           </div>
                         )}
                         {entry.changedFields && entry.changedFields.length > 0 && (
-                          <div className="text-xs text-gray-500 mt-1">
+                          <div className="text-xs text-muted-foreground mt-1">
                             Changed: {entry.changedFields.join(', ')}
                           </div>
                         )}
@@ -1099,28 +1095,19 @@ export const ApprovalModal: React.FC<ApprovalModalProps> = ({
                   {isAdmin && (
                     <div className="grid grid-cols-3 gap-2">
                       {canMoveToReview && (
-                        <Button
-                          onClick={() => handleStatusClick('in_review')}
-                          className="bg-blue-600 hover:bg-blue-700"
-                        >
+                        <Button variant="secondary" onClick={() => handleStatusClick('in_review')}>
                           <Eye className="h-4 w-4 mr-1" />
                           Review
                         </Button>
                       )}
                       {canApprove && (
-                        <Button
-                          onClick={() => handleStatusClick('approved')}
-                          className="bg-green-600 hover:bg-green-700"
-                        >
+                        <Button onClick={() => handleStatusClick('approved')}>
                           <CheckCircle2 className="h-4 w-4 mr-1" />
                           Approve
                         </Button>
                       )}
                       {canReject && (
-                        <Button
-                          onClick={() => handleStatusClick('rejected')}
-                          className="bg-red-600 hover:bg-red-700"
-                        >
+                        <Button variant="destructive" onClick={() => handleStatusClick('rejected')}>
                           <XCircle className="h-4 w-4 mr-1" />
                           Reject
                         </Button>

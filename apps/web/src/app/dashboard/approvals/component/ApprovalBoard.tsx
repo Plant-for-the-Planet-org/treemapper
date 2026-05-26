@@ -565,7 +565,7 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
-        <Loader2 className="h-8 w-8 animate-spin text-[#007A49]" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -573,14 +573,13 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
   return (
     <>
       {/* Entity Type Filter */}
-      <div className="mb-6 flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-700">Show:</span>
+      <div className="mb-5 flex items-center gap-3">
+        <span className="text-sm font-medium text-muted-foreground">Show:</span>
         <div className="flex gap-2">
           <Button
             variant={entityType === 'intervention' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setEntityType('intervention')}
-            className={entityType === 'intervention' ? 'bg-[#007A49] hover:bg-[#006039]' : ''}
           >
             Interventions ({approvals.length})
           </Button>
@@ -588,7 +587,6 @@ export const ApprovalBoard: React.FC<ApprovalBoardProps> = ({
             variant={entityType === 'site' ? 'default' : 'outline'}
             size="sm"
             onClick={() => setEntityType('site')}
-            className={entityType === 'site' ? 'bg-[#007A49] hover:bg-[#006039]' : ''}
           >
             Sites ({sites.length})
           </Button>

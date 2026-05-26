@@ -8,7 +8,7 @@ import { checkProjectRequiresApproval } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useApprovalStore from '@shared-core/store/useApprovalStore';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { AlertCircle, Info } from 'lucide-react';
+import { Info } from 'lucide-react';
 
 export default function ApprovalsPage() {
   const { accessToken } = useToken();
@@ -90,11 +90,9 @@ export default function ApprovalsPage() {
 
   return (
     <div className="p-6">
-      <div className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">
-          Approval Board
-        </h1>
-        <p className="text-gray-600">
+      <div className="mb-5">
+        <h1 className="text-xl font-semibold text-foreground mb-1">Approval board</h1>
+        <p className="text-sm text-muted-foreground">
           Review and manage intervention approvals for {selectedProject.name}
         </p>
       </div>

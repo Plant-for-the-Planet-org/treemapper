@@ -1,48 +1,45 @@
-'use client';
+'use client'
 
-import React, { useState } from 'react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Search, X } from 'lucide-react';
+import React, { useState } from 'react'
+import { Input } from '@/components/ui/input'
+import { Search, X } from 'lucide-react'
 
 interface ApprovalFiltersProps {
-  onSearch: (query: string) => void;
+  onSearch: (query: string) => void
 }
 
-export const ApprovalFilters: React.FC<ApprovalFiltersProps> = ({
-  onSearch,
-}) => {
-  const [searchValue, setSearchValue] = useState('');
+export const ApprovalFilters: React.FC<ApprovalFiltersProps> = ({ onSearch }) => {
+  const [searchValue, setSearchValue] = useState('')
 
   const handleSearchChange = (value: string) => {
-    setSearchValue(value);
-    onSearch(value);
-  };
+    setSearchValue(value)
+    onSearch(value)
+  }
 
   const handleClear = () => {
-    setSearchValue('');
-    onSearch('');
-  };
+    setSearchValue('')
+    onSearch('')
+  }
 
   return (
-    <div className="flex gap-3 mb-6 p-4 bg-white border border-gray-200 rounded-lg">
-      <div className="flex-1 relative">
-        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+    <div className="mb-5">
+      <div className="relative max-w-md">
+        <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         <Input
           placeholder="Search by name, description, or creator..."
-          className="pl-10 pr-10"
+          className="pl-9 pr-9"
           value={searchValue}
           onChange={(e) => handleSearchChange(e.target.value)}
         />
         {searchValue && (
           <button
             onClick={handleClear}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
           >
-            <X className="h-4 w-4" />
+            <X size={14} />
           </button>
         )}
       </div>
     </div>
-  );
-};
+  )
+}
