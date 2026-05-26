@@ -1,498 +1,343 @@
-import React, { useState, useEffect } from 'react';
-import { X, Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle, Key } from 'lucide-react';
-import { expireInvite, removeProjectMember, updateUserRole, updateMemberExtraPermissions } from '@shared-core/fetchApi/api.fetch';
-import { useToken } from '@/context/useTokenContext';
-import useProjectStore from '@shared-core/store/useProjectStore';
-import { toast } from 'react-toastify';
+import React, { useState, useEffect } from 'react'
+import { Calendar, Clock, Shield, User, Mail, AlertCircle, Trash2, Save, CheckCircle, Key, X } from 'lucide-react'
+import { expireInvite, removeProjectMember, updateUserRole, updateMemberExtraPermissions } from '@shared-core/fetchApi/api.fetch'
+import { useToken } from '@/context/useTokenContext'
+import useProjectStore from '@shared-core/store/useProjectStore'
+import { toast } from 'react-toastify'
 import avatar from 'animal-avatar-generator'
+import { Modal } from '@/app/dashboard/species/components/Modal'
+import { Button } from '@/components/ui/button'
+import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
+import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { format, parseISO } from 'date-fns'
 
 const ALL_PERMISSIONS = [
   { key: 'approve_intervention', label: 'Approve Intervention' },
   { key: 'approve_site', label: 'Approve Site' },
   { key: 'add_site', label: 'Add Site' },
   { key: 'request_species', label: 'Request Species' },
-] as const;
+] as const
+
+function capitalize(str: string) {
+  return str.charAt(0).toLowerCase() + str.slice(1)
+}
+
+const customImageGenerator = (id: string) => {
+  const svg = avatar(id, { size: 100 })
+  return <div className="w-24 h-24 rounded-full overflow-hidden" dangerouslySetInnerHTML={{ __html: svg }} />
+}
+
+const formatDate = (dateString: string) => {
+  try { return format(parseISO(dateString), 'MMMM d, yyyy') } catch { return 'N/A' }
+}
+
+const roleVariant = (role: string): 'default' | 'secondary' | 'outline' => {
+  switch (role?.toLowerCase()) {
+    case 'admin': return 'default'
+    case 'contributor': return 'secondary'
+    default: return 'outline'
+  }
+}
 
 const UserDetailsModal = ({ isOpen, onClose, user, handleRefresh, isImpersonating = false }) => {
-  const [currentRole, setCurrentRole] = useState('');
-  const [isEdited, setIsEdited] = useState(false);
-  const [isRemoving, setIsRemoving] = useState(false);
-  const [isSaving, setIsSaving] = useState(false);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
-  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([]);
-  const [isSavingPermissions, setIsSavingPermissions] = useState(false);
-  const [permissionsSaveSuccess, setPermissionsSaveSuccess] = useState(false);
+  const [currentRole, setCurrentRole] = useState('')
+  const [isEdited, setIsEdited] = useState(false)
+  const [isRemoving, setIsRemoving] = useState(false)
+  const [isSaving, setIsSaving] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [saveSuccess, setSaveSuccess] = useState(false)
+  const [selectedPermissions, setSelectedPermissions] = useState<string[]>([])
+  const [isSavingPermissions, setIsSavingPermissions] = useState(false)
+  const [permissionsSaveSuccess, setPermissionsSaveSuccess] = useState(false)
   const { accessToken } = useToken()
-  const selectedProject = useProjectStore((state) => state.selectedProject);
-  function capitalize(str) {
-    return str.charAt(0).toLowerCase() + str.slice(1);
-  }
-
-  const customImageGenerator = (id) => {
-    const svg = avatar(id, { size: 100 })
-    return <div
-      className="w-24 h-24 rounded-full overflow-hidden"
-      dangerouslySetInnerHTML={{ __html: svg }}
-    />
-  }
+  const selectedProject = useProjectStore((state) => state.selectedProject)
 
   useEffect(() => {
     if (user && isOpen) {
-      setCurrentRole(user.role ? capitalize(user?.role) : '');
-      setIsEdited(false);
-      setSaveSuccess(false);
-      setSelectedPermissions(user.extraPermissions || []);
-      setPermissionsSaveSuccess(false);
+      setCurrentRole(user.role ? capitalize(user.role) : '')
+      setIsEdited(false)
+      setSaveSuccess(false)
+      setSelectedPermissions(user.extraPermissions || [])
+      setPermissionsSaveSuccess(false)
     }
-  }, [user, isOpen]);
+  }, [user, isOpen])
 
   const canEditExtraPermissions =
-    isImpersonating &&
-    user?.type !== 'invitation' &&
-    ['Admin', 'Contributor'].includes(user?.role);
+    isImpersonating && user?.type !== 'invitation' && ['Admin', 'Contributor'].includes(user?.role)
 
   const handlePermissionToggle = (key: string) => {
-    setSelectedPermissions(prev =>
-      prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key]
-    );
-    setPermissionsSaveSuccess(false);
-  };
+    setSelectedPermissions(prev => prev.includes(key) ? prev.filter(p => p !== key) : [...prev, key])
+    setPermissionsSaveSuccess(false)
+  }
 
   const handleSavePermissions = async () => {
-    setIsSavingPermissions(true);
+    setIsSavingPermissions(true)
     try {
       const response = await updateMemberExtraPermissions(
-        accessToken || '',
-        selectedProject?.uid || '',
-        user.uid,
-        selectedPermissions,
-      );
-      if (response && response.statusCode === 200) {
-        toast.success('Permissions updated successfully');
-        setPermissionsSaveSuccess(true);
-        setTimeout(() => {
-          setPermissionsSaveSuccess(false);
-          handleRefresh();
-        }, 2000);
-        return;
+        accessToken || '', selectedProject?.uid || '', user.uid, selectedPermissions,
+      )
+      if (response?.statusCode === 200) {
+        toast.success('Permissions updated successfully')
+        setPermissionsSaveSuccess(true)
+        setTimeout(() => { setPermissionsSaveSuccess(false); handleRefresh() }, 2000)
+        return
       }
-      toast.error('Failed to update permissions: ' + String(response.message));
+      toast.error('Failed to update permissions: ' + String(response.message))
     } catch {
-      toast.error('Failed to update permissions');
+      toast.error('Failed to update permissions')
     } finally {
-      setIsSavingPermissions(false);
+      setIsSavingPermissions(false)
     }
-  };
+  }
 
-  if (!isOpen || !user) return null;
-
-  const generateRandomGradientStyle = (userId) => {
-    const seed = userId.toString().split('').reduce((a, b) => {
-      a = ((a << 5) - a) + b.charCodeAt(0);
-      return a & a;
-    }, 0);
-
-    const hue1 = Math.abs(seed) % 360;
-    const hue2 = Math.abs(seed * 2) % 360;
-    const saturation = 20 + (Math.abs(seed * 3) % 30); // 20-50% (much lower)
-    const lightness = 85 + (Math.abs(seed * 4) % 10);  // 85-95% (much higher)
-
-    return {
-      background: `linear-gradient(135deg, 
-      hsl(${hue1}, ${saturation}%, ${lightness}%), 
-      hsl(${hue2}, ${saturation}%, ${Math.min(lightness + 5, 95)}%))`
-    };
-  };
-
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return new Intl.DateTimeFormat('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    }).format(date);
-  };
-
-  const handleRoleChange = (e) => {
-    const newRole = e.target.value;
-    setCurrentRole(newRole);
-    setIsEdited(newRole !== user.role);
-    setSaveSuccess(false);
-  };
+  const handleRoleChange = (value: string) => {
+    setCurrentRole(value)
+    setIsEdited(value !== user.role)
+    setSaveSuccess(false)
+  }
 
   const handleSave = async () => {
-    setIsSaving(true);
+    setIsSaving(true)
     try {
-      // Call the parent function to handle the API call
-      const response = await updateUserRole(accessToken || '', selectedProject?.uid || '', user.uid, {
-        role: currentRole
-      })
-      if (response && response.statusCode == 200) {
-        toast.success("Role updated successfully");
-        setSaveSuccess(true);
-        setIsEdited(false);
-        setTimeout(() => {
-          setSaveSuccess(false);
-          handleRefresh();
-        }, 2000);
+      const response = await updateUserRole(accessToken || '', selectedProject?.uid || '', user.uid, { role: currentRole })
+      if (response?.statusCode == 200) {
+        toast.success('Role updated successfully')
+        setSaveSuccess(true)
+        setIsEdited(false)
+        setTimeout(() => { setSaveSuccess(false); handleRefresh() }, 2000)
         return
       }
-      toast.error("Failed to update user: " + String(response.message));
-
-    } catch (error) {
-      console.error('Failed to update user:', error);
-      toast.error("Role updation failed");
-
-      // You can add error handling here
+      toast.error('Failed to update user: ' + String(response.message))
+    } catch {
+      toast.error('Role update failed')
     } finally {
-      setIsSaving(false);
+      setIsSaving(false)
     }
-  };
+  }
 
   const handleRemoveUser = async () => {
-    setIsRemoving(true);
-    if (user.type === 'invitation') {
-      handleRemoveInvitation()
-      return
-    }
+    setIsRemoving(true)
+    if (user.type === 'invitation') { handleRemoveInvitation(); return }
     try {
       const response = await removeProjectMember(accessToken || '', selectedProject?.uid || '', user.uid)
-      if (response && response.statusCode == 200) {
-        setShowConfirmModal(false);
-        toast.success("Member removed from the project successfully")
-        setTimeout(() => {
-          handleRefresh()
-          onClose();
-          setIsRemoving(false);
-        }, 2000);
+      if (response?.statusCode == 200) {
+        setShowConfirmModal(false)
+        toast.success('Member removed from the project successfully')
+        setTimeout(() => { handleRefresh(); onClose(); setIsRemoving(false) }, 2000)
         return
       }
       toast.error(String(response.message))
-    } catch (error) {
+    } catch {
       toast.error('Failed to remove user')
-      // You can add error handling here
     } finally {
-      setIsRemoving(false);
+      setIsRemoving(false)
     }
-  };
+  }
 
   const handleRemoveInvitation = async () => {
-    setShowConfirmModal(false);
-    setIsRemoving(true);
+    setShowConfirmModal(false)
+    setIsRemoving(true)
     try {
-      const response = await expireInvite(accessToken || '', {
-        token: user.token
-      }, selectedProject?.uid || '')
-      if (response && response.statusCode == 200) {
-        toast.success("Invitation removed successfully")
-        setTimeout(() => {
-          handleRefresh()
-          onClose();
-        }, 2000);
+      const response = await expireInvite(accessToken || '', { token: user.token }, selectedProject?.uid || '')
+      if (response?.statusCode == 200) {
+        toast.success('Invitation removed successfully')
+        setTimeout(() => { handleRefresh(); onClose() }, 2000)
         return
       }
       toast.error(String(response.message))
-    } catch (error) {
-      toast.error('Failed to remove user')
-      // You can add error handling here
+    } catch {
+      toast.error('Failed to remove invitation')
     } finally {
-      setIsRemoving(false);
+      setIsRemoving(false)
     }
-  };
+  }
 
-  const confirmRemove = () => {
-    setShowConfirmModal(true);
-  };
-
-  const getRoleColor = (role) => {
-    switch (role.toLowerCase()) {
-      case 'admin':
-        return 'text-purple-700 bg-purple-100';
-      case 'contributor':
-        return 'text-blue-700 bg-blue-100';
-      case 'reviewer':
-        return 'text-green-700 bg-green-100';
-      default:
-        return 'text-gray-700 bg-gray-100';
-    }
-  };
-  const gradientStyle = generateRandomGradientStyle(user.uid);
+  if (!user) return null
 
   return (
     <>
-      {/* Main Modal */}
-      <div className="fixed inset-0 z-50 bg-gray bg-opacity-50 flex items-center justify-center p-4" style={{ zIndex: 1000 }}>
-        {showConfirmModal && (
-          <div className="fixed inset-0 bg-black/10 bg-opacity-10  backdrop-blur-sm z-50 flex items-center justify-center p-4" style={{ zIndex: 20 }}>
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6">
-              <div className="flex items-center justify-center w-16 h-16 mx-auto mb-4 bg-red-100 rounded-full">
-                <AlertCircle className="w-8 h-8 text-red-600" />
+      {/* Confirm remove dialog */}
+      <Dialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <DialogContent className="sm:max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="text-center">Remove user</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col items-center gap-4 py-2">
+            <div className="flex items-center justify-center w-14 h-14 bg-destructive/10 rounded-full">
+              <AlertCircle className="w-7 h-7 text-destructive" />
+            </div>
+            <p className="text-sm text-muted-foreground text-center">
+              Are you sure you want to remove <strong className="text-foreground">{user.name}</strong> from this project? This cannot be undone.
+            </p>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="outline" className="flex-1" onClick={() => setShowConfirmModal(false)} disabled={isRemoving}>
+              Cancel
+            </Button>
+            <Button variant="destructive" className="flex-1" onClick={handleRemoveUser} disabled={isRemoving}>
+              {isRemoving ? 'Removing...' : 'Remove'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      <Modal isOpen={isOpen} onClose={onClose} title="User details" size="large">
+        <div className="space-y-6">
+          {/* Avatar + name */}
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 rounded-full overflow-hidden flex-shrink-0 shadow-sm">
+              {user.avatar
+                ? <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" />
+                : user.uid ? customImageGenerator(user.uid)
+                : <span className="w-full h-full flex items-center justify-center bg-muted text-xl font-bold">
+                    {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
+                  </span>
+              }
+            </div>
+            <div>
+              <div className="flex items-center gap-2 mb-0.5">
+                <h3 className="text-lg font-semibold text-foreground">{user.name}</h3>
+                <Badge variant={roleVariant(user.role)}>{user.role}</Badge>
               </div>
-
-              <h3 className="text-xl font-bold text-gray-900 text-center mb-2">
-                Remove User
-              </h3>
-
-              <p className="text-gray-600 text-center mb-6">
-                Are you sure you want to remove <strong>{user.name}</strong> from this project?
-                This action cannot be undone and they will lose access immediately.
-              </p>
-
-              <div className="flex space-x-3">
-                <button
-                  onClick={() => setShowConfirmModal(false)}
-                  disabled={isRemoving}
-                  className="flex-1 px-4 py-3 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors disabled:opacity-50"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleRemoveUser}
-                  disabled={isRemoving}
-                  className={`flex-1 px-4 py-3 text-sm font-medium text-white rounded-lg transition-colors ${isRemoving
-                    ? 'bg-red-400 cursor-not-allowed'
-                    : 'bg-red-600 hover:bg-red-700'
-                    }`}
-                >
-                  {isRemoving ? 'Removing...' : 'Yes, Remove'}
-                </button>
-              </div>
+              <p className="text-sm text-muted-foreground mb-1.5">@{user.username}</p>
+              <Badge variant={user.status === 'Active' ? 'default' : 'secondary'}>{user.status}</Badge>
             </div>
           </div>
-        )}
-        <div className="bg-white rounded-2xl shadow-2xl w-full max-w-3xl overflow-hidden flex flex-col max-h-[90vh]">
-          {/* Header */}
-          <div className="flex justify-between items-center p-6 border-b border-gray-100">
-            <div className="flex items-center space-x-3">
-              <h2 className="text-2xl font-bold text-gray-900">User Details</h2>
-              <span className={`px-2 py-1 rounded-full text-xs font-medium ${getRoleColor(user.role)}`}>
-                {user.role}
-              </span>
+
+          {/* Account info */}
+          <div className="bg-muted/40 rounded-lg p-4">
+            <p className="text-sm font-medium text-foreground mb-3">Account information</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <InfoItem icon={Mail} label="Email" value={user.email} />
+              <InfoItem icon={Calendar} label={user.status !== 'Pending' ? 'Member since' : 'Invited at'} value={formatDate(user.joinedDate)} />
+              {user.invitedBy && <InfoItem icon={User} label="Invited by" value={user.invitedBy} />}
+              {user.lastActive && <InfoItem icon={Clock} label="Last activity" value={formatDate(user.lastActive)} />}
             </div>
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-gray-600 transition-colors p-1 rounded-lg hover:bg-gray-100"
-            >
-              <X className="w-6 h-6" />
-            </button>
           </div>
 
-          {/* Body */}
-          <div className="p-6 space-y-8 overflow-y-auto flex-1">
-            {/* Top section: Avatar + Name */}
-            <div className="flex items-center space-x-6">
-              <div className="relative">
-                <div className="w-24 h-24 rounded-full flex items-center justify-center overflow-hidden shadow-lg"
-                >
-                  {user.avatar ? (
-                    <img
-                      src={user.avatar}
-                      alt={user.name}
-                      className="w-full h-full object-cover"
+          {/* Role management */}
+          {user.role !== 'Owner' && user.type !== 'invitation' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Shield size={14} className="text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Role management</p>
+              </div>
+              <Select value={currentRole} onValueChange={handleRoleChange}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin — full access</SelectItem>
+                  <SelectItem value="contributor">Contributor — can edit and create</SelectItem>
+                  <SelectItem value="observer">Observer — can review</SelectItem>
+                </SelectContent>
+              </Select>
+              {isEdited && !saveSuccess && (
+                <p className="text-xs text-amber-600">Role will change from {user.role} to {currentRole}</p>
+              )}
+              {saveSuccess && (
+                <div className="flex items-center gap-1 text-xs text-primary">
+                  <CheckCircle size={12} /> Role updated successfully
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Extra permissions */}
+          {canEditExtraPermissions && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <Key size={14} className="text-muted-foreground" />
+                <p className="text-sm font-medium text-foreground">Special permissions</p>
+              </div>
+              <p className="text-xs text-muted-foreground">Grant extra capabilities beyond the standard role. Only visible to super admins.</p>
+              <div className="space-y-2.5">
+                {ALL_PERMISSIONS.map(({ key, label }) => (
+                  <div key={key} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`perm-${key}`}
+                      checked={selectedPermissions.includes(key)}
+                      onCheckedChange={() => handlePermissionToggle(key)}
                     />
-                  ) : user.uid ? customImageGenerator(user.uid)
-                    : (
-                      <span className="text-2xl font-bold text-white">
-                        {user.name.split(' ').map(n => n[0]).join('').toUpperCase()}
-                      </span>
-                    )}
-                </div>
-                {/* <span
-                  className={`absolute -bottom-1 -right-1 w-6 h-6 rounded-full border-4 border-white shadow-lg flex items-center justify-center ${user.status === 'Active' ? 'bg-green-500' : 'bg-gray-400'
-                    }`}
-                >
-                  <div className="w-2 h-2 rounded-full bg-white opacity-90"></div>
-                </span> */}
-              </div>
-              <div className="flex-1">
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">{user.name}</h3>
-                <p className="text-lg text-gray-500 mb-2">@{user.username}</p>
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${user.status === 'Active'
-                  ? 'text-green-800 bg-green-100'
-                  : 'text-gray-800 bg-gray-100'
-                  }`}>
-                  {user.status}
-                </span>
-              </div>
-            </div>
-
-            {/* Info Grid */}
-            <div className="bg-gray-50 rounded-xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Account Information</h4>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <InfoItem icon={Mail} label="Email Address" value={user.email} />
-                <InfoItem icon={Calendar} label={user && user.status !== "Pending" ? "Member Since" : "Invited At"} value={formatDate(user.joinedDate)} />
-                {user.invitedBy && <InfoItem icon={User} label="Invited By" value={user.invitedBy} />}
-                {user.lastActive && <InfoItem icon={Clock} label="Last Activity" value={formatDate(user.lastActive)} />}
-              </div>
-            </div>
-
-            {/* Role Management Section */}
-            {user.role !== 'Owner' && user.type !== 'invitation' ? (<div className="bg-blue-50 rounded-xl p-6">
-              <h4 className="text-lg font-semibold text-gray-900 mb-4">Role Management</h4>
-              <div className="flex items-start gap-4">
-                <Shield className="w-6 h-6 text-blue-600 mt-1 flex-shrink-0" />
-                <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    Project Role
-                  </label>
-                  <select
-                    value={currentRole}
-                    onChange={handleRoleChange}
-                    className="block w-full border border-gray-300 rounded-lg px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white shadow-sm"
-                  >
-                    <option value="admin">Admin - Full access and management</option>
-                    <option value="contributor">Contributor - Can edit and create</option>
-                    <option value="observer">Observer - Can review the project</option>
-                  </select>
-
-                  {isEdited && !saveSuccess && (
-                    <p className="mt-2 text-sm text-amber-600 font-medium">
-                      Role will be changed from {user.role} to {currentRole}
-                    </p>
-                  )}
-
-                  {saveSuccess && (
-                    <div className="mt-2 flex items-center text-sm text-green-600 font-medium">
-                      <CheckCircle className="w-4 h-4 mr-1" />
-                      Role updated successfully!
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>) : null}
-
-            {canEditExtraPermissions && (
-              <div className="bg-green-50 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-1">Special Permissions</h4>
-                <p className="text-sm text-gray-500 mb-4">
-                  Grant additional capabilities beyond the standard role. Only visible to super admins.
-                </p>
-                <div className="flex items-start gap-4">
-                  <Key className="w-6 h-6 text-green-600 mt-1 flex-shrink-0" />
-                  <div className="flex-1 space-y-3">
-                    {ALL_PERMISSIONS.map(({ key, label }) => (
-                      <label key={key} className="flex items-center gap-3 cursor-pointer group">
-                        <input
-                          type="checkbox"
-                          checked={selectedPermissions.includes(key)}
-                          onChange={() => handlePermissionToggle(key)}
-                          className="w-4 h-4 rounded border-gray-300 text-green-600 focus:ring-green-500 cursor-pointer"
-                        />
-                        <span className="text-sm text-gray-700 group-hover:text-gray-900">{label}</span>
-                      </label>
-                    ))}
-                    <div className="pt-2">
-                      {permissionsSaveSuccess ? (
-                        <div className="flex items-center text-sm text-green-600 font-medium">
-                          <CheckCircle className="w-4 h-4 mr-1" />
-                          Permissions updated!
-                        </div>
-                      ) : (
-                        <button
-                          onClick={handleSavePermissions}
-                          disabled={isSavingPermissions}
-                          className={`inline-flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all ${
-                            isSavingPermissions
-                              ? 'bg-green-300 text-green-700 cursor-not-allowed'
-                              : 'bg-green-600 hover:bg-green-700 text-white shadow-sm'
-                          }`}
-                        >
-                          <Save className="w-4 h-4 mr-2" />
-                          {isSavingPermissions ? 'Saving...' : 'Update Permissions'}
-                        </button>
-                      )}
-                    </div>
+                    <Label htmlFor={`perm-${key}`} className="text-sm font-normal cursor-pointer">{label}</Label>
                   </div>
-                </div>
+                ))}
               </div>
-            )}
-
-            {user.role !== 'Owner' && user.type === 'invitation' && (
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-gray-900 mb-4">Pending Invitation</h4>
-                <div className="flex items-start gap-4">
-                  <Clock className="w-6 h-6 text-amber-600 mt-1 flex-shrink-0" />
-                  <div className="flex-1">
-                    <div className="mb-4">
-                      <p className="text-sm text-gray-700 mb-2">
-                        <span className="font-medium">{user.name || user.email}</span> has not yet accepted the project invitation.
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Invited {user.invitedAt ? new Date(user.invitedAt).toLocaleDateString() : 'recently'} • Role: {user.role}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {isRemoving ? <button
-                        disabled={isRemoving}
-                        onClick={confirmRemove}
-                        className={`inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 hover:border-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors`}
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        {isRemoving ? 'Removing user' : ' Discard Invitation'}
-                      </button> : <button
-                        disabled={isRemoving}
-                        onClick={confirmRemove}
-                        className={`inline-flex items-center px-4 py-2 text-sm font-medium text-red-700 bg-red-50 border border-red-200 rounded-lg hover:bg-red-100 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors`}
-                      >
-                        <X className="w-4 h-4 mr-2" />
-                        {isRemoving ? 'Removing user' : ' Discard Invitation'}
-                      </button>}
-                    </div>
-                  </div>
+              {permissionsSaveSuccess ? (
+                <div className="flex items-center gap-1 text-xs text-primary">
+                  <CheckCircle size={12} /> Permissions updated
                 </div>
+              ) : (
+                <Button size="sm" onClick={handleSavePermissions} disabled={isSavingPermissions}>
+                  <Save size={12} className="mr-1.5" />
+                  {isSavingPermissions ? 'Saving...' : 'Update permissions'}
+                </Button>
+              )}
+            </div>
+          )}
+
+          {/* Pending invitation */}
+          {user.role !== 'Owner' && user.type === 'invitation' && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:bg-amber-950/20 dark:border-amber-800 p-4 space-y-3">
+              <div className="flex items-center gap-2">
+                <Clock size={14} className="text-amber-600" />
+                <p className="text-sm font-medium text-foreground">Pending invitation</p>
               </div>
-            )}
-
-
-          </div>
-
-          {/* Footer */}
-          {user.role !== 'Owner' && user.type !== 'invitation' && <div className="flex justify-between items-center p-6 border-t border-gray-100 bg-gray-50">
-            <button
-              onClick={confirmRemove}
-              disabled={isRemoving}
-              className={`flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-all ${isRemoving
-                ? 'bg-red-300 text-red-700 cursor-not-allowed'
-                : 'bg-red-600 hover:bg-red-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-                }`}
-            >
-              <Trash2 className="w-4 h-4 mr-2" />
-              {isRemoving ? 'Removing...' : 'Remove User'}
-            </button>
-
-            {isEdited && !saveSuccess && (
-              <button
-                onClick={handleSave}
-                disabled={isSaving}
-                className={`flex items-center px-6 py-3 rounded-lg text-sm font-medium transition-all ${isSaving
-                  ? 'bg-blue-300 text-blue-700 cursor-not-allowed'
-                  : 'bg-blue-600 hover:bg-blue-700 text-white shadow-lg hover:shadow-xl transform hover:-translate-y-0.5'
-                  }`}
+              <p className="text-sm text-muted-foreground">
+                <strong>{user.name || user.email}</strong> has not yet accepted the project invitation.
+              </p>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowConfirmModal(true)}
+                disabled={isRemoving}
+                className="text-destructive border-destructive/40 hover:bg-destructive/10"
               >
-                <Save className="w-4 h-4 mr-2" />
-                {isSaving ? 'Saving...' : 'Save Changes'}
-              </button>
-            )}
-          </div>}
+                <X size={12} className="mr-1.5" />
+                {isRemoving ? 'Removing...' : 'Discard invitation'}
+              </Button>
+            </div>
+          )}
+
+          {/* Footer actions */}
+          {user.role !== 'Owner' && user.type !== 'invitation' && (
+            <div className="flex justify-between items-center pt-2">
+              <Button
+                variant="destructive"
+                size="sm"
+                onClick={() => setShowConfirmModal(true)}
+                disabled={isRemoving}
+              >
+                <Trash2 size={12} className="mr-1.5" />
+                {isRemoving ? 'Removing...' : 'Remove user'}
+              </Button>
+              {isEdited && !saveSuccess && (
+                <Button size="sm" onClick={handleSave} disabled={isSaving}>
+                  <Save size={12} className="mr-1.5" />
+                  {isSaving ? 'Saving...' : 'Save changes'}
+                </Button>
+              )}
+            </div>
+          )}
         </div>
-      </div>
+      </Modal>
     </>
-  );
-};
+  )
+}
 
 const InfoItem = ({ icon: Icon, label, value }) => (
   <div className="flex items-start gap-3">
-    <div className="p-2 bg-white rounded-lg shadow-sm">
-      <Icon className="w-5 h-5 text-gray-600" />
+    <div className="p-1.5 bg-background rounded-md border border-border">
+      <Icon size={14} className="text-muted-foreground" />
     </div>
     <div className="flex-1 min-w-0">
-      <p className="text-sm font-medium text-gray-500 mb-1">{label}</p>
-      <p className="text-base text-gray-900 font-medium break-words">{value}</p>
+      <p className="text-xs text-muted-foreground mb-0.5">{label}</p>
+      <p className="text-sm text-foreground font-medium break-words">{value}</p>
     </div>
   </div>
-);
+)
 
-export default UserDetailsModal;
+export default UserDetailsModal

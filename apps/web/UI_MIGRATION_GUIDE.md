@@ -169,7 +169,24 @@ When designing a card for a grid/list view:
 
 ---
 
-## 12. Email-style nested layout (list + detail)
+## 12. Tables on mobile — switch to cards
+
+Data tables don't fit on phones. Render the same data twice with responsive classes:
+
+- Mobile (`< md`): vertical stack of tappable cards (`md:hidden`), each card opens the row's detail modal
+- Desktop (`md+`): full table (`hidden md:block`)
+
+Card layout for a table row:
+- Left: avatar / icon (`flex-shrink-0`)
+- Middle (flex-1, `min-w-0`): primary title + secondary line (email, etc.), `truncate` long values
+- Right: status `Badge` (`flex-shrink-0`)
+- Bottom: wrapped meta row (`flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground`) with role / date / counts
+
+Don't repeat sort controls inside mobile cards — sort is a desktop affordance. If sort matters on mobile, surface it once in the filter bar via `Select`.
+
+---
+
+## 13. Email-style nested layout (list + detail)
 
 For pages like Sites where you select a row to view full details:
 
@@ -184,7 +201,7 @@ For grid-style pages (Species), skip the nested panel — just a filter bar abov
 
 ---
 
-## 13. Cleanup discipline
+## 14. Cleanup discipline
 
 - Delete orphaned files immediately when no longer referenced (`LoadingSpinner.tsx`, `MobileDownloadPage.tsx`, etc.) — they bloat the codebase
 - Remove unused imports
@@ -193,7 +210,7 @@ For grid-style pages (Species), skip the nested panel — just a filter bar abov
 
 ---
 
-## 14. Commit hygiene
+## 15. Commit hygiene
 
 - Migrate one page/component cluster per commit
 - Commit message format: `feat: <area> migrated to shadcn, <other concerns>`
@@ -202,7 +219,7 @@ For grid-style pages (Species), skip the nested panel — just a filter bar abov
 
 ---
 
-## 15. Things NOT to do
+## 16. Things NOT to do
 
 - Don't add gradient brand backgrounds for headers (we removed the green-800 banner — it doesn't fit the clean shadcn look)
 - Don't add framer-motion entry animations to small UI bits (toasts, dropdowns, tooltips) — only use it for entry animation on list items / modals when it adds clarity
@@ -213,7 +230,7 @@ For grid-style pages (Species), skip the nested panel — just a filter bar abov
 
 ---
 
-## 16. Quick AI-agent checklist (paste into a task prompt)
+## 17. Quick AI-agent checklist (paste into a task prompt)
 
 ```
 Migrate <PAGE> to follow apps/web/UI_MIGRATION_GUIDE.md. Specifically:

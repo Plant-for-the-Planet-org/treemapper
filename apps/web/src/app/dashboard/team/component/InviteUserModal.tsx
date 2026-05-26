@@ -1,196 +1,132 @@
-import React, { useState } from 'react';
-import { X, CheckCircle, Mail, UserPlus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { createProjectInvite } from '@shared-core/fetchApi/api.fetch';
-import useProjectStore from '@shared-core/store/useProjectStore';
-import { toast } from 'react-toastify';
+import React, { useState } from 'react'
+import { CheckCircle, Mail, UserPlus } from 'lucide-react'
+import { createProjectInvite } from '@shared-core/fetchApi/api.fetch'
+import useProjectStore from '@shared-core/store/useProjectStore'
+import { toast } from 'react-toastify'
+import { Modal } from '@/app/dashboard/species/components/Modal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 
-const InviteUserModal = ({ isOpen, onClose, token , handleRefresh}) => {
-  const [email, setEmail] = useState('');
-  const [message, setMessage] = useState('');
-  const [role, setRole] = useState('contributor');
-  const [errors, setErrors] = useState({});
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSuccess, setIsSuccess] = useState(false);
+const InviteUserModal = ({ isOpen, onClose, token, handleRefresh }) => {
+  const [email, setEmail] = useState('')
+  const [message, setMessage] = useState('')
+  const [role, setRole] = useState('contributor')
+  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isSuccess, setIsSuccess] = useState(false)
 
-  const selectedProject = useProjectStore((state) => state.selectedProject);
+  const selectedProject = useProjectStore((state) => state.selectedProject)
 
   const validateForm = () => {
-    const newErrors = {};
+    const newErrors: Record<string, string> = {}
+    if (!email) newErrors.email = 'Email is required'
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email address is invalid'
+    if (message && message.length > 300) newErrors.message = 'Message must be 300 characters or less'
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
-    // Email validation
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email address is invalid';
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!validateForm()) return
+    setIsSubmitting(true)
+    const response = await createProjectInvite(token, selectedProject?.uid || '', { email, message, role })
+    setIsSubmitting(false)
+    if (response.statusCode === 200 || response.statusCode === 201) {
+      setIsSuccess(true)
+      setTimeout(() => {
+        setIsSuccess(false)
+        setEmail('')
+        setMessage('')
+        setRole('contributor')
+        onClose()
+        handleRefresh()
+      }, 2000)
+    } else {
+      toast.error(String(response.message))
     }
-
-    // Message validation (optional but with character limit)
-    if (message && message.length > 300) {
-      newErrors.message = 'Message must be 300 characters or less';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (validateForm()) {
-      setIsSubmitting(true);
-      const response = await createProjectInvite(token, selectedProject?.uid || '', {
-        email,
-        message,
-        role
-      })
-      setIsSubmitting(false);
-      if (response.statusCode === 200 || response.statusCode === 201) {
-        setIsSuccess(true);
-        setTimeout(() => {
-          setIsSuccess(false);
-          setEmail('');
-          setMessage('');
-          setRole('contributor');
-          onClose();
-          handleRefresh()
-        }, 2000);
-      } else {
-        toast.error(String(response.message));
-      }
-    }
-
-  };
-
-  if (!isOpen) return null;
+  }
 
   return (
-    <div className="fixed inset-0 bg-black/10 bg-opacity-10  backdrop-blur-sm  flex items-center justify-center z-50" style={{zIndex:1000}}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0.95 }}
-        className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 overflow-hidden"
-      >
-        {isSuccess ? (
-          <motion.div
-            className="p-6 flex flex-col items-center justify-center"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <motion.div
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ type: "spring", stiffness: 300, damping: 15 }}
-            >
-              <CheckCircle className="w-16 h-16 text-green-800 mb-4" />
-            </motion.div>
-            <h3 className="text-xl font-semibold text-gray-800 mb-2">Invitation Sent!</h3>
-            <p className="text-gray-600 text-center">
-              {email} has been invited to join the project as a {role}.
-            </p>
-          </motion.div>
-        ) : (
-          <>
-            <div className="flex justify-between items-center border-b border-gray-200 p-4">
-              <div className="flex items-center">
-                <UserPlus className="w-5 h-5 text-green-800 mr-2" />
-                <h3 className="text-lg font-semibold text-gray-800">Invite member to the Project</h3>
-              </div>
-              <button
-                onClick={onClose}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-5 h-5" />
-              </button>
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      title={
+        <span className="flex items-center gap-2">
+          <UserPlus size={16} className="text-primary" />
+          Invite member to the project
+        </span>
+      }
+      size="small"
+    >
+      {isSuccess ? (
+        <div className="flex flex-col items-center justify-center py-6 gap-3">
+          <CheckCircle className="w-14 h-14 text-primary" />
+          <h3 className="text-base font-semibold text-foreground">Invitation sent!</h3>
+          <p className="text-sm text-muted-foreground text-center">
+            {email} has been invited as a {role}.
+          </p>
+        </div>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-5">
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-email">Email address</Label>
+            <div className="relative">
+              <Mail size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+              <Input
+                id="invite-email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="colleague@domain.org"
+                className={`pl-9 ${errors.email ? 'border-destructive' : ''}`}
+              />
             </div>
+            {errors.email && <p className="text-xs text-destructive">{errors.email}</p>}
+          </div>
 
-            <form onSubmit={handleSubmit} className="p-4">
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Email address
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                  </div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className={`block w-full pl-10 pr-3 py-2 border ${errors.email ? 'border-red-500' : 'border-gray-300'
-                      } rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500`}
-                    placeholder="colleague@domain.org"
-                  />
-                </div>
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
-              </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-role">Role</Label>
+            <Select value={role} onValueChange={setRole}>
+              <SelectTrigger id="invite-role">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="contributor">Contributor</SelectItem>
+                <SelectItem value="observer">Observer</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Role
-                </label>
-                <select
-                  value={role}
-                  onChange={(e) => setRole(e.target.value)}
-                  className="block w-full py-2 px-3 border border-gray-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500"
-                >
-                  <option value="admin">Admin</option>
-                  <option value="contributor">Contributor</option>
-                  <option value="observer">Observer</option>
-                </select>
-              </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="invite-message">Message (optional)</Label>
+            <Textarea
+              id="invite-message"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              rows={4}
+              placeholder="Add a personal message..."
+              className={errors.message ? 'border-destructive' : ''}
+            />
+            <p className="text-xs text-muted-foreground text-right">
+              {errors.message ? <span className="text-destructive">{errors.message}</span> : `${message.length}/300`}
+            </p>
+          </div>
 
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Message (optional)
-                </label>
-                <textarea
-                  value={message}
-                  onChange={(e) => setMessage(e.target.value)}
-                  rows="4"
-                  className={`block w-full px-3 py-2 border ${errors.message ? 'border-red-500' : 'border-gray-300'
-                    } rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500`}
-                  placeholder="Add a personal message..."
-                ></textarea>
-                <div className="flex justify-between mt-1">
-                  {errors.message ? (
-                    <p className="text-sm text-red-600">{errors.message}</p>
-                  ) : (
-                    <p className="text-sm text-gray-500">
-                      {message.length}/300 characters
-                    </p>
-                  )}
-                </div>
-              </div>
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="outline" onClick={onClose}>Cancel</Button>
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Sending...' : 'Send invitation'}
+            </Button>
+          </div>
+        </form>
+      )}
+    </Modal>
+  )
+}
 
-              <div className="flex justify-end gap-3 mt-5">
-                <button
-                  type="button"
-                  onClick={onClose}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className={`px-4 py-2 rounded-md text-sm font-medium text-white 
-                    ${isSubmitting
-                      ? 'bg-green-800 cursor-not-allowed'
-                      : 'bg-green-800 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-600'
-                    } flex items-center`}
-                >
-                  {isSubmitting ? 'Sending...' : 'Send invitation'}
-                </button>
-              </div>
-            </form>
-          </>
-        )}
-      </motion.div>
-    </div>
-  );
-};
 export default InviteUserModal

@@ -1,32 +1,23 @@
 'use client'
 
-import React, { useEffect, useState } from 'react';
-import {
-    Search,
-    Download,
-    MoreVertical,
-    UserPlus,
-    Eye,
-    UserX,
-    ChevronUp,
-    ChevronDown,
-    Filter,
-    Link,
-    Plus,
-    Upload
-} from 'lucide-react';
-import { AnimatePresence } from 'framer-motion';
-import InviteUserModal from './component/InviteUserModal';
-import UserDetailsModal from './component/UserDetailsModal';
-import { toast } from 'react-toastify';
-import { useToken } from '@/context/useTokenContext';
-import { getTeamMemebers } from '@shared-core/fetchApi/api.fetch';
-import useProjectStore from '@shared-core/store/useProjectStore';
-import { useUserStore } from '@shared-core/store/useUserStore';
-import Spinner from '@/component/Spinner';
+import React, { useEffect, useState } from 'react'
+import { Search, Download, Eye, ChevronUp, ChevronDown, Plus, Upload } from 'lucide-react'
+import InviteUserModal from './component/InviteUserModal'
+import UserDetailsModal from './component/UserDetailsModal'
+import { toast } from 'react-toastify'
+import { useToken } from '@/context/useTokenContext'
+import { getTeamMemebers } from '@shared-core/fetchApi/api.fetch'
+import useProjectStore from '@shared-core/store/useProjectStore'
+import { useUserStore } from '@shared-core/store/useUserStore'
 import avatar from 'animal-avatar-generator'
-import BulkInvitationModal from './component/BulkInviteModal';
-import CustomButton from '@/component/CutsomButtom';
+import BulkInvitationModal from './component/BulkInviteModal'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
+import { Skeleton } from '@/components/ui/skeleton'
+import { useTopBarActions } from '@/component/header/TopBarActions'
+import { formatDistanceToNow, parseISO } from 'date-fns'
+import { format } from 'date-fns'
 
 
 function transformData(data) {
@@ -43,64 +34,89 @@ function transformData(data) {
         type: 'member',
         avatar: member.user.image,
         extraPermissions: member.extraPermissions || [],
-    }));
+    }))
 
-    const invitations = data.invitations.map((invite, index) => ({
-        uid: invite.uid, // Generate unique ID offset from members
+    const invitations = data.invitations.map((invite) => ({
+        uid: invite.uid,
         name: invite.email.split('@')[0],
         username: invite.email.split('@')[0],
         email: invite.email,
         role: capitalize(invite.role),
         lastActive: null,
         joinedDate: invite.createdAt,
-        status: capitalize(invite.status), // e.g., Pending, Accepted
+        status: capitalize(invite.status),
         invitedBy: invite.invitedBy?.displayName || invite.invitedBy?.name || 'Unknown',
         type: 'invitation',
         token: invite.token,
-    }));
+    }))
 
-    return [...members, ...invitations];
+    return [...members, ...invitations]
 }
 
 function capitalize(str) {
-    return str.charAt(0).toUpperCase() + str.slice(1);
+    return str.charAt(0).toUpperCase() + str.slice(1)
 }
 
 const customImageGenerator = (id) => {
     const svg = avatar(id, { size: 40 })
-    return <div
-        className="h-10 w-10 rounded-full overflow-hidden"
-        dangerouslySetInnerHTML={{ __html: svg }}
-    />
+    return (
+        <div
+            className="h-10 w-10 rounded-full overflow-hidden"
+            dangerouslySetInnerHTML={{ __html: svg }}
+        />
+    )
+}
+
+const statusVariant = (status): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    switch (status) {
+        case 'Active': return 'default'
+        case 'Suspended': return 'destructive'
+        default: return 'secondary'
+    }
 }
 
 const TeamsDashboard = () => {
-    // Sample data - replace with your actual data fetching logic
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedUser, setSelectedUser] = useState(null);
-    const [isModalUserOpen, setIsModalUserOpen] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false)
+    const [selectedUser, setSelectedUser] = useState(null)
+    const [isModalUserOpen, setIsModalUserOpen] = useState(false)
     const { accessToken } = useToken()
-    const [bulkInviteModal, setBulkInviteModal] = useState(false);
-
-    const [users, setUsers] = useState<any>([]);
+    const [bulkInviteModal, setBulkInviteModal] = useState(false)
+    const [users, setUsers] = useState<any>([])
     const [loading, setLoading] = useState(false)
-    // State for search and sorting
-    const [searchTerm, setSearchTerm] = useState('');
-    const [sortConfig, setSortConfig] = useState({
-        key: 'joinedDate',
-        direction: 'desc'
-    });
+    const [searchTerm, setSearchTerm] = useState('')
+    const [sortConfig, setSortConfig] = useState({ key: 'joinedDate', direction: 'desc' })
 
-    const SelectedProject = useProjectStore((state) => state.selectedProject);
-    const userRole = SelectedProject?.userRole;
-    const canManageTeam = ['owner', 'admin'].includes(userRole || '');
-    const currentUser = useUserStore((state) => state.user);
-    const isImpersonating = currentUser?.impersonated === true;
+    const SelectedProject = useProjectStore((state) => state.selectedProject)
+    const userRole = SelectedProject?.userRole
+    const canManageTeam = ['owner', 'admin'].includes(userRole || '')
+    const currentUser = useUserStore((state) => state.user)
+    const isImpersonating = currentUser?.impersonated === true
+
+    useTopBarActions([
+        {
+            label: 'Bulk Invite',
+            onClick: () => {
+                if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return }
+                setBulkInviteModal(true)
+            },
+            icon: Upload,
+            variant: 'outline',
+            hideLabelOnMobile: true,
+        },
+        {
+            label: 'Invite User',
+            onClick: () => {
+                if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return }
+                setIsModalOpen(true)
+            },
+            icon: Plus,
+            variant: 'primary',
+            hideLabelOnMobile: true,
+        },
+    ], [canManageTeam])
 
     useEffect(() => {
-        if (SelectedProject) {
-            fetchTeamMembers();
-        }
+        if (SelectedProject) fetchTeamMembers()
     }, [SelectedProject])
 
     const fetchTeamMembers = async () => {
@@ -108,355 +124,227 @@ const TeamsDashboard = () => {
         try {
             const response = await getTeamMemebers(accessToken || '', SelectedProject?.uid)
             if (response && response.statusCode === 200) {
-                const transformedData = transformData(response.data);
-                setUsers(transformedData)
+                setUsers(transformData(response.data))
             }
-            setLoading(false)
-        } catch (error) {
+        } finally {
             setLoading(false)
         }
     }
 
-
-    // Handle sorting
     const requestSort = (key) => {
-        let direction = 'asc';
-        if (sortConfig.key === key && sortConfig.direction === 'asc') {
-            direction = 'desc';
-        }
-        setSortConfig({ key, direction });
-    };
+        setSortConfig(prev => ({
+            key,
+            direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc',
+        }))
+    }
 
-    // Get sorted and filtered users
     const getSortedAndFilteredUsers = () => {
-        const filteredUsers = users.filter(user =>
-            user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.email.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-
-        return [...filteredUsers].sort((a, b) => {
-            if (a[sortConfig.key] < b[sortConfig.key]) {
-                return sortConfig.direction === 'asc' ? -1 : 1;
-            }
-            if (a[sortConfig.key] > b[sortConfig.key]) {
-                return sortConfig.direction === 'asc' ? 1 : -1;
-            }
-            return 0;
-        });
-    };
-
-    // Format date
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        const date = new Date(dateString);
-        return new Intl.DateTimeFormat('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        }).format(date);
-    };
-
-    // Format time since last active
-    const getTimeSince = (dateString) => {
-        if (!dateString) return 'Never';
-
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffTime = Math.abs(now - date);
-        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-        if (diffDays === 0) {
-            return 'Today';
-        } else if (diffDays === 1) {
-            return 'Yesterday';
-        } else if (diffDays < 7) {
-            return `${diffDays} days ago`;
-        } else if (diffDays < 30) {
-            const weeks = Math.floor(diffDays / 7);
-            return `${weeks} ${weeks === 1 ? 'week' : 'weeks'} ago`;
-        } else {
-            return formatDate(dateString);
-        }
-    };
-
-    // Get status badge color
-    const getStatusColor = (status) => {
-        switch (status) {
-            case 'Active':
-                return 'bg-green-700 text-white';
-            case 'Suspended':
-                return 'bg-red-100 text-red-800';
-            case 'Pending Invitation':
-                return 'bg-yellow-100 text-yellow-800';
-            default:
-                return 'bg-gray-100 text-gray-800';
-        }
-    };
-
-
-    const downloadJsonAsCsv = (jsonData, filename, includeHeaders = true) => {
-        // Return early if no data
-        if (!jsonData || !jsonData.length) {
-            console.error('No data provided for CSV download');
-            return;
-        }
-        const finalList = [...jsonData]
-        finalList.map(el => {
-            delete el.uid;
-            return el
+        const filtered = users.filter(u =>
+            u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            u.email.toLowerCase().includes(searchTerm.toLowerCase())
+        )
+        return [...filtered].sort((a, b) => {
+            if (a[sortConfig.key] < b[sortConfig.key]) return sortConfig.direction === 'asc' ? -1 : 1
+            if (a[sortConfig.key] > b[sortConfig.key]) return sortConfig.direction === 'asc' ? 1 : -1
+            return 0
         })
-        try {
+    }
 
-            // Get headers from the first object in the array
-            const headers = Object.keys(finalList[0]);
+    const formatDate = (dateString) => {
+        if (!dateString) return 'N/A'
+        try { return format(parseISO(dateString), 'MMM d, yyyy') } catch { return 'N/A' }
+    }
 
-            // Create CSV rows from the JSON data
-            let csvRows = [];
+    const getTimeSince = (dateString) => {
+        if (!dateString) return 'Never'
+        try { return formatDistanceToNow(parseISO(dateString), { addSuffix: true }) } catch { return 'N/A' }
+    }
 
-            // Add headers row if requested
-            if (includeHeaders) {
-                csvRows.push(headers.join(','));
-            }
-            // Add data rows
-            finalList.forEach(item => {
-                const values = headers.map(header => {
-                    // Handle special cases (commas, quotes, undefined, null)
-                    const cellValue = item[header] === null || item[header] === undefined ? '' : item[header];
-                    const escapedValue = String(cellValue)
-                        .replace(/"/g, '""') // Escape double quotes with double quotes
-                        .replace(/\n/g, ' '); // Replace newlines with spaces
+    const downloadJsonAsCsv = (jsonData, filename) => {
+        if (!jsonData || !jsonData.length) return
+        const finalList = jsonData.map(({ uid, ...rest }) => rest)
+        const headers = Object.keys(finalList[0])
+        const csvRows = [
+            headers.join(','),
+            ...finalList.map(item =>
+                headers.map(h => {
+                    const v = item[h] === null || item[h] === undefined ? '' : item[h]
+                    const s = String(v).replace(/"/g, '""').replace(/\n/g, ' ')
+                    return /[,"\n]/.test(s) ? `"${s}"` : s
+                }).join(',')
+            ),
+        ]
+        const blob = new Blob([csvRows.join('\n')], { type: 'text/csv;charset=utf-8;' })
+        const link = document.createElement('a')
+        link.href = URL.createObjectURL(blob)
+        link.setAttribute('download', `${filename}.csv`)
+        link.style.visibility = 'hidden'
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(link.href)
+    }
 
-                    // Wrap with quotes if contains comma, quote or newline
-                    return /[,"\n]/.test(escapedValue) ? `"${escapedValue}"` : escapedValue;
-                });
+    const sortedUsers = getSortedAndFilteredUsers()
 
-                csvRows.push(values.join(','));
-            });
-
-            // Combine rows into a CSV string
-            const csvString = csvRows.join('\n');
-
-            // Create a Blob containing the CSV data
-            const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
-
-            // Create a link element to trigger the download
-            const link = document.createElement('a');
-
-            // Create a URL for the blob
-            const url = URL.createObjectURL(blob);
-
-            // Set link properties
-            link.setAttribute('href', url);
-            link.setAttribute('download', `${filename}.csv`);
-            link.style.visibility = 'hidden';
-
-            // Add link to the document, trigger click, and remove it
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            // Release the blob URL
-            URL.revokeObjectURL(url);
-        } catch (error) {
-            console.error('Error generating CSV download:', error);
-        }
-    };
-
-    // Handlers for button actions (placeholders)
-    const handleExportUsers = () => {
-        console.log('Exporting users...');
-        // Implement export logic
-        downloadJsonAsCsv(users, 'userList')
-
-    };
-
-    const handleInviteUser = () => {
-        console.log('Inviting user...');
-        // Implement invite logic
-        setIsModalOpen(true)
-    };
-
-    const handleViewUser = (userD) => {
-        setSelectedUser(userD);
-        setIsModalUserOpen(true);
-
-    };
-
-    const handleRemoveUser = (userId) => {
-        console.log(`Removing user with ID: ${userId}`);
-        // Implement remove user logic
-    };
-
-    // Get sorted users
-    const sortedUsers = getSortedAndFilteredUsers();
-
-    // Render sort indicator
-    const renderSortIndicator = (key) => {
-        if (sortConfig.key !== key) return null;
-        return sortConfig.direction === 'asc' ? <ChevronUp size={16} /> : <ChevronDown size={16} />;
-    };
+    const SortIcon = ({ col }) => {
+        if (sortConfig.key !== col) return null
+        return sortConfig.direction === 'asc' ? <ChevronUp size={12} /> : <ChevronDown size={12} />
+    }
 
     return (
-        <div className="bg-white">
-            <div className="flex flex-col mb-6 sm:flex-row sm:justify-between sm:items-top sm:space-y-0 sm:space-x-4 border-b border-gray-200 sticky top-0 pb-3 px-6 pt-3" >
-                <div className="flex items-center" style={{ flex: 1 }}>
-                    <div className="relative">
-                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                            <Search size={18} className="text-gray-400" />
-                        </div>
-                        <input
-                            type="text"
-                            placeholder="Search by name or email"
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="pl-10 pr-4 py-2 border border-gray-300 rounded-md focus:ring-indigo-500 focus:border-indigo-500 w-full sm:w-64"
-                        />
-                    </div>
-                    {users && users.length > 0 && <button
-                        onClick={handleExportUsers}
-                        className="cursor-pointer ml-4 flex items-center text-sm text-gray-600 hover:text-green-800"
-                    >
-                        Export all {users.length} users
-                        <Download size={16} className="ml-1" />
-                    </button>}
+        <div className="flex flex-col h-full">
+            {/* Filter bar */}
+            <div className="flex items-center gap-3 px-6 py-3 border-b border-border sticky top-0 bg-background z-10">
+                <div className="relative flex-1 max-w-xs">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    <Input
+                        type="text"
+                        placeholder="Search by name or email"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
+                        className="pl-9"
+                    />
                 </div>
-                <>
-                    <CustomButton variant="outline" onClick={() => { if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return; } setBulkInviteModal(true) }}>
-                        <Upload className="h-4 w-4 mr-2" />
-                        Bulk Invite
-                    </CustomButton>
-
-                    <CustomButton onClick={() => { if (!canManageTeam) { toast.error('You do not have permission to invite users.'); return; } handleInviteUser(); }}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Invite User
-                    </CustomButton>
-                </>
+                {users.length > 0 && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => downloadJsonAsCsv(users, 'userList')}
+                        className="text-muted-foreground"
+                    >
+                        <Download size={14} className="mr-1.5" />
+                        Export {users.length} users
+                    </Button>
+                )}
             </div>
-            <div className='p-6' style={{ flex: 1, display: 'flex', flexDirection: 'column', width: 'full', height: 'full' }}>
-                {loading ? <div className="flex justify-center items-center h-64"><Spinner /></div> : <div className="overflow-x-auto bg-white rounded-lg border border-gray-200">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead className="bg-gray-50">
-                            <tr>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    User
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <button
-                                        onClick={() => requestSort('role')}
-                                        className="flex items-center font-medium focus:outline-none"
-                                    >
-                                        Role
-                                        {renderSortIndicator('role')}
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <button
-                                        onClick={() => requestSort('lastActive')}
-                                        className="flex items-center font-medium focus:outline-none"
-                                    >
-                                        Last Active
-                                        {renderSortIndicator('lastActive')}
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <button
-                                        onClick={() => requestSort('joinedDate')}
-                                        className="flex items-center font-medium focus:outline-none"
-                                    >
-                                        Joined Date
-                                        {renderSortIndicator('joinedDate')}
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    <button
-                                        onClick={() => requestSort('status')}
-                                        className="flex items-center font-medium focus:outline-none"
-                                    >
-                                        Status
-                                        {renderSortIndicator('status')}
-                                    </button>
-                                </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Actions
-                                </th>
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
+
+            {/* List */}
+            <div className="p-4 md:p-6 flex-1 min-h-0 overflow-auto">
+                {loading ? (
+                    <div className="space-y-3">
+                        {[1, 2, 3, 4, 5].map(i => <Skeleton key={i} className="h-16 w-full rounded-lg" />)}
+                    </div>
+                ) : sortedUsers.length === 0 ? (
+                    <div className="text-center py-12 text-muted-foreground text-sm border border-border rounded-lg">
+                        No users found matching your search.
+                    </div>
+                ) : (
+                    <>
+                        {/* Mobile cards */}
+                        {/* TODO: review mobile card design — meta row content/order, tap target, status badge placement */}
+                        <div className="md:hidden space-y-2">
                             {sortedUsers.map((user) => (
-                                <tr key={user.uid} className="hover:bg-gray-50">
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <div className="flex items-center">
-                                            <div className="flex-shrink-0 h-10 w-10">
-                                                {user.avatar ? <img
-                                                    className="h-10 w-10 rounded-full"
-                                                    src={user.avatar}
-                                                    alt={user.name}
-                                                    referrerPolicy="no-referrer"
-                                                /> : customImageGenerator(user.uid)}
-                                            </div>
-                                            <div className="ml-4">
-                                                <div className="text-sm font-medium text-gray-900">{user.name}</div>
-                                                <div className="text-sm text-gray-500">
-                                                    {user.email}
+                                <button
+                                    key={user.uid}
+                                    onClick={() => { setSelectedUser(user); setIsModalUserOpen(true) }}
+                                    className="w-full text-left bg-background border border-border rounded-lg p-3 hover:bg-muted/40 transition-colors"
+                                >
+                                    <div className="flex items-start gap-3">
+                                        <div className="flex-shrink-0">
+                                            {user.avatar
+                                                ? <img className="h-10 w-10 rounded-full" src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                                                : customImageGenerator(user.uid)
+                                            }
+                                        </div>
+                                        <div className="flex-1 min-w-0 space-y-1">
+                                            <div className="flex items-start justify-between gap-2">
+                                                <div className="min-w-0">
+                                                    <div className="text-sm font-medium text-foreground truncate">{user.name}</div>
+                                                    <div className="text-xs text-muted-foreground truncate">{user.email}</div>
                                                 </div>
+                                                <Badge variant={statusVariant(user.status)} className="flex-shrink-0">{user.status}</Badge>
+                                            </div>
+                                            <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground pt-1">
+                                                <span className="text-foreground">{user.role}</span>
+                                                <span>{getTimeSince(user.lastActive)}</span>
+                                                {user.status !== 'Pending' && <span>Joined {formatDate(user.joinedDate)}</span>}
                                             </div>
                                         </div>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-900">{user.role}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500">{getTimeSince(user.lastActive)}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className="text-sm text-gray-500">{user.status === 'Pending' ? "------------" : formatDate(user.joinedDate)}</span>
-                                    </td>
-                                    <td className="px-6 py-4 whitespace-nowrap">
-                                        <span className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${getStatusColor(user.status)}`}>
-                                            {user.status}
-                                        </span>
-                                    </td>
-                                    <td className="whitespace-nowrap text-right text-sm font-medium" style={{ width: '120px' }}>
-                                        <div className="flex justify-center">
-                                            <button
-                                                onClick={() => handleViewUser(user)}
-                                                className="text-gray-600 hover:text-gray-900  cursor-pointer"
-                                            >
-                                                <Eye size={18} />
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
+                                    </div>
+                                </button>
                             ))}
-                        </tbody>
-                    </table>
-
-                    {sortedUsers.length === 0 && (
-                        <div className="text-center py-12">
-                            <p className="text-gray-500">No users found matching your search criteria.</p>
                         </div>
-                    )}
-                </div>}
-            </div>
-            <AnimatePresence>
-                <BulkInvitationModal
-                    isOpen={bulkInviteModal}
-                    onClose={() => setBulkInviteModal(false)}
-                />
-            </AnimatePresence>
-            <AnimatePresence>
-                <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers} />
-            </AnimatePresence>
-            <AnimatePresence>
-                <UserDetailsModal
-                    isOpen={isModalUserOpen}
-                    onClose={() => setIsModalUserOpen(false)}
-                    user={selectedUser}
-                    handleRefresh={fetchTeamMembers}
-                    isImpersonating={isImpersonating} />
-            </AnimatePresence>
-        </div>
-    );
-};
 
-export default TeamsDashboard;
+                        {/* Desktop table */}
+                        <div className="hidden md:block rounded-lg border border-border overflow-hidden">
+                            <table className="min-w-full divide-y divide-border">
+                                <thead className="bg-muted/40">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                            User
+                                        </th>
+                                        {(['role', 'lastActive', 'joinedDate', 'status'] as const).map((col) => (
+                                            <th key={col} className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                                <button
+                                                    onClick={() => requestSort(col)}
+                                                    className="flex items-center gap-1 font-medium focus:outline-none hover:text-foreground transition-colors"
+                                                >
+                                                    {col === 'lastActive' ? 'Last Active' : col === 'joinedDate' ? 'Joined Date' : col.charAt(0).toUpperCase() + col.slice(1)}
+                                                    <SortIcon col={col} />
+                                                </button>
+                                            </th>
+                                        ))}
+                                        <th className="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                                            Actions
+                                        </th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-border bg-background">
+                                    {sortedUsers.map((user) => (
+                                        <tr key={user.uid} className="hover:bg-muted/40 transition-colors">
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <div className="flex items-center gap-3">
+                                                    <div className="flex-shrink-0">
+                                                        {user.avatar
+                                                            ? <img className="h-10 w-10 rounded-full" src={user.avatar} alt={user.name} referrerPolicy="no-referrer" />
+                                                            : customImageGenerator(user.uid)
+                                                        }
+                                                    </div>
+                                                    <div>
+                                                        <div className="text-sm font-medium text-foreground">{user.name}</div>
+                                                        <div className="text-sm text-muted-foreground">{user.email}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{user.role}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{getTimeSince(user.lastActive)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
+                                                {user.status === 'Pending' ? '—' : formatDate(user.joinedDate)}
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap">
+                                                <Badge variant={statusVariant(user.status)}>{user.status}</Badge>
+                                            </td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-right">
+                                                <Button
+                                                    variant="ghost"
+                                                    size="icon"
+                                                    onClick={() => { setSelectedUser(user); setIsModalUserOpen(true) }}
+                                                    className="h-8 w-8"
+                                                >
+                                                    <Eye size={14} />
+                                                </Button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+                    </>
+                )}
+            </div>
+
+            <BulkInvitationModal isOpen={bulkInviteModal} onClose={() => setBulkInviteModal(false)} />
+            <InviteUserModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} token={accessToken} handleRefresh={fetchTeamMembers} />
+            <UserDetailsModal
+                isOpen={isModalUserOpen}
+                onClose={() => setIsModalUserOpen(false)}
+                user={selectedUser}
+                handleRefresh={fetchTeamMembers}
+                isImpersonating={isImpersonating}
+            />
+        </div>
+    )
+}
+
+export default TeamsDashboard
