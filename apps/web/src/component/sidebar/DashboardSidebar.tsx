@@ -153,7 +153,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     try {
       const resp = await exitImpersonationWork(accessToken || '')
       if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error()
-      // Leave the impersonated /project/:id URL; re-bootstrap as the real user.
+      // Drop the impersonated project so /dashboard does not route back to it.
+      localStorage.removeItem('project')
       setTimeout(() => { window.location.href = '/dashboard' }, 600)
     } catch {
       toast.error('Could not exit impersonation. Please try again.')

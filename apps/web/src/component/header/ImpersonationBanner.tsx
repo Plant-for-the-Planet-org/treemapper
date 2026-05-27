@@ -22,9 +22,10 @@ export default function ImpersonationBanner() {
       setExiting(true)
       const resp = await exitImpersonationWork(accessToken || '')
       if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error('exit failed')
-      // Leave the impersonated context entirely: a plain reload would reload
-      // the impersonated user's /project/:id URL. Go to the root so the app
-      // re-bootstraps as the real user on their own default.
+      // Drop the impersonated project so the post-exit bootstrap falls back to
+      // the real user's primary; otherwise /dashboard reads the stale uid from
+      // localStorage and routes straight back to the impersonated project.
+      localStorage.removeItem('project')
       setTimeout(() => { window.location.href = '/dashboard' }, 600)
     } catch {
       setExiting(false)
