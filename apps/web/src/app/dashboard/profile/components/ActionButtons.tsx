@@ -1,31 +1,19 @@
-import { Loader, Save } from "lucide-react";
+import { Loader2, Save } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 
 export const ActionButtons = ({ onSave, isSaving, onCancel }) => {
   return (
-    <div className="flex justify-end space-x-4 pt-6">
-      <button
-        onClick={onCancel}
-        className="px-6 py-3 text-stone-600 hover:text-stone-700 hover:bg-stone-100 rounded-xl transition-all duration-200 font-medium"
-      >
+    <div className="flex justify-end gap-2 pt-2">
+      <Button variant="outline" onClick={onCancel}>
         Cancel
-      </button>
-      <button
-        onClick={onSave}
-        disabled={isSaving}
-        className="px-8 py-3 bg-[#007A49] text-white rounded-xl hover:bg-[#006841] disabled:opacity-50 disabled:cursor-not-allowed flex items-center font-semibold shadow-md transition-all duration-200 transform hover:scale-105 disabled:hover:scale-100"
-      >
+      </Button>
+      <Button onClick={onSave} disabled={isSaving}>
         {isSaving ? (
-          <>
-            <Loader size={18} className="mr-2 animate-spin" />
-            Saving...
-          </>
+          <><Loader2 size={14} className="mr-1.5 animate-spin" />Saving...</>
         ) : (
-          <>
-            <Save size={18} className="mr-2" />
-            Save Changes
-          </>
+          <><Save size={14} className="mr-1.5" />Save changes</>
         )}
-      </button>
+      </Button>
     </div>
-  );
-};
+  )
+}

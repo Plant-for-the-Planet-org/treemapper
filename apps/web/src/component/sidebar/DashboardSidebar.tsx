@@ -6,8 +6,12 @@ import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
   CheckSquare, FileText, BarChart2, Trophy, Settings,
-  ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor
+  ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor,
+  UserCog, SlidersHorizontal, UserCheck, LogOut
 } from 'lucide-react'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
@@ -147,6 +151,35 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const userInitials = userName
     ? userName.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
     : 'U'
+
+  const canImpersonate = User?.type === 'superadmin'
+
+  const settingsMenu = (
+    <DropdownMenuContent align="end" side="top" className="w-48">
+      <DropdownMenuItem onClick={openProfileSetting}>
+        <UserCog size={14} className="mr-2" />
+        Edit profile
+      </DropdownMenuItem>
+      <DropdownMenuItem onClick={() => updateRoute('settings')}>
+        <SlidersHorizontal size={14} className="mr-2" />
+        Project settings
+      </DropdownMenuItem>
+      {canImpersonate && (
+        <DropdownMenuItem onClick={() => updateRoute('workspace')}>
+          <UserCheck size={14} className="mr-2" />
+          Impersonate user
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuSeparator />
+      <DropdownMenuItem
+        onClick={() => { window.location.href = '/api/auth/logout' }}
+        className="text-destructive focus:text-destructive"
+      >
+        <LogOut size={14} className="mr-2" />
+        Logout
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  )
 
   const navGroups = [
     {
@@ -320,13 +353,17 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             >
               <ThemeIcon size={14} />
             </button>
-            <button
-              onClick={openProfileSetting}
-              className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
-              title={userName}
-            >
-              <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
-            </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
+                  title={userName}
+                >
+                  <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+                </button>
+              </DropdownMenuTrigger>
+              {settingsMenu}
+            </DropdownMenu>
           </div>
         ) : (
           <div className="flex items-center justify-between gap-2">
@@ -347,12 +384,14 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               >
                 <ThemeIcon size={14} />
               </button>
-              <button
-                onClick={openProfileSetting}
-                className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
-              >
-                <Settings size={14} />
-              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">
+                    <Settings size={14} />
+                  </button>
+                </DropdownMenuTrigger>
+                {settingsMenu}
+              </DropdownMenu>
             </div>
           </div>
         )}

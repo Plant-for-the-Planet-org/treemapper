@@ -13,6 +13,7 @@ import { SelectField } from './components/SelectField';
 import { TextareaField } from './components/TextareaField';
 import { useToken } from '@/context/useTokenContext';
 import { generatePreSignUrl, getMyDetails, updateUserAvatar, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
+import { Card, CardContent } from '@/components/ui/card';
 
 
 
@@ -268,29 +269,30 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-stone-50 to-stone-100 w-full">
+    <div className="h-full overflow-y-auto bg-background w-full">
       <Header onLogout={handleLogout} />
 
       {/* Success Message */}
       {showSuccess && (
-        <div className="fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg animate-in slide-in-from-right-full duration-300 z-50">
-          <div className="flex items-center space-x-2">
-            <Check size={18} />
-            <span>Profile updated successfully!</span>
+        <div className="fixed top-20 right-4 bg-primary text-primary-foreground px-4 py-2.5 rounded-lg shadow-lg z-50">
+          <div className="flex items-center gap-2 text-sm">
+            <Check size={16} />
+            <span>Profile updated successfully</span>
           </div>
         </div>
       )}
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="space-y-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        <div className="space-y-6">
           {/* Profile Information Section */}
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl border border-stone-200/50 p-8 shadow-sm transition-all duration-300 hover:shadow-md">
-            <div className="mb-8">
-              <h2 className="text-2xl font-bold text-stone-900 mb-2">Profile Information</h2>
-              <p className="text-stone-600">Update your personal details and profile picture.</p>
-            </div>
+          <Card>
+            <CardContent className="p-6">
+              <div className="mb-6">
+                <h2 className="text-base font-semibold text-foreground mb-1">Profile information</h2>
+                <p className="text-sm text-muted-foreground">Update your personal details and profile picture.</p>
+              </div>
 
-            <div className="flex flex-col lg:flex-row gap-8">
+              <div className="flex flex-col lg:flex-row gap-8">
               <AvatarUpload
                 profile={profile}
                 onAvatarChange={handleAvatarChange}
@@ -372,7 +374,8 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
                   placeholder="Tell us about yourself..." validation={undefined} />
               </div>
             </div>
-          </div>
+            </CardContent>
+          </Card>
 
           <ActionButtons
             onSave={handleSave}
