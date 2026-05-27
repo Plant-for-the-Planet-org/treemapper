@@ -242,6 +242,10 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
     createNewProject: () => router.push('/dashboard/project'),
     openProfileSetting: () => router.push('/dashboard/profile'),
     updateRoute: (newRoute: string) => {
+      if (newRoute === 'workspace') {
+        router.push('/workspace');
+        return;
+      }
       const subpage = newRoute === '' ? 'overview' : newRoute;
       const projectUid = selectedProject?.uid;
       if (projectUid && isMigratedRoute(subpage)) {

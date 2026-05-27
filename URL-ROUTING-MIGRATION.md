@@ -110,8 +110,21 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
       hardcode `/dashboard/...` (e.g. workspace, profile, deep links)
 
 ### Phase 4 — workspace, same pattern
-- [ ] Finish `workspace/[workspaceUid]` migration begun in cdb4ffdc
-- [ ] Workspace switcher writes the URL
+- [x] `(workspace)` route group + `WorkspaceSidebar` (switcher + section nav)
+      via a `variant` on DashboardClientLayout
+- [x] `/workspace` index lists all workspaces; `[workspaceUid]` hydrates from URL
+- [x] Split sections into routes (general, members, projects, approvals,
+      activity, impersonation)
+- [x] Redirect old `/dashboard/workspace` paths + repoint links (ProjectTabs
+      button, sidebar workspace nav via the `'workspace'` case)
+- [x] Workspace switcher writes the URL
+- [ ] `WorkspaceSettings.tsx` is now unused — remove in cleanup
+
+### Follow-up — rebuild WorkspaceSidebar on shadcn primitives
+- [ ] Current `WorkspaceSidebar` is a plain `w-64` div placeholder. Rebuild it
+      on the shadcn `Sidebar` primitives to match `DashboardSidebar`
+      (collapsible, mobile `SidebarTrigger`, shadcn active states). Use the
+      shadcn migration guide. Do after the structural split lands.
 
 ### Optional follow-up — user-chosen default project
 - [ ] Add a "set as default project" control in project settings.

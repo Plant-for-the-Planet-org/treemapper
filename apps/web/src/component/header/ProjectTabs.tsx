@@ -293,7 +293,7 @@ const ProjectDropdown = ({
           <div className="flex items-center gap-3">
             <NotificationBell />
             {selectedWorkspce && selectedWorkspce.userRole !== 'member' && <button
-              onClick={() => router.push(`/dashboard/workspace/${selectedWorkspce.uid}`)}
+              onClick={() => router.push(`/workspace/${selectedWorkspce.uid}`)}
               className="cursor-pointer relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
             >
               <Building size={24} />

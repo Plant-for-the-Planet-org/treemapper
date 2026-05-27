@@ -1,20 +1,15 @@
-'use client';
+"use client";
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import useProjectStore from '@shared-core/store/useProjectStore';
 import Spinner from '../../../component/Spinner';
 
-export default function WorkspaceIndexPage() {
+// Workspace section moved to /workspace.
+export default function WorkspaceIndexRedirect() {
   const router = useRouter();
-  const selectedWorkspce = useProjectStore((state) => state.selectedWorkspce);
-
   useEffect(() => {
-    if (selectedWorkspce?.uid) {
-      router.replace(`/dashboard/workspace/${selectedWorkspce.uid}`);
-    }
-  }, [selectedWorkspce?.uid, router]);
-
+    router.replace('/workspace');
+  }, [router]);
   return (
     <div className="h-full w-full flex items-center justify-center">
       <Spinner />
