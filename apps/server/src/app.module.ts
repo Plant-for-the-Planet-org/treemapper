@@ -19,6 +19,7 @@ import { AuditModule } from './audit/audit.module';
 import { MigrationModule } from './migrate/migrate.module.ts';
 import { ContactSupportModule } from './contact-support/contact-support.module';
 import { ApprovalBoardModule } from './approval-board/approval-board.module';
+import { ExternalModule } from './external/external.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { ApprovalBoardModule } from './approval-board/approval-board.module';
     MigrationModule,
     ContactSupportModule,
     ApprovalBoardModule,
+    ExternalModule,
   ],
   controllers: [AppController],
   providers: [AppService],

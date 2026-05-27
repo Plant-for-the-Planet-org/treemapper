@@ -962,7 +962,7 @@ export const intervention = pgTable('intervention', {
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
   reviewStatus: reviewStatusEnum('review_status'),
-  submittedAt: timestamp('submitted_at', { withTimezone: true }), //REMOVE
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
   approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
   rejectedAt: timestamp('rejected_at', { withTimezone: true }),
