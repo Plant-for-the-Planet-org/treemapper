@@ -28,8 +28,7 @@ export default function WorkspaceSettings() {
   const [activeSection, setActiveSection] = useState('general');
   const { accessToken } = useToken();
   const currentUser = useUserStore((state) => state.user);
-  const updateUser = useUserStore((state) => state.updateUser);
-  const { selectedWorkspce: selectedWorkspace, setDefaultWorkspce } = useProjectStore((state) => state);
+  const { selectedWorkspce: selectedWorkspace } = useProjectStore((state) => state);
   const router = useRouter();
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -63,8 +62,7 @@ export default function WorkspaceSettings() {
   ];
 
   const goHome = () => {
-    window.location.replace('/');
-    window.location.reload();
+    window.location.replace('/dashboard');
   };
 
   const renderActiveSection = () => {
@@ -119,9 +117,8 @@ export default function WorkspaceSettings() {
                       key={ws.uid}
                       type="button"
                       onClick={() => {
-                        setDefaultWorkspce(ws);
-                        updateUser({ primaryWorkspaceUid: ws.uid });
                         setWsDropdownOpen(false);
+                        router.push(`/dashboard/workspace/${ws.uid}`);
                       }}
                       className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 truncate"
                     >
