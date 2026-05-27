@@ -5,7 +5,7 @@ import { Trees, ChevronLeft, Plus, Loader, CheckSquare, X } from 'lucide-react';
 import { getProjectIntervention, getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
-import { useRouter, useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams, useParams } from 'next/navigation';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { toast } from 'react-toastify';
 
@@ -388,6 +388,7 @@ const TreeMapperUI = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { projectUid } = useParams<{ projectUid: string }>();
   const deeplinkUid = searchParams.get('id');
   const [filters, setFilters] = useState<Filters>({
     type: '',
@@ -693,7 +694,7 @@ const TreeMapperUI = () => {
         interventionTypes={interventionTypes}
         sites={sites}
         newIntervention={() => { router.push('/dashboard/new-intervention') }}
-        bulkUpload={() => { router.push('/dashboard/bulkupload') }}
+        bulkUpload={() => { router.push(`/project/${projectUid}/bulkupload`) }}
         userRole={selectedProject?.userRole}
         handleDateRangeChange={handleDateRangeChange}
         handleFilterChange={handleFilterChange}

@@ -40,7 +40,7 @@ export default function FormsList({ projectId, projectName }: FormsListProps) {
           <p className="text-gray-500">Custom data collection forms for {projectName}</p>
         </div>
         <Button
-          onClick={() => router.push('/dashboard/forms/new')}
+          onClick={() => router.push(`/project/${projectId}/forms/new`)}
           className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white"
         >
           <Plus className="w-4 h-4" />
@@ -70,7 +70,7 @@ export default function FormsList({ projectId, projectName }: FormsListProps) {
             Create custom forms to collect data from your mobile app users in the field.
           </p>
           <Button
-            onClick={() => router.push('/dashboard/forms/new')}
+            onClick={() => router.push(`/project/${projectId}/forms/new`)}
             className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-white"
           >
             <Plus className="w-4 h-4" />

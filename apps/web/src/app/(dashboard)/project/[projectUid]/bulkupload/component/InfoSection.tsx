@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react'
 import { Upload, Download, FileText, CheckCircle, AlertCircle, X, Layers, ArrowRight, ChevronRight } from 'lucide-react'
 import Papa from 'papaparse'
 import { downloadTreeMapperTemplate } from '@/utils/bulktemplate'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -26,6 +26,7 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [loading, setLoading] = useState(false)
   const router = useRouter()
+  const { projectUid } = useParams<{ projectUid: string }>()
 
   const handleCustomFormatClick = () => {
     const params = new URLSearchParams({
@@ -34,7 +35,7 @@ const InfoSection = ({ setFileData, updateStep, selectedProject, selectedSite }:
       siteId: selectedSite?.id ?? '',
       siteName: selectedSite?.name ?? '',
     })
-    router.push(`/dashboard/bulkupload/custom-format?${params.toString()}`)
+    router.push(`/project/${projectUid}/bulkupload/custom-format?${params.toString()}`)
   }
 
   const validateFile = (file: File | undefined) => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import useProjectStore from '@shared-core/store/useProjectStore'
+import { subpageFromPath } from '@/lib/projectRoutes'
 interface LabelTabsProps {
   updateRoute: (newRoute: string) => void;
 }
@@ -28,36 +29,14 @@ const LabelTabs = ({ updateRoute }: LabelTabsProps) => {
   }, [pathname]);
 
 
-  // Helper function to extract section from URL
-  function getSectionFromUrl(pathname) {
-    const urlToStateMap = {
-      '/dashboard/overview': '',
-      '/dashboard/approvals': 'approvals',
-      '/dashboard/sites': 'sites',
-      '/dashboard/species': 'species',
-      '/dashboard/team': 'team',
-      '/dashboard/intervention': 'intervention',
-      '/dashboard/settings': 'settings'
-    };
-    if (urlToStateMap[pathname] !== undefined) return urlToStateMap[pathname];
-    // Handle sub-routes (e.g. /dashboard/forms/[id])
-    const prefixMap = [
-      { prefix: '/dashboard/forms', value: 'forms' },
-      { prefix: '/dashboard/approvals', value: 'approvals' },
-      { prefix: '/dashboard/sites', value: 'sites' },
-      { prefix: '/dashboard/species', value: 'species' },
-      { prefix: '/dashboard/intervention', value: 'intervention' },
-    ];
-    for (const { prefix, value } of prefixMap) {
-      if (pathname.startsWith(prefix)) return value;
-    }
-    return '';
+  // Extract the active section from either a /project/:id/:sub or legacy
+  // /dashboard/:sub path. Overview maps to '' to match the tab id.
+  function getSectionFromUrl(pathname: string) {
+    const subpage = subpageFromPath(pathname);
+    return !subpage || subpage === 'overview' ? '' : subpage;
   }
 
   const handleTabClick = (id: string) => {
-    console.log('Tab clicked:', id);
-    const route = id === '' ? '/dashboard' : `/dashboard/${id}`;
-    console.log('Navigating to:', route);
     updateRoute(id);
     setParentTab(id);
   }

@@ -138,7 +138,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => (window.location.href = '/dashboard/intervention')}
+              onClick={() => (window.location.href = `/project/${selectedProject?.uid}/intervention`)}
               className="px-0 hover:bg-transparent text-primary hover:text-primary/80"
             >
               <ExternalLink size={14} className="mr-1.5" />
@@ -149,7 +149,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
       </div>
 
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
-        <Button onClick={() => (window.location.href = '/dashboard/intervention')}>Go to intervention</Button>
+        <Button onClick={() => (window.location.href = `/project/${selectedProject?.uid}/intervention`)}>Go to intervention</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/dashboard')}>Home</Button>
       </div>
     </div>

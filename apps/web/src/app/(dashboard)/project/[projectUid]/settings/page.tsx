@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams, useParams } from 'next/navigation'
 import {
   Settings, Users, MapPin, Shield, Trash2, Save, Leaf,
   Globe, Info, FileText, Upload, AlertTriangle, Lock, Trophy,
@@ -481,6 +481,7 @@ const NAV_ITEMS = [
 const ProjectSettings = () => {
   const router = useRouter()
   const searchParams = useSearchParams()
+  const { projectUid } = useParams<{ projectUid: string }>()
   const tabParam = searchParams.get('tab')
   const [loading, setLoading] = useState(false)
   const [notification, setNotification] = useState<any>(null)
@@ -506,7 +507,7 @@ const ProjectSettings = () => {
   })
 
   const activeTab = NAV_ITEMS.some(i => i.id === tabParam) ? tabParam! : 'general'
-  const setActiveTab = (id: string) => router.push(`/dashboard/settings?tab=${id}`)
+  const setActiveTab = (id: string) => router.push(`/project/${projectUid}/settings?tab=${id}`)
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [projectImages, setProjectImages] = useState<any[]>([])

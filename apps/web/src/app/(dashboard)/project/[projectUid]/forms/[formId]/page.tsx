@@ -14,6 +14,7 @@ export default function FormBuilderPage() {
   const params = useParams()
   const router = useRouter()
   const formId = params.formId as string
+  const projectUid = params.projectUid as string
   const selectedProject = useProjectStore(state => state.selectedProject)
   const [form, setForm] = useState<Form | null>(null)
 
@@ -23,7 +24,7 @@ export default function FormBuilderPage() {
     if (formId === 'new') {
       const newForm = createEmptyForm(selectedProject.uid)
       saveForm(newForm)
-      router.replace(`/dashboard/forms/${newForm.id}`)
+      router.replace(`/project/${projectUid}/forms/${newForm.id}`)
       return
     }
 
@@ -31,9 +32,9 @@ export default function FormBuilderPage() {
     if (existing) {
       setForm(existing)
     } else {
-      router.push('/dashboard/forms')
+      router.push(`/project/${projectUid}/forms`)
     }
-  }, [formId, selectedProject])
+  }, [formId, selectedProject, projectUid])
 
   if (!form) {
     return (

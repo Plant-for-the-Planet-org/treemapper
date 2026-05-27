@@ -92,6 +92,10 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   useEffect(() => {
     if (accessToken && !User && appState === 'idle') {
       initializeApp();
+    } else if (User && appState === 'idle') {
+      // Layout remounted (e.g. crossing route-group subtrees) with data
+      // already loaded; mark success so the sidebar renders immediately.
+      setAppState('success');
     }
   }, [accessToken, User, appState]);
 
