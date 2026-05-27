@@ -95,8 +95,8 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
       approvals, dataexplore, bulkupload)
 - [x] Add redirects from old `/dashboard/*` flat paths via a shared
       `LegacyProjectRedirect`; `/dashboard` root → `/project/:id/overview`
-- [ ] Migrate standalone pages (newsite, new-intervention) — these render
-      without the sidebar, so they need standalone handling at the new paths
+- [x] Migrate standalone project pages (newsite, new-intervention) — kept
+      sidebar-less via STANDALONE_PROJECT_SUBPAGES detection
 - [x] Add redirects from old `/dashboard/*` flat paths (resolve active id
       from localStorage during transition only; removed in Phase 5)
 
@@ -144,10 +144,16 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
       `router.refresh()` selection code and stale `/dashboard/...` links.
 
 ### Phase 5 — drop /dashboard + cleanup
-- [ ] Move standalone pages (profile, onboarding, select-workspace, project)
-      out of `/dashboard`
-- [ ] Update auth middleware + login `returnTo` for the new root paths
+- [x] Profile → `/profile` via a `(standalone)` route group + standalone variant
+- [x] Delete unused `WorkspaceSettings.tsx`
+- [ ] Move remaining standalone pages (onboarding, select-workspace, project
+      create) off `/dashboard` — CRITICAL PATH (new-user/creation flow with
+      `?name=` handoffs); do with runtime testing
+- [ ] Update auth middleware + login `returnTo` + root landing off `/dashboard`
+      — CRITICAL PATH (login); do with runtime testing. Keeping a thin
+      `/dashboard` landing-redirect is a safe alternative to a full drop
 - [x] Remove `localStorage('project')` entirely (read + writes); landings
       resolve via `selectedProject` then `primaryProjectUid`
 - [ ] Remove `router.refresh()`-based selection leftovers
+- [ ] Delete old `/dashboard/*` redirect stubs once nothing links to them
 - [ ] Verify deep links, login redirect, and not-found states end to end
