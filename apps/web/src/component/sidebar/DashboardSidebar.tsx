@@ -71,6 +71,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
 
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
+  const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
 
   const activeRoute = (() => {
     const exact: Record<string, string> = {
@@ -203,7 +204,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     {
       label: 'Analyse',
       items: [
-        { icon: BarChart2, label: 'Data Explorer', id: 'dataexplore' },
+        ...(isAdminOrOwner ? [{ icon: BarChart2, label: 'Data Explorer', id: 'dataexplore' }] : []),
         { icon: Trophy, label: 'Leaderboard', id: 'leaderboard' },
       ],
     },

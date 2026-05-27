@@ -1,8 +1,8 @@
 'use client'
 
 import { useState, useEffect, useMemo, useRef } from 'react'
-import { useRouter } from 'next/navigation'
-import { ArrowLeft, Download, TreePine, Users, MapPin, Leaf } from 'lucide-react'
+import { Download, TreePine, Users, MapPin, Leaf, Calendar as CalendarIcon } from 'lucide-react'
+import type { DateRange } from 'react-day-picker'
 import {
   BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -22,6 +22,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Badge } from '@/components/ui/badge'
+import { Calendar } from '@/components/ui/calendar'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/table'
+import { cn } from '@/lib/utils'
 
 // ---- helpers ----
 
@@ -33,6 +39,19 @@ function getDaysBefore(days: number): string {
 
 function todayStr(): string {
   return new Date().toISOString().split('T')[0]
+}
+
+function fmtDate(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+}
+
+function parseDate(s: string): Date {
+  const [y, m, d] = s.split('-').map(Number)
+  return new Date(y, m - 1, d)
+}
+
+function labelDate(s: string): string {
+  return parseDate(s).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
 }
 
 function groupByMonth(items: any[], dateKey: string) {
@@ -117,13 +136,16 @@ function StatCard({
 // ---- page ----
 
 export default function DataExplorePage() {
-  const router = useRouter()
   const { accessToken } = useToken()
   const selectedProject = useProjectStore(state => state.selectedProject)
   const projectRole = useProjectStore(state => state.selectedProject?.userRole)
 
   const [startDate, setStartDate] = useState(getDaysBefore(365))
   const [endDate, setEndDate] = useState(todayStr())
+  const [pickerRange, setPickerRange] = useState<DateRange | undefined>({
+    from: parseDate(getDaysBefore(365)),
+    to: parseDate(todayStr()),
+  })
   const [activePreset, setActivePreset] = useState('1y')
   const [activeTab, setActiveTab] = useState('interventions')
 
@@ -143,6 +165,13 @@ export default function DataExplorePage() {
   const loadedTabs = useRef(new Set<string>())
   const isFirstDateRender = useRef(true)
 
+  // TODO: replace this client-side paging + aggregation with a server-side
+  // analytics endpoint. Fetching every intervention page-by-page into the
+  // browser and computing per-month counts / tree totals here does not scale
+  // (a large project = many sequential requests, re-run on every date change).
+  // The backend should expose a stats/summary route that takes the project +
+  // date range and returns pre-aggregated numbers (the date-range pattern
+  // already exists in exportAllData).
   const fetchAllInterventions = async (token: string, projId: string) => {
     const all: any[] = []
     let page = 1
@@ -334,9 +363,12 @@ export default function DataExplorePage() {
   }
 
   const applyPreset = (label: string, days: number) => {
+    const start = getDaysBefore(days)
+    const end = todayStr()
     setActivePreset(label)
-    setStartDate(getDaysBefore(days))
-    setEndDate(todayStr())
+    setStartDate(start)
+    setEndDate(end)
+    setPickerRange({ from: parseDate(start), to: parseDate(end) })
   }
 
   if (!canAccess) {
@@ -351,54 +383,58 @@ export default function DataExplorePage() {
     <div className="w-full min-h-full bg-background pt-4 pb-12">
       {/* Header */}
       <div className="px-6 mb-6">
-        <button
-          onClick={() => router.push('/dashboard/overview')}
-          className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground mb-5 transition-colors"
-        >
-          <ArrowLeft className="h-4 w-4" />
-          Back to Dashboard
-        </button>
-
         <div className="flex items-start justify-between flex-wrap gap-4">
           <div>
-            <h1 className="text-3xl font-bold">Data Explore</h1>
-            {selectedProject?.name && (
-              <p className="text-muted-foreground text-sm mt-1">{selectedProject.name}</p>
-            )}
+            <h1 className="text-xl font-semibold text-foreground">Data Explorer</h1>
+            <p className="text-muted-foreground text-sm mt-0.5">
+              Visualize and export your project data
+            </p>
           </div>
 
           {/* Date controls */}
           <div className="flex items-center gap-2 flex-wrap">
             <div className="flex">
-              {DATE_PRESETS.map(p => (
-                <button
+              {DATE_PRESETS.map((p, idx) => (
+                <Button
                   key={p.label}
+                  variant={activePreset === p.label ? 'default' : 'outline'}
+                  size="sm"
                   onClick={() => applyPreset(p.label, p.days)}
-                  className={`px-3 py-1.5 text-xs border-y border-r first:border-l transition-colors ${
-                    activePreset === p.label
-                      ? 'bg-[#007A49] text-white border-[#007A49]'
-                      : 'bg-background border-border text-foreground hover:bg-muted'
-                  }`}
+                  className={cn(
+                    'rounded-none',
+                    idx === 0 && 'rounded-l-md',
+                    idx === DATE_PRESETS.length - 1 && 'rounded-r-md',
+                    idx !== 0 && 'border-l-0',
+                  )}
                 >
                   {p.label}
-                </button>
+                </Button>
               ))}
             </div>
-            <div className="flex items-center gap-1.5">
-              <input
-                type="date"
-                value={startDate}
-                onChange={e => { setStartDate(e.target.value); setActivePreset('') }}
-                className="text-xs border border-border px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-              <span className="text-muted-foreground text-xs">to</span>
-              <input
-                type="date"
-                value={endDate}
-                onChange={e => { setEndDate(e.target.value); setActivePreset('') }}
-                className="text-xs border border-border px-2 py-1.5 bg-background text-foreground focus:outline-none focus:ring-1 focus:ring-ring"
-              />
-            </div>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="outline" size="sm" className="gap-2">
+                  <CalendarIcon className="h-4 w-4" />
+                  {labelDate(startDate)} – {labelDate(endDate)}
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0" align="end">
+                <Calendar
+                  mode="range"
+                  numberOfMonths={2}
+                  defaultMonth={parseDate(startDate)}
+                  selected={pickerRange}
+                  onSelect={(range: DateRange | undefined) => {
+                    setPickerRange(range)
+                    setActivePreset('')
+                    if (range?.from && range?.to) {
+                      setStartDate(fmtDate(range.from))
+                      setEndDate(fmtDate(range.to))
+                    }
+                  }}
+                />
+              </PopoverContent>
+            </Popover>
           </div>
         </div>
       </div>
@@ -447,18 +483,20 @@ export default function DataExplorePage() {
                   ) : byMonth.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No data for selected range</p>
                   ) : (
-                    <ResponsiveContainer width="100%" height={210}>
-                      <BarChart data={byMonth} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                        <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                        <Tooltip
-                          contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
-                          cursor={{ fill: 'var(--muted)' }}
-                        />
-                        <Bar dataKey="count" fill="#007A49" radius={[2, 2, 0, 0]} name="Interventions" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <div className="h-[210px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={byMonth} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                          <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                          <Tooltip
+                            contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
+                            cursor={{ fill: 'var(--muted)' }}
+                          />
+                          <Bar dataKey="count" fill="var(--primary)" radius={[2, 2, 0, 0]} name="Interventions" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -473,37 +511,39 @@ export default function DataExplorePage() {
                   ) : cumulativeData.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No data for selected range</p>
                   ) : (
-                    <ResponsiveContainer width="100%" height={210}>
-                      <AreaChart data={cumulativeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <defs>
-                          <linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#007A49" stopOpacity={0.25} />
-                            <stop offset="95%" stopColor="#007A49" stopOpacity={0} />
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                        <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                        <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                        <Tooltip
-                          contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
-                        />
-                        <Area
-                          type="monotone"
-                          dataKey="cumulative"
-                          stroke="#007A49"
-                          strokeWidth={2}
-                          fill="url(#gradGreen)"
-                          name="Cumulative"
-                        />
-                      </AreaChart>
-                    </ResponsiveContainer>
+                    <div className="h-[210px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={cumulativeData} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="gradGreen" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="var(--primary)" stopOpacity={0.25} />
+                              <stop offset="95%" stopColor="var(--primary)" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                          <XAxis dataKey="month" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                          <Tooltip
+                            contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="cumulative"
+                            stroke="var(--primary)"
+                            strokeWidth={2}
+                            fill="url(#gradGreen)"
+                            name="Cumulative"
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
                   )}
                 </CardContent>
               </Card>
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={handleExportInterventions} disabled={exporting} size="sm" style={{ backgroundColor: '#007A49', borderColor: '#007A49' }}>
+              <Button onClick={handleExportInterventions} disabled={exporting} size="sm">
                 <Download className="h-4 w-4" />
                 {exporting ? 'Exporting...' : 'Export CSV'}
               </Button>
@@ -543,35 +583,37 @@ export default function DataExplorePage() {
                 ) : speciesChartData.length === 0 ? (
                   <p className="text-muted-foreground text-sm text-center py-16">No species data</p>
                 ) : (
-                  <ResponsiveContainer width="100%" height={Math.max(180, speciesChartData.length * 30)}>
-                    <BarChart
-                      data={speciesChartData}
-                      layout="vertical"
-                      margin={{ top: 4, right: 20, left: 0, bottom: 0 }}
-                    >
-                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
-                      <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
-                      <YAxis
-                        dataKey="name"
-                        type="category"
-                        tick={{ fontSize: 10 }}
-                        tickLine={false}
-                        axisLine={false}
-                        width={130}
-                      />
-                      <Tooltip
-                        contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
-                        cursor={{ fill: 'var(--muted)' }}
-                      />
-                      <Bar dataKey="count" fill="#007A49" radius={[0, 2, 2, 0]} name="Trees" />
-                    </BarChart>
-                  </ResponsiveContainer>
+                  <div className="w-full" style={{ height: Math.max(180, speciesChartData.length * 30) }}>
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart
+                        data={speciesChartData}
+                        layout="vertical"
+                        margin={{ top: 4, right: 20, left: 0, bottom: 0 }}
+                      >
+                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" horizontal={false} />
+                        <XAxis type="number" tick={{ fontSize: 10 }} tickLine={false} axisLine={false} />
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tick={{ fontSize: 10 }}
+                          tickLine={false}
+                          axisLine={false}
+                          width={130}
+                        />
+                        <Tooltip
+                          contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
+                          cursor={{ fill: 'var(--muted)' }}
+                        />
+                        <Bar dataKey="count" fill="var(--primary)" radius={[0, 2, 2, 0]} name="Trees" />
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
                 )}
               </CardContent>
             </Card>
 
             <div className="flex justify-end">
-              <Button onClick={handleExportSpecies} variant="outline" size="sm" style={{ borderColor: '#007A49', color: '#007A49' }}>
+              <Button onClick={handleExportSpecies} variant="outline" size="sm">
                 <Download className="h-4 w-4" />
                 Export CSV
               </Button>
@@ -606,18 +648,20 @@ export default function DataExplorePage() {
                   ) : teamByRole.length === 0 ? (
                     <p className="text-muted-foreground text-sm text-center py-16">No team data</p>
                   ) : (
-                    <ResponsiveContainer width="100%" height={210}>
-                      <BarChart data={teamByRole} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
-                        <XAxis dataKey="role" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                        <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
-                        <Tooltip
-                          contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
-                          cursor={{ fill: 'var(--muted)' }}
-                        />
-                        <Bar dataKey="count" fill="#007A49" radius={[2, 2, 0, 0]} name="Members" />
-                      </BarChart>
-                    </ResponsiveContainer>
+                    <div className="h-[210px] w-full">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <BarChart data={teamByRole} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" vertical={false} />
+                          <XAxis dataKey="role" tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <YAxis tick={{ fontSize: 11 }} tickLine={false} axisLine={false} />
+                          <Tooltip
+                            contentStyle={{ border: '1px solid var(--border)', borderRadius: 0, fontSize: 12 }}
+                            cursor={{ fill: 'var(--muted)' }}
+                          />
+                          <Bar dataKey="count" fill="var(--primary)" radius={[2, 2, 0, 0]} name="Members" />
+                        </BarChart>
+                      </ResponsiveContainer>
+                    </div>
                   )}
                 </CardContent>
               </Card>
@@ -630,35 +674,35 @@ export default function DataExplorePage() {
                   {loadingTeam ? (
                     <Skeleton className="h-52 w-full mx-6" />
                   ) : (
-                    <table className="w-full text-sm">
-                      <thead>
-                        <tr className="border-b border-border">
-                          <th className="text-left py-2 px-6 text-muted-foreground font-medium text-xs uppercase tracking-wide">Name</th>
-                          <th className="text-left py-2 px-6 text-muted-foreground font-medium text-xs uppercase tracking-wide">Role</th>
-                        </tr>
-                      </thead>
-                      <tbody>
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="px-6">Name</TableHead>
+                          <TableHead className="px-6">Role</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
                         {team.slice(0, 30).map((m, i) => (
-                          <tr key={m.id ?? i} className="border-b border-border/40 hover:bg-muted/40">
-                            <td className="py-2 px-6">
+                          <TableRow key={m.id ?? i}>
+                            <TableCell className="px-6">
                               {m.user?.name ?? m.user?.email ?? 'Unknown'}
-                            </td>
-                            <td className="py-2 px-6">
+                            </TableCell>
+                            <TableCell className="px-6">
                               <Badge variant="secondary" className="text-xs capitalize font-normal">
                                 {m.role ?? 'member'}
                               </Badge>
-                            </td>
-                          </tr>
+                            </TableCell>
+                          </TableRow>
                         ))}
-                      </tbody>
-                    </table>
+                      </TableBody>
+                    </Table>
                   )}
                 </CardContent>
               </Card>
             </div>
 
             <div className="flex justify-end">
-              <Button onClick={handleExportTeam} variant="outline" size="sm" style={{ borderColor: '#007A49', color: '#007A49' }}>
+              <Button onClick={handleExportTeam} variant="outline" size="sm">
                 <Download className="h-4 w-4" />
                 Export CSV
               </Button>
@@ -692,39 +736,39 @@ export default function DataExplorePage() {
                 ) : sites.length === 0 ? (
                   <p className="text-muted-foreground text-sm text-center py-16">No sites found</p>
                 ) : (
-                  <table className="w-full text-sm">
-                    <thead>
-                      <tr className="border-b border-border">
-                        <th className="text-left py-2 px-6 text-muted-foreground font-medium text-xs uppercase tracking-wide">Name</th>
-                        <th className="text-left py-2 px-6 text-muted-foreground font-medium text-xs uppercase tracking-wide">Area (ha)</th>
-                        <th className="text-left py-2 px-6 text-muted-foreground font-medium text-xs uppercase tracking-wide">Status</th>
-                      </tr>
-                    </thead>
-                    <tbody>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="px-6">Name</TableHead>
+                        <TableHead className="px-6">Area (ha)</TableHead>
+                        <TableHead className="px-6">Status</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
                       {sites.map((s, i) => (
-                        <tr key={s.id ?? i} className="border-b border-border/40 hover:bg-muted/40">
-                          <td className="py-2 px-6">{s.name ?? 'Unnamed'}</td>
-                          <td className="py-2 px-6">
+                        <TableRow key={s.id ?? i}>
+                          <TableCell className="px-6">{s.name ?? 'Unnamed'}</TableCell>
+                          <TableCell className="px-6">
                             {s.area != null ? Number(s.area).toFixed(2) : '–'}
-                          </td>
-                          <td className="py-2 px-6">
+                          </TableCell>
+                          <TableCell className="px-6">
                             <Badge
                               variant={s.status === 'active' || !s.status ? 'default' : 'secondary'}
                               className="text-xs font-normal capitalize"
                             >
                               {s.status ?? 'active'}
                             </Badge>
-                          </td>
-                        </tr>
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </tbody>
-                  </table>
+                    </TableBody>
+                  </Table>
                 )}
               </CardContent>
             </Card>
 
             <div className="flex justify-end">
-              <Button onClick={handleExportSites} variant="outline" size="sm" style={{ borderColor: '#007A49', color: '#007A49' }}>
+              <Button onClick={handleExportSites} variant="outline" size="sm">
                 <Download className="h-4 w-4" />
                 Export CSV
               </Button>

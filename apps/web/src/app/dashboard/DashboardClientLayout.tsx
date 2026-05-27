@@ -28,7 +28,6 @@ const STANDALONE_ROUTES = [
   'onboarding',
   'workspace',
   'select-workspace',
-  "dataexplore"
 ];
 
 // Consolidated loading states
