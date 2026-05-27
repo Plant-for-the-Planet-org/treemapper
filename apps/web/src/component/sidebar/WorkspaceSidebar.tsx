@@ -5,8 +5,10 @@ import { usePathname, useRouter, useParams } from 'next/navigation'
 import {
   Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Settings, UserCheck, Users,
 } from 'lucide-react'
+import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
+import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
 import { Avatar } from '@/app/dashboard/workspace/components/workspace-ui'
 
 const SECTIONS = [
@@ -22,12 +24,19 @@ export default function WorkspaceSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const { workspaceUid } = useParams<{ workspaceUid: string }>()
+  const { accessToken } = useToken()
   const currentUser = useUserStore(state => state.user)
   const selectedWorkspace = useProjectStore(state => state.selectedWorkspce)
   const selectedProject = useProjectStore(state => state.selectedProject)
-  const workspaces = useProjectStore(state => state.workspace)
+  const [adminWorkspaces, setAdminWorkspaces] = useState<{ uid: string; name: string; slug: string; role: string }[]>([])
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    getMyAdminWorkspaces(accessToken).then(res => {
+      if (Array.isArray(res?.data)) setAdminWorkspaces(res.data)
+    })
+  }, [accessToken])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -43,7 +52,7 @@ export default function WorkspaceSidebar() {
   // currently selected workspace so the switcher and section links still work.
   const wsUid = workspaceUid ?? selectedWorkspace?.uid
   const activeSection = pathname.match(/^\/workspace\/[^/]+\/([^/]+)/)?.[1] ?? 'general'
-  const canSwitch = workspaces.length > 1
+  const canSwitch = adminWorkspaces.length > 1
 
   const backToDashboard = () => {
     router.push(selectedProject?.uid ? `/project/${selectedProject.uid}/overview` : '/dashboard')
@@ -75,7 +84,7 @@ export default function WorkspaceSidebar() {
           </button>
           {wsDropdownOpen && canSwitch && (
             <div className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1">
-              {workspaces.map(ws => {
+              {adminWorkspaces.map(ws => {
                 const isCurrent = ws.uid === selectedWorkspace?.uid
                 return (
                   <button

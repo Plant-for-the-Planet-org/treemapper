@@ -1,12 +1,21 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Building, ChevronRight } from 'lucide-react'
-import useProjectStore from '@shared-core/store/useProjectStore'
+import { useToken } from '@/context/useTokenContext'
+import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
 
 export default function WorkspaceIndexPage() {
   const router = useRouter()
-  const workspaces = useProjectStore(state => state.workspace)
+  const { accessToken } = useToken()
+  const [workspaces, setWorkspaces] = useState<{ uid: string; name: string; role: string }[]>([])
+
+  useEffect(() => {
+    getMyAdminWorkspaces(accessToken).then(res => {
+      if (Array.isArray(res?.data)) setWorkspaces(res.data)
+    })
+  }, [accessToken])
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -26,7 +35,7 @@ export default function WorkspaceIndexPage() {
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-gray-900 truncate">{ws.name}</div>
-                  <div className="text-xs text-gray-500 capitalize">{ws.userRole}</div>
+                  <div className="text-xs text-gray-500 capitalize">{ws.role}</div>
                 </div>
                 <ChevronRight className="h-4 w-4 text-gray-400 flex-shrink-0" />
               </button>
