@@ -8,7 +8,7 @@ import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { selectOrg } from '@shared-core/fetchApi/api.fetch';
@@ -43,7 +43,22 @@ const ProjectDropdown = ({
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
   const { projects, selectProject, selectedProject, selectedWorkspce, setDefaultWorkspce, workspace } = useProjectStore((state) => state);
   const router = useRouter();
+  const pathname = usePathname();
   const { accessToken } = useToken()
+
+  // Subpages already migrated to /project/:projectUid/<subpage>.
+  // Switching a project on these navigates to the id-based URL; others keep
+  // the legacy in-place behavior until they migrate too.
+  const MIGRATED_PROJECT_ROUTES = ['settings'];
+
+  const migratedTargetPath = (projectUid: string): string | null => {
+    const newMatch = pathname.match(/^\/project\/[^/]+\/([^/]+)/);
+    const subpage = newMatch?.[1] ?? pathname.match(/^\/dashboard\/([^/]+)/)?.[1];
+    if (subpage && MIGRATED_PROJECT_ROUTES.includes(subpage)) {
+      return `/project/${projectUid}/${subpage}`;
+    }
+    return null;
+  };
   const User = useUserStore(state => state.user)
 
   // Group projects by workspace and sort
@@ -94,7 +109,12 @@ const ProjectDropdown = ({
         if (finalWorkspace.length > 0) {
           setDefaultWorkspce(finalWorkspace[0])
         }
-        router.refresh();
+        const target = migratedTargetPath(project.uid);
+        if (target) {
+          router.push(target);
+        } else {
+          router.refresh();
+        }
       }
     } catch (e) {
       toast.error("Something went wrong")

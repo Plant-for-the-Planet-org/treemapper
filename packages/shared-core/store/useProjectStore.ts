@@ -17,7 +17,7 @@ interface ProjectStore {
 interface WorkspaceSummary {
   name: string
   uid: string
-  role: string
+  userRole: string
   type: string
   slug?: string
 }
