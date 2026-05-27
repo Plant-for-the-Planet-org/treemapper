@@ -22,7 +22,10 @@ export default function ImpersonationBanner() {
       setExiting(true)
       const resp = await exitImpersonationWork(accessToken || '')
       if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error('exit failed')
-      setTimeout(() => window.location.reload(), 600)
+      // Leave the impersonated context entirely: a plain reload would reload
+      // the impersonated user's /project/:id URL. Go to the root so the app
+      // re-bootstraps as the real user on their own default.
+      setTimeout(() => { window.location.href = '/dashboard' }, 600)
     } catch {
       setExiting(false)
       toast.error('Could not exit impersonation. Please try again.')
