@@ -27,10 +27,7 @@ const useStore = create<ProjectStore>(set => ({
   projects: [],
   selectedProject: null,
   addProjects: p => set(state => ({ ...state, projects: p, loading: false })),
-  selectProject: p => set(state => {
-    localStorage.setItem('project', p ? p.uid : '')
-    return ({ ...state, selectedProject: p })
-  }),
+  selectProject: p => set(state => ({ ...state, selectedProject: p })),
   loading: false,
   error: '',
   workspace: [],

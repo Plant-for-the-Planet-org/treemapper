@@ -147,7 +147,7 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [ ] Move standalone pages (profile, onboarding, select-workspace, project)
       out of `/dashboard`
 - [ ] Update auth middleware + login `returnTo` for the new root paths
-- [ ] Remove `localStorage('project')` entirely (read + writes); bare `/`
-      redirects via `primaryProjectUid`
+- [x] Remove `localStorage('project')` entirely (read + writes); landings
+      resolve via `selectedProject` then `primaryProjectUid`
 - [ ] Remove `router.refresh()`-based selection leftovers
 - [ ] Verify deep links, login redirect, and not-found states end to end

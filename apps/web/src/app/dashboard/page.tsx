@@ -3,20 +3,22 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { useUserStore } from '@shared-core/store/useUserStore';
 import Spinner from '@/component/Spinner';
 
-// Bare /dashboard landing now redirects to the selected project's overview.
+// Bare /dashboard landing redirects to the active project's overview, falling
+// back to the user's primary project once bootstrap has loaded.
 export default function DashboardRedirect() {
   const router = useRouter();
   const selectedProject = useProjectStore(state => state.selectedProject);
+  const primaryProjectUid = useUserStore(state => state.user?.primaryProjectUid);
 
   useEffect(() => {
-    const uid = selectedProject?.uid
-      ?? (typeof window !== 'undefined' ? localStorage.getItem('project') : null);
+    const uid = selectedProject?.uid ?? primaryProjectUid;
     if (uid) {
       router.replace(`/project/${uid}/overview`);
     }
-  }, [selectedProject, router]);
+  }, [selectedProject, primaryProjectUid, router]);
 
   return (
     <div className="h-full w-full flex items-center justify-center">

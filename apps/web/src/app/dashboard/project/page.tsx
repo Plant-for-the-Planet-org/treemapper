@@ -517,13 +517,12 @@ export function CreateProjectUI() {
             const response = await createNewProject(accessToken, payLoad);
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
-                if (response.data?.uid) {
-                    localStorage.setItem('project', response.data.uid);
-                }
-                router.replace('/dashboard');
-                setTimeout(() => {
-                    window.location.reload();
-                }, 500);
+                // Full load so the projects list refetches and includes the new
+                // one; creation also sets it as the server-side primary project.
+                const target = response.data?.uid
+                    ? `/project/${response.data.uid}/overview`
+                    : '/dashboard';
+                setTimeout(() => { window.location.href = target }, 500);
                 return
             }
 

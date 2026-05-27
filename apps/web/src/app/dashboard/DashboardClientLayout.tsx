@@ -110,9 +110,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   const setDefaultProjectAndWorkspace = useCallback(() => {
     if (!User?.primaryProjectUid) return;
 
-    const savedProjectUid = localStorage.getItem('project') || User.primaryProjectUid;
-    const defaultProject = projects.find(p => p.uid === savedProjectUid)
-      ?? projects.find(p => p.uid === User.primaryProjectUid);
+    const defaultProject = projects.find(p => p.uid === User.primaryProjectUid);
 
     const workspaceUid = defaultProject?.workspace?.uid ?? User.primaryWorkspaceUid;
     const defaultWorkspace = workspace.find(w => w.uid === workspaceUid);
