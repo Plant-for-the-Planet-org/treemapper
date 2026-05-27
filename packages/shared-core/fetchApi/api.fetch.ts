@@ -613,7 +613,7 @@ export const getWorkspaceMembers = async (token: string) => {
 };
 
 export const startImpersonationWork = async (token: string, person: string) => {
-  const uri = `${putUrlApi.impersonateUser}/${person}`;
+  const uri = `${putUrlApi.impersonateUser}/${encodeURIComponent(person)}`;
   const result = await fetchPutCall(uri, {}, token);
   return result;
 };

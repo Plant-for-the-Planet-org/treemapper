@@ -20,6 +20,7 @@ import { selectOrg, exitImpersonationWork } from '@shared-core/fetchApi/api.fetc
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
 import NotificationBell from '@/component/header/NotificationIcon'
+import ImpersonateDialog from '@/component/header/ImpersonateDialog'
 import { toast } from 'react-toastify'
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app'
 import {
@@ -37,6 +38,7 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
+  const [impersonateOpen, setImpersonateOpen] = useState(false)
   const { theme, setTheme } = useTheme()
 
   const themeOrder = ['light', 'dark', 'system'] as const
@@ -176,10 +178,6 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         <UserCog size={14} className="mr-2" />
         Edit profile
       </DropdownMenuItem>
-      <DropdownMenuItem onClick={() => updateRoute('settings')}>
-        <SlidersHorizontal size={14} className="mr-2" />
-        Project settings
-      </DropdownMenuItem>
       {canImpersonate && (
         <DropdownMenuItem onClick={() => updateRoute('workspace')}>
           <UserCheck size={14} className="mr-2" />
@@ -232,11 +230,13 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Trophy, label: 'Leaderboard', id: 'leaderboard' },
       ],
     },
-    ...(isWorkspaceManager
+    ...((isAdminOrOwner || isWorkspaceManager || canImpersonate)
       ? [{
         label: 'Admin',
         items: [
-          { icon: Building, label: 'Workspace', id: 'workspace' },
+          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
+          ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
+          ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
         ],
       }]
       : []),
@@ -361,7 +361,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => handleNavClick(item.id)}
+                    onClick={() => item.id === 'impersonate' ? setImpersonateOpen(true) : handleNavClick(item.id)}
                     isActive={activeRoute === item.id}
                     tooltip={item.label}
                   >
@@ -431,6 +431,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           </div>
         )}
       </SidebarFooter>
+
+      <ImpersonateDialog open={impersonateOpen} onOpenChange={setImpersonateOpen} />
     </Sidebar>
   )
 }
