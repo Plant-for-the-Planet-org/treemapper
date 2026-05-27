@@ -64,10 +64,6 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
 
-  // Check if user is on the root dashboard path WITHOUT any query parameters
-  // If there are query params (like project-invite), don't redirect
-  const isRootDashboardPath = (pathname === '/dashboard' || pathname === '/dashboard/') && !searchParams.toString();
-
   useEffect(() => {
     if (!tokenLoading && !user) {
       // Preserve current URL with parameters when redirecting to login
@@ -178,12 +174,6 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
 
       // Step 4: Fetch workspace and projects
       await fetchWorkspaceAndProjects();
-
-      // Step 5: Only redirect to overview if user is on the exact root dashboard path
-      // This preserves other routes like /dashboard/species, /dashboard/species?a=1&b=2, etc.
-      if (isRootDashboardPath) {
-        router.replace('/dashboard/overview');
-      }
 
       setAppState('success');
       setRetryCount(3); // Reset retry count on success

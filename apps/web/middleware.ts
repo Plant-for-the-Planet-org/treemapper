@@ -30,24 +30,20 @@ export async function middleware(req: NextRequest) {
   if (path === '/login') {
     if (isAuthenticated) {
       const returnTo = req.nextUrl.searchParams.get('returnTo');
-      const redirectUrl = returnTo ? decodeURIComponent(returnTo) : '/dashboard';
+      const redirectUrl = returnTo ? decodeURIComponent(returnTo) : '/';
       return NextResponse.redirect(new URL(redirectUrl, req.url));
     }
     return res;
   }
-  
+
   // Protect private routes
   if (!isAuthenticated && !isPublicRoute) {
     const fullPath = req.nextUrl.pathname + req.nextUrl.search;
     const returnTo = encodeURIComponent(fullPath);
     return NextResponse.redirect(new URL(`/login?returnTo=${returnTo}`, req.url));
   }
-  
-  // Redirect root to dashboard
-  if (isAuthenticated && path === '/') {
-    return NextResponse.redirect(new URL('/dashboard', req.url));
-  }
-  
+
+  // The authenticated landing at `/` resolves the active project client-side.
   return res;
 }
 
