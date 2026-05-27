@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
+import WorkspaceSidebar from '@/component/sidebar/WorkspaceSidebar';
 import DashboardTopBar from '@/component/header/DashboardTopBar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TopBarActionsProvider } from '@/component/header/TopBarActions';
@@ -34,7 +35,7 @@ const STANDALONE_ROUTES = [
 // Consolidated loading states
 type LoadingState = 'loading' | 'success' | 'error' | 'idle';
 
-export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardClientLayout({ children, variant = 'project' }: { children: React.ReactNode; variant?: 'project' | 'workspace' }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
   const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
@@ -340,7 +341,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     return children;
   };
 
-  const showSidebar = appState === 'success' && !isStandaloneRoute;
+  const showSidebar = appState === 'success' && (variant === 'workspace' || !isStandaloneRoute);
 
   return (
     <TokenProvider accessToken={accessToken}>
@@ -366,11 +367,11 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               defaultOpen={typeof window !== 'undefined' ? window.innerWidth >= 1280 : true}
               className="!min-h-0 h-full overflow-hidden"
             >
-              {showSidebar && <DashboardSidebar {...navigationHandlers} />}
+              {showSidebar && (variant === 'workspace' ? <WorkspaceSidebar /> : <DashboardSidebar {...navigationHandlers} />)}
               <SidebarInset className="flex flex-col overflow-hidden min-h-0">
                 <ImpersonationBanner />
                 <TopBarActionsProvider>
-                  {showSidebar && <DashboardTopBar />}
+                  {showSidebar && variant !== 'workspace' && <DashboardTopBar />}
                   {renderMainContent()}
                 </TopBarActionsProvider>
               </SidebarInset>
