@@ -9,7 +9,6 @@ import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
-import { subpageFromPath } from '@/lib/projectRoutes'
 import { Avatar } from '@/app/dashboard/workspace/components/workspace-ui'
 
 const SECTIONS = [
@@ -52,7 +51,7 @@ export default function WorkspaceSidebar() {
   // On the /workspace index there is no route param; fall back to the
   // currently selected workspace so the switcher and section links still work.
   const wsUid = workspaceUid ?? selectedWorkspace?.uid
-  const activeSection = subpageFromPath(pathname) ?? 'general'
+  const activeSection = pathname.match(/^\/workspace\/[^/]+\/([^/]+)/)?.[1] ?? 'general'
   const switchableWorkspaces = adminWorkspaces.filter(w => w.uid !== selectedWorkspace?.uid)
 
   const backToDashboard = () => {
