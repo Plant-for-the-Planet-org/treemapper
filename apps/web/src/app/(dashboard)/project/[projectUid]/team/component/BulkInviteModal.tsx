@@ -15,7 +15,7 @@ import {
 import { createProjectInviteLink, getAllProjectInviteLink, removeInviteLink } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext'
 import useProjectStore from '@shared-core/store/useProjectStore'
-import { Modal } from '@/app/dashboard/species/components/Modal'
+import { Modal } from '@/app/(dashboard)/project/[projectUid]/species/components/Modal'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'

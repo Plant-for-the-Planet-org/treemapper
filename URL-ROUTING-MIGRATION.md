@@ -90,17 +90,24 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 ### Phase 2 — move project-scoped pages
 - [x] settings (POC) → `(dashboard)/project/[projectUid]/settings/page.tsx`
 - [x] redirect old `/dashboard/settings` → `/project/<activeId>/settings`
-- [ ] Relocate remaining project-scoped pages under `[projectUid]/`
-      (overview, sites, species, team, intervention, new-intervention,
-      forms, leaderboard, approvals, dataexplore, bulkupload, newsite)
-- [ ] Add redirects from old `/dashboard/*` flat paths (resolve active id
+- [x] Relocate non-standalone project-scoped pages under `[projectUid]/`
+      (overview, sites, species, team, intervention, forms, leaderboard,
+      approvals, dataexplore, bulkupload)
+- [x] Add redirects from old `/dashboard/*` flat paths via a shared
+      `LegacyProjectRedirect`; `/dashboard` root → `/project/:id/overview`
+- [ ] Migrate standalone pages (newsite, new-intervention) — these render
+      without the sidebar, so they need standalone handling at the new paths
+- [x] Add redirects from old `/dashboard/*` flat paths (resolve active id
       from localStorage during transition only; removed in Phase 5)
 
 ### Phase 3 — navigation writes the URL
-- [ ] Switcher (`ProjectTabs`) navigates to
-      `/project/<newUid>/<currentSubPage>` instead of
-      `selectProject() + router.refresh()`
-- [ ] Sweep internal `router.push` / `<Link>` targets to include the active id
+- [x] Shared `src/lib/projectRoutes.ts` (migrated-route list + helpers) as the
+      single source of truth for switcher, sidebar, and nav handler
+- [x] Switcher (`ProjectTabs`) navigates to `/project/<newUid>/<currentSubPage>`
+      for migrated routes
+- [x] Sidebar active-state + `updateRoute` handler use the id-based URLs
+- [ ] Sweep remaining internal `router.push` / `<Link>` targets that still
+      hardcode `/dashboard/...` (e.g. workspace, profile, deep links)
 
 ### Phase 4 — workspace, same pattern
 - [ ] Finish `workspace/[workspaceUid]` migration begun in cdb4ffdc

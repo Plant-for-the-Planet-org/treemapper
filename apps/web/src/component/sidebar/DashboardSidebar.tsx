@@ -28,6 +28,7 @@ import {
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
   SidebarMenuButton, useSidebar,
 } from '@/components/ui/sidebar'
+import { subpageFromPath } from '@/lib/projectRoutes'
 
 interface SidebarProps {
   createNewProject: () => void
@@ -79,31 +80,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const isWorkspaceManager = !!workspaceRole && workspaceRole !== 'member'
 
   const activeRoute = (() => {
-    const exact: Record<string, string> = {
-      '/dashboard/overview': '',
-      '/dashboard/approvals': 'approvals',
-      '/dashboard/sites': 'sites',
-      '/dashboard/species': 'species',
-      '/dashboard/team': 'team',
-      '/dashboard/intervention': 'intervention',
-      '/dashboard/settings': 'settings',
-      '/dashboard/dataexplore': 'dataexplore',
-      '/dashboard/leaderboard': 'leaderboard',
-    }
-    if (exact[pathname] !== undefined) return exact[pathname]
-    const prefixes: [string, string][] = [
-      ['/dashboard/forms', 'forms'],
-      ['/dashboard/approvals', 'approvals'],
-      ['/dashboard/sites', 'sites'],
-      ['/dashboard/species', 'species'],
-      ['/dashboard/intervention', 'intervention'],
-      ['/dashboard/bulkupload', 'bulkupload'],
-      ['/dashboard/workspace', 'workspace'],
-    ]
-    for (const [prefix, val] of prefixes) {
-      if (pathname.startsWith(prefix)) return val
-    }
-    return ''
+    const subpage = subpageFromPath(pathname)
+    // The overview item uses '' as its id.
+    if (!subpage || subpage === 'overview') return ''
+    return subpage
   })()
 
   const groupedProjects = () => {

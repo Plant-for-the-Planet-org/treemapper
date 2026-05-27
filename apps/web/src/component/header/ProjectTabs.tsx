@@ -14,6 +14,7 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 import { selectOrg } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { toast } from 'react-toastify';
+import { subpageFromPath, isMigratedRoute, projectHref } from '@/lib/projectRoutes';
 
 interface Props {
   createNewProject: () => void;
@@ -46,18 +47,11 @@ const ProjectDropdown = ({
   const pathname = usePathname();
   const { accessToken } = useToken()
 
-  // Subpages already migrated to /project/:projectUid/<subpage>.
-  // Switching a project on these navigates to the id-based URL; others keep
-  // the legacy in-place behavior until they migrate too.
-  const MIGRATED_PROJECT_ROUTES = ['settings'];
-
+  // Switching a project on a migrated subpage navigates to the id-based URL;
+  // others keep the legacy in-place behavior until they migrate too.
   const migratedTargetPath = (projectUid: string): string | null => {
-    const newMatch = pathname.match(/^\/project\/[^/]+\/([^/]+)/);
-    const subpage = newMatch?.[1] ?? pathname.match(/^\/dashboard\/([^/]+)/)?.[1];
-    if (subpage && MIGRATED_PROJECT_ROUTES.includes(subpage)) {
-      return `/project/${projectUid}/${subpage}`;
-    }
-    return null;
+    const subpage = subpageFromPath(pathname);
+    return subpage && isMigratedRoute(subpage) ? projectHref(projectUid, subpage) : null;
   };
   const User = useUserStore(state => state.user)
 

@@ -19,6 +19,7 @@ import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
+import { isMigratedRoute, projectHref } from '@/lib/projectRoutes';
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -236,8 +237,13 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     createNewProject: () => router.push('/dashboard/project'),
     openProfileSetting: () => router.push('/dashboard/profile'),
     updateRoute: (newRoute: string) => {
-      const route = newRoute === '' ? '/dashboard' : `/dashboard/${newRoute}`;
-      router.push(route);
+      const subpage = newRoute === '' ? 'overview' : newRoute;
+      const projectUid = selectedProject?.uid;
+      if (projectUid && isMigratedRoute(subpage)) {
+        router.push(projectHref(projectUid, subpage));
+        return;
+      }
+      router.push(newRoute === '' ? '/dashboard' : `/dashboard/${newRoute}`);
     }
   };
 
