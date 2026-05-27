@@ -21,6 +21,7 @@ import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
 import { isMigratedRoute, projectHref } from '@/lib/projectRoutes';
+import { logout } from '@/lib/logout';
 
 const STANDALONE_ROUTES = [
   'profile',
@@ -233,7 +234,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   };
 
   const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
+    logout({ accessToken, impersonating: !!(User as { impersonated?: boolean } | null)?.impersonated });
   };
 
   const navigationHandlers = {

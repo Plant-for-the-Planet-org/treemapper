@@ -29,6 +29,7 @@ import {
   SidebarMenuButton, useSidebar,
 } from '@/components/ui/sidebar'
 import { subpageFromPath, isMigratedRoute, projectHref } from '@/lib/projectRoutes'
+import { logout } from '@/lib/logout'
 
 interface SidebarProps {
   createNewProject: () => void
@@ -183,7 +184,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         </DropdownMenuItem>
       )}
       <DropdownMenuItem
-        onClick={() => { window.location.href = '/api/auth/logout' }}
+        onClick={() => logout({ accessToken, impersonating: isImpersonating })}
         className="text-destructive focus:text-destructive"
       >
         <LogOut size={14} className="mr-2" />

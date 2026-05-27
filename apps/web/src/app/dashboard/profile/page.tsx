@@ -13,6 +13,8 @@ import { SelectField } from './components/SelectField';
 import { TextareaField } from './components/TextareaField';
 import { useToken } from '@/context/useTokenContext';
 import { generatePreSignUrl, getMyDetails, updateUserAvatar, updateUserDetails } from '@shared-core/fetchApi/api.fetch';
+import { useUserStore } from '@shared-core/store/useUserStore';
+import { logout } from '@/lib/logout';
 import { Card, CardContent } from '@/components/ui/card';
 
 
@@ -259,7 +261,7 @@ const ProfileSettings = ({ goBack }: { goBack?: () => void }) => {
   };
 
   const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
+    logout({ accessToken, impersonating: !!(useUserStore.getState().user as { impersonated?: boolean } | null)?.impersonated });
   };
 
   const handleCancel = () => {
