@@ -101,6 +101,12 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [ ] Finish `workspace/[workspaceUid]` migration begun in cdb4ffdc
 - [ ] Workspace switcher writes the URL
 
+### Optional follow-up — user-chosen default project
+- [ ] Add a "set as default project" control in project settings.
+      Backend already supports it: `user.primaryProjectUid` exists and
+      `PATCH /users/me` accepts `{ primaryProjectUid }` (body is untyped, so
+      it passes through). Frontend-only work. Drives the bare `/` landing.
+
 ### Phase 5 — drop /dashboard + cleanup
 - [ ] Move standalone pages (profile, onboarding, select-workspace, project)
       out of `/dashboard`
