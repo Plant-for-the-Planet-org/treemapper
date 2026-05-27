@@ -3,16 +3,20 @@
 import { useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import useProjectStore from '@shared-core/store/useProjectStore';
+import { selectOrg } from '@shared-core/fetchApi/api.fetch';
+import { useToken } from '@/context/useTokenContext';
 import Spinner from '@/component/Spinner';
 
 export default function ProjectLayout({ children }: { children: React.ReactNode }) {
   const { projectUid } = useParams<{ projectUid: string }>();
   const router = useRouter();
+  const { accessToken } = useToken();
 
   const projects = useProjectStore(state => state.projects);
   const selectedProject = useProjectStore(state => state.selectedProject);
   const selectProject = useProjectStore(state => state.selectProject);
   const workspace = useProjectStore(state => state.workspace);
+  const selectedWorkspce = useProjectStore(state => state.selectedWorkspce);
   const setDefaultWorkspce = useProjectStore(state => state.setDefaultWorkspce);
 
   const project = projects.find(p => p.uid === projectUid);
@@ -22,9 +26,17 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
     if (project && selectedProject?.uid !== project.uid) {
       selectProject(project);
       const ws = workspace.find(w => w.uid === project.workspace?.uid);
-      if (ws) setDefaultWorkspce(ws);
+      if (ws) {
+        setDefaultWorkspce(ws);
+        // Keep the server-side primary workspace in sync so workspace-scoped
+        // operations (e.g. creation) target this project's workspace, not a
+        // stale default left over from before the deep link.
+        if (ws.uid !== selectedWorkspce?.uid && accessToken) {
+          selectOrg(accessToken, { workspaceUid: ws.uid, projectUid: project.uid }).catch(() => {});
+        }
+      }
     }
-  }, [project, selectedProject, selectProject, workspace, setDefaultWorkspce]);
+  }, [project, selectedProject, selectProject, workspace, selectedWorkspce, setDefaultWorkspce, accessToken]);
 
   // Projects not loaded yet.
   if (projects.length === 0) {
