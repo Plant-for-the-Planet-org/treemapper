@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
-  CheckSquare, FileText, BarChart2, Trophy, Settings,
+  CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
   ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor,
   UserCog, SlidersHorizontal, UserCheck, LogOut
 } from 'lucide-react'
@@ -16,9 +16,10 @@ import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
-import { selectOrg } from '@shared-core/fetchApi/api.fetch'
+import { selectOrg, exitImpersonationWork } from '@shared-core/fetchApi/api.fetch'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
+import NotificationBell from '@/component/header/NotificationIcon'
 import { toast } from 'react-toastify'
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app'
 import {
@@ -72,6 +73,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
+  const workspaceRole = (selectedWorkspce as { userRole?: string } | null)?.userRole
+  const isWorkspaceManager = !!workspaceRole && workspaceRole !== 'member'
 
   const activeRoute = (() => {
     const exact: Record<string, string> = {
@@ -93,6 +96,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       ['/dashboard/species', 'species'],
       ['/dashboard/intervention', 'intervention'],
       ['/dashboard/bulkupload', 'bulkupload'],
+      ['/dashboard/workspace', 'workspace'],
     ]
     for (const [prefix, val] of prefixes) {
       if (pathname.startsWith(prefix)) return val
@@ -154,6 +158,17 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     : 'U'
 
   const canImpersonate = User?.type === 'superadmin'
+  const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
+
+  const handleExitImpersonation = async () => {
+    try {
+      const resp = await exitImpersonationWork(accessToken || '')
+      if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error()
+      setTimeout(() => window.location.reload(), 600)
+    } catch {
+      toast.error('Could not exit impersonation. Please try again.')
+    }
+  }
 
   const settingsMenu = (
     <DropdownMenuContent align="end" side="top" className="w-48">
@@ -172,6 +187,15 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         </DropdownMenuItem>
       )}
       <DropdownMenuSeparator />
+      {isImpersonating && (
+        <DropdownMenuItem
+          onClick={handleExitImpersonation}
+          className="text-orange-600 focus:text-orange-600"
+        >
+          <UserCheck size={14} className="mr-2" />
+          Exit impersonation
+        </DropdownMenuItem>
+      )}
       <DropdownMenuItem
         onClick={() => { window.location.href = '/api/auth/logout' }}
         className="text-destructive focus:text-destructive"
@@ -208,6 +232,14 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         { icon: Trophy, label: 'Leaderboard', id: 'leaderboard' },
       ],
     },
+    ...(isWorkspaceManager
+      ? [{
+        label: 'Admin',
+        items: [
+          { icon: Building, label: 'Workspace', id: 'workspace' },
+        ],
+      }]
+      : []),
   ]
 
   return (
@@ -347,6 +379,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       <SidebarFooter className="border-t border-sidebar-border">
         {collapsed ? (
           <div className="flex flex-col items-center gap-1">
+            <NotificationBell variant="sidebar" />
             <button
               onClick={cycleTheme}
               className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
@@ -378,6 +411,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               </div>
             </div>
             <div className="flex items-center gap-0.5 flex-shrink-0">
+              <NotificationBell variant="sidebar" />
               <button
                 onClick={cycleTheme}
                 className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"

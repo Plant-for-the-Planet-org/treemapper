@@ -8,7 +8,7 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { TopBarActionsProvider } from '@/component/header/TopBarActions';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { TestingModeManager } from '@/component/TestingModeManager';
+import ImpersonationBanner from '@/component/header/ImpersonationBanner';
 import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
 import { useEffect, useState, useCallback } from 'react';
@@ -350,7 +350,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               limit={3}
               closeButton={true}
             />
-            <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
             <MigrationModal/>
             <SidebarProvider
@@ -359,6 +358,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
             >
               {showSidebar && <DashboardSidebar {...navigationHandlers} />}
               <SidebarInset className="flex flex-col overflow-hidden min-h-0">
+                <ImpersonationBanner />
                 <TopBarActionsProvider>
                   {showSidebar && <DashboardTopBar />}
                   {renderMainContent()}
