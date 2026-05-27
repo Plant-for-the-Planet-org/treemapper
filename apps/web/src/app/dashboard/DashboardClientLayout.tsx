@@ -40,7 +40,7 @@ const STANDALONE_PROJECT_SUBPAGES = ['newsite', 'new-intervention'];
 // Consolidated loading states
 type LoadingState = 'loading' | 'success' | 'error' | 'idle';
 
-export default function DashboardClientLayout({ children, variant = 'project' }: { children: React.ReactNode; variant?: 'project' | 'workspace' }) {
+export default function DashboardClientLayout({ children, variant = 'project' }: { children: React.ReactNode; variant?: 'project' | 'workspace' | 'standalone' }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
   const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
@@ -246,7 +246,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
 
   const navigationHandlers = {
     createNewProject: () => router.push('/dashboard/project'),
-    openProfileSetting: () => router.push('/dashboard/profile'),
+    openProfileSetting: () => router.push('/profile'),
     updateRoute: (newRoute: string) => {
       if (newRoute === 'workspace') {
         router.push('/workspace');
@@ -336,6 +336,11 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
       );
     }
 
+    // Standalone variant (user/global pages like profile): no project context.
+    if (variant === 'standalone') {
+      return children;
+    }
+
     // For standalone routes, ensure project is selected (except onboarding)
     if (isStandaloneRoute) {
       if (!selectedProject && currentSection !== 'onboarding') {
@@ -351,7 +356,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
     return children;
   };
 
-  const showSidebar = appState === 'success' && (variant === 'workspace' || !isStandaloneRoute);
+  const showSidebar = appState === 'success' && variant !== 'standalone' && (variant === 'workspace' || !isStandaloneRoute);
 
   return (
     <TokenProvider accessToken={accessToken}>
