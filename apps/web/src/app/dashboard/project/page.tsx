@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { Leaf, MapPin, Globe, Info, FileText, ArrowLeft, Loader2Icon, TreePine, Target, Shield, Plus } from 'lucide-react';
+import { Leaf, MapPin, Globe, Info, FileText, ArrowLeft, Loader2, TreePine, Target, Shield, Plus } from 'lucide-react';
 import ProjectMap from '@/component/MapSelect';
 import { toast } from 'react-toastify'
 import { createNewProject } from '@shared-core/fetchApi/api.fetch';
@@ -10,7 +10,15 @@ import { useRouter } from 'next/navigation';
 import { useToken } from '@/context/useTokenContext';
 import { useSearchParams } from 'next/navigation';
 import Spinner from '@/component/Spinner';
-import useProjectStore from '@shared-core/store/useProjectStore'
+
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import { Card } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { cn } from '@/lib/utils'
 
 // Validation types and utilities
 interface ValidationErrors {
@@ -71,18 +79,13 @@ const validateDescription = (description: string): string | undefined => {
 // Header Component
 const ProjectHeader = ({ onBack }) => {
     return (
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
+        <div className="bg-card border-b border-border px-6 py-4">
             <div className="flex items-center justify-between">
-                <button
-                    onClick={onBack}
-                    className="flex items-center gap-2 text-gray-600 hover:text-gray-900 transition-colors"
-                >
+                <Button variant="ghost" size="sm" onClick={onBack} className="gap-2 -ml-2 text-muted-foreground">
                     <ArrowLeft size={18} />
                     <span className="text-sm font-medium">Back to Dashboard</span>
-                </button>
-                <div>
-                    <h1 className="text-xl font-semibold text-gray-900">Create New Project</h1>
-                </div>
+                </Button>
+                <h1 className="text-xl font-semibold text-foreground">Create New Project</h1>
             </div>
         </div>
     );
@@ -92,44 +95,36 @@ const ProjectHeader = ({ onBack }) => {
 const ProjectTypeSelector = ({ value, onChange, projectTypes }) => {
     return (
         <div className="space-y-3">
-            <label className="block text-sm font-medium text-gray-700">
-                Project Type <span className="text-red-500">*</span>
-            </label>
-            <div className="grid grid-cols-2 gap-3">
+            <Label className="text-sm font-medium">
+                Project Type <span className="text-destructive">*</span>
+            </Label>
+            <RadioGroup
+                value={value}
+                onValueChange={(v) => onChange({ target: { name: 'projectType', value: v } })}
+                className="grid grid-cols-2 gap-3"
+            >
                 {projectTypes.map((type) => {
                     const IconComponent = type.icon;
+                    const selected = value === type.id;
                     return (
-                        <label
+                        <Label
                             key={type.id}
-                            className={`relative flex cursor-pointer rounded-lg border-2 p-3 transition-all hover:shadow-sm ${value === type.id
-                                ? `${type.color} shadow-sm`
-                                : 'border-gray-200 hover:border-gray-300'
-                                }`}
+                            htmlFor={`type-${type.id}`}
+                            className={cn(
+                                'relative flex cursor-pointer items-start gap-2.5 rounded-lg border p-3 transition-colors font-normal',
+                                selected ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'
+                            )}
                         >
-                            <input
-                                type="radio"
-                                name="projectType"
-                                value={type.id}
-                                checked={value === type.id}
-                                onChange={onChange}
-                                className="sr-only"
-                            />
-                            <div className="flex items-start gap-2 w-full">
-                                <IconComponent className={`h-4 w-4 mt-0.5 ${value === type.id ? type.color.split(' ')[0] : 'text-gray-400'
-                                    }`} />
-                                <div className="flex-1 min-w-0">
-                                    <span className="block text-xs font-medium text-gray-900">
-                                        {type.label}
-                                    </span>
-                                    <span className="block text-xs text-gray-500 mt-0.5 leading-tight">
-                                        {type.description}
-                                    </span>
-                                </div>
+                            <RadioGroupItem value={type.id} id={`type-${type.id}`} className="sr-only" />
+                            <IconComponent className={cn('h-4 w-4 mt-0.5 shrink-0', selected ? 'text-primary' : 'text-muted-foreground')} />
+                            <div className="flex-1 min-w-0">
+                                <span className="block text-xs font-medium text-foreground">{type.label}</span>
+                                <span className="block text-xs text-muted-foreground mt-0.5 leading-tight">{type.description}</span>
                             </div>
-                        </label>
+                        </Label>
                     );
                 })}
-            </div>
+            </RadioGroup>
         </div>
     );
 };
@@ -168,20 +163,20 @@ const FormInput = ({
     const hasError = !!error;
 
     return (
-        <div
-            className={`space-y-2 ${flex ? 'flex-1 flex flex-col' : ''}`}
-        >
-            <label htmlFor={name} className="block text-sm font-medium text-gray-700">
-                {label} {required && <span className="text-red-500">*</span>}
-            </label>
-            <div className={`relative ${flex && isTextarea ? 'flex-1 flex flex-col' : ''}`}>
+        <div className={cn('space-y-1.5', flex && 'flex-1 flex flex-col')}>
+            <Label htmlFor={name} className="text-sm font-medium">
+                {label} {required && <span className="text-destructive">*</span>}
+            </Label>
+            <div className={cn('relative', flex && isTextarea && 'flex-1 flex flex-col')}>
                 {Icon && (
-                    <div className={`absolute ${isTextarea ? 'top-3' : 'inset-y-0'} left-0 pl-3 flex items-${isTextarea ? 'start' : 'center'} pointer-events-none z-10`}>
-                        <Icon className={`h-4 w-4 ${hasError ? 'text-red-400' : 'text-gray-400'}`} />
-                    </div>
+                    <Icon className={cn(
+                        'absolute left-3 h-4 w-4 pointer-events-none z-10',
+                        isTextarea ? 'top-3' : 'top-1/2 -translate-y-1/2',
+                        hasError ? 'text-destructive' : 'text-muted-foreground'
+                    )} />
                 )}
                 {isTextarea ? (
-                    <textarea
+                    <Textarea
                         id={name}
                         name={name}
                         value={value}
@@ -189,11 +184,12 @@ const FormInput = ({
                         onBlur={onBlur}
                         required={required}
                         rows={flex ? undefined : (rows || 4)}
-                        className={`${Icon ? 'pl-10' : ''} block w-full ${flex ? 'flex-1 h-full min-h-[6rem]' : ''} rounded-lg border ${hasError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} shadow-sm text-sm py-2.5 transition-colors resize-none placeholder-gray-400`}
+                        aria-invalid={hasError}
                         placeholder={placeholder}
+                        className={cn('resize-none', Icon && 'pl-9', flex && 'flex-1 h-full min-h-[6rem]')}
                     />
                 ) : (
-                    <input
+                    <Input
                         type={type}
                         id={name}
                         name={name}
@@ -202,24 +198,24 @@ const FormInput = ({
                         onBlur={onBlur}
                         required={required}
                         min={min}
-                        className={`${Icon ? 'pl-10' : ''} block w-full rounded-lg border ${hasError ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-gray-300 focus:border-green-500 focus:ring-green-500'} shadow-sm text-sm py-2.5 transition-colors placeholder-gray-400`}
+                        aria-invalid={hasError}
                         placeholder={placeholder}
+                        className={cn(Icon && 'pl-9')}
                     />
                 )}
             </div>
-            {hasError && (
-                <p className="text-sm text-red-600 mt-1">{error}</p>
-            )}
+            {hasError && <p className="text-xs text-destructive">{error}</p>}
         </div>
     );
 };
+
 // Project Details Form Component
 const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, loading, errors, onBlur, isFormValid }) => {
     return (
-        <div className="space-y-6 h-full" style={{ display: 'flex', flexDirection: 'column' }}>
-            <div>
-                <h2 className="text-lg font-medium text-gray-900 mb-4">Project Details</h2>
-                <div className="space-y-4">
+        <div className="flex flex-col h-full space-y-6">
+            <div className="flex-1 flex flex-col">
+                <h2 className="text-lg font-medium text-foreground mb-4">Project Details</h2>
+                <div className="flex-1 flex flex-col space-y-4">
                     <FormInput
                         label="Project Name"
                         name="projectName"
@@ -280,7 +276,7 @@ const ProjectDetailsForm = ({ formData, onChange, projectTypes, handleSubmit, lo
                     />
                 </div>
             </div>
-            <ProjectFooter agreeTerms={isFormValid} onAgreeTermsChange={undefined} onSubmit={handleSubmit} loading={loading} />
+            <ProjectFooter agreeTerms={isFormValid} onSubmit={handleSubmit} loading={loading} />
         </div>
     );
 };
@@ -290,14 +286,14 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
     return (
         <div className="h-full flex flex-col">
             <div className="mb-4">
-                <h2 className="text-lg font-medium text-gray-900 mb-2">Project Location</h2>
-                <p className="text-md text-gray-600">
+                <h2 className="text-lg font-medium text-foreground mb-2">Project Location</h2>
+                <p className="text-sm text-muted-foreground">
                     Select the point location where this project belongs. You can later create sites (polygons) within the project for your tree planting and other interventions.
                 </p>
             </div>
 
             <div className="flex-1 flex flex-col">
-                <div className="flex-1 rounded-lg overflow-hidden border border-gray-200 mb-3">
+                <div className="flex-1 rounded-lg overflow-hidden border border-border mb-3">
                     <ProjectMap
                         updateGeoJSON={updateGeoJSON}
                         mode="point"
@@ -314,16 +310,12 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
                     /> */}
 
                     {finalGeoJSON && (
-                        <div className="bg-green-50 border border-green-200 rounded-lg p-3">
-                            <div className="flex items-center text-green-800">
-                                <MapPin className="h-4 w-4 mr-2 text-green-600" />
-                                <div>
-                                    <span className="block text-xs font-medium">
-                                        Location selected
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
+                        <Alert className="border-primary/30 bg-primary/5">
+                            <MapPin className="h-4 w-4 text-primary" />
+                            <AlertDescription className="text-xs font-medium text-primary">
+                                Location selected
+                            </AlertDescription>
+                        </Alert>
                     )}
                 </div>
             </div>
@@ -332,29 +324,19 @@ const MapSection = ({ finalGeoJSON, updateGeoJSON, onGeoJSONChange }) => {
 };
 
 // Footer Component
-const ProjectFooter = ({ agreeTerms, onAgreeTermsChange, onSubmit, loading }) => {
+const ProjectFooter = ({ agreeTerms, onSubmit, loading }) => {
     return (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', width: '100%'}}>
-            <button
-                type="submit"
-                disabled={!agreeTerms || loading}
-                onClick={onSubmit}
-                className={` py-2 px-22 rounded text-sm font-medium text-base text-white transition-all duration-200 ${agreeTerms && !loading
-                    ? 'bg-[#007A49] hover:bg-[#006B3F] cursor-pointer shadow-sm hover:shadow-md'
-                    : 'bg-gray-400 cursor-not-allowed'
-                    }`}
-            >
+        <div className="flex items-center justify-end w-full">
+            <Button type="submit" disabled={!agreeTerms || loading} onClick={onSubmit} size="lg" className="px-12">
                 {loading ? (
-                    <div className="flex items-center gap-2">
-                        <Loader2Icon className="animate-spin h-5 w-5" />
+                    <>
+                        <Loader2 className="animate-spin h-5 w-5" />
                         Updating...
-                    </div>
+                    </>
                 ) : (
-                    <div className="flex items-center gap-2">
-                        Update and Continue
-                    </div>
+                    'Update and Continue'
                 )}
-            </button>
+            </Button>
         </div>
     );
 };
@@ -370,7 +352,6 @@ export function CreateProjectUI() {
     });
     const [errors, setErrors] = useState<ValidationErrors>({});
     const [touched, setTouched] = useState<Record<string, boolean>>({});
-    const selectedProject = useProjectStore(s => s.selectedProject)
     const [finalGeoJSON, setFinalGeoJSON] = useState(null)
     const [loading, setLoading] = useState(false)
     const router = useRouter()
@@ -440,28 +421,24 @@ export function CreateProjectUI() {
             label: 'Personal',
             icon: TreePine,
             description: 'Individual planting project',
-            color: 'text-blue-600 bg-blue-50 border-blue-200'
         },
         {
             id: 'restoration',
             label: 'Restoration',
             icon: Leaf,
             description: 'Ecosystem restoration',
-            color: 'text-green-600 bg-green-50 border-green-200'
         },
         {
             id: 'conservation',
             label: 'Conservation',
             icon: Shield,
             description: 'Habitat protection',
-            color: 'text-emerald-600 bg-emerald-50 border-emerald-200'
         },
         {
             id: 'other',
             label: 'Other',
             icon: Plus,
             description: 'Custom project type',
-            color: 'text-purple-600 bg-purple-50 border-purple-200'
         }
     ];
 
@@ -537,9 +514,12 @@ export function CreateProjectUI() {
 
         try {
             setLoading(true);
-            const response = await createNewProject(accessToken, payLoad, selectedProject.uid);
+            const response = await createNewProject(accessToken, payLoad);
             if (response && response.statusCode === 200 || response.statusCode === 201) {
                 toast.success('Project created successfully!');
+                if (response.data?.uid) {
+                    localStorage.setItem('project', response.data.uid);
+                }
                 router.replace('/dashboard');
                 setTimeout(() => {
                     window.location.reload();
@@ -559,17 +539,21 @@ export function CreateProjectUI() {
     };
 
     if (pageLoading) {
-        return <div style={{ display: 'flex', height: "100%", width: '100%', flexDirection: 'column', justifyContent: 'center', alignItems: 'center' }}><Spinner /></div>
+        return (
+            <div className="flex h-full w-full flex-col items-center justify-center">
+                <Spinner />
+            </div>
+        )
     }
 
     return (
-        <div className="min-h-full flex flex-col bg-gray-50">
+        <div className="min-h-full flex flex-col bg-muted/30">
             {/* Header */}
             <ProjectHeader onBack={router.back} />
 
             {/* Main Content */}
             <div className="flex-1 flex flex-col lg:flex-row-reverse overflow-hidden">
-                <div className="w-full lg:w-1/2 bg-gray-50">
+                <div className="w-full lg:w-1/2">
                     <div className="h-[60vh] md:h-[45vh] lg:h-full p-6">
                         <MapSection
                             finalGeoJSON={finalGeoJSON}
@@ -579,7 +563,7 @@ export function CreateProjectUI() {
                     </div>
                 </div>
 
-                <div className="w-full lg:w-1/2 lg:border-r border-gray-200 bg-white">
+                <div className="w-full lg:w-1/2 lg:border-r border-border bg-card">
                     <div className="h-full overflow-y-auto p-6">
                         <ProjectDetailsForm
                             formData={formData}
@@ -595,14 +579,6 @@ export function CreateProjectUI() {
                 </div>
 
             </div>
-
-            {/* Footer */}
-            {/* <ProjectFooter
-                agreeTerms={agreeTerms}
-                onAgreeTermsChange={() => setAgreeTerms(!agreeTerms)}
-                onSubmit={handleSubmit}
-                loading={loading}
-            /> */}
         </div>
     );
 }

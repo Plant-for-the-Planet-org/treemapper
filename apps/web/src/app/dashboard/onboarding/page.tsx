@@ -38,6 +38,20 @@ const Onboarding = ({ forProject }) => {
   };
 
   const handleOnboardingComplete = async (allData) => {
+    const projectType = allData.selectedPlan === 'trial'
+      ? 'development'
+      : allData.selectedPlan === 'public'
+        ? 'platform'
+        : 'private';
+
+    // Additional-project flow: skip first-time onboarding (which creates a
+    // project and repoints the user's primary project). The project form is
+    // the single creation path here.
+    if (forProject) {
+      window.location.replace(`/dashboard?name=${allData.projectName}&type=${projectType}`)
+      return
+    }
+
     setLoading(true)
     try {
       const payload = {
@@ -58,7 +72,7 @@ const Onboarding = ({ forProject }) => {
       if (resp.statusCode !== 200 && resp.statusCode !== 201) {
         throw ''
       }
-      window.location.replace(`/dashboard?name=${allData.projectName}&type=${payload.devMode ? 'development' : payload.forestCloud ? 'platform' : 'private'}`)
+      window.location.replace(`/dashboard?name=${allData.projectName}&type=${projectType}`)
     } catch (error) {
       toast.error("Something went wrong")
       setLoading(false)
