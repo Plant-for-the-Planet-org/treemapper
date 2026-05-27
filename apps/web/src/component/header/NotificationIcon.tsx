@@ -9,7 +9,6 @@ import NotificationIcon, { NotificationType } from './NotificationIcons';
 import { NotificationModal } from './NotificationModal';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
@@ -144,22 +143,22 @@ const NotificationsPanel = ({ variant = 'header' }: { variant?: 'header' | 'side
           align={isSidebar ? "start" : "end"}
           side={isSidebar ? "top" : "bottom"}
           sideOffset={8}
-          className="w-80 md:w-96 p-0 overflow-hidden"
+          className="w-80 p-0 gap-0 overflow-hidden"
         >
           {/* Header */}
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
-            <div>
-              <h3 className="text-sm font-semibold text-foreground">Notifications</h3>
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border">
+            <h3 className="text-sm font-medium text-foreground">
+              Notifications
               {unreadCount > 0 && (
-                <p className="text-xs text-muted-foreground">{unreadCount} unread</p>
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">{unreadCount} unread</span>
               )}
-            </div>
+            </h3>
             {unreadCount > 0 && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={markAllAsRead}
-                className="h-auto px-2 py-1 text-xs"
+                className="h-6 px-1.5 text-xs text-muted-foreground"
               >
                 Mark all read
               </Button>
@@ -168,23 +167,26 @@ const NotificationsPanel = ({ variant = 'header' }: { variant?: 'header' | 'side
 
           {/* List */}
           {notifications.length > 0 ? (
-            <ScrollArea className="max-h-96">
+            <div className="max-h-80 overflow-y-auto">
               {notifications.map(notification => (
                 <button
                   key={notification.id}
                   onClick={() => openNotificationModal(notification)}
                   className={cn(
-                    "group flex w-full items-start gap-3 px-4 py-3 text-left border-b border-border/60 transition-colors hover:bg-accent",
-                    !notification.isRead && "bg-accent/40"
+                    "group flex w-full items-start gap-2.5 px-3 py-2 text-left border-b border-border/60 transition-colors hover:bg-accent",
+                    !notification.isRead && "bg-primary/10"
                   )}
                 >
-                  <NotificationIcon type={notification.type} priority={notification.priority} image={notification.image} />
+                  <NotificationIcon type={notification.type} priority={notification.priority} image={notification.image} size={16} />
 
                   <div className="flex-1 min-w-0">
-                    <div className="mb-1 flex items-start justify-between gap-2">
-                      <div className="flex min-w-0 items-center gap-2">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
                         {notification.icon}
-                        <h4 className="truncate text-sm font-medium text-foreground">{notification.title}</h4>
+                        <h4 className={cn(
+                          "truncate text-[13px] leading-tight",
+                          notification.isRead ? "font-normal text-muted-foreground" : "font-medium text-foreground"
+                        )}>{notification.title}</h4>
                       </div>
                       <span
                         role="button"
@@ -193,27 +195,22 @@ const NotificationsPanel = ({ variant = 'header' }: { variant?: 'header' | 'side
                           e.stopPropagation();
                           removeNotification(notification.id);
                         }}
-                        className="p-1 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                        className="shrink-0 p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
                       >
-                        <X size={14} />
+                        <X size={13} />
                       </span>
                     </div>
 
-                    <p className="mb-2 line-clamp-2 text-sm text-muted-foreground">{notification.message}</p>
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.message}</p>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-muted-foreground">{getTimeAgo(notification.createdAt)}</span>
-                      {!notification.isRead && (
-                        <span className="h-2 w-2 rounded-full bg-green-700" />
-                      )}
-                    </div>
+                    <p className="mt-1 text-[11px] text-muted-foreground">{getTimeAgo(notification.createdAt)}</p>
                   </div>
                 </button>
               ))}
-            </ScrollArea>
+            </div>
           ) : (
-            <div className="py-10 text-center">
-              <Bell size={40} className="mx-auto mb-3 text-muted-foreground/40" />
+            <div className="px-3 py-8 text-center">
+              <Bell size={28} className="mx-auto mb-2 text-muted-foreground/40" />
               <p className="text-sm font-medium text-foreground">No notifications</p>
               <p className="text-xs text-muted-foreground">You're all caught up!</p>
             </div>
