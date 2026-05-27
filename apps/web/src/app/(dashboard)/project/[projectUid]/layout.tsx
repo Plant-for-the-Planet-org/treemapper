@@ -56,7 +56,7 @@ export default function ProjectLayout({ children }: { children: React.ReactNode 
           This project does not exist or you do not have access to it.
         </p>
         <button
-          onClick={() => router.push('/dashboard')}
+          onClick={() => router.push('/')}
           className="rounded-lg border border-gray-300 px-4 py-2 text-sm text-gray-700 transition hover:bg-gray-100"
         >
           Go to dashboard

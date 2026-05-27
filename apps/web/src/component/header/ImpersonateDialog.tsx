@@ -28,7 +28,7 @@ export default function ImpersonateDialog({ open, onOpenChange }: { open: boolea
       setLoading(true)
       const resp = await startImpersonationWork(accessToken || '', value)
       if (resp.statusCode === 200 || resp.statusCode === 201) {
-        window.location.replace('/dashboard')
+        window.location.replace('/')
         return
       }
       setLoading(false)

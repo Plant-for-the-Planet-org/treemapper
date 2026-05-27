@@ -168,7 +168,7 @@ function UserRow({ user, token, goHome }: { user: UserDetail; token: string; goH
 export function MemberManagementSection({ goHome }: { goHome?: () => void }) {
   const { accessToken } = useToken();
   const currentUser = useUserStore((state) => state.user);
-  const defaultGoHome = () => { window.location.replace('/dashboard'); };
+  const defaultGoHome = () => { window.location.replace('/'); };
   const resolvedGoHome = goHome ?? defaultGoHome;
   const [users, setUsers] = useState<UserDetail[]>([]);
   const [isLoading, setIsLoading] = useState(true);

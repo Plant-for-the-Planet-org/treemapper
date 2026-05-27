@@ -183,7 +183,7 @@ const CustomFormatPage = () => {
                 <ResultsStep
                     result={uploadResult}
                     onStartOver={handleStartOver}
-                    onGoToDashboard={() => router.push('/dashboard')}
+                    onGoToDashboard={() => router.push('/')}
                 />
             )}
         </div>

@@ -23,7 +23,7 @@ export default function ImpersonationBanner() {
       const resp = await exitImpersonationWork(accessToken || '')
       if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error('exit failed')
       // Re-bootstrap as the real user; /dashboard resolves their primary project.
-      setTimeout(() => { window.location.href = '/dashboard' }, 600)
+      setTimeout(() => { window.location.href = '/' }, 600)
     } catch {
       setExiting(false)
       toast.error('Could not exit impersonation. Please try again.')

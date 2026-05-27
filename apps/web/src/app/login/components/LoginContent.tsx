@@ -24,7 +24,7 @@ export default function LoginContent() {
 
   useEffect(() => {
     if (tokenLoading && user) {
-      router.push('/dashboard');
+      router.push('/');
       return
     }
   }, [user, tokenLoading, router]);

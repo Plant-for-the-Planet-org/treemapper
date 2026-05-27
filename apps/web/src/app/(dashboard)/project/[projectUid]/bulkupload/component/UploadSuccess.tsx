@@ -150,7 +150,7 @@ const UploadSuccess = ({ validatedData, selectedProject, selectedSite, onBack, o
 
       <div className="flex flex-col sm:flex-row gap-2 justify-center">
         <Button onClick={() => (window.location.href = `/project/${selectedProject?.uid}/intervention`)}>Go to intervention</Button>
-        <Button variant="outline" onClick={() => (window.location.href = '/dashboard')}>Home</Button>
+        <Button variant="outline" onClick={() => (window.location.href = '/')}>Home</Button>
       </div>
     </div>
   )

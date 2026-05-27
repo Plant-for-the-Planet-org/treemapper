@@ -10,7 +10,7 @@ export default function WorkspaceImpersonationPage() {
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="max-w-4xl mx-auto">
-        <ImpersonationSection token={accessToken} goHome={() => router.push('/dashboard')} />
+        <ImpersonationSection token={accessToken} goHome={() => router.push('/')} />
       </div>
     </div>
   )

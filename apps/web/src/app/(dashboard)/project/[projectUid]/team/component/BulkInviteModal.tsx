@@ -35,7 +35,7 @@ const BulkInvitationModal = ({ isOpen, onClose }) => {
     const { accessToken } = useToken()
     const SelectedProject = useProjectStore(state => state.selectedProject)
     const inviteurl = typeof window !== 'undefined'
-        ? `${window.location.protocol}//${window.location.host}/dashboard?project-link`
+        ? `${window.location.protocol}//${window.location.host}/?project-link`
         : ''
 
     useEffect(() => {
