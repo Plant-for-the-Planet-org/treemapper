@@ -493,10 +493,10 @@ const ProjectSettings = () => {
 
   const isPlatformWorkspace = selectedWorkspce?.slug === 'platform-projects'
   const isImpersonatingSuperAdmin = currentUser?.impersonated === true && currentUser?.type === 'superadmin'
-  const isPlatformLocked = isPlatformWorkspace && !isImpersonatingSuperAdmin
-  const isProjectInactive = selectedProject?.status !== 'active'
 
-  const canEdit = isImpersonatingSuperAdmin || (!isPlatformLocked && !isProjectInactive && ['owner', 'admin'].includes(userRole || ''))
+  const canEdit = isImpersonatingSuperAdmin || ['owner', 'admin'].includes(userRole || '')
+  // Basic info (name, slug, etc.) is managed at the platform level for platform-linked projects.
+  const canEditBasicInfo = canEdit && (isImpersonatingSuperAdmin || !isPlatformWorkspace)
 
   const [projectData, setProjectData] = useState<any>({
     name: '', slug: '', type: '', ecosystem: '', scale: '', target: '', website: '', videoUrl: '',
@@ -720,7 +720,7 @@ const ProjectSettings = () => {
       case 'danger':
         return <DangerZone projectData={projectData} showDeleteConfirm={showDeleteConfirm} setShowDeleteConfirm={setShowDeleteConfirm} handleDeleteProject={handleDeleteProject} canEdit={canEdit} />
       default:
-        return <GeneralSettings projectData={projectData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} loading={loading} validationErrors={validationErrors} projectImages={projectImages} onImageUpload={handleImageUpload} onImageDelete={handleImageDelete} imageUploading={imageUploading} canEdit={canEdit} />
+        return <GeneralSettings projectData={projectData} handleInputChange={handleInputChange} handleSubmit={handleSubmit} loading={loading} validationErrors={validationErrors} projectImages={projectImages} onImageUpload={handleImageUpload} onImageDelete={handleImageDelete} imageUploading={imageUploading} canEdit={canEditBasicInfo} />
     }
   }
 
@@ -728,18 +728,12 @@ const ProjectSettings = () => {
     <div className="h-full overflow-y-auto">
       {notification && <NotificationToast type={notification.type} message={notification.message} onClose={() => setNotification(null)} />}
 
-      {isPlatformLocked && (
+      {isPlatformWorkspace && !isImpersonatingSuperAdmin && (
         <Alert className="rounded-none border-x-0 border-t-0">
           <AlertCircle />
           <AlertDescription>
-            This project belongs to the platform workspace. Settings are read-only and can only be updated in impersonation mode.
+            This project is linked to the platform workspace. Basic information is managed at the platform level, but you can still update location, features, and other settings.
           </AlertDescription>
-        </Alert>
-      )}
-      {!isPlatformLocked && isProjectInactive && !isImpersonatingSuperAdmin && (
-        <Alert className="rounded-none border-x-0 border-t-0">
-          <Lock />
-          <AlertDescription>This project is not active. Settings are read-only.</AlertDescription>
         </Alert>
       )}
 
