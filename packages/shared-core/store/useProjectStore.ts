@@ -8,30 +8,18 @@ interface ProjectStore {
   selectProject: (p: ProjectWithUserRoleI) => void
   loading?: boolean
   error?: string
-  selectedWorkspce: {
-    name: string,
-    uid: string,
-    role: string,
-    type: string
-  } | null
-  workspace: Array<{
-    name: string,
-    uid: string,
-    role: string,
-    type: string
-  }>
-  addWorkspace: (p: Array<{
-    name: string,
-    uid: string,
-    role: string,
-    type: string
-  }>) => void
-  setDefaultWorkspce: (p: {
-    name: string,
-    uid: string,
-    role: string,
-    type: string
-  }) => void
+  selectedWorkspce: WorkspaceSummary | null
+  workspace: Array<WorkspaceSummary>
+  addWorkspace: (p: Array<WorkspaceSummary>) => void
+  setDefaultWorkspce: (p: WorkspaceSummary) => void
+}
+
+interface WorkspaceSummary {
+  name: string
+  uid: string
+  role: string
+  type: string
+  slug?: string
 }
 
 // Create the typed store

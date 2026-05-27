@@ -78,16 +78,21 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [x] drop `/dashboard` prefix
 
 ### Phase 1 — foundation (no visible change)
-- [ ] Add `app/project/[projectUid]/layout.tsx` that resolves the param,
-      hydrates the store via `selectProject()`, and renders not-found /
-      no-access states
-- [ ] Add equivalent `app/workspace/[workspaceUid]/layout.tsx`
+- [x] Add `(dashboard)` route group + `layout.tsx` reusing
+      DashboardClientLayout, so prefix-less routes get the same chrome
+- [x] Add `app/(dashboard)/project/[projectUid]/layout.tsx` that resolves the
+      param (via `useParams`), hydrates the store via `selectProject()` +
+      matching workspace, and renders spinner / not-found-no-access states
+- [ ] Add equivalent `app/(dashboard)/workspace/[workspaceUid]/layout.tsx`
 - [ ] Confirm the 34 `selectedProject` readers work unchanged against the
-      URL-hydrated store
+      URL-hydrated store (runtime check pending — needs auth + backend)
 
 ### Phase 2 — move project-scoped pages
-- [ ] Relocate project-scoped pages under `[projectUid]/` (folder moves;
-      page bodies unchanged)
+- [x] settings (POC) → `(dashboard)/project/[projectUid]/settings/page.tsx`
+- [x] redirect old `/dashboard/settings` → `/project/<activeId>/settings`
+- [ ] Relocate remaining project-scoped pages under `[projectUid]/`
+      (overview, sites, species, team, intervention, new-intervention,
+      forms, leaderboard, approvals, dataexplore, bulkupload, newsite)
 - [ ] Add redirects from old `/dashboard/*` flat paths (resolve active id
       from localStorage during transition only; removed in Phase 5)
 
