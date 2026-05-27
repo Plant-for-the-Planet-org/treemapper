@@ -144,6 +144,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const userInitials = userName
     ? userName.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
     : 'U'
+  const userImage = (User as any)?.image as string | undefined
 
   const canImpersonate = User?.type === 'superadmin'
   const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
@@ -376,10 +377,12 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
+                  className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors overflow-hidden"
                   title={userName}
                 >
-                  <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+                  {userImage
+                    ? <img src={userImage} alt={userName} className="w-full h-full object-cover" />
+                    : <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>}
                 </button>
               </DropdownMenuTrigger>
               {settingsMenu}
@@ -388,8 +391,10 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         ) : (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+              <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {userImage
+                  ? <img src={userImage} alt={userName} className="w-full h-full object-cover" />
+                  : <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>}
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-medium text-sidebar-foreground truncate leading-tight">{userName}</div>
