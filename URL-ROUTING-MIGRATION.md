@@ -146,16 +146,22 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 ### Phase 5 — drop /dashboard + cleanup
 - [x] Profile → `/profile` via a `(standalone)` route group + standalone variant
 - [x] Delete unused `WorkspaceSettings.tsx`
-- [ ] Move remaining standalone pages (onboarding, select-workspace, project
-      create) off `/dashboard` — CRITICAL PATH (new-user/creation flow with
-      `?name=` handoffs); do with runtime testing
-- [ ] Update auth middleware + login `returnTo` + root landing off `/dashboard`
-      — CRITICAL PATH (login); do with runtime testing. Keeping a thin
-      `/dashboard` landing-redirect is a safe alternative to a full drop
+- [x] Move onboarding→`/onboard`, select-workspace→`/select-workspace`,
+      project-create→`/create-project` in the `(standalone)` group; repoint
+      the `?name=` handoff (onboarding → `/create-project?name=`); drop the
+      handleNav indirection
+- [x] Landing moved to `/` (standalone group, invite-param aware); middleware
+      no longer forces `/`→`/dashboard`; login `returnTo` defaults to `/`;
+      bare `/dashboard` is a query-preserving redirect to `/`
+- [x] Repoint invite-link base (`/?project-link`) + go-home/login links to `/`
 - [x] Remove `localStorage('project')` entirely (read + writes); landings
       resolve via `selectedProject` then `primaryProjectUid`
-- [ ] Remove `router.refresh()`-based selection leftovers
-- [ ] KEEP old `/dashboard/*` redirect stubs permanently — real users have
-      bookmarks/shared links. `/dashboard` (bare) must preserve the query
-      string so invite params (`?project-invite=`) still reach the modal.
-- [ ] Verify deep links, login redirect, and not-found states end to end
+- [x] KEEP old `/dashboard/*` redirect stubs permanently — real users have
+      bookmarks/shared links. `/dashboard` (bare) preserves the query string so
+      invite params (`?project-invite=`) still reach the modal.
+- [ ] (minor) Remove dead `router.refresh()`/`: '/dashboard'` fallback branches
+      — harmless (the redirect covers them)
+- [ ] RUNTIME VERIFY end to end: login lands right, new-user → `/onboard` →
+      `/create-project` → project; invite link joins; deep links hydrate;
+      not-found/no-access; impersonation exit. Build to confirm no route-group
+      conflicts (cannot run here).
