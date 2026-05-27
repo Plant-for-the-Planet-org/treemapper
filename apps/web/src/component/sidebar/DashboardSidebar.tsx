@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
@@ -28,7 +28,7 @@ import {
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
   SidebarMenuButton, useSidebar,
 } from '@/components/ui/sidebar'
-import { subpageFromPath } from '@/lib/projectRoutes'
+import { subpageFromPath, isMigratedRoute, projectHref } from '@/lib/projectRoutes'
 
 interface SidebarProps {
   createNewProject: () => void
@@ -66,6 +66,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     else if (isTablet) setOpen(false)
   }
   const pathname = usePathname()
+  const router = useRouter()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
   const {
@@ -113,7 +114,12 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       selectProject(project)
       const ws = workspace.find(el => el.uid === project.workspace['uid'])
       if (ws) setDefaultWorkspce(ws)
-      window.location.reload()
+      const subpage = subpageFromPath(pathname)
+      if (subpage && isMigratedRoute(subpage)) {
+        router.push(projectHref(project.uid, subpage))
+      } else {
+        window.location.reload()
+      }
     } catch {
       toast.error('Something went wrong')
     }
