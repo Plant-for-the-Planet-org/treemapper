@@ -38,8 +38,9 @@ Plan: a route-segment layout reads the id from the URL and calls
 filled from the URL now instead of from localStorage. This is what keeps the
 blast radius small.
 
-localStorage is demoted to a "last-viewed" hint, used only to redirect a
-bare landing (`/`) to a sensible default.
+localStorage(`project`) becomes irrelevant once the URL drives selection.
+It is **deprecated and removed at the end** (Phase 5). A bare landing (`/`)
+redirects using `primaryProjectUid` from the user, not localStorage.
 
 ## Page inventory
 
@@ -88,7 +89,7 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [ ] Relocate project-scoped pages under `[projectUid]/` (folder moves;
       page bodies unchanged)
 - [ ] Add redirects from old `/dashboard/*` flat paths (resolve active id
-      from localStorage during transition)
+      from localStorage during transition only; removed in Phase 5)
 
 ### Phase 3 — navigation writes the URL
 - [ ] Switcher (`ProjectTabs`) navigates to
@@ -104,6 +105,7 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [ ] Move standalone pages (profile, onboarding, select-workspace, project)
       out of `/dashboard`
 - [ ] Update auth middleware + login `returnTo` for the new root paths
-- [ ] Demote `localStorage('project')` to a last-viewed hint for bare `/`
+- [ ] Remove `localStorage('project')` entirely (read + writes); bare `/`
+      redirects via `primaryProjectUid`
 - [ ] Remove `router.refresh()`-based selection leftovers
 - [ ] Verify deep links, login redirect, and not-found states end to end
