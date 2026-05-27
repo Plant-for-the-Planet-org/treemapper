@@ -403,7 +403,7 @@ export function CreateProjectUI() {
         const name = searchParams.get('name');
         const type = searchParams.get('type');
         if (!name) {
-            router.replace('/select-workspace')
+            router.replace('/onboard?flow=add-project')
             return
         }
         setPageLoading(false)

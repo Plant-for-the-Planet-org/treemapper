@@ -3,9 +3,9 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 
-// Moved to /select-workspace.
+// Moved to /onboard?flow=add-project.
 export default function Redirect() {
   const router = useRouter();
-  useEffect(() => { router.replace('/select-workspace'); }, [router]);
+  useEffect(() => { router.replace('/onboard?flow=add-project'); }, [router]);
   return null;
 }

@@ -146,10 +146,13 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 ### Phase 5 — drop /dashboard + cleanup
 - [x] Profile → `/profile` via a `(standalone)` route group + standalone variant
 - [x] Delete unused `WorkspaceSettings.tsx`
-- [x] Move onboarding→`/onboard`, select-workspace→`/select-workspace`,
-      project-create→`/create-project` in the `(standalone)` group; repoint
-      the `?name=` handoff (onboarding → `/create-project?name=`); drop the
-      handleNav indirection
+- [x] Move onboarding→`/onboard`, project-create→`/create-project` in the
+      `(standalone)` group; repoint the `?name=` handoff (onboarding →
+      `/create-project?name=`); drop the handleNav indirection
+- [x] Drop the separate `/select-workspace` route — it was only a wrapper
+      rendering `<Onboarding forProject />`. The additional-project flow is now
+      `/onboard?flow=add-project` (onboard reads the flag from the query string);
+      `/dashboard/select-workspace` stub repointed to it
 - [x] Landing moved to `/` (standalone group, invite-param aware); middleware
       no longer forces `/`→`/dashboard`; login `returnTo` defaults to `/`;
       bare `/dashboard` is a query-preserving redirect to `/`
@@ -159,8 +162,12 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [x] KEEP old `/dashboard/*` redirect stubs permanently — real users have
       bookmarks/shared links. `/dashboard` (bare) preserves the query string so
       invite params (`?project-invite=`) still reach the modal.
-- [ ] (minor) Remove dead `router.refresh()`/`: '/dashboard'` fallback branches
-      — harmless (the redirect covers them)
+- [x] Remove dead `router.refresh()`/`window.location.reload()`/`: '/dashboard'`
+      fallback branches. Project switch (ProjectTabs + DashboardSidebar) and the
+      `updateRoute` nav handler now always write the id-based URL via
+      `projectHref(uid, subpageFromPath() ?? 'overview')`; dropped the unused
+      `isMigratedRoute` / `MIGRATED_PROJECT_ROUTES` (every project subpage is
+      migrated, so the guard was always true)
 - [ ] RUNTIME VERIFY end to end: login lands right, new-user → `/onboard` →
       `/create-project` → project; invite link joins; deep links hydrate;
       not-found/no-access; impersonation exit. Build to confirm no route-group

@@ -20,7 +20,7 @@ import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
-import { isMigratedRoute, projectHref, subpageFromPath } from '@/lib/projectRoutes';
+import { projectHref, subpageFromPath } from '@/lib/projectRoutes';
 import { logout } from '@/lib/logout';
 
 const STANDALONE_ROUTES = [
@@ -30,7 +30,6 @@ const STANDALONE_ROUTES = [
   'new-intervention',
   'onboarding',
   'workspace',
-  'select-workspace',
 ];
 
 // Project subpages that render full-screen without the sidebar, even though
@@ -234,11 +233,11 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
       }
       const subpage = newRoute === '' ? 'overview' : newRoute;
       const projectUid = selectedProject?.uid;
-      if (projectUid && isMigratedRoute(subpage)) {
+      if (projectUid) {
         router.push(projectHref(projectUid, subpage));
         return;
       }
-      router.push(newRoute === '' ? '/dashboard' : `/dashboard/${newRoute}`);
+      router.push('/');
     }
   };
 

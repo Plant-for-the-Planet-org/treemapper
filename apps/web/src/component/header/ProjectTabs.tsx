@@ -14,7 +14,7 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 import { selectOrg } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { toast } from 'react-toastify';
-import { subpageFromPath, isMigratedRoute, projectHref } from '@/lib/projectRoutes';
+import { subpageFromPath, projectHref } from '@/lib/projectRoutes';
 
 interface Props {
   createNewProject: () => void;
@@ -47,12 +47,6 @@ const ProjectDropdown = ({
   const pathname = usePathname();
   const { accessToken } = useToken()
 
-  // Switching a project on a migrated subpage navigates to the id-based URL;
-  // others keep the legacy in-place behavior until they migrate too.
-  const migratedTargetPath = (projectUid: string): string | null => {
-    const subpage = subpageFromPath(pathname);
-    return subpage && isMigratedRoute(subpage) ? projectHref(projectUid, subpage) : null;
-  };
   const User = useUserStore(state => state.user)
 
   // Group projects by workspace and sort
@@ -103,12 +97,8 @@ const ProjectDropdown = ({
         if (finalWorkspace.length > 0) {
           setDefaultWorkspce(finalWorkspace[0])
         }
-        const target = migratedTargetPath(project.uid);
-        if (target) {
-          router.push(target);
-        } else {
-          router.refresh();
-        }
+        const subpage = subpageFromPath(pathname) ?? 'overview';
+        router.push(projectHref(project.uid, subpage));
       }
     } catch (e) {
       toast.error("Something went wrong")

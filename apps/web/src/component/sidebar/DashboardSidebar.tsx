@@ -28,7 +28,7 @@ import {
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
   SidebarMenuButton, useSidebar,
 } from '@/components/ui/sidebar'
-import { subpageFromPath, isMigratedRoute, projectHref } from '@/lib/projectRoutes'
+import { subpageFromPath, projectHref } from '@/lib/projectRoutes'
 import { logout } from '@/lib/logout'
 
 interface SidebarProps {
@@ -115,12 +115,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       selectProject(project)
       const ws = workspace.find(el => el.uid === project.workspace['uid'])
       if (ws) setDefaultWorkspce(ws)
-      const subpage = subpageFromPath(pathname)
-      if (subpage && isMigratedRoute(subpage)) {
-        router.push(projectHref(project.uid, subpage))
-      } else {
-        window.location.reload()
-      }
+      const subpage = subpageFromPath(pathname) ?? 'overview'
+      router.push(projectHref(project.uid, subpage))
     } catch {
       toast.error('Something went wrong')
     }

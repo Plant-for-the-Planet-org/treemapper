@@ -10,7 +10,7 @@ import Image from 'next/image';
 import Spinner from '@/component/Spinner';
 import pftpLogo from '@/assets/pftp-logo.svg';
 
-export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
+export const ScreenOne = ({ onNext, setupProject, forProject, isExistingUser, loading }) => {
   const [formData, setFormData] = useState({
     projectName: '',
     selectedPlan: ''
@@ -78,7 +78,7 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
   }, [formData.projectName, formData.selectedPlan, errors.projectName]);
 
   const handleSubmit = useCallback(() => {
-    if (formData.selectedPlan !== 'private' || forProject) {
+    if (formData.selectedPlan !== 'private' || forProject || isExistingUser) {
       setupProject({
         projectName: formData.projectName,
         selectedPlan: formData.selectedPlan
@@ -100,15 +100,12 @@ export const ScreenOne = ({ onNext, setupProject, forProject, loading }) => {
     >
       {/* Header */}
       <div className="text-center space-y-2">
-        {forProject ? <h1 className="text-3xl font-bold text-gray-900">Select workspace for your project</h1> : <h1 className="text-3xl font-bold text-gray-900">Get started with TreeMapper</h1>}
+        {forProject ? <h1 className="text-3xl font-bold text-gray-900">Create Project</h1> : <h1 className="text-3xl font-bold text-gray-900">Get started with TreeMapper</h1>}
       </div>
 
       {/* Project Name Card */}
       <Card >
         <CardContent className="space-y-4">
-          <CardDescription>
-            Choose a name for your project
-          </CardDescription>
           <div className="space-y-2">
             <Label htmlFor="projectName">Project Name</Label>
             <Input
