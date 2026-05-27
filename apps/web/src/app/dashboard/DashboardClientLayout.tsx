@@ -20,7 +20,7 @@ import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
-import { isMigratedRoute, projectHref } from '@/lib/projectRoutes';
+import { isMigratedRoute, projectHref, subpageFromPath } from '@/lib/projectRoutes';
 import { logout } from '@/lib/logout';
 
 const STANDALONE_ROUTES = [
@@ -32,6 +32,10 @@ const STANDALONE_ROUTES = [
   'workspace',
   'select-workspace',
 ];
+
+// Project subpages that render full-screen without the sidebar, even though
+// they live under /project/:projectUid.
+const STANDALONE_PROJECT_SUBPAGES = ['newsite', 'new-intervention'];
 
 // Consolidated loading states
 type LoadingState = 'loading' | 'success' | 'error' | 'idle';
@@ -51,7 +55,10 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
 
   const getCurrentSection = (path: string): string => {
     const section = STANDALONE_ROUTES.find(route => path.includes(`/dashboard/${route}`));
-    return section || 'default';
+    if (section) return section;
+    const sub = subpageFromPath(path);
+    if (sub && STANDALONE_PROJECT_SUBPAGES.includes(sub)) return sub;
+    return 'default';
   };
 
   const currentSection = getCurrentSection(pathname);

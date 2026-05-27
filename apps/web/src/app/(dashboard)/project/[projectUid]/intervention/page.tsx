@@ -275,7 +275,7 @@ const InterventionListSidebar = ({
                     Clear Filters
                   </Button>
                 ) : (
-                  <Button variant="primary" size="sm" onClick={() => router.push('/dashboard/new-intervention')}>
+                  <Button variant="primary" size="sm" onClick={() => router.push(`/project//new-intervention`)}>
                     Create Intervention
                   </Button>
                 )}
@@ -369,7 +369,7 @@ const EmptyStateView = ({
               Clear All Filters
             </Button>
           ) : null}
-          <Button variant="primary" onClick={() => { router.push('/dashboard/new-intervention') }} className='bg-[#007A49] hover:bg-[#006B3F]'>
+          <Button variant="primary" onClick={() => { router.push(`/project//new-intervention`) }} className='bg-[#007A49] hover:bg-[#006B3F]'>
             <Plus className="h-4 w-4 mr-2" />
             Create New Intervention
           </Button>
@@ -693,7 +693,7 @@ const TreeMapperUI = () => {
         setSearchTerm={setSearchTerm}
         interventionTypes={interventionTypes}
         sites={sites}
-        newIntervention={() => { router.push('/dashboard/new-intervention') }}
+        newIntervention={() => { router.push(`/project//new-intervention`) }}
         bulkUpload={() => { router.push(`/project/${projectUid}/bulkupload`) }}
         userRole={selectedProject?.userRole}
         handleDateRangeChange={handleDateRangeChange}

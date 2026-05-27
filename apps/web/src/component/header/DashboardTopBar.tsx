@@ -59,7 +59,7 @@ export default function DashboardTopBar() {
       {isSites && isAdminOrOwner && (
         <Button
           size="sm"
-          onClick={() => router.push('/dashboard/newsite')}
+          onClick={() => router.push(selectedProject ? `/project/${selectedProject.uid}/newsite` : '/dashboard')}
           className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90"
         >
           <Plus size={14} />

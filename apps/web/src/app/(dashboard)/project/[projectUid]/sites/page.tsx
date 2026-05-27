@@ -46,7 +46,7 @@ const SiteManagementPage = () => {
   }, [selectedProject]);
 
   const handleCreateNewSite = () => {
-    router.push('/dashboard/newsite')
+    router.push(`/project/${selectedProject?.uid}/newsite`)
   }
 
   const fetchProjectSites = async () => {
