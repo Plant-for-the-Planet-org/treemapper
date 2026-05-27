@@ -10,20 +10,20 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useIsMobile } from '@/hooks/use-mobile'
 import { useRegisteredTopBarActions } from './TopBarActions'
 import { cn } from '@/lib/utils'
+import { subpageFromPath, projectHref } from '@/lib/projectRoutes'
 
 const ROUTE_LABELS: Record<string, string> = {
-  '/dashboard': 'Overview',
-  '/dashboard/overview': 'Overview',
-  '/dashboard/sites': 'Sites',
-  '/dashboard/species': 'Species',
-  '/dashboard/team': 'Team',
-  '/dashboard/intervention': 'Interventions',
-  '/dashboard/bulkupload': 'Bulk Upload',
-  '/dashboard/approvals': 'Approvals',
-  '/dashboard/forms': 'Forms',
-  '/dashboard/dataexplore': 'Data Explorer',
-  '/dashboard/leaderboard': 'Leaderboard',
-  '/dashboard/settings': 'Settings',
+  overview: 'Overview',
+  sites: 'Sites',
+  species: 'Species',
+  team: 'Team',
+  intervention: 'Interventions',
+  bulkupload: 'Bulk Upload',
+  approvals: 'Approvals',
+  forms: 'Forms',
+  dataexplore: 'Data Explorer',
+  leaderboard: 'Leaderboard',
+  settings: 'Settings',
 }
 
 export default function DashboardTopBar() {
@@ -33,20 +33,16 @@ export default function DashboardTopBar() {
   const selectedProject = useProjectStore(state => state.selectedProject)
   const projectRole = useProjectStore(state => state.selectedProject?.userRole)
   const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
-  const isOverview = pathname === '/dashboard/overview' || pathname === '/dashboard'
-  const isSites = pathname === '/dashboard/sites' || pathname.startsWith('/dashboard/sites/')
+  const subpage = subpageFromPath(pathname)
+  const isOverview = !subpage || subpage === 'overview'
+  const isSites = subpage === 'sites'
   const registeredActions = useRegisteredTopBarActions()
 
-  const pageLabel = (() => {
-    // exact match first
-    if (ROUTE_LABELS[pathname]) return ROUTE_LABELS[pathname]
-    for (const [prefix, label] of Object.entries(ROUTE_LABELS)) {
-      if (pathname.startsWith(prefix + '/') || pathname.startsWith(prefix + '?')) {
-        return label
-      }
-    }
-    return null
-  })()
+  const dataExplorePath = selectedProject
+    ? projectHref(selectedProject.uid, 'dataexplore')
+    : '/dashboard/dataexplore'
+
+  const pageLabel = isOverview ? 'Overview' : (subpage ? ROUTE_LABELS[subpage] ?? null : null)
 
   return (
     <div className="h-11 flex items-center justify-between px-3 border-b border-border/50 flex-shrink-0">
@@ -129,7 +125,7 @@ export default function DashboardTopBar() {
                 <span className="ml-auto text-[10px] text-muted-foreground/60">Soon</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => router.push('/dashboard/dataexplore')}>
+              <DropdownMenuItem onClick={() => router.push(dataExplorePath)}>
                 <BarChart2 size={14} />
                 Data Explorer
               </DropdownMenuItem>
@@ -141,7 +137,7 @@ export default function DashboardTopBar() {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => router.push('/dashboard/dataexplore')}
+              onClick={() => router.push(dataExplorePath)}
               className="h-8 gap-1.5 text-xs font-normal text-primary border-primary/30 hover:bg-primary/10 hover:text-primary"
             >
               <BarChart2 size={14} />
