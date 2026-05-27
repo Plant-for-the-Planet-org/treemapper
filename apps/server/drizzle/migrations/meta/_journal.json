@@ -15,6 +15,13 @@
       "when": 1775534330189,
       "tag": "0001_odd_kingpin",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779848410183,
+      "tag": "0002_lumpy_gwen_stacy",
+      "breakpoints": true
     }
   ]
 }
