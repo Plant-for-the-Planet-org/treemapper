@@ -155,5 +155,7 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [x] Remove `localStorage('project')` entirely (read + writes); landings
       resolve via `selectedProject` then `primaryProjectUid`
 - [ ] Remove `router.refresh()`-based selection leftovers
-- [ ] Delete old `/dashboard/*` redirect stubs once nothing links to them
+- [ ] KEEP old `/dashboard/*` redirect stubs permanently — real users have
+      bookmarks/shared links. `/dashboard` (bare) must preserve the query
+      string so invite params (`?project-invite=`) still reach the modal.
 - [ ] Verify deep links, login redirect, and not-found states end to end
