@@ -112,6 +112,17 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
       `PATCH /users/me` accepts `{ primaryProjectUid }` (body is untyped, so
       it passes through). Frontend-only work. Drives the bare `/` landing.
 
+### Post-implementation — verify + cleanup (do once all phases land)
+- [ ] Runtime-verify in the browser (needs Auth0 + backend, not done during
+      build): deep link to `/project/:uid/settings` hydrates the store and
+      renders chrome; old `/dashboard/*` paths redirect; not-found / no-access
+      shows for ids the user cannot access; login `returnTo` round-trips a
+      deep link; project + workspace switchers write the URL.
+- [ ] Cleanup: remove the old `app/dashboard/*` pages and transitional
+      redirects, delete the duplicate `app/dashboard/layout.tsx`, drop
+      `localStorage('project')` (see Phase 5), and remove any dead
+      `router.refresh()` selection code and stale `/dashboard/...` links.
+
 ### Phase 5 — drop /dashboard + cleanup
 - [ ] Move standalone pages (profile, onboarding, select-workspace, project)
       out of `/dashboard`
