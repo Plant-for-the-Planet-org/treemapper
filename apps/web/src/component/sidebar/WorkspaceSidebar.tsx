@@ -3,12 +3,10 @@
 import { useEffect, useRef, useState } from 'react'
 import { usePathname, useRouter, useParams } from 'next/navigation'
 import {
-  Activity, ArrowLeft, CheckSquare, ChevronDown, FolderOpen, Settings, UserCheck, Users,
+  Activity, ArrowLeft, Check, CheckSquare, ChevronDown, FolderOpen, Settings, UserCheck, Users,
 } from 'lucide-react'
-import { useToken } from '@/context/useTokenContext'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
-import { getMyAdminWorkspaces } from '@shared-core/fetchApi/api.fetch'
 import { Avatar } from '@/app/dashboard/workspace/components/workspace-ui'
 
 const SECTIONS = [
@@ -24,19 +22,12 @@ export default function WorkspaceSidebar() {
   const router = useRouter()
   const pathname = usePathname()
   const { workspaceUid } = useParams<{ workspaceUid: string }>()
-  const { accessToken } = useToken()
   const currentUser = useUserStore(state => state.user)
   const selectedWorkspace = useProjectStore(state => state.selectedWorkspce)
   const selectedProject = useProjectStore(state => state.selectedProject)
+  const workspaces = useProjectStore(state => state.workspace)
   const [wsDropdownOpen, setWsDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const [adminWorkspaces, setAdminWorkspaces] = useState<{ uid: string; name: string; slug: string; role: string }[]>([])
-
-  useEffect(() => {
-    getMyAdminWorkspaces(accessToken).then(res => {
-      if (Array.isArray(res?.data)) setAdminWorkspaces(res.data)
-    })
-  }, [accessToken])
 
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
@@ -52,7 +43,7 @@ export default function WorkspaceSidebar() {
   // currently selected workspace so the switcher and section links still work.
   const wsUid = workspaceUid ?? selectedWorkspace?.uid
   const activeSection = pathname.match(/^\/workspace\/[^/]+\/([^/]+)/)?.[1] ?? 'general'
-  const switchableWorkspaces = adminWorkspaces.filter(w => w.uid !== selectedWorkspace?.uid)
+  const canSwitch = workspaces.length > 1
 
   const backToDashboard = () => {
     router.push(selectedProject?.uid ? `/project/${selectedProject.uid}/overview` : '/dashboard')
@@ -75,28 +66,34 @@ export default function WorkspaceSidebar() {
             type="button"
             onClick={() => setWsDropdownOpen(o => !o)}
             className="flex items-center gap-1.5 text-sm text-gray-600 hover:text-gray-900 transition-colors w-full"
-            disabled={switchableWorkspaces.length === 0}
+            disabled={!canSwitch}
           >
             <span className="truncate">{selectedWorkspace?.name}</span>
-            {switchableWorkspaces.length > 0 && (
+            {canSwitch && (
               <ChevronDown className={`h-3.5 w-3.5 flex-shrink-0 transition-transform ${wsDropdownOpen ? 'rotate-180' : ''}`} />
             )}
           </button>
-          {wsDropdownOpen && switchableWorkspaces.length > 0 && (
+          {wsDropdownOpen && canSwitch && (
             <div className="absolute left-0 top-full mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-10 py-1">
-              {switchableWorkspaces.map(ws => (
-                <button
-                  key={ws.uid}
-                  type="button"
-                  onClick={() => {
-                    setWsDropdownOpen(false)
-                    router.push(`/workspace/${ws.uid}/${activeSection}`)
-                  }}
-                  className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 truncate"
-                >
-                  {ws.name}
-                </button>
-              ))}
+              {workspaces.map(ws => {
+                const isCurrent = ws.uid === selectedWorkspace?.uid
+                return (
+                  <button
+                    key={ws.uid}
+                    type="button"
+                    onClick={() => {
+                      setWsDropdownOpen(false)
+                      if (!isCurrent) router.push(`/workspace/${ws.uid}/${activeSection}`)
+                    }}
+                    className={`w-full flex items-center gap-2 text-left px-3 py-2 text-sm truncate ${
+                      isCurrent ? 'text-gray-900 font-medium' : 'text-gray-700 hover:bg-gray-100'
+                    }`}
+                  >
+                    <span className="flex-1 truncate">{ws.name}</span>
+                    {isCurrent && <Check className="h-3.5 w-3.5 flex-shrink-0 text-green-700" />}
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
