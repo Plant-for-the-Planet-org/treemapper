@@ -76,17 +76,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
       router.push(`/login?returnTo=${returnTo}`);
       return;
     }
-    handleNav();
   }, [user, tokenLoading, router, searchParams, pathname]);
-
-  const handleNav = () => {
-    const name = searchParams.get('name');
-    const type = searchParams.get('type');
-    if (name) {
-      router.replace(`/dashboard/project?name=${name}&type=${type}`)
-      return
-    }
-  }
 
   // Set default project and workspace when data is available
   useEffect(() => {
@@ -173,7 +163,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
       }
       // Step 2: Check if user needs onboarding
       if (!userData.primaryWorkspaceUid) {
-        router.push('/dashboard/onboarding');
+        router.push('/onboard');
         setAppState('success');
         return;
       }
@@ -245,7 +235,7 @@ export default function DashboardClientLayout({ children, variant = 'project' }:
   };
 
   const navigationHandlers = {
-    createNewProject: () => router.push('/dashboard/project'),
+    createNewProject: () => router.push('/create-project'),
     openProfileSetting: () => router.push('/profile'),
     updateRoute: (newRoute: string) => {
       if (newRoute === 'workspace') {
