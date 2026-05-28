@@ -1948,12 +1948,14 @@ export class InterventionsService {
     interventionId: number,
     transferDto: TransferInterventionOwnershipDto,
     requesterId: number,
+    projectId: number,
   ): Promise<OwnershipTransferResult> {
     return await this.drizzleService.db.transaction(async (tx) => {
-      // 1. Validate intervention exists and get current data
+      // 1. Validate intervention exists in caller's project
       const currentIntervention = await this.validateAndGetIntervention(
         tx,
-        interventionId
+        interventionId,
+        projectId
       );
 
       // 2. Validate requester has permission to transfer ownership
@@ -2095,16 +2097,18 @@ async interventionEdit(
     value: string;
   },
   requesterId: number,
+  projectId: number,
 ): Promise<boolean> {
   const db = this.drizzleService.db;
 
-  // 1. Fetch the intervention
+  // 1. Fetch the intervention scoped to the caller's project
   const existingIntervention = await db
     .select()
     .from(intervention)
     .where(
       and(
         eq(intervention.uid, interventionUid),
+        eq(intervention.projectId, projectId),
         isNull(intervention.deletedAt)
       )
     )
@@ -2175,7 +2179,7 @@ async interventionEdit(
   /**
    * Validate intervention exists and is not deleted
    */
-  private async validateAndGetIntervention(tx: any, interventionId: number) {
+  private async validateAndGetIntervention(tx: any, interventionId: number, projectId: number) {
     const interventionData = await tx
       .select({
         id: intervention.id,
@@ -2190,6 +2194,7 @@ async interventionEdit(
       .where(
         and(
           eq(intervention.id, interventionId),
+          eq(intervention.projectId, projectId),
           isNull(intervention.deletedAt)
         )
       )
@@ -2445,41 +2450,6 @@ async interventionEdit(
     return changedFields;
   }
 
-  /**
-   * Bulk transfer multiple interventions (bonus method)
-   */
-  async bulkTransferInterventionOwnership(
-    interventionIds: number[],
-    transferDto: TransferInterventionOwnershipDto,
-    requesterId: number,
-  ): Promise<{
-    successful: OwnershipTransferResult[];
-    failed: { interventionId: number; error: string }[];
-  }> {
-    const results = {
-      successful: [] as OwnershipTransferResult[],
-      failed: [] as { interventionId: number; error: string }[],
-    };
-
-    // Process each intervention individually to handle partial failures
-    for (const interventionId of interventionIds) {
-      try {
-        const result = await this.transferInterventionOwnership(
-          interventionId,
-          transferDto,
-          requesterId
-        );
-        results.successful.push(result);
-      } catch (error) {
-        results.failed.push({
-          interventionId,
-          error: error.message || 'Unknown error occurred',
-        });
-      }
-    }
-
-    return results;
-  }
 
 
 
@@ -2520,15 +2490,21 @@ async interventionEdit(
 
 
 
-  async deleteMyIntervention(interventionUID: string, userId?: number) {
+  async deleteMyIntervention(interventionUID: string, userId: number, projectId: number) {
     // Start transaction
     return await this.drizzleService.db.transaction(async (tx) => {
       try {
-        // 1. Find and validate intervention exists
+        // 1. Find and validate intervention exists in caller's project
         const interventionData = await tx
           .select()
           .from(intervention)
-          .where(eq(intervention.uid, interventionUID))
+          .where(
+            and(
+              eq(intervention.uid, interventionUID),
+              eq(intervention.projectId, projectId),
+              isNull(intervention.deletedAt)
+            )
+          )
           .limit(1);
 
         if (!interventionData || interventionData.length === 0) {
@@ -2536,11 +2512,6 @@ async interventionEdit(
         }
 
         const interventionRecord = interventionData[0];
-
-        // 3. Check if already deleted
-        if (interventionRecord.deletedAt) {
-          throw new Error('Intervention is already deleted');
-        }
 
         const deletedAt = new Date();
         const interventionId = interventionRecord.id;
@@ -3211,13 +3182,14 @@ async interventionEdit(
     const db = this.drizzleService.db;
     const errors: any[] = [];
 
-    // Get intervention data
+    // Get intervention data scoped to caller's project
     const interventionData = await db
       .select()
       .from(intervention)
       .where(
         and(
           eq(intervention.uid, interventionUid),
+          eq(intervention.projectId, projectId),
           isNull(intervention.deletedAt)
         )
       )
@@ -3334,13 +3306,14 @@ async interventionEdit(
     const db = this.drizzleService.db;
 
     return await db.transaction(async (tx) => {
-      // 1. Get intervention data
+      // 1. Get intervention data scoped to caller's project
       const interventionData = await tx
         .select()
         .from(intervention)
         .where(
           and(
             eq(intervention.uid, interventionUid),
+            eq(intervention.projectId, projectId),
             isNull(intervention.deletedAt)
           )
         )

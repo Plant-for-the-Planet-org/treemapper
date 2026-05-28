@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { and, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 // import { sites, projects, users, projectMembers, scientificSpecies, interventions, trees, images, projectSpecies } from '../database/schema'; // Adjust import path as needed
 import { generateUid } from 'src/util/uidGenerator';
@@ -16,6 +16,7 @@ import { WorkspaceService } from 'src/workspace/workspace.service';
 import { boolean } from 'drizzle-orm/gel-core';
 import { async, skip } from 'rxjs';
 import { UserCacheService } from 'src/cache/user-cache.service'
+import { AuthzService } from 'src/auth/authz.service';
 import { EmailService } from 'src/email/email.service';
 
 export interface UserDevice {
@@ -302,6 +303,7 @@ export class MobileService {
     private migrateService: MigrationService,
     private emailService: EmailService,
     private userCacheService: UserCacheService,
+    private authzService: AuthzService,
   ) { }
 
   /**
@@ -559,7 +561,7 @@ export class MobileService {
         .select({
           id: tree.id,
           interventionId: tree.interventionId,
-          ownerId: intervention.userId,
+          projectId: intervention.projectId,
         })
         .from(tree)
         .innerJoin(intervention, eq(tree.interventionId, intervention.id))
@@ -567,12 +569,10 @@ export class MobileService {
         .limit(1);
 
       if (treeResult.length === 0) {
-        throw new BadRequestException('Tree not found or access denied');
+        throw new NotFoundException('Tree not found');
       }
 
-      if (treeResult[0].ownerId !== userData.id) {
-        throw new BadRequestException('access denied');
-      }
+      await this.authzService.assertProjectMembership(userData.id, treeResult[0].projectId);
 
       return await this.drizzleService.db.transaction(async (tx) => {
 
@@ -593,6 +593,9 @@ export class MobileService {
         return true;
       });
     } catch (error) {
+      if (error instanceof ForbiddenException || error instanceof NotFoundException || error instanceof BadRequestException) {
+        throw error;
+      }
       console.log(error)
       return false;
     }
@@ -1927,30 +1930,27 @@ export class MobileService {
   ): Promise<any> {
     try {
       this.validateRemeasurementDto(remeasurementDTO);
-      
-      // Get tree details — support both tree UIDs and intervention UIDs (single-tree interventions)
-      let treeDetails: any[];
-      if (remeasurementDTO.tree.startsWith('ivn_')) {
-        treeDetails = await this.drizzleService.db
-          .select({ tree })
-          .from(tree)
-          .innerJoin(intervention, eq(tree.interventionId, intervention.id))
-          .where(eq(intervention.uid, remeasurementDTO.tree))
-          .limit(1)
-          .then(rows => rows.map(r => r.tree));
-      } else {
-        treeDetails = await this.drizzleService.db
-          .select()
-          .from(tree)
-          .where(eq(tree.uid, remeasurementDTO.tree))
-          .limit(1);
-      }
 
-      if (treeDetails.length === 0) {
+      // Resolve tree + owning intervention's projectId in one query.
+      // Supports both tree UIDs and intervention UIDs (single-tree interventions).
+      const lookupCondition = remeasurementDTO.tree.startsWith('ivn_')
+        ? eq(intervention.uid, remeasurementDTO.tree)
+        : eq(tree.uid, remeasurementDTO.tree);
+
+      const [treeRow] = await this.drizzleService.db
+        .select({ tree, projectId: intervention.projectId })
+        .from(tree)
+        .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+        .where(lookupCondition)
+        .limit(1);
+
+      if (!treeRow) {
         throw new NotFoundException('Tree not found');
       }
 
-      const currentTree = treeDetails[0];
+      await this.authzService.assertProjectMembership(membership, treeRow.projectId);
+
+      const currentTree = treeRow.tree;
       const now = new Date();
       const recordedAt = remeasurementDTO.eventDate
         ? (() => { const d = new Date(remeasurementDTO.eventDate); return d > now ? now : d; })()
@@ -1979,7 +1979,7 @@ export class MobileService {
 
       throw new BadRequestException('Invalid remeasurement type');
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
         throw error;
       }
       throw new BadRequestException(`Failed to process remeasurement: ${error.message}`);
@@ -2160,7 +2160,7 @@ export class MobileService {
 
       return await this.doRemeasurement(remeasurementDTO, userId);
     } catch (error) {
-      if (error instanceof NotFoundException || error instanceof BadRequestException) {
+      if (error instanceof NotFoundException || error instanceof BadRequestException || error instanceof ForbiddenException) {
         throw error;
       }
       throw new BadRequestException(`Failed to mark tree as dead: ${error.message}`);

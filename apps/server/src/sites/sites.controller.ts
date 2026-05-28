@@ -74,12 +74,15 @@ async getSiteMembers(@Param('siteUid') siteUid: string) {
 
 
 @Post('/:siteUid/access/grant')
+@ProjectRoles('owner', 'admin')
+@UseGuards(ProjectPermissionsGuard)
 async grantSiteAccess(
+  @Membership() membership: ProjectGuardResponse,
   @Param('siteUid') siteUid: string,
   @Body() dto: GrantAccessDto
 ) {
   try {
-    const result = await this.siteService.grantSiteAccess(siteUid, dto);
+    const result = await this.siteService.grantSiteAccess(membership.projectId, siteUid, dto);
     return {
       statusCode: HttpStatus.OK,
       message: result.message
@@ -95,12 +98,15 @@ async grantSiteAccess(
  * Revoke site access from a specific contributor/observer
  */
 @Post(':siteUid/access/revoke')
+@ProjectRoles('owner', 'admin')
+@UseGuards(ProjectPermissionsGuard)
 async revokeSiteAccess(
+  @Membership() membership: ProjectGuardResponse,
   @Param('siteUid') siteUid: string,
   @Body() dto: RevokeAccessDto
 ) {
   try {
-    const result = await this.siteService.revokeSiteAccess(siteUid, dto);
+    const result = await this.siteService.revokeSiteAccess(membership.projectId, siteUid, dto);
     return {
       statusCode: HttpStatus.OK,
       message: result.message

@@ -132,12 +132,14 @@ export class InterventionsController {
     @Param('interventionId') interventionId: string,
     @Body() transferDto: any,
     @CurrentUser() req: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     const requesterId = req.user?.id || req.user?.sub;
     return await this.interventionsService.interventionEdit(
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -149,6 +151,7 @@ export class InterventionsController {
     @Param('interventionId', ParseIntPipe) interventionId: number,
     @Body() transferDto: TransferInterventionOwnershipDto,
     @CurrentUser() req: any, // Replace with your user request type
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     // Validate intervention ID
     if (interventionId <= 0) {
@@ -165,6 +168,7 @@ export class InterventionsController {
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -253,7 +257,7 @@ export class InterventionsController {
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async deleteMyIntervention(@Param('interventionId') interventionId: string, @Membership() membership: ProjectGuardResponse,) {
-    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId);
+    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId, membership.projectId);
     return data
   }
 

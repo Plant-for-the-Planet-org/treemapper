@@ -1,5 +1,5 @@
 // src/organizations/organizations.service.ts
-import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException, Logger } from '@nestjs/common';
+import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException, ForbiddenException, Logger } from '@nestjs/common';
 import { eq, and, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
@@ -84,26 +84,53 @@ export class WorkspaceService {
   async setPrimaryWorkspaceAndProject(createOrgDto: SelectOrganizationDto, userData: User): Promise<any> {
     try {
       await this.drizzle.db.transaction(async (tx) => {
-        const existingProject = await tx
-          .select({ id: project.id })
-          .from(project)
-          .where(eq(project.uid, createOrgDto.projectUid))
-          .limit(1);
-        const existingWorksapce = await tx
+        const [existingWorkspace] = await tx
           .select({ id: workspace.id })
           .from(workspace)
           .where(eq(workspace.uid, createOrgDto.workspaceUid))
           .limit(1);
-        if (existingProject.length > 0 && existingWorksapce.length > 0) {
-          await tx.update(user)
-            .set({ primaryWorkspaceUid: createOrgDto.workspaceUid, primaryProjectUid: createOrgDto.projectUid })
-            .where(eq(user.id, userData.id))
-          await this.userCacheService.refreshAuthUser({
-            ...userData,
-            primaryWorkspaceUid: createOrgDto.workspaceUid,
-            primaryProjectUid: createOrgDto.projectUid
-          });
+        if (!existingWorkspace) {
+          throw new NotFoundException('Workspace not found');
         }
+
+        const [workspaceMembership] = await tx
+          .select({ id: workspaceMember.id })
+          .from(workspaceMember)
+          .where(
+            and(
+              eq(workspaceMember.workspaceId, existingWorkspace.id),
+              eq(workspaceMember.userId, userData.id),
+              eq(workspaceMember.status, 'active'),
+            ),
+          )
+          .limit(1);
+        if (!workspaceMembership) {
+          throw new ForbiddenException('Active workspace membership required');
+        }
+
+        const [existingProject] = await tx
+          .select({ id: project.id })
+          .from(project)
+          .where(
+            and(
+              eq(project.uid, createOrgDto.projectUid),
+              eq(project.workspaceId, existingWorkspace.id),
+              isNull(project.deletedAt),
+            ),
+          )
+          .limit(1);
+        if (!existingProject) {
+          throw new NotFoundException('Project not found in workspace');
+        }
+
+        await tx.update(user)
+          .set({ primaryWorkspaceUid: createOrgDto.workspaceUid, primaryProjectUid: createOrgDto.projectUid })
+          .where(eq(user.id, userData.id))
+        await this.userCacheService.refreshAuthUser({
+          ...userData,
+          primaryWorkspaceUid: createOrgDto.workspaceUid,
+          primaryProjectUid: createOrgDto.projectUid
+        });
       });
       return { success: true };
     } catch (error) {
@@ -786,6 +813,22 @@ export class WorkspaceService {
       .where(eq(workspace.uid, targetWorkspaceUid))
       .limit(1);
     if (!targetWs) throw new NotFoundException('Target workspace not found');
+
+    const [targetMembership] = await this.drizzle.db
+      .select({ role: workspaceMember.role })
+      .from(workspaceMember)
+      .where(
+        and(
+          eq(workspaceMember.workspaceId, targetWs.id),
+          eq(workspaceMember.userId, userId),
+          inArray(workspaceMember.role, ['owner', 'admin']),
+          eq(workspaceMember.status, 'active'),
+        ),
+      )
+      .limit(1);
+    if (!targetMembership) {
+      throw new ForbiddenException('Workspace admin access required on destination workspace');
+    }
 
     const result = await this.drizzle.db
       .update(project)

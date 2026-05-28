@@ -431,7 +431,11 @@ export class ProjectsService {
       }
       return payload
     } catch (error) {
-      return null;
+      if (error instanceof NotFoundException) {
+        return null;
+      }
+      console.error('getMemberRoleFromUid failed', { projectUid, userId, error });
+      throw error;
     }
   }
 
@@ -1358,15 +1362,16 @@ export class ProjectsService {
     }
   }
 
-  async updateMemberExtraPermissions(projectUid: string, memberUserUid: string, dto: UpdateExtraPermissionsDto) {
+  async updateMemberExtraPermissions(memberUserUid: string, myMembership: ProjectGuardResponse, dto: UpdateExtraPermissionsDto) {
     try {
-      const [projectData] = await this.drizzleService.db
-        .select({ id: project.id })
-        .from(project)
-        .where(eq(project.uid, projectUid))
-        .limit(1);
-      if (!projectData) {
-        return { message: 'Project not found', statusCode: 404, error: 'not_found', data: null };
+      if (!myMembership || !['owner', 'admin'].includes(myMembership.role)) {
+        return {
+          message: 'You do not have permission to update extra permissions',
+          statusCode: 403,
+          error: 'forbidden',
+          data: null,
+          code: 'update_extra_permissions_denied',
+        };
       }
       const [targetUser] = await this.drizzleService.db
         .select({ id: user.id })
@@ -1381,7 +1386,7 @@ export class ProjectsService {
         .set({ extraPermissions: dto.extraPermissions, updatedAt: new Date() })
         .where(
           and(
-            eq(projectMember.projectId, projectData.id),
+            eq(projectMember.projectId, myMembership.projectId),
             eq(projectMember.userId, targetUser.id),
           )
         )
@@ -1456,12 +1461,19 @@ export class ProjectsService {
         };
       }
 
+      const removedAt = new Date();
       await this.drizzleService.db
-        .delete(projectMember)
+        .update(projectMember)
+        .set({
+          deletedAt: removedAt,
+          status: 'inactive',
+          updatedAt: removedAt,
+        })
         .where(
           and(
             eq(projectMember.projectId, myMembership.projectId),
-            eq(projectMember.userId, memberToRemove.user.id)
+            eq(projectMember.userId, memberToRemove.user.id),
+            isNull(projectMember.deletedAt)
           )
         );
 

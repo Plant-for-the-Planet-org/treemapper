@@ -128,14 +128,14 @@ export class NotificationRepository {
     return notification;
   }
 
-  async markAsArchived(id: number): Promise<Notification> {
+  async markAsArchived(id: number, userId: number): Promise<Notification> {
     const [notification] = await this.drizzle.db
       .update(notifications)
       .set({
         isArchived: true,
         updatedAt: new Date()
       })
-      .where(eq(notifications.id, id))
+      .where(and(eq(notifications.id, id), eq(notifications.userId, userId)))
       .returning();
 
     return notification;

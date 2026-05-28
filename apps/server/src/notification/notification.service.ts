@@ -292,10 +292,11 @@ export class NotificationService {
     return updated;
   }
 
-  async markAsArchived(id: number): Promise<Notification> {
-    const notification = await this.getNotificationById(id);
-    const updated = await this.notificationRepository.markAsArchived(id);
-
+  async markAsArchived(id: number, userData: User): Promise<Notification> {
+    const updated = await this.notificationRepository.markAsArchived(id, userData.id);
+    if (!updated) {
+      throw new NotFoundException('Notification not found');
+    }
     return updated;
   }
 

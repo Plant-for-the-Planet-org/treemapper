@@ -4,36 +4,16 @@ import {
   Post,
   Body,
   Patch,
-  Param,
-  Delete,
-  Query,
   UseGuards,
-  ParseIntPipe,
-  HttpStatus,
-  HttpCode,
-  NotFoundException,
   Put,
 } from '@nestjs/common';
-import {
-  ApiTags,
-  ApiOperation,
-  ApiResponse,
-  ApiBearerAuth,
-  ApiParam,
-  ApiQuery,
-  ApiExcludeEndpoint,
-} from '@nestjs/swagger';
+import { ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
-import { AvatarDTO, CreateSurvey, CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
-import { UserQueryDto } from './dto/user-query.dto';
-import { UserResponseDto } from './dto/user-response.dto';
+import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ExtendedUser, User } from './entities/user.entity';
 import { CreatePresignedUrlDto } from './dto/signed-url.dto';
-import { CreateDeviceDto } from './dto/create-device.dto';
-import { user } from 'src/database/schema';
 
 @UseGuards(JwtAuthGuard)
 @Controller('users')
@@ -107,15 +87,6 @@ export class UsersController {
   // ) {
   //   return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
   // }
-
-
-  @Patch(':id')
-  async update(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() updateUserDto: UpdateUserDto,
-  ) {
-    return await this.usersService.update(id, updateUserDto);
-  }
 
 
   //   @Get('stats')

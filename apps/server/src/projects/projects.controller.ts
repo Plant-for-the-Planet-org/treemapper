@@ -152,13 +152,15 @@ export class ProjectsController {
   }
 
   @Patch(':id/members/:memberId/extra-permissions')
-  @UseGuards(JwtAuthGuard)
+  @ProjectRoles('owner', 'admin')
+  @UseGuards(ProjectPermissionsGuard)
   updateMemberExtraPermissions(
     @Param('id') id: string,
     @Param('memberId') memberId: string,
+    @Membership() membership: ProjectGuardResponse,
     @Body() dto: UpdateExtraPermissionsDto,
   ) {
-    return this.projectsService.updateMemberExtraPermissions(id, memberId, dto);
+    return this.projectsService.updateMemberExtraPermissions(memberId, membership, dto);
   }
 
 

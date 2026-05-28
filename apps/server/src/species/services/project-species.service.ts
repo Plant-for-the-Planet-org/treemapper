@@ -512,12 +512,15 @@ export class ProjectSpeciesService {
         throw new BadRequestException('Species does not have an image to delete');
       }
 
+      const deletedAt = new Date();
       const deletedSpecies = await this.drizzle.db
-        .delete(projectSpecies)
+        .update(projectSpecies)
+        .set({ deletedAt, updatedAt: deletedAt })
         .where(
           and(
             eq(projectSpecies.id, existingSpecies.id),
             eq(projectSpecies.projectId, membership.projectId),
+            isNull(projectSpecies.deletedAt),
           ),
         )
         .returning();
