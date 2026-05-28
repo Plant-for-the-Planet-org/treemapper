@@ -7,12 +7,13 @@ import {
   Globe, Info, FileText, ChevronDown, Upload,
   AlertTriangle, Lock, Menu, X, Plus, UserX,
   Check, Loader, ChevronRight,
-  Video, Building, Timer, AlertCircle, Image, ImagePlus
+  Video, Building, Timer, AlertCircle, Image, ImagePlus,
+  Key, Copy, RefreshCw
 } from 'lucide-react';
 
 import UnifiedMapComponent from '@/component/MapSelect';
 import GeoJSONUpload from '@/component/GeoJSONfileupload';
-import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
+import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl, getProjectApiKey, generateProjectApiKey, revokeProjectApiKey } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useUserStore } from '@shared-core/store/useUserStore';
@@ -710,13 +711,178 @@ const LocationSettings = ({ handleLocationUpdate, existingGeoJSON, loading, canE
 };
 
 
+// API Access Settings Component
+const ApiSettings = ({ projectUid, accessToken, canEdit, apiEnabled, onApiToggle }) => {
+  const [status, setStatus] = useState<{ exists: boolean; keyPrefix: string | null; lastUsedAt: string | null; createdAt: string | null } | null>(null);
+  const [newKey, setNewKey] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [confirmRegenerate, setConfirmRegenerate] = useState(false);
+
+  const loadStatus = useCallback(async () => {
+    if (!projectUid) return;
+    const result = await getProjectApiKey(accessToken, projectUid);
+    if (result?.data) setStatus(result.data);
+  }, [projectUid, accessToken]);
+
+  useEffect(() => { loadStatus(); }, [loadStatus]);
+
+  const handleGenerate = async () => {
+    if (!canEdit) { toast.error('You do not have permission to manage API keys.'); return; }
+    setBusy(true);
+    try {
+      const result = await generateProjectApiKey(accessToken, projectUid);
+      if (result?.data?.apiKey) {
+        setNewKey(result.data.apiKey);
+        toast.success('API key generated. Copy it now, it will not be shown again.');
+        await loadStatus();
+      } else {
+        toast.error(result?.message || 'Failed to generate API key');
+      }
+    } finally { setBusy(false); }
+  };
+
+  const handleRevoke = async () => {
+    if (!canEdit) { toast.error('You do not have permission to manage API keys.'); return; }
+    setBusy(true);
+    try {
+      const result = await revokeProjectApiKey(accessToken, projectUid);
+      if (result?.statusCode === 200 || result?.statusCode === 201) {
+        setNewKey(null);
+        setStatus({ exists: false, keyPrefix: null, lastUsedAt: null, createdAt: null });
+        toast.success('API key revoked');
+      } else {
+        toast.error(result?.message || 'Failed to revoke API key');
+      }
+    } finally { setBusy(false); }
+  };
+
+  const handleCopy = async () => {
+    if (!newKey) return;
+    try {
+      await navigator.clipboard.writeText(newKey);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error('Failed to copy to clipboard');
+    }
+  };
+
+  const formatDate = (value: string | null) => value ? new Date(value).toLocaleString() : 'Never';
+
+  return (
+    <CollapsibleSection title="API Access" icon={Key}>
+      <div className="space-y-6">
+        <div className="bg-gradient-to-br from-emerald-50 to-green-50 rounded-xl p-6 border border-emerald-200">
+          <div className="flex items-start justify-between">
+            <div className="flex-1 pr-6">
+              <div className="flex items-center space-x-3 mb-3">
+                <div className="w-10 h-10 bg-emerald-100 rounded-xl flex items-center justify-center">
+                  <Key className="h-5 w-5 text-emerald-600" />
+                </div>
+                <h4 className="text-lg font-semibold text-stone-800">Project API</h4>
+              </div>
+              <p className="text-stone-600 text-sm leading-relaxed mb-2">
+                When enabled, external apps can read this project's information, sites, and interventions
+                using an API key sent in the <code className="px-1 py-0.5 bg-white/70 rounded text-xs">x-api-key</code> header.
+              </p>
+            </div>
+            <div className="flex flex-col items-end">
+              <ToggleSwitch
+                checked={apiEnabled}
+                onChange={() => onApiToggle(!apiEnabled)}
+                disabled={!canEdit || busy}
+                size="default"
+              />
+              <span className={`text-xs font-medium mt-2 ${apiEnabled ? 'text-emerald-600' : 'text-stone-400'}`}>
+                {apiEnabled ? 'Enabled' : 'Disabled'}
+              </span>
+            </div>
+          </div>
+
+          <div className="bg-white/70 rounded-lg p-4 border border-emerald-100 mt-4 space-y-4">
+            {newKey ? (
+              <div className="space-y-3">
+                <div className="flex items-start gap-2 text-amber-700 text-xs">
+                  <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                  <span>Copy this key now. For security, you will not be able to see it again.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <code className="flex-1 px-3 py-2 bg-stone-900 text-emerald-300 rounded-lg text-xs font-mono break-all">{newKey}</code>
+                  <button
+                    type="button"
+                    onClick={handleCopy}
+                    className="px-3 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006841] flex items-center text-sm"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                  </button>
+                </div>
+              </div>
+            ) : status?.exists ? (
+              <div className="space-y-3">
+                <div className="flex items-center justify-between flex-wrap gap-3">
+                  <div className="text-sm text-stone-600">
+                    <p className="font-mono text-stone-800">{status.keyPrefix}{'••••••••'}</p>
+                    <p className="text-xs text-stone-500 mt-1">Last used: {formatDate(status.lastUsedAt)}</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button type="button" disabled={!canEdit || busy} onClick={() => setConfirmRegenerate(true)}
+                      className="px-3 py-2 border border-stone-300 rounded-lg text-sm hover:bg-stone-50 disabled:opacity-50 flex items-center">
+                      <RefreshCw className="h-4 w-4 mr-1.5" /> Regenerate
+                    </button>
+                    <button type="button" disabled={!canEdit || busy} onClick={handleRevoke}
+                      className="px-3 py-2 border border-red-300 text-red-600 rounded-lg text-sm hover:bg-red-50 disabled:opacity-50 flex items-center">
+                      <Trash2 className="h-4 w-4 mr-1.5" /> Revoke
+                    </button>
+                  </div>
+                </div>
+                {confirmRegenerate && (
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 space-y-3">
+                    <div className="flex items-start gap-2 text-amber-800 text-xs">
+                      <AlertTriangle className="h-4 w-4 flex-shrink-0 mt-0.5" />
+                      <span>Regenerating will immediately invalidate the current key. Any integrations using it will stop working.</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button type="button" disabled={busy} onClick={async () => { setConfirmRegenerate(false); await handleGenerate(); }}
+                        className="px-3 py-2 bg-amber-600 text-white rounded-lg text-sm hover:bg-amber-700 disabled:opacity-50 flex items-center">
+                        {busy ? <Loader className="h-4 w-4 mr-1.5 animate-spin" /> : <RefreshCw className="h-4 w-4 mr-1.5" />}
+                        Yes, regenerate
+                      </button>
+                      <button type="button" onClick={() => setConfirmRegenerate(false)}
+                        className="px-3 py-2 border border-stone-300 rounded-lg text-sm hover:bg-stone-50">
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="flex items-center justify-between flex-wrap gap-3">
+                <p className="text-sm text-stone-600">No API key yet. Generate one to start using the API.</p>
+                <button type="button" disabled={!canEdit || busy} onClick={handleGenerate}
+                  className="px-4 py-2 bg-[#007A49] text-white rounded-lg hover:bg-[#006841] disabled:opacity-50 flex items-center text-sm">
+                  {busy ? <Loader className="h-4 w-4 mr-1.5 animate-spin" /> : <Key className="h-4 w-4 mr-1.5" />}
+                  Generate API key
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </CollapsibleSection>
+  );
+};
+
 // Features Settings Component
 const FeaturesSettings = ({
   projectData,
   handleToggleChange,
   handleSubmit,
   loading,
-  canEdit
+  canEdit,
+  projectUid,
+  accessToken,
+  onApiToggle
 }) => (
   <div className="space-y-8">
     <div className="flex justify-between items-start">
@@ -795,6 +961,14 @@ const FeaturesSettings = ({
         </div>
       </div>
     </CollapsibleSection>
+
+    <ApiSettings
+      projectUid={projectUid}
+      accessToken={accessToken}
+      canEdit={canEdit}
+      apiEnabled={projectData.apiEnabled}
+      onApiToggle={onApiToggle}
+    />
   </div>
 );
 
@@ -1001,7 +1175,8 @@ const ProjectSettings = () => {
   const isPlatformLocked = isPlatformWorkspace && !isImpersonatingSuperAdmin;
   const isProjectInactive = selectedProject?.status !== 'active';
 
-  const canEdit = isImpersonatingSuperAdmin || (!isPlatformLocked && !isProjectInactive && ['owner', 'admin'].includes(userRole || ''));
+  const isReadOnlyRole = ['observer', 'contributor'].includes(userRole || '');
+  const canEdit = isImpersonatingSuperAdmin || (!isPlatformLocked && !isReadOnlyRole);
   const [projectData, setProjectData] = useState({
     name: '',
     slug: '',
@@ -1021,7 +1196,8 @@ const ProjectSettings = () => {
     location: null,
     originalGeometry: null,
     metadata: {},
-    approvalBoardEnabled: false
+    approvalBoardEnabled: false,
+    apiEnabled: false
   });
 
   const [activeTab, setActiveTab] = useState('general');
@@ -1061,7 +1237,8 @@ const ProjectSettings = () => {
           location: result.data.location ?? null,
           originalGeometry: result.data.originalGeometry || null,
           metadata: result.data.metadata || {},
-          approvalBoardEnabled: result.data.approvalBoardEnabled ?? false
+          approvalBoardEnabled: result.data.approvalBoardEnabled ?? false,
+          apiEnabled: result.data.apiEnabled ?? false
         });
       }
     } catch (error) {
@@ -1226,6 +1403,21 @@ const ProjectSettings = () => {
       ...prev,
       [fieldName]: !prev[fieldName]
     }));
+  };
+
+  const handleApiToggle = async (next: boolean) => {
+    if (!canEdit) {
+      toast.error('You do not have permission to update project settings.');
+      return;
+    }
+    setProjectData(prev => ({ ...prev, apiEnabled: next }));
+    const result = await updateProjectSettings(accessToken, { apiEnabled: next }, selectedProject.uid);
+    if (result?.statusCode === 200 || result?.statusCode === 201) {
+      toast.success(next ? 'API access enabled' : 'API access disabled');
+    } else {
+      setProjectData(prev => ({ ...prev, apiEnabled: !next }));
+      toast.error(result?.message || 'Failed to update API access');
+    }
   };
 
   const handleLocationUpdate = async (geoData) => {
@@ -1417,6 +1609,9 @@ const ProjectSettings = () => {
             handleSubmit={handleSubmit}
             loading={loading}
             canEdit={canEdit}
+            projectUid={selectedProject?.uid}
+            accessToken={accessToken}
+            onApiToggle={handleApiToggle}
           />
         );
       case 'danger':
@@ -1468,12 +1663,12 @@ const ProjectSettings = () => {
         </div>
       )}
 
-      {/* Inactive project read-only notice */}
-      {!isPlatformLocked && isProjectInactive && !isImpersonatingSuperAdmin && (
+      {/* Read-only role notice */}
+      {!isPlatformLocked && !isImpersonatingSuperAdmin && isReadOnlyRole && (
         <div className="bg-stone-50 border-b border-stone-200 px-4 sm:px-6 lg:px-8 py-3 flex items-center gap-3">
           <Lock className="h-5 w-5 text-stone-500 flex-shrink-0" />
           <p className="text-sm text-stone-700">
-            This project is not active. Settings are read-only.
+            You have read-only access to this project&apos;s settings.
           </p>
         </div>
       )}

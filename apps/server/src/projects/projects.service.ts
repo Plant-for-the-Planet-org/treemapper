@@ -1969,6 +1969,7 @@ export class ProjectsService {
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
       approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
+      apiEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
       metadata: (value: any) => this.cleanJsonValue(value),

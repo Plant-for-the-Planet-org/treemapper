@@ -20,6 +20,7 @@ import { MigrationModule } from './migrate/migrate.module.ts';
 import { ContactSupportModule } from './contact-support/contact-support.module';
 import { ApprovalBoardModule } from './approval-board/approval-board.module';
 import { ExternalModule } from './external/external.module';
+import { PublicApiModule } from './public-api/public-api.module';
 
 @Module({
   imports: [
@@ -44,6 +45,7 @@ import { ExternalModule } from './external/external.module';
     ContactSupportModule,
     ApprovalBoardModule,
     ExternalModule,
+    PublicApiModule,
   ],
   controllers: [AppController],
   providers: [AppService],

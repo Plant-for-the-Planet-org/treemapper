@@ -353,6 +353,24 @@ export const updateProjectSettings = async (token: string, params, prid) => {
   return result;
 };
 
+export const getProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${getUrlApi.projectApiKey}/${prid}/api-key`;
+  const result = await fetchGetCall(uri, token);
+  return result;
+};
+
+export const generateProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${postUrlApi.generateProjectApiKey}/${prid}/api-key`;
+  const result = await fetchPostCall(uri, {}, token);
+  return result;
+};
+
+export const revokeProjectApiKey = async (token: string, prid: string) => {
+  const uri = `${deleteUrlApi.revokeProjectApiKey}/${prid}/api-key`;
+  const result = await fetchDeleteCall(uri, token);
+  return result;
+};
+
 
 
 

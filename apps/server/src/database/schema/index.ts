@@ -577,6 +577,7 @@ export const project = pgTable('project', {
   migratedProject: boolean('migrated_project').default(false),
   status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
+  apiEnabled: boolean('api_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
@@ -598,6 +599,23 @@ export const project = pgTable('project', {
     sql`is_primary = false OR (is_primary = true AND is_active = true)`),
   flaggedProjectReason: check('flagged_project_reason',
     sql`flag = false OR flag_reason IS NOT NULL`),
+}));
+
+
+export const projectApiKey = pgTable('project_api_key', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  projectKeyUnique: uniqueIndex('project_api_key_project_unique').on(table.projectId),
+  keyHashIdx: index('project_api_key_hash_idx').on(table.keyHash),
 }));
 
 
@@ -1447,6 +1465,18 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   interventions: many(intervention),
   projectSpecies: many(projectSpecies),
   speciesRequests: many(speciesRequest),
+  apiKey: one(projectApiKey),
+}));
+
+export const projectApiKeyRelations = relations(projectApiKey, ({ one }) => ({
+  project: one(project, {
+    fields: [projectApiKey.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [projectApiKey.createdById],
+    references: [user.id],
+  }),
 }));
 
 export const projectMemberRelations = relations(projectMember, ({ one }) => ({
