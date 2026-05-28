@@ -181,6 +181,7 @@ export class InterventionsController {
     @Param('speciesId') speciesId: string,
     @Body() updateDto: UpdateInterventionSpeciesDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ) {
     try {
       const result = await this.interventionsService.updateInterventionSpecies(
@@ -188,6 +189,7 @@ export class InterventionsController {
         speciesId,
         updateDto,
         user.id,
+        membership.projectId,
       );
       return {
         success: true,

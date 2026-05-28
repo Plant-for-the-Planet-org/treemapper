@@ -714,7 +714,7 @@ export class ProjectsService {
     };
   }
 
-  async expireInvite(token: string, userData: User) {
+  async expireInvite(token: string, userData: User, projectId: number) {
     try {
       const invite = await this.drizzleService.db
         .select({
@@ -725,6 +725,7 @@ export class ProjectsService {
           and(
             eq(projectInvites.token, token),
             eq(projectInvites.status, 'pending'),
+            eq(projectInvites.projectId, projectId),
           )
         )
         .then(results => results[0] || null);
@@ -874,14 +875,26 @@ export class ProjectsService {
         };
       }
 
-      await this.drizzleService.db
+      const [updated] = await this.drizzleService.db
         .update(bulkInvite)
         .set({ deletedAt: new Date(), expiresAt: new Date(), discardedAt: new Date(), discardedById: myMembership.userId })
         .where(
           and(
-            eq(bulkInvite.uid, uid)
+            eq(bulkInvite.uid, uid),
+            eq(bulkInvite.projectId, myMembership.projectId),
           )
-        );
+        )
+        .returning({ id: bulkInvite.id });
+
+      if (!updated) {
+        return {
+          message: 'Link not found',
+          statusCode: 404,
+          error: 'not_found',
+          data: null,
+          code: 'invite_link_not_found',
+        };
+      }
 
       return {
         message: 'Link removed successfully',

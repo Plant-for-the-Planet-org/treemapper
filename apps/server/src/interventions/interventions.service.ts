@@ -180,17 +180,26 @@ export class InterventionsService {
     speciesId: string,
     updateDto: UpdateInterventionSpeciesDto,
     userId: number,
+    projectId: number,
   ) {
     return await this.drizzleService.db.transaction(async (tx) => {
-      // 1. Validate intervention exists and user has access
-      const getInterventionId = await tx.select({ id: intervention.id }).from(intervention).where(eq(intervention.uid, interventionId)).limit(1)
+      // 1. Validate intervention exists and belongs to caller's project
+      const getInterventionId = await tx
+        .select({ id: intervention.id })
+        .from(intervention)
+        .where(and(eq(intervention.uid, interventionId), eq(intervention.projectId, projectId)))
+        .limit(1)
       if (!getInterventionId || getInterventionId.length == 0) {
-        throw 'No intervneiton found'
+        throw new NotFoundException('Intervention not found')
       }
 
-      const getInterventionSpecies = await tx.select().from(interventionSpecies).where(eq(interventionSpecies.uid, speciesId)).limit(1)
+      const getInterventionSpecies = await tx
+        .select()
+        .from(interventionSpecies)
+        .where(and(eq(interventionSpecies.uid, speciesId), eq(interventionSpecies.interventionId, getInterventionId[0].id)))
+        .limit(1)
       if (!getInterventionSpecies || getInterventionSpecies.length == 0) {
-        throw 'No intervneiton found'
+        throw new NotFoundException('Intervention species not found')
       }
       // 2. Validate intervention species exists
 

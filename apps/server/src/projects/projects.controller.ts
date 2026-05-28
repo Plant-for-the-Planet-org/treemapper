@@ -87,8 +87,12 @@ export class ProjectsController {
   @Post(':id/invites/expire')
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
-  expireInvite(@Body() declineInviteDto: DeclineInviteDto, @CurrentUser() currentUser: User,) {
-    return this.projectsService.expireInvite(declineInviteDto.token, currentUser);
+  expireInvite(
+    @Body() declineInviteDto: DeclineInviteDto,
+    @CurrentUser() currentUser: User,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.projectsService.expireInvite(declineInviteDto.token, currentUser, membership.projectId);
   }
 
 
