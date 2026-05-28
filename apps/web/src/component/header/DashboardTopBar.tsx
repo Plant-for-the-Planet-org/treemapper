@@ -1,9 +1,10 @@
 'use client'
 
-import { ChevronRight, BarChart2, MoreVertical, CalendarIcon, Plus } from 'lucide-react'
+import { ChevronRight, BarChart2, MoreVertical, CalendarIcon, Plus, Upload } from 'lucide-react'
 import { usePathname, useRouter } from 'next/navigation'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import DateRangePicker from './DateRangePicker'
+import InterventionDateRangePicker from './InterventionDateRangePicker'
 import { Button } from '@/components/ui/button'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
@@ -36,7 +37,12 @@ export default function DashboardTopBar() {
   const subpage = subpageFromPath(pathname)
   const isOverview = !subpage || subpage === 'overview'
   const isSites = subpage === 'sites'
+  const isIntervention = subpage === 'intervention'
+  const canBulkUpload = projectRole !== 'contributor'
   const registeredActions = useRegisteredTopBarActions()
+
+  const goNewIntervention = () => router.push(selectedProject ? `/project/${selectedProject.uid}/new-intervention` : '/')
+  const goBulkUpload = () => router.push(selectedProject ? `/project/${selectedProject.uid}/bulkupload` : '/')
 
   const dataExplorePath = selectedProject
     ? projectHref(selectedProject.uid, 'dataexplore')
@@ -59,12 +65,61 @@ export default function DashboardTopBar() {
       {isSites && isAdminOrOwner && (
         <Button
           size="sm"
-          onClick={() => router.push(selectedProject ? `/project/${selectedProject.uid}/newsite` : '/dashboard')}
+          onClick={() => router.push(selectedProject ? `/project/${selectedProject.uid}/newsite` : '/')}
           className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90"
         >
           <Plus size={14} />
           <span className="hidden sm:inline">Add Site</span>
         </Button>
+      )}
+      {isIntervention && (
+        isMobile ? (
+          <div className="flex items-center gap-2">
+            <InterventionDateRangePicker />
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <MoreVertical size={16} />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {canBulkUpload && (
+                  <DropdownMenuItem onClick={goBulkUpload}>
+                    <Upload size={14} />
+                    Bulk Upload
+                  </DropdownMenuItem>
+                )}
+                <DropdownMenuItem onClick={goNewIntervention}>
+                  <Plus size={14} />
+                  New Intervention
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        ) : (
+          <div className="flex items-center gap-2">
+            <InterventionDateRangePicker />
+            {canBulkUpload && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={goBulkUpload}
+                className="h-8 gap-1.5 text-xs font-normal"
+              >
+                <Upload size={14} />
+                Bulk Upload
+              </Button>
+            )}
+            <Button
+              size="sm"
+              onClick={goNewIntervention}
+              className="h-8 gap-1.5 text-xs bg-primary hover:bg-primary/90"
+            >
+              <Plus size={14} />
+              New Intervention
+            </Button>
+          </div>
+        )
       )}
       {registeredActions.length > 0 && (
         isMobile ? (

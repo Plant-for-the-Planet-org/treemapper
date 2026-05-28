@@ -106,8 +106,14 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [x] Switcher (`ProjectTabs`) navigates to `/project/<newUid>/<currentSubPage>`
       for migrated routes
 - [x] Sidebar active-state + `updateRoute` handler use the id-based URLs
-- [ ] Sweep remaining internal `router.push` / `<Link>` targets that still
-      hardcode `/dashboard/...` (e.g. workspace, profile, deep links)
+- [x] Sweep remaining internal `router.push` / `<Link>` targets that still
+      hardcode `/dashboard/...`. Bare `/dashboard` no-project fallbacks
+      (WorkspaceSidebar back-button, DashboardTopBar Add Site) now point at `/`.
+      Remaining `/dashboard` references are intentional: permanent legacy
+      redirect stubs, the LegacyProjectRedirect helper, import paths to
+      `app/dashboard/...` modules, the apple-app-site-association deep-link
+      pattern, and `DashboardTopBar` dataexplore fallback (legacy resolver
+      handles it when the store has a project but local state is null).
 
 ### Phase 4 — workspace, same pattern
 - [x] `(workspace)` route group + `WorkspaceSidebar` (switcher + section nav)
@@ -118,7 +124,7 @@ Standalone / user-scoped (just drop `/dashboard`, no id):
 - [x] Redirect old `/dashboard/workspace` paths + repoint links (ProjectTabs
       button, sidebar workspace nav via the `'workspace'` case)
 - [x] Workspace switcher writes the URL
-- [ ] `WorkspaceSettings.tsx` is now unused — remove in cleanup
+- [x] `WorkspaceSettings.tsx` removed (already deleted in Phase 5)
 
 ### Follow-up — rebuild WorkspaceSidebar on shadcn primitives
 - [ ] Current `WorkspaceSidebar` is a plain `w-64` div placeholder. Rebuild it

@@ -55,7 +55,7 @@ export default function WorkspaceSidebar() {
   const canSwitch = adminWorkspaces.length > 1
 
   const backToDashboard = () => {
-    router.push(selectedProject?.uid ? `/project/${selectedProject.uid}/overview` : '/dashboard')
+    router.push(selectedProject?.uid ? `/project/${selectedProject.uid}/overview` : '/')
   }
 
   return (
