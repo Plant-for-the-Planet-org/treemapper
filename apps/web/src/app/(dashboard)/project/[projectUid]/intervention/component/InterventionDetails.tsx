@@ -5,7 +5,6 @@ import {
   Trees,
   Leaf,
   ChevronDown,
-  Info,
   Calendar as CalendarIcon,
   TreePine,
   AlertTriangle,
@@ -18,7 +17,10 @@ import {
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { deleteIntervention, editIntervention } from '@shared-core/fetchApi/api.fetch';
-import { Card, CardHeader, CardContent, Badge, Button } from './ui';
+import { Card, CardHeader, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Dialog, DialogHeader, DialogContent, DialogTitle } from './ui/Dialog';
 import { EditableField, NonEditableField } from './EditableField';
 import { FileUploadDialog, FileUploadMapDialog } from './FileUploadDialog';
@@ -132,6 +134,7 @@ interface InterventionDetailsProps {
   userDetails?: { id?: string | number };
   selectedProjectDetails: ProjectDetails;
   sites?: Site[];
+  onBack?: () => void;
 }
 
 export const InterventionDetails = ({
@@ -142,7 +145,8 @@ export const InterventionDetails = ({
   selectedProject,
   userDetails,
   selectedProjectDetails,
-  sites = []
+  sites = [],
+  onBack
 }: InterventionDetailsProps) => {
   const [showLocationDialog, setShowLocationDialog] = useState(false);
   const [showImageDialog, setShowImageDialog] = useState(false);
@@ -151,7 +155,6 @@ export const InterventionDetails = ({
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [expandedSections, setExpandedSections] = useState({
-    overview: true,
     species: true,
     trees: true,
     metadata: false
@@ -235,10 +238,19 @@ export const InterventionDetails = ({
 
   return (
     <div className="space-y-6">
+      {onBack && (
+        <button
+          onClick={onBack}
+          className="md:hidden flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ChevronDown className="h-4 w-4 rotate-90" />
+          Back to list
+        </button>
+      )}
       {/* Map Section */}
-      <Card>
-        <CardContent style={{ padding: 0, margin: 0 }}>
-          <div className="h-64 rounded-lg flex items-center justify-center" style={{ overflow: "hidden" }}>
+      <Card className="py-0 gap-0">
+        <CardContent className="p-0">
+          <div className="h-64 flex items-center justify-center overflow-hidden">
             <MapDisplayComponent geoJSON={intervention.originalGeometry} />
           </div>
         </CardContent>
@@ -250,12 +262,12 @@ export const InterventionDetails = ({
           <div className="flex items-start justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
-                <h2 className="text-xl font-semibold text-gray-900">
+                <h2 className="text-xl font-semibold text-foreground">
                   {intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
                 </h2>
                 {intervention.flag && (
                   <FlagTooltip flagReasons={intervention.flagReason}>
-                    <Badge variant="error" className="cursor-help">
+                    <Badge variant="destructive" className="cursor-help">
                       <AlertTriangle className="h-3 w-3 mr-1" />
                       Flagged
                     </Badge>
@@ -268,36 +280,39 @@ export const InterventionDetails = ({
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-600">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <span>ID: {intervention.hid}</span>
                 <span>•</span>
                 <span>Created: {new Date(intervention.createdAt).toLocaleDateString()}</span>
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Badge variant={intervention.interventionStatus === 'completed' ? 'success' : 'default'}>
+              <Badge variant={intervention.interventionStatus === 'completed' ? 'default' : 'secondary'} className="capitalize">
                 {intervention.interventionStatus}
               </Badge>
-              <Badge variant={intervention.captureStatus === 'complete' ? 'success' : 'warning'}>
+              <Badge
+                variant="outline"
+                className={cn(
+                  'capitalize',
+                  intervention.captureStatus === 'complete'
+                    ? 'bg-primary/10 text-primary border-primary/20'
+                    : 'bg-amber-50 text-amber-700 border-amber-200'
+                )}
+              >
                 {intervention.captureStatus}
               </Badge>
               {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowEditModal(true)}
-                  className="text-gray-700 hover:text-gray-900"
-                >
-                  <Pen className="h-4 w-4 mr-1" />
+                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+                  <Pen className="h-4 w-4" />
                   Edit
                 </Button>
               )}
               {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
                 <Button
                   variant="ghost"
-                  size="sm"
+                  size="icon"
                   onClick={() => setShowDeleteDialog(true)}
-                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>
@@ -305,64 +320,32 @@ export const InterventionDetails = ({
             </div>
           </div>
         </CardHeader>
-      </Card>
-
-      {/* Overview Section */}
-      <Card>
-        <CardHeader>
-          <button
-            onClick={() => toggleSection('overview')}
-            className="flex items-center justify-between w-full text-left group"
-          >
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <Info className="h-4 w-4 text-[#007A49]" />
-              Overview
-            </h3>
-            <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform group-hover:text-gray-700 ${expandedSections.overview ? 'rotate-180' : ''
-              }`} />
-          </button>
-        </CardHeader>
-
-        {expandedSections.overview && (
-          <CardContent className="space-y-6">
-            {/* Key Metrics Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Trees className="h-5 w-5 text-gray-600" />
-                  <span className="text-2xl font-semibold text-gray-900">{intervention.treeCount}</span>
-                </div>
-                <p className="text-sm font-medium text-gray-700">Trees</p>
-              </div>
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <Leaf className="h-5 w-5 text-gray-600" />
-                  <span className="text-2xl font-semibold text-gray-900">{intervention.species?.length || 0}</span>
-                </div>
-                <p className="text-sm font-medium text-gray-700">Species</p>
-              </div>
-
-              {intervention.type !== 'single-tree-registration' && (
-                <div className="bg-gray-50 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <TreePine className="h-5 w-5 text-gray-600" />
-                    <span className="text-2xl font-semibold text-gray-900">{intervention.trees?.length || 0}</span>
-                  </div>
-                  <p className="text-sm font-medium text-gray-700">Sample Trees</p>
-                </div>
-              )}
-
-              <div className="bg-gray-50 rounded-lg p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <CalendarIcon className="h-5 w-5 text-gray-600" />
-                  <span className="text-sm font-semibold text-gray-900">
-                    {new Date(intervention.updatedAt).toLocaleDateString()}
-                  </span>
-                </div>
-                <p className="text-sm font-medium text-gray-700">Last Update</p>
-              </div>
-            </div>
+        <CardContent className="space-y-6">
+          {/* Key metrics — inline */}
+          <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm border-t border-border pt-4">
+            <span className="flex items-center gap-1.5">
+              <Trees className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold text-foreground">{intervention.treeCount}</span>
+              <span className="text-muted-foreground">Trees</span>
+            </span>
+            <span className="flex items-center gap-1.5">
+              <Leaf className="h-4 w-4 text-muted-foreground" />
+              <span className="font-semibold text-foreground">{intervention.species?.length || 0}</span>
+              <span className="text-muted-foreground">Species</span>
+            </span>
+            {intervention.type !== 'single-tree-registration' && (
+              <span className="flex items-center gap-1.5">
+                <TreePine className="h-4 w-4 text-muted-foreground" />
+                <span className="font-semibold text-foreground">{intervention.trees?.length || 0}</span>
+                <span className="text-muted-foreground">Sample Trees</span>
+              </span>
+            )}
+            <span className="flex items-center gap-1.5">
+              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+              <span className="text-muted-foreground">Updated</span>
+              <span className="font-semibold text-foreground">{new Date(intervention.updatedAt).toLocaleDateString()}</span>
+            </span>
+          </div>
 
             {/* Editable Fields Grid */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -391,24 +374,6 @@ export const InterventionDetails = ({
                   type="date"
                   onSave={(value) => handleFieldUpdate('interventionEndDate', value)}
                 />
-
-                <div>
-                  <label className="text-sm font-medium text-gray-700 block mb-2">Owner</label>
-                  <div className="flex items-center gap-2">
-                    <div className="flex items-center gap-2 flex-1">
-                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                        {intervention.user && intervention.user.image ? (
-                          <img src={`${intervention.user.image}`} className="h-full w-full rounded-full" referrerPolicy="no-referrer" />
-                        ) : (
-                          <User className="h-3 w-3 text-gray-600" />
-                        )}
-                      </div>
-                      <span className="text-sm text-gray-900">
-                        {intervention.user && intervention.user.name ? intervention.user.name : 'Update Owner'}
-                      </span>
-                    </div>
-                  </div>
-                </div>
               </div>
             </div>
 
@@ -419,12 +384,7 @@ export const InterventionDetails = ({
               placeholder="Add description..."
               onSave={(value) => handleFieldUpdate('description', value)}
             />
-
-            <div className="flex flex-wrap gap-3 pt-4 border-t border-gray-100">
-              {/* Action buttons placeholder */}
-            </div>
           </CardContent>
-        )}
       </Card>
 
       {/* Species Section */}
@@ -435,11 +395,11 @@ export const InterventionDetails = ({
               onClick={() => toggleSection('species')}
               className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                <Leaf className="h-4 w-4 text-[#007A49]" />
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <Leaf className="h-3.5 w-3.5 text-primary" />
                 Species Planted ({localSpecies.length})
               </h3>
-              <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform group-hover:text-gray-700 ${expandedSections.species ? 'rotate-180' : ''
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.species ? 'rotate-180' : ''
                 }`} />
             </button>
           </CardHeader>
@@ -469,11 +429,11 @@ export const InterventionDetails = ({
               onClick={() => toggleSection('trees')}
               className="flex items-center justify-between w-full text-left group"
             >
-              <h3 className="font-medium text-gray-900 flex items-center gap-2">
-                <Trees className="h-4 w-4 text-[#007A49]" />
+              <h3 className="font-medium text-foreground flex items-center gap-2">
+                <Trees className="h-3.5 w-3.5 text-primary" />
                 Sample Trees ({intervention.trees.length})
               </h3>
-              <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform group-hover:text-gray-700 ${expandedSections.trees ? 'rotate-180' : ''
+              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.trees ? 'rotate-180' : ''
                 }`} />
             </button>
           </CardHeader>
@@ -507,11 +467,11 @@ export const InterventionDetails = ({
             onClick={() => toggleSection('metadata')}
             className="flex items-center justify-between w-full text-left group"
           >
-            <h3 className="font-medium text-gray-900 flex items-center gap-2">
-              <Database className="h-4 w-4 text-[#007A49]" />
+            <h3 className="font-medium text-foreground flex items-center gap-2">
+              <Database className="h-3.5 w-3.5 text-primary" />
               Technical Details
             </h3>
-            <ChevronDown className={`h-4 w-4 text-gray-500 transition-transform group-hover:text-gray-700 ${expandedSections.metadata ? 'rotate-180' : ''
+            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.metadata ? 'rotate-180' : ''
               }`} />
           </button>
         </CardHeader>
@@ -521,20 +481,20 @@ export const InterventionDetails = ({
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm">
               <div className="space-y-3">
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Registration Date:</span>
-                  <span className="font-medium text-gray-900">{displayDate(intervention.registrationDate)}</span>
+                  <span className="text-muted-foreground">Registration Date:</span>
+                  <span className="font-medium text-foreground">{displayDate(intervention.registrationDate)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Capture Mode:</span>
-                  <span className="font-medium text-gray-900 capitalize">{intervention.captureMode?.replace('-', ' ')}</span>
+                  <span className="text-muted-foreground">Capture Mode:</span>
+                  <span className="font-medium text-foreground capitalize">{intervention.captureMode?.replace('-', ' ')}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Sample Tree Count:</span>
-                  <span className="font-medium text-gray-900">{intervention.sampleTreeCount}</span>
+                  <span className="text-muted-foreground">Sample Tree Count:</span>
+                  <span className="font-medium text-foreground">{intervention.sampleTreeCount}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Privacy:</span>
-                  <span className="font-medium text-gray-900">{intervention.isPrivate ? 'Private' : 'Public'}</span>
+                  <span className="text-muted-foreground">Privacy:</span>
+                  <span className="font-medium text-foreground">{intervention.isPrivate ? 'Private' : 'Public'}</span>
                 </div>
               </div>
 
@@ -542,31 +502,44 @@ export const InterventionDetails = ({
                 {intervention.site && (
                   <>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Site:</span>
-                      <span className="font-medium text-gray-900">{intervention.site.name}</span>
+                      <span className="text-muted-foreground">Site:</span>
+                      <span className="font-medium text-foreground">{intervention.site.name}</span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-gray-600">Site Status:</span>
-                      <span className="font-medium text-gray-900 capitalize">{intervention.site.status}</span>
+                      <span className="text-muted-foreground">Site Status:</span>
+                      <span className="font-medium text-foreground capitalize">{intervention.site.status}</span>
                     </div>
                   </>
                 )}
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Created:</span>
-                  <span className="font-medium text-gray-900">{displayDate(intervention.createdAt)}</span>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-muted-foreground">Added by:</span>
+                  <span className="flex items-center gap-1.5 font-medium text-foreground min-w-0">
+                    <span className="w-5 h-5 bg-muted rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                      {intervention.user?.image ? (
+                        <img src={intervention.user.image} className="h-full w-full rounded-full" referrerPolicy="no-referrer" />
+                      ) : (
+                        <User className="h-3 w-3 text-muted-foreground" />
+                      )}
+                    </span>
+                    <span className="truncate">{intervention.user?.name || 'Unknown'}</span>
+                  </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-gray-600">Last Updated:</span>
-                  <span className="font-medium text-gray-900">{displayDate(intervention.updatedAt)}</span>
+                  <span className="text-muted-foreground">Created:</span>
+                  <span className="font-medium text-foreground">{displayDate(intervention.createdAt)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Last Updated:</span>
+                  <span className="font-medium text-foreground">{displayDate(intervention.updatedAt)}</span>
                 </div>
               </div>
             </div>
 
             {intervention.metadata && (
-              <div className="mt-6 pt-6 border-t border-gray-100">
-                <h4 className="font-medium text-gray-900 mb-3">Raw Metadata</h4>
-                <div className="bg-gray-50 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <pre className="text-xs text-gray-600 whitespace-pre-wrap">
+              <div className="mt-6 pt-6 border-t border-border">
+                <h4 className="font-medium text-foreground mb-3">Raw Metadata</h4>
+                <div className="bg-muted/40 rounded-lg p-4 max-h-60 overflow-y-auto">
+                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
                     {JSON.stringify(intervention.metadata, null, 2)}
                   </pre>
                 </div>
@@ -623,9 +596,9 @@ export const InterventionDetails = ({
         </DialogHeader>
         <DialogContent>
           <div className="text-center py-8">
-            <Settings className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">Species Management</h3>
-            <p className="text-gray-600">
+            <Settings className="h-12 w-12 text-muted-foreground/60 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-foreground mb-2">Species Management</h3>
+            <p className="text-muted-foreground">
               Comprehensive species management interface will be implemented here.
             </p>
           </div>
@@ -635,25 +608,25 @@ export const InterventionDetails = ({
       {/* Delete Confirmation Dialog */}
       <Dialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
         <DialogHeader>
-          <DialogTitle className="text-red-900">Delete Intervention</DialogTitle>
+          <DialogTitle className="text-destructive">Delete Intervention</DialogTitle>
         </DialogHeader>
         <DialogContent>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
-              <div className="w-8 h-8 bg-red-100 rounded-full flex items-center justify-center mt-0.5">
-                <AlertTriangle className="h-4 w-4 text-red-600" />
+              <div className="w-8 h-8 bg-destructive/10 rounded-full flex items-center justify-center mt-0.5">
+                <AlertTriangle className="h-4 w-4 text-destructive" />
               </div>
               <div className="flex-1">
-                <p className="text-gray-900 font-medium">
+                <p className="text-foreground font-medium">
                   Are you sure you want to delete this intervention?
                 </p>
-                <p className="text-gray-600 text-sm mt-1">
+                <p className="text-muted-foreground text-sm mt-1">
                   This action cannot be undone. All associated trees, species data, and records will be permanently removed.
                 </p>
               </div>
             </div>
 
-            <div className="bg-gray-50 rounded-lg p-4">
+            <div className="bg-muted/40 rounded-lg p-4">
               <div className="text-sm space-y-1">
                 <div><strong>ID:</strong> {intervention.hid}</div>
                 <div><strong>Type:</strong> {intervention.type.replace(/-/g, ' ')}</div>
@@ -666,8 +639,8 @@ export const InterventionDetails = ({
               <Button variant="outline" onClick={() => setShowDeleteDialog(false)} className="flex-1">
                 Cancel
               </Button>
-              <Button variant="primary" onClick={handleDelete} className="flex-1 bg-red-600 hover:bg-red-700 border-red-600">
-                <Trash2 className="h-4 w-4 mr-2" />
+              <Button variant="destructive" onClick={handleDelete} className="flex-1">
+                <Trash2 className="h-4 w-4" />
                 Delete Intervention
               </Button>
             </div>
