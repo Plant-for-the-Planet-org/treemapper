@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Inter } from "next/font/google";
 import "./globals.css";
 import { Open_Sans } from 'next/font/google'
-import Auth0Provider from '@/providers/Auth0Provider';
 import I18nProvider from '@/providers/I18nProvider';
 import ThemeProvider from '@/providers/ThemeProvider';
 import MobileAppRedirect from '@/component/MobileAppRedirect';
+import { AuthInitializer } from '@/component/auth/AuthInitializer';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { cn } from "@/lib/utils";
 
@@ -70,11 +70,10 @@ export default function RootLayout({
         
         <ThemeProvider>
           <TooltipProvider delayDuration={300}>
-            <Auth0Provider>
-              <I18nProvider>
-                {children}
-              </I18nProvider>
-            </Auth0Provider>
+            <AuthInitializer />
+            <I18nProvider>
+              {children}
+            </I18nProvider>
           </TooltipProvider>
         </ThemeProvider>
       </body>
