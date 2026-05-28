@@ -957,6 +957,137 @@ export class InterventionsService {
     }
   }
 
+  async createPlannedInterventionWeb(dto: any, membership: ProjectGuardResponse): Promise<any> {
+    try {
+      const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
+      if (!PLANNABLE_TYPES.includes(dto.type)) {
+        throw new BadRequestException(
+          'Planning mode is only supported for single-tree-registration or multi-tree-registration',
+        );
+      }
+
+      if (!dto.species || !Array.isArray(dto.species) || dto.species.length === 0) {
+        throw new BadRequestException('At least one species is required');
+      }
+
+      const newHID = generateParentHID();
+      let projectSiteId: null | number = null;
+      const uid = generateUid('inv');
+      const idempotencyKey = generateUid('idem');
+      const cleanGeometry = this.getGeoJSONForPostGIS(dto.geometry);
+      const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+
+      const transformedSpecies = dto.species.map((el: any) => ({
+        uid: generateUid('invspc'),
+        scientificSpeciesId: el.scientificSpeciesId,
+        isUnknown: el.isUnknown,
+        speciesName: el.speciesName,
+        speciesCount: el.speciesCount,
+      }));
+
+      const speciesIdCheck = transformedSpecies
+        .filter(el => !el.isUnknown)
+        .map(el => el.scientificSpeciesId)
+        .filter(id => id != null);
+
+      if (speciesIdCheck && speciesIdCheck.length > 0) {
+        const existingSpecies = await this.drizzleService.db
+          .select({ id: scientificSpecies.id })
+          .from(scientificSpecies)
+          .where(inArray(scientificSpecies.id, speciesIdCheck));
+        const existingSpeciesIds = existingSpecies.map(s => s.id);
+        const missingSpeciesIds = speciesIdCheck.filter(id => !existingSpeciesIds.includes(id));
+        if (missingSpeciesIds.length > 0) {
+          throw new BadRequestException(
+            `The following scientific species IDs do not exist: ${missingSpeciesIds.join(', ')}`,
+          );
+        }
+      }
+
+      if (dto.plantProjectSite) {
+        const siteData = await this.drizzleService.db
+          .select({ id: site.id })
+          .from(site)
+          .where(eq(site.uid, dto.plantProjectSite))
+          .limit(1);
+        if (siteData.length === 0) {
+          throw new NotFoundException('Site not found');
+        }
+        projectSiteId = siteData[0].id;
+      }
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setFullYear(endDate.getFullYear() + 1);
+
+      const totalTreeCount = dto.type === 'single-tree-registration'
+        ? 1
+        : transformedSpecies.reduce((sum, s) => sum + (s.speciesCount || 0), 0);
+
+      const interventionData: any = {
+        uid,
+        hid: newHID,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        siteId: projectSiteId || null,
+        idempotencyKey,
+        type: dto.type as InterventionType,
+        status: 'planning',
+        registrationDate: now,
+        interventionStartDate: now,
+        interventionEndDate: endDate,
+        location: locationSQL,
+        originalGeometry: dto.geometry,
+        captureMode: 'web-upload' as CaptureModeEnum,
+        captureStatus: CaptureStatus.INCOMPLETE,
+        metadata: dto.metadata || null,
+        image: null,
+        description: dto.description || null,
+        totalTreeCount,
+      };
+
+      const result = await this.drizzleService.db
+        .insert(intervention)
+        .values(interventionData)
+        .returning();
+      if (!result || result.length === 0) {
+        throw new Error('Failed to create planned intervention');
+      }
+
+      this.auditService.log('intervention', {
+        action: 'create',
+        entityId: result[0].id,
+        entityUid: result[0].uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          hid: result[0].hid,
+          type: result[0].type,
+          status: result[0].status,
+          totalTreeCount: result[0].totalTreeCount,
+        },
+        source: 'web',
+      });
+
+      const finalInterventionSpecies: InterventionSpeciesSelect[] = transformedSpecies.map(el => ({
+        ...el,
+        interventionId: result[0].id,
+      }));
+      const interventionSpecieData = await this.drizzleService.db
+        .insert(interventionSpecies)
+        .values(finalInterventionSpecies)
+        .returning();
+      if (interventionSpecieData.length === 0) {
+        throw new Error('Species creation failed');
+      }
+
+      return { success: true, statusCode: 201, data: { uid: result[0].uid, hid: result[0].hid } };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(`Failed to create planned intervention: ${error.message}`);
+    }
+  }
+
   async imageUpload(type, id, entity, device, filename, userId) {
     await this.drizzleService.db.insert(image).values({
       uid: generateUid('img'),

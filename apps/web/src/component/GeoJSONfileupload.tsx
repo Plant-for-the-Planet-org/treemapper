@@ -135,8 +135,8 @@ export default function GeoJSONUpload({
       };
     }
 
-    // Raw Point geometry
-    if (geoJson.type === "Point") {
+    // Raw geometry (Point, Polygon, MultiPolygon, etc.)
+    if (["Point", "Polygon", "MultiPolygon", "LineString", "MultiLineString", "MultiPoint"].includes(geoJson.type)) {
       return {
         type: "FeatureCollection",
         features: [

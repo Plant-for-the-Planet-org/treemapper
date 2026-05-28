@@ -57,6 +57,7 @@ interface Intervention {
   uid: string;
   hid: string;
   type: string;
+  status?: string;
   captureStatus: string;
   registrationDate: string;
   flag?: boolean;
@@ -139,9 +140,13 @@ export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSel
                 {intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
               </h3>
               <div className="flex flex-col gap-1 ml-2">
-                <Badge variant={getCaptureStatusVariant(intervention.captureStatus)}>
-                  {intervention.captureStatus}
-                </Badge>
+                {intervention.status === 'planning' ? (
+                  <Badge variant="warning">planning</Badge>
+                ) : (
+                  <Badge variant={getCaptureStatusVariant(intervention.captureStatus)}>
+                    {intervention.captureStatus}
+                  </Badge>
+                )}
               </div>
             </div>
 

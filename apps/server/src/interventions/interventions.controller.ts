@@ -53,6 +53,16 @@ export class InterventionsController {
     return this.interventionsService.createNewInterventionWeb(createInterventionDto, membership);
   }
 
+  @Post('/projects/:id/web/plan')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createPlannedInterventionWeb(
+    @Body() dto: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    return this.interventionsService.createPlannedInterventionWeb(dto, membership);
+  }
+
   @Get('/projects/:id')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)

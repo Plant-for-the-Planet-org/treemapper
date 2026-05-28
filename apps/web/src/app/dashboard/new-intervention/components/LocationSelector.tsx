@@ -23,6 +23,8 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
 
   if (formData.applyToEntireSite) return null;
 
+  const isSingleTree = formData.interventionType === 'single-tree-registration';
+
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
       <h2 className="text-xl font-semibold text-slate-900 mb-6 flex items-center gap-2">
@@ -38,10 +40,10 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-800">
-              {currentConfig.type === 'single-tree-registration' ? (
+              {isSingleTree ? (
                 <p><strong>Point Selection:</strong> Click anywhere on the map to select a location. You can drag the marker to adjust the position.</p>
               ) : (
-                <p><strong>Polygon Selection:</strong> Click on the map to add points. Click the first point again or double-click to complete the polygon.</p>
+                <p><strong>Point or Polygon Selection:</strong> Click on the map to add a point, or click multiple points (then double-click or click the first point) to draw a polygon.</p>
               )}
             </div>
           </div>
@@ -50,7 +52,7 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
         {/* Map Component Placeholder */}
         <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-80 rounded-xl flex items-center justify-center border border-blue-200">
-            <ProjectMap updateGeoJSON={handleGeoJSONChange} uploadedGeoJSON={formData.geoJSON} interventionType={formData.interventionType} />
+            <ProjectMap updateGeoJSON={handleGeoJSONChange} uploadedGeoJSON={formData.geoJSON} interventionType={formData.interventionType} selectedSite={formData.selectedSite} />
           </div>
         </div>
         
@@ -64,9 +66,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
                   Location Selected
                 </p>
                 <p className="text-xs text-emerald-700 mt-1">
-                  {currentConfig.type === 'single-tree-registration' 
+                  {isSingleTree
                     ? 'Point location has been set. You can click on the map again to change it.'
-                    : 'Polygon area has been defined. You can reset and draw again if needed.'}
+                    : 'Location has been defined. You can reset and draw again if needed.'}
                 </p>
               </div>
             </div>
@@ -85,9 +87,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <GeoJSONFileUpload
             onGeoJSONChange={handleGeoJSONChange}
             allowedGeometryTypes={
-              currentConfig.type === 'single-tree-registration'
+              isSingleTree
                 ? ['Point']
-                : ['Polygon', 'MultiPolygon']
+                : ['Point', 'Polygon', 'MultiPolygon']
             }
           />
         </div>

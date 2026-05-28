@@ -48,9 +48,12 @@ export const ProjectSiteSelector: React.FC<ProjectSiteSelectorProps> = ({
           <select
             value={formData.siteId || ''}
             onChange={(e) => {
+              const uid = e.target.value || null;
+              const picked = uid ? sites.find(s => s.uid === uid) || null : null;
               setFormData(prev => ({
                 ...prev,
-                siteId: e.target.value || null
+                siteId: uid,
+                selectedSite: picked,
               }))
             }}
             disabled={!formData.projectId || sites.length === 0}

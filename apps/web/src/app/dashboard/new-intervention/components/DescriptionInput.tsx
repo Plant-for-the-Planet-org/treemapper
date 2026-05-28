@@ -20,12 +20,14 @@ export const DescriptionInput: React.FC<DescriptionInputProps> = ({
         <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center">
           <FileText className="w-4 h-4 text-indigo-600" />
         </div>
-        Details (Optional)
+        {formData.isPlanningMode ? 'Details / Comment (Optional)' : 'Details (Optional)'}
       </h2>
       <textarea
         value={formData.description}
         onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-        placeholder="Describe the intervention or any relevant details..."
+        placeholder={formData.isPlanningMode
+          ? 'Add a comment or notes about this planned intervention...'
+          : 'Describe the intervention or any relevant details...'}
         maxLength={VALIDATION_CONFIG.description.maxLength}
         rows={5}
         className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all duration-200 resize-none bg-white/50 ${errors.description ? 'border-red-300' : 'border-slate-200'

@@ -1,6 +1,6 @@
 'use client'
 import React, { useState, useEffect, useRef } from 'react';
-import { ArrowLeft, Info, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Info, AlertCircle, ClipboardList } from 'lucide-react';
 import useProjectStore from '@shared-core/store/useProjectStore';
 import { useToken } from '@/context/useTokenContext';
 import { getUserProjectSites } from '@shared-core/fetchApi/api.fetch';
@@ -13,10 +13,13 @@ import { LocationSelector } from './components/LocationSelector';
 import { TreeRegistration } from './components/TreeRegistration';
 import { DescriptionInput } from './components/DescriptionInput';
 import { ImageUpload } from './components/ImageUpload';
+import { Switch } from '@/components/ui/switch';
 import { FormData, ValidationErrors } from './types';
 import { interventionConfigurations } from './constants';
 import { validateForm } from './utils/validation';
-import { buildApiPayload } from './utils/payloadBuilder';
+import { buildApiPayload, buildPlanningPayload } from './utils/payloadBuilder';
+
+const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
 
 // Mock data for demonstration
 const mockSites = [
@@ -29,12 +32,14 @@ const InterventionCreator = ({ goBack }) => {
   const [formData, setFormData] = useState<FormData>({
     projectId: null,
     siteId: null,
+    selectedSite: null,
     interventionType: 'single-tree-registration',
     species: [],
     description: '',
     geoJSON: null,
     geoJSONFile: null,
     applyToEntireSite: false,
+    isPlanningMode: false,
     treeDetails: {
       tag: '',
       height: '',
@@ -43,6 +48,17 @@ const InterventionCreator = ({ goBack }) => {
     },
     image: null
   });
+
+  const togglePlanningMode = (checked: boolean) => {
+    setFormData(prev => ({
+      ...prev,
+      isPlanningMode: checked,
+      interventionType: checked && !PLANNABLE_TYPES.includes(prev.interventionType)
+        ? 'single-tree-registration'
+        : prev.interventionType,
+      image: checked ? null : prev.image,
+    }));
+  };
 
   // UI state
   const [errors, setErrors] = useState<ValidationErrors>({});
@@ -94,7 +110,9 @@ const InterventionCreator = ({ goBack }) => {
     setIsSubmitting(true);
 
     try {
-      const payload = buildApiPayload(formData);
+      const payload = formData.isPlanningMode
+        ? buildPlanningPayload(formData)
+        : buildApiPayload(formData);
       setStartUpload(payload);
     } catch (error) {
       // Handle specific error types
@@ -147,6 +165,28 @@ const InterventionCreator = ({ goBack }) => {
       {/* Main Content */}
       <div className="w-full mx-auto px-6 py-8">
         <form onSubmit={handleSubmit} className="space-y-8">
+          {/* Mode toggle */}
+          <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-6">
+            <div className="flex items-start justify-between gap-6">
+              <div className="flex items-start gap-3">
+                <div className="w-8 h-8 bg-emerald-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                  <ClipboardList className="w-4 h-4 text-emerald-600" />
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-900">Planning mode</h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    Register an intended tree-planting intervention. Only species and location are required — no image, dimensions, or dates.
+                  </p>
+                </div>
+              </div>
+              <Switch
+                checked={formData.isPlanningMode}
+                onCheckedChange={togglePlanningMode}
+                aria-label="Toggle planning mode"
+              />
+            </div>
+          </div>
+
           {/* Project and Site Selection */}
           <ProjectSiteSelector
             formData={formData}
@@ -196,11 +236,13 @@ const InterventionCreator = ({ goBack }) => {
           />
 
           {/* Image Upload */}
-          <ImageUpload
-            formData={formData}
-            setFormData={setFormData}
-            fileInputRef={fileInputRef}
-          />
+          {!formData.isPlanningMode && (
+            <ImageUpload
+              formData={formData}
+              setFormData={setFormData}
+              fileInputRef={fileInputRef}
+            />
+          )}
 
           <InterventionUploadModal
             accessToken={accessToken}
@@ -208,7 +250,8 @@ const InterventionCreator = ({ goBack }) => {
             onClose={() => { setStartUpload(null); router.back(); }}
             onSuccess={goBack}
             formData={startUpload}
-            image={formData.image}
+            image={formData.isPlanningMode ? null : formData.image}
+            isPlanning={formData.isPlanningMode}
           />
 
           {/* Form Actions */}
@@ -222,11 +265,11 @@ const InterventionCreator = ({ goBack }) => {
                 {isSubmitting ? (
                   <>
                     <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                    Creating...
+                    {formData.isPlanningMode ? 'Saving...' : 'Creating...'}
                   </>
                 ) : (
                   <>
-                    Create Intervention
+                    {formData.isPlanningMode ? 'Save Plan' : 'Create Intervention'}
                   </>
                 )}
               </button>

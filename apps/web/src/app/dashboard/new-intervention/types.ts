@@ -14,12 +14,14 @@ export interface InterventionSpeciesEntry {
 export interface FormData {
   projectId: string | null;
   siteId: string | null;
+  selectedSite: any | null;
   interventionType: string;
   species: InterventionSpeciesEntry[];
   description: string;
   geoJSON: any;
   geoJSONFile: File | null;
   applyToEntireSite: boolean;
+  isPlanningMode: boolean;
   treeDetails: {
     tag: string;
     height: string;

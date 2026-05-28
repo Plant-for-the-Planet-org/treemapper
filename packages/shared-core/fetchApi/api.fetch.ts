@@ -248,6 +248,12 @@ export const createNewIntervention = async (token: string, params: any, prjId: s
   return result;
 };
 
+export const createPlannedIntervention = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/web/plan`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 export const getProjectIntervention = async (token: string, id: string, queryParams: any) => {
   let uri = `${getUrlApi.getProjectIntervnetion}/${id}`
 

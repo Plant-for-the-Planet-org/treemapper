@@ -2,6 +2,8 @@ import { FormData, ValidationErrors } from '../types';
 import { VALIDATION_CONFIG, interventionConfigurations } from '../constants';
 import { validateTreeMeasurement } from '../utils';
 
+const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
+
 export const validateForm = (formData: FormData): ValidationErrors => {
   const newErrors: ValidationErrors = {};
   const currentConfig = interventionConfigurations[formData.interventionType];
@@ -9,6 +11,23 @@ export const validateForm = (formData: FormData): ValidationErrors => {
   // Project validation
   if (!formData.projectId) {
     newErrors.projectId = 'Project is required';
+  }
+
+  // Planning mode validation - relaxed: only type, species, location required
+  if (formData.isPlanningMode) {
+    if (!PLANNABLE_TYPES.includes(formData.interventionType)) {
+      newErrors.interventionType = 'Planning mode supports tree-registration types only';
+    }
+    if (formData.species.length === 0) {
+      newErrors.species = 'At least one species is required';
+    }
+    if (!formData.geoJSON && !formData.geoJSONFile) {
+      newErrors.location = 'Tree location must be marked on the map';
+    }
+    if (formData.description.length > VALIDATION_CONFIG.description.maxLength) {
+      newErrors.description = `Comment must not exceed ${VALIDATION_CONFIG.description.maxLength} characters`;
+    }
+    return newErrors;
   }
 
   // Species validation
