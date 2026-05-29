@@ -359,6 +359,16 @@ export class InterventionsController {
     return data
   }
 
+  @Get(':id/sites/:siteUid/map')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getSiteMap(
+    @Param('siteUid') siteUid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.interventionsService.getSiteMapInterventions(membership.projectId, siteUid);
+  }
+
   @Get(':id/map/tree')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)

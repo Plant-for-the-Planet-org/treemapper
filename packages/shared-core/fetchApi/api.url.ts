@@ -97,6 +97,7 @@ export const getUrlApi = {
   getAllWorkspaces: `${baseUrl}/workspace/all`,
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
+  getSiteInterventionsMap: `${baseUrl}/interventions`,
   getProjectAnalytics: `${baseUrl}/analytics`,
   getApprovalBoard: `${baseUrl}/interventions/approval/board`,
   getProjectRequiresApproval: `${baseUrl}/approval-board/projects`,

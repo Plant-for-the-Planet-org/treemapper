@@ -36,6 +36,13 @@ interface Props {
   uploadedGeoJSON: any; // GeoJSON from file upload
   interventionType: string
   selectedSite?: any
+  existingInterventions?: Array<{
+    uid: string;
+    hid?: string;
+    type?: string;
+    location: any;
+    locationGeometryType?: string;
+  }>
 }
 
 const parseSiteGeometry = (site: any): any | null => {
@@ -53,7 +60,7 @@ const parseSiteGeometry = (site: any): any | null => {
   return raw;
 };
 
-const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite }: Props) => {
+const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [] }: Props) => {
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -128,6 +135,26 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
   }, [isFullscreen]);
 
   const siteGeometry = parseSiteGeometry(selectedSite);
+
+  const existingFeatureCollections = (() => {
+    const points: any[] = [];
+    const polygons: any[] = [];
+    for (const item of existingInterventions) {
+      if (!item?.location) continue;
+      const geomType = item.location.type || item.locationGeometryType;
+      const feature = {
+        type: 'Feature',
+        geometry: item.location,
+        properties: { uid: item.uid, hid: item.hid ?? '', type: item.type ?? '' },
+      };
+      if (geomType === 'Point') points.push(feature);
+      else if (geomType === 'Polygon' || geomType === 'MultiPolygon') polygons.push(feature);
+    }
+    return {
+      points: { type: 'FeatureCollection' as const, features: points },
+      polygons: { type: 'FeatureCollection' as const, features: polygons },
+    };
+  })();
 
   useEffect(() => {
     if (!siteGeometry) return;
@@ -533,6 +560,45 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
               id="site-boundary-line"
               type="line"
               paint={{ 'line-color': markerColor, 'line-width': 2, 'line-dasharray': [3, 2] }}
+            />
+          </Source>
+        )}
+
+        {/* Existing interventions overlay (non-interactive) */}
+        {existingFeatureCollections.polygons.features.length > 0 && (
+          <Source id="existing-interventions-polygons" type="geojson" data={existingFeatureCollections.polygons as any}>
+            <Layer
+              id="existing-interventions-polygon-fill"
+              type="fill"
+              paint={{ 'fill-color': '#f59e0b', 'fill-opacity': mapStyleMode === 'satellite' ? 0.28 : 0.2 }}
+            />
+            <Layer
+              id="existing-interventions-polygon-outline"
+              type="line"
+              paint={{ 'line-color': '#b45309', 'line-width': 1.5 }}
+            />
+          </Source>
+        )}
+        {existingFeatureCollections.points.features.length > 0 && (
+          <Source id="existing-interventions-points" type="geojson" data={existingFeatureCollections.points as any}>
+            <Layer
+              id="existing-interventions-point-halo"
+              type="circle"
+              paint={{
+                'circle-radius': 8,
+                'circle-color': '#f59e0b',
+                'circle-opacity': 0.25,
+              }}
+            />
+            <Layer
+              id="existing-interventions-point"
+              type="circle"
+              paint={{
+                'circle-radius': 4,
+                'circle-color': '#b45309',
+                'circle-stroke-width': 1.5,
+                'circle-stroke-color': '#ffffff',
+              }}
             />
           </Source>
         )}

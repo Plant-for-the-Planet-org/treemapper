@@ -254,6 +254,12 @@ export const createPlannedIntervention = async (token: string, params: any, prjI
   return result;
 };
 
+export const getSiteInterventionsMap = async (token: string, projectId: string, siteUid: string) => {
+  const uri = `${getUrlApi.getSiteInterventionsMap}/${projectId}/sites/${siteUid}/map`
+  const result = await fetchGetCall(uri, token)
+  return result
+}
+
 export const getProjectIntervention = async (token: string, id: string, queryParams: any) => {
   let uri = `${getUrlApi.getProjectIntervnetion}/${id}`
 

@@ -2588,6 +2588,58 @@ async interventionEdit(
   }
 
 
+  async getSiteMapInterventions(projectId: number, siteUid: string): Promise<any> {
+    if (!projectId || projectId <= 0) throw new Error('Invalid project ID');
+    if (!siteUid) throw new Error('Invalid site UID');
+
+    const [siteRow] = await this.drizzleService.db
+      .select({ id: site.id })
+      .from(site)
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
+      .limit(1);
+
+    if (!siteRow) {
+      return { interventions: [], totalInterventions: 0 };
+    }
+
+    const rows = await this.drizzleService.db
+      .select({
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${intervention.location})::json`,
+        locationGeometryType: sql<string>`REPLACE(ST_GeometryType(${intervention.location}), 'ST_', '')`,
+        totalTreeCount: intervention.totalTreeCount,
+        interventionStartDate: intervention.interventionStartDate,
+      })
+      .from(intervention)
+      .where(
+        and(
+          eq(intervention.projectId, projectId),
+          eq(intervention.siteId, siteRow.id),
+          isNull(intervention.deletedAt),
+          sql`${intervention.location} IS NOT NULL`,
+          sql`ST_IsValid(${intervention.location}) = true`,
+        ),
+      );
+
+    const interventions = rows
+      .filter(r => r.location && typeof r.location === 'object')
+      .map(r => ({
+        uid: r.uid,
+        hid: r.hid,
+        type: r.type,
+        location: r.location,
+        locationGeometryType: r.locationGeometryType as 'Point' | 'Polygon' | 'MultiPolygon',
+        totalTreeCount: Number(r.totalTreeCount) || 0,
+        interventionStartDate: r.interventionStartDate instanceof Date
+          ? r.interventionStartDate.toISOString()
+          : r.interventionStartDate,
+      }));
+
+    return { interventions, totalInterventions: interventions.length };
+  }
+
   async getProjectMapInterventions(projectId: number): Promise<any> {
     try {
       // Validate projectId

@@ -1,8 +1,12 @@
-import React from 'react';
-import { MapPin, Check, X, AlertCircle, Info } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { Layers, MapPin, Check, X, AlertCircle, Info } from 'lucide-react';
 import { FormData, ValidationErrors } from '../types';
 import ProjectMap from '../component/InterventionSelectMap';
 import GeoJSONFileUpload from '@/component/GeoJSONfileupload';
+import { Switch } from '@/components/ui/switch';
+import { getSiteInterventionsMap } from '@shared-core/fetchApi/api.fetch';
+import useProjectStore from '@shared-core/store/useProjectStore';
+import { useToken } from '@/context/useTokenContext';
 
 interface LocationSelectorProps {
   formData: FormData;
@@ -17,13 +21,45 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
   currentConfig,
   errors
 }) => {
+  const { accessToken } = useToken();
+  const selectedProject = useProjectStore(state => state.selectedProject);
+  const [showExisting, setShowExisting] = useState(false);
+  const [existing, setExisting] = useState<any[]>([]);
+  const [loadingExisting, setLoadingExisting] = useState(false);
+
   const handleGeoJSONChange = (geoJson: any) => {
     setFormData(prev => ({ ...prev, geoJSON: geoJson }));
   };
 
+  useEffect(() => {
+    setShowExisting(false);
+    setExisting([]);
+  }, [formData.siteId]);
+
+  useEffect(() => {
+    if (!showExisting || !formData.siteId || !selectedProject?.uid) return;
+    let cancelled = false;
+    const fetchExisting = async () => {
+      setLoadingExisting(true);
+      try {
+        const res = await getSiteInterventionsMap(accessToken, selectedProject.uid, formData.siteId!);
+        if (cancelled) return;
+        const list = res?.interventions ?? res?.data?.interventions ?? [];
+        setExisting(Array.isArray(list) ? list : []);
+      } catch {
+        if (!cancelled) setExisting([]);
+      } finally {
+        if (!cancelled) setLoadingExisting(false);
+      }
+    };
+    fetchExisting();
+    return () => { cancelled = true; };
+  }, [showExisting, formData.siteId, selectedProject?.uid, accessToken]);
+
   if (formData.applyToEntireSite) return null;
 
   const isSingleTree = formData.interventionType === 'single-tree-registration';
+  const siteSelected = Boolean(formData.siteId);
 
   return (
     <div className="bg-white/60 backdrop-blur-sm rounded-2xl border border-slate-200/60 shadow-lg p-8">
@@ -49,10 +85,42 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </div>
         </div>
 
+        {/* Toggle: show existing interventions for this site */}
+        {siteSelected && (
+          <div className="flex items-start justify-between gap-4 bg-white rounded-xl border border-slate-200 px-4 py-3">
+            <div className="flex items-start gap-3">
+              <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                <Layers className="w-4 h-4 text-amber-600" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-slate-900">Show existing interventions on this site</p>
+                <p className="text-xs text-slate-600 mt-0.5">
+                  {loadingExisting
+                    ? 'Loading existing interventions...'
+                    : showExisting
+                      ? `${existing.length} existing intervention${existing.length === 1 ? '' : 's'} displayed`
+                      : 'Helps you locate existing trees and avoid overlap.'}
+                </p>
+              </div>
+            </div>
+            <Switch
+              checked={showExisting}
+              onCheckedChange={setShowExisting}
+              aria-label="Toggle existing interventions overlay"
+            />
+          </div>
+        )}
+
         {/* Map Component Placeholder */}
         <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
           <div className="bg-gradient-to-br from-blue-50 to-indigo-100 h-80 rounded-xl flex items-center justify-center border border-blue-200">
-            <ProjectMap updateGeoJSON={handleGeoJSONChange} uploadedGeoJSON={formData.geoJSON} interventionType={formData.interventionType} selectedSite={formData.selectedSite} />
+            <ProjectMap
+              updateGeoJSON={handleGeoJSONChange}
+              uploadedGeoJSON={formData.geoJSON}
+              interventionType={formData.interventionType}
+              selectedSite={formData.selectedSite}
+              existingInterventions={showExisting ? existing : []}
+            />
           </div>
         </div>
         
