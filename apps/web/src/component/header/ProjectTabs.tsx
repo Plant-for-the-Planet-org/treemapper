@@ -8,12 +8,13 @@ import ProfileAvatar from './ProfileAvatar';
 import LabelTabs from './LabelTabs';
 import useMediaQuery from '@/hooks/useMediaQuery'
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app';
 import { useUserStore } from '@shared-core/store/useUserStore';
 import { selectOrg } from '@shared-core/fetchApi/api.fetch';
 import { useToken } from '@/context/useTokenContext'
 import { toast } from 'react-toastify';
+import { subpageFromPath, projectHref } from '@/lib/projectRoutes';
 
 interface Props {
   createNewProject: () => void;
@@ -43,7 +44,9 @@ const ProjectDropdown = ({
   const isLargeScreen = useMediaQuery('(min-width: 768px)');
   const { projects, selectProject, selectedProject, selectedWorkspce, setDefaultWorkspce, workspace } = useProjectStore((state) => state);
   const router = useRouter();
+  const pathname = usePathname();
   const { accessToken } = useToken()
+
   const User = useUserStore(state => state.user)
 
   // Group projects by workspace and sort
@@ -94,7 +97,8 @@ const ProjectDropdown = ({
         if (finalWorkspace.length > 0) {
           setDefaultWorkspce(finalWorkspace[0])
         }
-        router.refresh();
+        const subpage = subpageFromPath(pathname) ?? 'overview';
+        router.push(projectHref(project.uid, subpage));
       }
     } catch (e) {
       toast.error("Something went wrong")
@@ -279,7 +283,7 @@ const ProjectDropdown = ({
           <div className="flex items-center gap-3">
             <NotificationBell />
             {selectedWorkspce && selectedWorkspce.userRole !== 'member' && <button
-              onClick={() => router.push('/dashboard/workspace')}
+              onClick={() => router.push(`/workspace/${selectedWorkspce.uid}`)}
               className="cursor-pointer relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105"
             >
               <Building size={24} />

@@ -160,7 +160,6 @@ export class WorkspaceController {
     }
 
     @Put('/impersonate/exit')
-    @UseGuards(ImpersonationGuard)
     async impersonateUserExit(@CurrentUser() user: User): Promise<boolean> {
         return await this.workspaceService.impersonationexit(user);
     }

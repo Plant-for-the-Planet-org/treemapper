@@ -8,6 +8,9 @@ import { useToken } from "@/context/useTokenContext";
 import NotificationIcon, { NotificationType } from './NotificationIcons';
 import { NotificationModal } from './NotificationModal';
 import { useUserStore } from '@shared-core/store/useUserStore';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 
 
@@ -15,7 +18,8 @@ import { useUserStore } from '@shared-core/store/useUserStore';
 // Modal Component
 
 
-const NotificationsPanel = () => {
+const NotificationsPanel = ({ variant = 'header' }: { variant?: 'header' | 'sidebar' }) => {
+  const isSidebar = variant === 'sidebar';
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState<Array<any>>([]);
   const [selectedNotification, setSelectedNotification] = useState(null);
@@ -56,6 +60,7 @@ const NotificationsPanel = () => {
   const openNotificationModal = (notification) => {
     setSelectedNotification(notification);
     setIsModalOpen(true);
+    setIsOpen(false);
     // markAsRead(notification.id);
   };
 
@@ -112,113 +117,106 @@ const NotificationsPanel = () => {
 
   return (
     <>
-      <div className="relative z-30">
-        {/* Notification Bell */}
-        <button
-          onClick={() => setIsOpen(!isOpen)}
-          className="relative p-3 rounded-xl text-gray-700 hover:bg-gray-100 transition-all duration-200 hover:scale-105 z-40"
+      <Popover open={isOpen} onOpenChange={setIsOpen}>
+        <PopoverTrigger asChild>
+          <button
+            title="Notifications"
+            className={isSidebar
+              ? "relative p-1 rounded-md text-sidebar-foreground/40 hover:text-sidebar-foreground hover:bg-sidebar-accent transition-colors"
+              : "relative p-3 rounded-xl text-foreground/70 hover:bg-accent transition-colors"}
+          >
+            <Bell size={isSidebar ? 14 : 24} />
+            {unreadCount > 0 && (
+              <span className={cn(
+                "absolute flex items-center justify-center rounded-full bg-green-700 font-semibold text-white",
+                isSidebar
+                  ? "-top-0.5 -right-0.5 text-[8px] min-w-[14px] h-3.5 px-0.5"
+                  : "-top-1 -right-1 text-xs min-w-[20px] h-5 px-1 shadow-lg"
+              )}>
+                {unreadCount > 99 ? '99+' : unreadCount}
+              </span>
+            )}
+          </button>
+        </PopoverTrigger>
+
+        <PopoverContent
+          align={isSidebar ? "start" : "end"}
+          side={isSidebar ? "top" : "bottom"}
+          sideOffset={8}
+          className="w-80 p-0 gap-0 overflow-hidden"
         >
-          <Bell size={24} />
-          {unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 bg-green-700 text-white text-xs min-w-[20px] h-5 rounded-full flex items-center justify-center font-semibold shadow-lg">
-              {unreadCount > 99 ? '99+' : unreadCount}
-            </span>
-          )}
-        </button>
-
-        {/* Panel */}
-        {isOpen && (
-          <>
-            <div
-              className="fixed inset-0 bg-black/50 bg-opacity-10 z-10"
-              onClick={() => setIsOpen(false)} // Add click handler to close
-              style={{ width: '100vw', height: '100vh' }}
-            />
-            <div className="absolute right-0 mt-3 w-80 md:w-96 bg-white border border-gray-200 rounded-2xl shadow-2xl z-[40] overflow-hidden">
-              {/* Header */}
-
-              <div className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-blue-50 to-indigo-50 border-b border-gray-100">
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Notifications</h3>
-                  {unreadCount > 0 && (
-                    <p className="text-sm text-gray-600">{unreadCount} unread</p>
-                  )}
-                </div>
-                {unreadCount > 0 && (
-                  <button
-                    onClick={markAllAsRead}
-                    className="text-sm text-blue-600 hover:text-blue-800 font-medium hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors"
-                  >
-                    Mark all read
-                  </button>
-                )}
-              </div>
-
-              {/* List */}
-              {notifications.length > 0 ? (
-                <div className="max-h-96 overflow-y-auto">
-                  {notifications.map(notification => (
-                    <div
-                      key={notification.id}
-                      onClick={() => openNotificationModal(notification)}
-                      className={`flex items-start gap-4 px-6 py-4 border-b border-gray-50 hover:bg-gray-50 cursor-pointer transition-all duration-200 ${!notification.isRead ? 'bg-blue-50/50 border-l-4 border-l-blue-500' : ''
-                        }`}
-                    >
-                      {/* Avatar with priority indicator */}
-                      <NotificationIcon type={notification.type} priority={notification.priority} image={notification.image} />
-
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex justify-between items-start mb-1">
-                          <div className="flex items-center gap-2">
-                            {notification.icon}
-                            <h4 className="font-semibold text-gray-900 text-sm">{notification.title}</h4>
-                          </div>
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              removeNotification(notification.id);
-                            }}
-                            className="text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity p-1"
-                          >
-                            <X size={14} />
-                          </button>
-                        </div>
-
-                        <p className="text-sm text-gray-700 line-clamp-2 mb-2">{notification.message}</p>
-
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-gray-500">{getTimeAgo(notification.createdAt)}</span>
-                          {!notification.isRead && (
-                            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="py-12 text-center text-gray-500">
-                  <Bell size={48} className="mx-auto mb-4 text-gray-300" />
-                  <p className="text-lg font-medium">No notifications</p>
-                  <p className="text-sm">You're all caught up!</p>
-                </div>
+          {/* Header */}
+          <div className="flex items-center justify-between gap-2 px-3 py-2 border-b border-border">
+            <h3 className="text-sm font-medium text-foreground">
+              Notifications
+              {unreadCount > 0 && (
+                <span className="ml-1.5 text-xs font-normal text-muted-foreground">{unreadCount} unread</span>
               )}
+            </h3>
+            {unreadCount > 0 && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={markAllAsRead}
+                className="h-6 px-1.5 text-xs text-muted-foreground"
+              >
+                Mark all read
+              </Button>
+            )}
+          </div>
 
-              {/* Footer */}
-              <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 text-center">
+          {/* List */}
+          {notifications.length > 0 ? (
+            <div className="max-h-80 overflow-y-auto">
+              {notifications.map(notification => (
                 <button
-                  onClick={() => setIsOpen(false)}
-                  className="text-sm text-gray-600 hover:text-gray-800 font-medium"
+                  key={notification.id}
+                  onClick={() => openNotificationModal(notification)}
+                  className={cn(
+                    "group flex w-full items-start gap-2.5 px-3 py-2 text-left border-b border-border/60 transition-colors hover:bg-accent",
+                    !notification.isRead && "bg-primary/10"
+                  )}
                 >
-                  Close Panel
-                </button>
-              </div>
-            </div>
-          </>
+                  <NotificationIcon type={notification.type} priority={notification.priority} image={notification.image} size={16} />
 
-        )}
-      </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        {notification.icon}
+                        <h4 className={cn(
+                          "truncate text-[13px] leading-tight",
+                          notification.isRead ? "font-normal text-muted-foreground" : "font-medium text-foreground"
+                        )}>{notification.title}</h4>
+                      </div>
+                      <span
+                        role="button"
+                        tabIndex={0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          removeNotification(notification.id);
+                        }}
+                        className="shrink-0 p-0.5 text-muted-foreground opacity-0 transition-opacity hover:text-foreground group-hover:opacity-100"
+                      >
+                        <X size={13} />
+                      </span>
+                    </div>
+
+                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{notification.message}</p>
+
+                    <p className="mt-1 text-[11px] text-muted-foreground">{getTimeAgo(notification.createdAt)}</p>
+                  </div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="px-3 py-8 text-center">
+              <Bell size={28} className="mx-auto mb-2 text-muted-foreground/40" />
+              <p className="text-sm font-medium text-foreground">No notifications</p>
+              <p className="text-xs text-muted-foreground">You're all caught up!</p>
+            </div>
+          )}
+        </PopoverContent>
+      </Popover>
 
       {/* Modal */}
       <NotificationModal

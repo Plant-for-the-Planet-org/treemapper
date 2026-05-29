@@ -8,6 +8,7 @@ import useProject from '@shared-core/store/useProjectStore';
 
 import { checkForMigration, checkMigrationStatusBackend, startMigrationBackend, updateUserMigrate } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext';
+import { logout } from '@/lib/logout';
 
 const MigrationModal = () => {
     const [showModal, setShowModal] = useState(false);
@@ -22,7 +23,7 @@ const MigrationModal = () => {
     const intervalRef = useRef(null);
 
     const onLogout = () => {
-        window.location.href = '/api/auth/logout';
+        logout({ accessToken });
     };
 
     const migrationSteps = [

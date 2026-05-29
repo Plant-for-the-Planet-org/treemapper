@@ -1,19 +1,26 @@
 'use client'
 
-import { useState } from 'react'
-import { usePathname } from 'next/navigation'
+import { useState, useEffect } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { useTheme } from 'next-themes'
 import {
   LayoutDashboard, MapPin, Leaf, Users, Activity, Upload,
-  CheckSquare, FileText, BarChart2, Trophy, Settings,
-  ChevronDown, ChevronRight, Plus
+  CheckSquare, FileText, BarChart2, Trophy, Settings, Building,
+  ChevronDown, ChevronRight, Plus, Sun, Moon, Monitor,
+  UserCog, SlidersHorizontal, UserCheck, LogOut
 } from 'lucide-react'
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import { cn } from '@/lib/utils'
 import { useUserStore } from '@shared-core/store/useUserStore'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import { useToken } from '@/context/useTokenContext'
-import { selectOrg } from '@shared-core/fetchApi/api.fetch'
+import { selectOrg, exitImpersonationWork } from '@shared-core/fetchApi/api.fetch'
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible'
 import { Button } from '@/components/ui/button'
+import NotificationBell from '@/component/header/NotificationIcon'
+import ImpersonateDialog from '@/component/header/ImpersonateDialog'
 import { toast } from 'react-toastify'
 import { ProjectWithUserRoleI } from '@shared-core/types/interface.app'
 import {
@@ -21,6 +28,8 @@ import {
   SidebarGroup, SidebarGroupLabel, SidebarMenu, SidebarMenuItem,
   SidebarMenuButton, useSidebar,
 } from '@/components/ui/sidebar'
+import { subpageFromPath, projectHref } from '@/lib/projectRoutes'
+import { logout } from '@/lib/logout'
 
 interface SidebarProps {
   createNewProject: () => void
@@ -31,9 +40,34 @@ interface SidebarProps {
 export default function DashboardSidebar({ createNewProject, openProfileSetting, updateRoute }: SidebarProps) {
   const [projectDropdownOpen, setProjectDropdownOpen] = useState(false)
   const [collapsedWorkspaces, setCollapsedWorkspaces] = useState<Set<string>>(new Set())
-  const { state } = useSidebar()
-  const collapsed = state === 'collapsed'
+  const [impersonateOpen, setImpersonateOpen] = useState(false)
+  const { theme, setTheme } = useTheme()
+
+  const themeOrder = ['light', 'dark', 'system'] as const
+  const cycleTheme = () => {
+    const idx = themeOrder.indexOf(theme as typeof themeOrder[number])
+    setTheme(themeOrder[(idx + 1) % themeOrder.length])
+  }
+  const ThemeIcon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
+  const themeLabel = theme === 'dark' ? 'Dark' : theme === 'light' ? 'Light' : 'Auto'
+  const { state, isMobile, setOpenMobile, setOpen } = useSidebar()
+  const collapsed = !isMobile && state === 'collapsed'
+
+  const [isTablet, setIsTablet] = useState(false)
+  useEffect(() => {
+    const check = () => setIsTablet(window.innerWidth >= 768 && window.innerWidth < 1024)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
+  }, [])
+
+  const handleNavClick = (id: string) => {
+    updateRoute(id)
+    if (isMobile) setOpenMobile(false)
+    else if (isTablet) setOpen(false)
+  }
   const pathname = usePathname()
+  const router = useRouter()
   const { accessToken } = useToken()
   const User = useUserStore(state => state.user)
   const {
@@ -43,32 +77,15 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
 
   const projectRole = selectedProject?.userRole
   const isContributor = projectRole === 'contributor'
+  const isAdminOrOwner = projectRole === 'admin' || projectRole === 'owner'
+  const workspaceRole = (selectedWorkspce as { userRole?: string } | null)?.userRole
+  const isWorkspaceManager = !!workspaceRole && workspaceRole !== 'member'
 
   const activeRoute = (() => {
-    const exact: Record<string, string> = {
-      '/dashboard/overview': '',
-      '/dashboard/approvals': 'approvals',
-      '/dashboard/sites': 'sites',
-      '/dashboard/species': 'species',
-      '/dashboard/team': 'team',
-      '/dashboard/intervention': 'intervention',
-      '/dashboard/settings': 'settings',
-      '/dashboard/dataexplore': 'dataexplore',
-      '/dashboard/leaderboard': 'leaderboard',
-    }
-    if (exact[pathname] !== undefined) return exact[pathname]
-    const prefixes: [string, string][] = [
-      ['/dashboard/forms', 'forms'],
-      ['/dashboard/approvals', 'approvals'],
-      ['/dashboard/sites', 'sites'],
-      ['/dashboard/species', 'species'],
-      ['/dashboard/intervention', 'intervention'],
-      ['/dashboard/bulkupload', 'bulkupload'],
-    ]
-    for (const [prefix, val] of prefixes) {
-      if (pathname.startsWith(prefix)) return val
-    }
-    return ''
+    const subpage = subpageFromPath(pathname)
+    // The overview item uses '' as its id.
+    if (!subpage || subpage === 'overview') return ''
+    return subpage
   })()
 
   const groupedProjects = () => {
@@ -98,7 +115,8 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       selectProject(project)
       const ws = workspace.find(el => el.uid === project.workspace['uid'])
       if (ws) setDefaultWorkspce(ws)
-      window.location.reload()
+      const subpage = subpageFromPath(pathname) ?? 'overview'
+      router.push(projectHref(project.uid, subpage))
     } catch {
       toast.error('Something went wrong')
     }
@@ -123,6 +141,53 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
   const userInitials = userName
     ? userName.split(' ').filter(Boolean).map((w: string) => w[0]).slice(0, 2).join('').toUpperCase()
     : 'U'
+  const userImage = (User as any)?.image as string | undefined
+
+  const canImpersonate = User?.type === 'superadmin'
+  const isImpersonating = !!(User as { impersonated?: boolean } | null)?.impersonated
+
+  const handleExitImpersonation = async () => {
+    try {
+      const resp = await exitImpersonationWork(accessToken || '')
+      if (resp.statusCode !== 200 && resp.statusCode !== 201) throw new Error()
+      // Re-bootstrap as the real user; the landing (/) resolves their primary project.
+      setTimeout(() => { window.location.href = '/' }, 600)
+    } catch {
+      toast.error('Could not exit impersonation. Please try again.')
+    }
+  }
+
+  const settingsMenu = (
+    <DropdownMenuContent align="end" side="top" className="w-48">
+      <DropdownMenuItem onClick={openProfileSetting}>
+        <UserCog size={14} className="mr-2" />
+        Edit profile
+      </DropdownMenuItem>
+      {canImpersonate && (
+        <DropdownMenuItem onClick={() => updateRoute('workspace')}>
+          <UserCheck size={14} className="mr-2" />
+          Impersonate user
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuSeparator />
+      {isImpersonating && (
+        <DropdownMenuItem
+          onClick={handleExitImpersonation}
+          className="text-orange-600 focus:text-orange-600"
+        >
+          <UserCheck size={14} className="mr-2" />
+          Exit impersonation
+        </DropdownMenuItem>
+      )}
+      <DropdownMenuItem
+        onClick={() => logout({ accessToken, impersonating: isImpersonating })}
+        className="text-destructive focus:text-destructive"
+      >
+        <LogOut size={14} className="mr-2" />
+        Logout
+      </DropdownMenuItem>
+    </DropdownMenuContent>
+  )
 
   const navGroups = [
     {
@@ -146,10 +211,20 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
     {
       label: 'Analyse',
       items: [
-        { icon: BarChart2, label: 'Data Explorer', id: 'dataexplore' },
+        ...(isAdminOrOwner ? [{ icon: BarChart2, label: 'Data Explorer', id: 'dataexplore' }] : []),
         { icon: Trophy, label: 'Leaderboard', id: 'leaderboard' },
       ],
     },
+    ...((isAdminOrOwner || isWorkspaceManager || canImpersonate)
+      ? [{
+        label: 'Admin',
+        items: [
+          ...(isAdminOrOwner ? [{ icon: SlidersHorizontal, label: 'Project settings', id: 'settings' }] : []),
+          ...(isWorkspaceManager ? [{ icon: Building, label: 'Workspace', id: 'workspace' }] : []),
+          ...((canImpersonate || isWorkspaceManager) ? [{ icon: UserCheck, label: 'Impersonate', id: 'impersonate' }] : []),
+        ],
+      }]
+      : []),
   ]
 
   return (
@@ -174,9 +249,9 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
         <div className="relative">
           {collapsed ? (
             <div className="flex justify-center py-1">
-              <div className="w-6 h-6 rounded bg-green-100 flex items-center justify-center">
-                <span className="text-[10px] font-bold text-green-800 leading-none">
-                  {selectedProject?.name?.[0]?.toUpperCase() || 'P'}
+              <div className="px-1.5 h-6 rounded bg-green-100 flex items-center justify-center">
+                <span className="text-[10px] font-bold text-green-800 leading-none tracking-wider">
+                  {selectedProject?.name?.slice(0, 3).toUpperCase() || 'PRJ'}
                 </span>
               </div>
             </div>
@@ -195,7 +270,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                   </div>
                 </div>
                 <ChevronDown
-                  size={13}
+                  size={14}
                   className={cn('text-sidebar-foreground/40 flex-shrink-0 transition-transform duration-200', projectDropdownOpen && 'rotate-180')}
                 />
               </div>
@@ -205,14 +280,14 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
           {projectDropdownOpen && !collapsed && (
             <>
               <div className="fixed inset-0 z-40" onClick={() => setProjectDropdownOpen(false)} />
-              <div className="absolute left-0 right-0 mt-1 z-50 bg-white border border-gray-200 rounded-lg shadow-lg overflow-hidden">
-                <div className="p-2 border-b border-gray-100">
+              <div className="absolute left-0 right-0 mt-1 z-50 bg-popover text-popover-foreground border border-border rounded-lg shadow-lg overflow-hidden">
+                <div className="p-2 border-b border-border">
                   <Button
                     variant="ghost"
                     onClick={() => { createNewProject(); setProjectDropdownOpen(false) }}
-                    className="w-full justify-center [background-color:#e6f1ec] hover:[background-color:#d4e8dc] text-green-800 h-auto py-1.5 text-xs gap-1 font-medium"
+                    className="w-full justify-center bg-[#e6f1ec] hover:bg-[#d4e8dc] dark:bg-green-900/30 dark:hover:bg-green-900/50 text-green-800 dark:text-green-300 h-auto py-1.5 text-xs gap-1 font-medium"
                   >
-                    <Plus size={12} />
+                    <Plus size={14} />
                     Create New Project
                   </Button>
                 </div>
@@ -224,26 +299,28 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                       onOpenChange={() => toggleWorkspace(group.workspace.uid)}
                     >
                       <CollapsibleTrigger asChild>
-                        <Button variant="ghost" className="w-full justify-between h-auto py-1.5 rounded-none hover:bg-gray-50 font-normal text-left px-3">
-                          <span className="text-xs font-medium text-gray-700">{group.workspace.name}</span>
-                          <ChevronRight className={cn('w-3 h-3 text-gray-400 transition-transform duration-200', !collapsedWorkspaces.has(group.workspace.uid) && 'rotate-90')} />
+                        <Button variant="ghost" className="w-full justify-between h-auto py-1.5 rounded-none hover:bg-accent font-normal text-left px-3">
+                          <span className="text-xs font-medium text-foreground">{group.workspace.name}</span>
+                          <ChevronRight className={cn('w-3 h-3 text-muted-foreground transition-transform duration-200', !collapsedWorkspaces.has(group.workspace.uid) && 'rotate-90')} />
                         </Button>
                       </CollapsibleTrigger>
                       <CollapsibleContent>
-                        <div className="ml-3 border-l border-gray-100 pl-2 py-0.5">
+                        <div className="ml-3 border-l border-border pl-2 py-0.5">
                           {group.projects.map(project => (
                             <Button
                               key={project.uid}
                               variant="ghost"
                               onClick={() => handleProjectSelect(project)}
                               className={cn(
-                                'w-full justify-start h-auto py-1.5 rounded-sm text-left',
-                                project.uid === selectedProject?.uid && '[background-color:#e6f1ec]'
+                                'w-full justify-start h-auto py-1.5 rounded-sm text-left hover:bg-accent',
+                                project.uid === selectedProject?.uid && 'bg-[#e6f1ec] dark:bg-green-900/30'
                               )}
                             >
                               <span className={cn(
                                 'text-xs truncate',
-                                project.uid === selectedProject?.uid ? 'text-green-800 font-medium' : 'text-gray-700'
+                                project.uid === selectedProject?.uid
+                                  ? 'text-green-800 dark:text-green-300 font-medium'
+                                  : 'text-foreground'
                               )}>
                                 {project.name}
                               </span>
@@ -269,7 +346,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
               {group.items.map((item) => (
                 <SidebarMenuItem key={item.id}>
                   <SidebarMenuButton
-                    onClick={() => updateRoute(item.id)}
+                    onClick={() => item.id === 'impersonate' ? setImpersonateOpen(true) : handleNavClick(item.id)}
                     isActive={activeRoute === item.id}
                     tooltip={item.label}
                   >
@@ -286,35 +363,65 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
       {/* User Profile */}
       <SidebarFooter className="border-t border-sidebar-border">
         {collapsed ? (
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center gap-1">
+            <NotificationBell variant="sidebar" />
             <button
-              onClick={openProfileSetting}
-              className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors"
-              title={userName}
+              onClick={cycleTheme}
+              className="p-1.5 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+              title={`Theme: ${themeLabel}`}
             >
-              <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+              <ThemeIcon size={14} />
             </button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  className="w-8 h-8 rounded-full bg-green-700 flex items-center justify-center hover:bg-green-600 transition-colors overflow-hidden"
+                  title={userName}
+                >
+                  {userImage
+                    ? <img src={userImage} alt={userName} className="w-full h-full object-cover" />
+                    : <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>}
+                </button>
+              </DropdownMenuTrigger>
+              {settingsMenu}
+            </DropdownMenu>
           </div>
         ) : (
           <div className="flex items-center justify-between gap-2">
             <div className="flex items-center gap-2 min-w-0">
-              <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0">
-                <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>
+              <div className="w-7 h-7 rounded-full bg-green-700 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                {userImage
+                  ? <img src={userImage} alt={userName} className="w-full h-full object-cover" />
+                  : <span className="text-[10px] font-bold text-white leading-none">{userInitials}</span>}
               </div>
               <div className="min-w-0">
                 <div className="text-xs font-medium text-sidebar-foreground truncate leading-tight">{userName}</div>
                 <div className="text-[10px] text-sidebar-foreground/50 capitalize truncate leading-tight">{projectRole}</div>
               </div>
             </div>
-            <button
-              onClick={openProfileSetting}
-              className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground flex-shrink-0 transition-colors"
-            >
-              <Settings size={13} />
-            </button>
+            <div className="flex items-center gap-0.5 flex-shrink-0">
+              <NotificationBell variant="sidebar" />
+              <button
+                onClick={cycleTheme}
+                className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors"
+                title={`Theme: ${themeLabel}`}
+              >
+                <ThemeIcon size={14} />
+              </button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="p-1 rounded-md hover:bg-sidebar-accent text-sidebar-foreground/40 hover:text-sidebar-foreground transition-colors">
+                    <Settings size={14} />
+                  </button>
+                </DropdownMenuTrigger>
+                {settingsMenu}
+              </DropdownMenu>
+            </div>
           </div>
         )}
       </SidebarFooter>
+
+      <ImpersonateDialog open={impersonateOpen} onOpenChange={setImpersonateOpen} />
     </Sidebar>
   )
 }

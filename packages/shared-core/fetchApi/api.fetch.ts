@@ -92,8 +92,8 @@ export const startMigrationBackend = async (token: string, params: any) => {
 
 
 //Project
-export const createNewProject = async (token: string, params: any, pid: string) => {
-  const uri = `${postUrlApi.createProject}/${pid}`;
+export const createNewProject = async (token: string, params: any) => {
+  const uri = `${postUrlApi.createProject}`;
   const result = await fetchPostCall(uri, params, token);
   return result;
 };
@@ -613,7 +613,7 @@ export const getWorkspaceMembers = async (token: string) => {
 };
 
 export const startImpersonationWork = async (token: string, person: string) => {
-  const uri = `${putUrlApi.impersonateUser}/${person}`;
+  const uri = `${putUrlApi.impersonateUser}/${encodeURIComponent(person)}`;
   const result = await fetchPutCall(uri, {}, token);
   return result;
 };

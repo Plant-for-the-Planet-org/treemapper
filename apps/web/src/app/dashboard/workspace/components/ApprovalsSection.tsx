@@ -13,8 +13,8 @@ import {
   ReviewDecision,
   ReviewStatus,
 } from '@shared-core/types/approval.types';
-import { ApprovalColumn } from '@/app/dashboard/approvals/component/ApprovalColumn';
-import { ApprovalModal } from '@/app/dashboard/approvals/component/ApprovalModal';
+import { ApprovalColumn } from '@/app/(dashboard)/project/[projectUid]/approvals/component/ApprovalColumn';
+import { ApprovalModal } from '@/app/(dashboard)/project/[projectUid]/approvals/component/ApprovalModal';
 import {
   getWorkspaceReviewQueue,
   getWorkspaceSiteReviewQueue,
@@ -40,8 +40,8 @@ import {
   useSensors,
   closestCorners,
 } from '@dnd-kit/core';
-import { ApprovalCard } from '@/app/dashboard/approvals/component/ApprovalCard';
-import { SiteApprovalCard } from '@/app/dashboard/approvals/component/SiteApprovalCard';
+import { ApprovalCard } from '@/app/(dashboard)/project/[projectUid]/approvals/component/ApprovalCard';
+import { SiteApprovalCard } from '@/app/(dashboard)/project/[projectUid]/approvals/component/SiteApprovalCard';
 
 const COLUMN_DEFINITIONS: Omit<ApprovalBoardColumn, 'interventions' | 'sites' | 'items'>[] = [
   { status: 'new_request', reviewStatus: ['draft', 'pending'], title: 'New Requests', color: '#F59E0B', badgeColor: 'bg-amber-500' },

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useParams } from 'next/navigation'
 import { useBuilder } from '@/forms/FormBuilderContext'
 import { saveForm } from '@/forms/storage'
 import { Button } from '@/components/ui/button'
@@ -12,6 +12,8 @@ import { toast } from 'react-toastify'
 
 export default function BuilderTopBar() {
   const router = useRouter()
+  const params = useParams()
+  const projectUid = params.projectUid as string
   const { state, dispatch } = useBuilder()
   const { form, showPreview, isDirty } = state
   const [saving, setSaving] = useState(false)
@@ -38,7 +40,7 @@ export default function BuilderTopBar() {
   return (
     <div className="h-14 border-b border-gray-200 bg-white flex items-center px-4 gap-4 flex-shrink-0">
       <button
-        onClick={() => router.push('/dashboard/forms')}
+        onClick={() => router.push(`/project/${projectUid}/forms`)}
         className="flex items-center gap-1.5 text-gray-500 hover:text-gray-800 text-sm transition-colors"
       >
         <ArrowLeft className="w-4 h-4" />

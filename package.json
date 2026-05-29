@@ -57,6 +57,7 @@
   },
   "resolutions": {
     "react-native": "0.83.6",
+    "react": "19.2.0",
     "react-dom": "19.2.0",
     "@types/react": "~19.2.10",
     "react-i18next": "16.5.0",

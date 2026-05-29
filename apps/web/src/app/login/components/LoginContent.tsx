@@ -12,22 +12,27 @@ import { MobileLogo } from './MobileLogo';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import EmailVerificationModal from '@/component/EmailVerificationModal';
+import {
+  buildSocialAuthorizeUrl,
+  buildUniversalLoginAuthorizeUrl,
+} from '@/lib/auth/auth0-config';
+import { getSafeRedirectPath } from '@/lib/utils/auth';
 
 
 export default function LoginContent() {
   const searchParams = useSearchParams();
-  const returnTo = searchParams.get('returnTo');
+  const returnTo = searchParams.get('returnTo') ?? searchParams.get('redirectTo');
   const [loading, setLoading] = useState<string | false>(false);
   const router = useRouter();
   const pathname = usePathname();
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken()
 
   useEffect(() => {
-    if (tokenLoading && user) {
-      router.push('/dashboard');
+    if (!tokenLoading && user) {
+      router.push(getSafeRedirectPath(returnTo));
       return
     }
-  }, [user, tokenLoading, router]);
+  }, [user, tokenLoading, router, returnTo]);
 
   // Updated features based on website content
   const features = [
@@ -48,27 +53,21 @@ export default function LoginContent() {
     }
   ];
 
-  const handleLogin = useCallback((connection?: string) => {
+  const handleLogin = useCallback(async (connection?: string) => {
     setLoading(connection || 'auth0');
 
-    // Build the Auth0 login URL with connection parameter if provided
-    let loginUrl = '/api/auth/login';
-    const params = new URLSearchParams();
+    try {
+      const redirectTo = getSafeRedirectPath(returnTo);
 
-    if (returnTo) {
-      params.append('returnTo', returnTo);
+      const authorizeUrl = connection && connection !== 'auth0'
+        ? await buildSocialAuthorizeUrl(connection, redirectTo)
+        : await buildUniversalLoginAuthorizeUrl(redirectTo);
+
+      window.location.assign(authorizeUrl);
+    } catch (error) {
+      console.error('Login failed:', error);
+      setLoading(false);
     }
-
-    if (connection && connection !== 'auth0') {
-      params.append('connection', connection);
-    }
-
-    if (params.toString()) {
-      loginUrl += `?${params.toString()}`;
-    }
-
-    // Redirect to Auth0 login
-    window.location.href = loginUrl;
   }, [returnTo]);
 
   const handleImprint = useCallback(() => {

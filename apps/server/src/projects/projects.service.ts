@@ -462,9 +462,8 @@ export class ProjectsService {
     }
   }
 
-  async updateNewProject(createProjectDto: CreateProjectDto, membership: ProjectGuardResponse, userData: User): Promise<any> {
+  async createProject(createProjectDto: CreateProjectDto, userData: User): Promise<any> {
     try {
-      let locationValue: any = null;
       if (!userData.primaryWorkspaceUid) {
         throw new ForbiddenException('User does not have a primary workspace set');
       }
@@ -483,6 +482,7 @@ export class ProjectsService {
       const projectStatus = workspaceSettings?.requireApprovalForNewProjects ? 'in_review' : 'active';
       const approvalBoardEnabled = workspaceSettings?.approvalBoardEnabled ?? false;
 
+      let locationValue: any = null;
       if (createProjectDto.location) {
         try {
           const geometry = this.getGeoJSONForPostGIS(createProjectDto.location);
@@ -491,61 +491,83 @@ export class ProjectsService {
           return {
             message: 'Invalid GeoJSON provided',
             statusCode: 400,
-            error: "invalid_geojson",
+            error: 'invalid_geojson',
             data: null,
             code: 'invalid_project_geojson',
           };
         }
       }
 
-      const result = await this.drizzleService.db
-        .update(project)
-        .set({
-          name: createProjectDto.projectName ?? '',
-          type: createProjectDto.projectType ?? 'private',
-          website: createProjectDto.projectWebsite ?? null,
-          description: createProjectDto.description ?? null,
-          target: createProjectDto.target ? Number(createProjectDto.target) : null,
-          location: locationValue,
-          originalGeometry: createProjectDto.location,
-          status: projectStatus,
-          approvalBoardEnabled: approvalBoardEnabled,
-        })
-        .where(eq(project.id, membership.projectId))
+      const result = await this.drizzleService.db.transaction(async (tx) => {
+        const [projectData] = await tx
+          .insert(project)
+          .values({
+            uid: generateUid('proj'),
+            createdById: userData.id,
+            workspaceId: workspaceId,
+            slug: `${this.generateSlug(createProjectDto.projectName)}-${Date.now()}`,
+            name: createProjectDto.projectName ?? '',
+            type: createProjectDto.projectType ?? 'private',
+            website: createProjectDto.projectWebsite ?? null,
+            description: createProjectDto.description ?? null,
+            target: createProjectDto.target ? Number(createProjectDto.target) : null,
+            location: locationValue,
+            originalGeometry: createProjectDto.location,
+            status: projectStatus,
+            approvalBoardEnabled: approvalBoardEnabled,
+            isPersonal: false,
+          })
+          .returning();
 
-      this.notificationService.createNotification({
-        userId: userData.id,
-        type: NotificationType.MEMBER,
-        title: 'New Project Created',
-        message: `Your project ${createProjectDto.projectName} has been created successfully.`
-      }).catch(err => console.error('Notification failed:', err));
+        await tx
+          .insert(projectMember)
+          .values({
+            uid: generateUid('projmem'),
+            projectId: projectData.id,
+            userId: userData.id,
+            projectRole: 'owner',
+            joinedAt: new Date(),
+          });
 
-      this.auditLogsService.log('project', {
-        action: 'update',
-        entityId: membership.projectId,
-        userId: userData.id,
-        newValues: {
-          name: createProjectDto.projectName,
-          type: createProjectDto.projectType,
-          description: createProjectDto.description,
-          target: createProjectDto.target,
-        },
-        source: 'web',
+        this.notificationService.createNotification({
+          userId: userData.id,
+          type: NotificationType.MEMBER,
+          title: 'New Project Created',
+          message: `Your project ${createProjectDto.projectName} has been created successfully.`,
+        }).catch(err => console.error('Notification failed:', err));
+
+        this.auditLogsService.log('project', {
+          action: 'create',
+          entityId: projectData.id,
+          entityUid: projectData.uid,
+          userId: userData.id,
+          projectId: projectData.id,
+          newValues: {
+            name: createProjectDto.projectName,
+            type: createProjectDto.projectType,
+            description: createProjectDto.description,
+            target: createProjectDto.target,
+            workspaceId,
+          },
+          source: 'web',
+        });
+
+        return projectData;
       });
 
       return {
-        message: 'Project updated successfully',
+        message: 'Project created successfully',
         statusCode: 201,
         error: null,
         data: result,
         code: 'project_created',
       };
     } catch (error) {
-      console.error('Error updating project:', error);
+      console.error('Error creating project:', error);
       return {
-        message: 'Failed to update project',
+        message: 'Failed to create project',
         statusCode: 500,
-        error: error.message || "internal_server_error",
+        error: error.message || 'internal_server_error',
         data: null,
         code: 'project_creation_failed',
       };

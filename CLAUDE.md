@@ -89,3 +89,5 @@ yarn db:studio      # Drizzle Studio
 - Do not share live customer or production data in chat.
 - Do not use `--no-verify` to bypass hooks.
 - Do not commit unless explicitly asked.
+- Do not remove `TODO` comments without asking first -- they mark known gaps that need future work.
+- Do not remove commented-out code that describes a planned or stubbed feature extension without asking first -- it carries intent that may not be obvious from context.

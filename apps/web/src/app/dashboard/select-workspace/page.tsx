@@ -1,12 +1,11 @@
-'use client'
+"use client";
 
-import React from 'react';
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
-import Worspace from '../onboarding/page'
-
-const SelectWorkspace = () => {
-return  <Worspace forProject={true}/>
+// Moved to /onboard?flow=add-project.
+export default function Redirect() {
+  const router = useRouter();
+  useEffect(() => { router.replace('/onboard?flow=add-project'); }, [router]);
+  return null;
 }
-
-export default SelectWorkspace;
-  

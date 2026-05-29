@@ -49,11 +49,9 @@ export class ProjectsController {
     return this.projectsService.findProjectsAndWorkspace(user);
   }
 
-  @Post('/:id')
-  @ProjectRoles('owner', 'admin')
-  @UseGuards(ProjectPermissionsGuard)
-  create(@Body() createProjectDto: CreateProjectDto, @CurrentUser() user: User, @Membership() membership: ProjectGuardResponse): Promise<any> {
-    return this.projectsService.updateNewProject(createProjectDto, membership, user);
+  @Post('')
+  create(@Body() createProjectDto: CreateProjectDto, @CurrentUser() user: User): Promise<any> {
+    return this.projectsService.createProject(createProjectDto, user);
   }
 
   @Post(':id/invites')

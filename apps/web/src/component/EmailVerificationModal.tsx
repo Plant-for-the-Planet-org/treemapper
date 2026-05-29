@@ -3,6 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Mail, AlertCircle } from 'lucide-react';
 import { useSearchParams, useRouter } from 'next/navigation';
+import { buildUniversalLoginAuthorizeUrl } from '@/lib/auth/auth0-config';
+import { logout } from '@/lib/logout';
 
 const EmailVerificationModal = () => {
     const [isOpen, setIsOpen] = useState(false);
@@ -19,15 +21,14 @@ const EmailVerificationModal = () => {
         }
     }, [searchParams]);
 
-    const handleClose = () => {
+    const handleClose = async () => {
         setIsLoggingOut(true);
-        // Use window.location for complete logout to ensure federated logout works
-        window.location.href = '/api/auth/logout';
+        await logout();
     };
 
-    const handleTryAgain = () => {
-        // Force fresh login
-        window.location.href = '/api/auth/login?prompt=login';
+    const handleTryAgain = async () => {
+        const authorizeUrl = await buildUniversalLoginAuthorizeUrl('/');
+        window.location.assign(authorizeUrl);
     };
 
     return (

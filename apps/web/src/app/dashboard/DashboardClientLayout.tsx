@@ -3,11 +3,13 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { useAccessToken } from '@/hooks/useAccessToken';
 import DashboardSidebar from '@/component/sidebar/DashboardSidebar';
+import WorkspaceSidebar from '@/component/sidebar/WorkspaceSidebar';
 import DashboardTopBar from '@/component/header/DashboardTopBar';
 import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
+import { TopBarActionsProvider } from '@/component/header/TopBarActions';
 import { TokenProvider } from '@/context/useTokenContext';
 import useProjectStore from '@shared-core/store/useProjectStore';
-import { TestingModeManager } from '@/component/TestingModeManager';
+import ImpersonationBanner from '@/component/header/ImpersonationBanner';
 import useHomeStore from '@shared-core/store/useHomeStore';
 import Spinner from '../../component/Spinner';
 import { useEffect, useState, useCallback } from 'react';
@@ -18,23 +20,26 @@ import { XCircle } from 'lucide-react';
 import { ToastContainer } from 'react-toastify';
 import ProjectInviteModal from '@/component/ProjectInviteModal';
 import MigrationModal from '@/component/MigrationModal';
+import { projectHref, subpageFromPath } from '@/lib/projectRoutes';
+import { logout } from '@/lib/logout';
 
 const STANDALONE_ROUTES = [
   'profile',
   'project',
   'newsite',
-  'bulkupload',
   'new-intervention',
   'onboarding',
   'workspace',
-  'select-workspace',
-  "dataexplore"
 ];
+
+// Project subpages that render full-screen without the sidebar, even though
+// they live under /project/:projectUid.
+const STANDALONE_PROJECT_SUBPAGES = ['newsite', 'new-intervention'];
 
 // Consolidated loading states
 type LoadingState = 'loading' | 'success' | 'error' | 'idle';
 
-export default function DashboardClientLayout({ children }: { children: React.ReactNode }) {
+export default function DashboardClientLayout({ children, variant = 'project' }: { children: React.ReactNode; variant?: 'project' | 'workspace' | 'standalone' }) {
   const { user, tokenError, tokenLoading, accessToken } = useAccessToken();
   const { addProjects, selectProject, setDefaultWorkspce, addWorkspace, workspace, projects, selectedWorkspce, selectedProject } = useProjectStore(state => state);
   const orgType = useHomeStore(state => state.orgType);
@@ -49,15 +54,14 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
   const getCurrentSection = (path: string): string => {
     const section = STANDALONE_ROUTES.find(route => path.includes(`/dashboard/${route}`));
-    return section || 'default';
+    if (section) return section;
+    const sub = subpageFromPath(path);
+    if (sub && STANDALONE_PROJECT_SUBPAGES.includes(sub)) return sub;
+    return 'default';
   };
 
   const currentSection = getCurrentSection(pathname);
   const isStandaloneRoute = currentSection !== 'default';
-
-  // Check if user is on the root dashboard path WITHOUT any query parameters
-  // If there are query params (like project-invite), don't redirect
-  const isRootDashboardPath = (pathname === '/dashboard' || pathname === '/dashboard/') && !searchParams.toString();
 
   useEffect(() => {
     if (!tokenLoading && !user) {
@@ -67,17 +71,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       router.push(`/login?returnTo=${returnTo}`);
       return;
     }
-    handleNav();
   }, [user, tokenLoading, router, searchParams, pathname]);
-
-  const handleNav = () => {
-    const name = searchParams.get('name');
-    const type = searchParams.get('type');
-    if (name) {
-      router.replace(`/dashboard/project?name=${name}&type=${type}`)
-      return
-    }
-  }
 
   // Set default project and workspace when data is available
   useEffect(() => {
@@ -92,6 +86,10 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   useEffect(() => {
     if (accessToken && !User && appState === 'idle') {
       initializeApp();
+    } else if (User && appState === 'idle') {
+      // Layout remounted (e.g. crossing route-group subtrees) with data
+      // already loaded; mark success so the sidebar renders immediately.
+      setAppState('success');
     }
   }, [accessToken, User, appState]);
 
@@ -105,9 +103,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   const setDefaultProjectAndWorkspace = useCallback(() => {
     if (!User?.primaryProjectUid) return;
 
-    const savedProjectUid = localStorage.getItem('project') || User.primaryProjectUid;
-    const defaultProject = projects.find(p => p.uid === savedProjectUid)
-      ?? projects.find(p => p.uid === User.primaryProjectUid);
+    const defaultProject = projects.find(p => p.uid === User.primaryProjectUid);
 
     const workspaceUid = defaultProject?.workspace?.uid ?? User.primaryWorkspaceUid;
     const defaultWorkspace = workspace.find(w => w.uid === workspaceUid);
@@ -162,7 +158,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       }
       // Step 2: Check if user needs onboarding
       if (!userData.primaryWorkspaceUid) {
-        router.push('/dashboard/onboarding');
+        router.push('/onboard');
         setAppState('success');
         return;
       }
@@ -177,12 +173,6 @@ export default function DashboardClientLayout({ children }: { children: React.Re
 
       // Step 4: Fetch workspace and projects
       await fetchWorkspaceAndProjects();
-
-      // Step 5: Only redirect to overview if user is on the exact root dashboard path
-      // This preserves other routes like /dashboard/species, /dashboard/species?a=1&b=2, etc.
-      if (isRootDashboardPath) {
-        router.replace('/dashboard/overview');
-      }
 
       setAppState('success');
       setRetryCount(3); // Reset retry count on success
@@ -230,15 +220,24 @@ export default function DashboardClientLayout({ children }: { children: React.Re
   };
 
   const handleLogout = () => {
-    window.location.href = '/api/auth/logout';
+    logout({ accessToken, impersonating: !!(User as { impersonated?: boolean } | null)?.impersonated });
   };
 
   const navigationHandlers = {
-    createNewProject: () => router.push('/dashboard/project'),
-    openProfileSetting: () => router.push('/dashboard/profile'),
+    createNewProject: () => router.push('/create-project'),
+    openProfileSetting: () => router.push('/profile'),
     updateRoute: (newRoute: string) => {
-      const route = newRoute === '' ? '/dashboard' : `/dashboard/${newRoute}`;
-      router.push(route);
+      if (newRoute === 'workspace') {
+        router.push('/workspace');
+        return;
+      }
+      const subpage = newRoute === '' ? 'overview' : newRoute;
+      const projectUid = selectedProject?.uid;
+      if (projectUid) {
+        router.push(projectHref(projectUid, subpage));
+        return;
+      }
+      router.push('/');
     }
   };
 
@@ -316,6 +315,11 @@ export default function DashboardClientLayout({ children }: { children: React.Re
       );
     }
 
+    // Standalone variant (user/global pages like profile): no project context.
+    if (variant === 'standalone') {
+      return children;
+    }
+
     // For standalone routes, ensure project is selected (except onboarding)
     if (isStandaloneRoute) {
       if (!selectedProject && currentSection !== 'onboarding') {
@@ -331,7 +335,7 @@ export default function DashboardClientLayout({ children }: { children: React.Re
     return children;
   };
 
-  const showSidebar = appState === 'success' && !isStandaloneRoute;
+  const showSidebar = appState === 'success' && variant !== 'standalone' && (variant === 'workspace' || !isStandaloneRoute);
 
   return (
     <TokenProvider accessToken={accessToken}>
@@ -351,17 +355,20 @@ export default function DashboardClientLayout({ children }: { children: React.Re
               limit={3}
               closeButton={true}
             />
-            <TestingModeManager mode={User && User.impersonated ? 'impersonation' : ''} />
             {inviteFound && <ProjectInviteModal />}
             <MigrationModal/>
-            <SidebarProvider>
-              <div className="flex h-full overflow-hidden w-full">
-                {showSidebar && <DashboardSidebar {...navigationHandlers} />}
-                <SidebarInset className="flex flex-col overflow-hidden">
-                  {showSidebar && <DashboardTopBar />}
+            <SidebarProvider
+              defaultOpen={typeof window !== 'undefined' ? window.innerWidth >= 1280 : true}
+              className="!min-h-0 h-full overflow-hidden"
+            >
+              {showSidebar && (variant === 'workspace' ? <WorkspaceSidebar /> : <DashboardSidebar {...navigationHandlers} />)}
+              <SidebarInset className="flex flex-col overflow-hidden min-h-0">
+                <ImpersonationBanner />
+                <TopBarActionsProvider>
+                  {showSidebar && variant !== 'workspace' && <DashboardTopBar />}
                   {renderMainContent()}
-                </SidebarInset>
-              </div>
+                </TopBarActionsProvider>
+              </SidebarInset>
             </SidebarProvider>
         </div>
       </div>
