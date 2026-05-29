@@ -13,16 +13,27 @@ import {
 const AUTH0_DOMAIN = 'accounts.plant-for-the-planet.org';
 const AUTH0_AUDIENCE = 'urn:plant-for-the-planet';
 
-if (!process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID) {
-  throw new Error(
-    'Missing required environment variable: NEXT_PUBLIC_AUTH0_CLIENT_ID. ' +
-      'Please add it to your .env file.'
-  );
+function getClientId(): string {
+  const clientId = process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID;
+
+  if (!clientId) {
+    throw new Error(
+      'Missing required environment variable: NEXT_PUBLIC_AUTH0_CLIENT_ID. ' +
+        'Please add it to your .env file.'
+    );
+  }
+
+  return clientId;
 }
 
 export const AUTH0_CONFIG = {
   domain: AUTH0_DOMAIN,
-  clientId: process.env.NEXT_PUBLIC_AUTH0_CLIENT_ID,
+  // Lazy getter: validate only when the value is read (at login time),
+  // not at module import. This keeps static prerender (e.g. /_not-found)
+  // from crashing the build when the var is absent.
+  get clientId(): string {
+    return getClientId();
+  },
   audience: AUTH0_AUDIENCE,
   issuerBaseURL: `https://${AUTH0_DOMAIN}`,
   scope: 'openid profile email',
