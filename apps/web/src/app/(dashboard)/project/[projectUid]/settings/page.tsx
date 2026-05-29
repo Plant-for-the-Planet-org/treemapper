@@ -416,6 +416,7 @@ const ApiSettings = ({ projectUid, accessToken, canEdit, apiEnabled, onApiToggle
       onToggle={() => onApiToggle(!apiEnabled)}
       disabled={!canEdit || busy}
     >
+      {apiEnabled && (
       <div className="mt-4 bg-muted/40 rounded-lg p-4 border border-border space-y-4">
         {newKey ? (
           <div className="space-y-3">
@@ -470,6 +471,7 @@ const ApiSettings = ({ projectUid, accessToken, canEdit, apiEnabled, onApiToggle
           </div>
         )}
       </div>
+      )}
     </FeatureToggle>
   )
 }
