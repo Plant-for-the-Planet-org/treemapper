@@ -349,6 +349,7 @@ export default function DashboardSidebar({ createNewProject, openProfileSetting,
                     onClick={() => item.id === 'impersonate' ? setImpersonateOpen(true) : handleNavClick(item.id)}
                     isActive={activeRoute === item.id}
                     tooltip={item.label}
+                    className="data-[active=true]:!bg-primary/10 data-[active=true]:!text-primary data-[active=true]:!font-medium"
                   >
                     <item.icon />
                     <span>{item.label}</span>
