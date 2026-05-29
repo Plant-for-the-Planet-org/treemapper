@@ -391,14 +391,14 @@ export class SiteService {
 
 
 
-  async grantSiteAccess(siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
+  async grantSiteAccess(projectId: number, siteUid: string, dto: GrantAccessDto): Promise<{ message: string }> {
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
         projectId: site.projectId,
       })
       .from(site)
-      .where(eq(site.uid, siteUid))
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
       .limit(1);
 
     if (siteData.length === 0) {
@@ -466,15 +466,15 @@ export class SiteService {
     return { message: 'Site access granted successfully' };
   }
 
-  async revokeSiteAccess(siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
-    // Verify site exists
+  async revokeSiteAccess(projectId: number, siteUid: string, dto: RevokeAccessDto): Promise<{ message: string }> {
+    // Verify site exists in this project
     const siteData = await this.drizzleService.db
       .select({
         id: site.id,
         projectId: site.projectId,
       })
       .from(site)
-      .where(eq(site.uid, siteUid))
+      .where(and(eq(site.uid, siteUid), eq(site.projectId, projectId)))
       .limit(1);
 
     if (siteData.length === 0) {

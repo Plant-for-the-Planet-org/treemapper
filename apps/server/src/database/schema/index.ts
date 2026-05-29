@@ -184,7 +184,7 @@ export const recordTypeEnum = pgEnum('record_type', [
 export const imageEntityEnum = pgEnum('image_entity', ['project', 'site', 'user', 'intervention', 'tree', 'species', 'feedback']);
 export const treeTypeEnum = pgEnum('tree_enum', ['single', 'sample', 'plot']);
 export const imageTypeEnum = pgEnum('image_type', ['before', 'during', 'after', 'detail', 'overview', 'progress', 'aerial', 'ground', 'record']);
-export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
+export const interventionStatusEnum = pgEnum('intervention_status', ['planned', 'planning', 'active', 'completed', 'failed', 'on-hold', 'cancelled']);
 export const feedbackTypeEnum = pgEnum('feedback_type', ['feedback', 'issue', 'translation_fix']);
 export const feedbackStatusEnum = pgEnum('feedback_status', ['pending', 'reviewed', 'resolved', 'dismissed']);
 export const migrationStatusEnum = pgEnum('migration_status', [
@@ -577,6 +577,7 @@ export const project = pgTable('project', {
   migratedProject: boolean('migrated_project').default(false),
   status: projectStatusEnum('status').notNull().default('active'),
   approvalBoardEnabled: boolean('approval_board_enabled').default(false).notNull(),
+  apiEnabled: boolean('api_enabled').default(false).notNull(),
   flag: boolean('flag').default(false),
   flagReason: jsonb('flag_reason').$type<FlagReasonEntry[]>(),
   metadata: jsonb('metadata'),
@@ -598,6 +599,23 @@ export const project = pgTable('project', {
     sql`is_primary = false OR (is_primary = true AND is_active = true)`),
   flaggedProjectReason: check('flagged_project_reason',
     sql`flag = false OR flag_reason IS NOT NULL`),
+}));
+
+
+export const projectApiKey = pgTable('project_api_key', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  projectId: integer('project_id').notNull().references(() => project.id, { onDelete: 'cascade' }),
+  keyHash: text('key_hash').notNull().unique(),
+  keyPrefix: text('key_prefix').notNull(),
+  createdById: integer('created_by_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  lastUsedAt: timestamp('last_used_at', { withTimezone: true }),
+  revokedAt: timestamp('revoked_at', { withTimezone: true }),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  projectKeyUnique: uniqueIndex('project_api_key_project_unique').on(table.projectId),
+  keyHashIdx: index('project_api_key_hash_idx').on(table.keyHash),
 }));
 
 
@@ -962,7 +980,7 @@ export const intervention = pgTable('intervention', {
   metadata: jsonb('metadata'),
   migratedIntervention: boolean('migrated_intervention').default(false),
   reviewStatus: reviewStatusEnum('review_status'),
-  submittedAt: timestamp('submitted_at', { withTimezone: true }), //REMOVE
+  submittedAt: timestamp('submitted_at', { withTimezone: true }),
   approvedAt: timestamp('approved_at', { withTimezone: true }),
   approvedById: integer('approved_by_id').references(() => user.id, { onDelete: 'set null' }),
   rejectedAt: timestamp('rejected_at', { withTimezone: true }),
@@ -1447,6 +1465,18 @@ export const projectRelations = relations(project, ({ one, many }) => ({
   interventions: many(intervention),
   projectSpecies: many(projectSpecies),
   speciesRequests: many(speciesRequest),
+  apiKey: one(projectApiKey),
+}));
+
+export const projectApiKeyRelations = relations(projectApiKey, ({ one }) => ({
+  project: one(project, {
+    fields: [projectApiKey.projectId],
+    references: [project.id],
+  }),
+  createdBy: one(user, {
+    fields: [projectApiKey.createdById],
+    references: [user.id],
+  }),
 }));
 
 export const projectMemberRelations = relations(projectMember, ({ one }) => ({

@@ -86,6 +86,10 @@ export class UpdateProjectDto {
   approvalBoardEnabled?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  apiEnabled?: boolean;
+
+  @IsOptional()
   @IsString()
   image?: string;
 

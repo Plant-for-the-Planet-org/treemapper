@@ -1,5 +1,6 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { DrizzleService } from '../database/drizzle.service';
+import { AuthzService } from '../auth/authz.service';
 import {
   intervention,
   interventionSpecies,
@@ -32,7 +33,10 @@ import {
 
 @Injectable()
 export class ApprovalBoardService {
-  constructor(private readonly drizzleService: DrizzleService) {}
+  constructor(
+    private readonly drizzleService: DrizzleService,
+    private readonly authzService: AuthzService,
+  ) {}
 
   // ================== Review Queue (Admin) ==================
 
@@ -260,14 +264,21 @@ export class ApprovalBoardService {
     userId: number,
     role: 'admin' | 'contributor',
     dto: AddCommentDto,
+    expectedProjectId?: number,
   ): Promise<ReviewCommentResponse> {
     const [inv] = await this.drizzleService.db
-      .select({ id: intervention.id, reviewStatus: intervention.reviewStatus })
+      .select({ id: intervention.id, projectId: intervention.projectId, reviewStatus: intervention.reviewStatus })
       .from(intervention)
       .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
       .limit(1);
 
     if (!inv) throw new NotFoundException('Intervention not found');
+
+    if (expectedProjectId !== undefined && inv.projectId !== expectedProjectId) {
+      throw new ForbiddenException('Intervention does not belong to this project');
+    }
+
+    await this.authzService.assertProjectMembership(userId, inv.projectId);
 
     if (inv.reviewStatus !== 'in_review') {
       throw new BadRequestException(
@@ -429,14 +440,23 @@ export class ApprovalBoardService {
     userId: number,
     role: 'admin' | 'contributor',
     dto: AddCommentDto,
+    expectedProjectId?: number,
   ): Promise<ReviewCommentResponse> {
     const [thread] = await this.drizzleService.db
-      .select({ id: reviewThread.id, status: reviewThread.status })
+      .select({ id: reviewThread.id, status: reviewThread.status, projectId: intervention.projectId })
       .from(reviewThread)
+      .innerJoin(intervention, eq(reviewThread.interventionId, intervention.id))
       .where(eq(reviewThread.uid, threadUid))
       .limit(1);
 
     if (!thread) throw new NotFoundException('Thread not found');
+
+    if (expectedProjectId !== undefined && thread.projectId !== expectedProjectId) {
+      throw new ForbiddenException('Thread does not belong to this project');
+    }
+
+    await this.authzService.assertProjectMembership(userId, thread.projectId);
+
     if (thread.status !== 'open') {
       throw new BadRequestException('Cannot comment on a closed thread');
     }

@@ -53,6 +53,16 @@ export class InterventionsController {
     return this.interventionsService.createNewInterventionWeb(createInterventionDto, membership);
   }
 
+  @Post('/projects/:id/web/plan')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createPlannedInterventionWeb(
+    @Body() dto: any,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    return this.interventionsService.createPlannedInterventionWeb(dto, membership);
+  }
+
   @Get('/projects/:id')
   @ProjectRoles('owner', 'admin', 'contributor')
   @UseGuards(ProjectPermissionsGuard)
@@ -122,12 +132,14 @@ export class InterventionsController {
     @Param('interventionId') interventionId: string,
     @Body() transferDto: any,
     @CurrentUser() req: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     const requesterId = req.user?.id || req.user?.sub;
     return await this.interventionsService.interventionEdit(
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -139,6 +151,7 @@ export class InterventionsController {
     @Param('interventionId', ParseIntPipe) interventionId: number,
     @Body() transferDto: TransferInterventionOwnershipDto,
     @CurrentUser() req: any, // Replace with your user request type
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     // Validate intervention ID
     if (interventionId <= 0) {
@@ -155,6 +168,7 @@ export class InterventionsController {
       interventionId,
       transferDto,
       requesterId,
+      membership.projectId,
     );
   }
 
@@ -167,6 +181,7 @@ export class InterventionsController {
     @Param('speciesId') speciesId: string,
     @Body() updateDto: UpdateInterventionSpeciesDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ) {
     try {
       const result = await this.interventionsService.updateInterventionSpecies(
@@ -174,6 +189,7 @@ export class InterventionsController {
         speciesId,
         updateDto,
         user.id,
+        membership.projectId,
       );
       return {
         success: true,
@@ -243,7 +259,7 @@ export class InterventionsController {
   @ProjectRoles('owner', 'admin')
   @UseGuards(ProjectPermissionsGuard)
   async deleteMyIntervention(@Param('interventionId') interventionId: string, @Membership() membership: ProjectGuardResponse,) {
-    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId);
+    const data = await this.interventionsService.deleteMyIntervention(interventionId, membership.userId, membership.projectId);
     return data
   }
 
@@ -341,6 +357,16 @@ export class InterventionsController {
   async getProjectMap(req: any, res: any, @Membership() membership: ProjectGuardResponse,) {
     const data = await this.interventionsService.getProjectMapInterventions(membership.projectId);
     return data
+  }
+
+  @Get(':id/sites/:siteUid/map')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getSiteMap(
+    @Param('siteUid') siteUid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ) {
+    return this.interventionsService.getSiteMapInterventions(membership.projectId, siteUid);
   }
 
   @Get(':id/map/tree')

@@ -128,9 +128,10 @@ export class ApprovalBoardController {
     @Param('interventionUid') interventionUid: string,
     @Body() dto: AddCommentDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<ReviewCommentResponse> {
     const userId = user.id || user.sub;
-    return this.approvalBoardService.addComment(interventionUid, userId, 'admin', dto);
+    return this.approvalBoardService.addComment(interventionUid, userId, 'admin', dto, membership.projectId);
   }
 
   // ================== Comments (Field Worker) ==================
@@ -189,9 +190,10 @@ export class ApprovalBoardController {
     @Param('threadUid') threadUid: string,
     @Body() dto: AddCommentDto,
     @CurrentUser() user: any,
+    @Membership() membership: ProjectGuardResponse,
   ): Promise<ReviewCommentResponse> {
     const userId = user.id || user.sub;
-    return this.approvalBoardService.addCommentByThread(threadUid, userId, 'admin', dto);
+    return this.approvalBoardService.addCommentByThread(threadUid, userId, 'admin', dto, membership.projectId);
   }
 
   @Post('threads/:threadUid/comments')

@@ -431,7 +431,11 @@ export class ProjectsService {
       }
       return payload
     } catch (error) {
-      return null;
+      if (error instanceof NotFoundException) {
+        return null;
+      }
+      console.error('getMemberRoleFromUid failed', { projectUid, userId, error });
+      throw error;
     }
   }
 
@@ -732,7 +736,7 @@ export class ProjectsService {
     };
   }
 
-  async expireInvite(token: string, userData: User) {
+  async expireInvite(token: string, userData: User, projectId: number) {
     try {
       const invite = await this.drizzleService.db
         .select({
@@ -743,6 +747,7 @@ export class ProjectsService {
           and(
             eq(projectInvites.token, token),
             eq(projectInvites.status, 'pending'),
+            eq(projectInvites.projectId, projectId),
           )
         )
         .then(results => results[0] || null);
@@ -892,14 +897,26 @@ export class ProjectsService {
         };
       }
 
-      await this.drizzleService.db
+      const [updated] = await this.drizzleService.db
         .update(bulkInvite)
         .set({ deletedAt: new Date(), expiresAt: new Date(), discardedAt: new Date(), discardedById: myMembership.userId })
         .where(
           and(
-            eq(bulkInvite.uid, uid)
+            eq(bulkInvite.uid, uid),
+            eq(bulkInvite.projectId, myMembership.projectId),
           )
-        );
+        )
+        .returning({ id: bulkInvite.id });
+
+      if (!updated) {
+        return {
+          message: 'Link not found',
+          statusCode: 404,
+          error: 'not_found',
+          data: null,
+          code: 'invite_link_not_found',
+        };
+      }
 
       return {
         message: 'Link removed successfully',
@@ -1380,15 +1397,16 @@ export class ProjectsService {
     }
   }
 
-  async updateMemberExtraPermissions(projectUid: string, memberUserUid: string, dto: UpdateExtraPermissionsDto) {
+  async updateMemberExtraPermissions(memberUserUid: string, myMembership: ProjectGuardResponse, dto: UpdateExtraPermissionsDto) {
     try {
-      const [projectData] = await this.drizzleService.db
-        .select({ id: project.id })
-        .from(project)
-        .where(eq(project.uid, projectUid))
-        .limit(1);
-      if (!projectData) {
-        return { message: 'Project not found', statusCode: 404, error: 'not_found', data: null };
+      if (!myMembership || !['owner', 'admin'].includes(myMembership.role)) {
+        return {
+          message: 'You do not have permission to update extra permissions',
+          statusCode: 403,
+          error: 'forbidden',
+          data: null,
+          code: 'update_extra_permissions_denied',
+        };
       }
       const [targetUser] = await this.drizzleService.db
         .select({ id: user.id })
@@ -1403,7 +1421,7 @@ export class ProjectsService {
         .set({ extraPermissions: dto.extraPermissions, updatedAt: new Date() })
         .where(
           and(
-            eq(projectMember.projectId, projectData.id),
+            eq(projectMember.projectId, myMembership.projectId),
             eq(projectMember.userId, targetUser.id),
           )
         )
@@ -1478,12 +1496,19 @@ export class ProjectsService {
         };
       }
 
+      const removedAt = new Date();
       await this.drizzleService.db
-        .delete(projectMember)
+        .update(projectMember)
+        .set({
+          deletedAt: removedAt,
+          status: 'inactive',
+          updatedAt: removedAt,
+        })
         .where(
           and(
             eq(projectMember.projectId, myMembership.projectId),
-            eq(projectMember.userId, memberToRemove.user.id)
+            eq(projectMember.userId, memberToRemove.user.id),
+            isNull(projectMember.deletedAt)
           )
         );
 
@@ -1991,6 +2016,7 @@ export class ProjectsService {
       isPersonal: (value: any) => this.cleanBooleanValue(value),
       isPrimary: (value: any) => this.cleanBooleanValue(value),
       approvalBoardEnabled: (value: any) => this.cleanBooleanValue(value),
+      apiEnabled: (value: any) => this.cleanBooleanValue(value),
 
       // JSON fields
       metadata: (value: any) => this.cleanJsonValue(value),

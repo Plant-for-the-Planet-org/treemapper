@@ -11,9 +11,9 @@ export class MigrationController {
         private readonly migrationService: MigrationService) { }
 
     @Post('start')
-    async startMigration(@Headers('X-Profile-ID') email: string) {
+    async startMigration(@CurrentUser() userData: User) {
         this.migrationService.startUserMigration(
-            email,
+            userData.email,
         ).catch(error => {
             console.error('Migration failed:', error);
         });

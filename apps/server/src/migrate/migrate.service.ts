@@ -22,7 +22,7 @@ import {
     image,
     interventionSpecies,
 } from '../database/schema/index';
-import { and, eq, inArray, sql } from 'drizzle-orm';
+import { and, eq, inArray, isNull, or, sql } from 'drizzle-orm';
 import { DrizzleService } from 'src/database/drizzle.service';
 import { generateUid } from 'src/util/uidGenerator';
 import { randomPastTimestamp } from 'src/util/randomTimeStamp';
@@ -159,12 +159,53 @@ export class MigrationService {
         const userInterventions = await this.drizzleService.db
             .select({ id: intervention.id })
             .from(intervention)
-            .where(eq(intervention.userId, userId));
+            .where(and(eq(intervention.userId, userId), isNull(intervention.deletedAt)));
 
         if (userInterventions.length > 0) {
-            await this.drizzleService.db
-                .delete(intervention)
-                .where(eq(intervention.userId, userId));
+            const interventionIds = userInterventions.map((i) => i.id);
+            const deletedAt = new Date();
+
+            await this.drizzleService.db.transaction(async (tx) => {
+                const treesToDelete = await tx
+                    .select({ id: tree.id })
+                    .from(tree)
+                    .where(and(inArray(tree.interventionId, interventionIds), isNull(tree.deletedAt)));
+                const treeIds = treesToDelete.map((t) => t.id);
+
+                await tx
+                    .update(intervention)
+                    .set({ deletedAt, updatedAt: deletedAt })
+                    .where(and(inArray(intervention.id, interventionIds), isNull(intervention.deletedAt)));
+
+                await tx
+                    .update(interventionSpecies)
+                    .set({ deletedAt, updatedAt: deletedAt })
+                    .where(and(inArray(interventionSpecies.interventionId, interventionIds), isNull(interventionSpecies.deletedAt)));
+
+                if (treeIds.length > 0) {
+                    await tx
+                        .update(tree)
+                        .set({ deletedAt, updatedAt: deletedAt })
+                        .where(and(inArray(tree.id, treeIds), isNull(tree.deletedAt)));
+
+                    await tx
+                        .update(treeRecord)
+                        .set({ deletedAt, updatedAt: deletedAt })
+                        .where(and(inArray(treeRecord.treeId, treeIds), isNull(treeRecord.deletedAt)));
+                }
+
+                const imageScope = treeIds.length > 0
+                    ? or(
+                        and(eq(image.entityType, 'intervention'), inArray(image.entityId, interventionIds)),
+                        and(eq(image.entityType, 'tree'), inArray(image.entityId, treeIds)),
+                    )
+                    : and(eq(image.entityType, 'intervention'), inArray(image.entityId, interventionIds));
+
+                await tx
+                    .update(image)
+                    .set({ deletedAt, updatedAt: deletedAt })
+                    .where(and(imageScope, isNull(image.deletedAt)));
+            });
         }
 
         const migrationRecord = await this.drizzleService.db

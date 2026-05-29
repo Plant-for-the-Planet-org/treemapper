@@ -1,5 +1,53 @@
 import { FormData } from '../types';
 
+export const buildPlanningPayload = (formData: FormData) => {
+  const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
+
+  const payload: any = {
+    type: formData.interventionType,
+    geometry: formData.geoJSON,
+    plantProject: formData.projectId,
+    treeCount: formData.interventionType === 'single-tree-registration' ? 1 : totalTreeCount,
+    metadata: { app: {}, public: {}, private: {} },
+  };
+
+  if (formData.siteId) {
+    payload.plantProjectSite = formData.siteId;
+  }
+  if (formData.description) {
+    payload.description = formData.description;
+  }
+  if (formData.treeDetails.tag) {
+    payload.tag = formData.treeDetails.tag;
+  }
+
+  if (formData.interventionType === 'single-tree-registration' && formData.species.length > 0) {
+    const species = formData.species[0];
+    payload.species = [{
+      uid: species.uid,
+      scientificSpeciesId: species.scientificSpeciesId || undefined,
+      scientificSpeciesUid: species.scientificSpeciesId || undefined,
+      speciesName: species.speciesName || species.otherSpeciesName,
+      isUnknown: species.scientificSpeciesId ? false : true,
+      speciesCount: 1,
+      otherSpeciesName: species.otherSpeciesName || null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    }];
+  } else if (formData.species.length > 0) {
+    payload.species = formData.species.map(species => ({
+      uid: species.uid,
+      scientificSpeciesId: species.scientificSpeciesId || undefined,
+      scientificSpeciesUid: species.scientificSpeciesId || undefined,
+      speciesName: species.speciesName || species.otherSpeciesName,
+      isUnknown: species.scientificSpeciesId ? false : true,
+      speciesCount: species.count,
+    }));
+  }
+
+  return payload;
+};
+
 export const buildApiPayload = (formData: FormData) => {
   const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
 

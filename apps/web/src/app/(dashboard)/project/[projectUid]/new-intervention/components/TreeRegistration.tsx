@@ -20,6 +20,44 @@ export const TreeRegistration: React.FC<TreeRegistrationProps> = ({
 
   const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
 
+  if (formData.isPlanningMode) {
+    return (
+      <div className="bg-gradient-to-br from-amber-50/80 to-orange-50/80 backdrop-blur-sm border-2 border-amber-200/60 rounded-2xl p-8 shadow-lg">
+        <h2 className="text-xl font-semibold text-amber-900 mb-6 flex items-center gap-2">
+          <div className="w-8 h-8 bg-amber-100 rounded-lg flex items-center justify-center">
+            <TreePine className="w-4 h-4 text-amber-600" />
+          </div>
+          Tree Tag (Optional)
+        </h2>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-3">
+              Tree Tag
+            </label>
+            <input
+              type="text"
+              value={formData.treeDetails.tag}
+              onChange={(e) => setFormData(prev => ({
+                ...prev,
+                treeDetails: { ...prev.treeDetails, tag: e.target.value }
+              }))}
+              placeholder="Enter tree identifier"
+              maxLength={VALIDATION_CONFIG.treeTag.maxLength}
+              className={`w-full px-4 py-3 border-2 rounded-xl focus:ring-4 focus:ring-amber-500/20 focus:border-amber-500 transition-all duration-200 bg-white/60 ${errors.treeTag ? 'border-red-300' : 'border-amber-200'
+                }`}
+            />
+            {errors.treeTag && (
+              <p className="mt-2 text-sm text-red-600 flex items-center gap-1">
+                <AlertCircle className="w-4 h-4" />
+                {errors.treeTag}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="bg-gradient-to-br from-amber-50/80 to-orange-50/80 backdrop-blur-sm border-2 border-amber-200/60 rounded-2xl p-8 shadow-lg">
       <h2 className="text-xl font-semibold text-amber-900 mb-6 flex items-center gap-2">

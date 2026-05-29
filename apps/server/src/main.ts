@@ -1,6 +1,7 @@
 // src/main.ts
 import { NestFactory, Reflector } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import compression from '@fastify/compress';
 import { AppModule } from './app.module';
 import { ValidationPipe, Logger } from '@nestjs/common';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -33,6 +34,8 @@ async function bootstrap() {
     const corsOrigins = isProduction
       ? process.env.CORS_ORIGINS?.split(',') || [`https://${process.env.HEROKU_APP_NAME}.herokuapp.com`]
       : ['http://127.0.0.1:3000', 'http://localhost:3000'];
+
+    await app.register(compression, { global: true });
 
     app.enableCors({
       origin: corsOrigins,
