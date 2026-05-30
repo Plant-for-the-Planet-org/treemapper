@@ -75,6 +75,31 @@ yarn db:studio      # Drizzle Studio
 - **Naming**: the organization is "Plant-for-the-Planet". The platform is "ForestCloud".
 - **Mobile is independent**: `apps/mobile` does not import from `shared-core`, `web`, or `server`. Treat it as a separate project that happens to live in the same repo.
 
+## Dependency pinning
+
+All dependencies are pinned to **exact** versions on purpose: supply-chain
+safety and byte-for-byte reproducible installs. A plain `yarn install` never
+auto-upgrades anything.
+
+- **Manifests**: every `package.json` uses exact versions (no `^`). The
+  exceptions are `expo-*` / React Native packages in `apps/mobile`, which keep
+  `~` (patch-only) so Expo tooling (`expo install`, `expo-doctor`) stays happy.
+  Root `overrides` / `resolutions` are pinned exact too.
+- **New deps must stay pinned**: root `.yarnrc` sets `save-prefix ""` and
+  `.npmrc` sets `save-exact=true`, so `yarn add` / `npm install` write exact
+  versions. Do not reintroduce `^`.
+- **Lockfile is the real freeze**: `yarn.lock` is committed; CI/build uses
+  `yarn install --frozen-lockfile`, which fails if the lock would change.
+- **Pre-commit guard**: `.githooks/pre-commit` blocks any commit that touches a
+  dependency file (`package.json`, `yarn.lock`, `.yarnrc`, `.npmrc`) and prints
+  a "rethink before upgrading" notice. It is auto-enabled for everyone via the
+  root `prepare` script (`git config core.hooksPath .githooks`), which runs on
+  `yarn install`. To land an intended dependency change, re-run with
+  `ALLOW_DEP_CHANGE=1 git commit ...` (never `--no-verify`).
+- **To upgrade a package**: do it deliberately (`yarn upgrade <pkg>` or edit the
+  exact version), keep it pinned, review for breaking/vulnerable versions, and
+  tell the team.
+
 ## Gotchas
 
 - `yarn.lock` is large (~21k lines, ~1000 packages) mostly because the mobile workspace pulls Expo/RN + transitive deps.
