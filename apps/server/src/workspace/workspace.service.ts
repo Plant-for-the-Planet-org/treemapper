@@ -1,6 +1,6 @@
 // src/organizations/organizations.service.ts
 import { Injectable, ConflictException, NotFoundException, BadRequestException, InternalServerErrorException, ForbiddenException, Logger } from '@nestjs/common';
-import { eq, and, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
+import { eq, and, or, desc, asc, isNull, inArray, sql } from 'drizzle-orm';
 import { v4 as uuidv4 } from 'uuid';
 import { CreateNewWorkspaceDto } from './dto/create-organization.dto';
 import { OrganizationResponseDto, SelectOrganizationDto } from './dto/organization-response.dto';
