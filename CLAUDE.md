@@ -37,7 +37,6 @@ apps/
   mobile/    React Native + Expo app (independent, no shared code with web/server)
   web/       Next.js dashboard (uses shared-core, shadcn/ui)
   server/    NestJS + Fastify backend (Drizzle ORM + Postgres)
-  docs/      Next.js docs site
 packages/
   shared-core/  Shared utilities consumed by web (and potentially mobile)
 ```
@@ -47,7 +46,6 @@ packages/
 - **mobile**: Expo SDK, React Native 0.81, Maplibre, Auth0
 - **web**: Next.js 15, React 18, shadcn/ui, Tailwind, Mapbox, Auth0 (@auth0/nextjs-auth0 v3.8)
 - **server**: NestJS 11, Fastify, Drizzle ORM, Postgres (`pg`), Redis (ioredis), Bull, AWS S3 / R2
-- **docs**: Next.js 15, React 19, next-intl
 - **shared-core**: TanStack Query, Zustand
 
 ## Common commands
