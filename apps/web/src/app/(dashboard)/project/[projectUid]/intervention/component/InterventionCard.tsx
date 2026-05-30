@@ -11,10 +11,10 @@ import {
   Activity,
   Target,
   AlertTriangle,
-  FileText,
+  CloudAlert,
+  CloudCheck,
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { FlagTooltip } from './FlagTooltip';
 import { LucideIcon } from 'lucide-react';
@@ -50,6 +50,7 @@ interface Intervention {
   uid: string;
   hid: string;
   type: string;
+  // capture completeness: 'complete' | 'partial' | 'incomplete'
   captureStatus: string;
   registrationDate: string;
   flag?: boolean;
@@ -71,15 +72,10 @@ interface InterventionCardProps {
   disabledTooltip?: string;
 }
 
-const CAPTURE_STATUS: Record<string, string> = {
-  complete: 'bg-primary/10 text-primary border-primary/20',
-  partial: 'bg-amber-50 text-amber-700 border-amber-200',
-  incomplete: 'bg-destructive/10 text-destructive border-destructive/20',
-};
 
 const formatDate = (d: string) => {
   if (!d) return 'N/A';
-  return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 };
 
 export const InterventionCard = ({
@@ -87,6 +83,20 @@ export const InterventionCard = ({
 }: InterventionCardProps) => {
   const IconComponent = interventionTypeIcons[intervention.type] || Target;
   const selected = (isSelected && !isMultiSelectMode) || isChecked;
+
+  // NOTE (i18n): the number formatting ('en-US'), the "Tree" / "Trees"
+  // pluralization, the title-casing of the type name and the date format are
+  // all English-only. When the app adds multiple languages, move these to the
+  // shared translation/locale layer (locale-aware number + plural rules).
+  //
+  // For tree-registration interventions the type name adds little; the tree
+  // count is the meaningful headline (e.g. "1 Tree" / "240 Trees").
+  const isTreeRegistration =
+    intervention.type === 'single-tree-registration' ||
+    intervention.type === 'multi-tree-registration';
+  const title = isTreeRegistration
+    ? `${intervention.treeCount.toLocaleString('en-US')} ${intervention.treeCount === 1 ? 'Tree' : 'Trees'}`
+    : intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   return (
     <Card
@@ -122,42 +132,37 @@ export const InterventionCard = ({
           )}>
             <IconComponent className="h-4 w-4" />
             {intervention.flag && (
-              <FlagTooltip flagReasons={intervention.flagReason}>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-destructive rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-2 h-2 text-white" />
-                </div>
-              </FlagTooltip>
+              <div className="absolute -top-1 -right-1">
+                <FlagTooltip flagReasons={intervention.flagReason}>
+                  <div className="w-3 h-3 bg-destructive rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-2 h-2 text-white" />
+                  </div>
+                </FlagTooltip>
+              </div>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-2 gap-2">
-              <h3 className="font-medium text-foreground text-sm leading-snug break-words">
-                {intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </h3>
-              <Badge
-                variant="outline"
-                className={cn('text-xs flex-shrink-0', CAPTURE_STATUS[intervention.captureStatus])}
-              >
-                {intervention.captureStatus}
-              </Badge>
-            </div>
-
-            <div className="space-y-2 text-xs text-muted-foreground">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3 w-3 text-muted-foreground/60" />
-                <span>{formatDate(intervention.registrationDate)}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="font-mono bg-muted px-2 py-0.5 rounded text-foreground/80">
+            {/* Header: title + HID (left) | status cloud and records (right) */}
+            <div className="flex items-start justify-between mb-1.5 gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h3 className="font-medium text-foreground text-sm leading-snug truncate">
+                  {title}
+                </h3>
+                <span className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded text-foreground/80 flex-shrink-0">
                   {intervention.hid}
                 </span>
-                {intervention.hasRecords && (
-                  <FileText className="h-3 w-3 text-primary" aria-label="Has Records" />
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {intervention.captureStatus === 'complete' ? (
+                  <CloudCheck className="h-3.5 w-3.5 text-primary" aria-label="Synced" />
+                ) : (
+                  <CloudAlert className="h-3.5 w-3.5 text-amber-600" aria-label="Not synced" />
                 )}
               </div>
+            </div>
 
+            <div className="space-y-1.5 text-xs text-muted-foreground">
               {intervention.site && (
                 <div className="flex items-center gap-1.5">
                   <MapPin className="h-3 w-3 text-muted-foreground/60" />
@@ -165,12 +170,19 @@ export const InterventionCard = ({
                 </div>
               )}
 
-              <div className="flex items-center justify-between">
+              {/* Combined meta line: date, trees, species */}
+              <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                 <span className="flex items-center gap-1">
-                  <Trees className="h-3 w-3" />
-                  <span className="font-medium text-foreground/80">{intervention.treeCount}</span>
-                  <span>trees</span>
+                  <Calendar className="h-3 w-3 text-muted-foreground/60" />
+                  <span>{formatDate(intervention.registrationDate)}</span>
                 </span>
+                {!isTreeRegistration && (
+                  <span className="flex items-center gap-1">
+                    <Trees className="h-3 w-3" />
+                    <span className="font-medium text-foreground/80">{intervention.treeCount.toLocaleString('en-US')}</span>
+                    <span>trees</span>
+                  </span>
+                )}
                 {intervention.species && intervention.species.length > 0 && (
                   <span className="flex items-center gap-1">
                     <Leaf className="h-3 w-3" />

@@ -280,16 +280,68 @@ const TreeMapperUI = () => {
     router.replace(`?id=${intervention.uid}`, { scroll: false });
   };
 
-  const handleToggleSelect = (uid: string) => {
+  // Arrow up/down move through the list when not in bulk-select mode.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (isBulkMode || (e.key !== 'ArrowDown' && e.key !== 'ArrowUp')) return;
+      const el = e.target as HTMLElement | null;
+      if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.isContentEditable)) return;
+      if (interventions.length === 0) return;
+      e.preventDefault();
+      const idx = interventions.findIndex(i => i.uid === selectedIntervention?.uid);
+      const next = e.key === 'ArrowDown'
+        ? (idx < 0 ? 0 : Math.min(idx + 1, interventions.length - 1))
+        : (idx < 0 ? 0 : Math.max(idx - 1, 0));
+      const target = interventions[next];
+      if (target && target.uid !== selectedIntervention?.uid) handleSelectIntervention(target);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [interventions, selectedIntervention, isBulkMode]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Anchor for shift+click range selection.
+  const lastSelectedUidRef = useRef<string | null>(null);
+
+  const handleToggleSelect = (uid: string, shiftKey = false) => {
+    const anchor = lastSelectedUidRef.current;
+    if (shiftKey && anchor && anchor !== uid) {
+      const order = interventions.map(i => i.uid);
+      const a = order.indexOf(anchor);
+      const b = order.indexOf(uid);
+      if (a !== -1 && b !== -1) {
+        const [lo, hi] = a < b ? [a, b] : [b, a];
+        // Keep the range to a single type (anchor's), since bulk edits require it.
+        const rangeType = lockedType ?? interventions[a]?.type;
+        setSelectedUids(prev => {
+          const next = new Set(prev);
+          for (let k = lo; k <= hi; k++) {
+            const it = interventions[k];
+            if (!rangeType || it.type === rangeType) next.add(it.uid);
+          }
+          return next;
+        });
+        lastSelectedUidRef.current = uid;
+        return;
+      }
+    }
     setSelectedUids(prev => {
       const next = new Set(prev);
       if (next.has(uid)) next.delete(uid); else next.add(uid);
       return next;
     });
+    lastSelectedUidRef.current = uid;
   };
 
-  const handleEnterBulkMode = () => { setIsBulkMode(true); setSelectedUids(new Set()); };
-  const handleExitBulkMode = () => { setIsBulkMode(false); setSelectedUids(new Set()); };
+  const handleEnterBulkMode = () => { setIsBulkMode(true); setSelectedUids(new Set()); lastSelectedUidRef.current = null; };
+  const handleExitBulkMode = () => { setIsBulkMode(false); setSelectedUids(new Set()); lastSelectedUidRef.current = null; };
+  const handleClearSelection = () => { setSelectedUids(new Set()); lastSelectedUidRef.current = null; };
+  // Select all visible interventions of the locked type (or the first item's
+  // type when nothing is selected yet), since bulk edits require one type.
+  const handleSelectAll = () => {
+    const type = lockedType ?? interventions[0]?.type;
+    if (!type) return;
+    setSelectedUids(new Set(interventions.filter(i => i.type === type).map(i => i.uid)));
+  };
   const handleBulkUpdateComplete = () => { handleExitBulkMode(); fetchInterventionData(pagination.page); };
 
   const handleInterventionDelete = async () => {
@@ -335,6 +387,8 @@ const TreeMapperUI = () => {
           onToggleSelect={handleToggleSelect}
           onEnterBulkMode={handleEnterBulkMode}
           onExitBulkMode={handleExitBulkMode}
+          onSelectAll={handleSelectAll}
+          onClearSelection={handleClearSelection}
           onOpenBulkUpdate={() => setShowBulkUpdateModal(true)}
           onOpenBulkSpeciesEdit={() => setShowBulkSpeciesModal(true)}
           onOpenBulkStartDateEdit={() => setShowBulkStartDateModal(true)}
