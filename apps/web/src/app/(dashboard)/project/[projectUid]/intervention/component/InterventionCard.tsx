@@ -11,13 +11,14 @@ import {
   Activity,
   Target,
   AlertTriangle,
-  FileText
+  CloudAlert,
+  CloudCheck,
 } from 'lucide-react';
-import { Card, CardContent, Badge } from './ui';
+import { Card, CardContent } from '@/components/ui/card';
+import { cn } from '@/lib/utils';
 import { FlagTooltip } from './FlagTooltip';
 import { LucideIcon } from 'lucide-react';
 
-// Intervention Type Icons mapping
 export const interventionTypeIcons: Record<string, LucideIcon> = {
   'enrichment-planting': Trees,
   'direct-seeding': Sprout,
@@ -29,20 +30,12 @@ export const interventionTypeIcons: Record<string, LucideIcon> = {
   'grass-suppression': Leaf,
   'single-tree-registration': Trees,
   'multi-tree-registration': Trees,
-  'other-intervention': Target
+  'other-intervention': Target,
 };
 
 interface Species {
-  speciesName?: string;
-  otherSpeciesName?: string;
-  scientificSpeciesUid?: string;
   count: number;
-  uid?: string;
-}
-
-interface Site {
-  name: string;
-  status?: string;
+  [key: string]: unknown;
 }
 
 interface FlagReason {
@@ -58,12 +51,13 @@ interface Intervention {
   hid: string;
   type: string;
   status?: string;
+  // capture completeness: 'complete' | 'partial' | 'incomplete'
   captureStatus: string;
   registrationDate: string;
   flag?: boolean;
   flagReason?: FlagReason[];
   hasRecords?: boolean;
-  site?: Site;
+  site?: { name: string; status?: string };
   treeCount: number;
   species?: Species[];
 }
@@ -79,109 +73,126 @@ interface InterventionCardProps {
   disabledTooltip?: string;
 }
 
-export const InterventionCard = ({ intervention, isSelected, onClick, isMultiSelectMode, isChecked, onToggleSelect, isDisabled, disabledTooltip }: InterventionCardProps) => {
+
+const formatDate = (d: string) => {
+  if (!d) return 'N/A';
+  return new Date(d).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+};
+
+export const InterventionCard = ({
+  intervention, isSelected, onClick, isMultiSelectMode, isChecked, onToggleSelect, isDisabled, disabledTooltip,
+}: InterventionCardProps) => {
   const IconComponent = interventionTypeIcons[intervention.type] || Target;
+  const selected = (isSelected && !isMultiSelectMode) || isChecked;
+  const isPlanning = intervention.status === 'planning';
 
-  const getCaptureStatusVariant = (status: string): 'success' | 'warning' | 'error' | 'outline' => {
-    switch (status) {
-      case 'complete': return 'success';
-      case 'partial': return 'warning';
-      case 'incomplete': return 'error';
-      default: return 'outline';
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return 'N/A';
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
+  // NOTE (i18n): the number formatting ('en-US'), the "Tree" / "Trees"
+  // pluralization, the title-casing of the type name and the date format are
+  // all English-only. When the app adds multiple languages, move these to the
+  // shared translation/locale layer (locale-aware number + plural rules).
+  //
+  // For tree-registration interventions the type name adds little; the tree
+  // count is the meaningful headline (e.g. "1 Tree" / "240 Trees").
+  const isTreeRegistration =
+    intervention.type === 'single-tree-registration' ||
+    intervention.type === 'multi-tree-registration';
+  const title = isTreeRegistration
+    ? `${intervention.treeCount.toLocaleString('en-US')} ${intervention.treeCount === 1 ? 'Tree' : 'Trees'}`
+    : intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
   return (
     <Card
-      className={`transition-all duration-200 ${isDisabled && isMultiSelectMode ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:shadow-md hover:border-gray-300'} ${isSelected ? 'ring-2 ring-[#007A49] bg-[#007A49]/5 border-[#007A49]' : ''
-        } ${isChecked ? 'ring-2 ring-[#007A49] bg-[#007A49]/5' : ''}`}
+      className={cn(
+        'py-0 gap-0 transition-colors',
+        isDisabled && isMultiSelectMode
+          ? 'opacity-50 cursor-not-allowed'
+          : 'cursor-pointer hover:bg-muted/50',
+        selected ? 'bg-primary/10 border-primary/30' : 'border-border'
+      )}
       title={isDisabled && isMultiSelectMode ? disabledTooltip : undefined}
-      onClick={
-        isMultiSelectMode
-          ? (isDisabled ? undefined : onToggleSelect)
-          : onClick
-      }
+      onClick={isMultiSelectMode ? (isDisabled ? undefined : onToggleSelect) : onClick}
     >
-      <CardContent className="p-4">
+      <CardContent className="p-3">
         <div className="flex items-start gap-3">
           {isMultiSelectMode && (
             <div
               className="flex-shrink-0 mt-1"
               onClick={(e) => { e.stopPropagation(); if (!isDisabled) onToggleSelect?.(e); }}
             >
-              <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-colors ${isChecked ? 'bg-[#007A49] border-[#007A49]' : 'border-gray-300 bg-white'} ${isDisabled ? 'opacity-50' : ''}`}>
-                {isChecked && <svg className="w-3 h-3 text-white" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
+              <div className={cn(
+                'w-5 h-5 rounded border-2 flex items-center justify-center transition-colors',
+                isChecked ? 'bg-primary border-primary' : 'border-border bg-background',
+                isDisabled && 'opacity-50'
+              )}>
+                {isChecked && <svg className="w-3 h-3 text-primary-foreground" viewBox="0 0 12 12" fill="none"><path d="M2 6l3 3 5-5" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" /></svg>}
               </div>
             </div>
           )}
-          <div className={`relative p-2.5 rounded-lg transition-all duration-200 ${isSelected && !isMultiSelectMode ? 'bg-[#007A49] text-white' : 'bg-gray-100 text-gray-600'
-            }`}>
+          <div className={cn(
+            'relative p-2.5 rounded-lg flex-shrink-0',
+            selected ? 'bg-primary text-primary-foreground' : 'bg-muted text-muted-foreground'
+          )}>
             <IconComponent className="h-4 w-4" />
             {intervention.flag && (
-              <FlagTooltip flagReasons={intervention.flagReason}>
-                <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full flex items-center justify-center">
-                  <AlertTriangle className="w-2 h-2 text-white" />
-                </div>
-              </FlagTooltip>
+              <div className="absolute -top-1 -right-1">
+                <FlagTooltip flagReasons={intervention.flagReason}>
+                  <div className="w-3 h-3 bg-destructive rounded-full flex items-center justify-center">
+                    <AlertTriangle className="w-2 h-2 text-white" />
+                  </div>
+                </FlagTooltip>
+              </div>
             )}
           </div>
 
           <div className="flex-1 min-w-0">
-            <div className="flex items-start justify-between mb-2">
-              <h3 className="font-medium text-gray-900 text-sm leading-5">
-                {intervention.type.replace(/-/g, ' ').replace(/\b\w/g, l => l.toUpperCase())}
-              </h3>
-              <div className="flex flex-col gap-1 ml-2">
-                {intervention.status === 'planning' ? (
-                  <Badge variant="warning">planning</Badge>
+            {/* Header: title + HID (left) | status cloud and records (right) */}
+            <div className="flex items-start justify-between mb-1.5 gap-2">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <h3 className="font-medium text-foreground text-sm leading-snug truncate">
+                  {title}
+                </h3>
+                <span className="font-mono text-[11px] bg-muted px-1.5 py-0.5 rounded text-foreground/80 flex-shrink-0">
+                  {intervention.hid}
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 flex-shrink-0">
+                {isPlanning ? (
+                  <span className="text-[11px] font-medium px-1.5 py-0.5 rounded bg-amber-100 text-amber-700">
+                    Planning
+                  </span>
+                ) : intervention.captureStatus === 'complete' ? (
+                  <CloudCheck className="h-3.5 w-3.5 text-primary" aria-label="Synced" />
                 ) : (
-                  <Badge variant={getCaptureStatusVariant(intervention.captureStatus)}>
-                    {intervention.captureStatus}
-                  </Badge>
+                  <CloudAlert className="h-3.5 w-3.5 text-amber-600" aria-label="Not synced" />
                 )}
               </div>
             </div>
 
-            <div className="space-y-2 text-xs text-gray-600">
-              <div className="flex items-center gap-1.5">
-                <Calendar className="h-3 w-3 text-gray-400" />
-                <span>{formatDate(intervention.registrationDate)}</span>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="font-mono bg-gray-100 px-2 py-0.5 rounded text-gray-700">
-                  {intervention.hid}
-                </span>
-                {intervention.hasRecords && (
-                  <FileText className="h-3 w-3 text-blue-500" aria-label="Has Records" />
-                )}
-              </div>
-
+            <div className="space-y-1.5 text-xs text-muted-foreground">
               {intervention.site && (
                 <div className="flex items-center gap-1.5">
-                  <MapPin className="h-3 w-3 text-gray-400" />
+                  <MapPin className="h-3 w-3 text-muted-foreground/60" />
                   <span className="truncate">{intervention.site.name}</span>
                 </div>
               )}
 
-              <div className="flex items-center justify-between text-gray-500">
+              {/* Combined meta line: date, trees, species */}
+              <div className="flex items-center gap-x-3 gap-y-1 flex-wrap">
                 <span className="flex items-center gap-1">
-                  <Trees className="h-3 w-3" />
-                  <span className="font-medium">{intervention.treeCount}</span>
-                  <span>trees</span>
+                  <Calendar className="h-3 w-3 text-muted-foreground/60" />
+                  <span>{formatDate(intervention.registrationDate)}</span>
                 </span>
+                {!isTreeRegistration && (
+                  <span className="flex items-center gap-1">
+                    <Trees className="h-3 w-3" />
+                    <span className="font-medium text-foreground/80">{intervention.treeCount.toLocaleString('en-US')}</span>
+                    <span>trees</span>
+                  </span>
+                )}
                 {intervention.species && intervention.species.length > 0 && (
                   <span className="flex items-center gap-1">
                     <Leaf className="h-3 w-3" />
-                    <span className="font-medium">{intervention.species.length}</span>
+                    <span className="font-medium text-foreground/80">{intervention.species.length}</span>
                     <span>species</span>
                   </span>
                 )}

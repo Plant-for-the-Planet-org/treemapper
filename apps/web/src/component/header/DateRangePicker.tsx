@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { CalendarIcon } from 'lucide-react'
-import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear } from 'date-fns'
+import { format, parseISO, startOfDay, endOfDay, startOfWeek, endOfWeek, startOfMonth, endOfMonth, startOfYear, endOfYear, startOfQuarter, endOfQuarter, subQuarters, subYears } from 'date-fns'
 import type { DateRange } from 'react-day-picker'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
@@ -16,6 +16,8 @@ const PRESETS = [
   { label: 'This Week',  get: () => ({ from: startOfWeek(new Date()), to: endOfWeek(new Date()) }) },
   { label: 'This Month', get: () => ({ from: startOfMonth(new Date()), to: endOfMonth(new Date()) }) },
   { label: 'This Year',  get: () => ({ from: startOfYear(new Date()), to: endOfYear(new Date()) }) },
+  { label: 'Last Quarter', get: () => ({ from: startOfQuarter(subQuarters(new Date(), 1)), to: endOfQuarter(subQuarters(new Date(), 1)) }) },
+  { label: 'Last Year',  get: () => ({ from: startOfYear(subYears(new Date(), 1)), to: endOfYear(subYears(new Date(), 1)) }) },
 ] as const
 
 export default function DateRangePicker() {
@@ -23,35 +25,39 @@ export default function DateRangePicker() {
   const [open, setOpen] = useState(false)
   const [activePreset, setActivePreset] = useState<string>('All Time')
 
+  // `from` is the start date, `to` is the end date. Leave `to` undefined until
+  // an end date is actually chosen, so the calendar stays in "pick the end
+  // date" mode after the first (start) click.
   const range: DateRange | undefined = activePreset === 'All Time' ? undefined : {
-    from: parseISO(endDate),
-    to: parseISO(startDate),
+    from: parseISO(startDate),
+    to: endDate ? parseISO(endDate) : undefined,
   }
 
   const handlePreset = (preset: typeof PRESETS[number]) => {
     setActivePreset(preset.label)
     const dates = preset.get()
     if (dates) {
-      setGlobalEndDate(dates.from.toISOString())
-      setGlobalStartDate(dates.to.toISOString())
+      setGlobalStartDate(dates.from.toISOString())
+      setGlobalEndDate(dates.to.toISOString())
     }
     if (preset.label === 'All Time') setOpen(false)
   }
 
+  // First click sets the start date; second click sets the end date.
   const handleSelect = (selected: DateRange | undefined) => {
-    if (!selected) return
+    if (!selected?.from) return
     setActivePreset('')
-    if (selected.from) setGlobalEndDate(selected.from.toISOString())
-    if (selected.to) {
-      setGlobalStartDate(selected.to.toISOString())
-      setOpen(false)
-    }
+    setGlobalStartDate(selected.from.toISOString())
+    setGlobalEndDate(selected.to ? selected.to.toISOString() : '')
+    if (selected.to) setOpen(false)
   }
 
   const label = activePreset
     ? activePreset
-    : range?.from && range?.to
-      ? `${format(range.from, 'MMM d, yyyy')} – ${format(range.to, 'MMM d, yyyy')}`
+    : range?.from
+      ? range.to
+        ? `${format(range.from, 'MMM d, yyyy')} – ${format(range.to, 'MMM d, yyyy')}`
+        : format(range.from, 'MMM d, yyyy')
       : 'Select range'
 
   // TODO: enable once API supports date filtering on getProjectKPIs endpoint

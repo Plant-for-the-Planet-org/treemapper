@@ -8,12 +8,14 @@ import {
   Calendar as CalendarIcon,
   TreePine,
   AlertTriangle,
-  FileText,
   Database,
   Trash2,
   Settings,
   User,
-  Pen
+  Pen,
+  CloudAlert,
+  CloudCheck,
+  MapPin
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 import { deleteIntervention, editIntervention } from '@shared-core/fetchApi/api.fetch';
@@ -22,7 +24,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Dialog, DialogHeader, DialogContent, DialogTitle } from './ui/Dialog';
-import { EditableField, NonEditableField } from './EditableField';
+import { EditableField } from './EditableField';
 import { FileUploadDialog, FileUploadMapDialog } from './FileUploadDialog';
 import { FlagTooltip } from './FlagTooltip';
 import { TreeCard } from './TreeCard';
@@ -92,7 +94,8 @@ interface Intervention {
   hid: string;
   type: string;
   captureStatus: string;
-  interventionStatus: string;
+  // lifecycle status from the API ('planned' | 'active' | 'completed' | ...)
+  status?: string;
   registrationDate: string;
   interventionStartDate?: string;
   interventionEndDate?: string;
@@ -137,6 +140,39 @@ interface InterventionDetailsProps {
   onBack?: () => void;
 }
 
+// Reusable collapsible card section (Species / Sample Trees / Technical).
+const CollapsibleSection = ({
+  icon: Icon, title, count, open, onToggle, children,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  count?: number;
+  open: boolean;
+  onToggle: () => void;
+  children: React.ReactNode;
+}) => (
+  <Card>
+    <CardHeader>
+      <button onClick={onToggle} className="flex items-center justify-between w-full text-left group">
+        <h3 className="font-medium text-foreground flex items-center gap-2">
+          <Icon className="h-3.5 w-3.5 text-primary" />
+          {title}{typeof count === 'number' ? ` (${count})` : ''}
+        </h3>
+        <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground', open && 'rotate-180')} />
+      </button>
+    </CardHeader>
+    {open && <CardContent>{children}</CardContent>}
+  </Card>
+);
+
+// One label/value row in the Technical details list.
+const DetailRow = ({ label, children }: { label: string; children: React.ReactNode }) => (
+  <div className="flex justify-between gap-2">
+    <span className="text-muted-foreground">{label}</span>
+    <span className="font-medium text-foreground text-right">{children}</span>
+  </div>
+);
+
 export const InterventionDetails = ({
   intervention,
   onUpdate,
@@ -167,7 +203,7 @@ export const InterventionDetails = ({
     setLocalSpecies(intervention.species || []);
   }, [intervention.species]);
 
-  const canEditSpecies =
+  const canManage =
     selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin';
 
   const handleSpeciesSaveComplete = (updated: Species) => {
@@ -183,14 +219,12 @@ export const InterventionDetails = ({
   };
 
   const handleFieldUpdate = async (field: string, value: unknown) => {
-    console.log(`Updating intervention ${field} to:`, value, intervention);
-    const resp = await editIntervention(accessToken, {
+    await editIntervention(accessToken, {
       interventionUid: intervention.uid,
       prjid: selectedProject,
       field,
       value
     });
-    console.log('Edit response:', resp);
     await onUpdate?.(intervention.uid, { [field]: value });
   };
 
@@ -222,11 +256,6 @@ export const InterventionDetails = ({
     setShowDeleteDialog(false);
   };
 
-  const formatDate = (dateString?: string) => {
-    if (!dateString) return '';
-    return new Date(dateString).toISOString().split('T')[0];
-  };
-
   const displayDate = (dateString?: string) => {
     if (!dateString) return 'Not set';
     return new Date(dateString).toLocaleDateString('en-US', {
@@ -236,8 +265,15 @@ export const InterventionDetails = ({
     });
   };
 
+  // Start/end shown as one date range (display only; edit via the Edit modal).
+  const rangeLabel = intervention.interventionStartDate
+    ? intervention.interventionEndDate
+      ? `${displayDate(intervention.interventionStartDate)} – ${displayDate(intervention.interventionEndDate)}`
+      : displayDate(intervention.interventionStartDate)
+    : 'Not set';
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 @container">
       {onBack && (
         <button
           onClick={onBack}
@@ -251,7 +287,7 @@ export const InterventionDetails = ({
       <Card className="py-0 gap-0">
         <CardContent className="p-0">
           <div className="h-64 flex items-center justify-center overflow-hidden">
-            <MapDisplayComponent geoJSON={intervention.originalGeometry} />
+            <MapDisplayComponent geoJSON={intervention.originalGeometry} trees={intervention.trees} />
           </div>
         </CardContent>
       </Card>
@@ -259,7 +295,7 @@ export const InterventionDetails = ({
       {/* Header Card */}
       <Card>
         <CardHeader>
-          <div className="flex items-start justify-between">
+          <div className="flex flex-col gap-3 @lg:flex-row @lg:items-start @lg:justify-between">
             <div className="flex-1">
               <div className="flex items-center gap-3 mb-2">
                 <h2 className="text-xl font-semibold text-foreground">
@@ -273,59 +309,60 @@ export const InterventionDetails = ({
                     </Badge>
                   </FlagTooltip>
                 )}
-                {intervention.hasRecords && (
-                  <Badge variant="outline">
-                    <FileText className="h-3 w-3 mr-1" />
-                    Has Records
-                  </Badge>
-                )}
               </div>
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <span>ID: {intervention.hid}</span>
+                <span>HID: {intervention.hid}</span>
                 <span>•</span>
-                <span>Created: {new Date(intervention.createdAt).toLocaleDateString()}</span>
+                <span>Created {displayDate(intervention.createdAt)}</span>
               </div>
             </div>
-            <div className="flex items-center gap-3">
-              <Badge variant={intervention.interventionStatus === 'completed' ? 'default' : 'secondary'} className="capitalize">
-                {intervention.interventionStatus}
-              </Badge>
+            <div className="flex flex-wrap items-center gap-2 @lg:gap-3">
+              {intervention.status && (
+                <Badge variant={intervention.status === 'completed' ? 'default' : 'secondary'} className="capitalize">
+                  {intervention.status.replace(/-/g, ' ')}
+                </Badge>
+              )}
               <Badge
                 variant="outline"
                 className={cn(
-                  'capitalize',
+                  'gap-1',
                   intervention.captureStatus === 'complete'
                     ? 'bg-primary/10 text-primary border-primary/20'
                     : 'bg-amber-50 text-amber-700 border-amber-200'
                 )}
               >
-                {intervention.captureStatus}
+                {intervention.captureStatus === 'complete' ? (
+                  <><CloudCheck className="h-3 w-3" /> Synced</>
+                ) : (
+                  <><CloudAlert className="h-3 w-3" /> Not synced</>
+                )}
               </Badge>
-              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
-                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
-                  <Pen className="h-4 w-4" />
-                  Edit
-                </Button>
-              )}
-              {(selectedProjectDetails.userRole === 'owner' || selectedProjectDetails.userRole === 'admin') && (
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => setShowDeleteDialog(true)}
-                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
+              {canManage && (
+                <>
+                  <Button variant="ghost" size="sm" onClick={() => setShowEditModal(true)}>
+                    <Pen className="h-4 w-4" />
+                    Edit
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowDeleteDialog(true)}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete
+                  </Button>
+                </>
               )}
             </div>
           </div>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Key metrics — inline */}
+          {/* Key metrics — each shown once */}
           <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm border-t border-border pt-4">
             <span className="flex items-center gap-1.5">
               <Trees className="h-4 w-4 text-muted-foreground" />
-              <span className="font-semibold text-foreground">{intervention.treeCount}</span>
+              <span className="font-semibold text-foreground">{intervention.treeCount.toLocaleString('en-US')}</span>
               <span className="text-muted-foreground">Trees</span>
             </span>
             <span className="flex items-center gap-1.5">
@@ -336,44 +373,29 @@ export const InterventionDetails = ({
             {intervention.type !== 'single-tree-registration' && (
               <span className="flex items-center gap-1.5">
                 <TreePine className="h-4 w-4 text-muted-foreground" />
-                <span className="font-semibold text-foreground">{intervention.trees?.length || 0}</span>
+                <span className="font-semibold text-foreground">{(intervention.trees?.length || 0).toLocaleString('en-US')}</span>
                 <span className="text-muted-foreground">Sample Trees</span>
               </span>
             )}
-            <span className="flex items-center gap-1.5">
-              <CalendarIcon className="h-4 w-4 text-muted-foreground" />
-              <span className="text-muted-foreground">Updated</span>
-              <span className="font-semibold text-foreground">{new Date(intervention.updatedAt).toLocaleDateString()}</span>
-            </span>
           </div>
 
-            {/* Editable Fields Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <EditableField
-                  label="Start Date"
-                  value={formatDate(intervention.interventionStartDate)}
-                  displayValue={displayDate(intervention.interventionStartDate)}
-                  type="date"
-                  onSave={(value) => handleFieldUpdate('interventionStartDate', value)}
-                />
-
-                <NonEditableField
-                  label="Tree Count"
-                  value={intervention.treeCount?.toString() || '0'}
-                  type="number"
-                  onSave={(value) => handleFieldUpdate('treeCount', parseInt(value))}
-                />
+            {/* Dates and site */}
+            <div className="grid grid-cols-1 @lg:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Dates</label>
+                <div className="flex items-center gap-2 text-sm">
+                  <CalendarIcon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className={cn(!intervention.interventionStartDate && 'text-muted-foreground')}>{rangeLabel}</span>
+                </div>
               </div>
-
-              <div className="space-y-4">
-                <EditableField
-                  label="End Date"
-                  value={formatDate(intervention.interventionEndDate)}
-                  displayValue={displayDate(intervention.interventionEndDate)}
-                  type="date"
-                  onSave={(value) => handleFieldUpdate('interventionEndDate', value)}
-                />
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Site</label>
+                <div className="flex items-center gap-2 text-sm">
+                  <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                  <span className={cn('truncate', !intervention.site && 'text-muted-foreground')}>
+                    {intervention.site?.name || 'Not assigned'}
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -389,165 +411,87 @@ export const InterventionDetails = ({
 
       {/* Species Section */}
       {localSpecies.length > 0 && (
-        <Card>
-          <CardHeader>
-            <button
-              onClick={() => toggleSection('species')}
-              className="flex items-center justify-between w-full text-left group"
-            >
-              <h3 className="font-medium text-foreground flex items-center gap-2">
-                <Leaf className="h-3.5 w-3.5 text-primary" />
-                Species Planted ({localSpecies.length})
-              </h3>
-              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.species ? 'rotate-180' : ''
-                }`} />
-            </button>
-          </CardHeader>
-
-          {expandedSections.species && (
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                {localSpecies.map((sp, index) => (
-                  <SpeciesCard
-                    key={sp.uid || index}
-                    species={sp}
-                    setEditSpecies={(s) => setEditSpecies(s as Species)}
-                    canEdit={canEditSpecies}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
+        <CollapsibleSection
+          icon={Leaf}
+          title="Species Planted"
+          count={localSpecies.length}
+          open={expandedSections.species}
+          onToggle={() => toggleSection('species')}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {localSpecies.map((sp, index) => (
+              <SpeciesCard
+                key={sp.uid || index}
+                species={sp}
+                setEditSpecies={(s) => setEditSpecies(s as Species)}
+                canEdit={canManage}
+              />
+            ))}
+          </div>
+        </CollapsibleSection>
       )}
 
-      {/* Trees Section */}
+      {/* Sample Trees Section */}
       {intervention.trees && intervention.trees.length > 0 && (
-        <Card>
-          <CardHeader>
-            <button
-              onClick={() => toggleSection('trees')}
-              className="flex items-center justify-between w-full text-left group"
-            >
-              <h3 className="font-medium text-foreground flex items-center gap-2">
-                <Trees className="h-3.5 w-3.5 text-primary" />
-                Sample Trees ({intervention.trees.length})
-              </h3>
-              <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.trees ? 'rotate-180' : ''
-                }`} />
-            </button>
-          </CardHeader>
-
-          {expandedSections.trees && (
-            <CardContent>
-              <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
-                {intervention.trees.map((tree) => (
-                  <TreeCard
-                    key={tree.id}
-                    tree={tree}
-                    intervention={intervention}
-                    accessToken={accessToken}
-                    selectedProject={selectedProject}
-                    onUpdate={(treeHid, updates) => {
-                      console.log(`Updating tree ${treeHid}:`, updates);
-                      onUpdate?.(intervention.uid, {});
-                    }}
-                  />
-                ))}
-              </div>
-            </CardContent>
-          )}
-        </Card>
+        <CollapsibleSection
+          icon={Trees}
+          title="Sample Trees"
+          count={intervention.trees.length}
+          open={expandedSections.trees}
+          onToggle={() => toggleSection('trees')}
+        >
+          <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+            {intervention.trees.map((tree) => (
+              <TreeCard
+                key={tree.id}
+                tree={tree}
+                intervention={intervention}
+                accessToken={accessToken}
+                selectedProject={selectedProject}
+                onUpdate={() => onUpdate?.(intervention.uid, {})}
+              />
+            ))}
+          </div>
+        </CollapsibleSection>
       )}
 
-      {/* Metadata Section */}
-      <Card>
-        <CardHeader>
-          <button
-            onClick={() => toggleSection('metadata')}
-            className="flex items-center justify-between w-full text-left group"
-          >
-            <h3 className="font-medium text-foreground flex items-center gap-2">
-              <Database className="h-3.5 w-3.5 text-primary" />
-              Technical Details
-            </h3>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform group-hover:text-foreground ${expandedSections.metadata ? 'rotate-180' : ''
-              }`} />
-          </button>
-        </CardHeader>
-
-        {expandedSections.metadata && (
-          <CardContent>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 text-sm">
-              <div className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Registration Date:</span>
-                  <span className="font-medium text-foreground">{displayDate(intervention.registrationDate)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Capture Mode:</span>
-                  <span className="font-medium text-foreground capitalize">{intervention.captureMode?.replace('-', ' ')}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Sample Tree Count:</span>
-                  <span className="font-medium text-foreground">{intervention.sampleTreeCount}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Privacy:</span>
-                  <span className="font-medium text-foreground">{intervention.isPrivate ? 'Private' : 'Public'}</span>
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                {intervention.site && (
-                  <>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Site:</span>
-                      <span className="font-medium text-foreground">{intervention.site.name}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Site Status:</span>
-                      <span className="font-medium text-foreground capitalize">{intervention.site.status}</span>
-                    </div>
-                  </>
+      {/* Technical Details */}
+      <CollapsibleSection
+        icon={Database}
+        title="Technical Details"
+        open={expandedSections.metadata}
+        onToggle={() => toggleSection('metadata')}
+      >
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+          <DetailRow label="Registration date">{displayDate(intervention.registrationDate)}</DetailRow>
+          <DetailRow label="Capture mode"><span className="capitalize">{intervention.captureMode?.replace('-', ' ') || 'Unknown'}</span></DetailRow>
+          <DetailRow label="Privacy">{intervention.isPrivate ? 'Private' : 'Public'}</DetailRow>
+          <DetailRow label="Added by">
+            <span className="flex items-center gap-1.5 min-w-0">
+              <span className="w-5 h-5 bg-muted rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+                {intervention.user?.image ? (
+                  <img src={intervention.user.image} className="h-full w-full rounded-full" referrerPolicy="no-referrer" />
+                ) : (
+                  <User className="h-3 w-3 text-muted-foreground" />
                 )}
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-muted-foreground">Added by:</span>
-                  <span className="flex items-center gap-1.5 font-medium text-foreground min-w-0">
-                    <span className="w-5 h-5 bg-muted rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-                      {intervention.user?.image ? (
-                        <img src={intervention.user.image} className="h-full w-full rounded-full" referrerPolicy="no-referrer" />
-                      ) : (
-                        <User className="h-3 w-3 text-muted-foreground" />
-                      )}
-                    </span>
-                    <span className="truncate">{intervention.user?.name || 'Unknown'}</span>
-                  </span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Created:</span>
-                  <span className="font-medium text-foreground">{displayDate(intervention.createdAt)}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Last Updated:</span>
-                  <span className="font-medium text-foreground">{displayDate(intervention.updatedAt)}</span>
-                </div>
-              </div>
-            </div>
+              </span>
+              <span className="truncate">{intervention.user?.name || 'Unknown'}</span>
+            </span>
+          </DetailRow>
+          <DetailRow label="Last updated">{displayDate(intervention.updatedAt)}</DetailRow>
+        </div>
 
-            {intervention.metadata && (
-              <div className="mt-6 pt-6 border-t border-border">
-                <h4 className="font-medium text-foreground mb-3">Raw Metadata</h4>
-                <div className="bg-muted/40 rounded-lg p-4 max-h-60 overflow-y-auto">
-                  <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
-                    {JSON.stringify(intervention.metadata, null, 2)}
-                  </pre>
-                </div>
-              </div>
-            )}
-          </CardContent>
+        {intervention.metadata && (
+          <div className="mt-6 pt-6 border-t border-border">
+            <h4 className="font-medium text-foreground mb-3">Raw Metadata</h4>
+            <div className="bg-muted/40 rounded-lg p-4 max-h-60 overflow-y-auto">
+              <pre className="text-xs text-muted-foreground whitespace-pre-wrap">
+                {JSON.stringify(intervention.metadata, null, 2)}
+              </pre>
+            </div>
+          </div>
         )}
-      </Card>
+      </CollapsibleSection>
 
       {/* Modals */}
       <EditSpeciesModal

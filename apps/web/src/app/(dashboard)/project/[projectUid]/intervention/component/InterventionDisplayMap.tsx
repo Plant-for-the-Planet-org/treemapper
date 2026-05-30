@@ -5,15 +5,29 @@ import 'maplibre-gl/dist/maplibre-gl.css';
 
 interface Props {
   geoJSON: any; // GeoJSON data or geometry from parent
+  trees?: any[]; // sample trees to plot as points
 }
 
-const MapDisplayComponent = ({ geoJSON }: Props) => {
-  const mapRef = useRef();
+// Extract [lng, lat] from a tree, supporting a Point geometry or lat/lng fields.
+const treeCoords = (tree: any): [number, number] | null => {
+  const loc = tree?.location;
+  if (loc?.type === 'Point' && Array.isArray(loc.coordinates) && loc.coordinates.length === 2) {
+    return [loc.coordinates[0], loc.coordinates[1]];
+  }
+  if (Array.isArray(loc) && loc.length === 2 && typeof loc[0] === 'number') {
+    return [loc[0], loc[1]];
+  }
+  if (typeof tree?.longitude === 'number' && typeof tree?.latitude === 'number') {
+    return [tree.longitude, tree.latitude];
+  }
+  return null;
+};
+
+const MapDisplayComponent = ({ geoJSON, trees = [] }: Props) => {
+  const mapRef = useRef<any>(null);
   const [error, setError] = useState(null);
   const [processedGeoJSON, setProcessedGeoJSON] = useState(null);
   const [showInfo, setShowInfo] = useState(false);
-  
-  console.log("Raw geoJSON prop:", geoJSON);
 
   // Initial viewport settings
   const [viewState, setViewState] = useState({
@@ -165,19 +179,15 @@ const MapDisplayComponent = ({ geoJSON }: Props) => {
 
   // Effect to handle geoJSON changes and validation
   useEffect(() => {
-    console.log("Processing geoJSON update:", geoJSON);
-    
     const { error: validationError, geoJSON: validatedGeoJSON } = validateAndNormalizeGeoJSON(geoJSON);
-    
+
     if (validationError) {
       setError(validationError);
       setProcessedGeoJSON(null);
-      console.error("GeoJSON validation error:", validationError);
     } else {
       setError(null);
       setProcessedGeoJSON(validatedGeoJSON);
-      console.log("Processed GeoJSON:", validatedGeoJSON);
-      
+
       // Calculate bounds and fit map
       if (validatedGeoJSON) {
         const bounds = calculateBounds(validatedGeoJSON);
@@ -313,11 +323,25 @@ const MapDisplayComponent = ({ geoJSON }: Props) => {
           <>
             {/* Render point markers */}
             {processedGeoJSON.geometry.type === 'Point' && renderPointMarker(processedGeoJSON.geometry.coordinates)}
-            
+
             {/* Render polygon/line layers */}
             {renderGeometryLayers()}
           </>
         )}
+
+        {/* Sample tree markers */}
+        {trees.map((tree) => {
+          const coords = treeCoords(tree);
+          if (!coords) return null;
+          return (
+            <Marker key={`tree-${tree.id ?? tree.hid}`} longitude={coords[0]} latitude={coords[1]} anchor="center">
+              <div
+                title={tree.hid}
+                className="w-2.5 h-2.5 rounded-full bg-[#007A49] border border-white shadow-sm"
+              />
+            </Marker>
+          );
+        })}
       </Map>
 
       {/* Info toggle button */}
