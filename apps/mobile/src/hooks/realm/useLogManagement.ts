@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { LogDetails } from 'src/types/interface/slice.interface'
@@ -6,7 +7,7 @@ import { v4 as uuid } from 'uuid';
 const useLogManagement = () => {
   const realm = useRealm()
 
-  const addNewLog = (
+  const addNewLog = useCallback((
     logDetails: LogDetails
   ) => {
     try {
@@ -20,9 +21,9 @@ const useLogManagement = () => {
     } catch (error) {
       console.error('Error during write:', error)
     }
-  }
+  }, [realm])
 
-  const deleteAllLogs = () => {
+  const deleteAllLogs = useCallback(() => {
     try {
       realm.write(() => {
         const unSyncedObjects = realm.objects(RealmSchema.ActivityLogs);
@@ -31,7 +32,7 @@ const useLogManagement = () => {
     } catch (error) {
       console.error('Error during update:', error);
     }
-  };
+  }, [realm]);
 
   return { addNewLog, deleteAllLogs }
 }

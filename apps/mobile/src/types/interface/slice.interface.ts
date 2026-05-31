@@ -393,6 +393,7 @@ export interface InterventionData {
   additional_data: FormElement[]
   meta_data: string
   last_updated_at?: number
+  is_planned: boolean,
   status: INTERVENTION_STATUS,
   hid: string,
   coords: {

@@ -1,3 +1,4 @@
+import { useCallback } from 'react'
 import { useRealm, Realm } from '@realm/react'
 import { RealmSchema } from 'src/types/enum/db.enum'
 import { ProjectInterface } from 'src/types/interface/app.interface'
@@ -5,7 +6,7 @@ import { ProjectInterface } from 'src/types/interface/app.interface'
 const useProjectManagement = () => {
   const realm = useRealm()
 
-  const addAllProjects = async (projectData: any[]): Promise<boolean> => {
+  const addAllProjects = useCallback(async (projectData: any[]): Promise<boolean> => {
     try {
       realm.write(() => {
         projectData.forEach((project: any) => {
@@ -50,10 +51,10 @@ const useProjectManagement = () => {
       console.error('Error while adding projects', error)
       return false
     }
-  }
+  }, [realm])
 
 
-  const deleteAllProjects = async (): Promise<boolean> => {
+  const deleteAllProjects = useCallback(async (): Promise<boolean> => {
     try {
       realm.write(() => {
         const unSyncedObjects = realm.objects(RealmSchema.Projects);
@@ -64,10 +65,10 @@ const useProjectManagement = () => {
       console.error('Error during update:', error);
       return false;
     }
-  };
+  }, [realm]);
 
 
-  const updateProjectInF = async (pID: string, f: string, i: number): Promise<boolean> => {
+  const updateProjectInF = useCallback(async (pID: string, f: string, i: number): Promise<boolean> => {
     try {
       realm.write(() => {
         const projectDetails = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, pID);
@@ -78,9 +79,9 @@ const useProjectManagement = () => {
     } catch (error) {
       return false;
     }
-  };
+  }, [realm]);
 
-  const addNewSite = async (projectID: string, siteData: any): Promise<boolean> => {
+  const addNewSite = useCallback(async (projectID: string, siteData: any): Promise<boolean> => {
     try {
       realm.write(() => {
         const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, projectID)
@@ -93,7 +94,7 @@ const useProjectManagement = () => {
       console.error('Error while adding site', error)
       return false
     }
-  }
+  }, [realm])
 
   return { addAllProjects, deleteAllProjects, updateProjectInF, addNewSite }
 }

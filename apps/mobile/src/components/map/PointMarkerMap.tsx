@@ -3,7 +3,6 @@ import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import CustomButton from '../common/CustomButton'
-import ActiveMarkerIcon from '../common/ActiveMarkerIcon'
 import { useNavigation } from '@react-navigation/native'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { StackNavigationProp } from '@react-navigation/stack'
@@ -25,10 +24,12 @@ import getUserLocation from 'src/utils/helpers/getUserLocation'
 import { errorHaptic } from 'src/utils/helpers/hapticFeedbackHelper'
 import { setUpIntervention } from 'src/utils/helpers/formHelper/selectIntervention'
 import { INTERVENTION_TYPE } from 'src/types/type/app.type'
-import { Map, Camera, CameraRef, MapRef, UserLocation } from '@maplibre/maplibre-react-native'
+import { Map, Camera, CameraRef, MapRef, UserLocation, Marker } from '@maplibre/maplibre-react-native'
 import SatelliteIconWrapper from './SatelliteIconWrapper'
 import SatelliteLayer from 'assets/mapStyle/satelliteView'
 import MapZoomScale from './MapZoomScale'
+import MapPin from 'assets/images/svg/MapPin.svg'
+import { Colors } from 'src/utils/constants'
 
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -46,6 +47,7 @@ const PointMarkerMap = (props: Props) => {
   const [alertModal, setAlertModal] = useState(false)
   const [outOfBoundary, setOutOfBoundary] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [selectedCoordinate, setSelectedCoordinate] = useState<[number, number] | null>(null)
   const MapBounds = useSelector((state: RootState) => state.mapBoundState)
   const { boundary } = useSelector((state: RootState) => state.sampleTree)
   const currentUserLocation = useSelector(
@@ -76,9 +78,14 @@ const PointMarkerMap = (props: Props) => {
   }, [MapBounds])
 
 
+  // Pressing the GPS button updates currentUserLocation (via redux). When it
+  // does, re-center the camera AND drop the pin on the user's GPS position.
   useEffect(() => {
     if (mapRender) {
       handleCamera2()
+    }
+    if (currentUserLocation && currentUserLocation[0] !== 0) {
+      placePin([currentUserLocation[0], currentUserLocation[1]])
     }
   }, [currentUserLocation])
 
@@ -141,22 +148,18 @@ const PointMarkerMap = (props: Props) => {
 
 
   const onSelectLocation = async () => {
-    const centerCoordinates = await mapRef.current.getCenter()
-    if (!centerCoordinates) {
-      return
-    }
-    if (centerCoordinates && centerCoordinates[0] === 0) {
-      toast.show("Please click on your location")
+    if (!selectedCoordinate || selectedCoordinate[0] === 0) {
+      toast.show("Please tap your location on the map")
       return
     }
     if (currentUserLocation && currentUserLocation[0] === 0) {
-      toast.show("Please click on your location")
+      toast.show("Please tap your location on the map")
       return
     }
     if (has_sample_trees) {
-      dispatch(updateSampleTreeCoordinates([centerCoordinates]))
+      dispatch(updateSampleTreeCoordinates([selectedCoordinate]))
     } else {
-      const { coordinates } = makeInterventionGeoJson('Point', [centerCoordinates], '')
+      const { coordinates } = makeInterventionGeoJson('Point', [selectedCoordinate], '')
       const result = await updateInterventionLocation(form_id, { type: 'Point', coordinates: coordinates }, false)
       if (!result) {
         errorHaptic()
@@ -210,10 +213,17 @@ const PointMarkerMap = (props: Props) => {
 
   const handleDrag = async () => {
     setLoading(false)
-    if (has_sample_trees) {
-      const centerCoordinates = await mapRef.current.getCenter()
-      const validMarker = isPointInPolygon(centerCoordinates, geoJSON)
-      const validSampleTree = handleMarkerValidation(centerCoordinates)
+  }
+
+  // Place the pin at an exact geo coordinate and run boundary validation.
+  // The Marker (anchor="bottom") sits its tip on this exact point, so what
+  // the user sees is what gets saved. Shared by tap and GPS-button flows.
+  const placePin = (coords: [number, number]) => {
+    setSelectedCoordinate(coords)
+    setLoading(false)
+    if (has_sample_trees && geoJSON) {
+      const validMarker = isPointInPolygon(coords, geoJSON)
+      const validSampleTree = handleMarkerValidation(coords)
       if (!validSampleTree) {
         errorHaptic()
         toast.show("Point is very close to already registered sample tree.", {
@@ -229,7 +239,19 @@ const PointMarkerMap = (props: Props) => {
       } else {
         setOutOfBoundary(false)
       }
+    } else {
+      setOutOfBoundary(false)
     }
+  }
+
+  // Drop the pin exactly where the user taps. maplibre gives the tapped
+  // geo coordinate as event.nativeEvent.lngLat ([lng, lat]).
+  const handleMapPress = (event: { nativeEvent?: { lngLat?: [number, number] } }) => {
+    const coords = event?.nativeEvent?.lngLat
+    if (!coords || coords.length < 2 || coords[0] === 0) {
+      return
+    }
+    placePin(coords)
   }
 
   return (
@@ -240,12 +262,13 @@ const PointMarkerMap = (props: Props) => {
         logo={false}
         attribution={false}
         onRegionDidChange={handleDrag}
+        onPress={handleMapPress}
         onDidFinishLoadingMap={!mapRender ? handleCameraViewChange : null}
         onRegionIsChanging={() => {
           setLoading(true)
         }}
         mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}>
-        <Camera ref={cameraRef} />
+        <Camera ref={cameraRef} maxZoom={18} />
         <UserLocation heading minDisplacement={1} />
         {geoJSON && (
           <MapShapeSource
@@ -257,6 +280,11 @@ const PointMarkerMap = (props: Props) => {
         {has_sample_trees && <MapMarkers
           hasSampleTree={has_sample_trees}
           sampleTreeData={tree_details} />}
+        {selectedCoordinate && (
+          <Marker lngLat={selectedCoordinate} anchor="bottom">
+            <MapPin fill={outOfBoundary ? Colors.LIGHT_RED : Colors.NEW_PRIMARY} />
+          </Marker>
+        )}
       </Map>
       <SatelliteIconWrapper low />
       <MapZoomScale mapRef={mapRef} position="top-left" padTop={20} />
@@ -265,9 +293,8 @@ const PointMarkerMap = (props: Props) => {
         containerStyle={styles.btnContainer}
         pressHandler={checkForAccuracy}
         loading={loading}
-        disable={loading || outOfBoundary}
+        disable={loading || outOfBoundary || !selectedCoordinate}
       />
-      <ActiveMarkerIcon />
       <AlertModal
         visible={alertModal}
         heading={i18next.t('label.poor_accuracy')}

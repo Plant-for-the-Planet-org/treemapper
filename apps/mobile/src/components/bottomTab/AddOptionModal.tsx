@@ -4,7 +4,6 @@ import {
   View,
   Text,
   Dimensions,
-  Pressable,
 } from 'react-native'
 import Animated, {
   useAnimatedStyle,
@@ -31,7 +30,6 @@ import { useToast } from 'react-native-toast-notifications'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import EyeIcon from 'assets/images/svg/EyeIcon.svg'
-import DropDownIcon from 'assets/images/svg/DownIcon.svg'
 import { updateProjectModal } from 'src/store/slice/displayMapSlice'
 import useLocationPermission from 'src/hooks/useLocationPermission'
 
@@ -203,23 +201,21 @@ const AddOptionModal = (props: Props) => {
         animatedStyles,
       ]}>
       <Animated.View style={{ zIndex: 10 }}><>
-        <View style={[styles.projectContainer, { paddingVertical: ProjectName ? 3 : 8 }]}>
-          {!!ProjectName && <Pressable style={styles.projectWrapper} onPress={toggleModal}>
-            <View style={styles.eyeIconWrapper}>
-              <EyeIcon />
+        {!!ProjectName && (
+          <View style={[styles.projectContainer, { paddingVertical: 3 }]}>
+            <View style={styles.projectWrapper}>
+              <View style={styles.eyeIconWrapper}>
+                <EyeIcon />
+              </View>
+              <View style={styles.projectSection}>
+                <Text style={styles.projectLabel}>
+                  {i18next.t('label.project')}
+                </Text>
+                <Text style={styles.projectName}>{ProjectName}</Text>
+              </View>
             </View>
-            <View style={styles.projectSection}>
-              <Text style={styles.projectLabel}>
-                {i18next.t('label.project')}
-              </Text>
-              <Text style={styles.projectName}>{ProjectName}</Text>
-            </View>
-            <View style={styles.projectDown}>
-              <View style={styles.divider} />
-              <DropDownIcon />
-            </View>
-          </Pressable>
-          }</View>
+          </View>
+        )}
         {calcComponents}</></Animated.View>
     </Animated.View>
   )

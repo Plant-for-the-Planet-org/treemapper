@@ -1,9 +1,11 @@
 import { StyleProp } from 'react-native'
 import React, { useEffect, useState } from 'react'
 import { GeoJSONSource, Layer, LineLayerStyle } from '@maplibre/maplibre-react-native'
+import { useSelector } from 'react-redux'
+import { RootState } from 'src/store'
 import { InterventionData } from 'src/types/interface/slice.interface'
 import { makeInterventionGeoJson } from 'src/utils/helpers/interventionFormHelper'
-import { FillColor } from 'src/utils/constants/colors'
+import { FillColor, NEW_PRIMARY, WHITE } from 'src/utils/constants/colors'
 
 const polyline: StyleProp<LineLayerStyle> = {
   lineWidth: 2,
@@ -18,6 +20,9 @@ interface Props {
 
 const SingleInterventionSource = (props: Props) => {
   const { intervention } = props
+  const isSatellite = useSelector(
+    (state: RootState) => state.displayMapState.mainMapView === 'SATELLITE'
+  )
   const [geoJSON, setGeoJSON] = useState(
     {
       type: 'FeatureCollection',
@@ -60,7 +65,17 @@ const SingleInterventionSource = (props: Props) => {
         style={{ ...polyline, lineColor: FillColor }}
         filter={['all', ["!=", ["geometry-type"], "Point"]]}
       />
-      <Layer id={'singleEsntire'} type="circle" style={{ circleOpacity: 0.8, circleColor: FillColor }} filter={['all', ["==", ["geometry-type"], "Point"]]} />
+      <Layer
+        id={'singleEsntire'}
+        type="circle"
+        style={{
+          circleOpacity: 0.8,
+          circleColor: FillColor,
+          circleStrokeWidth: 2,
+          circleStrokeColor: isSatellite ? NEW_PRIMARY : WHITE,
+        }}
+        filter={['all', ["==", ["geometry-type"], "Point"]]}
+      />
 
     </GeoJSONSource>
   )

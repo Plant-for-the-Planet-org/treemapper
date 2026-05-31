@@ -11,6 +11,7 @@ interface FinalObject {
 export const groupIntervention = (data: InterventionData[]) => {
   const finalObject: FinalObject = {
     All: { count: data.length, id: 'all' },
+    'In Planning': { count: 0, id: 'planning' },
     Incomplete: { count: 0, id: 'incomplete' },
     Unsynced: {
       count: 0,
@@ -18,10 +19,16 @@ export const groupIntervention = (data: InterventionData[]) => {
     }
   };
 
-  
 
 
-  data.forEach(({ is_complete, intervention_title, intervention_key, status }) => {
+
+  data.forEach(({ is_complete, intervention_title, intervention_key, status, is_planned }) => {
+    // Planned interventions only count toward "In Planning" (and the "All"
+    // total). They are excluded from every other tab.
+    if (is_planned) {
+      finalObject['In Planning'].count += 1;
+      return;
+    }
     if (!is_complete) {
       finalObject['Incomplete'].count += 1;
     }
@@ -33,7 +40,7 @@ export const groupIntervention = (data: InterventionData[]) => {
     if (status == 'PENDING_DATA_UPLOAD' && is_complete) {
         // Increment the count and store it in a variable
         const updatedCount = finalObject['Unsynced'].count + 1;
-    
+
         // Update finalObject with the new count value
         finalObject['Unsynced'] = {
           ...finalObject['Unsynced'],
@@ -50,11 +57,14 @@ export const groupIntervention = (data: InterventionData[]) => {
 };
 
 export const groupInterventionList = (data: InterventionData[], type: string) => {
+  if (type === 'planning') {
+    return data.filter(({ is_planned }) => is_planned);
+  }
   if (type === 'incomplete') {
-    return data.filter(({ is_complete }) => !is_complete);
+    return data.filter(({ is_complete, is_planned }) => !is_complete && !is_planned);
   }
   if (type === 'all') {
     return data;
   }
-  return data.filter(({ intervention_key }) => intervention_key === type);
+  return data.filter(({ intervention_key, is_planned }) => intervention_key === type && !is_planned);
 };

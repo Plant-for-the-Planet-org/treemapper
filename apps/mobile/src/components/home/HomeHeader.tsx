@@ -1,14 +1,14 @@
 import { Pressable, StyleSheet, View } from 'react-native'
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import HamburgerIcon from 'assets/images/svg/HamburgerIcon.svg'
 import FilterMapIcon from 'assets/images/svg/FilterMapIcon.svg'
 import HomeMapIcon from 'assets/images/svg/HomeMapIcon.svg'
-import { useNavigation } from '@react-navigation/native'
+import { useFocusEffect, useNavigation } from '@react-navigation/native'
 import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import {getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
+import { getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
 import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
@@ -26,7 +26,6 @@ import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import NetInfo from "@react-native-community/netinfo";
 import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
-import NoProjectModal from '../common/NoProjectModal'
 import NewAppModal from '../common/NewAppModal'
 import ProjectInviteModal from './DeepLinkModal'
 
@@ -40,9 +39,9 @@ const HomeHeader = (props: Props) => {
   const { registerDevice } = useDeviceRegistration()
   const { toggleFilterModal, toggleProjectModal } = props
   useAppStartup()
-  const { addNewIntervention } = useInterventionManagement()
+  const { addNewIntervention, interventionExists } = useInterventionManagement()
+  const isCheckingNewInterventions = useRef(false)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const userType = useSelector((state: RootState) => state.userState.type)
   const [tokenValid, setTokenValid] = useState<boolean>(false)
   const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
@@ -73,10 +72,8 @@ const HomeHeader = (props: Props) => {
     if (!tokenValid) {
       return;
     }
-    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && !v3Approved) {
-      addServerIntervention()
-    }
-    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn && v3Approved) {
+
+    if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn) {
       addMobileServerIntervention()
     }
   }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn, tokenValid])
@@ -87,6 +84,24 @@ const HomeHeader = (props: Props) => {
       // registerDevice()
     }
   }, [isLoggedIn])
+
+  // Once the initial backfill is done, re-check the server for newly created
+  // interventions every time the Home screen regains focus. This keeps the
+  // mobile app in sync with interventions added on web without needing a
+  // logout/login.
+  useFocusEffect(
+    useCallback(() => {
+      if (
+        tokenValid &&
+        isLoggedIn &&
+        serverInterventionAdded &&
+        userType !== '' &&
+        !isSyncing
+      ) {
+        checkForNewInterventions()
+      }
+    }, [tokenValid, isLoggedIn, serverInterventionAdded, userType, isSyncing])
+  )
 
 
 
@@ -166,49 +181,6 @@ const HomeHeader = (props: Props) => {
   }
 
 
-  const addServerIntervention = async () => {
-    try {
-      const { response, success } = await getServerIntervention(lastServerInterventionpage)
-      if (success && response?.items) {
-        for (let index = 0; index < response.count; index++) {
-          if (response.items[index] && deleteThis.includes(response.items[index].id)) {
-            continue;
-          }
-          const element = convertInventoryToIntervention(response.items[index]);
-          await addNewIntervention(element)
-        }
-        if (!response._links.next || response._links.next === response._links.self) {
-          dispatch(updateServerIntervention(true))
-          return;
-        }
-        const nextPage = getExtendedPageParam(response._links.next)
-        dispatch(updateLastServerIntervention(nextPage))
-        addNewLog({
-          logType: 'DATA_SYNC',
-          message: "Intervention fetched successfully",
-          logLevel: 'info',
-          statusCode: '000',
-        })
-      } else {
-        addNewLog({
-          logType: 'DATA_SYNC',
-          message: "Intervention fetched (Response error)",
-          logLevel: 'error',
-          statusCode: '000',
-        })
-      }
-    } catch (err) {
-      console.log("Error occurred", err)
-      addNewLog({
-        logType: 'DATA_SYNC',
-        message: "Error while fetching intervention",
-        logLevel: 'error',
-        statusCode: '000',
-      })
-    }
-  }
-
-
   const addMobileServerIntervention = async () => {
     try {
       const { response, success } = await getMobileInterventions(lastServerInterventionpage === '' ? '1' : lastServerInterventionpage)
@@ -249,6 +221,76 @@ const HomeHeader = (props: Props) => {
     }
   }
 
+  // Scans the server starting from the newest interventions (page 1) and adds
+  // any that the device does not already have. The server returns interventions
+  // sorted by creation date (newest first), so newly created interventions
+  // always appear at the top. As soon as we hit an intervention we already
+  // store, everything below it is older and already synced, so we stop.
+  const checkForNewInterventions = async () => {
+    if (isCheckingNewInterventions.current) {
+      return
+    }
+    const isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      return
+    }
+    isCheckingNewInterventions.current = true
+    try {
+      const pageSize = 6
+      let page = 1
+      let addedCount = 0
+      let keepScanning = true
+      while (keepScanning) {
+        const { response, success } = await getMobileInterventions(page.toString())
+        const items = response?.data?.items
+        if (!success || !items || items.length === 0) {
+          break
+        }
+        let reachedKnown = false
+        for (let index = 0; index < items.length; index++) {
+          const raw = items[index]
+          if (interventionExists(raw.id)) {
+            // Caught up with what the device already has.
+            reachedKnown = true
+            break
+          }
+          const element = convertInventoryToIntervention(raw)
+          if (element) {
+            await addNewIntervention(element)
+            addedCount += 1
+          }
+        }
+        // Stop when we reach an already-stored intervention or a partial page
+        // (no more pages). Otherwise the whole page was new, so keep scanning.
+        if (reachedKnown || items.length < pageSize) {
+          keepScanning = false
+        } else {
+          page += 1
+        }
+      }
+      if (addedCount > 0) {
+        // Bump the timestamp so intervention lists/headers re-read from Realm.
+        dispatch(updateNewIntervention())
+        addNewLog({
+          logType: 'DATA_SYNC',
+          message: `Fetched ${addedCount} new intervention(s) from server`,
+          logLevel: 'info',
+          statusCode: '000',
+        })
+      }
+    } catch (err) {
+      console.log("Error occurred while checking new interventions", err)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: "Error while checking for new interventions",
+        logLevel: 'error',
+        statusCode: '000',
+      })
+    } finally {
+      isCheckingNewInterventions.current = false
+    }
+  }
+
   return (
     <View style={styles.container}>
       <Pressable style={[styles.iconWrapper, styles.hamburger]} onPress={openHomeDrawer}>
@@ -258,18 +300,14 @@ const HomeHeader = (props: Props) => {
         <SpeciesSync />
         <SyncIntervention isLoggedIn={isLoggedIn} tokenValid={tokenValid} />
       </View>
-      <NoProjectModal userType={userType} v3Approved={v3Approved} />
-      {/* <NewAppModal /> */}
-      <ProjectInviteModal/>
+      <ProjectInviteModal />
       <View style={styles.sectionWrapper} />
-      {v3Approved || userType === 'tpo' ? (
-        <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
-          <HomeMapIcon
-            onPress={toggleProjectModal}
-            width={SCALE_24} height={SCALE_24}
-          />
-        </Pressable>
-      ) : null}
+      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
+        <HomeMapIcon
+          onPress={toggleProjectModal}
+          width={SCALE_24} height={SCALE_24}
+        />
+      </Pressable>
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}

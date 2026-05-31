@@ -28,14 +28,16 @@ const InterventionView = () => {
   }, [currentPage, selectedLabel])
 
   const getQuery = (label: string) => {
-    if (label === 'unsync') {
-      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
+    if (label === 'planning') {
+      return 'is_planned == true';
+    } else if (label === 'unsync') {
+      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true AND is_planned == false';
     } else if (label === 'incomplete') {
-      return 'is_complete==false';
+      return 'is_complete==false AND is_planned == false';
     } else if (label === 'all') {
       return 'intervention_id!=""';
     } else {
-      return `intervention_key=="${label}"`;
+      return `intervention_key=="${label}" AND is_planned == false`;
     }
   };
 

@@ -13,7 +13,13 @@ import { useDispatch, useSelector } from 'react-redux'
 import {
   updateCurrentProject,
   updateProjectSite,
+  updateProjectState,
+  updateProjectError,
 } from 'src/store/slice/projectStateSlice'
+import NetInfo from '@react-native-community/netinfo'
+import { getUserProjects } from 'src/api/api.fetch'
+import useProjectManagement from 'src/hooks/realm/useProjectManagement'
+import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { updateMapBounds } from 'src/store/slice/mapBoundSlice'
 import { BottomSheetBackdropProps, BottomSheetModal, BottomSheetView } from '@gorhom/bottom-sheet'
@@ -59,6 +65,12 @@ const ProjectModal = (props: Props) => {
   const { toggleProjectModal, lastProjectAdded } = useSelector(
     (state: RootState) => state.displayMapState,
   )
+  const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn)
+  const refetchProject = useSelector((state: RootState) => state.appState.refetchProject)
+  const refreshProject = useSelector((state: RootState) => state.tempState.refreshProject)
+
+  const { addAllProjects } = useProjectManagement()
+  const { addNewLog } = useLogManagement()
 
   // Memoized dropdown data
   const projectDropdownData = useMemo(() => {
@@ -114,6 +126,61 @@ const ProjectModal = (props: Props) => {
       }
     }
   }, [realm, currentProject.projectId])
+
+  // Fetch projects from the API and sync them into Realm.
+  // Runs only when logged in and there is internet. Refreshes the local
+  // list afterwards so the dropdown reflects the synced data.
+  const fetchAndSyncProjects = useCallback(async () => {
+    if (!isLoggedIn) return
+
+    const netInfo = await NetInfo.fetch()
+    if (!netInfo.isConnected) return
+
+    const { responseData, responseError } = await getUserProjects()
+    if (responseError) {
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Project fetching failed (response error)',
+        logLevel: 'error',
+        statusCode: '400',
+      })
+      return
+    }
+
+    if (responseData.length === 0) {
+      // No projects on the account. The empty state renders on manual open.
+      loadProjects()
+      return
+    }
+
+    const result = await addAllProjects(responseData)
+    if (result) {
+      dispatch(updateProjectState(true))
+      if (!currentProject.projectId && responseData.length > 0) {
+        const firstProject = responseData[0]
+        dispatch(updateCurrentProject({
+          name: firstProject.properties.name,
+          id: firstProject.properties.id,
+        }))
+      }
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Project Fetched',
+        logLevel: 'info',
+        statusCode: '000',
+      })
+    } else {
+      dispatch(updateProjectError(true))
+      addNewLog({
+        logType: 'PROJECTS',
+        message: 'Error while syncing project',
+        logLevel: 'error',
+        statusCode: '000',
+      })
+    }
+
+    loadProjects()
+  }, [isLoggedIn, currentProject.projectId, addAllProjects, addNewLog, dispatch, loadProjects])
 
   // Modal handlers
   const handlePresentModal = useCallback(() => {
@@ -179,13 +246,23 @@ const ProjectModal = (props: Props) => {
     [closeModal]
   )
 
-  // Effect to handle modal visibility
+  // Background sync: keep Realm projects in step on home load, on login
+  // state change, and whenever a project refetch/refresh is requested.
+  // Does not present the modal.
+  useEffect(() => {
+    fetchAndSyncProjects()
+  }, [isLoggedIn, refetchProject, refreshProject, fetchAndSyncProjects])
+
+  // Effect to handle modal visibility. Always fetch when the modal shows up
+  // (login + internet are checked inside fetchAndSyncProjects), and show the
+  // cached Realm data immediately while the fetch runs.
   useEffect(() => {
     if (isVisible || toggleProjectModal || lastProjectAdded) {
       loadProjects()
+      fetchAndSyncProjects()
       handlePresentModal()
     }
-  }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, handlePresentModal, dispatch])
+  }, [isVisible, toggleProjectModal, lastProjectAdded, loadProjects, fetchAndSyncProjects, handlePresentModal, dispatch])
 
   // Effect to handle initial map bounds update
   useEffect(() => {

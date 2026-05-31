@@ -356,7 +356,7 @@ const DisplayMap = () => {
       ref={mapRef}
       mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
-      <Camera ref={cameraRef} />
+      <Camera ref={cameraRef} maxZoom={17} />
       {locationStatus?.status === Location.PermissionStatus.GRANTED && (
         <UserLocation heading />
       )}

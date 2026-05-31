@@ -18,6 +18,7 @@ export const Intervention: ObjectSchema = {
     location_type: 'string',
     location: `${RealmSchema.Polygon}`,
     image_data: `${RealmSchema.Coordinates}[]`,
+    is_planned: { type: 'bool', default: false },
     has_species: { type: 'bool', default: false },
     has_sample_trees: { type: 'bool', default: false },
     sample_trees: `${RealmSchema.TreeDetail}[]`,

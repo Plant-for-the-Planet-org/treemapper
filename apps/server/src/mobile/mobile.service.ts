@@ -80,6 +80,7 @@ export interface InterventionResponseItem {
   idempotencyKey: string;
   coordinates: any[];
   scientificSpecies: string | null;
+  isPlanning: boolean;
   history: any[];
   plantProject: string;
   plantedSpecies: PlantedSpecies[];
@@ -637,12 +638,12 @@ export class MobileService {
 
   //     if (userBody.device) {
   //       const deviceData = userBody.device;
-        
+
   //       // deviceId is required (installation id - unique)
   //       if (!deviceData.deviceId) {
   //         throw new BadRequestException('deviceId is required in device object');
   //       }
-        
+
   //       // Check if device already exists by deviceId (installation id - unique)
   //       const existingDevice = await this.drizzleService.db
   //         .select()
@@ -2072,8 +2073,8 @@ export class MobileService {
     return await this.drizzleService.db.transaction(async (tx) => {
       // Determine record type based on status
       // Use 'death' record type if status is 'dead', otherwise use 'status_change'
-      const recordType = remeasurementDTO.status === 'dead' 
-        ? ('death' as const) 
+      const recordType = remeasurementDTO.status === 'dead'
+        ? ('death' as const)
         : ('status_change' as const);
 
       // Create tree record for status change
@@ -2257,6 +2258,7 @@ export class MobileService {
         intervention_device_location: intervention.deviceLocation,
         intervention_created_at: intervention.createdAt,
         intervention_updated_at: intervention.updatedAt,
+        intervention_status: intervention.status,
         project_uid: project.uid,
         site_uid: site.uid,
         tree_uid: tree.uid,
@@ -2351,6 +2353,7 @@ export class MobileService {
         geometry: row.intervention_original_geometry, // Same as originalGeometry
         lastMeasurementDate: null,
         captureStatus: row.intervention_capture_status,
+        isPlanning: row.intervention_status === 'planning',
         deviceLocation: row.intervention_device_location,
         status: null,
         updatedAt: this.formatDate(row.intervention_updated_at),
@@ -2381,6 +2384,7 @@ export class MobileService {
         intervention_device_location: intervention.deviceLocation,
         intervention_created_at: intervention.createdAt,
         intervention_updated_at: intervention.updatedAt,
+        intervention_status: intervention.status,
         project_uid: project.uid,
         site_uid: site.uid,
         tree_uid: tree.uid,
@@ -2469,6 +2473,7 @@ export class MobileService {
       idempotencyKey: row.intervention_idempotency_key,
       coordinates: this.getPrivateCoords(row),
       scientificSpecies: this.getScientificSpeciesUid(row),
+      isPlanning: row.intervention_status === 'planning',
       history: [],
       plantProject: row.project_uid,
       plantedSpecies: plantedSpeciesData,

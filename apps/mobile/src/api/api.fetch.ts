@@ -390,24 +390,13 @@ export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUr
 
 //GET PROJECT
 
-export const getUserProjects = async (newBackend: boolean) => {
+export const getUserProjects = async () => {
   let result: { responseData: any, responseError: boolean }
-  if (newBackend) {
-    let { response, success } = await getAllMobileProjects()
-    if (success) {
-      result = { responseData: response.data, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
-    }
+  let { response, success } = await getAllMobileProjects()
+  if (success) {
+    result = { responseData: response.data, responseError: false }
   } else {
-    let { response, success } = await getAllProjects()
-    if (success) {
-      result = { responseData: response, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
-    }
+    result = { responseData: null, responseError: false }
   }
   return result
 }

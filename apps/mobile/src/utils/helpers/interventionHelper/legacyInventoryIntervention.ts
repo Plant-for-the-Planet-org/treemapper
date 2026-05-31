@@ -255,6 +255,7 @@ const getEntireSiteCheck = (data: any) => {
 
 export const convertInventoryToIntervention = (data: any): InterventionData | null => {
     try {
+        console.log("Converting inventory to intervention with data: ", JSON.stringify(data));
         const extraData = interventionTittleSwitch(data.type);
         const geometryData = getGeometry(data.geometry);
         const invStartDate = data.plantDate ? data.plantDate : data.interventionStartDate
@@ -291,6 +292,7 @@ export const convertInventoryToIntervention = (data: any): InterventionData | nu
             intervention_type: extraData.key,
             form_data: [],
             additional_data: [],
+            is_planned: data.isPlanning || false,
             meta_data: metaData,
             status: 'SYNCED',
             hid: data.hid || '',
