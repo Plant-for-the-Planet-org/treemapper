@@ -46,7 +46,10 @@ export const InterventionTypeSelector: React.FC<InterventionTypeSelectorProps> =
                 interventionType: e.target.value,
                 species: [],
                 geoJSON: null,
-                geoJSONFile: null
+                geoJSONFile: null,
+                // Bulk single-tree only applies to single-tree registration.
+                multiSingleTree: e.target.value === 'single-tree-registration' ? prev.multiSingleTree : false,
+                multiTreePoints: e.target.value === 'single-tree-registration' ? prev.multiTreePoints : []
               }))}
               className="sr-only"
             />

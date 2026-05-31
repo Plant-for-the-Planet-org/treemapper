@@ -18,6 +18,12 @@ export const TreeRegistration: React.FC<TreeRegistrationProps> = ({
 }) => {
   if (!currentConfig.allowsTreeRegistration) return null;
 
+  // In bulk single-tree mode the tag is built from the prefix in the bulk panel,
+  // so the single tag field here would be redundant.
+  if (formData.isPlanningMode && formData.multiSingleTree && formData.interventionType === 'single-tree-registration') {
+    return null;
+  }
+
   const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
 
   if (formData.isPlanningMode) {

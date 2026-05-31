@@ -21,7 +21,15 @@ export const validateForm = (formData: FormData): ValidationErrors => {
     if (formData.species.length === 0) {
       newErrors.species = 'At least one species is required';
     }
-    if (!formData.geoJSON && !formData.geoJSONFile) {
+    // Bulk single-tree mode marks locations as a list of points, not a single
+    // geoJSON / uploaded file.
+    const isMultiSingleTree =
+      formData.multiSingleTree && formData.interventionType === 'single-tree-registration';
+    if (isMultiSingleTree) {
+      if (formData.multiTreePoints.length === 0) {
+        newErrors.location = 'Mark at least one tree on the map';
+      }
+    } else if (!formData.geoJSON && !formData.geoJSONFile) {
       newErrors.location = 'Tree location must be marked on the map';
     }
     if (formData.description.length > VALIDATION_CONFIG.description.maxLength) {

@@ -20,6 +20,7 @@ import {
   CreateInterventionDto,
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateBulkSingleTreePlanDto,
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
@@ -61,6 +62,16 @@ export class InterventionsController {
     @Membership() membership: ProjectGuardResponse,
   ): Promise<any> {
     return this.interventionsService.createPlannedInterventionWeb(dto, membership);
+  }
+
+  @Post('/projects/:id/web/plan/bulk-single')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async createBulkSingleTreePlanWeb(
+    @Body() dto: CreateBulkSingleTreePlanDto,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    return this.interventionsService.createBulkSingleTreePlanWeb(dto, membership);
   }
 
   @Get('/projects/:id')

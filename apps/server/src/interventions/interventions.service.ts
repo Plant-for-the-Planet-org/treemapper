@@ -17,6 +17,7 @@ import {
 import {
   InterventionResponseDto,
   CreateInterventionBulkDto,
+  CreateBulkSingleTreePlanDto,
   CreateCustomBulkDto,
   GetProjectInterventionsQueryDto,
   GetProjectInterventionsResponseDto,
@@ -1094,6 +1095,171 @@ export class InterventionsService {
     } catch (error) {
       if (error instanceof HttpException) throw error;
       throw new BadRequestException(`Failed to create planned intervention: ${error.message}`);
+    }
+  }
+
+  /**
+   * Bulk planning of single trees.
+   *
+   * Creates one planned single-tree-registration intervention per point, all
+   * sharing the same species. Mirrors createPlannedInterventionWeb (status
+   * 'planning', captureStatus incomplete, no tree rows) but fans out across
+   * many points. Per-point tags are client-supplied and stored on
+   * intervention.metadata.tag, because the intervention table has no tag column
+   * and planning mode creates no tree rows.
+   *
+   * All inserts run inside a single transaction: any failure rolls back the
+   * whole batch (all-or-nothing).
+   */
+  async createBulkSingleTreePlanWeb(dto: CreateBulkSingleTreePlanDto, membership: ProjectGuardResponse): Promise<any> {
+    try {
+      if (!dto.species || !Array.isArray(dto.species) || dto.species.length === 0) {
+        throw new BadRequestException('At least one species is required');
+      }
+      if (!dto.points || !Array.isArray(dto.points) || dto.points.length === 0) {
+        throw new BadRequestException('At least one tree point is required');
+      }
+      if (dto.points.length > 500) {
+        throw new BadRequestException('A maximum of 500 trees can be planned in one request');
+      }
+
+      // Normalize the shared species so each clone satisfies the
+      // unknownSpeciesLogic check constraint. Single-tree => speciesCount 1.
+      const normalizedSpecies = dto.species.map((el) => {
+        const isUnknown = Boolean(el.isUnknown);
+        return {
+          scientificSpeciesId: isUnknown ? null : (el.scientificSpeciesId ?? null),
+          isUnknown,
+          speciesName: el.speciesName ?? null,
+          speciesCount: 1,
+        };
+      });
+
+      // Validate referenced scientific species exist (known species only).
+      const speciesIdCheck = normalizedSpecies
+        .filter((el) => !el.isUnknown)
+        .map((el) => el.scientificSpeciesId)
+        .filter((id): id is number => id != null);
+
+      if (speciesIdCheck.length > 0) {
+        const existingSpecies = await this.drizzleService.db
+          .select({ id: scientificSpecies.id })
+          .from(scientificSpecies)
+          .where(inArray(scientificSpecies.id, speciesIdCheck));
+        const existingSpeciesIds = existingSpecies.map((s) => s.id);
+        const missingSpeciesIds = speciesIdCheck.filter((id) => !existingSpeciesIds.includes(id));
+        if (missingSpeciesIds.length > 0) {
+          throw new BadRequestException(
+            `The following scientific species IDs do not exist: ${missingSpeciesIds.join(', ')}`,
+          );
+        }
+      }
+
+      // Resolve the optional shared site once.
+      let projectSiteId: number | null = null;
+      if (dto.plantProjectSite) {
+        const siteData = await this.drizzleService.db
+          .select({ id: site.id })
+          .from(site)
+          .where(eq(site.uid, dto.plantProjectSite))
+          .limit(1);
+        if (siteData.length === 0) {
+          throw new NotFoundException('Site not found');
+        }
+        projectSiteId = siteData[0].id;
+      }
+
+      const now = new Date();
+      const endDate = new Date(now);
+      endDate.setFullYear(endDate.getFullYear() + 1);
+
+      const created = await this.drizzleService.db.transaction(async (tx) => {
+        const out: Array<{ id: number; uid: string; hid: string; tag: string | null }> = [];
+
+        for (const point of dto.points) {
+          const pointGeometry = {
+            type: 'Point',
+            coordinates: [point.longitude, point.latitude],
+          };
+          const cleanGeometry = this.getGeoJSONForPostGIS(pointGeometry);
+          const locationSQL = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+          const tag = point.tag ?? null;
+
+          const interventionData: any = {
+            uid: generateUid('inv'),
+            hid: generateParentHID(),
+            userId: membership.userId,
+            projectId: membership.projectId,
+            siteId: projectSiteId,
+            idempotencyKey: generateUid('idem'),
+            type: InterventionType.SINGLE_TREE_REGISTRATION,
+            status: 'planning',
+            registrationDate: now,
+            interventionStartDate: now,
+            interventionEndDate: endDate,
+            location: locationSQL,
+            originalGeometry: pointGeometry,
+            captureMode: 'web-upload' as CaptureModeEnum,
+            captureStatus: CaptureStatus.INCOMPLETE,
+            metadata: { ...(dto.metadata || {}), tag },
+            image: null,
+            description: dto.description || null,
+            totalTreeCount: 1,
+          };
+
+          const inserted = await tx.insert(intervention).values(interventionData).returning();
+          if (!inserted || inserted.length === 0) {
+            throw new Error('Failed to create planned intervention');
+          }
+          const row = inserted[0];
+
+          const speciesRows = normalizedSpecies.map((el) => ({
+            uid: generateUid('invspc'),
+            interventionId: row.id,
+            scientificSpeciesId: el.scientificSpeciesId,
+            isUnknown: el.isUnknown,
+            speciesName: el.speciesName,
+            speciesCount: el.speciesCount,
+          }));
+          const insertedSpecies = await tx.insert(interventionSpecies).values(speciesRows).returning();
+          if (insertedSpecies.length === 0) {
+            throw new Error('Species creation failed');
+          }
+
+          out.push({ id: row.id, uid: row.uid, hid: row.hid, tag });
+        }
+
+        return out;
+      });
+
+      // One summary audit entry for the batch (avoids flooding the audit log
+      // with up to 500 rows). Anchored to the first created intervention.
+      this.auditService.log('intervention', {
+        action: 'create',
+        entityId: created[0].id,
+        entityUid: created[0].uid,
+        userId: membership.userId,
+        projectId: membership.projectId,
+        newValues: {
+          type: InterventionType.SINGLE_TREE_REGISTRATION,
+          status: 'planning',
+          bulk: true,
+          count: created.length,
+          uids: created.map((c) => c.uid),
+        },
+        source: 'web',
+      });
+
+      const interventions = created.map(({ id, ...rest }) => rest);
+      return {
+        success: true,
+        statusCode: 201,
+        message: `${created.length} single tree${created.length === 1 ? '' : 's'} planned`,
+        data: { count: created.length, interventions },
+      };
+    } catch (error) {
+      if (error instanceof HttpException) throw error;
+      throw new BadRequestException(`Failed to create bulk single tree plan: ${error.message}`);
     }
   }
 

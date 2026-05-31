@@ -31,6 +31,11 @@ const MAP_STYLES = {
   },
 };
 
+interface MarkedPoint {
+  longitude: number;
+  latitude: number;
+}
+
 interface Props {
   updateGeoJSON: (geoJSON: any) => void;
   uploadedGeoJSON: any; // GeoJSON from file upload
@@ -43,6 +48,13 @@ interface Props {
     location: any;
     locationGeometryType?: string;
   }>
+  // Bulk single-tree mode: each click drops a new persistent marker instead of
+  // replacing a single point. The parent owns the marked-points list.
+  isMultiSingleTree?: boolean
+  markedPoints?: MarkedPoint[]
+  onAddPoint?: (point: MarkedPoint) => void
+  onRemovePoint?: (index: number) => void
+  tagPrefix?: string
 }
 
 const parseSiteGeometry = (site: any): any | null => {
@@ -60,7 +72,7 @@ const parseSiteGeometry = (site: any): any | null => {
   return raw;
 };
 
-const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [] }: Props) => {
+const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType, selectedSite, existingInterventions = [], isMultiSingleTree = false, markedPoints = [], onAddPoint, onRemovePoint, tagPrefix = '' }: Props) => {
   // Initial viewport settings
   const [viewState, setViewState] = useState({
     longitude: -100,
@@ -298,6 +310,14 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
     }
 
     if (selectionMode === 'point') {
+      // Bulk single-tree mode: append a new marker, let the parent track the list.
+      if (isMultiSingleTree) {
+        onAddPoint?.({ longitude: lngLat.lng, latitude: lngLat.lat });
+        setShowSuccessFeedback(true);
+        setTimeout(() => setShowSuccessFeedback(false), 2000);
+        return;
+      }
+
       // Point mode: set a single marker and immediately select it
       const point = {
         longitude: lngLat.lng,
@@ -318,7 +338,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
 
       setGeoJSON(pointGeoJSON);
       updateGeoJSON(pointGeoJSON);
-      
+
       // Show success feedback
       setShowSuccessFeedback(true);
       setTimeout(() => setShowSuccessFeedback(false), 2000);
@@ -383,7 +403,7 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         });
       }
     }
-  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon]);
+  }, [selectionMode, drawingPolygon, displayingUploadedGeoJSON, polygonPoints, polygonCompleted, updateGeoJSON, completePolygon, isMultiSingleTree, onAddPoint]);
   
   // Handle double-click to complete polygon
   const handleMapDoubleClick = useCallback(event => {
@@ -447,6 +467,15 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
       // Clear uploaded GeoJSON display when using manual coordinates
       if (displayingUploadedGeoJSON) {
         setDisplayingUploadedGeoJSON(false);
+      }
+
+      // Bulk single-tree mode: append the manual point to the list.
+      if (isMultiSingleTree) {
+        onAddPoint?.({ longitude: lng, latitude: lat });
+        setViewState({ ...viewState, longitude: lng, latitude: lat });
+        setShowSuccessFeedback(true);
+        setTimeout(() => setShowSuccessFeedback(false), 2000);
+        return;
       }
 
       const point = {
@@ -606,8 +635,51 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         {/* Render uploaded GeoJSON */}
         {renderUploadedGeoJSON()}
 
+        {/* Bulk single-tree mode: render every marked tree as a numbered pin.
+            Clicking a pin removes that tree. */}
+        {isMultiSingleTree && markedPoints.map((point, index) => (
+          <Marker
+            key={index}
+            longitude={point.longitude}
+            latitude={point.latitude}
+            anchor="bottom"
+          >
+            <button
+              type="button"
+              title={`${tagPrefix}${index + 1} (click to remove)`}
+              onClick={(e) => {
+                e.stopPropagation();
+                onRemovePoint?.(index);
+              }}
+              style={{
+                position: 'relative',
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+              }}
+            >
+              <MapPin color={markerColor} size={28} style={markerStyle} />
+              <span
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  fontSize: '10px',
+                  fontWeight: 700,
+                  color: mapStyleMode === 'satellite' ? '#0f766e' : '#ffffff',
+                  pointerEvents: 'none',
+                }}
+              >
+                {index + 1}
+              </span>
+            </button>
+          </Marker>
+        ))}
+
         {/* Display marker if in point mode and marker exists (and not displaying uploaded) */}
-        {selectionMode === 'point' && marker && !displayingUploadedGeoJSON && (
+        {selectionMode === 'point' && marker && !displayingUploadedGeoJSON && !isMultiSingleTree && (
           <Marker
             longitude={marker.longitude}
             latitude={marker.latitude}
@@ -800,23 +872,32 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
           <span>{isFullscreen ? 'Normal view' : 'Fullscreen'}</span>
         </button>
 
-        {/* Done button (only in fullscreen) — disabled until location selected */}
-        {isFullscreen && (
-          <button
-            type="button"
-            onClick={() => setIsFullscreen(false)}
-            disabled={!geoJSON}
-            title={!geoJSON ? 'Select a location first' : 'Return to form'}
-            className={`text-xs font-semibold px-4 py-2 rounded-lg transition-colors ${
-              !geoJSON
-                ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                : 'bg-emerald-600 hover:bg-emerald-700 text-white'
-            }`}
-            style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
-          >
-            Done
-          </button>
-        )}
+        {/* Done button (only in fullscreen) — disabled until a selection exists.
+            In bulk single-tree mode the selection is the marked-points list,
+            not the single geoJSON. */}
+        {isFullscreen && (() => {
+          const hasSelection = isMultiSingleTree ? markedPoints.length > 0 : Boolean(geoJSON);
+          return (
+            <button
+              type="button"
+              onClick={() => setIsFullscreen(false)}
+              disabled={!hasSelection}
+              title={
+                !hasSelection
+                  ? (isMultiSingleTree ? 'Mark at least one tree first' : 'Select a location first')
+                  : 'Return to form'
+              }
+              className={`text-xs font-semibold px-4 py-2 rounded-lg transition-colors ${
+                !hasSelection
+                  ? 'bg-slate-300 text-slate-500 cursor-not-allowed'
+                  : 'bg-emerald-600 hover:bg-emerald-700 text-white'
+              }`}
+              style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.15)' }}
+            >
+              Done
+            </button>
+          );
+        })()}
       </div>
 
       {/* Mode selection toggle and controls */}
@@ -1015,8 +1096,34 @@ const UnifiedMapComponent = ({ updateGeoJSON, uploadedGeoJSON, interventionType,
         }}>
           <div style={{ fontSize: '18px' }}>✓</div>
           <div style={{ fontWeight: '600', fontSize: '14px' }}>
-            {selectionMode === 'point' ? 'Location selected!' : 'Polygon completed!'}
+            {isMultiSingleTree
+              ? 'Tree marked!'
+              : selectionMode === 'point' ? 'Location selected!' : 'Polygon completed!'}
           </div>
+        </div>
+      )}
+
+      {/* Bulk single-tree mode: marked-trees count badge */}
+      {isMultiSingleTree && (
+        <div style={{
+          position: 'absolute',
+          top: '12px',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          background: 'white',
+          padding: '6px 14px',
+          borderRadius: '999px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.12)',
+          border: '1px solid rgba(0,0,0,0.06)',
+          zIndex: 2,
+          display: 'flex',
+          alignItems: 'center',
+          gap: '6px',
+        }}>
+          <MapPin size={14} className="text-teal-600" />
+          <span className="text-xs font-semibold text-slate-900">
+            {markedPoints.length} tree{markedPoints.length === 1 ? '' : 's'} marked
+          </span>
         </div>
       )}
 

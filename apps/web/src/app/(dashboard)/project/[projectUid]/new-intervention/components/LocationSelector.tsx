@@ -56,9 +56,21 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
     return () => { cancelled = true; };
   }, [showExisting, formData.siteId, selectedProject?.uid, accessToken]);
 
+  const addMarkedPoint = (point: { longitude: number; latitude: number }) => {
+    setFormData(prev => ({ ...prev, multiTreePoints: [...prev.multiTreePoints, point] }));
+  };
+
+  const removeMarkedPoint = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      multiTreePoints: prev.multiTreePoints.filter((_, i) => i !== index),
+    }));
+  };
+
   if (formData.applyToEntireSite) return null;
 
   const isSingleTree = formData.interventionType === 'single-tree-registration';
+  const isMultiSingleTree = formData.isPlanningMode && formData.multiSingleTree && isSingleTree;
   const siteSelected = Boolean(formData.siteId);
 
   return (
@@ -76,7 +88,9 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           <div className="flex items-start gap-3">
             <Info className="w-5 h-5 text-blue-600 mt-0.5 flex-shrink-0" />
             <div className="text-sm text-blue-800">
-              {isSingleTree ? (
+              {isMultiSingleTree ? (
+                <p><strong>Mark multiple trees:</strong> Click anywhere on the map to drop a tree. Each click adds a new tree with the next tag. Click a marker to remove it.</p>
+              ) : isSingleTree ? (
                 <p><strong>Point Selection:</strong> Click anywhere on the map to select a location. You can drag the marker to adjust the position.</p>
               ) : (
                 <p><strong>Point or Polygon Selection:</strong> Click on the map to add a point, or click multiple points (then double-click or click the first point) to draw a polygon.</p>
@@ -120,6 +134,11 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
               interventionType={formData.interventionType}
               selectedSite={formData.selectedSite}
               existingInterventions={showExisting ? existing : []}
+              isMultiSingleTree={isMultiSingleTree}
+              markedPoints={formData.multiTreePoints}
+              onAddPoint={addMarkedPoint}
+              onRemovePoint={removeMarkedPoint}
+              tagPrefix={formData.treeDetails.tagPrefix}
             />
           </div>
         </div>
@@ -143,27 +162,31 @@ export const LocationSelector: React.FC<LocationSelectorProps> = ({
           </div>
         )}
 
-        {/* OR Divider */}
-        <div className="flex items-center">
-          <div className="flex-1 border-t border-slate-300"></div>
-          <span className="px-6 text-slate-500 font-semibold bg-white rounded-full border border-slate-200">OR</span>
-          <div className="flex-1 border-t border-slate-300"></div>
-        </div>
+        {/* OR Divider — file upload is for a single location, not bulk marking */}
+        {!isMultiSingleTree && (
+          <div className="flex items-center">
+            <div className="flex-1 border-t border-slate-300"></div>
+            <span className="px-6 text-slate-500 font-semibold bg-white rounded-full border border-slate-200">OR</span>
+            <div className="flex-1 border-t border-slate-300"></div>
+          </div>
+        )}
 
         {/* File Upload */}
-        <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
-          <GeoJSONFileUpload
-            onGeoJSONChange={handleGeoJSONChange}
-            allowedGeometryTypes={
-              isSingleTree
-                ? ['Point']
-                : ['Point', 'Polygon', 'MultiPolygon']
-            }
-          />
-        </div>
+        {!isMultiSingleTree && (
+          <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-gradient-to-br from-slate-50 to-slate-100">
+            <GeoJSONFileUpload
+              onGeoJSONChange={handleGeoJSONChange}
+              allowedGeometryTypes={
+                isSingleTree
+                  ? ['Point']
+                  : ['Point', 'Polygon', 'MultiPolygon']
+              }
+            />
+          </div>
+        )}
 
         {/* File Preview */}
-        {formData.geoJSONFile && (
+        {!isMultiSingleTree && formData.geoJSONFile && (
           <div className="bg-gradient-to-r from-emerald-50 to-green-50 border-2 border-emerald-200 rounded-xl p-4">
             <div className="flex items-center gap-3">
               <Check className="w-5 h-5 text-emerald-600" />

@@ -1,5 +1,5 @@
 // src/modules/interventions/dto/create-intervention.dto.ts
-import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive, ArrayMinSize, ArrayNotEmpty, MaxLength, IsIn } from 'class-validator';
+import { IsString, IsOptional, IsEnum, IsNumber, IsDateString, IsBoolean, IsArray, ValidateNested, IsObject, Min, Max, IsJSON, IsInt, IsPositive, ArrayMinSize, ArrayMaxSize, ArrayNotEmpty, MaxLength, IsIn } from 'class-validator';
 import { Type, Transform } from 'class-transformer';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { IsGeoJSON } from 'src/common/decorator/validation.decorators';
@@ -214,6 +214,74 @@ export class CreatePlannedInterventionDto {
   @IsOptional()
   @IsObject()
   metadata?: any;
+}
+
+// --- Bulk planning of single trees ----------------------------------------
+// One shared species + a list of map points, each its own planned
+// single-tree-registration intervention. Tags are client-supplied per point
+// and stored on intervention.metadata.tag (the intervention table has no tag
+// column and planning mode creates no tree rows).
+
+export class BulkSingleTreePlanSpeciesDto {
+  @IsOptional()
+  @IsNumber()
+  scientificSpeciesId?: number | null;
+
+  @IsOptional()
+  @IsBoolean()
+  isUnknown?: boolean;
+
+  @IsOptional()
+  @IsString()
+  speciesName?: string;
+}
+
+export class BulkSingleTreePointDto {
+  @ApiProperty({ example: 52.52 })
+  @IsNumber()
+  @Min(-90)
+  @Max(90)
+  latitude: number;
+
+  @ApiProperty({ example: 13.405 })
+  @IsNumber()
+  @Min(-180)
+  @Max(180)
+  longitude: number;
+
+  @ApiPropertyOptional({ example: 'OAK-1' })
+  @IsOptional()
+  @IsString()
+  @MaxLength(255)
+  tag?: string;
+}
+
+export class CreateBulkSingleTreePlanDto {
+  @IsArray()
+  @ArrayNotEmpty({ message: 'At least one species is required' })
+  @ValidateNested({ each: true })
+  @Type(() => BulkSingleTreePlanSpeciesDto)
+  species: BulkSingleTreePlanSpeciesDto[];
+
+  @IsOptional()
+  @IsString()
+  plantProjectSite?: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(2048)
+  description?: string;
+
+  @IsOptional()
+  @IsObject()
+  metadata?: any;
+
+  @IsArray()
+  @ArrayNotEmpty({ message: 'At least one tree point is required' })
+  @ArrayMaxSize(500, { message: 'A maximum of 500 trees can be planned in one request' })
+  @ValidateNested({ each: true })
+  @Type(() => BulkSingleTreePointDto)
+  points: BulkSingleTreePointDto[];
 }
 
 export class CreateInterventionBulkDto {
