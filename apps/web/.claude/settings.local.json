@@ -3,7 +3,8 @@
     "allow": [
       "Bash(npx tsc *)",
       "Read(//Users/plant-214/Documents/pftp/treemapper/**)",
-      "Bash(yarn install *)"
+      "Bash(yarn install *)",
+      "Bash(yarn tsc *)"
     ]
   }
 }

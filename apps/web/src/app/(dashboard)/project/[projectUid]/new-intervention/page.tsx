@@ -18,7 +18,7 @@ import { Switch } from '@/components/ui/switch';
 import { FormData, ValidationErrors } from './types';
 import { interventionConfigurations } from './constants';
 import { validateForm } from './utils/validation';
-import { buildApiPayload, buildPlanningPayload } from './utils/payloadBuilder';
+import { buildApiPayload, buildPlanningPayload, buildBulkSingleTreePlanPayload } from './utils/payloadBuilder';
 
 const PLANNABLE_TYPES = ['single-tree-registration', 'multi-tree-registration'];
 
@@ -98,6 +98,13 @@ const InterventionCreator = ({ goBack }) => {
   // Get current intervention config
   const currentConfig = interventionConfigurations[formData.interventionType];
 
+  // Bulk single-tree planning is a distinct submit path: many planned single
+  // trees from marked map points in one request.
+  const isBulkSingleTreePlan =
+    formData.isPlanningMode &&
+    formData.multiSingleTree &&
+    formData.interventionType === 'single-tree-registration';
+
   // Handle form submission
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -117,9 +124,11 @@ const InterventionCreator = ({ goBack }) => {
     setIsSubmitting(true);
 
     try {
-      const payload = formData.isPlanningMode
-        ? buildPlanningPayload(formData)
-        : buildApiPayload(formData);
+      const payload = isBulkSingleTreePlan
+        ? buildBulkSingleTreePlanPayload(formData)
+        : formData.isPlanningMode
+          ? buildPlanningPayload(formData)
+          : buildApiPayload(formData);
       setStartUpload(payload);
     } catch (error) {
       // Handle specific error types
@@ -265,6 +274,7 @@ const InterventionCreator = ({ goBack }) => {
             formData={startUpload}
             image={formData.isPlanningMode ? null : formData.image}
             isPlanning={formData.isPlanningMode}
+            isBulkSingleTreePlan={isBulkSingleTreePlan}
           />
 
           {/* Form Actions */}

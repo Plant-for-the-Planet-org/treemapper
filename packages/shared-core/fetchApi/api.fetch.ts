@@ -254,6 +254,12 @@ export const createPlannedIntervention = async (token: string, params: any, prjI
   return result;
 };
 
+export const createBulkSingleTreePlan = async (token: string, params: any, prjId: string) => {
+  const uri = `${postUrlApi.createNewIntervention}/${prjId}/web/plan/bulk-single`;
+  const result = await fetchPostCall(uri, params, token);
+  return result;
+};
+
 export const getSiteInterventionsMap = async (token: string, projectId: string, siteUid: string) => {
   const uri = `${getUrlApi.getSiteInterventionsMap}/${projectId}/sites/${siteUid}/map`
   const result = await fetchGetCall(uri, token)

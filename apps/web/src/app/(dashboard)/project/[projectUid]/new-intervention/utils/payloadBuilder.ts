@@ -1,13 +1,12 @@
 import { FormData } from '../types';
 
 export const buildPlanningPayload = (formData: FormData) => {
-  const totalTreeCount = formData.species.reduce((sum, species) => sum + species.count, 0);
-
   const payload: any = {
     type: formData.interventionType,
     geometry: formData.geoJSON,
+    // plantProject is read by the upload modal to build the request URL,
+    // the planning DTO rejects it (and treeCount) as unknown body fields.
     plantProject: formData.projectId,
-    treeCount: formData.interventionType === 'single-tree-registration' ? 1 : totalTreeCount,
     metadata: { app: {}, public: {}, private: {} },
   };
 
@@ -43,6 +42,42 @@ export const buildPlanningPayload = (formData: FormData) => {
       isUnknown: species.scientificSpeciesId ? false : true,
       speciesCount: species.count,
     }));
+  }
+
+  return payload;
+};
+
+// Bulk planning of single trees: one planned single-tree intervention per
+// marked point, all sharing the single selected species. Mirrors the tag
+// logic in MultiSingleTreePanel (prefix + 1-based index) so the tags the user
+// previewed match what gets saved.
+export const buildBulkSingleTreePlanPayload = (formData: FormData) => {
+  const species = formData.species[0];
+  const tagPrefix = formData.treeDetails.tagPrefix || '';
+
+  const payload: any = {
+    species: species
+      ? [{
+          scientificSpeciesId: species.scientificSpeciesId || undefined,
+          isUnknown: species.scientificSpeciesId ? false : true,
+          speciesName: species.speciesName || species.otherSpeciesName,
+        }]
+      : [],
+    points: formData.multiTreePoints.map((point, index) => ({
+      latitude: point.latitude,
+      longitude: point.longitude,
+      tag: tagPrefix ? `${tagPrefix}${index + 1}` : undefined,
+    })),
+    metadata: { app: {}, public: {}, private: {} },
+    // plantProject is read by the upload modal to build the request URL.
+    plantProject: formData.projectId,
+  };
+
+  if (formData.siteId) {
+    payload.plantProjectSite = formData.siteId;
+  }
+  if (formData.description) {
+    payload.description = formData.description;
   }
 
   return payload;

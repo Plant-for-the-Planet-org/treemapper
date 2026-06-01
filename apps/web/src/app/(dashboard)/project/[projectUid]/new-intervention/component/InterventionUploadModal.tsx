@@ -13,9 +13,9 @@ import {
     Ruler,
     TreePine
 } from 'lucide-react';
-import { createNewIntervention, createPlannedIntervention, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
+import { createNewIntervention, createPlannedIntervention, createBulkSingleTreePlan, generatePreSignUrl } from '@shared-core/fetchApi/api.fetch';
 
-const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, accessToken, isPlanning = false }) => {
+const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, accessToken, isPlanning = false, isBulkSingleTreePlan = false }) => {
     const [currentStep, setCurrentStep] = useState('form'); // 'form', 'uploading', 'success', 'error'
     const [error, setError] = useState('');
     const [hasStartedUpload, setHasStartedUpload] = useState(false);
@@ -101,8 +101,15 @@ const InterventionUploadModal = ({ isOpen, onClose, onSuccess, formData, image, 
             if (imageId) {
                 formData['image'] = imageId
             }
-            const apiCall = isPlanning ? createPlannedIntervention : createNewIntervention;
-            const response = await apiCall(accessToken, { ...formData }, formData.plantProject)
+            const apiCall = isBulkSingleTreePlan
+                ? createBulkSingleTreePlan
+                : isPlanning
+                    ? createPlannedIntervention
+                    : createNewIntervention;
+            // plantProject is only used to build the request URL, the server
+            // DTOs reject it as an unknown body property, so keep it out of the body.
+            const { plantProject, ...body } = formData;
+            const response = await apiCall(accessToken, body, plantProject)
             if (response.statusCode !== 201 && response.statusCode !== 200) {
                 throw new Error(response.message || 'Failed to upload intervention data');
             }
