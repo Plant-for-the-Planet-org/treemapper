@@ -313,13 +313,17 @@ export class ExternalService {
   }
 
   /**
-   * Returns the geometry only if it is structurally usable as GeoJSON by a map
-   * client; otherwise returns null. This is deliberately conservative: it
-   * catches the broken shapes that make a renderer throw "Input data is not a
-   * valid GeoJSON object" (null, empty object, a JSON string, missing
-   * type/coordinates) without rejecting borderline-but-renderable geometry, so
-   * one corrupt record can no longer break the whole map. The offending record
-   * is logged by hid so the underlying data can be fixed.
+   * Normalizes intervention geometry into a raw GeoJSON geometry
+   * (Point/Polygon/...) that a map client can render directly, or returns null
+   * if it is not structurally usable. Map clients wrap the geometry in a Feature
+   * themselves, so a Feature/FeatureCollection coming from storage (e.g.
+   * web-uploaded interventions) is unwrapped down to its inner geometry rather
+   * than passed through. This is deliberately conservative: it catches the
+   * broken shapes that make a renderer throw "Input data is not a valid GeoJSON
+   * object" (null, empty object, a JSON string, missing type/coordinates)
+   * without rejecting borderline-but-renderable geometry, so one corrupt record
+   * can no longer break the whole map. The offending record is logged by hid so
+   * the underlying data can be fixed.
    */
   private sanitizeGeometry(geometry: any, hid: string | null): any | null {
     if (!geometry || typeof geometry !== 'object' || Array.isArray(geometry)) {
@@ -335,21 +339,60 @@ export class ExternalService {
       return null;
     }
 
-    const isValid =
-      type === 'Feature'
-        ? 'geometry' in geometry
-        : type === 'FeatureCollection'
-          ? Array.isArray(geometry.features)
-          : type === 'GeometryCollection'
-            ? Array.isArray(geometry.geometries)
-            : Array.isArray(geometry.coordinates) && geometry.coordinates.length > 0;
+    // Unwrap GeoJSON wrappers down to a raw geometry the client can render.
+    if (type === 'Feature') {
+      return this.sanitizeGeometry(geometry.geometry, hid);
+    }
 
-    if (!isValid) {
+    if (type === 'FeatureCollection') {
+      return this.featureCollectionToGeometry(geometry, hid);
+    }
+
+    if (type === 'GeometryCollection') {
+      const geometries = Array.isArray(geometry.geometries)
+        ? geometry.geometries
+            .map((g: any) => this.sanitizeGeometry(g, hid))
+            .filter(Boolean)
+        : [];
+      if (geometries.length === 0) {
+        this.logger.warn(`Dropping invalid geometry for hid=${hid ?? 'unknown'}: type="${type}" has no usable geometries`);
+        return null;
+      }
+      return geometries.length === 1
+        ? geometries[0]
+        : { type: 'GeometryCollection', geometries };
+    }
+
+    if (!Array.isArray(geometry.coordinates) || geometry.coordinates.length === 0) {
       this.logger.warn(`Dropping invalid geometry for hid=${hid ?? 'unknown'}: type="${type}" has no usable coordinates`);
       return null;
     }
 
     return geometry;
+  }
+
+  /**
+   * Collapses a FeatureCollection down to a single raw geometry. The external
+   * API always exposes one geometry per intervention, never a collection. A
+   * single usable member is unwrapped to its geometry; multiple members are
+   * merged into a GeometryCollection. Returns null if the collection has no
+   * usable features.
+   */
+  private featureCollectionToGeometry(collection: any, hid: string | null): any | null {
+    const geometries = (collection.features || [])
+      .map((f: any) =>
+        f && typeof f === 'object' ? this.sanitizeGeometry(f.geometry, hid) : null,
+      )
+      .filter(Boolean);
+
+    if (geometries.length === 0) {
+      this.logger.warn(`Dropping FeatureCollection for hid=${hid ?? 'unknown'}: no usable features`);
+      return null;
+    }
+
+    return geometries.length === 1
+      ? geometries[0]
+      : { type: 'GeometryCollection', geometries };
   }
 
   private formatDate(date: Date | string | null): string {
