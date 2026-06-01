@@ -11,6 +11,14 @@ import { ApiResponse } from '../interfaces/response.interface';
 @Injectable()
 export class ResponseInterceptor<T> implements NestInterceptor<T, ApiResponse<T>> {
   intercept(context: ExecutionContext, next: CallHandler): Observable<ApiResponse<T>> {
+    // Public external API returns raw payloads (no envelope) so third-party
+    // consumers get a straightforward response shape.
+    const request = context.switchToHttp().getRequest();
+    const url: string = request?.url || request?.raw?.url || '';
+    if (url.startsWith('/api/external/')) {
+      return next.handle();
+    }
+
     return next.handle().pipe(
       map((data) => {
         // If the data is already in our response format, return as is

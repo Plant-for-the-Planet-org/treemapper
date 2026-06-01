@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { and, eq, isNull, inArray } from 'drizzle-orm';
 import { DrizzleService } from '../database/drizzle.service';
 import {
@@ -15,6 +15,8 @@ const MULTI_TREE_TYPES = ['multi-tree-registration', 'enrichment-planting'];
 
 @Injectable()
 export class ExternalService {
+  private readonly logger = new Logger(ExternalService.name);
+
   constructor(
     private readonly drizzleService: DrizzleService,
     private readonly cacheService: CacheService,
@@ -220,9 +222,9 @@ export class ExternalService {
           history: [],
           plantProject: row.project_uid,
           plantedSpecies: [],
-          originalGeometry: row.tree_original_geometry,
+          originalGeometry: this.sanitizeGeometry(row.tree_original_geometry, row.tree_hid),
           captureMode: row.intervention_capture_mode,
-          geometry: row.tree_original_geometry,
+          geometry: this.sanitizeGeometry(row.tree_original_geometry, row.tree_hid),
           lastMeasurementDate: null,
           captureStatus: row.intervention_capture_status,
           deviceLocation: row.intervention_device_location,
@@ -257,9 +259,9 @@ export class ExternalService {
       history: [],
       plantProject: row.project_uid,
       plantedSpecies: speciesByUid.get(row.intervention_uid) || [],
-      originalGeometry: row.intervention_original_geometry,
+      originalGeometry: this.sanitizeGeometry(row.intervention_original_geometry, row.intervention_hid),
       captureMode: row.intervention_capture_mode,
-      geometry: row.intervention_original_geometry,
+      geometry: this.sanitizeGeometry(row.intervention_original_geometry, row.intervention_hid),
       lastMeasurementDate: null,
       captureStatus: row.intervention_capture_status,
       deviceLocation: row.intervention_device_location,
@@ -308,6 +310,46 @@ export class ExternalService {
     return row.intervention_type === 'single-tree-registration'
       ? row.scientific_species_uid || null
       : null;
+  }
+
+  /**
+   * Returns the geometry only if it is structurally usable as GeoJSON by a map
+   * client; otherwise returns null. This is deliberately conservative: it
+   * catches the broken shapes that make a renderer throw "Input data is not a
+   * valid GeoJSON object" (null, empty object, a JSON string, missing
+   * type/coordinates) without rejecting borderline-but-renderable geometry, so
+   * one corrupt record can no longer break the whole map. The offending record
+   * is logged by hid so the underlying data can be fixed.
+   */
+  private sanitizeGeometry(geometry: any, hid: string | null): any | null {
+    if (!geometry || typeof geometry !== 'object' || Array.isArray(geometry)) {
+      if (geometry != null) {
+        this.logger.warn(`Dropping invalid geometry for hid=${hid ?? 'unknown'}: not a GeoJSON object`);
+      }
+      return null;
+    }
+
+    const type = geometry.type;
+    if (typeof type !== 'string') {
+      this.logger.warn(`Dropping invalid geometry for hid=${hid ?? 'unknown'}: missing "type"`);
+      return null;
+    }
+
+    const isValid =
+      type === 'Feature'
+        ? 'geometry' in geometry
+        : type === 'FeatureCollection'
+          ? Array.isArray(geometry.features)
+          : type === 'GeometryCollection'
+            ? Array.isArray(geometry.geometries)
+            : Array.isArray(geometry.coordinates) && geometry.coordinates.length > 0;
+
+    if (!isValid) {
+      this.logger.warn(`Dropping invalid geometry for hid=${hid ?? 'unknown'}: type="${type}" has no usable coordinates`);
+      return null;
+    }
+
+    return geometry;
   }
 
   private formatDate(date: Date | string | null): string {
