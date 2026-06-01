@@ -3,28 +3,13 @@ import { BodyPayload, InterventionData, QuaeBody, SampleTree } from "src/types/i
 import { setUpIntervention } from "./formHelper/selectIntervention";
 import { appRealm } from "src/db/RealmProvider";
 import { RealmSchema } from "src/types/enum/db.enum";
-import * as FileSystem from 'expo-file-system';
 import { FormElement } from "src/types/interface/form.interface";
 import { updateFilePath } from "./fileSystemHelper";
-import sampleTreeBase64 from '../../../assets/images/base64/sampleTree'
 
 
 const postTimeConvertor = (t: number) => {
     return moment(t).format('YYYY-MM-DD')
 }
-
-
-const getImageAsBase64 = async (fileUri: string) => {
-    try {
-        const base64 = await FileSystem.readAsStringAsync(fileUri, {
-            encoding: FileSystem.EncodingType.Base64,
-        });
-        return base64;
-    } catch (error) {
-        return sampleTreeBase64;
-    }
-};
-
 
 
 export const postDataConvertor = (d: InterventionData[]) => {
@@ -96,6 +81,8 @@ export const postDataConvertor = (d: InterventionData[]) => {
                     })
                 }
                 if (trees.status === 'SKIP_REMEASUREMENT') {
+                    // Resolved locally (no upload) by the sync handler; needed so the
+                    // parent intervention can reach SYNCED. See handleSkipRemeasurement.
                     quae.push({
                         type: 'skipRemeasurement',
                         priority: 1,
@@ -176,10 +163,6 @@ export const getRemeasurementBody = async (r: QuaeBody): Promise<BodyPayload> =>
     if (r.type === 'remeasurementStatus') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
         return convertRemeasurementStatus(TreeDetails)
-    }
-    if (r.type === 'skipRemeasurement') {
-        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        return TreeDetails && TreeDetails.sloc_id !== '' ? { pData: null, message: "", fixRequired: 'NO', error: "", historyID: '', treeID: TreeDetails.sloc_id } : null
     }
     return { pData: null, message: '', fixRequired: "NO", error: "" }
 }
@@ -367,7 +350,7 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
             } : {}
         }
 
-        // Handle image file - for v3Approved, use file path; for others, use base64
+        // Image is uploaded by file path (presigned URL) to the new backend.
         if (d.image_url) {
             postData.imageFile = updateFilePath(d.image_url);
         }

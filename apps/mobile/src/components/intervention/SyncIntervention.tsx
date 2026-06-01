@@ -1,5 +1,5 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useMemo, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, skipRemeasurement, uploadAllIntervention } from 'src/api/api.fetch';
+import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, uploadAllIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
@@ -47,9 +47,6 @@ const TYPE_LABELS: Record<string, string> = {
 }
 
 const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
-    const [uploadData, setUploadData] = useState<QuaeBody[]>([])
-    const [moreUpload, setMoreUpload] = useState(false)
-    const [retryCount, setRetryCount] = useState(10)
     const [showFullSync, setShowFullSync] = useState(false)
     const [showSyncModal, setShowSyncModal] = useState(false)
     const [syncStatuses, setSyncStatuses] = useState<SyncItemStatus[]>([])
@@ -76,23 +73,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         return counts
     }, [interventionData])
 
-    useEffect(() => {
-        if (uploadData.length > 0 && moreUpload) {
-            if (!tokenValid) {
-                addNewLog({
-                    logType: 'DATA_SYNC',
-                    message: 'Token Invalid during data sync',
-                    logLevel: 'error',
-                    statusCode: '',
-                })
-            } else {
-                syncUploaded()
-            }
-        }
-    }, [uploadData, tokenValid])
-
     const showLogin = () => {
-        setRetryCount(10)
         if (!isLoggedIn) {
             navigation.navigate("HomeSideDrawer")
             toast.show("Please login to start syncing data")
@@ -122,44 +103,104 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     }
 
 
+    // Single entry point. Uploads run in dependency order across repeated passes:
+    // each successful upload writes its server id to Realm, which makes the next
+    // dependent item eligible on the following pass. We stop when the queue is
+    // empty or a full pass makes no progress (nothing left we can resolve).
     const startSyncingData = async () => {
         if (!isLoggedIn) {
             showLogin()
             return
         }
+        if (!tokenValid) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Token Invalid during data sync', logLevel: 'error', statusCode: '' })
+            return
+        }
+        if (isSyncing) return
 
         const projectPass = await checkForProjectId();
         if (!projectPass) return;
-        if (!isSyncing) {
-            dispatch(updateSyncDetails(true))
-            dispatch(updateLastSyncData(Date.now()))
-        }
-        if (retryCount > 1) {
-            setRetryCount(prev => prev - 1)
-        } else {
+
+        dispatch(updateSyncDetails(true))
+        dispatch(updateLastSyncData(Date.now()))
+
+        let totalUploaded = 0
+        let totalFailed = 0
+        try {
+            while (true) {
+                const { uploaded, failed, remaining } = await runSyncPass()
+                if (remaining === 0) break          // nothing left to upload
+                totalUploaded += uploaded
+                totalFailed += failed
+                if (uploaded === 0) break            // no progress, only unresolvable items remain
+            }
+
+            // Source of truth for "done" is the same query the tile uses, not just
+            // an empty queue, so we never claim "synced" while records remain.
+            const remaining = realm.objects(RealmSchema.Intervention)
+                .filtered('status != "SYNCED" AND is_complete == true').length
+
+            if (remaining === 0) {
+                setShowFullSync(true)
+                dispatch(updateNewIntervention())
+                toast.show("All data is synced")
+            } else if (totalFailed > 0) {
+                toast.show(`${totalUploaded} uploaded, ${totalFailed} failed. Please try again.`)
+            } else {
+                toast.show(`${remaining} intervention${remaining !== 1 ? 's' : ''} still need attention.`)
+            }
+        } catch (error) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Sync aborted (network)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
+        } finally {
             dispatch(updateSyncDetails(false))
-            setMoreUpload(false)
-            toast.show("Syncing Failed, Please try again")
-            return
-        }
-        const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
-        const prioritizeData = [...qData].sort((a, b) => a.priority - b.priority);
-        if (prioritizeData.length > 0) {
-            setSyncStatuses(prioritizeData.map((item, idx) => ({ type: item.type, index: idx, status: 'pending' })))
-            setMoreUpload(true)
-            setUploadData(() => prioritizeData)
-        } else {
-            dispatch(updateSyncDetails(false))
-            setMoreUpload(false)
-            setShowFullSync(true)
-            dispatch(updateNewIntervention())
-            toast.show("All data is synced")
         }
     }
 
-    const syncUploaded = () => {
-        setMoreUpload(false)
-        uploadObjectsSequentially(uploadData);
+    // Build the prioritized queue from current Realm state and upload each item
+    // in turn. Returns counts so the caller can decide whether to run again.
+    const runSyncPass = async (): Promise<{ uploaded: number; failed: number; remaining: number }> => {
+        const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
+        const queue = [...qData].sort((a, b) => a.priority - b.priority)
+        if (queue.length === 0) return { uploaded: 0, failed: 0, remaining: 0 }
+
+        setSyncStatuses(queue.map((item, idx) => ({ type: item.type, index: idx, status: 'pending' })))
+
+        let uploaded = 0
+        let failed = 0
+        for (let i = 0; i < queue.length; i++) {
+            if (!isConnected) throw new Error('No network connection')
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
+            const success = await handleItem(queue[i])
+            if (success) uploaded++; else failed++
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: success ? 'done' : 'error' } : s))
+        }
+        return { uploaded, failed, remaining: queue.length }
+    }
+
+    const handleItem = async (el: QuaeBody): Promise<boolean> => {
+        switch (el.type) {
+            case 'intervention': return handleIntervention(el)
+            case 'singleTree': return handleSingleTree(el)
+            case 'sampleTree': return handleSampleTree(el)
+            case 'treeImage': return handleTreeImage(el)
+            case 'remeasurementData': return handleMobileRemeasurement(el)
+            case 'remeasurementStatus': return handleMobileRemeasurement(el)
+            case 'skipRemeasurement': return handleSkipRemeasurement(el)
+            default: return false
+        }
+    }
+
+    // Skip remeasurement has no upload (the legacy v3 API was removed). It only
+    // resolves the tree locally to SYNCED so its parent intervention can finish.
+    const handleSkipRemeasurement = async (el: QuaeBody): Promise<boolean> => {
+        try {
+            await updateRemeasurementStatus(el.p1Id, el.p2Id, '', true);
+            return true
+        } catch (error) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Skip remeasurement local update error', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
+        }
     }
 
     const handleIntervention = async (el: QuaeBody): Promise<boolean> => {
@@ -201,7 +242,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
     const handleMobileRemeasurement = async (el: QuaeBody): Promise<boolean> => {
         try {
-            const { pData, historyID, treeID } = await getRemeasurementBody(el, true) as any;
+            const { pData, historyID, treeID } = await getRemeasurementBody(el) as any;
             if (!pData) throw new Error("Not able to convert body");
 
             let requestBody: any = { type: pData.type, metadata: pData.metadata || {} };
@@ -253,23 +294,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         }
     };
 
-    const handleSkipRemeasurement = async (el: QuaeBody): Promise<boolean> => {
-        try {
-            const dData = await getRemeasurementBody(el, true) as any;
-            if (!dData) throw new Error("Not able to convert body");
-            const { success } = await skipRemeasurement(dData.treeID ?? '', { "type": "skip-measurement" });
-            if (success) {
-                await updateRemeasurementStatus(el.p1Id, el.p2Id, '', true);
-                return true
-            }
-            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement SKIP API response error', logLevel: 'error', statusCode: '' })
-            return false
-        } catch (error) {
-            addNewLog({ logType: 'DATA_SYNC', message: 'Remeasurement SKIP error', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
-            return false
-        }
-    };
-
     const handleSampleTree = async (el: QuaeBody): Promise<boolean> => {
         try {
             const { pData } = await getPostBody(el) as any;
@@ -312,33 +336,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             addNewLog({ logType: 'DATA_SYNC', message: 'Image Upload API response error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) });
             return false
         }
-    };
-
-    const uploadObjectsSequentially = async (d: QuaeBody[]) => {
-        for (let i = 0; i < d.length; i++) {
-            const el = d[i]
-            if (!isConnected) {
-                dispatch(updateSyncDetails(false))
-                setMoreUpload(false)
-                toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
-                return;
-            }
-            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
-            let success = false
-            switch (el.type) {
-                case 'intervention': success = await handleIntervention(el); break;
-                case 'singleTree': success = await handleSingleTree(el); break;
-                case 'sampleTree': success = await handleSampleTree(el); break;
-                case 'treeImage': success = await handleTreeImage(el); break;
-                case 'remeasurementData': success = await handleMobileRemeasurement(el); break;
-                case 'remeasurementStatus': success = await handleMobileRemeasurement(el); break;
-                case 'skipRemeasurement': success = await handleSkipRemeasurement(el); break;
-                default: break;
-            }
-
-            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: success ? 'done' : 'error' } : s))
-        }
-        startSyncingData();
     };
 
     const totalSyncItems = Object.values(preSyncSummary).reduce((a, b) => a + b, 0)

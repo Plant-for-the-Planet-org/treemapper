@@ -107,12 +107,6 @@ export const deleteAccount = async () => {
 };
 
 
-export const skipRemeasurement = async (tree_id: string, params: any) => {
-  const uri = `${postUrlApi.skipRemeasurement}/${tree_id}/event`
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
 export const getUserDetails = async () => {
   const uri = `${getUrlApi.getUserDetails}`;
   const result = await fetchGetCall(uri, true);

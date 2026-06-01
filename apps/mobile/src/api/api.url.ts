@@ -8,7 +8,6 @@ export const postUrlApi = {
 
 
   remeasurement: `${baseUrl}/treemapper/interventions`,
-  skipRemeasurement: `${baseUrl}/treemapper/interventions`,
 
   updateSpecies: `${baseUrl}/treemapper/species`,
   addUserSpecies: `${baseUrl}/treemapper/species`,
