@@ -98,6 +98,7 @@ export const getUrlApi = {
   getProjectMap: `${baseUrl}/interventions`,
   getProjectTreeMap: `${baseUrl}/interventions`,
   getSiteInterventionsMap: `${baseUrl}/interventions`,
+  getProjectSitesMap: `${baseUrl}/projects`,
   getProjectAnalytics: `${baseUrl}/analytics`,
   getApprovalBoard: `${baseUrl}/interventions/approval/board`,
   getProjectRequiresApproval: `${baseUrl}/approval-board/projects`,

@@ -16,9 +16,10 @@ import {
     Filter,
     Plus,
     Minus,
+    Layers,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
-import { getAllMapInterevntions } from '@shared-core/fetchApi/api.fetch';
+import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
 import { baseUrl } from '@shared-core/fetchApi/api.url';
 
 // ==================== TYPES ====================
@@ -57,6 +58,26 @@ interface MapTree {
     plantingDate?: string;
     lastMeasurementDate?: string;
     image?: string;
+}
+
+interface SiteFeature {
+    type: 'Feature';
+    id: number;
+    properties: {
+        id: number;
+        uid: string;
+        name: string;
+        status?: string;
+        area?: number | null;
+        centroid?: GeoJSON.Point;
+    };
+    geometry: GeoJSON.Polygon | GeoJSON.MultiPolygon;
+}
+
+interface SiteFeatureCollection {
+    type: 'FeatureCollection';
+    features: SiteFeature[];
+    totalSites?: number;
 }
 
 interface ProjectMapBounds {
@@ -136,6 +157,9 @@ const validateGeoJSONGeometry = (geometry: any): boolean => {
 const BRAND = '#007A49';
 const FILL_COLOR = '#68B030';
 const BORDER_COLOR = '#ffffff';
+// Site boundary outline — amber reads clearly over satellite imagery and
+// stays distinct from the green intervention polygons.
+const SITE_BOUNDARY_COLOR = '#FBBF24';
 
 const getInterventionColor = (type: string): string => {
     const colors: Record<string, string> = {
@@ -273,6 +297,16 @@ const fetchProjectInterventions = async (projectId: string, token: string): Prom
             totalInterventions: valid.length,
         },
     };
+};
+
+const fetchProjectSites = async (projectId: string, token: string): Promise<SiteFeatureCollection> => {
+    const response = await getProjectSitesMap(token, projectId);
+    // Endpoint returns { success, data: { type, features, totalSites } }.
+    const apiData = response.data?.data || response.data;
+    const features: SiteFeature[] = (apiData?.features || []).filter(
+        (f: SiteFeature) => validateGeoJSONGeometry(f.geometry),
+    );
+    return { type: 'FeatureCollection', features, totalSites: features.length };
 };
 
 const fetchInterventionTrees = async (interventionId: number, token?: string): Promise<ApiResponse<InterventionTreesResponse>> => {
@@ -702,6 +736,8 @@ const MapLegend: React.FC = () => (
 const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId, token }) => {
     const [interventions, setInterventions] = useState<MapIntervention[]>([]);
     const [trees, setTrees] = useState<MapTree[]>([]);
+    const [sites, setSites] = useState<SiteFeatureCollection>({ type: 'FeatureCollection', features: [] });
+    const [showSiteBoundaries, setShowSiteBoundaries] = useState(true);
     const [bounds, setBounds] = useState<ProjectMapBounds | null>(null);
     const [hidSearch, setHidSearch] = useState('');
     const [filters, setFilters] = useState<{
@@ -751,6 +787,18 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     }, [projectId, token]);
 
     useEffect(() => { loadInterventions(); }, [loadInterventions]);
+
+    const loadSites = useCallback(async () => {
+        try {
+            const collection = await fetchProjectSites(projectId, token);
+            setSites(collection);
+        } catch (err) {
+            // Boundaries are supplementary; never block the map on a sites failure.
+            console.warn('Failed to load site boundaries:', err);
+        }
+    }, [projectId, token]);
+
+    useEffect(() => { loadSites(); }, [loadSites]);
 
     useEffect(() => {
         if (mapLoaded && bounds && interventions.length > 0) {
@@ -1048,6 +1096,41 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 }}
                 onError={() => { /* suppress tile load errors */ }}
             >
+                {/* Site boundaries — rendered first so they sit under the interventions */}
+                {showSiteBoundaries && sites.features.length > 0 && (
+                    <Source id="site-boundaries" type="geojson" data={sites}>
+                        {/* Outline */}
+                        <Layer
+                            id="site-boundaries-outline"
+                            type="line"
+                            paint={{
+                                'line-color': SITE_BOUNDARY_COLOR,
+                                'line-width': 2,
+                                'line-opacity': 0.9,
+                                'line-dasharray': [2, 1.5],
+                            }}
+                        />
+                        {/* Site name label at the polygon centroid */}
+                        <Layer
+                            id="site-boundaries-label"
+                            type="symbol"
+                            layout={{
+                                'text-field': ['get', 'name'],
+                                'text-font': ['Open Sans Bold', 'Arial Unicode MS Bold'],
+                                'text-size': 12,
+                                'text-anchor': 'center',
+                                'text-allow-overlap': false,
+                                'symbol-placement': 'point',
+                            }}
+                            paint={{
+                                'text-color': SITE_BOUNDARY_COLOR,
+                                'text-halo-color': 'rgba(0,0,0,0.65)',
+                                'text-halo-width': 1.5,
+                            }}
+                        />
+                    </Source>
+                )}
+
                 {/* Polygon fills — visible from zoom 9 */}
                 {polygonGeoJSON.features.length > 0 && (
                     <Source id="interventions-polygons" type="geojson" data={polygonGeoJSON}>
@@ -1312,6 +1395,16 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
 
             {/* Zoom controls */}
             <div className="absolute bottom-10 right-3 z-20 flex flex-col gap-1.5">
+                {sites.features.length > 0 && (
+                    <button
+                        onClick={() => setShowSiteBoundaries(v => !v)}
+                        className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors mb-1"
+                        title={showSiteBoundaries ? 'Hide site boundaries' : 'Show site boundaries'}
+                        style={{ color: showSiteBoundaries ? SITE_BOUNDARY_COLOR : '#9ca3af' }}
+                    >
+                        <Layers size={16} strokeWidth={2.5} />
+                    </button>
+                )}
                 <button
                     onClick={() => mapRef.current?.zoomIn()}
                     className="w-8 h-8 flex items-center justify-center bg-white hover:bg-gray-50 rounded-2xl shadow-md border border-gray-200 transition-colors"

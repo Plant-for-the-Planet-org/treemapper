@@ -57,6 +57,16 @@ async getAllSites(
   return result;
 }
 
+// Site boundaries as GeoJSON for the project map (overview page).
+@Get('map')
+@ProjectRoles('owner', 'admin', 'contributor')
+@UseGuards(ProjectPermissionsGuard)
+async getProjectSitesMap(
+  @Membership() membership: ProjectGuardResponse,
+) {
+  return this.siteService.getProjectSitesMap(membership.projectId);
+}
+
 
 @Get(':siteUid/members')
 async getSiteMembers(@Param('siteUid') siteUid: string) {
