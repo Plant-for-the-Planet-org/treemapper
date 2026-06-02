@@ -66,5 +66,7 @@
     "add_element":"Add Element",
     "activity_logs":"Activity Logs",
     "collected_using":"Collected Using TreeMapper ",
-    "plots":"Plots"
+    "plots":"Plots",
+    "save":"Save",
+    "cancel":"Cancel"
 }

@@ -65,7 +65,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
-
+    console.log("SyncIntervention rendered with interventionData length:",JSON.stringify(interventionData, null, 2))
     const preSyncSummary = useMemo(() => {
         const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const counts: Record<string, number> = {}

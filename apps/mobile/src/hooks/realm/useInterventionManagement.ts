@@ -69,7 +69,7 @@ const useInterventionManagement = () => {
       locate_tree: '',
       remeasurement_required: false,
       next_measurement_date: 0,
-      intervention_end_date: intervention.intervention_date,
+      intervention_end_date: 0,
       fix_required: 'NO'
     }
     try {
@@ -99,10 +99,25 @@ const useInterventionManagement = () => {
     }
   }
 
+  const interventionExistsByHid = (hid: string): boolean => {
+    if (!hid) {
+      return false
+    }
+    const existing = realm
+      .objects<InterventionData>(RealmSchema.Intervention)
+      .filtered('hid == $0', hid)
+    return existing.length > 0
+  }
+
   const addNewIntervention = async (
     intervention: InterventionData,
   ): Promise<boolean> => {
     try {
+      // Skip if an intervention with the same HID is already stored, to avoid
+      // creating a duplicate copy of the same server intervention.
+      if (interventionExistsByHid(intervention.hid)) {
+        return true
+      }
       realm.write(() => {
         realm.create(
           RealmSchema.Intervention,
@@ -973,7 +988,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, interventionExists, interventionExistsByHid, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount }
 }
 
 export default useInterventionManagement

@@ -60,11 +60,23 @@ const ManageSpeciesHome = (props: Props) => {
     setLoading(true)
     try {
       const { responseData, responseError } = await getUserAllSpeceis(v3Approved, currentProjectUid)
+      console.log("responseData", JSON.stringify(responseData,null,2))
       if (responseError) {
         console.log("There was error gettting user species")
         return
       }
-      dispatch(updateUserPojectSpecies(responseData))
+      const normalizedSpecies: IScientificSpecies[] = (responseData ?? []).map((specie) => ({
+        guid: specie.scientificSpecies,
+        scientificName: specie.scientificName || '',
+        aliases: specie.aliases || '',
+        image: specie.image || '',
+        description: specie.description || '',
+        specieId: specie.id || '',
+        isUserSpecies: true,
+        isUploaded: true,
+        isUpdated: true,
+      }))
+      dispatch(updateUserPojectSpecies(normalizedSpecies))
       if (responseData && responseData.length > 0) {
          await addUserSpecies(responseData)
       }

@@ -264,8 +264,8 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPaylo
                 width: d.specie_diameter
             },
         }
-        postData.interventionStartDate = postTimeConvertor(d.plantation_date)
-        postData.interventionEndDate = postTimeConvertor(d.plantation_date)
+        postData.interventionStartDate = postTimeConvertor(i.intervention_date)
+        postData.interventionEndDate = postTimeConvertor(i.intervention_end_date || i.intervention_date)
 
         if (i.project_id) {
             postData.plantProject = i.project_id

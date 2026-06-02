@@ -1654,6 +1654,27 @@ export class MobileService {
 
 
 
+  // Builds the response shape for an intervention that already exists (idempotent
+  // replay). For single-tree registrations it also returns the linked tree.
+  private async buildExistingInterventionResult(existingIntervention: any): Promise<any> {
+    let singleTreeResult: { id: string | null, hid: string | null } = { id: null, hid: null };
+    if (existingIntervention.type === 'single-tree-registration') {
+      const existingTree = await this.drizzleService.db
+        .select({ uid: tree.uid, hid: tree.hid })
+        .from(tree)
+        .where(eq(tree.interventionId, existingIntervention.id))
+        .limit(1);
+      if (existingTree.length > 0) {
+        singleTreeResult = { id: existingTree[0].uid, hid: existingTree[0].hid };
+      }
+    }
+    return {
+      id: existingIntervention.uid,
+      hid: existingIntervention.hid,
+      singleTreeResult,
+    };
+  }
+
   async createNewInterventionMobile(createInterventionDto: any, membership: ProjectGuardResponse): Promise<any> {
     try {
       let newHID = generateParentHID();
@@ -1778,7 +1799,9 @@ export class MobileService {
           hid: sampleResult[0].hid
         }
       }
-      // Idempotency check: if client sent a stable local ID, use it to deduplicate
+      // Idempotency check: if client sent a stable local ID, use it to deduplicate.
+      // This is the fast path for sequential retries (first request already finished).
+      // Concurrent retries are handled by onConflictDoNothing on the insert below.
       if (createInterventionDto.clientId) {
         const existing = await this.drizzleService.db
           .select()
@@ -1786,23 +1809,7 @@ export class MobileService {
           .where(eq(intervention.idempotencyKey, createInterventionDto.clientId))
           .limit(1);
         if (existing.length > 0) {
-          const existingIntervention = existing[0];
-          let singleTreeResult: { id: string | null, hid: string | null } = { id: null, hid: null };
-          if (existingIntervention.type === 'single-tree-registration') {
-            const existingTree = await this.drizzleService.db
-              .select({ uid: tree.uid, hid: tree.hid })
-              .from(tree)
-              .where(eq(tree.interventionId, existingIntervention.id))
-              .limit(1);
-            if (existingTree.length > 0) {
-              singleTreeResult = { id: existingTree[0].uid, hid: existingTree[0].hid };
-            }
-          }
-          return {
-            id: existingIntervention.uid,
-            hid: existingIntervention.hid,
-            singleTreeResult,
-          };
+          return this.buildExistingInterventionResult(existing[0]);
         }
       }
 
@@ -1824,6 +1831,7 @@ export class MobileService {
         siteId: siteId || null,
         idempotencyKey: createInterventionDto.clientId || generateUid('idem'),
         type: createInterventionDto.type,
+        status: 'completed',
         registrationDate: new Date(),
         interventionStartDate: new Date(createInterventionDto.interventionStartDate),
         interventionEndDate: new Date(createInterventionDto.interventionEndDate),
@@ -1845,8 +1853,20 @@ export class MobileService {
       const result = await this.drizzleService.db
         .insert(intervention)
         .values(interventionData)
+        .onConflictDoNothing({ target: intervention.idempotencyKey })
         .returning();
-      if (!result) {
+      // Empty result means a concurrent request won the race on the same
+      // idempotencyKey. Fetch and return the row it created instead of erroring,
+      // and skip the species/tree inserts below (they already exist).
+      if (result.length === 0) {
+        const [existing] = await this.drizzleService.db
+          .select()
+          .from(intervention)
+          .where(eq(intervention.idempotencyKey, interventionData.idempotencyKey))
+          .limit(1);
+        if (existing) {
+          return this.buildExistingInterventionResult(existing);
+        }
         throw new Error('Failed to create intervention');
       }
       let interventionSpeciesData: any[] = [];

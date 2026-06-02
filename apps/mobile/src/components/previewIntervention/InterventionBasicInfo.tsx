@@ -1,4 +1,4 @@
-import { Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Modal, Pressable, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import { convertDateToTimestamp, timestampToBasicDate } from 'src/utils/helpers/appHelper/dataAndTimeHelper'
@@ -36,14 +36,18 @@ const InterventionBasicInfo = (props: Props) => {
     }
   }
   const endDateFormatted = () => {
+    // End date defaults to the start date until the user explicitly sets one.
     if (intervention_end_date) {
       return timestampToBasicDate(intervention_end_date)
+    } else if (intervention_date) {
+      return timestampToBasicDate(intervention_date)
     } else {
       return 0
     }
   }
 
   const [dateType, setDateType] = useState('')
+  const [tempDate, setTempDate] = useState<Date | null>(null)
 
   const { updateInterventionDate } = useInterventionManagement()
 
@@ -98,16 +102,32 @@ const InterventionBasicInfo = (props: Props) => {
     if (status === 'SYNCED') {
       return
     }
+    setTempDate(new Date(isStart ? intervention_date : (intervention_end_date || intervention_date)))
     setDateType(isStart ? "start" : 'end')
   }
 
-  const onDateSelect = async (_event, date: Date) => {
-    if (convertDateToTimestamp(date) === convertDateToTimestamp(new Date("1970-01-01T00:00:00.000Z"))) {
+  // Spinner only updates the pending value; nothing is saved until "Save" is pressed.
+  const onDateChange = (_event: any, date?: Date) => {
+    if (!date) {
       return
     }
-    const type = dateType;
+    setTempDate(date)
+  }
+
+  const closeDatePicker = () => {
     setDateType('')
-    await updateInterventionDate(intervention_id, convertDateToTimestamp(date), type === 'start')
+    setTempDate(null)
+  }
+
+  const onDateSave = async () => {
+    if (!tempDate || convertDateToTimestamp(tempDate) === convertDateToTimestamp(new Date("1970-01-01T00:00:00.000Z"))) {
+      closeDatePicker()
+      return
+    }
+    const type = dateType
+    const selected = tempDate
+    closeDatePicker()
+    await updateInterventionDate(intervention_id, convertDateToTimestamp(selected), type === 'start')
   }
 
   const handleSpeciesUpdate = () => {
@@ -133,11 +153,29 @@ const InterventionBasicInfo = (props: Props) => {
 
   return (
     <View style={styles.container}>
-      {dateType !== '' && <View style={styles.datePickerContainer}><DateTimePicker
-        maximumDate={new Date()}
-        minimumDate={new Date(dateType !== 'start' ? intervention_date : new Date(2006, 0, 1))}
-        is24Hour={true}
-        value={new Date(dateType !== 'start' ? intervention_date : intervention_end_date)} onChange={onDateSelect} display='spinner' /></View>}
+      <Modal visible={dateType !== ''} transparent animationType='slide' onRequestClose={closeDatePicker}>
+        <Pressable style={styles.datePickerBackdrop} onPress={closeDatePicker} />
+        <View style={styles.datePickerContainer}>
+          <View style={styles.datePickerHeader}>
+            <TouchableOpacity onPress={closeDatePicker} hitSlop={10}>
+              <Text style={styles.datePickerCancel}>{i18next.t('label.cancel')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={onDateSave} hitSlop={10}>
+              <Text style={styles.datePickerSave}>{i18next.t('label.save')}</Text>
+            </TouchableOpacity>
+          </View>
+          {dateType !== '' && (
+            <DateTimePicker
+              maximumDate={new Date()}
+              minimumDate={new Date(dateType !== 'start' ? intervention_date : new Date(2006, 0, 1))}
+              is24Hour={true}
+              value={tempDate ?? new Date()}
+              onChange={onDateChange}
+              display='spinner'
+            />
+          )}
+        </View>
+      </Modal>
       <View style={styles.wrapper}>
         {!!hid && <View style={styles.cardWrapper}>
           <Text style={styles.cardTitle}>HID</Text>
@@ -158,7 +196,7 @@ const InterventionBasicInfo = (props: Props) => {
               </Text>
               {isEditable && <PenIcon width={25} height={28} style={{ top: -2 }} />}
             </Pressable>
-            {intervention_end_date !== 0 && intervention_key !== "single-tree-registration" ? <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
+            {intervention_key !== "single-tree-registration" ? <Pressable style={styles.cardDateLabel} onPress={() => { handleDate(false) }}>
               <Text style={styles.cardLabel}>
                 {endDateFormatted()}
               </Text>
@@ -290,12 +328,37 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.GRAY_LIGHT,
     marginBottom: 10
   },
+  datePickerBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+  },
   datePickerContainer: {
-    position: "absolute",
-    zIndex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: Colors.WHITE,
     width: "100%",
-    bottom: 0
+    position: "absolute",
+    bottom: 0,
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingBottom: 20,
+  },
+  datePickerHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    borderBottomWidth: 0.5,
+    borderBottomColor: Colors.GRAY_LIGHT,
+  },
+  datePickerCancel: {
+    fontFamily: Typography.FONT_FAMILY_REGULAR,
+    fontSize: scaleSize(16),
+    color: Colors.TEXT_LIGHT,
+  },
+  datePickerSave: {
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    fontSize: scaleSize(16),
+    color: Colors.PRIMARY_DARK,
   },
   deleteWrapperIcon: {
     width: 35,
