@@ -1,5 +1,5 @@
 import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
-import React, { useMemo, useState } from 'react'
+import React, { useMemo, useRef, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
 import SyncIcon from 'assets/images/svg/CloudSyncIcon.svg';
@@ -51,6 +51,11 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const [showFullSync, setShowFullSync] = useState(false)
     const [showSyncModal, setShowSyncModal] = useState(false)
     const [syncStatuses, setSyncStatuses] = useState<SyncItemStatus[]>([])
+    // Synchronous re-entrancy guard. The redux `isSyncing` flag is read from a
+    // stale closure within the same render, so rapid taps could slip past it
+    // during the async project-check before the spinner turned on. This ref
+    // blocks a second start the instant the first one begins.
+    const isStartingRef = useRef(false)
 
     const { syncRequired, isSyncing } = useSelector((state: RootState) => state.syncState)
     const realm = useRealm()
@@ -66,7 +71,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         RealmSchema.Intervention,
         data => data.filtered('status != "SYNCED" AND is_complete == true')
     )
-    console.log("SyncIntervention rendered with interventionData length:",JSON.stringify(interventionData, null, 2))
     const preSyncSummary = useMemo(() => {
         const qData = postDataConvertor(JSON.parse(JSON.stringify(interventionData)))
         const counts: Record<string, number> = {}
@@ -113,21 +117,30 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             showLogin()
             return
         }
+        // Block re-entry the instant a start begins, before any await. Without
+        // this the redux `isSyncing` check below can be stale and a fast second
+        // tap slips through.
+        if (isStartingRef.current || isSyncing) return
         if (!tokenValid) {
             addNewLog({ logType: 'DATA_SYNC', message: 'Token Invalid during data sync', logLevel: 'error', statusCode: '' })
+            toast.show("Preparing your session. Please wait a moment and try again.")
             return
         }
-        if (isSyncing) return
 
-        const projectPass = await checkForProjectId();
-        if (!projectPass) return;
-
+        isStartingRef.current = true
+        // Turn the spinner on immediately so the tap has visible feedback while
+        // the project check (a network call) runs. Previously this only fired
+        // after checkForProjectId resolved, so early taps felt like no-ops.
         dispatch(updateSyncDetails(true))
-        dispatch(updateLastSyncData(Date.now()))
 
         let totalUploaded = 0
         let totalFailed = 0
         try {
+            const projectPass = await checkForProjectId();
+            if (!projectPass) return;
+
+            dispatch(updateLastSyncData(Date.now()))
+
             while (true) {
                 const { uploaded, failed, remaining } = await runSyncPass()
                 if (remaining === 0) break          // nothing left to upload
@@ -155,6 +168,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
         } finally {
             dispatch(updateSyncDetails(false))
+            isStartingRef.current = false
         }
     }
 
@@ -183,6 +197,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         switch (el.type) {
             case 'intervention': return handleIntervention(el)
             case 'singleTree': return handleSingleTree(el)
+            case 'plannedTree': return handlePlantingIntervention(el)
             case 'sampleTree': return handleSampleTree(el)
             case 'treeImage': return handleTreeImage(el)
             case 'remeasurementData': return handleMobileRemeasurement(el)
@@ -280,17 +295,23 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             if (pData.tag) requestBody.tag = pData.tag;
             if (pData.deviceLocation) requestBody.deviceLocation = pData.deviceLocation;
             if (imageFilename) requestBody.image = { filename: imageFilename, mimeType: 'image/jpg' };
-
             const { response, success } = await recordPlannedIntervention(pData.projectId, pData.interventionId, requestBody);
+            // The server wraps the result one level deep: response.data holds { success, data, tree }.
+            const result = response?.data;
+            addNewLog({ logType: 'DATA_SYNC', message: `Planned record response success=${success} serverSuccess=${result?.success} tree=${JSON.stringify(result?.tree)}`, logLevel: 'info', statusCode: '' })
 
-            if (success && response && response.success) {
-                const treeResult = response.tree || {};
-                await markPlannedInterventionSynced(el.p1Id, el.p2Id, treeResult.treeHid || '', treeResult.treeUid || '', imageFilename);
+            if (success && result && result.success) {
+                const treeResult = result.tree || {};
+                const persisted = await markPlannedInterventionSynced(el.p1Id, el.p2Id, treeResult.treeHid || '', treeResult.treeUid || '', imageFilename);
+                console.log('[plannedTree] markPlannedInterventionSynced persisted=', persisted, 'p1Id=', el.p1Id, 'p2Id=', el.p2Id)
+                addNewLog({ logType: 'DATA_SYNC', message: `Planned markSynced persisted=${persisted} p1Id=${el.p1Id} p2Id=${el.p2Id}`, logLevel: persisted ? 'info' : 'error', statusCode: '' })
+                if (!persisted) return false
                 return true
             }
             addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record API response error', logLevel: 'error', statusCode: '' })
             return false
         } catch (error) {
+            console.log('[plannedTree] error', error)
             addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
             return false
         }
@@ -392,34 +413,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             addNewLog({ logType: 'DATA_SYNC', message: 'Image Upload API response error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) });
             return false
         }
-    };
-
-    const uploadObjectsSequentially = async (d: QuaeBody[]) => {
-        for (let i = 0; i < d.length; i++) {
-            const el = d[i]
-            if (!isConnected) {
-                dispatch(updateSyncDetails(false))
-                setMoreUpload(false)
-                toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
-                return;
-            }
-            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
-            let success = false
-            switch (el.type) {
-                case 'intervention': success = await handleIntervention(el); break;
-                case 'singleTree': success = await handleSingleTree(el); break;
-                case 'plannedTree': success = await handlePlantingIntervention(el); break;
-                case 'sampleTree': success = await handleSampleTree(el); break;
-                case 'treeImage': success = await handleTreeImage(el); break;
-                case 'remeasurementData': success = await handleMobileRemeasurement(el); break;
-                case 'remeasurementStatus': success = await handleMobileRemeasurement(el); break;
-                case 'skipRemeasurement': success = await handleSkipRemeasurement(el); break;
-                default: break;
-            }
-
-            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: success ? 'done' : 'error' } : s))
-        }
-        startSyncingData();
     };
 
     const totalSyncItems = Object.values(preSyncSummary).reduce((a, b) => a + b, 0)

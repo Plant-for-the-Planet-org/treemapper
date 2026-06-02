@@ -11,6 +11,7 @@ import {
   Query,
   Param,
   ParseIntPipe,
+  Logger,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
 import { ProjectRoles } from './decorators/project-roles.decorator';
@@ -41,6 +42,8 @@ import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.
 @Controller('mobile')
 @UseGuards(JwtAuthGuard)
 export class MobileController {
+  private readonly logger = new Logger(MobileController.name);
+
   constructor(
     private readonly appservice: MobileService,
     private readonly usersService: UsersService,
@@ -136,6 +139,7 @@ export class MobileController {
     @Body() dto: RecordPlannedInterventionDto,
     @Membership() membership: any,
   ): Promise<any> {
+    this.logger.log(`[recordPlanned] CONTROLLER reached interventionId=${interventionId} membership=${JSON.stringify(membership)}`);
     return this.appservice.recordPlannedIntervention(interventionId, dto, membership);
   }
 

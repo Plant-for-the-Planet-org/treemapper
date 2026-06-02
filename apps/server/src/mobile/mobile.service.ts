@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { and, desc, eq, inArray, isNotNull, isNull, ne, or, sql } from 'drizzle-orm';
 // import { sites, projects, users, projectMembers, scientificSpecies, interventions, trees, images, projectSpecies } from '../database/schema'; // Adjust import path as needed
 import { generateUid } from 'src/util/uidGenerator';
@@ -300,6 +300,8 @@ interface GeoJSONPointGeometry {
 
 @Injectable()
 export class MobileService {
+  private readonly logger = new Logger(MobileService.name);
+
   constructor(
     private drizzleService: DrizzleService,
     private migrateService: MigrationService,
@@ -618,6 +620,8 @@ export class MobileService {
     dto: RecordPlannedInterventionDto,
     membership: ProjectGuardResponse,
   ): Promise<any> {
+    this.logger.log(`[recordPlanned] ENTRY uid=${interventionUid} project=${membership?.projectId} user=${membership?.userId}`);
+    this.logger.log(`[recordPlanned] dto=${JSON.stringify(dto)}`);
     try {
       // 1. Load the plan and confirm it belongs to this project.
       const [interventionRow] = await this.drizzleService.db
@@ -644,6 +648,7 @@ export class MobileService {
       if (interventionRow.type !== 'single-tree-registration') {
         throw new BadRequestException('Only single-tree plans can be recorded with this endpoint');
       }
+      this.logger.log(`[recordPlanned] step1 loaded intervention id=${interventionRow.id} type=${interventionRow.type} status=${interventionRow.status}`);
 
       // 2. Resolve the species the plan was created with (single-tree => one).
       const [speciesRow] = await this.drizzleService.db
@@ -662,6 +667,7 @@ export class MobileService {
       if (!speciesRow) {
         throw new BadRequestException('Planned intervention has no species to attach a tree to');
       }
+      this.logger.log(`[recordPlanned] step2 species id=${speciesRow.id} name=${speciesRow.speciesName} unknown=${speciesRow.isUnknown}`);
 
       // 3. Does a single tree already exist for this plan? (upsert)
       const [existingTree] = await this.drizzleService.db
@@ -673,6 +679,8 @@ export class MobileService {
           isNull(tree.deletedAt),
         ))
         .limit(1);
+
+      this.logger.log(`[recordPlanned] step3 existingTree=${existingTree ? existingTree.id : 'none'}`);
 
       // 4. Resolve geometry: use what was sent, else fall back to the planned point.
       const geometry = dto.geometry ?? interventionRow.originalGeometry;
@@ -693,7 +701,9 @@ export class MobileService {
       const plantingDate = dto.plantingDate
         ? new Date(dto.plantingDate)
         : new Date(interventionRow.interventionStartDate);
+      this.logger.log(`[recordPlanned] step4 geometryPresent=${!!geometry} lat=${latitude} lng=${longitude} plantingDate=${plantingDate?.toISOString?.() ?? plantingDate}`);
 
+      this.logger.log(`[recordPlanned] step5 opening transaction`);
       const recorded = await this.drizzleService.db.transaction(async (tx) => {
         let treeId: number;
         let treeUid: string;
@@ -715,9 +725,11 @@ export class MobileService {
           if (dto.metadata !== undefined) updateSet.metadata = dto.metadata;
           if (dto.plantingDate) updateSet.plantingDate = plantingDate;
 
+          this.logger.log(`[recordPlanned] tx updating existing tree id=${existingTree.id} set=${JSON.stringify(Object.keys(updateSet))}`);
           await tx.update(tree).set(updateSet).where(eq(tree.id, existingTree.id));
           treeId = existingTree.id;
           treeUid = existingTree.uid;
+          this.logger.log(`[recordPlanned] tx tree updated id=${treeId}`);
         } else {
           // First recording: the plan never had a tree, so create it.
           if (locationValue === undefined) {
@@ -744,12 +756,15 @@ export class MobileService {
             width: dto.measurements?.width ?? null,
             metadata: dto.metadata ?? null,
           };
+          this.logger.log(`[recordPlanned] tx inserting new tree...`);
           const [created] = await tx.insert(tree).values(treePayload).returning();
           treeId = created.id;
           treeUid = created.uid;
           treeHid = created.hid;
+          this.logger.log(`[recordPlanned] tx tree inserted id=${treeId} uid=${treeUid} hid=${treeHid}`);
 
           const recordedAt = plantingDate > new Date() ? new Date() : plantingDate;
+          this.logger.log(`[recordPlanned] tx inserting treeRecord recordedAt=${recordedAt?.toISOString?.() ?? recordedAt}`);
           await tx.insert(treeRecord).values({
             uid: generateUid('treerec'),
             treeId: created.id,
@@ -759,28 +774,62 @@ export class MobileService {
             height: dto.measurements?.height ?? null,
             width: dto.measurements?.width ?? null,
           });
+          this.logger.log(`[recordPlanned] tx treeRecord inserted`);
         }
 
-        // Image row (kept in sync with tree.image, same shape as updateInterventionImage).
+        // Image row (kept in sync with tree.image). This endpoint is an upsert,
+        // so re-recording the same tree must not pile up duplicate image rows:
+        // update the existing one for this tree if present, else insert.
         if (dto.image?.filename) {
-          await tx.insert(image).values({
-            uid: generateUid('img'),
-            entityId: treeId,
-            entityType: 'tree' as const,
-            type: (dto.image.type as any) || 'overview',
-            filename: dto.image.filename,
-            mimeType: dto.image.mimeType ?? null,
-            deviceType: 'mobile' as const,
-            uploadedById: membership.userId,
-          });
+          this.logger.log(`[recordPlanned] tx image upsert for treeId=${treeId} filename=${dto.image.filename}`);
+          const [existingImage] = await tx
+            .select({ id: image.id })
+            .from(image)
+            .where(and(
+              eq(image.entityId, treeId),
+              eq(image.entityType, 'tree'),
+              isNull(image.deletedAt),
+            ))
+            .limit(1);
+
+          if (existingImage) {
+            this.logger.log(`[recordPlanned] tx updating existing image id=${existingImage.id}`);
+            await tx.update(image).set({
+              type: (dto.image.type as any) || 'overview',
+              filename: dto.image.filename,
+              mimeType: dto.image.mimeType ?? null,
+              deviceType: 'mobile' as const,
+              uploadedById: membership.userId,
+              updatedAt: new Date(),
+            }).where(eq(image.id, existingImage.id));
+          } else {
+            this.logger.log(`[recordPlanned] tx inserting new image row`);
+            await tx.insert(image).values({
+              uid: generateUid('img'),
+              entityId: treeId,
+              entityType: 'tree' as const,
+              type: (dto.image.type as any) || 'overview',
+              filename: dto.image.filename,
+              mimeType: dto.image.mimeType ?? null,
+              deviceType: 'mobile' as const,
+              uploadedById: membership.userId,
+            });
+          }
+          this.logger.log(`[recordPlanned] tx image upsert done`);
         }
 
-        // The plan is now recorded in the field.
+        // The plan is now recorded in the field. Move the intervention window to
+        // when the tree was actually planted (the same date the tree + its
+        // planting record use), not the sync moment. editedAt/updatedAt stay as
+        // the real write time since they are audit columns.
+        const writeNow = new Date();
         const interventionSet: Record<string, any> = {
           status: 'completed',
           captureStatus: CaptureStatus.COMPLETE,
-          editedAt: new Date(),
-          updatedAt: new Date(),
+          interventionStartDate: plantingDate,
+          interventionEndDate: plantingDate,
+          editedAt: writeNow,
+          updatedAt: writeNow,
           totalTreeCount: 1,
         };
         if (dto.deviceLocation !== undefined) interventionSet.deviceLocation = dto.deviceLocation;
@@ -788,15 +837,32 @@ export class MobileService {
           interventionSet.location = locationValue;
           interventionSet.originalGeometry = geometry;
         }
+        this.logger.log(`[recordPlanned] tx updating intervention id=${interventionRow.id} -> completed`);
         await tx.update(intervention)
           .set(interventionSet)
           .where(eq(intervention.id, interventionRow.id));
 
+        this.logger.log(`[recordPlanned] tx done, returning treeUid=${treeUid} treeHid=${treeHid}`);
         return { treeUid, treeHid };
       });
+      this.logger.log(`[recordPlanned] step6 transaction COMMITTED tree=${JSON.stringify(recorded)}`);
 
-      // Return the fresh record in the shape the client already consumes.
-      const updated = await this.getSingleIntervention(interventionUid, interventionRow.userId);
+      // The write is already committed. Building the response must not fail the
+      // request: if the read-back throws, the recording still succeeded, so we
+      // return what we have rather than turn a committed write into a 400 (which
+      // would leave the client retrying a record that is already done).
+      let updated: Awaited<ReturnType<typeof this.getSingleIntervention>> = null;
+      try {
+        this.logger.log(`[recordPlanned] step7 read-back getSingleIntervention`);
+        updated = await this.getSingleIntervention(interventionUid, interventionRow.userId);
+        this.logger.log(`[recordPlanned] step7 read-back ok`);
+      } catch (readError) {
+        this.logger.error(
+          `recordPlannedIntervention read-back failed for ${interventionUid}: ${readError?.message}`,
+          readError?.stack,
+        );
+      }
+      this.logger.log(`[recordPlanned] SUCCESS uid=${interventionUid} returning 200`);
       return {
         success: true,
         statusCode: 200,
@@ -804,6 +870,10 @@ export class MobileService {
         tree: recorded,
       };
     } catch (error) {
+      this.logger.error(
+        `[recordPlanned] FAILED uid=${interventionUid}: ${error?.message}`,
+        error?.stack,
+      );
       if (
         error instanceof ForbiddenException ||
         error instanceof NotFoundException ||

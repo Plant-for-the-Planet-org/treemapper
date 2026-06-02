@@ -750,18 +750,47 @@ const useInterventionManagement = () => {
   };
 
   const markPlannedInterventionSynced = async (interventionID: string, treeId: string, treeHid: string, treeUid: string, cdnImage?: string): Promise<boolean> => {
+    let foundIntervention = false;
+    let foundTree = false;
+    // Critical write: flip statuses to SYNCED. Kept minimal so nothing here can
+    // throw and roll back the status change (that was the bug: a failure on the
+    // image_data line below rolled back the whole transaction, leaving the
+    // intervention stuck at PENDING_DATA_UPLOAD even though the server saved it).
     try {
       realm.write(() => {
         const intervention = realm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, interventionID);
         if (intervention) {
+          foundIntervention = true;
           intervention.status = 'SYNCED'
           intervention.last_updated_at = Date.now()
+          intervention.is_planned = false
         }
         const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         if (treeDetails) {
+          foundTree = true;
           treeDetails.status = 'SYNCED'
           if (treeHid) treeDetails.hid = treeHid
           if (treeUid) treeDetails.sloc_id = treeUid
+        }
+      });
+    } catch (error) {
+      console.log('[markPlannedSynced] status write error', error)
+      addNewLog({
+        logType: 'DATA_SYNC',
+        message: 'DB status write error Planned intervention ' + interventionID,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error)
+      })
+      return false;
+    }
+
+    // Best-effort write: image metadata is cosmetic. A failure here must not undo
+    // the SYNCED status above, so it runs in its own transaction + try/catch.
+    try {
+      realm.write(() => {
+        const treeDetails = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
+        if (treeDetails) {
           if (cdnImage) treeDetails.cdn_image_url = cdnImage
           treeDetails.image_data = {
             ...treeDetails.image_data,
@@ -769,23 +798,25 @@ const useInterventionManagement = () => {
           }
         }
       });
+    } catch (imageError) {
+      console.log('[markPlannedSynced] image metadata write error (non-fatal)', imageError)
       addNewLog({
         logType: 'DATA_SYNC',
-        message: 'Planned intervention recorded and synced ' + interventionID,
-        logLevel: 'info',
+        message: 'Planned intervention image metadata write failed (non-fatal) ' + interventionID,
+        logLevel: 'warn',
         statusCode: '',
+        logStack: JSON.stringify(imageError)
       })
-      return true
-    } catch (error) {
-      addNewLog({
-        logType: 'DATA_SYNC',
-        message: 'DB write error Planned intervention ' + interventionID,
-        logLevel: 'error',
-        statusCode: '',
-        logStack: JSON.stringify(error)
-      })
-      return false;
     }
+
+    console.log('[markPlannedSynced] foundIntervention=', foundIntervention, 'foundTree=', foundTree, 'interventionID=', interventionID, 'treeId=', treeId)
+    addNewLog({
+      logType: 'DATA_SYNC',
+      message: `Planned synced foundIntervention=${foundIntervention} foundTree=${foundTree} id=${interventionID} treeId=${treeId}`,
+      logLevel: foundIntervention ? 'info' : 'error',
+      statusCode: '',
+    })
+    return foundIntervention
   };
 
   const updateTreeStatus = async (tree_id: string, hid: string, sloc_id: string, status: INTERVENTION_STATUS, parent_id: string, coordinates: any): Promise<boolean> => {
