@@ -18,7 +18,6 @@ const useMetaData = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -33,7 +32,6 @@ const useMetaData = () => {
 
       });
       return true    } catch (error) {
-      console.error('Error during update:', error);
  return false;
     }
   };
@@ -44,7 +42,6 @@ const useMetaData = () => {
         realm.delete(intervention);
       });
       return true    } catch (error) {
-      console.error('Error during update:', error);
  return false;
     }
   };
@@ -64,7 +61,6 @@ const useMetaData = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }
@@ -78,7 +74,6 @@ const useMetaData = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
  return false
     }
   }

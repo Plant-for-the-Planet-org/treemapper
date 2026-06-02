@@ -49,7 +49,6 @@ const ImagePreview = (props: Props) => {
   }
 
   const handleImageError = (error: any) => {
-    console.error('Image load error:', error)
     setImageLoading(false)
     setImageError(true)
     toast.show('Failed to load image. Please retake the picture.')
@@ -119,7 +118,6 @@ const ImagePreview = (props: Props) => {
         navigation.navigate('AddMeasurement')
       }
     } catch (error: any) {
-      console.error('Error processing image:', error)
       const errorMessage = error?.message || 'Failed to process image'
       toast.show(`${errorMessage}. Please try again.`)
     } finally {

@@ -48,7 +48,6 @@ const useProjectManagement = () => {
       })
       return true
     } catch (error) {
-      console.error('Error while adding projects', error)
       return false
     }
   }, [realm])
@@ -62,7 +61,6 @@ const useProjectManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   }, [realm]);
@@ -91,7 +89,6 @@ const useProjectManagement = () => {
       })
       return true
     } catch (error) {
-      console.error('Error while adding site', error)
       return false
     }
   }, [realm])

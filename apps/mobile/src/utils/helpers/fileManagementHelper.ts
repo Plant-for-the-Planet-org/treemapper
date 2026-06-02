@@ -56,7 +56,6 @@ export const interData = async (data: InterventionData) => {
         await file.write(jsonData);
     } catch (error) {
         Bugsnag.notify(error as Error)
-        console.error("Error writing intervention data:", error);
     }
 }
 
@@ -136,7 +135,6 @@ const zipAndShareFolder = async (id: string) => {
         // Write the zip file
         zipFile.write(zipContent);
 
-        console.log(`Zip completed at ${zipFile.uri}`);
 
         // Keep the same Share logic
         const shareOptions = {
@@ -147,6 +145,6 @@ const zipAndShareFolder = async (id: string) => {
 
         await Share.open(shareOptions);
     } catch (error) {
-        console.log('Error in zipAndShareFolder:', error);
+        console.error('Error in zipAndShareFolder:', error);
     }
 };

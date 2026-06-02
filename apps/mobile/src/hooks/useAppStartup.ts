@@ -26,23 +26,16 @@ const useAppStartup = (): UseAppStartupResult => {
         const newToken = subscription.current.id
         const optedIn = subscription.current.optedIn
         const pushToken = subscription.current.token
-        console.log('[useAppStartup] Push subscription changed:', {
-          id: newToken,
-          optedIn,
-          token: pushToken,
-        })
         if (newToken) {
           fcmTokenRef.current = newToken
         }
       })
 
       OneSignal.Notifications.addEventListener('foregroundWillDisplay', (event: any) => {
-        console.log('[useAppStartup] Notification received in foreground:', event.notification)
         event.getNotification().display()
       })
 
       OneSignal.Notifications.addEventListener('click', (event: any) => {
-        console.log('[useAppStartup] Notification clicked:', event.notification)
       })
 
       const hasPermission = await OneSignal.Notifications.getPermissionAsync()
@@ -50,20 +43,12 @@ const useAppStartup = (): UseAppStartupResult => {
       const pushToken = await OneSignal.User.pushSubscription.getTokenAsync()
       const optedIn = await OneSignal.User.pushSubscription.getOptedInAsync()
 
-      console.log('[useAppStartup] Status after permission request:', {
-        hasPermission,
-        optedIn,
-        pushToken,
-        playerId,
-        platform: Platform.OS,
-      })
 
       if (playerId) {
         fcmTokenRef.current = playerId
       }
 
     } catch (error) {
-      console.error('[useAppStartup] OneSignal setup error:', error)
       Bugsnag.notify(error as Error)
       throw error
     }
@@ -89,11 +74,8 @@ const useAppStartup = (): UseAppStartupResult => {
 
     for (const task of tasks) {
       try {
-        console.log(`[useAppStartup] Starting task: ${task.name}`)
         await task.execute()
-        console.log(`[useAppStartup] Completed task: ${task.name}`)
       } catch (error) {
-        console.error(`[useAppStartup] Task failed: ${task.name}`, error)
         errorRef.current = error as Error
         // Continue with other tasks even if one fails
         // The app should not crash due to startup task failures
@@ -101,7 +83,6 @@ const useAppStartup = (): UseAppStartupResult => {
     }
 
     isInitializedRef.current = true
-    console.log('[useAppStartup] All startup tasks completed')
   }, [initializeOneSignal])
 
   useEffect(() => {

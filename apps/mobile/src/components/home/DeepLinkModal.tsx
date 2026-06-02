@@ -94,14 +94,12 @@ const DeepLinkModal = () => {
       setInviteData(null);
       try {
         const result = await getMobileInviteStatusEmail(inviteCode);
-        console.log('Invite status result:', result);
         if (result?.response?.data) {
           setInviteData(result.response.data);
         } else {
           setError('Failed to fetch invitation details. Please try again.');
         }
       } catch (err) {
-        console.error('Error fetching invite status:', err);
         setError('Failed to fetch invitation details. Please try again.');
       } finally {
         setStatusLoading(false);
@@ -121,7 +119,6 @@ const DeepLinkModal = () => {
           setError('Failed to fetch invitation details. Please try again.');
         }
       } catch (err) {
-        console.error('Error fetching invite status:', err);
         setError('Failed to fetch invitation details. Please try again.');
       } finally {
         setStatusLoading(false);
@@ -187,7 +184,6 @@ const DeepLinkModal = () => {
         }
       }
     } catch (err) {
-      console.error('Error accepting invitation:', err);
       setError('Failed to accept invitation. Please try again.');
     } finally {
       setLoading(false);

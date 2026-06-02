@@ -106,10 +106,9 @@ const HomeHeader = (props: Props) => {
       const { response } = await getMobileUserDetails()
       if (response && response.data) {
         dispatch(updateUserDetails({ ...response.data, image: response.data.image }))
-        console.log("User details updated")
       }
     } catch (error) {
-      console.log("error", error)
+      console.error("error", error)
     }
   }
 
@@ -163,7 +162,6 @@ const HomeHeader = (props: Props) => {
           return;
         }
         const nextPage = lastServerInterventionpage === '' ? '2' : (parseInt(lastServerInterventionpage) + 1).toString()
-        console.log("Next page", lastServerInterventionpage, nextPage)
         dispatch(updateLastServerIntervention(nextPage))
         addNewLog({
           logType: 'DATA_SYNC',
@@ -180,7 +178,6 @@ const HomeHeader = (props: Props) => {
         })
       }
     } catch (err) {
-      console.log("Error occurred", err)
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Error while fetching intervention",
@@ -248,7 +245,6 @@ const HomeHeader = (props: Props) => {
         })
       }
     } catch (err) {
-      console.log("Error occurred while checking new interventions", err)
       addNewLog({
         logType: 'DATA_SYNC',
         message: "Error while checking for new interventions",

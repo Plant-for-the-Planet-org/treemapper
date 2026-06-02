@@ -102,7 +102,7 @@ const ProjectModal = (props: Props) => {
         dispatch(updateMapBounds({ bounds, key: 'DISPLAY_MAP' }))
       }
     } catch (error) {
-      console.log("Error updating map bounds:", error)
+      console.error("Error updating map bounds:", error)
     }
   }, [dispatch])
 
@@ -298,7 +298,7 @@ const ProjectModal = (props: Props) => {
         }
       }
     } catch (error) {
-      console.log("Error processing project geometry:", error)
+      console.error("Error processing project geometry:", error)
     }
   }, [currentProject.projectId, projectSite.siteId, updateMapBoundsForGeometry])
 

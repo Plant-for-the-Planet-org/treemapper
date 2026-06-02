@@ -20,7 +20,6 @@ const useAdditionalForm = () => {
       })
       return true
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -36,7 +35,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -53,7 +51,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -73,7 +70,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -93,7 +89,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -113,7 +108,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -140,7 +134,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }
@@ -154,7 +147,6 @@ const useAdditionalForm = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false
     }
   };
@@ -168,7 +160,6 @@ const useAdditionalForm = () => {
       })
       return Promise.resolve(true)
     } catch (error) {
-      console.error('Error during write:', error)
       return false
     }
   }

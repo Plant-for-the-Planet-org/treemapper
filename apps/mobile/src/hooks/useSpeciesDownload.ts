@@ -146,10 +146,8 @@ const useDownloadFile = () => {
       });
 
       await Promise.all(promises);
-      console.log('Unzip completed successfully');
       return true;
     } catch (error) {
-      console.error('Error unzipping file:', error);
       throw error;
     }
   };

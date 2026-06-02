@@ -165,9 +165,6 @@ const DisplayMap = () => {
     )
     const { geoJSON } = makeInterventionGeoJson(intervention.location_type, JSON.parse(intervention.location.coordinates), intervention.intervention_id)
     const bounds = bbox(geoJSON)
-    console.log('Intervention:', intervention)
-    console.log('GeoJSON:', geoJSON)
-    console.log('Calculated bounds:', bounds)
     if (intervention && intervention.intervention_type !== 'single-tree-registration') {
       getBoundsAndSetIntervention(bounds, intervention)
     }

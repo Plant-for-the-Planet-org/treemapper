@@ -81,7 +81,6 @@ const AddOptionModal = (props: Props) => {
   const provideLocation = () => {
     if (GPSLocation[0] === 0) {
       userCurrentLocation().catch((error) => { // Use .catch() to handle errors
-        console.log("Error:", error);
       });
     }
   };

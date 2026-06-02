@@ -218,7 +218,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -226,13 +225,11 @@ const useInterventionManagement = () => {
   const updateSampleTreeImage = async (interventionID: string, treeId: string, imageUrl: string): Promise<boolean> => {
     try {
       realm.write(() => {
-        console.log("interventionID", interventionID)
         const intervention = realm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, treeId);
         intervention.image_url = imageUrl
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -251,7 +248,6 @@ const useInterventionManagement = () => {
 
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -400,7 +396,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -426,7 +421,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -440,7 +434,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -710,7 +703,6 @@ const useInterventionManagement = () => {
       })
       return true
     } catch (error) {
-      console.log("Error", error)
       addNewLog({
         logType: 'INTERVENTION',
         message: 'Error while updating additional for intervention' + `(${interventionID}).`,
@@ -774,7 +766,6 @@ const useInterventionManagement = () => {
         }
       });
     } catch (error) {
-      console.log('[markPlannedSynced] status write error', error)
       addNewLog({
         logType: 'DATA_SYNC',
         message: 'DB status write error Planned intervention ' + interventionID,
@@ -799,7 +790,6 @@ const useInterventionManagement = () => {
         }
       });
     } catch (imageError) {
-      console.log('[markPlannedSynced] image metadata write error (non-fatal)', imageError)
       addNewLog({
         logType: 'DATA_SYNC',
         message: 'Planned intervention image metadata write failed (non-fatal) ' + interventionID,
@@ -809,7 +799,6 @@ const useInterventionManagement = () => {
       })
     }
 
-    console.log('[markPlannedSynced] foundIntervention=', foundIntervention, 'foundTree=', foundTree, 'interventionID=', interventionID, 'treeId=', treeId)
     addNewLog({
       logType: 'DATA_SYNC',
       message: `Planned synced foundIntervention=${foundIntervention} foundTree=${foundTree} id=${interventionID} treeId=${treeId}`,
@@ -986,7 +975,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -1020,7 +1008,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -1040,7 +1027,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -1057,7 +1043,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -1082,7 +1067,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };
@@ -1098,7 +1082,6 @@ const useInterventionManagement = () => {
       });
       return true
     } catch (error) {
-      console.error('Error during update:', error);
       return false;
     }
   };

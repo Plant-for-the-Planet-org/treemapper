@@ -69,7 +69,6 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
 
     return { response: responseJson, success: true, status: response.status, extra: {} }
   } catch (err) {
-    console.log("Network Error", err)
     return { response: null, success: false, status: 500, extra: {} }
   }
 }

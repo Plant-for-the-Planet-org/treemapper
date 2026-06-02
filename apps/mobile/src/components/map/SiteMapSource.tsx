@@ -105,13 +105,12 @@ const SiteMapSource = (props: Props) => {
       }
       setGeoJSON(reducedSites);
     } catch (error) {
-      console.log('error occurred at siteGeojson', error)
+      console.error('error occurred at siteGeojson', error)
     }
   };
   if (!geoJSON) {
     return null
   }
-  console.log('site geojson', geoJSON)
   return (
     <GeoJSONSource id={'projectSites'} data={{
       type: 'FeatureCollection',

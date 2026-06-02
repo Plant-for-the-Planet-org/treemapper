@@ -45,7 +45,6 @@ const sharedData = async (filePath: string, id: string) => {
     const outputFile = new File(outputPath);
     outputFile.write(zipContent);
 
-    console.log(`Zip completed at ${outputPath}`);
 
     // Keep the same Share logic
     const options = {
@@ -55,10 +54,8 @@ const sharedData = async (filePath: string, id: string) => {
 
     Share.open(options)
       .then(() => {
-        console.log('done');
       })
       .catch(err => {
-        console.log('err', err);
       });
 
   } catch (error) {
@@ -121,11 +118,9 @@ export const convertData = async (inventory: any) => {
         const FinalData = { ...inventory, polygonImages, SampleTreeImages };
 
         Alert.alert('Data exported successfully');
-        console.log('FinalData polygonImages', FinalData.polygonImages.length);
         await sharedData(folderPath, inventory.inventory_id);
       }, 1000);
     } catch (err) {
-      console.log("err",err)
       Alert.alert('Error occurred at folder creation');
     }
   } catch (error) {
@@ -154,7 +149,6 @@ export const onlyExportJSON = async (inventory: any) => {
       await writeJSON(imgData, filePath);
       await sharedData(folderPath, inventory.inventory_id);
     } catch (err) {
-      console.log(err)
       Alert.alert('Error occurred at folder creation');
     }
   } catch (error) {

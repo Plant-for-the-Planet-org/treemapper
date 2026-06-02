@@ -32,7 +32,7 @@ const clearLocalRealmData = () => {
       })
     })
   } catch (err) {
-    console.log('Realm cleanup during logout failed', err)
+    console.error('Realm cleanup during logout failed', err)
   }
 }
 
@@ -44,7 +44,7 @@ export const forceLogout = async () => {
   try {
     await auth0.credentialsManager.clearCredentials()
   } catch (err) {
-    console.log('Auth0 clearCredentials failed', err)
+    console.error('Auth0 clearCredentials failed', err)
   }
   clearLocalRealmData()
   store.dispatch(resetProjectState())
@@ -92,7 +92,6 @@ export const refreshSession = (
       )
       return credentials.accessToken
     } catch (err) {
-      console.log('Token refresh failed', err)
       if (store.getState().appState.isLoggedIn) {
         await forceLogout()
       }

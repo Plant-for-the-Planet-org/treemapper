@@ -169,10 +169,8 @@ export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
                 imageId: TreeDetails.image_data.coordinateID,
                 treeServerId: TreeDetails.sloc_id
             };
-            console.log("Here is the image data", body.imageId)
             return { pData: body, message: '', fixRequired: "NO", error: "" }
         } catch (error) {
-            console.log("Here is the error", error)
             return { pData: null, message: 'Image process failed.', fixRequired: "UNKNOWN", error: JSON.stringify(error) }
         }
     }

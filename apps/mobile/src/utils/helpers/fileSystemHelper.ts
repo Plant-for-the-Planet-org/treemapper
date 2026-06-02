@@ -65,7 +65,6 @@ async function compressImage(uri: string, compressValue: number): Promise<string
     );
     return manipulatedImage.uri;
   } catch (error) {
-    console.error('Error compressing image:', error);
     return '';
   }
 }

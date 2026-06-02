@@ -95,8 +95,6 @@ export const remeasurement = async (tree_id: string, params: any) => {
 export const remeasuremenMobile = async (tree_id: string, params: any) => {
   const uri = `${postUrlNewApi.remeasurement}/${tree_id}/remeasure`
   const result = await fetchPutCall(uri, params);
-  console.log("🔵 remeasuremenMobile API Response:");
-  console.log("  Result:", JSON.stringify(result, null, 2));
   return result;
 };
 
@@ -192,7 +190,6 @@ export const getMobileInterventions = async (page: string) => {
 };
 
 export const getSingleIntervention = async (interventionId: string) => {
-  console.log("Fetching intervention ID:", interventionId);
   const uri = `${getUrlMobileApi.getSingleIntervention}/${interventionId}`;
   const result = await fetchGetCall(uri, true);
   return result;
@@ -207,7 +204,6 @@ const getImageAsBase64 = async (fileUri: string): Promise<string> => {
     });
     return base64;
   } catch (error) {
-    console.warn('Failed to read image file, using fallback:', error);
     return sampleTreeBase64; // Fallback to default base64 image
   }
 };
@@ -235,7 +231,6 @@ const getImageAsBase64Enhanced = async (fileUri: string): Promise<{ success: boo
       data: base64
     };
   } catch (error) {
-    console.warn('Failed to read image file:', error);
     return {
       success: false,
       data: sampleTreeBase64,
@@ -256,7 +251,6 @@ const getFileInfo = async (fileUri: string) => {
       uri: fileInfo.uri
     };
   } catch (error) {
-    console.error('Error getting file info:', error);
     return {
       exists: false,
       size: 0,
@@ -373,7 +367,6 @@ export const uploadViaAPIWithFileSystem = async (selectedImage: string, uploadUr
     };
 
   } catch (error: any) {
-    console.error('Upload error:', error);
     return {
       success: false,
       error: error.message || 'Upload failed',

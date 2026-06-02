@@ -25,7 +25,6 @@ const getOneSignalData = async (): Promise<{ oneSignalId: string | null; hasPerm
     const hasPermission = await OneSignal.Notifications.getPermissionAsync();
     return { oneSignalId, hasPermission };
   } catch (error) {
-    console.log('Failed to get OneSignal data:', error);
     return { oneSignalId: null, hasPermission: false };
   }
 };
@@ -53,7 +52,6 @@ const useDeviceRegistration = () => {
       const { success } = await registerUserDevice(params);
       return success;
     } catch (error) {
-      console.log('Device registration failed:', error);
       return false;
     }
   }, []);

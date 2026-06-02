@@ -61,13 +61,11 @@ const InterventionList = (props: Props) => {
       await deleteIntervention(item.intervention_id)
       dispatch(updateNewIntervention())
       if (v3Approved) {
-              console.log("SDc v3Approved", v3Approved)
-              console.log("SDc item.hid", item.hid)
 
         await deleteMobileIntervention(item.hid)
       }
     } catch (error) {
-      console.log("SDc error", error)
+      console.error("SDc error", error)
     }
   }
 

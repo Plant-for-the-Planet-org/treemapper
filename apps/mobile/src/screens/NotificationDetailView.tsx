@@ -53,13 +53,13 @@ const NotificationDetailView = () => {
             try {
               await markNotificationAsRead(found.uid)
             } catch (error) {
-              console.log('Error marking notification as read:', error)
+              console.error('Error marking notification as read:', error)
             }
           }
         }
       }
     } catch (error) {
-      console.log('Error loading notification:', error)
+      console.error('Error loading notification:', error)
     } finally {
       setLoading(false)
     }

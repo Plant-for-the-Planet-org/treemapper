@@ -80,14 +80,12 @@ const InterventionPreviewView = () => {
   const refreshInterventionData = async () => {
     try {
       // Only refresh for synced interventions
-      console.log("InterventionData?.status", InterventionData?.status)
       if (InterventionData?.status !== 'SYNCED') {
         return
       }
 
       // Check internet connectivity
       const netInfo = await NetInfo.fetch()
-      console.log("netInfo.isConnected", netInfo.isConnected)
       if (!netInfo.isConnected) {
         return
       }
@@ -96,13 +94,11 @@ const InterventionPreviewView = () => {
 
       // Fetch intervention data from server
       const { response, success } = await getSingleIntervention(interventionID)
-      console.log("Refresh intervention response:", response, success)
       if (success && response?.data) {
         const interventionData = response.data
         // Get server's updated_at timestamp
         const serverUpdatedAt = convertDateToTimestamp(interventionData.updatedAt || interventionData.editedAt)
         const localLastEdited = InterventionData?.last_updated_at || 0
-        console.log("Timestamps - Server:", serverUpdatedAt, "Local:", localLastEdited)
         // Compare timestamps - if server has newer data, update local
         if (serverUpdatedAt > localLastEdited) {
           const convertedIntervention = convertInventoryToIntervention(interventionData)
@@ -118,7 +114,6 @@ const InterventionPreviewView = () => {
         }
       }
     } catch (error) {
-      console.log("Error refreshing intervention data:", error)
       addNewLog({
         logType: 'INTERVENTION',
         message: `Error refreshing intervention ${interventionID}`,
@@ -229,14 +224,14 @@ const InterventionPreviewView = () => {
                 (x, y) => {
                   scrollViewRef.current.scrollTo({ y: y - 100, animated: true });
                 },
-                (error) => console.log('Measure failed', error)
+                (error) => {}
               );
             }
           }
         }, 1000);
       }
     } catch (error) {
-      console.log("error", error)
+      console.error("error", error)
     }
   }, [highlightedTree])
 

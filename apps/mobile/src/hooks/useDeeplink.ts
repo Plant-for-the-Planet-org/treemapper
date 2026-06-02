@@ -27,12 +27,9 @@ export const useDeepLinking = () => {
     const dispatch = useDispatch();
     const parseDeepLink = useCallback((url: string): DeepLinkParams | null => {
         try {
-            console.log('Parsing deep link:', url);
             const parsed = Linking.parse(url);
             const { queryParams } = parsed;
             
-            console.log('Parsed URL:', parsed);
-            console.log('Query params:', queryParams);
 
             return {
                 projectLink: queryParams?.['project-link'] as string,
@@ -40,22 +37,18 @@ export const useDeepLinking = () => {
                 poseId: queryParams?.['poseId'] as string,
             };
         } catch (error) {
-            console.error('Error parsing deep link:', error);
             return null;
         }
     }, []);
 
     const handleDeepLink = useCallback((params: DeepLinkParams) => {
-        console.log('Handling deep link with params:', params);
 
         // Handle project-link parameter
         if (params.projectLink) {
-            console.log('Navigating to project with link:', params.projectLink);
             dispatch(updateInviteId(`bulk:${params.projectLink}`));
         } 
         // Handle project-invite parameter
         else if (params.projectInvite) {
-            console.log('Navigating to project invite:', params.projectInvite);
             dispatch(updateInviteId(`email:${params.projectInvite}`));
         }
     }, [navigation]);
@@ -63,13 +56,11 @@ export const useDeepLinking = () => {
     const processInitialURL = useCallback(async () => {
         // Prevent processing initial URL multiple times
         if (hasHandledInitialUrl.current) {
-            console.log('Initial URL already handled, skipping...');
             return;
         }
 
         try {
             const initialUrl = await Linking.getInitialURL();
-            console.log('Initial URL:', initialUrl);
             
             if (initialUrl) {
                 hasHandledInitialUrl.current = true;
@@ -81,10 +72,8 @@ export const useDeepLinking = () => {
                         handleDeepLink(params);
                     }, 1000);
                 } else {
-                    console.log('No valid params found in initial URL');
                 }
             } else {
-                console.log('No initial URL found');
             }
         } catch (error) {
             console.error('Error getting initial URL:', error);
@@ -92,13 +81,11 @@ export const useDeepLinking = () => {
     }, [parseDeepLink, handleDeepLink]);
 
     const handleUrlChange = useCallback(({ url }: { url: string }) => {
-        console.log('URL changed:', url);
         const params = parseDeepLink(url);
         
         if (params && (params.projectLink || params.projectInvite || params.poseId)) {
             handleDeepLink(params);
         } else {
-            console.log('No valid params found in URL change');
         }
     }, [parseDeepLink, handleDeepLink]);
 
@@ -110,7 +97,6 @@ export const useDeepLinking = () => {
                 appState.current.match(/inactive|background/) &&
                 nextAppState === 'active'
             ) {
-                console.log('App came to foreground, checking for pending deep links...');
                 // Check for any pending deep links when app comes to foreground
                 processInitialURL();
             }
@@ -124,7 +110,6 @@ export const useDeepLinking = () => {
 
     // Handle initial URL and URL changes
     useEffect(() => {
-        console.log('Setting up deep linking listeners...');
         
         // Handle initial URL when app is opened from a deep link
         processInitialURL();
@@ -133,7 +118,6 @@ export const useDeepLinking = () => {
         const subscription = Linking.addEventListener('url', handleUrlChange);
 
         return () => {
-            console.log('Cleaning up deep linking listeners...');
             subscription?.remove();
         };
     }, [processInitialURL, handleUrlChange]);

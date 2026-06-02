@@ -59,7 +59,7 @@ const GuideView = () => {
         navigation.goBack()
       }
     } catch (error) {
-      console.log('Error parsing message:', error)
+      console.error('Error parsing message:', error)
     }
   }
 

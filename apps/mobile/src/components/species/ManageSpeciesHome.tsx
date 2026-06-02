@@ -60,9 +60,7 @@ const ManageSpeciesHome = (props: Props) => {
     setLoading(true)
     try {
       const { responseData, responseError } = await getUserAllSpeceis(v3Approved, currentProjectUid)
-      console.log("responseData", JSON.stringify(responseData,null,2))
       if (responseError) {
-        console.log("There was error gettting user species")
         return
       }
       const normalizedSpecies: IScientificSpecies[] = (responseData ?? []).map((specie) => ({
@@ -83,7 +81,6 @@ const ManageSpeciesHome = (props: Props) => {
       setLoading(false)
     } catch (error) {
       setLoading(false)
-      console.log("error", error)
     }
   }
 

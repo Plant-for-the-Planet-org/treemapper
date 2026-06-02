@@ -53,7 +53,7 @@ const SideBarCard = (props: Props) => {
       dispatch(logoutAppUser())
       dispatch(updateNewIntervention())
     } catch (error) {
-      console.log("Error occurred while logout")
+      console.error("Error occurred while logout")
   }
 }
 

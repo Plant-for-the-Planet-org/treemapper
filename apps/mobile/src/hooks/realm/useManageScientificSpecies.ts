@@ -161,7 +161,6 @@ const useManageScientificSpecies = () => {
 
       return true;
     } catch (error) {
-      console.error('Error during bulk write:', error);
       return false;
     }
   };

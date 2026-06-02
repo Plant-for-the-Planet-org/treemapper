@@ -6,5 +6,5 @@ try {
   // Bugsnag.start(BugSnagConfig)
   OneSignal.initialize(process.env.EXPO_PUBLIC_ONESIGNAL_APP_ID)
 } catch (error) {
-  console.log('Error initializing app services:', error)
+  console.error('Error initializing app services:', error)
 }

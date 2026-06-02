@@ -70,7 +70,6 @@ export const PermissionBlockedAlert = ({
         } else {
           Linking.openURL('app-settings:')
           .catch((err) => {
-            console.error('Failed to open settings:', err);
           });
         }
       }}

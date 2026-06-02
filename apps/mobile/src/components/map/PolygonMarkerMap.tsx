@@ -224,7 +224,6 @@ const PolygonMarkerMap = (props: Props) => {
 
   const proceedTrackComplete = async () => {
     // setCoordinates([...finalCoordinates])
-    console.log("SDsd", trackingGeoJSON)
     const data = makeInterventionGeoJson('Point', trackingGeoJSON[0], form_id)
     const result = await updateInterventionLocation(form_id, { type: 'Polygon', coordinates: data.coordinates }, false)
     if (!result) {

@@ -303,7 +303,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             if (success && result && result.success) {
                 const treeResult = result.tree || {};
                 const persisted = await markPlannedInterventionSynced(el.p1Id, el.p2Id, treeResult.treeHid || '', treeResult.treeUid || '', imageFilename);
-                console.log('[plannedTree] markPlannedInterventionSynced persisted=', persisted, 'p1Id=', el.p1Id, 'p2Id=', el.p2Id)
                 addNewLog({ logType: 'DATA_SYNC', message: `Planned markSynced persisted=${persisted} p1Id=${el.p1Id} p2Id=${el.p2Id}`, logLevel: persisted ? 'info' : 'error', statusCode: '' })
                 if (!persisted) return false
                 return true
@@ -311,7 +310,6 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record API response error', logLevel: 'error', statusCode: '' })
             return false
         } catch (error) {
-            console.log('[plannedTree] error', error)
             addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
             return false
         }

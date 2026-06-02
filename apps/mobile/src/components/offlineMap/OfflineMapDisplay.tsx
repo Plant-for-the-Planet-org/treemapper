@@ -47,7 +47,6 @@ const OfflineMapDisplay = () => {
   }
 
   const errorListener = async (offlineRegion, status) => {
-    console.log("Error", offlineRegion, status)
   }
 
   const alert = (message: string) => {
@@ -93,7 +92,6 @@ const OfflineMapDisplay = () => {
       );
     } catch (err) {
       setIsLoaderShow(false);
-      console.log("err", err)
     }
   };
 

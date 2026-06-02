@@ -307,7 +307,7 @@ const SignUpView = () => {
             dispatch(logoutAppUser())
             navigation.goBack()
         } catch (error) {
-            console.log("Error occurred while logout")
+            console.error("Error occurred while logout")
         }
     }
 
