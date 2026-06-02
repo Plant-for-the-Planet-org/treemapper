@@ -47,7 +47,6 @@ const AddOptionModal = (props: Props) => {
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject)
   const userType = useSelector((state: RootState) => state.userState.type)
   const GPSLocation = useSelector((state: RootState) => state.gpsState.user_location)
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
   const showPlotFeature = useSelector((state: RootState) => state.userState.showPlotFeature)
 
 
@@ -70,8 +69,7 @@ const AddOptionModal = (props: Props) => {
 
 
   const checkWhetherProjectIsSelected = () => {
-    const showProjectModal = v3Approved || userType === 'tpo'
-    if (!currentProject.projectId && props.visible && showProjectModal) {
+    if (!currentProject.projectId && props.visible) {
       toggleModal()
       return false
     }
@@ -105,19 +103,13 @@ const AddOptionModal = (props: Props) => {
     {
       svgIcon: <CrossArrow width={SCALE_24} height={SCALE_24} />,
       title: i18next.t('label.project_sites'),
-      coming_soon: v3Approved ? true : false,
+      coming_soon: false,
       onPress: () => {
-        if (userType !== 'tpo' && !v3Approved) {
-          toast.hideAll()
-          toast.show("Please login from RO account")
-          props.setVisible(false)
-        } else {
-          provideLocation()
-          navigation.navigate('ProjectSites')
-          props.setVisible(false)
-        }
+        provideLocation()
+        navigation.navigate('ProjectSites')
+        props.setVisible(false)
       },
-      disabled: v3Approved ? true : false,
+      disabled: false,
     },
     {
       svgIcon: <Intervention width={SCALE_24} height={SCALE_24} />,

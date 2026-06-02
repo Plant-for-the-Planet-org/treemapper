@@ -52,7 +52,7 @@ const CarouselItem = (props: Props) => {
         onPress(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>Add details</Text>
-      </TouchableOpacity> : v3Approved && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+      </TouchableOpacity> :data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>

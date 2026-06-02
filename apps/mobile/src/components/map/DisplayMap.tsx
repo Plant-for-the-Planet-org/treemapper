@@ -38,7 +38,7 @@ const DisplayMap = () => {
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
   )
-  const { type: userType, v3Approved } = useSelector(
+  const { type: userType } = useSelector(
     (state: RootState) => state.userState,
   )
 
@@ -62,7 +62,7 @@ const DisplayMap = () => {
   const handleGeoJSONData = () => {
     const dateFilter = filterToTime(interventionFilter)
     const filterData = interventionData.filter(el => el.intervention_date >= dateFilter && selectedFilters.includes(el.intervention_key)).filter(el => {
-      if ((onlyRemeasurement && userType === 'tpo') && onlyRemeasurement && v3Approved) {
+      if (onlyRemeasurement) {
         return el.remeasurement_required === true
       }
       return el
@@ -74,7 +74,7 @@ const DisplayMap = () => {
         JSON.parse(el.location.coordinates),
         el.intervention_id,
         {
-          key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+          key: (el.remeasurement_required) || (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
           site: el.entire_site,
         }
       )
@@ -127,13 +127,6 @@ const DisplayMap = () => {
   const handleCameraViewChange = () => {
     const { bounds, key } = MapBounds
 
-    // Check if bounds are valid (should have exactly 4 values: [minLon, minLat, maxLon, maxLat])
-    // if (!bounds || bounds.length !== 4) {
-    //   if (userType !== 'tpo' || v3Approved) {
-    //     handleCamera()
-    //   }
-    //   return
-    // }
 
     if (key === 'DISPLAY_MAP') {
       // Use the bounding box to fit the entire polygon area
@@ -197,7 +190,7 @@ const DisplayMap = () => {
             el.intervention_id,
             {
               active: el.active ? 'true' : 'false',
-              key: (el.remeasurement_required && userType === 'tpo') || (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+              key: (el.remeasurement_required) || (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
             }
           )
           feature.push(result.geoJSON)
@@ -252,7 +245,7 @@ const DisplayMap = () => {
           el.intervention_id,
           {
             active: el.active ? 'true' : 'false',
-            key: (el.remeasurement_required && userType === 'tpo') && (el.remeasurement_required && v3Approved) ? 'remeasurement' : el.intervention_key,
+            key: (el.remeasurement_required) && (el.remeasurement_required) ? 'remeasurement' : el.intervention_key,
           }
         )
         feature.push(result.geoJSON)

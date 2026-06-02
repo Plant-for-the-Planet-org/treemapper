@@ -70,10 +70,8 @@ const InterventionFormView = () => {
   const UserType = useSelector(
     (state: RootState) => state.userState.type
   )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved
-  )
-  const isTpoUser = userType === 'tpo' || v3Approved
+
+  const isTpoUser = true
   const paramId = route.params ? route.params.id : ''
 
   useEffect(() => {

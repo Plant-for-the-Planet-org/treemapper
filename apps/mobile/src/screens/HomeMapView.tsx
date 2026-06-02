@@ -24,9 +24,7 @@ const HomeMapView = () => {
   const userType = useSelector(
     (state: RootState) => state.userState.type,
   )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved,
-  )
+
 
 
   const toggleFilterModal = () => {
@@ -51,7 +49,7 @@ const HomeMapView = () => {
       )}
       <DisplayMap />
       <SatelliteIconWrapper />
-      <UserlocationMarker low stopAutoFocus={userType === 'tpo' || v3Approved} />
+      <UserlocationMarker low stopAutoFocus={true} />
       <FilterModal
         isVisible={showFilterModal}
         toggleModal={toggleFilterModal}

@@ -40,18 +40,9 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
   const allProjects = useQuery(RealmSchema.Projects, data => {
     return data
   })
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved
-  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const handleProjectCreation = () => {
-    if (v3Approved) {
-      navigation.navigate('CreateProject')
-    } else {
-      openWebView(
-        `https://web.plant-for-the-planet.org/en/profile/projects/new-project`,
-      )
-    }
+    navigation.navigate('CreateProject')
   }
 
   const renderFooter = () => {
@@ -75,17 +66,14 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
           return (
             <TouchableProjectItem
               item={item}
-              v3Approved={v3Approved}
               onProjectPress={() => {
-                if (!v3Approved && onProjectPress) {
-                  onProjectPress(item.id)
-                }
+                return null
               }}
               selectedProjectId={selectedProjectId}
             />
           )
         }
-        return <ProjectItem item={item} v3Approved={v3Approved} />
+        return <ProjectItem item={item} />
       }}
       keyExtractor={(item: any) => item.id}
       style={styles.container}
@@ -95,11 +83,9 @@ export default function ProjectList(props: ReadonlyProjectListProps) {
 
 const ProjectItem = ({
   item,
-  v3Approved,
   selectedProjectId,
 }: {
   item: any
-  v3Approved: boolean
   selectedProjectId?: string
 }) => {
   const isProjectSelected = selectedProjectId === item.id
@@ -133,9 +119,6 @@ const ProjectItem = ({
         ]}>
         {item.name}
       </Text>
-      {!v3Approved && <View style={[styles.chipWrapper, { borderColor: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>
-        <Text style={[styles.chipLabel, { color: item.purpose === 'trees' ? Colors.NEW_PRIMARY : Colors.LIGHT_AMBER }]}>{item.purpose.toUpperCase()}</Text>
-      </View>}
     </View>
   )
 }
@@ -144,21 +127,16 @@ const TouchableProjectItem = ({
   item,
   onProjectPress,
   selectedProjectId,
-  v3Approved
 }: {
   item: any
   onProjectPress: any
   selectedProjectId?: string
-  v3Approved: boolean
 }) => {
   return (
     <Pressable onPress={() => {
-      if (!v3Approved && onProjectPress) {
-        onProjectPress(item.id)
-
-      }
+      return null
     }}>
-      <ProjectItem item={item} selectedProjectId={selectedProjectId} v3Approved={v3Approved} />
+      <ProjectItem item={item} selectedProjectId={selectedProjectId} />
     </Pressable >
   )
 }

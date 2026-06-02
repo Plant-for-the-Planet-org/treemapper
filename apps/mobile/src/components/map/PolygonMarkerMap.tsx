@@ -59,9 +59,6 @@ const PolygonMarkerMap = (props: Props) => {
   const user = useSelector(
     (state: RootState) => state.userState.type,
   )
-  const v3Approved = useSelector(
-    (state: RootState) => state.userState.v3Approved,
-  )
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const { updateInterventionLocation } = useInterventionManagement()
   const toast = useToast();
@@ -422,7 +419,7 @@ const PolygonMarkerMap = (props: Props) => {
         /> : null
       }
       {!isTracking && <ActiveMarkerIcon />}
-      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={user === 'tpo' || v3Approved} />
+      {!isTracking && <UserlocationMarker high={coordinates.length === 0 && intervention_key === 'multi-tree-registration'} stopAutoFocus={true} />
       }
       <AlertModal
         visible={trackerModal}

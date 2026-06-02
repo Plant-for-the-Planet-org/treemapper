@@ -513,47 +513,23 @@ export class MobileService {
         }
       }
 
-
-      const existingPlanetUser = await this.migrateService.checkUserInttc(token, userData);
-      if (!existingPlanetUser) {
-        throw ''
+      return {
+        country: userData.country,
+        created: userData.createdAt,
+        displayName: userData.displayName,
+        email: userData.email,
+        firstName: userData.firstName,
+        id: userData.uid,
+        image: userData.image,
+        isPrivate: false,
+        lastName: userData.lastName,
+        locale: userData.locale,
+        name: userData.displayName,
+        slug: userData.slug,
+        type: userData.type,
+        v3Approved: true
       }
 
-      if (!existingPlanetUser.existingPlanetUser) {
-        return {
-          country: userData.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: userData.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: userData.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: userData.type,
-          v3Approved: true
-        }
-      } else {
-        return {
-          country: existingPlanetUser.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: existingPlanetUser.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: existingPlanetUser.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: existingPlanetUser.type,
-          v3Approved: false
-        }
-      }
     } catch (error) {
       throw ''
     }
@@ -690,8 +666,8 @@ export class MobileService {
       if (geometry) {
         const cleanGeometry =
           geometry.type === 'Feature' ? geometry.geometry :
-          geometry.type === 'FeatureCollection' ? geometry.features?.[0]?.geometry :
-          geometry;
+            geometry.type === 'FeatureCollection' ? geometry.features?.[0]?.geometry :
+              geometry;
         const latlng = this.extractLatLngFromPoint(geometry); // validates Point
         latitude = latlng.latitude;
         longitude = latlng.longitude;

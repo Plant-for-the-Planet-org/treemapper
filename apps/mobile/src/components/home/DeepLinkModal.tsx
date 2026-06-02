@@ -56,7 +56,6 @@ const DeepLinkModal = () => {
   const { addAllProjects } = useProjectManagement();
   const { inviteId } = useSelector((state: RootState) => state.tempState);
   const isLoggedIn = useSelector((state: RootState) => state.appState.isLoggedIn);
-  const v3Approved = useSelector((state: RootState) => state.userState.v3Approved);
   const currentProject = useSelector((state: RootState) => state.projectState.currentProject);
 
 
@@ -71,7 +70,7 @@ const DeepLinkModal = () => {
   }, [isVisible, isLoggedIn, inviteId]);
 
   const refreshProjectsAfterAccept = async () => {
-    const { responseData, responseError } = await getUserProjects(v3Approved);
+    const { responseData, responseError } = await getUserProjects();
     if (!responseError && responseData.length > 0) {
       const result = await addAllProjects(responseData);
       if (result) {

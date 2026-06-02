@@ -22,7 +22,6 @@ interface Props {
   toggleFavSpecies: (item: IScientificSpecies, status: boolean) => void
   userFavSpecies: IScientificSpecies[]
   isManageSpecies: boolean
-  v3Approved: boolean
   currentProjectUid: string
   handleSpeciesPress: (item: IScientificSpecies, onlyProjectSpecies: boolean) => void
 }
@@ -33,7 +32,6 @@ const ManageSpeciesHome = (props: Props) => {
     userFavSpecies,
     isManageSpecies,
     handleSpeciesPress,
-    v3Approved,
     currentProjectUid
   } = props
   const [loading, setLoading] = useState(false)
@@ -59,7 +57,7 @@ const ManageSpeciesHome = (props: Props) => {
   const syncUserSpecies = async () => {
     setLoading(true)
     try {
-      const { responseData, responseError } = await getUserAllSpeceis(v3Approved, currentProjectUid)
+      const { responseData, responseError } = await getUserAllSpeceis(currentProjectUid)
       if (responseError) {
         return
       }
@@ -117,7 +115,6 @@ const ManageSpeciesHome = (props: Props) => {
           onlyProjectSpecies={onlyProjectSpecies}
           onToggleProjectSpecies={setOnlyProjectSpecies}
           isFetching={loading}
-          v3Approved={v3Approved}
         />
       }
       ListEmptyComponent={<EmptyManageSpeciesList />}

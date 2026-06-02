@@ -411,26 +411,17 @@ export const getAllProjects = async () => {
 
 // Species
 
-export const getUserAllSpeceis = async (newBackend: boolean, id?: string) => {
+export const getUserAllSpeceis = async (id?: string) => {
   let result: { responseData: any, responseError: boolean }
-  if (newBackend && id) {
+  if (id) {
     let { response, success } = await getUserProjectSpecies(id)
     if (success) {
       result = { responseData: response.data, responseError: false }
     } else {
       result = { responseData: null, responseError: false }
-
-    }
-  } else {
-    let { response, success } = await getUserSpecies()
-    if (success) {
-      result = { responseData: response, responseError: false }
-    } else {
-      result = { responseData: null, responseError: false }
-
     }
   }
-  return result
+  return { responseData: null, responseError: false }
 }
 
 

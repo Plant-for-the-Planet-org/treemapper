@@ -18,11 +18,10 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 interface Props {
   data: InterventionData
   userType: string
-  v3Approved:boolean
 }
 
 const InterventionBasicInfo = (props: Props) => {
-  const { userType, v3Approved } = props
+  const { userType } = props
   const { intervention_key, entire_site, status, intervention_end_date, intervention_date, project_id, site_id, project_name, site_name, intervention_title, hid, location, intervention_id, planted_species, sample_trees } = props.data
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
 
@@ -212,7 +211,7 @@ const InterventionBasicInfo = (props: Props) => {
           <Text style={styles.cardTitle}>{i18next.t('label.type')}</Text>
           <Text style={styles.cardLabel}>{intervention_title}</Text>
         </View>
-        {(userType === 'tpo' && status !== 'SYNCED') || (v3Approved && status !== 'SYNCED') ? (
+        {(status !== 'SYNCED') ? (
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.project')}</Text>
@@ -221,7 +220,7 @@ const InterventionBasicInfo = (props: Props) => {
             <Text style={styles.cardLabel}>{project_name || "No Project assigned"}</Text>
           </Pressable>
         ) : null}
-        {(userType === 'tpo' && status !== 'SYNCED') || (v3Approved && status !== 'SYNCED') ? (
+        {(status !== 'SYNCED') ? (
           <Pressable style={styles.cardWrapper} onPress={openEditProject}>
             <View style={styles.projectWrapper}>
               <Text style={styles.cardTitle}>{i18next.t('label.site')}</Text>
@@ -229,7 +228,7 @@ const InterventionBasicInfo = (props: Props) => {
             </View>
             <Text style={styles.cardLabel}>{site_name || "No Site Selected"}</Text>
           </Pressable>
-        ):null}
+        ) : null}
         {plantedSpecies()}
       </View>
     </View>
