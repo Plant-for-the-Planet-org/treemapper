@@ -9,20 +9,18 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
-import { resetProjectState } from 'src/store/slice/projectStateSlice'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { logoutAppUser, updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserLogin, updateUserSpeciesadded, updateUserToken } from 'src/store/slice/appStateSlice'
+import { updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
-import useAuthentication from 'src/hooks/useAuthentication'
+import { refreshSession } from 'src/api/sessionManager'
 import useAppStartup from 'src/hooks/useAppStartup'
 import useDeviceRegistration from 'src/hooks/useDeviceRegistration'
 import SyncIntervention from '../intervention/SyncIntervention'
 import { Colors } from 'src/utils/constants'
 import { SCALE_24 } from 'src/utils/constants/spacing'
 import SpeciesSync from '../common/SpeciesSync'
-import { resetUserDetails } from 'src/store/slice/userStateSlice'
 import NetInfo from "@react-native-community/netinfo";
 import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
@@ -35,7 +33,6 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
-  const { logoutUser } = useAuthentication()
   const { registerDevice } = useDeviceRegistration()
   const { toggleFilterModal, toggleProjectModal } = props
   useAppStartup()
@@ -44,8 +41,7 @@ const HomeHeader = (props: Props) => {
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
   const [tokenValid, setTokenValid] = useState<boolean>(false)
-  const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt, refreshToken } = useSelector((state: RootState) => state.appState)
-  const { refreshUserToken } = useAuthentication()
+  const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt } = useSelector((state: RootState) => state.appState)
   const { addNewLog } = useLogManagement()
 
   const { isSyncing } = useSelector(
@@ -117,19 +113,6 @@ const HomeHeader = (props: Props) => {
     }
   }
 
-  const handleLogout = async () => {
-    try {
-      await logoutUser()
-      dispatch(resetProjectState())
-      dispatch(updateUserLogin(false))
-      dispatch(resetUserDetails())
-      dispatch(logoutAppUser())
-      dispatch(updateNewIntervention())
-    } catch (error) {
-      console.log("Error occurred while logout")
-    }
-  }
-
   const deleteThis = ["ivn_IkUNHz5Cn2vf7iy0FOcmIBHN", "ivn_fVSURzjYpGU0ozFD60dPrbJF", "ivn_8HnYd9gTXBt108EUALRiEhnp"]
 
 
@@ -138,25 +121,11 @@ const HomeHeader = (props: Props) => {
     if (!isConnected) {
       return;
     }
-    try {
-      const credentials = await refreshUserToken(refreshToken)
-      if (credentials) {
-        dispatch(
-          updateUserToken({
-            idToken: credentials.idToken,
-            accessToken: credentials.accessToken,
-            expiringAt: credentials.expiresAt,
-            refreshToken: credentials.refreshToken
-          })
-        )
-      }
-      if (!credentials && isLoggedIn) {
-        handleLogout()
-      }
-    } catch (error) {
-      handleLogout()
-      console.log("error", error)
-    }
+    // refreshSession renews via the SDK's stored refresh token, writes the
+    // fresh tokens to Redux, and forces logout itself if the refresh fails.
+    // minTtl matches the 5-hour proactive window in
+    // hasTimestampExpiredOrCloseToExpiry below.
+    await refreshSession({ minTtl: 5 * 60 * 60 })
   }
 
   function hasTimestampExpiredOrCloseToExpiry(timestamp) {

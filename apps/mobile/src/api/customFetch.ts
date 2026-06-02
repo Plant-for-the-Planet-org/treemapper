@@ -1,4 +1,5 @@
 import store from 'src/store/index'
+import { refreshSession } from './sessionManager'
 import 'react-native-get-random-values'
 import { v4 as uuid } from 'uuid'
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -20,7 +21,7 @@ const defaultHeaders = {
   "User-Agent": `treemapper/${Platform.OS}/${Application.nativeApplicationVersion}`
 }
 
-const fetchCall = async (method: string, uri: string, params: any = null, authRequire: boolean = true) => {
+const fetchCall = async (method: string, uri: string, params: any = null, authRequire: boolean = true, isRetry: boolean = false) => {
   try {
     const token = store.getState().appState.accessToken;
     if (!token && authRequire) {
@@ -44,6 +45,15 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
     }
 
     const response = await fetch(uri, options);
+
+    // Access token expired or rejected: refresh once and replay the request.
+    if (response.status === 401 && authRequire && !isRetry) {
+      const newToken = await refreshSession({ forceRefresh: true });
+      if (newToken) {
+        return fetchCall(method, uri, params, authRequire, true);
+      }
+    }
+
     const responseJson = await response.json();
 
     if (response.status === 303) {
