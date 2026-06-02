@@ -41,38 +41,64 @@ const SiteMapSource = (props: Props) => {
     }
   }, [projectAdded, lastProjectAdded])
 
+  const toPolygonFeature = (geometry: any) => {
+    if (!geometry?.coordinates) {
+      return null
+    }
+    if (geometry.type === 'Polygon') {
+      return {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'Polygon',
+          coordinates: [...geometry.coordinates],
+        },
+      }
+    }
+    if (geometry.type === 'MultiPolygon') {
+      // Keep it a MultiPolygon so every polygon renders, not just the first.
+      return {
+        type: 'Feature',
+        properties: {},
+        geometry: {
+          type: 'MultiPolygon',
+          coordinates: [...geometry.coordinates],
+        },
+      }
+    }
+    return null
+  }
+
   const extractSiteCoordinates = (data: any[]) => {
     try {
 
-      const allProjectSites = []
+      const allProjectSites: any[] = []
       data.forEach(el => {
         if (el.sites && el.sites.length > 0) {
           allProjectSites.push(...el.sites)
         }
       })
-      const reducedSites = [];
+      const reducedSites: any[] = [];
       for (const siteDetails of allProjectSites) {
         if (siteDetails?.geometry) {
           const parsedData = JSON.parse(siteDetails.geometry);
-          if (parsedData?.coordinates) {
-            if (parsedData.type === 'Polygon') {
-              reducedSites.push({
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [...parsedData.coordinates],
-                },
-              });
-            } else if (parsedData.type === 'MultiPolygon') {
-              reducedSites.push({
-                type: 'Feature',
-                properties: {},
-                geometry: {
-                  type: 'Polygon',
-                  coordinates: [...parsedData.coordinates[0]],
-                },
-              });
+          // Stored geometry can be a FeatureCollection, a Feature, or a bare geometry.
+          if (parsedData?.type === 'FeatureCollection' && Array.isArray(parsedData.features)) {
+            for (const feature of parsedData.features) {
+              const polygon = toPolygonFeature(feature?.geometry);
+              if (polygon) {
+                reducedSites.push(polygon);
+              }
+            }
+          } else if (parsedData?.type === 'Feature') {
+            const polygon = toPolygonFeature(parsedData.geometry);
+            if (polygon) {
+              reducedSites.push(polygon);
+            }
+          } else {
+            const polygon = toPolygonFeature(parsedData);
+            if (polygon) {
+              reducedSites.push(polygon);
             }
           }
         }
@@ -85,6 +111,7 @@ const SiteMapSource = (props: Props) => {
   if (!geoJSON) {
     return null
   }
+  console.log('site geojson', geoJSON)
   return (
     <GeoJSONSource id={'projectSites'} data={{
       type: 'FeatureCollection',

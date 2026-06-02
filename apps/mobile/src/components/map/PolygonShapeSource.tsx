@@ -53,11 +53,21 @@ const PolygonShapeSource = (props: Props) => {
         filter={['all', ['==', ['get', 'site'], false], ['==', ['geometry-type'], 'Polygon']]}
       />
       <Layer
+        id={'singleSelectedPointHalo'}
+        type="circle"
+        style={{
+          circleColor: isSatellite ? WHITE : NEW_PRIMARY,
+          circleOpacity: 0.9,
+          circleRadius: 8,
+        }}
+        filter={['all', ["==", ["geometry-type"], "Point"], ['==', ['get', 'site'], false]]} />
+      <Layer
         id={'singleSelectedPolyCircle'}
         type="circle"
         style={{
           circleOpacity: 0.8,
           circleColor: FillColor,
+          circleRadius: 5,
           circleStrokeWidth: 2,
           circleStrokeColor: isSatellite ? NEW_PRIMARY : WHITE,
         }}

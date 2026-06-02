@@ -414,6 +414,28 @@ export class InterventionsController {
     }
   }
 
+  @Get(':id/intervention/:interventionId/detail')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  async getInterventionDetail(
+    @Param('interventionId', ParseIntPipe) interventionId: number,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      const data = await this.interventionsService.getInterventionFullDetail(
+        interventionId,
+        membership.projectId,
+      );
+      return { success: true, statusCode: 200, data };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error?.message || 'Failed to fetch intervention detail',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get('trees/:treeHid/:id/records')
   @ProjectRoles('owner', 'admin', 'contributor', 'observer')
   @UseGuards(ProjectPermissionsGuard)
@@ -431,6 +453,28 @@ export class InterventionsController {
       if (error instanceof HttpException) throw error;
       throw new HttpException(
         error.message || 'Failed to fetch tree records',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Get('trees/:treeHid/:id/detail')
+  @ProjectRoles('owner', 'admin', 'contributor', 'observer')
+  @UseGuards(ProjectPermissionsGuard)
+  async getTreeDetail(
+    @Param('treeHid') treeHid: string,
+    @Membership() membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      const result = await this.interventionsService.getTreeDetail(
+        treeHid,
+        membership.projectId,
+      );
+      return { success: true, statusCode: 200, data: result };
+    } catch (error: any) {
+      if (error instanceof HttpException) throw error;
+      throw new HttpException(
+        error.message || 'Failed to fetch tree detail',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

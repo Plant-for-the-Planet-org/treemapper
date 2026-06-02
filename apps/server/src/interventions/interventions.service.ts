@@ -3105,10 +3105,13 @@ async interventionEdit(
         plantingDate: tree.plantingDate,
         lastMeasurementDate: tree.lastMeasurementDate,
         image: tree.image,
+        migratedTree: tree.migratedTree,
 
         // Species information
         speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
         commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
       })
       .from(tree)
       .leftJoin(
@@ -3144,6 +3147,154 @@ async interventionEdit(
       trees,
       intervention: interventionData,
       bounds: bufferedBounds,
+    };
+  }
+
+  /**
+   * Full detail for a single intervention, used by the overview map panel.
+   * Returns the intervention (with owner), every tree in it (each with its
+   * owner, latest measurements, species and resolved photo) and the map bounds
+   * so the client can plot the tree markers. All data comes straight from the
+   * tree/intervention tables -- no tree_record history is read here.
+   */
+  async getInterventionFullDetail(
+    interventionId: number,
+    projectId: number,
+  ): Promise<any> {
+    const [interventionRow] = await this.drizzleService.db
+      .select({
+        id: intervention.id,
+        uid: intervention.uid,
+        hid: intervention.hid,
+        type: intervention.type,
+        status: intervention.status,
+        projectId: intervention.projectId,
+        registrationDate: intervention.registrationDate,
+        interventionStartDate: intervention.interventionStartDate,
+        interventionEndDate: intervention.interventionEndDate,
+        location: sql<GeoJSON.Point | GeoJSON.Polygon | GeoJSON.MultiPolygon>`ST_AsGeoJSON(${intervention.location})::json`,
+        locationGeometryType: sql<string>`REPLACE(ST_GeometryType(${intervention.location}), 'ST_', '')`,
+        centroid: sql<GeoJSON.Point | null>`
+          CASE
+            WHEN ST_GeometryType(${intervention.location}) = 'ST_Point' THEN NULL
+            ELSE ST_AsGeoJSON(ST_Centroid(${intervention.location}))::json
+          END
+        `,
+        area: intervention.area,
+        totalTreeCount: intervention.totalTreeCount,
+        totalSampleTreeCount: intervention.totalSampleTreeCount,
+        description: intervention.description,
+        image: intervention.image,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(intervention)
+      .leftJoin(user, eq(intervention.userId, user.id))
+      .where(
+        and(
+          eq(intervention.id, interventionId),
+          isNull(intervention.deletedAt),
+        ),
+      )
+      .limit(1);
+
+    if (!interventionRow) {
+      throw new NotFoundException('Intervention not found');
+    }
+
+    if (interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this intervention');
+    }
+
+    // Resolve the intervention photo: stored value first, then the latest
+    // primary image row. Mirrors the fallback used in getTreeDetail.
+    let resolvedImage: string | null = interventionRow.image ?? null;
+    if (!resolvedImage) {
+      const [primaryImage] = await this.drizzleService.db
+        .select({ filename: image.filename })
+        .from(image)
+        .where(
+          and(
+            eq(image.entityType, 'intervention'),
+            eq(image.entityId, interventionRow.id),
+            isNull(image.deletedAt),
+            sql`${image.filename} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(image.isPrimary), desc(image.createdAt))
+        .limit(1);
+      if (primaryImage?.filename) resolvedImage = primaryImage.filename;
+    }
+
+    const { projectId: _omitProjectId, ...interventionRest } = interventionRow;
+    const interventionData: any = {
+      ...interventionRest,
+      image: resolvedImage,
+      registrationDate: interventionRow.registrationDate.toISOString(),
+      interventionStartDate: interventionRow.interventionStartDate.toISOString(),
+      interventionEndDate: interventionRow.interventionEndDate.toISOString(),
+      owner: interventionRow.ownerName
+        ? { displayName: interventionRow.ownerName, image: interventionRow.ownerImage }
+        : null,
+    };
+
+    // Trees with species info plus the planter (owner) of each tree.
+    const treesQuery = await this.drizzleService.db
+      .select({
+        id: tree.id,
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        treeType: tree.treeType,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${tree.location})::json`,
+        status: tree.status,
+        height: tree.height,
+        width: tree.width,
+        currentHealthScore: tree.currentHealthScore,
+        plantingDate: tree.plantingDate,
+        lastMeasurementDate: tree.lastMeasurementDate,
+        image: tree.image,
+        migratedTree: tree.migratedTree,
+        speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
+        commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(tree)
+      .leftJoin(interventionSpecies, eq(tree.interventionSpeciesId, interventionSpecies.id))
+      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
+      .leftJoin(user, eq(tree.createdById, user.id))
+      .where(
+        and(
+          eq(tree.interventionId, interventionId),
+          isNull(tree.deletedAt),
+        ),
+      )
+      .orderBy(tree.tag);
+
+    // Single-tree interventions keep the point on the intervention itself, so a
+    // tree row may have no location of its own. Fall back to the intervention
+    // point in that case so the one tree still shows and plots on the map.
+    const fallbackPoint =
+      interventionData.location?.type === 'Point' ? interventionData.location : null;
+
+    const trees: any[] = treesQuery.map((row) => ({
+      ...row,
+      location: row.location ?? fallbackPoint,
+      plantingDate: row.plantingDate?.toISOString() ?? null,
+      lastMeasurementDate: row.lastMeasurementDate?.toISOString() ?? null,
+    }));
+
+    const bounds = this.addBufferToBounds(
+      this.calculateBounds(trees.map((t) => t.location)),
+    );
+
+    return {
+      intervention: interventionData,
+      trees,
+      bounds,
     };
   }
 
@@ -4164,6 +4315,111 @@ async interventionEdit(
       tree: { hid: treeRow.hid, uid: treeRow.uid, status: treeRow.status },
       records,
       total: records.length,
+    };
+  }
+
+  /**
+   * Full detail for a single tree, used by the overview map when a tree marker
+   * is clicked. Resolves the best available photo: the tree's own image, then
+   * the latest primary row in the image table, then the most recent record
+   * photo. Returns the raw filename so the client can build the CDN URL the
+   * same way it does for the tree list.
+   */
+  async getTreeDetail(treeHid: string, projectId: number): Promise<any> {
+    const [treeRow] = await this.drizzleService.db
+      .select({
+        id: tree.id,
+        uid: tree.uid,
+        hid: tree.hid,
+        tag: tree.tag,
+        treeType: tree.treeType,
+        interventionId: tree.interventionId,
+        location: sql<GeoJSON.Point>`ST_AsGeoJSON(${tree.location})::json`,
+        status: tree.status,
+        statusReason: tree.statusReason,
+        height: tree.height,
+        width: tree.width,
+        currentHealthScore: tree.currentHealthScore,
+        plantingDate: tree.plantingDate,
+        lastMeasurementDate: tree.lastMeasurementDate,
+        image: tree.image,
+        migratedTree: tree.migratedTree,
+        speciesName: sql<string>`COALESCE(${tree.speciesName}, ${interventionSpecies.speciesName}, ${scientificSpecies.scientificName})`,
+        commonName: sql<string>`COALESCE(${tree.commonName}, ${interventionSpecies.commonName}, ${scientificSpecies.commonName})`,
+        speciesImage: scientificSpecies.image,
+        speciesFamily: scientificSpecies.family,
+        ownerName: user.displayName,
+        ownerImage: user.image,
+      })
+      .from(tree)
+      .leftJoin(interventionSpecies, eq(tree.interventionSpeciesId, interventionSpecies.id))
+      .leftJoin(scientificSpecies, eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id))
+      .leftJoin(user, eq(tree.createdById, user.id))
+      .where(and(eq(tree.hid, treeHid), isNull(tree.deletedAt)))
+      .limit(1);
+
+    if (!treeRow) throw new NotFoundException(`Tree ${treeHid} not found`);
+
+    const [interventionRow] = await this.drizzleService.db
+      .select({ projectId: intervention.projectId })
+      .from(intervention)
+      .where(eq(intervention.id, treeRow.interventionId))
+      .limit(1);
+
+    if (!interventionRow || interventionRow.projectId !== projectId) {
+      throw new ForbiddenException('You do not have access to this tree');
+    }
+
+    // Resolve the best photo, in priority order.
+    let resolvedImage: string | null = treeRow.image ?? null;
+    let imageSource: 'tree' | 'image' | 'record' | null = resolvedImage ? 'tree' : null;
+
+    if (!resolvedImage) {
+      const [primaryImage] = await this.drizzleService.db
+        .select({ filename: image.filename })
+        .from(image)
+        .where(
+          and(
+            eq(image.entityType, 'tree'),
+            eq(image.entityId, treeRow.id),
+            isNull(image.deletedAt),
+            sql`${image.filename} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(image.isPrimary), desc(image.createdAt))
+        .limit(1);
+      if (primaryImage?.filename) {
+        resolvedImage = primaryImage.filename;
+        imageSource = 'image';
+      }
+    }
+
+    if (!resolvedImage) {
+      const [recordImage] = await this.drizzleService.db
+        .select({ filename: treeRecord.image })
+        .from(treeRecord)
+        .where(
+          and(
+            eq(treeRecord.treeId, treeRow.id),
+            isNull(treeRecord.deletedAt),
+            sql`${treeRecord.image} IS NOT NULL`,
+          ),
+        )
+        .orderBy(desc(treeRecord.recordedAt))
+        .limit(1);
+      if (recordImage?.filename) {
+        resolvedImage = recordImage.filename;
+        imageSource = 'record';
+      }
+    }
+
+    const { interventionId, ...rest } = treeRow;
+    return {
+      ...rest,
+      image: resolvedImage,
+      imageSource,
+      plantingDate: treeRow.plantingDate?.toISOString() ?? null,
+      lastMeasurementDate: treeRow.lastMeasurementDate?.toISOString() ?? null,
     };
   }
 

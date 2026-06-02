@@ -17,6 +17,12 @@ import {
     Plus,
     Minus,
     Layers,
+    Copy,
+    Check,
+    MapPin,
+    User,
+    History,
+    ArrowRight,
 } from 'lucide-react';
 import * as turf from '@turf/turf';
 import { getAllMapInterevntions, getProjectSitesMap } from '@shared-core/fetchApi/api.fetch';
@@ -40,6 +46,7 @@ interface MapIntervention {
     totalSampleTreeCount: number;
     description?: string;
     image?: string;
+    owner?: { displayName: string | null; image: string | null } | null;
 }
 
 interface MapTree {
@@ -52,12 +59,33 @@ interface MapTree {
     status: string;
     speciesName?: string;
     commonName?: string;
-    currentHeight?: number;
-    currentWidth?: number;
+    speciesImage?: string;
+    speciesFamily?: string;
+    height?: number;
+    width?: number;
     currentHealthScore?: number;
     plantingDate?: string;
     lastMeasurementDate?: string;
     image?: string;
+    migratedTree?: boolean;
+    ownerName?: string | null;
+    ownerImage?: string | null;
+}
+
+// A single remeasurement / status-change record for a tree.
+interface TreeRecord {
+    id: number;
+    uid: string;
+    recordType?: string;
+    recordedAt?: string;
+    previousStatus?: string | null;
+    newStatus?: string | null;
+    statusReason?: string | null;
+    height?: number | null;
+    width?: number | null;
+    notes?: string | null;
+    image?: string | null;
+    recordedByName?: string | null;
 }
 
 interface SiteFeature {
@@ -91,9 +119,9 @@ interface ProjectMapResponse {
     totalInterventions: number;
 }
 
-interface InterventionTreesResponse {
-    trees: MapTree[];
+interface InterventionDetailResponse {
     intervention: MapIntervention;
+    trees: MapTree[];
     bounds: ProjectMapBounds;
 }
 
@@ -107,7 +135,6 @@ interface ApiResponse<T> {
 interface MapState {
     selectedInterventionId: number | null;
     selectedTreeId: number | null;
-    isLoadingTrees: boolean;
     showTreeDetails: boolean;
 }
 
@@ -195,6 +222,37 @@ const formatDate = (dateString: string): string => {
     } catch {
         return 'Invalid date';
     }
+};
+
+// Resolve the stored tree image key into a full CDN URL. Mirrors the logic in
+// TreeCard: migrated trees keep their legacy coordinate path, everything else
+// lives under the project CDN's `tree/` folder. A value that is already a full
+// URL is passed through untouched.
+const buildTreeImageUrl = (tree: MapTree): string | null => {
+    if (!tree.image) return null;
+    if (/^https?:\/\//i.test(tree.image)) return tree.image;
+    if (tree.migratedTree && /\.(jpe?g|png)$/i.test(tree.image)) {
+        return `https://cdn.plant-for-the-planet.org/media/cache/coordinate/large/${tree.image}`;
+    }
+    return `${process.env.NEXT_PUBLIC_CDN}/tree/${tree.image}`;
+};
+
+// Scientific species reference image lives under the CDN's `species/` folder.
+const buildSpeciesImageUrl = (image?: string): string | null => {
+    if (!image) return null;
+    if (/^https?:\/\//i.test(image)) return image;
+    return `${process.env.NEXT_PUBLIC_CDN}/species/${image}`;
+};
+
+// Format a stored length (in cm) into a friendly m / cm label.
+const formatLength = (v?: number | null): string | null =>
+    v == null ? null : v >= 100 ? `${(v / 100).toFixed(2)} m` : `${v} cm`;
+
+// First-letter initials for an avatar fallback when no photo is available.
+const initialsOf = (name?: string | null): string => {
+    if (!name) return '?';
+    const parts = name.trim().split(/\s+/);
+    return ((parts[0]?.[0] ?? '') + (parts[1]?.[0] ?? '')).toUpperCase() || '?';
 };
 
 const getMarkerPosition = (intervention: MapIntervention): [number, number] => {
@@ -309,20 +367,64 @@ const fetchProjectSites = async (projectId: string, token: string): Promise<Site
     return { type: 'FeatureCollection', features, totalSites: features.length };
 };
 
-const fetchInterventionTrees = async (interventionId: number, token?: string): Promise<ApiResponse<InterventionTreesResponse>> => {
-    const url = `${baseUrl}/interventions/${interventionId}/map/tree`;
+// Responses are double-wrapped: a global interceptor adds an outer
+// { statusCode, message, data, code } envelope around the controller's own
+// { success, statusCode, data } envelope, so the real payload sits at
+// json.data.data. Peel both layers (and tolerate single- or no-wrap shapes).
+const unwrapApi = (json: any): any => json?.data?.data ?? json?.data ?? json;
+
+// Fetch full detail for a single tree. The bulk map/tree list only carries a
+// photo when tree.image is set, which is often empty; this endpoint resolves
+// the best available image (tree photo, then primary image, then latest record
+// photo) plus tag and species. Called lazily when a tree marker is clicked.
+const fetchTreeDetail = async (
+    treeHid: string,
+    projectId: string,
+    token?: string,
+): Promise<Partial<MapTree> | null> => {
+    const url = `${baseUrl}/interventions/trees/${treeHid}/${projectId}/detail`;
     const headers: Record<string, string> = { Accept: 'application/json' };
     if (token) headers['Authorization'] = `Bearer ${token}`;
     const response = await fetch(url, { headers });
     if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
     const data = await response.json();
-    if (data?.success && data.data) return data as ApiResponse<InterventionTreesResponse>;
-    if (Array.isArray(data?.trees)) return { success: true, data };
-    return {
-        success: false,
-        data: { trees: [], intervention: {} as MapIntervention, bounds: { bounds: [-180, -85, 180, 85], center: [0, 0] } },
-        message: 'Unexpected response format',
-    };
+    return unwrapApi(data) as Partial<MapTree> | null;
+};
+
+// Fetch the remeasurement / status-change records for a tree. Records are the
+// history rows (height, width, status change, notes) captured after planting.
+// Called lazily when a tree detail panel opens.
+const fetchTreeRecords = async (
+    treeHid: string,
+    projectId: string,
+    token?: string,
+): Promise<TreeRecord[]> => {
+    const url = `${baseUrl}/interventions/trees/${treeHid}/${projectId}/records`;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const data = await response.json();
+    const payload = unwrapApi(data);
+    return Array.isArray(payload?.records) ? (payload.records as TreeRecord[]) : [];
+};
+
+// Fetch the full detail for an intervention: the intervention itself (with
+// owner + resolved photo) plus every tree in it (each with owner, latest
+// measurements, species and photo) and the map bounds for plotting markers.
+// Fired on every intervention select so the panel always shows fresh data.
+const fetchInterventionDetail = async (
+    interventionId: number,
+    projectId: string,
+    token?: string,
+): Promise<InterventionDetailResponse | null> => {
+    const url = `${baseUrl}/interventions/${projectId}/intervention/${interventionId}/detail`;
+    const headers: Record<string, string> = { Accept: 'application/json' };
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+    const response = await fetch(url, { headers });
+    if (!response.ok) throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    const data = await response.json();
+    return unwrapApi(data) as InterventionDetailResponse | null;
 };
 
 // ==================== COMPONENTS ====================
@@ -542,25 +644,164 @@ const TreeMarker: React.FC<{
     if (!isFinite(lng) || !isFinite(lat) || Math.abs(lng) > 180 || Math.abs(lat) > 90) return null;
 
     return (
-        <Marker longitude={lng} latitude={lat} onClick={onClick}>
-            <Trees
-                size={isSelected ? 20 : 16}
-                color={color}
-                fill={color}
-                className="cursor-pointer drop-shadow-sm"
-            />
+        <Marker longitude={lng} latitude={lat} onClick={onClick} style={{ zIndex: isSelected ? 20 : 1 }}>
+            <div className="relative flex items-center justify-center">
+                {/* Highlight ring for the selected tree */}
+                {isSelected && (
+                    <>
+                        <motion.span
+                            className="absolute rounded-full"
+                            style={{ border: `2px solid ${color}`, width: 38, height: 38 }}
+                            initial={{ scale: 0.6, opacity: 0.8 }}
+                            animate={{ scale: 1.4, opacity: 0 }}
+                            transition={{ duration: 1.4, repeat: Infinity, ease: 'easeOut' }}
+                        />
+                        <span
+                            className="absolute rounded-full"
+                            style={{ backgroundColor: color, opacity: 0.18, width: 32, height: 32 }}
+                        />
+                    </>
+                )}
+                <Trees
+                    size={isSelected ? 22 : 16}
+                    color={isSelected ? '#ffffff' : color}
+                    fill={color}
+                    strokeWidth={isSelected ? 2.5 : 2}
+                    className="relative cursor-pointer drop-shadow-sm transition-all"
+                />
+            </div>
         </Marker>
+    );
+};
+
+// Small copy-to-clipboard button that briefly flips to a check on success.
+const CopyButton: React.FC<{ value: string; title?: string; className?: string }> = ({ value, title = 'Copy', className }) => {
+    const [copied, setCopied] = useState(false);
+    const copy = async (e: React.MouseEvent) => {
+        e.stopPropagation();
+        try {
+            await navigator.clipboard.writeText(value);
+            setCopied(true);
+            setTimeout(() => setCopied(false), 1500);
+        } catch { /* clipboard unavailable */ }
+    };
+    return (
+        <button
+            type="button"
+            onClick={copy}
+            title={copied ? 'Copied' : title}
+            className={`inline-flex items-center justify-center rounded-md text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors ${className ?? 'w-6 h-6'}`}
+        >
+            {copied ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
+        </button>
+    );
+};
+
+// Avatar that shows the person's photo, falling back to their initials.
+const OwnerAvatar: React.FC<{ name?: string | null; image?: string | null; size?: number }> = ({ name, image, size = 24 }) => {
+    const [err, setErr] = useState(false);
+    const px = { width: size, height: size };
+    if (image && !err) {
+        return (
+            <img
+                src={image}
+                alt={name ?? 'owner'}
+                referrerPolicy="no-referrer"
+                onError={() => setErr(true)}
+                className="rounded-full object-cover bg-gray-100 shrink-0"
+                style={px}
+            />
+        );
+    }
+    return (
+        <span
+            className="rounded-full bg-emerald-50 text-emerald-700 flex items-center justify-center font-medium shrink-0"
+            style={{ ...px, fontSize: Math.max(10, size * 0.42) }}
+        >
+            {initialsOf(name)}
+        </span>
+    );
+};
+
+// One tree in the panel's scrollable list. Shows the photo, identity, latest
+// measurements, owner, and a copy-coordinates action. Clicking opens the tree.
+const TreeListItem: React.FC<{ tree: MapTree; onSelect: (tree: MapTree) => void }> = ({ tree, onSelect }) => {
+    const [imgErr, setImgErr] = useState(false);
+    const photo = buildTreeImageUrl(tree);
+    const statusColor = getTreeStatusColor(tree.status);
+    const height = formatLength(tree.height);
+    const width = formatLength(tree.width);
+    const species = tree.speciesName || tree.commonName;
+    const coords = tree.location?.type === 'Point'
+        ? `${tree.location.coordinates[0]}, ${tree.location.coordinates[1]}`
+        : '';
+
+    return (
+        <button
+            type="button"
+            onClick={() => onSelect(tree)}
+            className="w-full text-left flex gap-3 p-2.5 rounded-xl border border-gray-100 hover:border-emerald-200 hover:bg-emerald-50/40 transition-colors"
+        >
+            {/* Thumbnail */}
+            <div className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-100 shrink-0">
+                {photo && !imgErr ? (
+                    <img
+                        src={photo}
+                        alt={tree.tag || tree.hid}
+                        loading="lazy"
+                        onError={() => setImgErr(true)}
+                        className="w-full h-full object-cover"
+                    />
+                ) : (
+                    <div className="w-full h-full flex items-center justify-center text-gray-300">
+                        <Trees className="w-6 h-6" strokeWidth={1.5} />
+                    </div>
+                )}
+                <span
+                    className="absolute bottom-1 left-1 w-2.5 h-2.5 rounded-full ring-2 ring-white"
+                    style={{ backgroundColor: statusColor }}
+                    title={tree.status}
+                />
+            </div>
+
+            {/* Details */}
+            <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-1.5">
+                    <span className="text-sm font-medium text-gray-900 truncate">
+                        {tree.tag ? `Tag ${tree.tag}` : tree.hid}
+                    </span>
+                    <span className="text-[10px] uppercase tracking-wide px-1.5 py-0.5 rounded bg-gray-100 text-gray-500 capitalize shrink-0">
+                        {tree.status}
+                    </span>
+                </div>
+                {species && (
+                    <div className="text-xs text-gray-500 truncate italic">{species}</div>
+                )}
+                <div className="flex items-center gap-2 mt-1 text-[11px] text-gray-500">
+                    {height && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {height}</span>}
+                    {width && <span>⌀ {width}</span>}
+                    {!height && !width && <span className="text-gray-300">No measurements</span>}
+                </div>
+                <div className="flex items-center justify-between mt-1.5">
+                    <span className="flex items-center gap-1.5 min-w-0">
+                        <OwnerAvatar name={tree.ownerName} image={tree.ownerImage} size={18} />
+                        <span className="text-[11px] text-gray-500 truncate">{tree.ownerName || 'Unknown'}</span>
+                    </span>
+                    {coords && <CopyButton value={JSON.stringify(tree.location)} title="Copy GeoJSON coordinates" />}
+                </div>
+            </div>
+        </button>
     );
 };
 
 const InterventionPanel: React.FC<{
     intervention: MapIntervention;
+    trees: MapTree[];
+    isLoading?: boolean;
     onClose: () => void;
-    onLoadTrees?: (id: number) => Promise<void>;
-    isLoadingTrees?: boolean;
     onZoomTo?: (intervention: MapIntervention) => void;
-    treesCount?: number;
-}> = ({ intervention, onClose, onLoadTrees, isLoadingTrees = false, onZoomTo, treesCount = 0 }) => {
+    onSelectTree: (tree: MapTree) => void;
+}> = ({ intervention, trees, isLoading = false, onClose, onZoomTo, onSelectTree }) => {
     const centroidText = useMemo(() => {
         try {
             let c: any;
@@ -577,29 +818,30 @@ const InterventionPanel: React.FC<{
         }
     }, [intervention]);
 
+    const isComplete = intervention.status === 'complete' || intervention.status === 'completed';
+
     return (
         <motion.div
-            initial={{ x: 320, opacity: 0 }}
+            initial={{ x: 340, opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
-            exit={{ x: 320, opacity: 0 }}
-            className="absolute top-4 right-4 w-88 bg-white rounded-xl shadow-2xl border border-gray-200 z-50 max-h-[80vh] overflow-y-auto"
-            style={{ width: 360 }}
+            exit={{ x: 340, opacity: 0 }}
+            className="absolute top-4 right-4 bg-white rounded-2xl shadow-2xl border border-gray-200 z-50 max-h-[88vh] flex flex-col overflow-hidden"
+            style={{ width: 380 }}
         >
-            {/* Header */}
-            <div className="p-4 border-b border-gray-100">
-                <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1 min-w-0">
+            {/* Header — no intervention photo; tree photos live in the list below */}
+            <div className="shrink-0 px-4 py-3 border-b border-gray-100">
+                <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
                         <div className="font-semibold text-gray-900 truncate">{intervention.hid}</div>
                         <div className="flex flex-wrap items-center gap-1.5 mt-1.5">
-                            <span className="text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
+                            <span className="text-[11px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full capitalize">
                                 {intervention.type.replace(/-/g, ' ')}
                             </span>
                             <span
-                                className="text-xs px-2 py-0.5 rounded-full capitalize"
-                                style={intervention.status === 'complete' || intervention.status === 'completed' ? {
-                                    backgroundColor: 'rgba(0,122,73,0.08)',
-                                    color: '#007A49',
-                                } : undefined}
+                                className="text-[11px] px-2 py-0.5 rounded-full capitalize"
+                                style={isComplete
+                                    ? { backgroundColor: 'rgba(0,122,73,0.1)', color: BRAND }
+                                    : { backgroundColor: '#f3f4f6', color: '#374151' }}
                             >
                                 {intervention.status}
                             </span>
@@ -608,125 +850,352 @@ const InterventionPanel: React.FC<{
                     <div className="flex items-center gap-1 shrink-0">
                         <button
                             onClick={() => onZoomTo?.(intervention)}
-                            className="text-xs px-2 py-1 rounded transition-colors hover:bg-gray-50"
-                            style={{ color: '#007A49' }}
+                            title="Zoom to intervention"
+                            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-emerald-700 hover:bg-gray-100 transition-colors"
                         >
-                            Zoom
+                            <MapPin className="w-4 h-4" />
                         </button>
-                        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 p-1">
+                        <button
+                            onClick={onClose}
+                            title="Close"
+                            className="w-7 h-7 flex items-center justify-center rounded-full text-gray-500 hover:text-gray-900 hover:bg-gray-100 transition-colors"
+                        >
                             <X className="w-4 h-4" />
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Body */}
-            <div className="p-4 space-y-4">
-                <div className="grid grid-cols-2 gap-3">
+            {/* Scrollable body */}
+            <div className="flex-1 overflow-y-auto">
+                {/* Owner */}
+                {intervention.owner?.displayName && (
+                    <div className="flex items-center gap-2 px-4 pt-3">
+                        <OwnerAvatar name={intervention.owner.displayName} image={intervention.owner.image} size={26} />
+                        <div className="min-w-0">
+                            <div className="text-[10px] uppercase tracking-wide text-gray-400 flex items-center gap-1">
+                                <User className="w-3 h-3" /> Owner
+                            </div>
+                            <div className="text-sm text-gray-800 truncate">{intervention.owner.displayName}</div>
+                        </div>
+                    </div>
+                )}
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-3 px-4 pt-3">
                     <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Start</div>
+                        <div className="text-xs text-gray-400 mb-0.5">Start date</div>
                         <div className="text-sm text-gray-800">{formatDate(intervention.interventionStartDate)}</div>
                     </div>
                     <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Registered</div>
-                        <div className="text-sm text-gray-800">{formatDate(intervention.registrationDate)}</div>
-                    </div>
-                    <div>
-                        <div className="text-xs text-gray-400 mb-0.5">Trees</div>
-                        <div className="text-sm font-medium text-gray-800">
-                            {intervention.totalTreeCount?.toLocaleString() ?? 0}
-                        </div>
-                    </div>
-                    <div>
                         <div className="text-xs text-gray-400 mb-0.5">Area</div>
-                        <div className="text-sm text-gray-800">
-                            {intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}
-                        </div>
+                        <div className="text-sm text-gray-800">{intervention.area ? `${intervention.area.toFixed(2)} m²` : '—'}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Total trees</div>
+                        <div className="text-sm font-medium text-gray-800">{intervention.totalTreeCount?.toLocaleString() ?? 0}</div>
+                    </div>
+                    <div>
+                        <div className="text-xs text-gray-400 mb-0.5">Sample trees</div>
+                        <div className="text-sm text-gray-800">{intervention.totalSampleTreeCount ?? '—'}</div>
                     </div>
                 </div>
 
+                {/* Centroid with copy */}
+                <div className="px-4 pt-3">
+                    <div className="text-xs text-gray-400 mb-0.5">Centroid</div>
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm font-mono text-gray-700 truncate">{centroidText}</span>
+                        <CopyButton value={JSON.stringify(intervention.location)} title="Copy GeoJSON coordinates" />
+                    </div>
+                </div>
+
+                {/* Description */}
                 {intervention.description && (
-                    <div>
+                    <div className="px-4 pt-3">
                         <div className="text-xs text-gray-400 mb-0.5">Description</div>
                         <p className="text-sm text-gray-700">{intervention.description}</p>
                     </div>
                 )}
 
-                {intervention.image && (
-                    <img
-                        src={intervention.image}
-                        alt={intervention.hid}
-                        className="w-full h-36 object-cover rounded-lg"
-                    />
-                )}
+                {/* Trees */}
+                <div className="px-4 pt-4 pb-4">
+                    <div className="flex items-center justify-between mb-2">
+                        <div className="text-sm font-medium text-gray-900">
+                            Trees {!isLoading && <span className="text-gray-400 font-normal">({trees.length})</span>}
+                        </div>
+                    </div>
 
-                {/* Load Trees */}
-                <div className="flex items-center justify-between pt-1">
-                    <span className="text-sm text-gray-500">
-                        Sample trees: <span className="font-medium text-gray-700">{intervention.totalSampleTreeCount ?? '—'}</span>
-                        {treesCount > 0 && <span className="ml-2" style={{ color: '#007A49' }}>({treesCount} loaded)</span>}
-                    </span>
-                    <button
-                        onClick={() => onLoadTrees?.(intervention.id)}
-                        disabled={isLoadingTrees}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 text-white text-xs rounded-lg disabled:opacity-60 transition-opacity"
-                        style={{ backgroundColor: '#007A49' }}
-                    >
-                        {isLoadingTrees ? <Loader2 className="w-3 h-3 animate-spin" /> : <Trees className="w-3 h-3" />}
-                        {isLoadingTrees ? 'Loading...' : 'Load Trees'}
-                    </button>
-                </div>
-
-                {/* Meta */}
-                <div className="pt-2 border-t border-gray-100 space-y-1">
-                    <div className="text-xs text-gray-400">
-                        HID: <span className="font-mono text-gray-600">{intervention.hid}</span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                        Geometry: <span className="text-gray-600">{intervention.locationGeometryType || intervention.location.type}</span>
-                    </div>
-                    <div className="text-xs text-gray-400">
-                        Centroid: <span className="font-mono text-gray-600">{centroidText}</span>
-                    </div>
+                    {isLoading ? (
+                        <div className="flex flex-col items-center justify-center py-10 text-gray-400">
+                            <Loader2 className="w-6 h-6 animate-spin" strokeWidth={1.5} />
+                            <span className="text-xs mt-2">Loading details...</span>
+                        </div>
+                    ) : trees.length === 0 ? (
+                        <div className="flex flex-col items-center justify-center py-8 text-gray-300">
+                            <Trees className="w-8 h-8" strokeWidth={1.5} />
+                            <span className="text-xs mt-1.5 text-gray-400">No trees recorded</span>
+                        </div>
+                    ) : (
+                        <div className="space-y-2">
+                            {trees.map(tree => (
+                                <TreeListItem key={tree.id} tree={tree} onSelect={onSelectTree} />
+                            ))}
+                        </div>
+                    )}
                 </div>
             </div>
         </motion.div>
     );
 };
 
+const DetailStat: React.FC<{
+    icon: React.ReactNode;
+    label: string;
+    value: React.ReactNode;
+}> = ({ icon, label, value }) => (
+    <div className="flex items-start gap-2">
+        <div className="mt-0.5 text-gray-400 shrink-0">{icon}</div>
+        <div className="min-w-0">
+            <div className="text-[11px] uppercase tracking-wide text-gray-400">{label}</div>
+            <div className="text-sm text-gray-800 truncate">{value}</div>
+        </div>
+    </div>
+);
+
 const TreeTooltip: React.FC<{
     tree: MapTree;
     onClose: () => void;
-}> = ({ tree, onClose }) => (
-    <motion.div
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-        className="absolute top-4 right-4 w-64 bg-white rounded-xl shadow-xl border border-gray-200 z-30"
-    >
-        <div className="p-3 border-b border-gray-100 flex items-center justify-between">
-            <div>
-                <div className="font-medium text-gray-900 text-sm">{tree.tag || tree.hid}</div>
-                {tree.speciesName && <div className="text-xs text-gray-500">{tree.speciesName}</div>}
+    isLoadingDetail?: boolean;
+    records?: TreeRecord[];
+    isLoadingRecords?: boolean;
+}> = ({ tree, onClose, isLoadingDetail = false, records = [], isLoadingRecords = false }) => {
+    const statusColor = getTreeStatusColor(tree.status);
+    const treeImage = buildTreeImageUrl(tree);
+    const speciesImage = buildSpeciesImageUrl(tree.speciesImage);
+    const [treeImgError, setTreeImgError] = useState(false);
+    const [speciesImgError, setSpeciesImgError] = useState(false);
+
+    const showTreeImage = treeImage && !treeImgError;
+    const showSpeciesImage = speciesImage && !speciesImgError;
+
+    const height = formatLength(tree.height);
+    const width = formatLength(tree.width);
+    const coords = tree.location?.type === 'Point'
+        ? `${tree.location.coordinates[1].toFixed(6)}, ${tree.location.coordinates[0].toFixed(6)}`
+        : null;
+
+    return (
+        <motion.div
+            initial={{ scale: 0.95, opacity: 0, y: 8 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            exit={{ scale: 0.95, opacity: 0, y: 8 }}
+            className="absolute top-4 right-4 w-80 bg-white rounded-2xl shadow-2xl border border-gray-200 z-30 overflow-hidden max-h-[85vh] flex flex-col"
+        >
+            {/* Image header / banner */}
+            <div className="relative h-40 shrink-0 bg-gradient-to-br from-emerald-50 to-gray-100">
+                {showTreeImage ? (
+                    <img
+                        src={treeImage as string}
+                        alt={tree.tag || tree.hid}
+                        className="w-full h-full object-cover"
+                        onError={() => setTreeImgError(true)}
+                    />
+                ) : isLoadingDetail ? (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-400">
+                        <Loader2 className="w-7 h-7 animate-spin" strokeWidth={1.5} />
+                        <span className="text-xs mt-1.5">Loading photo...</span>
+                    </div>
+                ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-gray-300">
+                        <Trees className="w-10 h-10" strokeWidth={1.5} />
+                        <span className="text-xs mt-1.5 text-gray-400">No tree photo</span>
+                    </div>
+                )}
+
+                {/* Status badge */}
+                <div
+                    className="absolute top-3 left-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium capitalize backdrop-blur-sm"
+                    style={{ backgroundColor: 'rgba(255,255,255,0.9)', color: statusColor }}
+                >
+                    <span className="w-2 h-2 rounded-full" style={{ backgroundColor: statusColor }} />
+                    {tree.status}
+                </div>
+
+                {/* Close */}
+                <button
+                    onClick={onClose}
+                    className="absolute top-3 right-3 w-7 h-7 flex items-center justify-center rounded-full bg-white/90 text-gray-500 hover:text-gray-800 hover:bg-white transition-colors backdrop-blur-sm"
+                >
+                    <X className="w-4 h-4" />
+                </button>
             </div>
-            <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
-                <X className="w-4 h-4" />
-            </button>
-        </div>
-        <div className="p-3 space-y-2">
-            <div className="flex items-center gap-2 text-sm">
-                <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: getTreeStatusColor(tree.status) }} />
-                <span className="capitalize text-gray-700">{tree.status}</span>
+
+            <div className="overflow-y-auto">
+                {/* Title */}
+                <div className="px-4 pt-3.5 pb-3 border-b border-gray-100">
+                    <div className="font-semibold text-gray-900 leading-tight">{tree.tag || tree.hid}</div>
+                    <div className="flex items-center gap-2 mt-1">
+                        {tree.tag && <span className="font-mono text-xs text-gray-400">{tree.hid}</span>}
+                        <span className="text-xs bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded capitalize">
+                            {tree.treeType}
+                        </span>
+                    </div>
+                </div>
+
+                {/* Species */}
+                {(tree.speciesName || tree.commonName) && (
+                    <div className="px-4 py-3 border-b border-gray-100 flex items-center gap-3">
+                        <div className="w-12 h-12 rounded-lg overflow-hidden shrink-0 bg-emerald-50 flex items-center justify-center">
+                            {showSpeciesImage ? (
+                                <img
+                                    src={speciesImage as string}
+                                    alt={tree.speciesName || ''}
+                                    className="w-full h-full object-cover"
+                                    onError={() => setSpeciesImgError(true)}
+                                />
+                            ) : (
+                                <Trees className="w-5 h-5 text-emerald-400" strokeWidth={1.5} />
+                            )}
+                        </div>
+                        <div className="min-w-0">
+                            {tree.speciesName && (
+                                <div className="text-sm font-medium italic text-gray-800 truncate">{tree.speciesName}</div>
+                            )}
+                            {tree.commonName && (
+                                <div className="text-xs text-gray-500 truncate">{tree.commonName}</div>
+                            )}
+                            {tree.speciesFamily && (
+                                <div className="text-[11px] text-gray-400 truncate">{tree.speciesFamily}</div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Details grid */}
+                <div className="px-4 py-3.5 grid grid-cols-2 gap-x-4 gap-y-3.5">
+                    {height && (
+                        <DetailStat icon={<Ruler className="w-4 h-4" />} label="Height" value={height} />
+                    )}
+                    {width && (
+                        <DetailStat icon={<Ruler className="w-4 h-4 rotate-90" />} label="Diameter" value={width} />
+                    )}
+                    {tree.currentHealthScore != null && (
+                        <DetailStat
+                            icon={<Heart className="w-4 h-4" />}
+                            label="Health"
+                            value={`${tree.currentHealthScore}/100`}
+                        />
+                    )}
+                    {tree.plantingDate && (
+                        <DetailStat
+                            icon={<Calendar className="w-4 h-4" />}
+                            label="Planted"
+                            value={formatDate(tree.plantingDate)}
+                        />
+                    )}
+                    {tree.lastMeasurementDate && (
+                        <DetailStat
+                            icon={<Activity className="w-4 h-4" />}
+                            label="Last measured"
+                            value={formatDate(tree.lastMeasurementDate)}
+                        />
+                    )}
+                </div>
+
+                {/* Owner + coordinates */}
+                <div className="px-4 pb-3.5 space-y-3">
+                    {tree.ownerName && (
+                        <div className="flex items-center gap-2">
+                            <OwnerAvatar name={tree.ownerName} image={tree.ownerImage} size={26} />
+                            <div className="min-w-0">
+                                <div className="text-[11px] uppercase tracking-wide text-gray-400 flex items-center gap-1">
+                                    <User className="w-3 h-3" /> Owner
+                                </div>
+                                <div className="text-sm text-gray-800 truncate">{tree.ownerName}</div>
+                            </div>
+                        </div>
+                    )}
+                    {coords && (
+                        <div>
+                            <div className="text-[11px] uppercase tracking-wide text-gray-400 flex items-center gap-1 mb-0.5">
+                                <MapPin className="w-3 h-3" /> Coordinates
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm font-mono text-gray-700 truncate">{coords}</span>
+                                <CopyButton value={coords} title="Copy coordinates" />
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* Records / remeasurements */}
+                <div className="px-4 pb-4 border-t border-gray-100 pt-3">
+                    <div className="text-sm font-medium text-gray-900 flex items-center gap-1.5 mb-2">
+                        <History className="w-4 h-4 text-gray-400" />
+                        Records
+                        {!isLoadingRecords && (
+                            <span className="text-gray-400 font-normal">({records.length})</span>
+                        )}
+                    </div>
+
+                    {isLoadingRecords ? (
+                        <div className="flex items-center gap-2 py-4 text-gray-400">
+                            <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
+                            <span className="text-xs">Loading records...</span>
+                        </div>
+                    ) : records.length === 0 ? (
+                        <div className="py-3 text-xs text-gray-400">No records yet</div>
+                    ) : (
+                        <ol className="relative border-l border-gray-200 ml-1.5 space-y-3">
+                            {records.map(rec => {
+                                const recH = formatLength(rec.height);
+                                const recW = formatLength(rec.width);
+                                const statusChanged = rec.newStatus && rec.newStatus !== rec.previousStatus;
+                                return (
+                                    <li key={rec.id} className="ml-4">
+                                        <span
+                                            className="absolute -left-[5px] w-2.5 h-2.5 rounded-full ring-2 ring-white"
+                                            style={{ backgroundColor: getTreeStatusColor(rec.newStatus || tree.status) }}
+                                        />
+                                        <div className="flex items-center justify-between gap-2">
+                                            <span className="text-xs font-medium text-gray-700 capitalize">
+                                                {rec.recordType?.replace(/_/g, ' ') || 'Record'}
+                                            </span>
+                                            {rec.recordedAt && (
+                                                <span className="text-[11px] text-gray-400">{formatDate(rec.recordedAt)}</span>
+                                            )}
+                                        </div>
+                                        <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 mt-0.5 text-[11px] text-gray-500">
+                                            {recH && <span className="inline-flex items-center gap-0.5"><Ruler className="w-3 h-3" /> {recH}</span>}
+                                            {recW && <span>⌀ {recW}</span>}
+                                            {statusChanged && (
+                                                <span className="inline-flex items-center gap-1 capitalize">
+                                                    {rec.previousStatus || '—'}
+                                                    <ArrowRight className="w-3 h-3" />
+                                                    {rec.newStatus}
+                                                </span>
+                                            )}
+                                        </div>
+                                        {rec.statusReason && (
+                                            <div className="text-[11px] text-gray-400 mt-0.5">Reason: {rec.statusReason}</div>
+                                        )}
+                                        {rec.notes && (
+                                            <div className="text-[11px] text-gray-500 mt-0.5">{rec.notes}</div>
+                                        )}
+                                        {rec.recordedByName && (
+                                            <div className="text-[11px] text-gray-400 mt-0.5">by {rec.recordedByName}</div>
+                                        )}
+                                    </li>
+                                );
+                            })}
+                        </ol>
+                    )}
+                </div>
             </div>
-            {tree.currentHeight && (
-                <div className="text-xs text-gray-600">Height: {tree.currentHeight} cm</div>
-            )}
-            {tree.currentHealthScore && (
-                <div className="text-xs text-gray-600">Health: {tree.currentHealthScore}/100</div>
-            )}
-        </div>
-    </motion.div>
-);
+        </motion.div>
+    );
+};
 
 const MapLegend: React.FC = () => (
      null
@@ -747,11 +1216,22 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
     const [mapState, setMapState] = useState<MapState>({
         selectedInterventionId: null,
         selectedTreeId: null,
-        isLoadingTrees: false,
         showTreeDetails: false,
     });
     const hoveredFeatureRef = React.useRef<{ source: string; id: number | string } | null>(null);
     const prevSelectedIdRef = React.useRef<number | null>(null);
+    // Tree ids whose full detail has already been fetched, so a re-click does
+    // not refetch.
+    const detailedTreeIdsRef = React.useRef<Set<number>>(new Set());
+    const [isLoadingTreeDetail, setIsLoadingTreeDetail] = useState(false);
+    // Remeasurement / status records for the currently open tree, keyed by tree
+    // id so a stale fetch from a previous tree never shows under the new one.
+    const [treeRecords, setTreeRecords] = useState<{ treeId: number; records: TreeRecord[] } | null>(null);
+    const [isLoadingRecords, setIsLoadingRecords] = useState(false);
+    // Full intervention detail (intervention + owner + trees) fetched on select,
+    // and the loading flag that drives the panel loader.
+    const [detail, setDetail] = useState<InterventionDetailResponse | null>(null);
+    const [isLoadingDetail, setIsLoadingDetail] = useState(false);
     const mapRef = useRef<any>(null);
     const [mapLoaded, setMapLoaded] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
@@ -988,10 +1468,148 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
         [interventions, mapState.selectedInterventionId],
     );
 
+    // A single point at the selected intervention's location (centroid for
+    // polygons) that drives the animated "pulse" ring on the map. Empty when
+    // nothing is selected so the ring disappears.
+    const selectedPulseGeoJSON = useMemo(() => {
+        if (!selectedIntervention) {
+            return { type: 'FeatureCollection' as const, features: [] };
+        }
+        const [lng, lat] = getMarkerPosition(selectedIntervention);
+        if (!isFinite(lng) || !isFinite(lat)) {
+            return { type: 'FeatureCollection' as const, features: [] };
+        }
+        return {
+            type: 'FeatureCollection' as const,
+            features: [{
+                type: 'Feature' as const,
+                geometry: { type: 'Point' as const, coordinates: [lng, lat] },
+                properties: {},
+            }],
+        };
+    }, [selectedIntervention]);
+
     const selectedTree = useMemo(
         () => trees.find(t => t.id === mapState.selectedTreeId),
         [trees, mapState.selectedTreeId],
     );
+
+    // When a tree marker is clicked, fetch its full detail once and merge the
+    // result (resolved image, tag, species) back into the tree. The bulk list
+    // often lacks the photo, so this is what makes the image appear.
+    useEffect(() => {
+        const id = mapState.selectedTreeId;
+        if (id == null) return;
+        const tree = trees.find(t => t.id === id);
+        if (!tree || detailedTreeIdsRef.current.has(id)) return;
+
+        detailedTreeIdsRef.current.add(id);
+        let cancelled = false;
+        (async () => {
+            setIsLoadingTreeDetail(true);
+            try {
+                const detail = await fetchTreeDetail(tree.hid, projectId, token);
+                if (!cancelled && detail) {
+                    setTrees(prev => prev.map(t => (t.id === id ? { ...t, ...detail } : t)));
+                }
+            } catch (err) {
+                console.warn('Failed to load tree detail:', err);
+                // Allow a retry on the next click.
+                detailedTreeIdsRef.current.delete(id);
+            } finally {
+                if (!cancelled) setIsLoadingTreeDetail(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [mapState.selectedTreeId, trees, projectId, token]);
+
+    // When a tree detail panel opens, lazily load its remeasurement records.
+    // Records are kept separate from the tree object and tagged with the tree id
+    // so a slow response for an earlier tree never renders under a newer one.
+    useEffect(() => {
+        const id = mapState.selectedTreeId;
+        if (id == null || !mapState.showTreeDetails) {
+            setTreeRecords(null);
+            setIsLoadingRecords(false);
+            return;
+        }
+        const tree = trees.find(t => t.id === id);
+        if (!tree) return;
+        let cancelled = false;
+        setIsLoadingRecords(true);
+        setTreeRecords(null);
+        (async () => {
+            try {
+                const records = await fetchTreeRecords(tree.hid, projectId, token);
+                if (!cancelled) setTreeRecords({ treeId: id, records });
+            } catch (err) {
+                console.warn('Failed to load tree records:', err);
+                if (!cancelled) setTreeRecords({ treeId: id, records: [] });
+            } finally {
+                if (!cancelled) setIsLoadingRecords(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [mapState.selectedTreeId, mapState.showTreeDetails, trees, projectId, token]);
+
+    // When an intervention is selected (map marker or sidebar list), fetch its
+    // full detail and plot its trees. A loader covers the panel while the call
+    // is in flight. Clears when the selection is cleared.
+    useEffect(() => {
+        const id = mapState.selectedInterventionId;
+        if (id == null) {
+            setDetail(null);
+            setIsLoadingDetail(false);
+            return;
+        }
+        let cancelled = false;
+        setIsLoadingDetail(true);
+        setDetail(null);
+        setTrees([]);
+        detailedTreeIdsRef.current.clear();
+        (async () => {
+            try {
+                const res = await fetchInterventionDetail(id, projectId, token);
+                if (cancelled || !res) return;
+                setDetail(res);
+                setTrees(Array.isArray(res.trees) ? res.trees : []);
+            } catch (err) {
+                console.warn('Failed to load intervention detail:', err);
+            } finally {
+                if (!cancelled) setIsLoadingDetail(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [mapState.selectedInterventionId, projectId, token]);
+
+    // Prefer the freshly fetched detail (richer: owner, resolved image) but fall
+    // back to the bulk list item while the detail call is loading.
+    const detailIntervention = detail?.intervention ?? selectedIntervention;
+
+    // Animate a "pulse" ring on the selected intervention so it stands out on
+    // the map. A radar-style ring repeatedly expands outward and fades. Runs
+    // only while something is selected; the ring layer hides otherwise.
+    useEffect(() => {
+        const map = mapRef.current;
+        if (!map || !mapLoaded || mapState.selectedInterventionId == null) return;
+        let raf = 0;
+        const start = performance.now();
+        const PERIOD = 1500; // ms per pulse
+        const animate = (now: number) => {
+            const t = ((now - start) % PERIOD) / PERIOD; // 0 -> 1
+            const radius = 16 + t * 36;        // expands outward
+            const opacity = 0.6 * (1 - t);     // fades as it grows
+            try {
+                if (map.getLayer('selected-pulse-ring')) {
+                    map.setPaintProperty('selected-pulse-ring', 'circle-radius', radius);
+                    map.setPaintProperty('selected-pulse-ring', 'circle-stroke-opacity', opacity);
+                }
+            } catch { /* layer not ready yet */ }
+            raf = requestAnimationFrame(animate);
+        };
+        raf = requestAnimationFrame(animate);
+        return () => cancelAnimationFrame(raf);
+    }, [mapLoaded, mapState.selectedInterventionId]);
 
     if (isLoading) {
         return (
@@ -1309,13 +1927,40 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                     </Source>
                 )}
 
-                {/* Tree markers */}
-                {trees.map(tree => (
+                {/* Pulsing ring on the selected intervention (animated in an
+                    effect via setPaintProperty). Sits above the intervention
+                    layers so it is always visible. */}
+                {selectedPulseGeoJSON.features.length > 0 && (
+                    <Source id="selected-pulse" type="geojson" data={selectedPulseGeoJSON}>
+                        <Layer
+                            id="selected-pulse-ring"
+                            type="circle"
+                            paint={{
+                                'circle-radius': 16,
+                                'circle-color': 'rgba(0,0,0,0)',
+                                'circle-stroke-color': BRAND,
+                                'circle-stroke-width': 3,
+                                'circle-stroke-opacity': 0.6,
+                            }}
+                        />
+                    </Source>
+                )}
+
+                {/* Tree markers — only trees that carry a valid point */}
+                {trees.filter(t => t.location?.type === 'Point').map(tree => (
                     <TreeMarker
                         key={tree.id}
                         tree={tree}
                         isSelected={mapState.selectedTreeId === tree.id}
-                        onClick={() => setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }))}
+                        onClick={() => {
+                            setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
+                            const [lng, lat] = tree.location.coordinates as [number, number];
+                            if (isFinite(lng) && isFinite(lat)) {
+                                // Recenter onto the tree, offset left so the detail
+                                // panel on the right does not cover the highlight.
+                                mapRef.current?.easeTo({ center: [lng, lat], offset: [-130, 0], duration: 600 });
+                            }
+                        }}
                     />
                 ))}
             </Map>
@@ -1347,48 +1992,42 @@ const ProjectMap: React.FC<{ projectId: string; token: string }> = ({ projectId,
                 total={interventions.length}
             />
 
-            {/* Intervention detail panel - top right */}
+            {/* Intervention detail panel - top right. Hidden while a tree
+                detail is open so the two never overlap; closing the tree
+                returns to this panel. */}
             <AnimatePresence>
-                {selectedIntervention && (
+                {detailIntervention && !(selectedTree && mapState.showTreeDetails) && (
                     <InterventionPanel
-                        intervention={selectedIntervention}
+                        intervention={detailIntervention}
+                        trees={detail?.trees ?? trees}
+                        isLoading={isLoadingDetail}
                         onClose={() => selectIntervention(null)}
-                        onLoadTrees={async (id: number) => {
-                            setMapState(prev => ({ ...prev, isLoadingTrees: true }));
-                            try {
-                                const res = await fetchInterventionTrees(id, token);
-                                const treesData = res?.data?.trees ?? (res as any)?.trees ?? [];
-                                setTrees(Array.isArray(treesData) ? treesData : []);
-                            } catch (err) {
-                                console.warn('Failed to load trees:', err);
-                            } finally {
-                                setMapState(prev => ({ ...prev, isLoadingTrees: false }));
+                        onZoomTo={i => zoomToIntervention(i, mapRef.current)}
+                        onSelectTree={(tree) => {
+                            setMapState(prev => ({ ...prev, selectedTreeId: tree.id, showTreeDetails: true }));
+                            const map = mapRef.current;
+                            if (map && tree.location?.type === 'Point') {
+                                const [lng, lat] = tree.location.coordinates as [number, number];
+                                map.easeTo({ center: [lng, lat], zoom: Math.max(map.getZoom?.() ?? 16, 17), duration: 600 });
                             }
                         }}
-                        isLoadingTrees={mapState.isLoadingTrees}
-                        onZoomTo={i => zoomToIntervention(i, mapRef.current)}
-                        treesCount={trees.length}
                     />
                 )}
             </AnimatePresence>
 
-            {/* Tree tooltip - only when no intervention panel */}
+            {/* Tree detail panel - replaces the intervention panel while open */}
             <AnimatePresence>
-                {selectedTree && mapState.showTreeDetails && !selectedIntervention && (
+                {selectedTree && mapState.showTreeDetails && (
                     <TreeTooltip
+                        key={selectedTree.id}
                         tree={selectedTree}
+                        isLoadingDetail={isLoadingTreeDetail}
+                        records={treeRecords?.treeId === selectedTree.id ? treeRecords.records : []}
+                        isLoadingRecords={isLoadingRecords || treeRecords?.treeId !== selectedTree.id}
                         onClose={() => setMapState(prev => ({ ...prev, selectedTreeId: null, showTreeDetails: false }))}
                     />
                 )}
             </AnimatePresence>
-
-            {/* Trees loading indicator */}
-            {mapState.isLoadingTrees && (
-                <div className="absolute bottom-8 right-4 bg-white rounded-lg shadow border border-gray-100 px-3 py-2 flex items-center gap-2 z-20">
-                    <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-500" />
-                    <span className="text-xs text-gray-600">Loading trees...</span>
-                </div>
-            )}
 
             {/* Legend - bottom left */}
             <MapLegend />
