@@ -23,10 +23,17 @@ export const groupIntervention = (data: InterventionData[]) => {
 
 
   data.forEach(({ is_complete, intervention_title, intervention_key, status, is_planned }) => {
-    // Planned interventions only count toward "In Planning" (and the "All"
-    // total). They are excluded from every other tab.
+    // Planned interventions count toward the "All" total and one of two tabs:
+    // once the user completes a plan in the field it is queued for upload
+    // (is_complete + PENDING_DATA_UPLOAD), so it moves to "Unsynced". Until
+    // then it stays in "In Planning". Either way it is excluded from the
+    // type-specific and "Incomplete" tabs.
     if (is_planned) {
-      finalObject['In Planning'].count += 1;
+      if (status === 'PENDING_DATA_UPLOAD' && is_complete) {
+        finalObject['Unsynced'].count += 1;
+      } else {
+        finalObject['In Planning'].count += 1;
+      }
       return;
     }
     if (!is_complete) {
@@ -58,7 +65,10 @@ export const groupIntervention = (data: InterventionData[]) => {
 
 export const groupInterventionList = (data: InterventionData[], type: string) => {
   if (type === 'planning') {
-    return data.filter(({ is_planned }) => is_planned);
+    return data.filter(({ is_planned, is_complete, status }) => is_planned && !(status === 'PENDING_DATA_UPLOAD' && is_complete));
+  }
+  if (type === 'unsync') {
+    return data.filter(({ is_complete, status }) => status === 'PENDING_DATA_UPLOAD' && is_complete);
   }
   if (type === 'incomplete') {
     return data.filter(({ is_complete, is_planned }) => !is_complete && !is_planned);

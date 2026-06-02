@@ -487,6 +487,13 @@ export const uploadMobileIntervention = async (params: any) => {
   return result;
 };
 
+// Record (upload) a planned single-tree intervention that already exists on the server.
+export const recordPlannedIntervention = async (projectId: string, interventionId: string, params: any) => {
+  const uri = `${postUrlNewApi.recordPlannedIntervention}/${projectId}/intervention/${interventionId}/record`;
+  const result = await fetchPutCall(uri, params);
+  return result;
+};
+
 
 export const acceptEmailInvite = async (params: any) => {
   const uri = `${postUrlNewApi.acceptEmailInvite}`;

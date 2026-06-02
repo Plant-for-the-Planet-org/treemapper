@@ -40,6 +40,10 @@ const InterventionList = (props: Props) => {
   const handleNavigation = (item: InterventionData) => {
     setDeleteData(null)
     setEditModal(null)
+    if (item.is_planned) {
+      navigation.navigate('PlannedTreeEdit', { interventionId: item.intervention_id })
+      return
+    }
     const navDetails = lastScreenNavigationHelper(item)
     //@ts-expect-error ignore
     navigation.navigate(navDetails.screen, { ...navDetails.params })

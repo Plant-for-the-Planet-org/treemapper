@@ -16,10 +16,11 @@ interface Props {
   data: any
   onPress: ((id: string, tree_id?: string) => void)
   remeasure: ((id: string, tree_id?: string) => void)
+  isPlanned?: boolean
 }
 
 const CarouselItem = (props: Props) => {
-  const { data, onPress, remeasure } = props
+  const { data, onPress, remeasure, isPlanned } = props
   const v3Approved = useSelector((state: RootState) => state.userState.v3Approved)
 
   if (data?.tree_type) {
@@ -47,7 +48,11 @@ const CarouselItem = (props: Props) => {
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
       </TouchableOpacity>: null} */}
-      {v3Approved  && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+      {isPlanned ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+        onPress(data.intervention_id, data.tree_id)
+      }}>
+        <Text style={styles.nextButtonLabel}>Add details</Text>
+      </TouchableOpacity> : v3Approved && data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>

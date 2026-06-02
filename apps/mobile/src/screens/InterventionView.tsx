@@ -29,9 +29,9 @@ const InterventionView = () => {
 
   const getQuery = (label: string) => {
     if (label === 'planning') {
-      return 'is_planned == true';
+      return 'is_planned == true AND NOT (status == "PENDING_DATA_UPLOAD" AND is_complete == true)';
     } else if (label === 'unsync') {
-      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true AND is_planned == false';
+      return 'status == "PENDING_DATA_UPLOAD" AND is_complete == true';
     } else if (label === 'incomplete') {
       return 'is_complete==false AND is_planned == false';
     } else if (label === 'all') {

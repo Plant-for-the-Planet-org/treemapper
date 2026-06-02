@@ -1,4 +1,4 @@
-import { Paths, File } from 'expo-file-system';
+import { Paths, File, Directory } from 'expo-file-system';
 import { basePath } from './fileManagementHelper';
 import * as ImageManipulator from 'expo-image-manipulator';
 import { Platform } from 'react-native';
@@ -37,6 +37,14 @@ async function handleImageCopy(imagePath: string, interventionId: string, isSpec
     // Copy file using Expo FileSystem
     const sourceFile = new File(compFile);
     const destFile = new File(outputPath);
+    // Planned interventions are synced from the web and never get a local
+    // folder created on the phone, so the destination directory may be missing.
+    // Create it (idempotent) before copying, otherwise the native copy throws
+    // "the file doesn't exist".
+    const destDir = destFile.parentDirectory;
+    if (!destDir.exists) {
+      destDir.create({ idempotent: true, intermediates: true });
+    }
     sourceFile.copy(destFile);
 
     return Platform.OS === 'android' ? `file://${outputPath}` : outputPath;

@@ -8,6 +8,7 @@ import { generateParentHID } from 'src/util/hidGenerator';
 import { CaptureStatus } from 'src/interventions/interventions.service';
 import { project, projectMember, workspace, site, scientificSpecies, intervention, tree, interventionSpecies, user, auditLog, workspaceMember, projectSpecies, notifications, migrationRequest, treeRecord, image, feedback } from 'src/database/schema';
 import { CreateFeedbackDto } from './dto/feedback.dto';
+import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.dto';
 import { booleanValid } from '@turf/boolean-valid';
 import { getType } from '@turf/invariant';
 import { ExtendedUser, User } from 'src/users/entities/user.entity';
@@ -599,6 +600,218 @@ export class MobileService {
       }
       console.log(error)
       return false;
+    }
+  }
+
+
+  /**
+   * Records a planned single-tree intervention from mobile.
+   *
+   * Web planning creates only the intervention + species rows (status
+   * `planning`, no tree). This attaches the field-recorded details: it creates
+   * the tree on the first call and updates it on later calls (upsert), writes a
+   * planting record + image row when provided, and marks the plan `completed`.
+   * Every field in the payload is optional; only provided values are written.
+   */
+  async recordPlannedIntervention(
+    interventionUid: string,
+    dto: RecordPlannedInterventionDto,
+    membership: ProjectGuardResponse,
+  ): Promise<any> {
+    try {
+      // 1. Load the plan and confirm it belongs to this project.
+      const [interventionRow] = await this.drizzleService.db
+        .select({
+          id: intervention.id,
+          uid: intervention.uid,
+          userId: intervention.userId,
+          projectId: intervention.projectId,
+          type: intervention.type,
+          status: intervention.status,
+          originalGeometry: intervention.originalGeometry,
+          interventionStartDate: intervention.interventionStartDate,
+        })
+        .from(intervention)
+        .where(and(eq(intervention.uid, interventionUid), isNull(intervention.deletedAt)))
+        .limit(1);
+
+      if (!interventionRow) {
+        throw new NotFoundException('Intervention not found');
+      }
+      if (interventionRow.projectId !== membership.projectId) {
+        throw new ForbiddenException('Intervention does not belong to this project');
+      }
+      if (interventionRow.type !== 'single-tree-registration') {
+        throw new BadRequestException('Only single-tree plans can be recorded with this endpoint');
+      }
+
+      // 2. Resolve the species the plan was created with (single-tree => one).
+      const [speciesRow] = await this.drizzleService.db
+        .select({
+          id: interventionSpecies.id,
+          speciesName: interventionSpecies.speciesName,
+          isUnknown: interventionSpecies.isUnknown,
+        })
+        .from(interventionSpecies)
+        .where(and(
+          eq(interventionSpecies.interventionId, interventionRow.id),
+          isNull(interventionSpecies.deletedAt),
+        ))
+        .limit(1);
+
+      if (!speciesRow) {
+        throw new BadRequestException('Planned intervention has no species to attach a tree to');
+      }
+
+      // 3. Does a single tree already exist for this plan? (upsert)
+      const [existingTree] = await this.drizzleService.db
+        .select({ id: tree.id, uid: tree.uid, hid: tree.hid })
+        .from(tree)
+        .where(and(
+          eq(tree.interventionId, interventionRow.id),
+          eq(tree.treeType, 'single'),
+          isNull(tree.deletedAt),
+        ))
+        .limit(1);
+
+      // 4. Resolve geometry: use what was sent, else fall back to the planned point.
+      const geometry = dto.geometry ?? interventionRow.originalGeometry;
+      let locationValue: any = undefined;
+      let latitude: number | undefined;
+      let longitude: number | undefined;
+      if (geometry) {
+        const cleanGeometry =
+          geometry.type === 'Feature' ? geometry.geometry :
+          geometry.type === 'FeatureCollection' ? geometry.features?.[0]?.geometry :
+          geometry;
+        const latlng = this.extractLatLngFromPoint(geometry); // validates Point
+        latitude = latlng.latitude;
+        longitude = latlng.longitude;
+        locationValue = sql`ST_SetSRID(ST_GeomFromGeoJSON(${JSON.stringify(cleanGeometry)}), 4326)`;
+      }
+
+      const plantingDate = dto.plantingDate
+        ? new Date(dto.plantingDate)
+        : new Date(interventionRow.interventionStartDate);
+
+      const recorded = await this.drizzleService.db.transaction(async (tx) => {
+        let treeId: number;
+        let treeUid: string;
+        let treeHid: string | null = existingTree?.hid ?? null;
+
+        if (existingTree) {
+          // Update only the fields that were provided.
+          const updateSet: Record<string, any> = { updatedAt: new Date() };
+          if (locationValue !== undefined) {
+            updateSet.location = locationValue;
+            updateSet.originalGeometry = geometry;
+            updateSet.latitude = latitude;
+            updateSet.longitude = longitude;
+          }
+          if (dto.measurements?.height !== undefined) updateSet.height = dto.measurements.height;
+          if (dto.measurements?.width !== undefined) updateSet.width = dto.measurements.width;
+          if (dto.tag !== undefined) updateSet.tag = dto.tag;
+          if (dto.image?.filename) updateSet.image = dto.image.filename;
+          if (dto.metadata !== undefined) updateSet.metadata = dto.metadata;
+          if (dto.plantingDate) updateSet.plantingDate = plantingDate;
+
+          await tx.update(tree).set(updateSet).where(eq(tree.id, existingTree.id));
+          treeId = existingTree.id;
+          treeUid = existingTree.uid;
+        } else {
+          // First recording: the plan never had a tree, so create it.
+          if (locationValue === undefined) {
+            throw new BadRequestException('A tree location is required to record this plan');
+          }
+          const treePayload: any = {
+            hid: generateParentHID(),
+            uid: generateUid('tree'),
+            interventionId: interventionRow.id,
+            interventionSpeciesId: speciesRow.id,
+            speciesName: speciesRow.speciesName,
+            isUnknown: speciesRow.isUnknown,
+            createdById: membership.userId,
+            tag: dto.tag ?? null,
+            treeType: 'single' as const,
+            status: 'alive' as const,
+            location: locationValue,
+            originalGeometry: geometry,
+            latitude,
+            longitude,
+            plantingDate,
+            image: dto.image?.filename ?? null,
+            height: dto.measurements?.height ?? null,
+            width: dto.measurements?.width ?? null,
+            metadata: dto.metadata ?? null,
+          };
+          const [created] = await tx.insert(tree).values(treePayload).returning();
+          treeId = created.id;
+          treeUid = created.uid;
+          treeHid = created.hid;
+
+          const recordedAt = plantingDate > new Date() ? new Date() : plantingDate;
+          await tx.insert(treeRecord).values({
+            uid: generateUid('treerec'),
+            treeId: created.id,
+            recordedById: membership.userId,
+            recordType: 'planting',
+            recordedAt,
+            height: dto.measurements?.height ?? null,
+            width: dto.measurements?.width ?? null,
+          });
+        }
+
+        // Image row (kept in sync with tree.image, same shape as updateInterventionImage).
+        if (dto.image?.filename) {
+          await tx.insert(image).values({
+            uid: generateUid('img'),
+            entityId: treeId,
+            entityType: 'tree' as const,
+            type: (dto.image.type as any) || 'overview',
+            filename: dto.image.filename,
+            mimeType: dto.image.mimeType ?? null,
+            deviceType: 'mobile' as const,
+            uploadedById: membership.userId,
+          });
+        }
+
+        // The plan is now recorded in the field.
+        const interventionSet: Record<string, any> = {
+          status: 'completed',
+          captureStatus: CaptureStatus.COMPLETE,
+          editedAt: new Date(),
+          updatedAt: new Date(),
+          totalTreeCount: 1,
+        };
+        if (dto.deviceLocation !== undefined) interventionSet.deviceLocation = dto.deviceLocation;
+        if (locationValue !== undefined) {
+          interventionSet.location = locationValue;
+          interventionSet.originalGeometry = geometry;
+        }
+        await tx.update(intervention)
+          .set(interventionSet)
+          .where(eq(intervention.id, interventionRow.id));
+
+        return { treeUid, treeHid };
+      });
+
+      // Return the fresh record in the shape the client already consumes.
+      const updated = await this.getSingleIntervention(interventionUid, interventionRow.userId);
+      return {
+        success: true,
+        statusCode: 200,
+        data: updated,
+        tree: recorded,
+      };
+    } catch (error) {
+      if (
+        error instanceof ForbiddenException ||
+        error instanceof NotFoundException ||
+        error instanceof BadRequestException
+      ) {
+        throw error;
+      }
+      throw new BadRequestException(`Failed to record planned intervention: ${error.message}`);
     }
   }
 

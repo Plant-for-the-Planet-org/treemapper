@@ -66,6 +66,8 @@ const RootNavigator = () => {
       <Stack.Screen name="NotificationDetail" component={Screens.NotificationDetail} />
       <Stack.Screen name="Language" component={Screens.Language} />
       <Stack.Screen name="PlotGallery" component={Screens.PlotGallery} />
+      <Stack.Screen name="PlannedTreeEdit" component={Screens.PlannedTreeEdit} />
+      <Stack.Screen name="PlannedTreeLocation" component={Screens.PlannedTreeLocation} />
       <Stack.Screen
         name="HomeSideDrawer"
         component={Screens.HomeSideDrawer}

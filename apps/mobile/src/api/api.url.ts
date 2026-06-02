@@ -40,6 +40,7 @@ export const getUrlApi = {
 
 export const postUrlNewApi = {
   uploadMobileIntervention: `${mobileBaseUrl}/mobile/project`,
+  recordPlannedIntervention: `${mobileBaseUrl}/mobile/project`,
   updateUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   createNewProject: `${mobileBaseUrl}/mobile/project`,
   uploadImageData: `${mobileBaseUrl}/mobile/image`,

@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, remeasuremenMobile, uploadAllIntervention } from 'src/api/api.fetch';
+import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, recordPlannedIntervention, remeasuremenMobile, skipRemeasurement, uploadAllIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
@@ -44,6 +44,7 @@ const TYPE_LABELS: Record<string, string> = {
     remeasurementData: 'Remeasurement',
     remeasurementStatus: 'Remeasurement Status',
     skipRemeasurement: 'Skip Remeasurement',
+    plannedTree: 'Planned Tree',
 }
 
 const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
@@ -55,7 +56,7 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
     const realm = useRealm()
     const toast = useToast()
     const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
-    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount } = useInterventionManagement()
+    const { updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, markPlannedInterventionSynced } = useInterventionManagement()
     const dispatch = useDispatch()
     const { addNewLog } = useLogManagement()
     const { isConnected } = useNetInfo();
@@ -240,6 +241,61 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         }
     };
 
+    const handlePlantingIntervention = async (el: QuaeBody): Promise<boolean> => {
+        try {
+            const { pData } = await getPostBody(el) as any;
+            if (!pData) throw new Error("Not able to convert body");
+            if (!pData.projectId || !pData.interventionId) throw new Error("Missing project or intervention id");
+
+            // Upload the tree image first (if captured), then attach its filename to the record.
+            let imageFilename: string | undefined = undefined;
+            if (pData.imageFile) {
+                try {
+                    const presignedResponse = await presingedUrl({
+                        fileName: String(new Date().getTime()),
+                        fileType: 'image/jpg',
+                        folder: 'tree'
+                    });
+                    if (presignedResponse.success && presignedResponse.response?.code === 'success') {
+                        const signedUrl = presignedResponse.response.data.data.uploadUrl;
+                        const fileName = presignedResponse.response.data.data.fileName;
+                        const uploadResponse = await fetch(signedUrl, {
+                            method: 'PUT',
+                            body: { uri: pData.imageFile, type: 'image/jpg', name: fileName || 'image.jpg' } as any,
+                            headers: { 'Content-Type': 'image/jpg' },
+                        });
+                        if (uploadResponse.ok) imageFilename = fileName;
+                    }
+                } catch (_) {
+                    // continue without image
+                }
+            }
+
+            const requestBody: any = {
+                geometry: pData.geometry,
+                measurements: pData.measurements,
+                metadata: pData.metadata || {},
+                plantingDate: pData.plantingDate,
+            };
+            if (pData.tag) requestBody.tag = pData.tag;
+            if (pData.deviceLocation) requestBody.deviceLocation = pData.deviceLocation;
+            if (imageFilename) requestBody.image = { filename: imageFilename, mimeType: 'image/jpg' };
+
+            const { response, success } = await recordPlannedIntervention(pData.projectId, pData.interventionId, requestBody);
+
+            if (success && response && response.success) {
+                const treeResult = response.tree || {};
+                await markPlannedInterventionSynced(el.p1Id, el.p2Id, treeResult.treeHid || '', treeResult.treeUid || '', imageFilename);
+                return true
+            }
+            addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record API response error', logLevel: 'error', statusCode: '' })
+            return false
+        } catch (error) {
+            addNewLog({ logType: 'DATA_SYNC', message: 'Planned intervention record error(Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) })
+            return false
+        }
+    };
+
     const handleMobileRemeasurement = async (el: QuaeBody): Promise<boolean> => {
         try {
             const { pData, historyID, treeID } = await getRemeasurementBody(el) as any;
@@ -336,6 +392,34 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
             addNewLog({ logType: 'DATA_SYNC', message: 'Image Upload API response error (Inside Catch)', logLevel: 'error', statusCode: '', logStack: JSON.stringify(error) });
             return false
         }
+    };
+
+    const uploadObjectsSequentially = async (d: QuaeBody[]) => {
+        for (let i = 0; i < d.length; i++) {
+            const el = d[i]
+            if (!isConnected) {
+                dispatch(updateSyncDetails(false))
+                setMoreUpload(false)
+                toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
+                return;
+            }
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: 'syncing' } : s))
+            let success = false
+            switch (el.type) {
+                case 'intervention': success = await handleIntervention(el); break;
+                case 'singleTree': success = await handleSingleTree(el); break;
+                case 'plannedTree': success = await handlePlantingIntervention(el); break;
+                case 'sampleTree': success = await handleSampleTree(el); break;
+                case 'treeImage': success = await handleTreeImage(el); break;
+                case 'remeasurementData': success = await handleMobileRemeasurement(el); break;
+                case 'remeasurementStatus': success = await handleMobileRemeasurement(el); break;
+                case 'skipRemeasurement': success = await handleSkipRemeasurement(el); break;
+                default: break;
+            }
+
+            setSyncStatuses(prev => prev.map((s, idx) => idx === i ? { ...s, status: success ? 'done' : 'error' } : s))
+        }
+        startSyncingData();
     };
 
     const totalSyncItems = Object.values(preSyncSummary).reduce((a, b) => a + b, 0)

@@ -55,6 +55,8 @@ import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
 import LanguageSettingsView from './LanguageSettingsView'
 import PlotGalleryView from './PlotGalleryView'
+import PlannedTreeEditView from './PlannedTreeEditView'
+import PlannedTreeLocationView from './PlannedTreeLocationView'
 
 export default {
   HomeMapView: HomeMapView,
@@ -114,4 +116,6 @@ export default {
   NotificationDetail: NotificationDetailView,
   Language: LanguageSettingsView,
   PlotGallery: PlotGalleryView,
+  PlannedTreeEdit: PlannedTreeEditView,
+  PlannedTreeLocation: PlannedTreeLocationView,
 }

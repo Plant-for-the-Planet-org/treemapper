@@ -31,6 +31,7 @@ import {
   MobileNotificationResponseDto,
 } from 'src/notification/dto/notification.dto';
 import { CreateFeedbackDto } from './dto/feedback.dto';
+import { RecordPlannedInterventionDto } from './dto/record-planned-intervention.dto';
 
 
 
@@ -123,6 +124,19 @@ export class MobileController {
     @Membership() membership: any
   ): Promise<InterventionResponseDto> {
     return this.appservice.createNewInterventionMobile(createInterventionDto, membership);
+  }
+
+  @Put('project/:id/intervention/:interventionId/record')
+  @ProjectRoles('owner', 'admin', 'contributor')
+  @UseGuards(ProjectPermissionsGuard)
+  @ApiOperation({ summary: 'Record (upload) a planned single-tree intervention from mobile' })
+  @ApiResponse({ status: 200, description: 'Returns the recorded intervention with its tree' })
+  async recordPlannedIntervention(
+    @Param('interventionId') interventionId: string,
+    @Body() dto: RecordPlannedInterventionDto,
+    @Membership() membership: any,
+  ): Promise<any> {
+    return this.appservice.recordPlannedIntervention(interventionId, dto, membership);
   }
 
   @Get('project/interventions')

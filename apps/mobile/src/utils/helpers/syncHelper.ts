@@ -15,6 +15,20 @@ const postTimeConvertor = (t: number) => {
 export const postDataConvertor = (d: InterventionData[]) => {
     const quae: QuaeBody[] = []
     d.forEach(el => {
+        // Planned interventions already exist on the server (created on web).
+        // They are not created again, only "recorded" with the field data.
+        if (el.is_planned) {
+            if (el.sample_trees.length > 0) {
+                quae.push({
+                    type: 'plannedTree',
+                    priority: 1,
+                    nextStatus: 'SYNCED',
+                    p1Id: el.intervention_id,
+                    p2Id: el.sample_trees[0].tree_id,
+                })
+            }
+            return
+        }
         if (el.intervention_key === 'single-tree-registration') {
             if (el.hid === '') {
                 quae.push({
@@ -123,6 +137,17 @@ export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
     if (r.type === 'singleTree') {
         const SingleTree = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
         return convertTreeToBody(JSON.parse(JSON.stringify(SingleTree)), JSON.parse(JSON.stringify(SingleTree.sample_trees[0])))
+    }
+    if (r.type === 'plannedTree') {
+        const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
+        if (!Intervention) {
+            return null
+        }
+        const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+        if (!TreeDetails) {
+            return null
+        }
+        return convertPlannedTreeToBody(JSON.parse(JSON.stringify(Intervention)), JSON.parse(JSON.stringify(TreeDetails)))
     }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
@@ -285,6 +310,63 @@ export const convertTreeToBody = (i: InterventionData, d: SampleTree): BodyPaylo
         }
         if (d.tag_id) {
             postData.tag = d.tag_id
+        }
+        return { pData: postData, message: "", fixRequired: 'NO', error: "" }
+    } catch (error) {
+        return { pData: null, message: "Unknown error occurred, please check the data ", fixRequired: 'UNKNOWN', error: JSON.stringify(error) }
+    }
+}
+
+
+/**
+ * Builds the payload to "record" a planned single-tree intervention.
+ *
+ * The intervention + species already exist on the server (created on web),
+ * so we only send what the field worker captured. Routing fields
+ * (projectId, interventionId, treeId) and the local imageFile path travel
+ * on pData; the sync handler strips them before building the request body
+ * and uploads the image separately.
+ */
+export const convertPlannedTreeToBody = (i: InterventionData, d: SampleTree): BodyPayload => {
+    try {
+        const metaData = i.meta_data ? JSON.parse(i.meta_data) : {}
+        const additionalDataConvert = handleAdditionalData([...i.additional_data, ...i.form_data])
+        const finalMeta = {
+            app: {
+                ...metaData.app
+            },
+            public: {
+                ...additionalDataConvert.publicAdd,
+                ...metaData.public
+            },
+            private: {
+                ...additionalDataConvert.privateAdd,
+                ...metaData.privateAdd
+            }
+        }
+        const postData: any = {
+            projectId: i.project_id,
+            interventionId: i.intervention_id,
+            treeId: d.tree_id,
+            geometry: {
+                type: 'Point',
+                coordinates: [d.longitude, d.latitude]
+            },
+            measurements: {
+                height: d.specie_height,
+                width: d.specie_diameter,
+            },
+            plantingDate: new Date(d.plantation_date || i.intervention_date || Date.now()).toISOString(),
+            metadata: finalMeta,
+        }
+        if (d.tag_id) {
+            postData.tag = d.tag_id
+        }
+        if (metaData.app && metaData.app.deviceLocation) {
+            postData.deviceLocation = metaData.app.deviceLocation
+        }
+        if (d.image_url) {
+            postData.imageFile = updateFilePath(d.image_url)
         }
         return { pData: postData, message: "", fixRequired: 'NO', error: "" }
     } catch (error) {

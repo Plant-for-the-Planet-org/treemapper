@@ -63,6 +63,17 @@ export type RootStackParamList = {
   NotificationDetail: NotificationDetailView
   Language: undefined
   PlotGallery: PlotGalleryView
+  PlannedTreeEdit: PlannedTreeEditView
+  PlannedTreeLocation: PlannedTreeLocationView
+}
+
+type PlannedTreeEditView = {
+  interventionId: string
+}
+
+type PlannedTreeLocationView = {
+  interventionId: string
+  treeId: string
 }
 
 type NotificationDetailView = {
