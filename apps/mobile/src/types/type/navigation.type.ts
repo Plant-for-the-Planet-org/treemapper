@@ -49,7 +49,6 @@ export type RootStackParamList = {
   AddPlotGroup: AddPlotGroup,
   AddPlotsToGroup: AddPlotsToGroup,
   TreeRemeasurement: TreeRemeasurementView
-  ProjectRemeasurementConfig: ProjectRemeasurementConfig
   OldInventoryDataView: undefined,
   EditProject: EditProjectView,
   PlantHistory: PlantHistory,
@@ -228,10 +227,6 @@ type TreeRemeasurementView = {
   isEdit?: boolean
   historyId?: string
 }
-type ProjectRemeasurementConfig = {
-  id: string
-}
-
 type PlotGalleryView = {
   id: string
 }

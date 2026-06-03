@@ -119,15 +119,6 @@ export const getServerIntervention = async (uri?: string) => {
 };
 
 
-export const updateProjectDetails = async (d: { i: number, f: string, id: string }) => {
-  const uri = `${postUrlApi.updateProjectInF}/${d.id}`;
-  const result = await fetchPutCall(uri, {
-    "revisionPeriodicityLevel": d.f,
-    "intensity": d.i
-  });
-  return result;
-};
-
 export const addUserSpeciesToServer = async (params: any) => {
   const uri = `${postUrlApi.addUserSpecies}`;
   const result = await fetchPostCall(uri, params);
@@ -157,8 +148,8 @@ export const updateServerSpeciesDetail = async (params: any, id: string) => {
 };
 
 
-export const createNewSite = async (pid: string, params: any) => {
-  const uri = `${postUrlApi.createNewSite}/${pid}/sites`
+export const createNewSite = async (params: any) => {
+  const uri = `${postUrlNewApi.createSite}`
   const result = await fetchPostCall(uri, params);
   return result;
 };

@@ -6,10 +6,15 @@ import { PROJECT_PERMISSIONS_KEY } from '../decorators/project-permissions.decor
 
 const PROJECT_PARAM_ALIASES = ['id', 'projectId', 'projectUid', 'uid'] as const;
 
-function resolveProjectUid(params: Record<string, any> | undefined): string | undefined {
-  if (!params) return undefined;
-  for (const key of PROJECT_PARAM_ALIASES) {
-    if (params[key]) return params[key];
+// Resolve the project identifier from the request. Route params take priority,
+// then the body, then the query. This lets routes that carry the project id in
+// the body (e.g. POST /mobile/site) pass the guard without a :id path param.
+function resolveProjectUid(...sources: Array<Record<string, any> | undefined>): string | undefined {
+  for (const source of sources) {
+    if (!source) continue;
+    for (const key of PROJECT_PARAM_ALIASES) {
+      if (source[key]) return source[key];
+    }
   }
   return undefined;
 }
@@ -37,10 +42,10 @@ export class ProjectPermissionsGuard implements CanActivate {
       this.logger.warn(`[ProjectGuard] DENY: no userId (unauthenticated)`);
       throw new UnauthorizedException('Authentication required');
     }
-    const projectUid = resolveProjectUid(request.params);
+    const projectUid = resolveProjectUid(request.params, request.body, request.query);
     if (!projectUid) {
-      this.logger.warn(`[ProjectGuard] DENY: project identifier missing from params=${JSON.stringify(request.params)}`);
-      throw new BadRequestException('Project identifier missing from route params');
+      this.logger.warn(`[ProjectGuard] DENY: project identifier missing from params=${JSON.stringify(request.params)} body=${JSON.stringify(request.body)}`);
+      throw new BadRequestException('Project identifier missing from request');
     }
     let membership = await this.projectCacheService.getUserProject(projectUid, userId);
     let source = membership ? 'cache' : 'none';

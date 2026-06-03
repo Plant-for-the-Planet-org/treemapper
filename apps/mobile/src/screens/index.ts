@@ -41,7 +41,6 @@ import AddObservationFormView from './AddObservationFormView'
 import AddPlotGroupView from './AddPlotGroupView'
 import AddPlotsToGroupView from './AddPlotToGroupView'
 import TreeRemeasurement from './TreeRemeasurementView'
-import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
 import PlantHistory from './PlantHistoryView'
@@ -101,7 +100,6 @@ export default {
   AddPlotGroup: AddPlotGroupView,
   AddPlotsToGroup: AddPlotsToGroupView,
   TreeRemeasurement: TreeRemeasurement,
-  ProjectRemeasurementConfig: ProjectRemeasurementConfig,
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
   PlantHistory:PlantHistory,

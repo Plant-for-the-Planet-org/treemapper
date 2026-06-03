@@ -9,6 +9,7 @@ const initialState: TempStateSlice = {
   speciesWriting: false,
   speciesUpdatedAt: 0,
   inviteId: '',
+  handledInviteIds: [],
   refreshProject: '',
 }
 
@@ -35,7 +36,19 @@ const tempStateSlice = createSlice({
       state.speciesUpdatedAt = Date.now()
     },
     updateInviteId(state, action: PayloadAction<string>) {
+      // Skip invites the user already accepted/declined this session. The OS
+      // keeps returning the launch deep link from getInitialURL(), so without
+      // this guard a navigation reset would re-open the modal for a handled invite.
+      if (action.payload && state.handledInviteIds.includes(action.payload)) {
+        return
+      }
       state.inviteId = action.payload
+    },
+    markInviteHandled(state, action: PayloadAction<string>) {
+      if (action.payload && !state.handledInviteIds.includes(action.payload)) {
+        state.handledInviteIds.push(action.payload)
+      }
+      state.inviteId = ''
     },
     updateRefeshProject(state) {
       state.refreshProject = new Date().toISOString()
@@ -43,6 +56,6 @@ const tempStateSlice = createSlice({
   },
 })
 
-export const { updateSpeciesWriting, updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt, updateInviteId, updateRefeshProject } = tempStateSlice.actions
+export const { updateSpeciesWriting, updateWebAuthLoading, initSyncData, updateSelectedSpeciesId, updateSpeciesDownloading, updateSpeciesUpdatedAt, updateInviteId, markInviteHandled, updateRefeshProject } = tempStateSlice.actions
 
 export default tempStateSlice.reducer

@@ -6,12 +6,13 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Image,
+  ScrollView,
 } from 'react-native';
 import Modal from 'react-native-modal';
 import { Ionicons } from '@expo/vector-icons';
 import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
-import { updateInviteId } from 'src/store/slice/tempStateSlice';
+import { updateInviteId, markInviteHandled } from 'src/store/slice/tempStateSlice';
 import { useDeepLinking } from 'src/hooks/useDeeplink';
 import { acceptEmailInvite, acceptLinkInvite, getMobileInviteStatus, getMobileInviteStatusEmail, getUserProjects } from 'src/api/api.fetch';
 import { updateProjectState, updateCurrentProject } from 'src/store/slice/projectStateSlice';
@@ -50,6 +51,7 @@ const DeepLinkModal = () => {
   const [loading, setLoading] = useState(false);
   const [statusLoading, setStatusLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [errorCode, setErrorCode] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [inviteData, setInviteData] = useState<InviteData | null>(null);
   useDeepLinking();
@@ -86,104 +88,61 @@ const DeepLinkModal = () => {
     }
   };
 
+  const showError = (message?: string | null, code?: string | null) => {
+    setError(message || 'Failed to fetch invitation details. Please try again.');
+    setErrorCode(code ?? null);
+  };
+
   const handleInitalStatus = async () => {
-    if (inviteType === 'email') {
-      setStatusLoading(true);
-      setError(null);
-      setInviteData(null);
-      try {
-        const result = await getMobileInviteStatusEmail(inviteCode);
-        if (result?.response?.data) {
-          setInviteData(result.response.data);
-        } else {
-          setError('Failed to fetch invitation details. Please try again.');
-        }
-      } catch (err) {
-        setError('Failed to fetch invitation details. Please try again.');
-      } finally {
-        setStatusLoading(false);
-      }
-    }
+    const fetchStatus = inviteType === 'bulk' ? getMobileInviteStatus : getMobileInviteStatusEmail;
 
-    if (inviteType === 'bulk') {
-      setStatusLoading(true);
-      setError(null);
-      setInviteData(null);
-
-      try {
-        const result = await getMobileInviteStatus(inviteCode);
-        if (result?.response?.data) {
-          setInviteData(result.response.data);
-        } else {
-          setError('Failed to fetch invitation details. Please try again.');
-        }
-      } catch (err) {
-        setError('Failed to fetch invitation details. Please try again.');
-      } finally {
-        setStatusLoading(false);
+    setStatusLoading(true);
+    setError(null);
+    setErrorCode(null);
+    setInviteData(null);
+    try {
+      const result = await fetchStatus(inviteCode);
+      if (result?.response?.data) {
+        setInviteData(result.response.data);
+      } else {
+        showError(result?.response?.message, result?.response?.code);
       }
+    } catch (err) {
+      showError(null, null);
+    } finally {
+      setStatusLoading(false);
     }
   }
 
   const handleAccept = async () => {
     setLoading(true);
     setError(null);
+    setErrorCode(null);
     setSuccessMessage(null);
 
     try {
-      if (inviteType === 'email') {
-        const params = {
-          token: inviteCode,
-        };
+      const acceptInvite = inviteType === 'bulk' ? acceptLinkInvite : acceptEmailInvite;
+      const result = await acceptInvite({ token: inviteCode });
 
-        const result = await acceptEmailInvite(params);
-
-        if (result?.response?.code === 'invite_accepted') {
-          setSuccessMessage(result.response.message || 'You have successfully joined the project');
-          refreshProjectsAfterAccept();
-          setTimeout(() => {
-            handleClose();
-          }, 2500);
-        } else if (result?.response?.code === 'already_member') {
-          setError(result.response.message || 'You are already a member of this project');
-        } else if (result?.response?.error) {
-          setError(result.response.message || 'Failed to accept invitation. Please try again.');
-        } else {
-          setSuccessMessage('Invitation accepted successfully');
-          refreshProjectsAfterAccept();
-          setTimeout(() => {
-            handleClose();
-          }, 2500);
-        }
-      }
-
-      if (inviteType === 'bulk') {
-        const params = {
-          token: inviteCode,
-        };
-
-        const result = await acceptLinkInvite(params);
-
-        if (result?.response?.code === 'invite_accepted') {
-          setSuccessMessage(result.response.message || 'You have successfully joined the project');
-          refreshProjectsAfterAccept();
-          setTimeout(() => {
-            handleClose();
-          }, 2500);
-        } else if (result?.response?.code === 'already_member') {
-          setError(result.response.message || 'You are already a member of this project');
-        } else if (result?.response?.error) {
-          setError(result.response.message || 'Failed to accept invitation. Please try again.');
-        } else {
-          setSuccessMessage('Invitation accepted successfully');
-          refreshProjectsAfterAccept();
-          setTimeout(() => {
-            handleClose();
-          }, 2500);
-        }
+      if (result?.response?.code === 'invite_accepted') {
+        setSuccessMessage(result.response.message || 'You have successfully joined the project');
+        refreshProjectsAfterAccept();
+        setTimeout(() => {
+          handleClose();
+        }, 2500);
+      } else if (result?.response?.message) {
+        // Server sent a specific reason (wrong account, expired, already a
+        // member, restricted domain, ...). Show it as-is.
+        showError(result.response.message, result.response.code);
+      } else {
+        setSuccessMessage('Invitation accepted successfully');
+        refreshProjectsAfterAccept();
+        setTimeout(() => {
+          handleClose();
+        }, 2500);
       }
     } catch (err) {
-      setError('Failed to accept invitation. Please try again.');
+      showError('Failed to accept invitation. Please try again.', null);
     } finally {
       setLoading(false);
     }
@@ -194,8 +153,21 @@ const DeepLinkModal = () => {
   };
 
   const handleClose = () => {
+    // Record this invite as handled so the launch deep link won't re-open the
+    // modal after a navigation reset (getInitialURL keeps returning it).
+    dispatch(markInviteHandled(inviteId));
+    setError(null);
+    setErrorCode(null);
+    setSuccessMessage(null);
+    setInviteData(null);
+  };
+
+  // Dismiss without marking the invite handled, so it can show again after the
+  // user logs in (e.g. the "Login to Accept" path).
+  const handleDismiss = () => {
     dispatch(updateInviteId(''));
     setError(null);
+    setErrorCode(null);
     setSuccessMessage(null);
     setInviteData(null);
   };
@@ -214,6 +186,19 @@ const DeepLinkModal = () => {
       minute: '2-digit',
     });
   };
+
+  // Retry only helps for transient failures (network / server). For account or
+  // invite-state problems, retrying changes nothing, so we hide the button.
+  const nonRetryableCodes = [
+    'email_mismatch',
+    'invitation_not_found',
+    'invitation_not_pending',
+    'invitation_expired',
+    'already_member',
+    'domain_not_authorized',
+    'invalid_email',
+  ];
+  const canRetry = !errorCode || !nonRetryableCodes.includes(errorCode);
 
   const getStatusMessage = (status: InviteStatus) => {
     switch (status) {
@@ -247,9 +232,15 @@ const DeepLinkModal = () => {
           <Text style={styles.projectLabel}>Project</Text>
           <Text style={styles.projectName}>{inviteData.project.name}</Text>
           {inviteData.project.description && (
-            <Text style={styles.projectDescription}>
-              {inviteData.project.description}
-            </Text>
+            <ScrollView
+              style={styles.projectDescriptionScroll}
+              nestedScrollEnabled
+              showsVerticalScrollIndicator
+            >
+              <Text style={styles.projectDescription}>
+                {inviteData.project.description}
+              </Text>
+            </ScrollView>
           )}
         </View>
 
@@ -296,7 +287,7 @@ const DeepLinkModal = () => {
         <View style={styles.buttonContainer}>
           <TouchableOpacity
             style={[styles.button, styles.acceptButton]}
-            onPress={handleClose}
+            onPress={handleDismiss}
             activeOpacity={0.8}
           >
             <View style={styles.buttonContent}>
@@ -365,10 +356,8 @@ const DeepLinkModal = () => {
       animationIn="slideInUp"
       animationOut="slideOutDown"
       backdropOpacity={0.6}
+      propagateSwipe
       style={styles.modal}
-      onBackdropPress={!statusLoading ? handleClose : undefined}
-      onSwipeComplete={!statusLoading ? handleClose : undefined}
-      swipeDirection="down"
     >
       <View style={styles.container}>
         {/* Handle bar */}
@@ -415,14 +404,16 @@ const DeepLinkModal = () => {
               <View style={styles.errorContainer}>
                 <Ionicons name="alert-circle-outline" size={20} color="#D32F2F" />
                 <Text style={styles.errorText}>{error}</Text>
-                <TouchableOpacity
-                  style={styles.retryButton}
-                  onPress={handleRetry}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="refresh-outline" size={18} color="#007A49" />
-                  <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
+                {canRetry && (
+                  <TouchableOpacity
+                    style={styles.retryButton}
+                    onPress={handleRetry}
+                    activeOpacity={0.8}
+                  >
+                    <Ionicons name="refresh-outline" size={18} color="#007A49" />
+                    <Text style={styles.retryButtonText}>Retry</Text>
+                  </TouchableOpacity>
+                )}
               </View>
             ) : !successMessage ? (
               renderInviteDetails()
@@ -626,6 +617,9 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: '#007A49',
     marginBottom: 4,
+  },
+  projectDescriptionScroll: {
+    maxHeight: 120,
   },
   projectDescription: {
     fontSize: 14,

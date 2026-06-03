@@ -64,7 +64,9 @@ const fetchCall = async (method: string, uri: string, params: any = null, authRe
       return { response: { signUpRequire: false }, success: true, status: response.status, extra: {} }
     }
     if (!response.ok) {
-      return { response: null, success: false, status: response.status, extra: {} }
+      // Keep the parsed error body (message/code) so callers can show the
+      // server's message to the user instead of a generic failure.
+      return { response: responseJson, success: false, status: response.status, extra: {} }
     }
 
     return { response: responseJson, success: true, status: response.status, extra: {} }

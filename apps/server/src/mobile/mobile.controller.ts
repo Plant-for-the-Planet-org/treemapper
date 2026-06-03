@@ -106,7 +106,13 @@ export class MobileController {
     @Body() createInterventionDto: any,
     @Membership() membership: any
   ): Promise<any> {
-    return this.appservice.createNewSite(createInterventionDto, membership.userId);
+    // The body carries the project UID (used by the guard to resolve membership),
+    // but the service matches on the integer project id. Use the resolved
+    // membership.projectId so the lookup works regardless of the body value.
+    return this.appservice.createNewSite(
+      { ...createInterventionDto, projectId: membership.projectId },
+      membership.userId
+    );
   }
 
 

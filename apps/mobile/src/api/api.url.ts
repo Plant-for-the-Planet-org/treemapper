@@ -12,8 +12,6 @@ export const postUrlApi = {
   updateSpecies: `${baseUrl}/treemapper/species`,
   addUserSpecies: `${baseUrl}/treemapper/species`,
 
-  updateProjectInF: `${baseUrl}/app/projects`,
-  createNewSite: `${baseUrl}/app/projects`,
   deleteAccount: `${baseUrl}/app/profile`,
 };
 
@@ -35,6 +33,7 @@ export const postUrlNewApi = {
   uploadMobileIntervention: `${mobileBaseUrl}/mobile/project`,
   recordPlannedIntervention: `${mobileBaseUrl}/mobile/project`,
   createNewProject: `${mobileBaseUrl}/mobile/project`,
+  createSite: `${mobileBaseUrl}/mobile/site`,
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
   interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,
@@ -48,6 +47,7 @@ export const postUrlNewApi = {
 };
 
 export const getUrlMobileApi = {
+  
   getMobileHealth: `${mobileBaseUrl}/health`,
   getUserDetails: `${mobileBaseUrl}/mobile/user/profile`,
   getAllMobileProjects: `${mobileBaseUrl}/mobile/user/projects`,

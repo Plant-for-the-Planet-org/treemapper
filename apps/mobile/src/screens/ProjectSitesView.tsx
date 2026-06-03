@@ -208,17 +208,20 @@ const ProjectSitesView = () => {
 
     const finalData = {
       "name": siteName,
-      "status": selectedStatus.value,
-      "geometry": geometry,
+      "projectId": selectedProject.value,
+      "siteType": selectedStatus.value,
+      // geometry is a GeoJSON Feature; the new API expects the inner Polygon.
+      "geometry": (geometry as any).geometry,
     }
 
-    const { response, success } = await createNewSite(selectedProject.value, finalData)
+    const { response, success } = await createNewSite(finalData)
     if (success) {
+      const createdSite = response.data.site
       await addNewSite(selectedProject.value, {
-        id: response.id,
-        name: response.name,
-        status: response.status,
-        geometry: JSON.stringify(response.geometry),
+        id: createdSite.uid,
+        name: createdSite.name,
+        status: createdSite.status,
+        geometry: JSON.stringify(createdSite.originalGeometry),
       })
       toast.show("Successfully created new site.")
       navigation.goBack()
