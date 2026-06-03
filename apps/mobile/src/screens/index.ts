@@ -44,7 +44,6 @@ import TreeRemeasurement from './TreeRemeasurementView'
 import ProjectRemeasurementConfig from './ProjectRemeasurementConfigView'
 import OldInventoryDataView from './OldInventoryDataView'
 import EditProjectView from './EditProjectView'
-import SignUpView from './SignUpView'
 import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
@@ -105,7 +104,6 @@ export default {
   ProjectRemeasurementConfig: ProjectRemeasurementConfig,
   OldInventoryData: OldInventoryDataView,
   EditProjectView: EditProjectView,
-  SignUpView: SignUpView,
   PlantHistory:PlantHistory,
   ProjectSites:ProjectSites,
   DeleteAccount: DeleteAccount,

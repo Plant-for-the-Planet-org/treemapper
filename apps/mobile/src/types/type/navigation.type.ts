@@ -52,7 +52,6 @@ export type RootStackParamList = {
   ProjectRemeasurementConfig: ProjectRemeasurementConfig
   OldInventoryDataView: undefined,
   EditProject: EditProjectView,
-  SignUpPage: SignUpPage,
   PlantHistory: PlantHistory,
   ProjectSites: undefined
   DeleteAccount: undefined
@@ -99,11 +98,6 @@ type InterventionPreviewView = {
   intervention: string
   sampleTree?: string,
   interventionId: string
-}
-
-type SignUpPage = {
-  email: string,
-  accessToken: string
 }
 
 type PlantHistory = {

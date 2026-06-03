@@ -11,7 +11,6 @@ export const postUrlApi = {
 
   updateSpecies: `${baseUrl}/treemapper/species`,
   addUserSpecies: `${baseUrl}/treemapper/species`,
-  signupService: `${baseUrl}/app/profile`,
 
   updateProjectInF: `${baseUrl}/app/projects`,
   createNewSite: `${baseUrl}/app/projects`,
@@ -22,8 +21,6 @@ export const getUrlApi = {
   getBaseUrl: `${baseUrl}`,
   getBaseTestUrl: `${baseUrl}`,
   getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
-
-  getAllProjects: `${baseUrl}/app/profile/projects?_scope=extended`,
 
   userSpecies: `${baseUrl}/treemapper/species`,
 

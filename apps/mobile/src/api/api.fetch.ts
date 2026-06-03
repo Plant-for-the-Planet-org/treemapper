@@ -119,12 +119,6 @@ export const getServerIntervention = async (uri?: string) => {
 };
 
 
-export const createUserProfile = async (params: any) => {
-  const uri = `${postUrlApi.signupService}`;
-  const result = await fetchPostCall(uri, params, false);
-  return result;
-};
-
 export const updateProjectDetails = async (d: { i: number, f: string, id: string }) => {
   const uri = `${postUrlApi.updateProjectInF}/${d.id}`;
   const result = await fetchPutCall(uri, {
@@ -387,14 +381,6 @@ export const getPersonalProject = async () => {
   const result = await fetchGetCall(uri, true);
   return result;
 };
-
-export const getAllProjects = async () => {
-  const uri = `${getUrlApi.getAllProjects}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
-
 
 // Species
 

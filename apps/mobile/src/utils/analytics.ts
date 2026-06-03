@@ -1,7 +1,6 @@
 import PostHog from 'posthog-react-native'
 
 export const AnalyticsEvents = {
-  USER_SIGNUP: 'user_signed_up',
   USER_ACTIVATED: 'user_activated',
   PROJECT_CREATED: 'project_created',
   INTERVENTION_CREATED: 'intervention_created',
