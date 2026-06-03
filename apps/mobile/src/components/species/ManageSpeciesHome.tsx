@@ -58,6 +58,7 @@ const ManageSpeciesHome = (props: Props) => {
     setLoading(true)
     try {
       const { responseData, responseError } = await getUserAllSpeceis(currentProjectUid)
+      console.log('Fetched user species from server:', responseData, 'error:', responseError)
       if (responseError) {
         return
       }
@@ -72,12 +73,11 @@ const ManageSpeciesHome = (props: Props) => {
         isUploaded: true,
         isUpdated: true,
       }))
+      console.log('Updating user project species in state with',normalizedSpecies, 'species')
       dispatch(updateUserPojectSpecies(normalizedSpecies))
-      if (responseData && responseData.length > 0) {
-         await addUserSpecies(responseData)
-      }
       setLoading(false)
     } catch (error) {
+      console.error('Error syncing user species:', error)
       setLoading(false)
     }
   }
@@ -88,11 +88,11 @@ const ManageSpeciesHome = (props: Props) => {
     toggleFavSpecies(item, false)
   }
 
-  const renderSpecieCard = (item: IScientificSpecies,onlyProjectSpecies:boolean) => {
+  const renderSpecieCard = (item: IScientificSpecies, onlyProjectSpecies: boolean) => {
     return (
       <SpecieCard
         item={item}
-        onPressSpecies={()=>{handleSpeciesPress(item,onlyProjectSpecies)}}
+        onPressSpecies={() => { handleSpeciesPress(item, onlyProjectSpecies) }}
         actionName={''}
         onlyProjectSpecies={onlyProjectSpecies}
         handleRemoveFavorite={handleRemoveFav} isSelectSpecies={false} />
@@ -102,11 +102,11 @@ const ManageSpeciesHome = (props: Props) => {
   const displayedSpecies = showProjectFilter && onlyProjectSpecies
     ? userProjectSpecies
     : userFavSpecies
-
+  console.log('displayedSpecies', displayedSpecies)
   return (
     <FlashList
       data={displayedSpecies}
-      renderItem={({ item }) => renderSpecieCard(item,onlyProjectSpecies)}
+      renderItem={({ item }) => renderSpecieCard(item, onlyProjectSpecies)}
       estimatedItemSize={cardSize}
       ListHeaderComponent={
         <ManageSpeciesHeader

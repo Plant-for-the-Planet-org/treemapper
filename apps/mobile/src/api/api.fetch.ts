@@ -359,8 +359,10 @@ export const getUserAllSpeceis = async (id?: string) => {
     } else {
       result = { responseData: null, responseError: false }
     }
+    return result
+  } else {
+    return { responseData: null, responseError: false }
   }
-  return { responseData: null, responseError: false }
 }
 
 

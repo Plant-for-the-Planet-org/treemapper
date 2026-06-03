@@ -59,6 +59,7 @@ const appStateSlice = createSlice({
       state.userSpecies = action.payload
     },
     updateUserPojectSpecies(state, action: PayloadAction<IScientificSpecies[]>) {
+      console.log('Updating user project species in state with', action.payload, 'species')
       state.userProjectSpecies = action.payload
     },
     updateLastSyncData(state, action: PayloadAction<number>) {

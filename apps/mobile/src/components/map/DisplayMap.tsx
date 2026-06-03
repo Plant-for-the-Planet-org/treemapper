@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native'
 import React, { useEffect, useRef, useState } from 'react'
 import { Map, Camera, CameraRef, MapRef, UserLocation, useCurrentPosition } from '@maplibre/maplibre-react-native'
-import * as Location from 'expo-location'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
 import { useQuery, useRealm } from '@realm/react'
@@ -29,7 +28,6 @@ import { RootStackParamList } from 'src/types/type/navigation.type'
 const MapStyle = require('assets/mapStyle/mapStyleOutput.json')
 
 const DisplayMap = () => {
-  const [locationStatus] = Location.useForegroundPermissions()
   const realm = useRealm()
   const [overlayGeoJSON, setOverlayGeoJSON] = useState({
     type: 'FeatureCollection',
@@ -37,6 +35,9 @@ const DisplayMap = () => {
   })
   const currentUserLocation = useSelector(
     (state: RootState) => state.gpsState.user_location,
+  )
+  const locationPermissionStatus = useSelector(
+    (state: RootState) => state.gpsState.permission_status,
   )
   const { type: userType } = useSelector(
     (state: RootState) => state.userState,
@@ -347,7 +348,7 @@ const DisplayMap = () => {
       mapStyle={mainMapView === 'SATELLITE' ? SatelliteLayer : MapStyle}
     >
       <Camera ref={cameraRef} maxZoom={17} />
-      {locationStatus?.status === Location.PermissionStatus.GRANTED && (
+      {locationPermissionStatus === 'granted' && (
         <UserLocation heading />
       )}
       {renderShapeSource()}

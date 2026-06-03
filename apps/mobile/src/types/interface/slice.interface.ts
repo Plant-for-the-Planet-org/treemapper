@@ -180,9 +180,12 @@ export interface ProjectStateSlice {
   }
 }
 
+export type LocationPermissionStatus = 'undetermined' | 'granted' | 'denied'
+
 export interface GpsSliceInitialState {
   user_location: number[],
-  accuracy: number
+  accuracy: number,
+  permission_status: LocationPermissionStatus
 }
 
 export interface TakePictureInitialState {
