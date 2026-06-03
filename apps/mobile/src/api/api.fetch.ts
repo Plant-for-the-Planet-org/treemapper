@@ -105,14 +105,6 @@ export const deleteAccount = async () => {
 };
 
 
-export const getUserDetails = async () => {
-  const uri = `${getUrlApi.getUserDetails}`;
-  const result = await fetchGetCall(uri, true);
-  return result;
-};
-
-
-
 export const getAreaName = async (coords: number[],) => {
   const uri = `${getUrlApi.getAreaName}/${coords[0]},${coords[1]}.json?types=place&access_token=${process.env.EXPO_PUBLIC_MAP_BOX_TOKEN}`
   const result = await fetchGetCall(uri, false);

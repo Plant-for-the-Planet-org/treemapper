@@ -23,10 +23,6 @@ export const getUrlApi = {
   getBaseTestUrl: `${baseUrl}`,
   getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
 
-
-  getUserDetails: `${baseUrl}/app/profile`,
-
-
   getAllProjects: `${baseUrl}/app/profile/projects?_scope=extended`,
 
   userSpecies: `${baseUrl}/treemapper/species`,

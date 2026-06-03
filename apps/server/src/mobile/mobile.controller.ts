@@ -55,9 +55,8 @@ export class MobileController {
   @Get('user/profile')
   async getUserDetails(
     @CurrentUser() userData: ExtendedUser,
-    @Headers('authorization') authorization: string,
   ): Promise<any> {
-    return this.appservice.getUserDetails(userData, authorization)
+    return this.appservice.getUserDetails(userData)
   }
 
 

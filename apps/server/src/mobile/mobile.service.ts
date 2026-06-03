@@ -492,46 +492,22 @@ export class MobileService {
   }
 
 
-  async getUserDetails(userData: User, token: string) {
-    try {
-      if (userData.v3ApprovedAt || userData.existingPlanetUser) {
-        return {
-          country: userData.country,
-          created: userData.createdAt,
-          displayName: userData.displayName,
-          email: userData.email,
-          firstName: userData.firstName,
-          id: userData.uid,
-          image: userData.image,
-          isPrivate: false,
-          lastName: userData.lastName,
-          locale: userData.locale,
-          name: userData.displayName,
-          slug: userData.slug,
-          type: userData.type,
-          v3Approved: userData.v3ApprovedAt ? true : false
-        }
-      }
-
-      return {
-        country: userData.country,
-        created: userData.createdAt,
-        displayName: userData.displayName,
-        email: userData.email,
-        firstName: userData.firstName,
-        id: userData.uid,
-        image: userData.image,
-        isPrivate: false,
-        lastName: userData.lastName,
-        locale: userData.locale,
-        name: userData.displayName,
-        slug: userData.slug,
-        type: userData.type,
-        v3Approved: true
-      }
-
-    } catch (error) {
-      throw ''
+  async getUserDetails(userData: User) {
+    return {
+      country: userData.country || '',
+      created: userData.createdAt,
+      displayName: userData.displayName || userData.firstName || '',
+      email: userData.email,
+      firstName: userData.firstName || '',
+      id: userData.uid,
+      image: userData.image,
+      isPrivate: false,
+      lastName: userData.lastName || '',
+      locale: userData.locale || 'en',
+      name: userData.displayName || userData.firstName || '',
+      slug: userData.slug,
+      type: userData.type,
+      v3Approved: true
     }
   }
 

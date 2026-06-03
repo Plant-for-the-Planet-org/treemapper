@@ -6,7 +6,7 @@ import SingleTreeImage from 'assets/images/svg/PlaceholderAvatar.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import { scaleFont } from 'src/utils/constants/mixins'
 import { Skeleton } from 'moti/skeleton'
-import ProfileEditIcon from 'assets/images/svg/ProfileEdit.svg'
+// import ProfileEditIcon from 'assets/images/svg/ProfileEdit.svg'
 import openWebView from 'src/utils/helpers/appHelper/openWebView'
 import Popover from 'react-native-popover-view'
 import * as ExpoImage from 'expo-image';
@@ -33,26 +33,26 @@ const SidebarHeader = () => {
   }
 
 
-  const renderIcon = () => {
-    return <Popover
-      isVisible={popupVisible}
-      backgroundStyle={{ opacity: 0 }}
-      popoverStyle={{
-        backgroundColor:Colors.LIGHT_PRIMARY,
-      }}
-      onRequestClose={togglePopup}
-      from={(
-        <TouchableOpacity style={styles.editMe} onPress={() => setPopupVisible(true)}>
-          <ProfileEditIcon />
-        </TouchableOpacity>
-      )}>
-      <View style={styles.popOverWrapper}>
-        <Pressable
-          style={styles.lgtBtn}
-          onPress={editHandler}><Text style={styles.menuLabel}>Edit</Text></Pressable>
-      </View>
-    </Popover>
-  }
+  // const renderIcon = () => {
+  //   return <Popover
+  //     isVisible={popupVisible}
+  //     backgroundStyle={{ opacity: 0 }}
+  //     popoverStyle={{
+  //       backgroundColor:Colors.LIGHT_PRIMARY,
+  //     }}
+  //     onRequestClose={togglePopup}
+  //     from={(
+  //       <TouchableOpacity style={styles.editMe} onPress={() => setPopupVisible(true)}>
+  //         <ProfileEditIcon />
+  //       </TouchableOpacity>
+  //     )}>
+  //     <View style={styles.popOverWrapper}>
+  //       <Pressable
+  //         style={styles.lgtBtn}
+  //         onPress={editHandler}><Text style={styles.menuLabel}>Edit</Text></Pressable>
+  //     </View>
+  //   </Popover>
+  // }
 
 
   return (
@@ -78,7 +78,7 @@ const SidebarHeader = () => {
           </Text>
         </Skeleton>}
       </View>
-      {!!email && renderIcon()}
+      {/* {!!email && renderIcon()} */}
     </View>
   )
 }
