@@ -5,7 +5,6 @@ import { useDispatch, useSelector } from 'react-redux'
 import { resetUserDetails, updateName, updateUserDetails } from 'src/store/slice/userStateSlice'
 import { logoutAppUser, updateNewIntervention, updateUserLogin, updateUserToken } from 'src/store/slice/appStateSlice'
 import useAuthentication from 'src/hooks/useAuthentication'
-import { updateApiUserDetails } from 'src/api/api.fetch'
 import { RootState } from 'src/store'
 import Snackbar from 'react-native-snackbar'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
@@ -64,18 +63,6 @@ const LoginButton = () => {
     }
   }, [error])
 
-    const handleUpdateUserDetails = async (serverData, auth0Data) => {
-      if (serverData && !serverData.image && auth0Data) {
-        updateApiUserDetails({
-          image: auth0Data.picture || '',
-          firstName: auth0Data.givenName || '',
-          lastName: auth0Data.familyName || '',
-          name: auth0Data.name || '',
-        })
-      }
-
-    }
-
   useEffect(() => {
     if (user && buttonMounted) {
       getDetails()
@@ -104,7 +91,6 @@ const LoginButton = () => {
     const { response, status } = await getMobileUserDetails()
     if (response && response.data) {
       loginAndUpdateDetails({ ...response.data, image: response.data.image || user.picture || user.profile || '' })
-      handleUpdateUserDetails(response.data, user)
     } else {
       Bugsnag.notify(new Error("Failed to fetch user details"))
       addNewLog({

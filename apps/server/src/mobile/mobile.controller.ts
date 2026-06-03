@@ -61,14 +61,6 @@ export class MobileController {
 
 
 
-  // @Post('user/profile')
-  // async updateProfieDetails(
-  //   @CurrentUser() userData: User,
-  //   @Body() userBody: any,
-  // ): Promise<InterventionResponseDto> {
-  //   return this.appservice.updateUserDetails(userBody, userData);
-  // }
-
   @Get('user/projects')
   async getMyProjects(
     @Req() req: any,

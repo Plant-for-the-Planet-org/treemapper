@@ -37,11 +37,6 @@ export const getMobileInviteStatusEmail = async (id: string) => {
   return result;
 };
 
-export const updateApiUserDetails = async (params: any) => {
-  const uri = `${postUrlNewApi.updateUserDetails}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
 
 export const createMobileProject = async (params: any) => {
   const uri = `${postUrlNewApi.createNewProject}`;

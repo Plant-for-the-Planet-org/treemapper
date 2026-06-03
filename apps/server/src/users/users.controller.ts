@@ -10,6 +10,7 @@ import {
 import { ApiBearerAuth } from '@nestjs/swagger';
 import { UsersService } from './users.service';
 import { AvatarDTO, CreateSurvey } from './dto/create-user.dto';
+import { CreateDeviceDto } from './dto/create-device.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { CurrentUser } from '../auth/current-user.decorator';
 import { ExtendedUser, User } from './entities/user.entity';
@@ -78,15 +79,13 @@ export class UsersController {
     return await this.usersService.invalidateMyCache(user);
   }
 
-  // @Post('devices')
-  // @ApiOperation({ summary: 'Register or update user device' })
-  // @ApiResponse({ status: HttpStatus.CREATED, description: 'Device registered successfully' })
-  // async registerDevice(
-  //   @Body() createDeviceDto: CreateDeviceDto,
-  //   @CurrentUser() user: User,
-  // ) {
-  //   return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
-  // }
+  @Post('devices')
+  async registerDevice(
+    @Body() createDeviceDto: CreateDeviceDto,
+    @CurrentUser() user: User,
+  ) {
+    return await this.usersService.registerOrUpdateDevice(user.id, createDeviceDto);
+  }
 
 
   //   @Get('stats')

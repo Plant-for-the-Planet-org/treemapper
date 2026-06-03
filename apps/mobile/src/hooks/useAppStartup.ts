@@ -1,11 +1,35 @@
 import { useEffect, useRef, useCallback } from 'react'
 import { Platform } from 'react-native'
 import { OneSignal } from 'react-native-onesignal'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import Bugsnag from '@bugsnag/expo'
+
+// Set once we have shown the OS notification prompt, so we never ask again.
+const NOTIFICATION_ASKED_KEY = 'notification-permission-asked'
 
 interface StartupTask {
   name: string
   execute: () => Promise<void>
+}
+
+// Ask for notification permission at most once. If permission is already
+// granted, or we have asked before, do nothing. We pass fallbackToSettings
+// = false so a previous denial never force-opens the OS Settings app.
+const requestNotificationPermissionOnce = async (): Promise<void> => {
+  try {
+    const hasPermission = await OneSignal.Notifications.getPermissionAsync()
+    if (hasPermission) {
+      return
+    }
+    const alreadyAsked = await AsyncStorage.getItem(NOTIFICATION_ASKED_KEY)
+    if (alreadyAsked) {
+      return
+    }
+    await OneSignal.Notifications.requestPermission(false)
+    await AsyncStorage.setItem(NOTIFICATION_ASKED_KEY, 'true')
+  } catch (error) {
+    Bugsnag.notify(error as Error)
+  }
 }
 
 interface UseAppStartupResult {
@@ -21,7 +45,7 @@ const useAppStartup = (): UseAppStartupResult => {
 
   const initializeOneSignal = useCallback(async (): Promise<void> => {
     try {
-      const permissionGranted = await OneSignal.Notifications.requestPermission(true)
+      await requestNotificationPermissionOnce()
       OneSignal.User.pushSubscription.addEventListener('change', (subscription) => {
         const newToken = subscription.current.id
         const optedIn = subscription.current.optedIn

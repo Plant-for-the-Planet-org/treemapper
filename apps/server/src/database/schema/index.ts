@@ -318,7 +318,8 @@ export const user = pgTable('user', {
   migratedAt: timestamp('migrated_at', { withTimezone: true }),
   existingPlanetUser: boolean('existing_planet_user').default(false),
   workspaceRole: workspaceRoleEnum('workspace_role').default('member'),
-  v3ApprovedAt: timestamp('v3_approved_at', { withTimezone: true })
+  v3ApprovedAt: timestamp('v3_approved_at', { withTimezone: true }),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true })
 }, () => ({
   emailFormat: check('email_format', sql`email ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'`),
 }));
@@ -517,6 +518,36 @@ export const notifications = pgTable('notifications', {
     sql`delivered_at IS NULL OR sent_at IS NULL OR delivered_at >= sent_at`),
   retryCountValid: check('retry_count_valid',
     sql`retry_count >= 0 AND retry_count <= 10`),
+}));
+
+// One row per physical device (deviceId is the client-generated id stored on
+// the device). On app open the mobile app upserts this row: if the same
+// deviceId logs in as a different user, ownership (userId) is reassigned.
+// Used for push delivery (oneSignalId) and, later, a web device-management view.
+export const userDevice = pgTable('user_device', {
+  id: serial('id').primaryKey(),
+  uid: text('uid').notNull().unique(),
+  deviceId: text('device_id').notNull().unique(),
+  userId: integer('user_id').notNull().references(() => user.id, { onDelete: 'cascade' }),
+  oneSignalId: text('one_signal_id'),
+  deviceOs: text('device_os'),
+  deviceName: text('device_name'),
+  deviceModel: text('device_model'),
+  osVersion: text('os_version'),
+  appVersion: text('app_version'),
+  locale: text('locale'),
+  timezone: text('timezone'),
+  notificationPermission: boolean('notification_permission').default(true).notNull(),
+  isActive: boolean('is_active').default(true).notNull(),
+  lastActiveAt: timestamp('last_active_at', { withTimezone: true }).defaultNow().notNull(),
+  createdAt: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull().$onUpdate(() => new Date()),
+}, (table) => ({
+  userDevicesIdx: index('user_device_user_idx').on(table.userId),
+  oneSignalIdx: index('user_device_one_signal_idx')
+    .on(table.oneSignalId)
+    .where(sql`one_signal_id IS NOT NULL`),
+  lastActiveIdx: index('user_device_last_active_idx').on(table.lastActiveAt),
 }));
 
 export const auditLog = pgTable('audit_log', {

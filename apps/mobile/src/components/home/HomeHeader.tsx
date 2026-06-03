@@ -33,7 +33,8 @@ interface Props {
 }
 
 const HomeHeader = (props: Props) => {
-  const { registerDevice } = useDeviceRegistration()
+  // Self-triggers: registers the device once after login and on every foreground.
+  useDeviceRegistration()
   const { toggleFilterModal, toggleProjectModal } = props
   useAppStartup()
   const { addNewIntervention, interventionExists } = useInterventionManagement()
@@ -77,7 +78,6 @@ const HomeHeader = (props: Props) => {
   useEffect(() => {
     if (isLoggedIn) {
       syncUserDetails()
-      // registerDevice()
     }
   }, [isLoggedIn])
 
