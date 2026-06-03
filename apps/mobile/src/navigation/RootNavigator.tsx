@@ -58,7 +58,6 @@ const RootNavigator = () => {
       <Stack.Screen name="ProjectSites" component={Screens.ProjectSites} />
       <Stack.Screen name="DeleteAccount" component={Screens.DeleteAccount} />
       <Stack.Screen name="CreateProject" component={Screens.CreateProject} />
-      <Stack.Screen name="TreeMapperFeaturesScreen" component={Screens.TreeMapperFeaturesScreen} />
       <Stack.Screen name="Guide" component={Screens.Guide} />
       <Stack.Screen name="Notification" component={Screens.Notification} />
       <Stack.Screen name="NotificationDetail" component={Screens.NotificationDetail} />

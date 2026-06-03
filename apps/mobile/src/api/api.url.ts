@@ -3,12 +3,6 @@ const mobileBaseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT_MOBILE
 
 
 export const postUrlApi = {
-  uploadIntervention: `${baseUrl}/treemapper/interventions`,
-  imageUpload: `${baseUrl}/treemapper/interventions`,
-
-
-  remeasurement: `${baseUrl}/treemapper/interventions`,
-
   updateSpecies: `${baseUrl}/treemapper/species`,
   addUserSpecies: `${baseUrl}/treemapper/species`,
 
@@ -17,8 +11,6 @@ export const postUrlApi = {
 
 export const getUrlApi = {
   getBaseUrl: `${baseUrl}`,
-  getBaseTestUrl: `${baseUrl}`,
-  getAllPlantLocations: `${baseUrl}/treemapper/interventions?limit=4&_scope=extended`,
 
   userSpecies: `${baseUrl}/treemapper/species`,
 
@@ -37,7 +29,6 @@ export const postUrlNewApi = {
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
   interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,
-  sendFeatureRequest: `${mobileBaseUrl}/mobile/request/features`,
   remeasurement: `${mobileBaseUrl}/mobile/intervention`,
   deleteIntervention: `${mobileBaseUrl}/mobile/delete/intervention`,
   acceptEmailInvite: `${mobileBaseUrl}/mobile/invites/accept`,

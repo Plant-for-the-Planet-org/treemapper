@@ -20,8 +20,6 @@ export interface AppInitialState {
   updateAppCount: number,
   refetchProject: string,
   imageSize: number,
-  showNewAppModal: boolean,
-  newFeatureRequest: boolean,
   userProjectSpecies: IScientificSpecies[]
 }
 

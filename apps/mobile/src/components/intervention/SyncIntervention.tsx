@@ -1,4 +1,4 @@
-import { Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
+import { Alert, Modal, Pressable, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native'
 import React, { useMemo, useRef, useState } from 'react'
 import { Colors, Typography } from 'src/utils/constants'
 import UnSyncIcon from 'assets/images/svg/UnSyncIcon.svg';
@@ -18,7 +18,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { RootState } from 'src/store';
 import { updateSyncDetails } from 'src/store/slice/syncStateSlice';
 import { getPostBody, getRemeasurementBody, postDataConvertor } from 'src/utils/helpers/syncHelper';
-import { getPersonalProject, mobileInterventionImageUplaod, presingedUrl, recordPlannedIntervention, remeasuremenMobile, skipRemeasurement, uploadAllIntervention } from 'src/api/api.fetch';
+import { getMobileHealth, getPersonalProject, mobileInterventionImageUplaod, presingedUrl, recordPlannedIntervention, remeasuremenMobile, skipRemeasurement, uploadAllIntervention } from 'src/api/api.fetch';
 import { updateLastSyncData, updateNewIntervention } from 'src/store/slice/appStateSlice';
 import { useNetInfo } from "@react-native-community/netinfo";
 import i18next from 'src/locales/index';
@@ -136,6 +136,24 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
         let totalUploaded = 0
         let totalFailed = 0
         try {
+            // Don't start a sync we can't finish. If the device is offline, that's
+            // the user's connection, not the server. If the device is online but
+            // /health doesn't come back OK, the server is down/in maintenance. In
+            // both cases the data stays queued in Realm and uploads on a later sync.
+            if (!isConnected) {
+                toast.show("Network call failed \nPlease check your internet connection", { textStyle: { textAlign: 'center' } })
+                return
+            }
+            const health = await getMobileHealth()
+            if (!health.success) {
+                addNewLog({ logType: 'DATA_SYNC', message: 'Sync skipped: server health check failed', logLevel: 'error', statusCode: `${health.status}` })
+                Alert.alert(
+                    "Server under maintenance",
+                    "Our servers are temporarily down. Your data is saved and will upload automatically once maintenance is done."
+                )
+                return
+            }
+
             const projectPass = await checkForProjectId();
             if (!projectPass) return;
 

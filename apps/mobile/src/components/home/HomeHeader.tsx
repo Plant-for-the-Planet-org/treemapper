@@ -8,7 +8,7 @@ import { StackNavigationProp } from '@react-navigation/stack'
 import { RootStackParamList } from 'src/types/type/navigation.type'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState } from 'src/store'
-import { getMobileInterventions, getServerIntervention, getUserSpecies } from 'src/api/api.fetch'
+import { getMobileInterventions, getUserSpecies } from 'src/api/api.fetch'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
 import { updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
@@ -24,7 +24,6 @@ import SpeciesSync from '../common/SpeciesSync'
 import NetInfo from "@react-native-community/netinfo";
 import { getMobileUserDetails } from '../../api/api.fetch'
 import { updateUserDetails } from '../../store/slice/userStateSlice'
-import NewAppModal from '../common/NewAppModal'
 import ProjectInviteModal from './DeepLinkModal'
 
 interface Props {

@@ -47,7 +47,6 @@ import PlantHistory from './PlantHistoryView'
 import ProjectSites from './ProjectSitesView'
 import DeleteAccount from './DeleteAccount'
 import CreateProjectScreen from './CreateProject'
-import TreeMapperFeaturesScreen from './TreeMapperFeaturesScreen'
 import GuideView from './GuideView'
 import NotificationView from './NotificationView'
 import NotificationDetailView from './NotificationDetailView'
@@ -105,7 +104,6 @@ export default {
   PlantHistory:PlantHistory,
   ProjectSites:ProjectSites,
   DeleteAccount: DeleteAccount,
-  TreeMapperFeaturesScreen:TreeMapperFeaturesScreen,
   CreateProject:CreateProjectScreen,
   Guide: GuideView,
   Notification: NotificationView,

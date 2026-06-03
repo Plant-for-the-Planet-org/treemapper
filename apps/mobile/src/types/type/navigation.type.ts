@@ -55,7 +55,6 @@ export type RootStackParamList = {
   ProjectSites: undefined
   DeleteAccount: undefined
   CreateProject: undefined
-  TreeMapperFeaturesScreen: undefined
   Guide: undefined
   Notification: undefined
   NotificationDetail: NotificationDetailView

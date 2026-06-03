@@ -13,12 +13,6 @@ export const getMobileHealth = async () => {
   return result;
 };
 
-export const uploadInterventionImage = async (location_id: string, coordinate_id: string, params: any) => {
-  const uri = `${postUrlApi.imageUpload}/${location_id}/coordinates/${coordinate_id}`
-  const result = await fetchPutCall(uri, params);
-  return result;
-};
-
 export const getMobileUserDetails = async () => {
   const uri = `${getUrlMobileApi.getUserDetails}`;
   const result = await fetchGetCall(uri, true);
@@ -81,12 +75,6 @@ export const mobileInterventionImageUplaod = async (params) => {
   return result;
 };
 
-export const remeasurement = async (tree_id: string, params: any) => {
-  const uri = `${postUrlApi.remeasurement}/${tree_id}/event`
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
 export const remeasuremenMobile = async (tree_id: string, params: any) => {
   const uri = `${postUrlNewApi.remeasurement}/${tree_id}/remeasure`
   const result = await fetchPutCall(uri, params);
@@ -112,12 +100,6 @@ export const getAllSpeciesAchieve = async () => {
   return result;
 };
 
-export const getServerIntervention = async (uri?: string) => {
-  const url = uri.length > 0 ? `${getUrlApi.getBaseTestUrl}/${uri}` : getUrlApi.getAllPlantLocations
-  const result = await fetchGetCall(url, true);
-  return result;
-};
-
 
 export const addUserSpeciesToServer = async (params: any) => {
   const uri = `${postUrlApi.addUserSpecies}`;
@@ -132,13 +114,6 @@ export const removeUserSpeciesToServer = async (id: any) => {
   return result;
 };
 
-
-
-export const sendFeatureRequest = async () => {
-  const uri = `${postUrlNewApi.sendFeatureRequest}`;
-  const result = await fetchPostCall(uri, {});
-  return result;
-};
 
 
 export const updateServerSpeciesDetail = async (params: any, id: string) => {
@@ -457,12 +432,6 @@ export const acceptLinkInvite = async (params: any) => {
 
 export const registerUserDevice = async (params: DeviceRegistrationParams) => {
   const uri = `${postUrlNewApi.registerDevice}`;
-  const result = await fetchPostCall(uri, params);
-  return result;
-};
-
-export const uploadIntervention = async (params: any) => {
-  const uri = `${postUrlApi.uploadIntervention}`;
   const result = await fetchPostCall(uri, params);
   return result;
 };
