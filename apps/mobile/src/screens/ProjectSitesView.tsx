@@ -129,9 +129,24 @@ const ProjectSitesView = () => {
 
   const setupProjectBound = (id: string) => {
     const projectData = realm.objectForPrimaryKey<ProjectInterface>(RealmSchema.Projects, id)
-    const { geoJSON } = makeInterventionGeoJson("Point", [JSON.parse(projectData.geometry).coordinates], "Intervention.form_id")
-    const bounds = bbox(geoJSON)
-    setProjectBounds(bounds)
+    // Projects without geometry are stored with an empty string, so guard
+    // before parsing and fall back to no bounds (map keeps its default view).
+    if (!projectData?.geometry) {
+      setProjectBounds([])
+      return
+    }
+    try {
+      const parsedGeometry = JSON.parse(projectData.geometry)
+      if (!parsedGeometry?.coordinates) {
+        setProjectBounds([])
+        return
+      }
+      const { geoJSON } = makeInterventionGeoJson("Point", [parsedGeometry.coordinates], "Intervention.form_id")
+      const bounds = bbox(geoJSON)
+      setProjectBounds(bounds)
+    } catch (error) {
+      setProjectBounds([])
+    }
   }
 
 
@@ -206,17 +221,21 @@ const ProjectSitesView = () => {
       return
     }
 
+    // Same payload shape as the web sites API (CreateSiteDto):
+    // projectId travels in the URL, status replaces siteType, and the
+    // GeoJSON goes in `location`. geometry state is a Feature; send the
+    // inner Polygon geometry.
     const finalData = {
       "name": siteName,
-      "projectId": selectedProject.value,
-      "siteType": selectedStatus.value,
-      // geometry is a GeoJSON Feature; the new API expects the inner Polygon.
-      "geometry": (geometry as any).geometry,
+      "status": selectedStatus.value,
+      "location": (geometry as any).geometry,
     }
 
-    const { response, success } = await createNewSite(finalData)
-    if (success) {
-      const createdSite = response.data.site
+    const { response, success } = await createNewSite(selectedProject.value, finalData)
+    // The sites service reports failures (e.g. invalid GeoJSON) in the body
+    // with HTTP 200, so a created site is confirmed by `data.uid`.
+    const createdSite = response?.data
+    if (success && createdSite?.uid) {
       await addNewSite(selectedProject.value, {
         id: createdSite.uid,
         name: createdSite.name,
@@ -228,7 +247,7 @@ const ProjectSitesView = () => {
       dispatch(updateLastProject(Date.now()))
     } else {
       setLoading(false)
-      toast.show("Error ocurred while creating site")
+      toast.show(response?.message || "Error occurred while creating site")
     }
   }
 

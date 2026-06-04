@@ -123,8 +123,8 @@ export const updateServerSpeciesDetail = async (params: any, id: string) => {
 };
 
 
-export const createNewSite = async (params: any) => {
-  const uri = `${postUrlNewApi.createSite}`
+export const createNewSite = async (projectId: string, params: any) => {
+  const uri = `${postUrlNewApi.createSite}/${projectId}/sites`
   const result = await fetchPostCall(uri, params);
   return result;
 };

@@ -21,7 +21,9 @@ export const postUrlNewApi = {
   uploadMobileIntervention: `${mobileBaseUrl}/mobile/project`,
   recordPlannedIntervention: `${mobileBaseUrl}/mobile/project`,
   createNewProject: `${mobileBaseUrl}/mobile/project`,
-  createSite: `${mobileBaseUrl}/mobile/site`,
+  // Site creation now uses the same project-scoped sites API as web:
+  // POST /projects/:projectId/sites
+  createSite: `${mobileBaseUrl}/projects`,
   uploadImageData: `${mobileBaseUrl}/mobile/image`,
   awsSignedUrl: `${mobileBaseUrl}/mobile/signedurl`,
   interventionImage: `${mobileBaseUrl}/mobile/intervention/image`,

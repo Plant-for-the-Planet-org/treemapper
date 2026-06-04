@@ -227,9 +227,21 @@ const ProjectModal = (props: Props) => {
 
   const closeModal = useCallback(() => {
     bottomSheetModalRef.current?.dismiss()
-    toggleModal()
+  }, [])
+
+  // Runs on every dismiss path (close button, backdrop, swipe-down,
+  // programmatic). Clears all triggers so a Home remount (e.g. the
+  // navigation reset after registering an intervention) does not
+  // re-present the modal from stale flags.
+  const handleSheetDismiss = useCallback(() => {
     dispatch(updateProjectModal(false))
-  }, [toggleModal, dispatch])
+    dispatch(updateLastProject(0))
+    // Only flip the parent's local state when it is the open trigger;
+    // a blind toggle would set it to true and re-open the modal.
+    if (isVisible) {
+      toggleModal()
+    }
+  }, [dispatch, isVisible, toggleModal])
 
   // Navigation handlers
   const createNewProject = useCallback(() => {
@@ -400,6 +412,7 @@ const ProjectModal = (props: Props) => {
       handleStyle={styles.handleStyle}
       enableContentPanningGesture={false}
       enablePanDownToClose={true}
+      onDismiss={handleSheetDismiss}
       backdropComponent={backdropComponent}
       backgroundStyle={{ backgroundColor: 'transparent' }}
       keyboardBehavior="interactive"
