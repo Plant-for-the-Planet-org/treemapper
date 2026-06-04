@@ -36,6 +36,12 @@ const InterventionHeaderList = (props: Props) => {
     setHeaderData(FinalData)
   }, [lastServerInterventionpage, intervention_updated,dataMigrated])
 
+  useEffect(() => {
+    if (!selectedLabel) {
+      setSelectedLabel('all')
+    }
+  }, [selectedLabel])
+
 
   const headerChip = (item: any) => {
     if (item.count === 0) {

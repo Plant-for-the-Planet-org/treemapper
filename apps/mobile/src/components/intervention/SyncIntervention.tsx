@@ -90,20 +90,44 @@ const SyncIntervention = ({ isLoggedIn, tokenValid }: Props) => {
 
     const checkForProjectId = async () => {
         const invWithoutProjectId = realm.objects(RealmSchema.Intervention).filtered('status == "PENDING_DATA_UPLOAD" AND project_id == ""');
-        if (invWithoutProjectId.length === 0) return true;
+        // Interventions pointing to a project that is not in Realm don't belong
+        // to the logged-in user (e.g. recorded under another account before a
+        // re-login). Instead of letting their upload fail, strip the foreign
+        // project + site and move them to the personal project. Planned
+        // interventions are excluded: they upload against a specific server-side
+        // intervention, so reassigning the project cannot fix them.
+        const invWithUnknownProject = realm.objects(RealmSchema.Intervention)
+            .filtered('status == "PENDING_DATA_UPLOAD" AND project_id != "" AND is_planned == false')
+            .filter(intervention => !realm.objectForPrimaryKey(RealmSchema.Projects, (intervention as any).project_id));
+        if (invWithoutProjectId.length === 0 && invWithUnknownProject.length === 0) return true;
         const { response, success } = await getPersonalProject();
         if (!success || !response?.data?.properties?.uid) {
             addNewLog({ logType: 'DATA_SYNC', message: 'Failed to fetch personal project uid for sync', logLevel: 'error', statusCode: '' });
-            toast.show(`${invWithoutProjectId.length} of the intervention don't have project assigned. Please assign them project from intervention tab.`)
+            toast.show(`${invWithoutProjectId.length + invWithUnknownProject.length} of the intervention don't have project assigned. Please assign them project from intervention tab.`)
             await updateInterventionsWithEmptyProjectIdWithCount()
             return false;
         }
         const projectUid = response.data.properties.uid;
+        let reassignedCount = 0;
         realm.write(() => {
             for (const intervention of invWithoutProjectId) {
                 (intervention as any).project_id = projectUid;
             }
+            for (const intervention of invWithUnknownProject) {
+                // The personal project itself is not stored in Realm Projects,
+                // so it shows up as "unknown" here. Skip it: it is already the
+                // target, nothing to reassign.
+                if ((intervention as any).project_id === projectUid) continue;
+                (intervention as any).project_id = projectUid;
+                (intervention as any).project_name = '';
+                (intervention as any).site_id = '';
+                (intervention as any).site_name = '';
+                reassignedCount++;
+            }
         });
+        if (reassignedCount > 0) {
+            addNewLog({ logType: 'DATA_SYNC', message: `Reassigned ${reassignedCount} intervention(s) with unknown project to personal project`, logLevel: 'info', statusCode: '' });
+        }
         return true;
     }
 

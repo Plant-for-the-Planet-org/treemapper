@@ -309,12 +309,12 @@ const HomeHeader = (props: Props) => {
       </View>
       <ProjectInviteModal />
       <View style={styles.sectionWrapper} />
-      <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
+      {userType && <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleProjectModal}>
         <HomeMapIcon
           onPress={toggleProjectModal}
           width={SCALE_24} height={SCALE_24}
         />
-      </Pressable>
+      </Pressable>}
       <Pressable style={[styles.iconWrapper, styles.commonIcon]} onPress={toggleFilterModal}>
         <FilterMapIcon
           onPress={toggleFilterModal}

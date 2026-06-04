@@ -41,9 +41,9 @@ const InterventionView = () => {
     }
   };
 
-  const getRelatedIntervention = () => {
-    const query = getQuery(selectedLabel);
-    const start = currentPage * 20;
+  const getRelatedIntervention = (label = selectedLabel, page = currentPage) => {
+    const query = getQuery(label);
+    const start = page * 20;
     const end = start + 20;
     const objects = realm
       .objects(RealmSchema.Intervention)
@@ -76,6 +76,7 @@ const InterventionView = () => {
   }
 
   const handleLabel = (s: string) => {
+    if (s === selectedLabel) return
     hasMoreData.current = true
     setAllIntervention([])
     setSelectedLabel(s)
@@ -86,7 +87,12 @@ const InterventionView = () => {
     hasMoreData.current = true
     setLoading(true)
     setAllIntervention([])
-    setCurrentPage(0);
+    if (currentPage === 0) {
+      // Page is already 0, so the fetch effect won't re-run — fetch directly
+      getRelatedIntervention(selectedLabel, 0)
+    } else {
+      setCurrentPage(0)
+    }
   }
 
 

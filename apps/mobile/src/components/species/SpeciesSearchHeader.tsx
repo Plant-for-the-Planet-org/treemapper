@@ -37,13 +37,34 @@ const SpeciesSearchHeader = (props: Props) => {
   }, [])
 
 
+  const SEARCH_RESULT_LIMIT = 20
+
   const querySearchResult = () => {
-    const specieArray: IScientificSpecies[] = Array.from(
+    // Tier 1: species whose name (or alias) starts with the search term
+    const startsWithMatches: IScientificSpecies[] = Array.from(
       realm
         .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
-        .filtered('scientificName CONTAINS[c] $0 OR aliases CONTAINS[c] $0', searchText)
+        .filtered(
+          `scientificName BEGINSWITH[c] $0 OR aliases BEGINSWITH[c] $0 SORT(scientificName ASC) LIMIT(${SEARCH_RESULT_LIMIT})`,
+          searchText
+        )
     )
-    setSpicesList(specieArray)
+
+    // Tier 2: fill remaining slots with species that contain the term elsewhere in the name
+    const remainingSlots = SEARCH_RESULT_LIMIT - startsWithMatches.length
+    let containsMatches: IScientificSpecies[] = []
+    if (remainingSlots > 0) {
+      containsMatches = Array.from(
+        realm
+          .objects<IScientificSpecies>(RealmSchema.ScientificSpecies)
+          .filtered(
+            `(scientificName CONTAINS[c] $0 OR aliases CONTAINS[c] $0) AND NOT (scientificName BEGINSWITH[c] $0 OR aliases BEGINSWITH[c] $0) SORT(scientificName ASC) LIMIT(${remainingSlots})`,
+            searchText
+          )
+      )
+    }
+
+    setSpicesList([...startsWithMatches, ...containsMatches])
   }
 
   return (

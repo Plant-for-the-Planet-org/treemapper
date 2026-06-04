@@ -104,6 +104,8 @@ const SideBarList = (props: Props) => {
     <View style={styles.container}>
       <FlatList
         data={data}
+        contentContainerStyle={styles.listContent}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item }) => (
           <SideBarCard
             item={item}
@@ -127,6 +129,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 10,
+  },
+  listContent: {
+    paddingBottom: 100,
   },
   binIconWrapper: {
     width: SCALE_24,

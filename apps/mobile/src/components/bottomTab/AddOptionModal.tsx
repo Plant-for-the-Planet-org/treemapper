@@ -69,7 +69,7 @@ const AddOptionModal = (props: Props) => {
 
 
   const checkWhetherProjectIsSelected = () => {
-    if (!currentProject.projectId && props.visible) {
+    if (!currentProject.projectId && props.visible && userType) {
       toggleModal()
       return false
     }
