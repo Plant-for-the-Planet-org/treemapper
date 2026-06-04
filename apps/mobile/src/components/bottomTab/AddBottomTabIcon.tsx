@@ -66,7 +66,7 @@ const AddBottomTabIcon = () => {
         </View>
         <AddOptionModal setVisible={setOpen} visible={open} />
       </Pressable>
-      <View style={[styles.labelContainer, { marginTop: Platform.OS==='ios' ? '35%' : '5%' }]}>
+      <View style={[styles.labelContainer, { marginTop: Platform.OS==='ios' ? '35%' : '24%' }]}>
         <Text
           style={[
             styles.labelStyle,

@@ -7,7 +7,7 @@ import { Colors } from 'src/utils/constants'
 import NetInfo from '@react-native-community/netinfo'
 import { useNavigation } from '@react-navigation/native'
 
-const DOCS_URL = 'https://docs.treemapper.app/'
+const DOCS_URL = 'https://docs.treemapper.app/en/docs/introduction'
 
 const GuideView = () => {
   const [loading, setLoading] = useState(true)

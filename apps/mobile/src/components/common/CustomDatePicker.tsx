@@ -1,4 +1,4 @@
-import { Dimensions, Pressable, StyleSheet, View } from 'react-native'
+import { Dimensions, Platform, Pressable, StyleSheet, View } from 'react-native'
 import React from 'react'
 import { Colors } from 'src/utils/constants'
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -12,20 +12,43 @@ interface Props {
 
 const CustomDatePicker = (props: Props) => {
     const { cb, selectedData } = props
-    const onDateSelect = (_event?: any, date?: Date | undefined) => {
-        if (date) {
-            cb(convertDateToTimestamp(date));
-        } else { cb(0) }
+    const onDateSelect = (event: any, date?: Date | undefined) => {
+        // On Android, the event.type tells us if user pressed OK or Cancel
+        // On iOS, this event is always triggered when date changes
+        if (Platform.OS === 'android') {
+            if (event.type === 'set' && date) {
+                // User pressed OK
+                cb(convertDateToTimestamp(date));
+            } else if (event.type === 'dismissed') {
+                // User pressed Cancel or dismissed
+                cb(0);
+            }
+        } else {
+            // iOS behavior - always update on change
+            if (date) {
+                cb(convertDateToTimestamp(date));
+            } else {
+                cb(0);
+            }
+        }
     };
+    
+    const handleBackdropPress = () => {
+        // Only close on backdrop press for iOS or when using spinner display
+        if (Platform.OS === 'ios') {
+            cb(0);
+        }
+    };
+    
     return (
         <View style={styles.container}>
-            <Pressable style={styles.backdrop} onPress={onDateSelect} />
+            <Pressable style={styles.backdrop} onPress={handleBackdropPress} />
             <DateTimePicker
                 maximumDate={new Date(selectedData)}
                 minimumDate={new Date(2006, 0, 1)}
                 value={new Date()}
                 onChange={onDateSelect}
-                display="spinner"
+                display={Platform.OS === 'android' ? 'default' : 'spinner'}
                 style={styles.dateStyle}
             />
         </View>
