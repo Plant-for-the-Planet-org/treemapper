@@ -385,7 +385,7 @@ export const getUserProjectSpecies = async (id: string) => {
 
 //Post intervention
 export const uploadAllIntervention = async (params: any) => {
-  let { response, success } = await uploadMobileIntervention(params)
+  const { response, success, status } = await uploadMobileIntervention(params)
   if (success && response.data && response.data.id) {
     return {
       responseData: {
@@ -401,10 +401,12 @@ export const uploadAllIntervention = async (params: any) => {
           "updated": new Date(),
           "status": "pending"
         }]
-      }, responseError: false
+      }, responseError: false, status
     }
   } else {
-    return { responseData: null, responseError: true }
+    // Surface the HTTP status so the sync loop can tell a payload the server
+    // rejected (4xx, never retryable) from a transient failure (5xx/network).
+    return { responseData: null, responseError: true, status }
   }
 }
 

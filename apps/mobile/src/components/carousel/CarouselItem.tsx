@@ -52,7 +52,9 @@ const CarouselItem = (props: Props) => {
         onPress(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>Add details</Text>
-      </TouchableOpacity> :data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
+      </TouchableOpacity> : !data.is_alive ? <View style={styles.deadBadge}>
+        <Text style={styles.deadBadgeLabel}>{i18next.t("label.dead")}</Text>
+      </View> : data.status === 'SYNCED' ? <TouchableOpacity style={styles.nextButton} onPress={() => {
         remeasure(data.intervention_id, data.tree_id)
       }}>
         <Text style={styles.nextButtonLabel}>{i18next.t("label.remeasure")}</Text>
@@ -157,5 +159,21 @@ const styles = StyleSheet.create({
     fontSize: 12,
     fontFamily: Typography.FONT_FAMILY_BOLD,
     color: Colors.WHITE
+  },
+  deadBadge: {
+    height: 35,
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    bottom: 10,
+    right: 10,
+    backgroundColor: Colors.GRAY_LIGHT,
+    borderRadius: 12,
+    paddingHorizontal: 10
+  },
+  deadBadgeLabel: {
+    fontSize: 12,
+    fontFamily: Typography.FONT_FAMILY_BOLD,
+    color: Colors.TEXT_COLOR
   }
 })

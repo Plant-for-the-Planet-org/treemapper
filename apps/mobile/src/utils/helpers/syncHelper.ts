@@ -140,28 +140,39 @@ export const getPostBody = async (r: QuaeBody): Promise<BodyPayload> => {
     }
     if (r.type === 'plannedTree') {
         const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, r.p1Id);
-        if (!Intervention) {
-            return null
-        }
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
-        if (!TreeDetails) {
-            return null
+        // A missing Realm record cannot heal on retry; flag it so the sync
+        // loop quarantines the intervention instead of retrying forever.
+        if (!Intervention || !TreeDetails) {
+            return { pData: null, message: 'Planned tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
         }
         return convertPlannedTreeToBody(JSON.parse(JSON.stringify(Intervention)), JSON.parse(JSON.stringify(TreeDetails)))
     }
     if (r.type === 'sampleTree') {
         const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+        if (!TreeDetails) {
+            return { pData: null, message: 'Sample tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+        }
         const Intervention = appRealm.objectForPrimaryKey<InterventionData>(RealmSchema.Intervention, TreeDetails.intervention_id);
+        if (!Intervention) {
+            return { pData: null, message: 'Parent intervention missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+        }
+        // Parent intervention not uploaded yet: resolved by a later sync pass,
+        // so fixRequired stays "NO" (retryable, not corrupt).
         if (Intervention.location_id === '') {
-            return null
+            return { pData: null, message: 'Parent intervention not uploaded yet', fixRequired: 'NO', error: '' }
         }
         return convertTreeToBody(Intervention, TreeDetails)
     }
     if (r.type === 'treeImage') {
         try {
             const TreeDetails = appRealm.objectForPrimaryKey<SampleTree>(RealmSchema.TreeDetail, r.p2Id);
+            if (!TreeDetails) {
+                return { pData: null, message: 'Tree record missing in local DB', fixRequired: 'UNKNOWN', error: '' }
+            }
+            // Tree not uploaded yet: a later sync pass resolves this (retryable).
             if (TreeDetails.sloc_id === '') {
-                return null
+                return { pData: null, message: 'Tree not uploaded yet', fixRequired: 'NO', error: '' }
             }
             const body = {
                 imageFile: updateFilePath(TreeDetails.image_url),
@@ -429,6 +440,7 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
                 }
             } : {}
         }
+        console.log('Remeasurement body metadata', JSON.stringify(postData, null, 2))
 
         // Image is uploaded by file path (presigned URL) to the new backend.
         if (d.image_url) {
@@ -443,8 +455,8 @@ export const convertRemeasurementBody = async (d: SampleTree): Promise<BodyPaylo
 
 
 export const convertRemeasurementStatus = async (d: SampleTree): Promise<BodyPayload> => {
-    const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
     try {
+        const getHistory = d.history.find(el => el.dataStatus === 'REMEASUREMENT_EVENT_UPDATE')
         const postData: any = {
             "type": "status",
             "eventDate": postTimeConvertor(getHistory.eventDate || Date.now()),

@@ -2187,18 +2187,26 @@ export class MobileService {
     try {
       this.validateRemeasurementDto(remeasurementDTO);
 
-      // Resolve tree + owning intervention's projectId in one query.
-      // Supports both tree UIDs and intervention UIDs (single-tree interventions).
-      const lookupCondition = remeasurementDTO.tree.startsWith('ivn_')
-        ? eq(intervention.uid, remeasurementDTO.tree)
-        : eq(tree.uid, remeasurementDTO.tree);
-
-      const [treeRow] = await this.drizzleService.db
+      // Resolve tree + owning intervention's projectId.
+      // The id may be a tree UID, or an intervention UID for single-tree
+      // interventions (mobile sends the intervention uid as the tree id).
+      // Intervention UIDs are not always 'inv_'-prefixed (web bulk uploads
+      // keep the client-provided id), so try tree first, then intervention.
+      let [treeRow] = await this.drizzleService.db
         .select({ tree, projectId: intervention.projectId })
         .from(tree)
         .innerJoin(intervention, eq(tree.interventionId, intervention.id))
-        .where(lookupCondition)
+        .where(eq(tree.uid, remeasurementDTO.tree))
         .limit(1);
+
+      if (!treeRow) {
+        [treeRow] = await this.drizzleService.db
+          .select({ tree, projectId: intervention.projectId })
+          .from(tree)
+          .innerJoin(intervention, eq(tree.interventionId, intervention.id))
+          .where(eq(intervention.uid, remeasurementDTO.tree))
+          .limit(1);
+      }
 
       if (!treeRow) {
         throw new NotFoundException('Tree not found');
