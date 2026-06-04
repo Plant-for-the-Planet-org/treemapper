@@ -11,7 +11,7 @@ import { RootState } from 'src/store'
 import { getMobileInterventions, getUserSpecies } from 'src/api/api.fetch'
 import { convertInventoryToIntervention, getExtendedPageParam } from 'src/utils/helpers/interventionHelper/legacyInventoryIntervention'
 import useInterventionManagement from 'src/hooks/realm/useInterventionManagement'
-import { updateLastServerIntervention, updateNewIntervention, updateServerIntervention, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
+import { updateNewIntervention, updateServerIntervention, updateUserSpeciesadded } from 'src/store/slice/appStateSlice'
 import useManageScientificSpecies from 'src/hooks/realm/useManageScientificSpecies'
 import useLogManagement from 'src/hooks/realm/useLogManagement'
 import { refreshSession } from 'src/api/sessionManager'
@@ -38,10 +38,11 @@ const HomeHeader = (props: Props) => {
   useAppStartup()
   const { addNewIntervention, interventionExists } = useInterventionManagement()
   const isCheckingNewInterventions = useRef(false)
+  const isBackfilling = useRef(false)
   const navigation = useNavigation<StackNavigationProp<RootStackParamList>>()
   const userType = useSelector((state: RootState) => state.userState.type)
   const [tokenValid, setTokenValid] = useState<boolean>(false)
-  const { lastServerInterventionpage, serverInterventionAdded, isLoggedIn, expiringAt } = useSelector((state: RootState) => state.appState)
+  const { serverInterventionAdded, isLoggedIn, expiringAt } = useSelector((state: RootState) => state.appState)
   const { addNewLog } = useLogManagement()
 
   const { isSyncing } = useSelector(
@@ -72,7 +73,7 @@ const HomeHeader = (props: Props) => {
     if (userType !== '' && !serverInterventionAdded && !isSyncing && isLoggedIn) {
       addMobileServerIntervention()
     }
-  }, [userType, lastServerInterventionpage, expiringAt, isLoggedIn, tokenValid])
+  }, [userType, serverInterventionAdded, isSyncing, expiringAt, isLoggedIn, tokenValid])
 
   useEffect(() => {
     if (isLoggedIn) {
@@ -148,31 +149,71 @@ const HomeHeader = (props: Props) => {
   }
 
 
+  // Initial backfill: pull EVERY intervention from the server in one pass by
+  // walking the pages until we hit a partial or empty page. We only mark the
+  // backfill complete (serverInterventionAdded) when the whole scan finishes
+  // cleanly; if a page errors mid-way we leave it incomplete so it retries on a
+  // later trigger instead of stopping short and stranding interventions.
   const addMobileServerIntervention = async () => {
+    if (isBackfilling.current) {
+      return
+    }
+    const isConnected = await checkInternetConnectivity()
+    if (!isConnected) {
+      return
+    }
+    isBackfilling.current = true
     try {
-      const { response, success } = await getMobileInterventions(lastServerInterventionpage === '' ? '1' : lastServerInterventionpage)
-      if (success && response.data && response?.data.items) {
-        for (let index = 0; index < response.data.items.length; index++) {
-          const element = convertInventoryToIntervention(response?.data.items[index]);
+      const pageSize = 6
+      let page = 1
+      let addedCount = 0
+      let completed = false
+      while (true) {
+        const { response, success } = await getMobileInterventions(page.toString())
+        if (!success) {
+          // Server/network error mid-scan: stop without marking complete so the
+          // backfill runs again later and finishes the remaining pages.
+          break
+        }
+        const items = response?.data?.items
+        if (!items || items.length === 0) {
+          completed = true
+          break
+        }
+        for (let index = 0; index < items.length; index++) {
+          const element = convertInventoryToIntervention(items[index])
+          // Conversion returns null/undefined when a server record fails to map
+          // (bad geometry, malformed sample tree, etc). Skip it instead of
+          // passing it on, otherwise it throws downstream and the record is lost
+          // silently. Log it so we can spot bad records.
+          if (!element) {
+            addNewLog({
+              logType: 'DATA_SYNC',
+              message: `Skipped intervention that failed to convert: ${items[index]?.id || 'unknown id'}`,
+              logLevel: 'warn',
+              statusCode: '000',
+            })
+            continue
+          }
           await addNewIntervention(element)
+          addedCount += 1
         }
-        if (response?.data.items.length === 0) {
-          dispatch(updateServerIntervention(true))
-          return;
+        // A partial page means there are no more pages, so the scan is done.
+        if (items.length < pageSize) {
+          completed = true
+          break
         }
-        const nextPage = lastServerInterventionpage === '' ? '2' : (parseInt(lastServerInterventionpage) + 1).toString()
-        dispatch(updateLastServerIntervention(nextPage))
+        page += 1
+      }
+      if (completed) {
+        dispatch(updateServerIntervention(true))
+        if (addedCount > 0) {
+          dispatch(updateNewIntervention())
+        }
         addNewLog({
           logType: 'DATA_SYNC',
-          message: "Intervention fetched successfully",
+          message: `Initial backfill complete: ${addedCount} intervention(s) fetched`,
           logLevel: 'info',
-          statusCode: '000',
-        })
-      } else {
-        addNewLog({
-          logType: 'DATA_SYNC',
-          message: "Intervention fetched (Response error)",
-          logLevel: 'error',
           statusCode: '000',
         })
       }
@@ -183,6 +224,8 @@ const HomeHeader = (props: Props) => {
         logLevel: 'error',
         statusCode: '000',
       })
+    } finally {
+      isBackfilling.current = false
     }
   }
 

@@ -330,7 +330,9 @@ export const getUserProjects = async () => {
   if (success) {
     result = { responseData: response.data, responseError: false }
   } else {
-    result = { responseData: null, responseError: false }
+    // Failed/offline fetch. Signal an error so callers do not mistake this for
+    // an empty (zero-project) account and wipe local data during sync.
+    result = { responseData: null, responseError: true }
   }
   return result
 }

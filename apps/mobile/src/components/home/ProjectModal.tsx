@@ -1,7 +1,8 @@
-import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable } from 'react-native'
+import { StyleSheet, Text, View, TouchableOpacity, FlatList, Pressable, ActivityIndicator } from 'react-native'
 import React, { useEffect, useMemo, useRef, useState, useCallback } from 'react'
 import ZoomSiteIcon from 'assets/images/svg/ZoomSiteIcon.svg'
 import CloseIcon from 'assets/images/svg/CloseIcon.svg'
+import RefreshIcon from 'assets/images/svg/RefreshIcon.svg'
 import { Colors, Typography } from 'src/utils/constants'
 import CustomDropDownPicker from '../common/CustomDropDown'
 import { useRealm } from '@realm/react'
@@ -48,6 +49,7 @@ const ProjectModal = (props: Props) => {
   const bottomSheetModalRef = useRef<BottomSheetModal>(null);
   const { isVisible, toggleModal } = props
   const [projects, setProjects] = useState<ProjectInterface[]>([])
+  const [isRefreshing, setIsRefreshing] = useState(false)
   
   const [selectedProject, setSelectedProject] = useState<DropdownItem>({
     label: '',
@@ -137,32 +139,56 @@ const ProjectModal = (props: Props) => {
     if (!netInfo.isConnected) return
 
     const { responseData, responseError } = await getUserProjects()
-    if (responseError) {
+    if (responseError || !Array.isArray(responseData)) {
+      // Failed/offline fetch. Do not touch local Realm data, just show cache.
       addNewLog({
         logType: 'PROJECTS',
         message: 'Project fetching failed (response error)',
         logLevel: 'error',
         statusCode: '400',
       })
-      return
-    }
-
-    if (responseData.length === 0) {
-      // No projects on the account. The empty state renders on manual open.
       loadProjects()
       return
     }
 
+    // responseData is authoritative here (including an empty array, which means
+    // the account has no projects). Sync mirrors it into Realm: it updates and
+    // adds projects from the response and deletes any local project no longer
+    // present, so removed projects and revoked site access drop off the device.
     const result = await addAllProjects(responseData)
     if (result) {
       dispatch(updateProjectState(true))
-      if (!currentProject.projectId && responseData.length > 0) {
-        const firstProject = responseData[0]
-        dispatch(updateCurrentProject({
-          name: firstProject.properties.name,
-          id: firstProject.properties.id,
-        }))
+
+      // Keep the active selection valid. If nothing is selected yet, or the
+      // selected project was removed on the server, fall back to the first
+      // available project (or clear it when the account has none).
+      const selectedProjectResp = currentProject.projectId
+        ? responseData.find((p: any) => p.properties.id === currentProject.projectId)
+        : undefined
+
+      if (!selectedProjectResp) {
+        if (responseData.length > 0) {
+          const firstProject = responseData[0]
+          dispatch(updateCurrentProject({
+            name: firstProject.properties.name,
+            id: firstProject.properties.id,
+          }))
+        } else {
+          dispatch(updateCurrentProject({ name: '', id: '' }))
+        }
+        // The previously selected site no longer applies.
+        dispatch(updateProjectSite({ name: '', id: '' }))
+      } else if (
+        projectSite.siteId &&
+        projectSite.siteId !== 'other' &&
+        !(selectedProjectResp.properties?.sites || []).some(
+          (s: any) => s.id === projectSite.siteId
+        )
+      ) {
+        // Project kept, but the selected site lost access. Clear the site.
+        dispatch(updateProjectSite({ name: '', id: '' }))
       }
+
       addNewLog({
         logType: 'PROJECTS',
         message: 'Project Fetched',
@@ -180,7 +206,19 @@ const ProjectModal = (props: Props) => {
     }
 
     loadProjects()
-  }, [isLoggedIn, currentProject.projectId, addAllProjects, addNewLog, dispatch, loadProjects])
+  }, [isLoggedIn, currentProject.projectId, projectSite.siteId, addAllProjects, addNewLog, dispatch, loadProjects])
+
+  // Manual refresh: pull the latest projects from the API on user tap.
+  // Shows a spinner while the fetch + Realm sync runs.
+  const handleRefresh = useCallback(async () => {
+    if (isRefreshing) return
+    setIsRefreshing(true)
+    try {
+      await fetchAndSyncProjects()
+    } finally {
+      setIsRefreshing(false)
+    }
+  }, [isRefreshing, fetchAndSyncProjects])
 
   // Modal handlers
   const handlePresentModal = useCallback(() => {
@@ -376,6 +414,18 @@ const ProjectModal = (props: Props) => {
                 {toggleProjectModal ? "Select Project" : i18next.t('label.zoom_to_site')}
               </Text>
               <View style={styles.divider} />
+              <TouchableOpacity
+                style={styles.iconWrapper}
+                onPress={handleRefresh}
+                disabled={isRefreshing}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {isRefreshing ? (
+                  <ActivityIndicator size="small" color={Colors.NEW_PRIMARY} />
+                ) : (
+                  <RefreshIcon width={20} height={20} />
+                )}
+              </TouchableOpacity>
               <TouchableOpacity style={styles.iconWrapper} onPress={closeModal}>
                 <CloseIcon width={20} height={20} />
               </TouchableOpacity>

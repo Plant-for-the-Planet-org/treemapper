@@ -5,18 +5,14 @@ const mobileBaseUrl = process.env.EXPO_PUBLIC_API_ENDPOINT_MOBILE
 export const postUrlApi = {
   updateSpecies: `${baseUrl}/treemapper/species`,
   addUserSpecies: `${baseUrl}/treemapper/species`,
-
   deleteAccount: `${baseUrl}/app/profile`,
 };
 
 export const getUrlApi = {
   getBaseUrl: `${baseUrl}`,
-
   userSpecies: `${baseUrl}/treemapper/species`,
-
   getAreaName: `https://api.mapbox.com/geocoding/v5/mapbox.places`,
   getAllSpeciesAchieve: `${baseUrl}/treemapper/scientificSpeciesArchive`,
-
 };
 
 

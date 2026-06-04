@@ -2496,6 +2496,58 @@ export class MobileService {
     const parsedPage = parseInt(page, 10) || 1;
     const parsedPageSize = parseInt(pageSize, 10) || 4;
     const skip = (parsedPage - 1) * parsedPageSize;
+
+    // Step 1: pick the exact set of interventions for this page.
+    // We paginate over DISTINCT interventions, not the joined rows. The detail
+    // query below left-joins trees and species (one-to-many), so paging it
+    // directly would apply limit/offset to multiplied rows and could skip or
+    // duplicate interventions across pages. We also order by a unique tiebreaker
+    // (uid) on top of createdAt so the order is fully deterministic; otherwise
+    // interventions sharing a createdAt can shuffle between pages and never get
+    // fetched.
+    const pageRows = await this.drizzleService.db
+      .selectDistinct({
+        id: intervention.id,
+        createdAt: intervention.createdAt,
+        uid: intervention.uid,
+      })
+      .from(intervention)
+      .innerJoin(project, eq(intervention.projectId, project.id))
+      .innerJoin(
+        projectMember,
+        and(
+          eq(projectMember.projectId, project.id),
+          eq(projectMember.userId, mid),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
+      .leftJoin(site, eq(intervention.siteId, site.id))
+      .where(
+        and(
+          isNull(intervention.deletedAt),
+          eq(project.isActive, true),
+          isNull(project.deletedAt),
+          or(
+            inArray(projectMember.siteAccess, ['all_sites', 'read_only']),
+            isNull(intervention.siteId),
+            and(
+              eq(projectMember.siteAccess, 'limited_access'),
+              sql`${site.uid} = ANY(${projectMember.restrictedSites})`
+            )
+          )
+        )
+      )
+      .orderBy(desc(intervention.createdAt), desc(intervention.uid))
+      .limit(parsedPageSize)
+      .offset(skip);
+
+    const pageIds = pageRows.map((r) => r.id);
+    if (pageIds.length === 0) {
+      return { items: [] };
+    }
+
+    // Step 2: fetch full detail for just those interventions.
     const interventions = await this.drizzleService.db
       .select({
         intervention_uid: intervention.uid,
@@ -2535,6 +2587,16 @@ export class MobileService {
       })
       .from(intervention)
       .innerJoin(project, eq(intervention.projectId, project.id))
+      // Only interventions in projects the user is an active member of
+      .innerJoin(
+        projectMember,
+        and(
+          eq(projectMember.projectId, project.id),
+          eq(projectMember.userId, mid),
+          eq(projectMember.status, 'active'),
+          isNull(projectMember.deletedAt)
+        )
+      )
       .leftJoin(site, eq(intervention.siteId, site.id))
       .leftJoin(
         interventionSpecies,
@@ -2555,19 +2617,23 @@ export class MobileService {
         scientificSpecies,
         eq(interventionSpecies.scientificSpeciesId, scientificSpecies.id)
       )
-      .where(
-        and(
-          eq(intervention.userId, mid),
-          isNull(intervention.deletedAt)
-        )
-      )
-      .orderBy(desc(intervention.createdAt))
-      .limit(parsedPageSize)
-      .offset(skip);
+      // Access was already enforced in step 1; here we only fetch detail for the
+      // interventions chosen for this page, keeping the same deterministic order.
+      .where(inArray(intervention.id, pageIds))
+      .orderBy(desc(intervention.createdAt), desc(intervention.uid));
 
     const items: InterventionResponseItem[] = [];
+    // The left joins above can return several rows per intervention (one per
+    // species/tree). Build one item per intervention; the row-level helpers only
+    // read single-tree fields and the full species list comes from
+    // getPlantedSpecies, so the first row per intervention is enough.
+    const seenInterventions = new Set<string>();
 
     for (const row of interventions) {
+      if (seenInterventions.has(row.intervention_uid)) {
+        continue;
+      }
+      seenInterventions.add(row.intervention_uid);
       // Get planted species for this intervention
       const plantedSpeciesData = await this.getPlantedSpecies(row.intervention_uid);
       // Get sample interventions for multi-tree and enrichment-planting

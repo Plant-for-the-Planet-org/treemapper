@@ -138,6 +138,43 @@ const useInterventionManagement = () => {
     }
   }
 
+  // Upserts a server intervention into Realm during a manual refresh.
+  // - Not stored locally yet -> add it.
+  // - Stored and local copy is SYNCED (no pending local edits) -> overwrite it
+  //   with the server version so edits made on the web show up on device.
+  // - Stored but local copy is not SYNCED -> it has local changes that have not
+  //   reached the server yet, so skip it to avoid clobbering that work.
+  const refreshSyncedIntervention = async (
+    intervention: InterventionData,
+  ): Promise<'added' | 'updated' | 'skipped'> => {
+    try {
+      const existing = realm.objectForPrimaryKey<InterventionData>(
+        RealmSchema.Intervention,
+        intervention.intervention_id,
+      )
+      if (existing && existing.status !== 'SYNCED') {
+        return 'skipped'
+      }
+      realm.write(() => {
+        realm.create(
+          RealmSchema.Intervention,
+          intervention,
+          Realm.UpdateMode.All,
+        )
+      })
+      return existing ? 'updated' : 'added'
+    } catch (error) {
+      addNewLog({
+        logType: 'INTERVENTION',
+        message: 'Error occurred while refreshing server intervention ' + intervention.intervention_id,
+        logLevel: 'error',
+        statusCode: '',
+        logStack: JSON.stringify(error),
+      })
+      return 'skipped'
+    }
+  }
+
   const interventionExists = (intervention_id: string): boolean => {
     if (!intervention_id) {
       return false
@@ -1086,7 +1123,7 @@ const useInterventionManagement = () => {
     }
   };
 
-  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, updatePlannedTreeLocation, markPlannedInterventionSynced }
+  return { addMigrationInventory, resetIntervention, initializeIntervention, updateInterventionLocation, updateInterventionPlantedSpecies, updateSampleTreeSpecies, updateInterventionLastScreen, updateSampleTreeDetails, addSampleTrees, updateLocalFormDetailsIntervention, updateDynamicFormDetails, updateInterventionMetaData, saveIntervention, addNewIntervention, refreshSyncedIntervention, interventionExists, removeInterventionPlantedSpecies, addPlantHistory, deleteAllSyncedIntervention, deleteSampleTreeIntervention, updateEditAdditionalData, updateSampleTreeImage, deleteIntervention, updateInterventionStatus, updateTreeStatus, updateTreeImageStatus, checkAndUpdatePlantHistory, updateInterventionDate, updatePlantedSpeciesIntervention, updateInterventionProjectAndSite, updateFixRequireIntervention, updateTreeStatusFixRequire, updateProjectIdMissing, EditHistory, updateRemeasurementStatus, updateInterventionsWithEmptyProjectIdWithCount, updatePlannedTreeLocation, markPlannedInterventionSynced }
 }
 
 export default useInterventionManagement
