@@ -16,7 +16,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useTopBarActions } from '@/component/header/TopBarActions'
-import { formatDistanceToNow, parseISO } from 'date-fns'
+import { parseISO } from 'date-fns'
 import { format } from 'date-fns'
 
 
@@ -27,13 +27,14 @@ function transformData(data) {
         username: member.user.name || member.user.authName,
         email: member.user.email,
         role: capitalize(member.role),
-        lastActive: member.user.isActive ? member.joinedAt : null,
         joinedDate: member.joinedAt,
         status: member.user.isActive ? 'Active' : 'Inactive',
         invitedBy: null,
         type: 'member',
         avatar: member.user.image,
         extraPermissions: member.extraPermissions || [],
+        siteAccess: member.siteAccess || 'all_sites',
+        restrictedSites: member.restrictedSites || [],
     }))
 
     const invitations = data.invitations.map((invite) => ({
@@ -42,12 +43,13 @@ function transformData(data) {
         username: invite.email.split('@')[0],
         email: invite.email,
         role: capitalize(invite.role),
-        lastActive: null,
         joinedDate: invite.createdAt,
         status: capitalize(invite.status),
         invitedBy: invite.invitedBy?.displayName || invite.invitedBy?.name || 'Unknown',
         type: 'invitation',
         token: invite.token,
+        siteAccess: null,
+        restrictedSites: [],
     }))
 
     return [...members, ...invitations]
@@ -155,9 +157,14 @@ const TeamsDashboard = () => {
         try { return format(parseISO(dateString), 'MMM d, yyyy') } catch { return 'N/A' }
     }
 
-    const getTimeSince = (dateString) => {
-        if (!dateString) return 'Never'
-        try { return formatDistanceToNow(parseISO(dateString), { addSuffix: true }) } catch { return 'N/A' }
+    const formatSiteAccess = (siteAccess: string | null, restrictedSites: string[]) => {
+        switch (siteAccess) {
+            case 'all_sites': return 'All sites'
+            case 'deny_all': return 'No access'
+            case 'read_only': return 'Read only'
+            case 'limited_access': return `${restrictedSites?.length ?? 0} sites`
+            default: return '—'
+        }
     }
 
     const downloadJsonAsCsv = (jsonData, filename) => {
@@ -257,7 +264,7 @@ const TeamsDashboard = () => {
                                             </div>
                                             <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground pt-1">
                                                 <span className="text-foreground">{user.role}</span>
-                                                <span>{getTimeSince(user.lastActive)}</span>
+                                                <span>{formatSiteAccess(user.siteAccess, user.restrictedSites)}</span>
                                                 {user.status !== 'Pending' && <span>Joined {formatDate(user.joinedDate)}</span>}
                                             </div>
                                         </div>
@@ -274,13 +281,13 @@ const TeamsDashboard = () => {
                                         <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                             User
                                         </th>
-                                        {(['role', 'lastActive', 'joinedDate', 'status'] as const).map((col) => (
+                                        {(['role', 'siteAccess', 'joinedDate', 'status'] as const).map((col) => (
                                             <th key={col} className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                                                 <button
                                                     onClick={() => requestSort(col)}
                                                     className="flex items-center gap-1 font-medium focus:outline-none hover:text-foreground transition-colors"
                                                 >
-                                                    {col === 'lastActive' ? 'Last Active' : col === 'joinedDate' ? 'Joined Date' : col.charAt(0).toUpperCase() + col.slice(1)}
+                                                    {col === 'siteAccess' ? 'Site Access' : col === 'joinedDate' ? 'Joined Date' : col.charAt(0).toUpperCase() + col.slice(1)}
                                                     <SortIcon col={col} />
                                                 </button>
                                             </th>
@@ -308,7 +315,7 @@ const TeamsDashboard = () => {
                                                 </div>
                                             </td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">{user.role}</td>
-                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{getTimeSince(user.lastActive)}</td>
+                                            <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">{formatSiteAccess(user.siteAccess, user.restrictedSites)}</td>
                                             <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                                                 {user.status === 'Pending' ? '—' : formatDate(user.joinedDate)}
                                             </td>

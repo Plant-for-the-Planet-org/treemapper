@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Activity, HeartOff, Ruler, MessageSquare, Image as ImageIcon, User, Loader, AlertTriangle } from 'lucide-react';
 import { getTreeRecords } from '@shared-core/fetchApi/api.fetch';
+import { cdnUrl } from '@/lib/cdn';
 
 interface TreeRecord {
   id: number;
@@ -107,7 +108,7 @@ export default function TreeRecordsModal({
           </div>
 
           {/* Body */}
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 min-h-0 overflow-y-auto px-6 py-4">
             {isLoading && (
               <div className="flex items-center justify-center py-16 text-gray-400">
                 <Loader size={22} className="animate-spin mr-2" />
@@ -174,7 +175,7 @@ export default function TreeRecordsModal({
                                 <span className="text-xs text-gray-700">Height: <strong>{rec.height} m</strong></span>
                               )}
                               {rec.width != null && (
-                                <span className="text-xs text-gray-700">Width: <strong>{rec.width} m</strong></span>
+                                <span className="text-xs text-gray-700">Width: <strong>{rec.width} cm</strong></span>
                               )}
                             </div>
                           )}
@@ -192,7 +193,7 @@ export default function TreeRecordsModal({
                             <div className="flex items-center gap-2">
                               <ImageIcon size={12} className="text-gray-400 shrink-0" />
                               <img
-                                src={`${process.env.NEXT_PUBLIC_CDN}/tree/${rec.image}`}
+                                src={cdnUrl('tree', rec.image) ?? ''}
                                 alt="Record photo"
                                 className="h-20 w-28 object-cover rounded-md border border-gray-200"
                               />

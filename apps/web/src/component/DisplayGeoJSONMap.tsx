@@ -6,6 +6,21 @@ import { AlertTriangle } from 'lucide-react';
 import 'maplibre-gl/dist/maplibre-gl.css';
 import * as turf from '@turf/turf';
 
+const STREET_STYLE = 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json';
+
+const SATELLITE_STYLE = {
+  version: 8 as const,
+  sources: {
+    'esri-satellite': {
+      type: 'raster' as const,
+      tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+      tileSize: 256,
+      attribution: '© Esri'
+    }
+  },
+  layers: [{ id: 'esri-satellite-layer', type: 'raster' as const, source: 'esri-satellite' }]
+};
+
 const MapComponent = ({
   geoJsonData,
   width = '100%',
@@ -17,6 +32,7 @@ const MapComponent = ({
   }
 }) => {
   const [mapError, setMapError] = useState(null);
+  const [isSatellite, setIsSatellite] = useState(false);
   const mapRef = useRef();
 
   useEffect(() => {
@@ -99,7 +115,7 @@ const MapComponent = ({
       <Map
         ref={mapRef}
         style={{ width: '100%', height: '100%' }}
-        mapStyle="https://basemaps.cartocdn.com/gl/positron-gl-style/style.json"
+        mapStyle={isSatellite ? SATELLITE_STYLE : STREET_STYLE}
         attributionControl={false}
         onError={handleMapError}
         reuseMaps
@@ -118,17 +134,16 @@ const MapComponent = ({
         )}
       </Map>
 
-      {/* Attribution */}
       <div className="absolute bottom-2 right-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs text-gray-600">
-        © CartoDB
+        {isSatellite ? '© Esri' : '© CartoDB'}
       </div>
 
-      {/* Debug info */}
-      {geoJsonData && (
-        <div className="absolute top-2 left-2 bg-white bg-opacity-90 px-2 py-1 rounded text-xs text-gray-600">
-          GeoJSON: {geoJsonData.geometry?.type || geoJsonData.type}
-        </div>
-      )}
+      <button
+        onClick={() => setIsSatellite(prev => !prev)}
+        className="absolute top-2 right-2 bg-white bg-opacity-90 hover:bg-opacity-100 px-3 py-1.5 rounded shadow text-xs font-medium text-gray-700 transition"
+      >
+        {isSatellite ? 'Map' : 'Satellite'}
+      </button>
     </div>
   );
 };

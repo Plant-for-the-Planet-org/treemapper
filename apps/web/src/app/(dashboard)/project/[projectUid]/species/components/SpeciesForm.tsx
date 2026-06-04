@@ -1,4 +1,5 @@
 import { ImageIcon } from 'lucide-react'
+import { cdnUrl } from '@/lib/cdn'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
@@ -61,7 +62,7 @@ export const SpeciesForm = ({ species, editForm, setEditForm, onImageUpload, isU
         {editForm.image && (
           <div className="w-16 h-16 bg-muted/40 rounded-md overflow-hidden border border-border">
             <img
-              src={isAddingNew ? editForm.image : `${process.env.NEXT_PUBLIC_CDN}/species/${editForm.image}`}
+              src={isAddingNew ? editForm.image : (cdnUrl('species', editForm.image) ?? '')}
               alt="Species"
               className="w-full h-full object-cover"
             />

@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 
 import UnifiedMapComponent from '@/component/MapSelect'
+import { cdnUrl } from '@/lib/cdn'
 import GeoJSONUpload from '@/component/GeoJSONfileupload'
 import { deleteProject, getSingleProjectDetails, updateProjectSettings, getProjectImages, addProjectImage, deleteProjectImage, generatePreSignUrl, getProjectApiKey, generateProjectApiKey, revokeProjectApiKey } from '@shared-core/fetchApi/api.fetch'
 import { useToken } from '@/context/useTokenContext'
@@ -138,7 +139,6 @@ const ChevronRightToggle = ({ open }: { open: boolean }) => (
 )
 
 const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading }: any) => {
-  const cdnBase = process.env.NEXT_PUBLIC_CDN
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
@@ -163,7 +163,7 @@ const ProjectImagesSection = ({ projectImages, onUpload, onDelete, uploading }: 
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
           {projectImages.map((img: any) => (
             <div key={img.uid} className="relative group rounded-lg overflow-hidden aspect-square bg-muted border border-border">
-              <img src={`${cdnBase}/project/${img.filename}`} alt={img.originalName || 'Project image'} className="w-full h-full object-cover" />
+              <img src={cdnUrl('project', img.filename) ?? ''} alt={img.originalName || 'Project image'} className="w-full h-full object-cover" />
               <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <Button type="button" variant="destructive" size="icon" className="h-8 w-8" onClick={() => onDelete(img.uid)}>
                   <Trash2 size={14} />

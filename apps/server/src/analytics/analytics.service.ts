@@ -397,7 +397,7 @@ export class AnalyticsService {
     const twelveMonthsAgo = new Date(now.getFullYear(), now.getMonth() - 11, 1);
     const twelveMonthsAgoEnd = new Date(twelveMonthsAgo.getFullYear(), twelveMonthsAgo.getMonth(), 0, 23, 59, 59, 999);
 
-    const [currentTotalStats, previousTotalStats, monthlyTreesArea, monthlySpecies, monthlyContributors] =
+    const [currentTotalStats, previousTotalStats, monthlyTrees, monthlySpecies, monthlyContributors, monthlySiteArea, monthlyStandaloneArea] =
       await Promise.all([
         this.getCumulativeStats(projectId, currentMonthEnd),
         this.getCumulativeStats(projectId, twelveMonthsAgoEnd),
@@ -405,13 +405,6 @@ export class AnalyticsService {
           .select({
             month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${intervention.interventionStartDate}), 'YYYY-MM')`,
             trees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`,
-            area: sql<number>`COALESCE(SUM(
-              CASE
-                WHEN ${intervention.area} IS NOT NULL THEN ${intervention.area}
-                WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography)
-                ELSE 0
-              END
-            ), 0)`,
           })
           .from(intervention)
           .where(and(
@@ -439,31 +432,77 @@ export class AnalyticsService {
 
         this.drizzleService.db
           .select({
-            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${projectMember.joinedAt}), 'YYYY-MM')`,
-            contributors: sql<number>`COUNT(DISTINCT ${projectMember.userId})`,
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${intervention.interventionStartDate}), 'YYYY-MM')`,
+            contributors: sql<number>`COUNT(DISTINCT ${intervention.userId})`,
           })
-          .from(projectMember)
+          .from(intervention)
           .where(and(
-            eq(projectMember.projectId, projectId),
-            gte(projectMember.joinedAt, twelveMonthsAgo),
-            isNull(projectMember.deletedAt),
+            eq(intervention.projectId, projectId),
+            gte(intervention.interventionStartDate, twelveMonthsAgo),
+            isNull(intervention.deletedAt),
           ))
-          .groupBy(sql`DATE_TRUNC('month', ${projectMember.joinedAt})`)
-          .orderBy(sql`DATE_TRUNC('month', ${projectMember.joinedAt})`),
+          .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
+          .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
+
+        // Area from sites, grouped by creation month
+        this.drizzleService.db
+          .select({
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${site.createdAt}), 'YYYY-MM')`,
+            area: sql<number>`COALESCE(SUM(
+              CASE
+                WHEN ${site.area} IS NOT NULL THEN ${site.area}
+                WHEN ${site.location} IS NOT NULL THEN ST_Area(${site.location}::geography) / 10000.0
+                ELSE 0
+              END
+            ), 0)`,
+          })
+          .from(site)
+          .where(and(
+            eq(site.projectId, projectId),
+            gte(site.createdAt, twelveMonthsAgo),
+            isNull(site.deletedAt),
+          ))
+          .groupBy(sql`DATE_TRUNC('month', ${site.createdAt})`)
+          .orderBy(sql`DATE_TRUNC('month', ${site.createdAt})`),
+
+        // Area from standalone multi-tree interventions (no site) grouped by start month
+        this.drizzleService.db
+          .select({
+            month: sql<string>`TO_CHAR(DATE_TRUNC('month', ${intervention.interventionStartDate}), 'YYYY-MM')`,
+            area: sql<number>`COALESCE(SUM(
+              CASE
+                WHEN ${intervention.area} IS NOT NULL THEN ${intervention.area} / 10000.0
+                WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography) / 10000.0
+                ELSE 0
+              END
+            ), 0)`,
+          })
+          .from(intervention)
+          .where(and(
+            eq(intervention.projectId, projectId),
+            eq(intervention.type, 'multi-tree-registration'),
+            isNull(intervention.siteId),
+            gte(intervention.interventionStartDate, twelveMonthsAgo),
+            isNull(intervention.deletedAt),
+          ))
+          .groupBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`)
+          .orderBy(sql`DATE_TRUNC('month', ${intervention.interventionStartDate})`),
       ]);
 
     // Build 12-month array, filling missing months with 0
     const monthlyHistory: MonthlyHistoryPoint[] = Array.from({ length: 12 }, (_, i) => {
       const d = new Date(now.getFullYear(), now.getMonth() - 11 + i, 1);
       const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
-      const ta = monthlyTreesArea.find(m => m.month === key);
+      const tr = monthlyTrees.find(m => m.month === key);
       const sp = monthlySpecies.find(m => m.month === key);
       const co = monthlyContributors.find(m => m.month === key);
+      const sa = monthlySiteArea.find(m => m.month === key);
+      const ia = monthlyStandaloneArea.find(m => m.month === key);
       return {
         month: key,
-        trees: Number(ta?.trees ?? 0),
+        trees: Number(tr?.trees ?? 0),
         species: Number(sp?.species ?? 0),
-        area: Math.round(Number(ta?.area ?? 0)),
+        area: Math.round(Number(sa?.area ?? 0) + Number(ia?.area ?? 0)),
         contributors: Number(co?.contributors ?? 0),
       };
     });
@@ -489,26 +528,63 @@ export class AnalyticsService {
   }
 
   private async getCumulativeStats(projectId: number, endDate: Date) {
-    // Get all intervention stats up to the end date (cumulative)
-    const interventionStats = await this.drizzleService.db
-      .select({
-        totalTrees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`,
-        totalArea: sql<number>`COALESCE(SUM(
-          CASE 
-            WHEN ${intervention.area} IS NOT NULL THEN ${intervention.area}
-            WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography)
-            ELSE 0
-          END
-        ), 0)`,
-      })
-      .from(intervention)
-      .where(
-        and(
-          eq(intervention.projectId, projectId),
-          lte(intervention.interventionStartDate, endDate), // All interventions up to end date
-          isNull(intervention.deletedAt)
-        )
-      );
+    const [interventionStats, siteAreaStats, standaloneInterventionAreaStats] = await Promise.all([
+      // Tree count from all intervention types
+      this.drizzleService.db
+        .select({
+          totalTrees: sql<number>`COALESCE(SUM(${intervention.totalTreeCount}), 0)`,
+        })
+        .from(intervention)
+        .where(
+          and(
+            eq(intervention.projectId, projectId),
+            lte(intervention.interventionStartDate, endDate),
+            isNull(intervention.deletedAt)
+          )
+        ),
+
+      // Area from sites (site.area is already in hectares)
+      this.drizzleService.db
+        .select({
+          totalArea: sql<number>`COALESCE(SUM(
+            CASE
+              WHEN ${site.area} IS NOT NULL THEN ${site.area}
+              WHEN ${site.location} IS NOT NULL THEN ST_Area(${site.location}::geography) / 10000.0
+              ELSE 0
+            END
+          ), 0)`,
+        })
+        .from(site)
+        .where(
+          and(
+            eq(site.projectId, projectId),
+            lte(site.createdAt, endDate),
+            isNull(site.deletedAt)
+          )
+        ),
+
+      // Area from standalone multi-tree interventions not attached to any site
+      this.drizzleService.db
+        .select({
+          totalArea: sql<number>`COALESCE(SUM(
+            CASE
+              WHEN ${intervention.area} IS NOT NULL THEN ${intervention.area} / 10000.0
+              WHEN ${intervention.location} IS NOT NULL THEN ST_Area(${intervention.location}::geography) / 10000.0
+              ELSE 0
+            END
+          ), 0)`,
+        })
+        .from(intervention)
+        .where(
+          and(
+            eq(intervention.projectId, projectId),
+            eq(intervention.type, 'multi-tree-registration'),
+            isNull(intervention.siteId),
+            lte(intervention.interventionStartDate, endDate),
+            isNull(intervention.deletedAt)
+          )
+        ),
+    ]);
 
     // Get unique species count from all interventions up to end date
     const speciesStats = await this.drizzleService.db
@@ -532,17 +608,19 @@ export class AnalyticsService {
         )
       );
 
-    // Get total contributors who have ever joined the project up to end date
+    const startOfMonth = new Date(endDate.getFullYear(), endDate.getMonth(), 1);
+
     const contributorStats = await this.drizzleService.db
       .select({
-        totalContributors: sql<number>`COUNT(DISTINCT ${projectMember.userId})`
+        totalContributors: sql<number>`COUNT(DISTINCT ${intervention.userId})`
       })
-      .from(projectMember)
+      .from(intervention)
       .where(
         and(
-          eq(projectMember.projectId, projectId),
-          lte(projectMember.joinedAt, endDate), // All members who joined up to end date
-          isNull(projectMember.deletedAt)
+          eq(intervention.projectId, projectId),
+          gte(intervention.interventionStartDate, startOfMonth),
+          lte(intervention.interventionStartDate, endDate),
+          isNull(intervention.deletedAt)
         )
       );
 
@@ -553,7 +631,7 @@ export class AnalyticsService {
     return {
       totalTrees: interventionResult?.totalTrees || 0,
       uniqueSpecies: speciesResult?.uniqueSpecies || 0,
-      totalArea: interventionResult?.totalArea || 0,
+      totalArea: (Number(siteAreaStats[0]?.totalArea) || 0) + (Number(standaloneInterventionAreaStats[0]?.totalArea) || 0),
       totalContributors: contributorResult?.totalContributors || 0,
     };
   }

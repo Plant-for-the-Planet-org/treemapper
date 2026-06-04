@@ -23,6 +23,7 @@ import { SpeciesHeader } from './components/SpeciesHeader';
 import { SpeciesSearch } from './components/SpeciesSearch';
 import { DeleteModal } from './components/DeleteModal';
 import { SpeciesRequestModal } from './components/SpeciesRequestModal';
+import { cdnUrl } from '@/lib/cdn';
 
 const SpeciesManagementDashboard = () => {
   const [scientificSpecies, setScientificSpecies] = useState([]);
@@ -797,7 +798,7 @@ const SpeciesManagementDashboard = () => {
                 <div className="flex items-start gap-4">
                   <div className="w-20 h-20 bg-muted/40 rounded-md overflow-hidden flex-shrink-0">
                     {selectedSpecies.image ? (
-                      <img src={`${process.env.NEXT_PUBLIC_CDN}/species/${selectedSpecies.image}`} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
+                      <img src={cdnUrl('species', selectedSpecies.image) ?? ''} alt={selectedSpecies.commonName || selectedSpecies.speciesName} className="w-full h-full object-cover" />
                     ) : (
                       <div className="w-full h-full flex items-center justify-center">
                         <Leaf size={28} className="text-muted-foreground/60" />

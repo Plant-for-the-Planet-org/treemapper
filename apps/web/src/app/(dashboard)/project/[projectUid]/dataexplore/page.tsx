@@ -7,6 +7,7 @@ import {
   BarChart, Bar, AreaChart, Area,
   XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
+import { area as turfArea } from '@turf/turf'
 import { useToken } from '@/context/useTokenContext'
 import useProjectStore from '@shared-core/store/useProjectStore'
 import {
@@ -84,6 +85,15 @@ function toCsvString(rows: Record<string, any>[]): string {
     headers.join(','),
     ...rows.map(row => headers.map(h => JSON.stringify(row[h] ?? '')).join(',')),
   ].join('\n')
+}
+
+function calcAreaHa(geom: any): number | null {
+  if (!geom) return null
+  try {
+    return turfArea(geom) / 10000
+  } catch {
+    return null
+  }
 }
 
 function triggerCsvDownload(content: string, filename: string) {
@@ -186,7 +196,7 @@ export default function DataExplorePage() {
     return all
   }
 
-  // Fetch interventions + species when project or auth becomes available
+  // Fetch interventions + species + sites when project or auth becomes available
   useEffect(() => {
     if (!selectedProject?.uid || !accessToken) return
     isFirstDateRender.current = true
@@ -207,9 +217,15 @@ export default function DataExplorePage() {
       })
       .finally(() => setLoadingSpecies(false))
 
-    loadedTabs.current = new Set()
+    setLoadingSites(true)
+    getUserProjectSites(accessToken, selectedProject.uid)
+      .then(res => {
+        if (res?.statusCode === 200) setSites(Array.isArray(res.data) ? res.data : res.data?.sites ?? [])
+      })
+      .finally(() => setLoadingSites(false))
+
+    loadedTabs.current = new Set(['sites'])
     setTeam([])
-    setSites([])
   }, [selectedProject, accessToken])
 
   // Re-fetch interventions when date filter changes (skip initial mount)
@@ -294,6 +310,11 @@ export default function DataExplorePage() {
     return Object.entries(map).map(([role, count]) => ({ role, count }))
   }, [team])
 
+  const activeSites = useMemo(
+    () => sites.filter(s => s.status !== 'deactivated'),
+    [sites]
+  )
+
   // export handlers
   const handleExportInterventions = async () => {
     setExporting(true)
@@ -351,11 +372,11 @@ export default function DataExplorePage() {
   }
 
   const handleExportSites = () => {
-    if (!sites.length) { toast.warn('No sites data'); return }
+    if (!activeSites.length) { toast.warn('No sites data'); return }
     triggerCsvDownload(
-      toCsvString(sites.map(s => ({
+      toCsvString(activeSites.map(s => ({
         name: s.name ?? '',
-        area: s.area ?? '',
+        areaHa: (calcAreaHa(s.originalGeometry) ?? (s.area != null ? Number(s.area) : '')),
         status: s.status ?? 'active',
       }))),
       'sites-export.csv'
@@ -466,7 +487,7 @@ export default function DataExplorePage() {
               />
               <StatCard
                 title="Active Sites"
-                value={sites.length.toLocaleString()}
+                value={activeSites.length.toLocaleString()}
                 icon={MapPin}
                 loading={loadingSites}
               />
@@ -714,13 +735,18 @@ export default function DataExplorePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <StatCard
                 title="Total Sites"
-                value={sites.length}
+                value={activeSites.length}
                 icon={MapPin}
                 loading={loadingSites}
               />
               <StatCard
-                title="Active"
-                value={sites.filter(s => !s.status || s.status === 'active').length}
+                title="Total Area (ha)"
+                value={activeSites
+                  .reduce((sum, s) => {
+                    const ha = calcAreaHa(s.originalGeometry) ?? (s.area != null ? Number(s.area) : 0)
+                    return sum + ha
+                  }, 0)
+                  .toFixed(2)}
                 icon={MapPin}
                 loading={loadingSites}
               />
@@ -728,12 +754,12 @@ export default function DataExplorePage() {
 
             <Card>
               <CardHeader>
-                <CardTitle className="text-sm">All Sites</CardTitle>
+                <CardTitle className="text-sm">Active Sites</CardTitle>
               </CardHeader>
               <CardContent className="px-0">
                 {loadingSites ? (
                   <Skeleton className="h-52 w-full mx-6" />
-                ) : sites.length === 0 ? (
+                ) : activeSites.length === 0 ? (
                   <p className="text-muted-foreground text-sm text-center py-16">No sites found</p>
                 ) : (
                   <Table>
@@ -745,22 +771,22 @@ export default function DataExplorePage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {sites.map((s, i) => (
-                        <TableRow key={s.id ?? i}>
-                          <TableCell className="px-6">{s.name ?? 'Unnamed'}</TableCell>
-                          <TableCell className="px-6">
-                            {s.area != null ? Number(s.area).toFixed(2) : '–'}
-                          </TableCell>
-                          <TableCell className="px-6">
-                            <Badge
-                              variant={s.status === 'active' || !s.status ? 'default' : 'secondary'}
-                              className="text-xs font-normal capitalize"
-                            >
-                              {s.status ?? 'active'}
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {activeSites.map((s, i) => {
+                        const areaHa = calcAreaHa(s.originalGeometry) ?? (s.area != null ? Number(s.area) : null)
+                        return (
+                          <TableRow key={s.id ?? i}>
+                            <TableCell className="px-6">{s.name ?? 'Unnamed'}</TableCell>
+                            <TableCell className="px-6">
+                              {areaHa != null ? areaHa.toFixed(2) : '–'}
+                            </TableCell>
+                            <TableCell className="px-6">
+                              <Badge variant="default" className="text-xs font-normal capitalize">
+                                {s.status ?? 'active'}
+                              </Badge>
+                            </TableCell>
+                          </TableRow>
+                        )
+                      })}
                     </TableBody>
                   </Table>
                 )}

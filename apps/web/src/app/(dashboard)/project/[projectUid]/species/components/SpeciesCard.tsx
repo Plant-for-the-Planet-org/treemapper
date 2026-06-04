@@ -1,5 +1,6 @@
 import { motion } from 'framer-motion'
 import { Leaf, Heart, EyeOff, Eye, TreePine, LeafIcon, HelpCircle } from 'lucide-react'
+import { cdnUrl } from '@/lib/cdn'
 import { format, parseISO, formatDistanceToNow } from 'date-fns'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
@@ -43,7 +44,7 @@ export const SpeciesCard = ({
           <div className="w-14 h-14 bg-muted/40 rounded-md overflow-hidden flex-shrink-0">
             {species.image ? (
               <img
-                src={`${process.env.NEXT_PUBLIC_CDN}/species/${species.image}`}
+                src={cdnUrl('species', species.image) ?? ''}
                 alt={species.commonName || species.speciesName}
                 className="w-full h-full object-cover"
               />
@@ -104,7 +105,7 @@ export const SpeciesCard = ({
             </div>
 
             {/* Stats row */}
-            <div className="flex items-center gap-2.5 text-xs text-muted-foreground flex-wrap">
+            <div className="flex items-center gap-2.5 text-xs text-muted-foreground">
               {trees > 0 && (
                 <div className="flex items-center gap-1">
                   <TreePine size={12} className="text-muted-foreground/60" />
@@ -117,19 +118,25 @@ export const SpeciesCard = ({
                   <span className="font-medium text-foreground">{interventions}</span>
                 </div>
               )}
-              {species.sources?.map((source: string) => (
-                <Badge
-                  key={source}
-                  variant="secondary"
-                  className={cn(
-                    'text-[10px] px-1.5 py-0 capitalize',
-                    source === 'project' && 'bg-primary/10 text-primary'
-                  )}
-                >
-                  {source}
-                </Badge>
-              ))}
             </div>
+
+            {/* Sources row */}
+            {species.sources?.length > 0 && (
+              <div className="flex items-center gap-1.5">
+                {species.sources.map((source: string) => (
+                  <Badge
+                    key={source}
+                    variant="secondary"
+                    className={cn(
+                      'text-[10px] px-1.5 py-0 capitalize',
+                      source === 'project' && 'bg-primary/10 text-primary'
+                    )}
+                  >
+                    {source}
+                  </Badge>
+                ))}
+              </div>
+            )}
 
             {lastUpdated && (
               <span className="text-[10px] text-muted-foreground/70 truncate">{lastUpdated}</span>

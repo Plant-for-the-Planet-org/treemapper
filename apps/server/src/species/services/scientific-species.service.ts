@@ -104,7 +104,10 @@ export class ScientificSpeciesService {
         })
         .from(scientificSpecies)
         .where(ilike(scientificSpecies.scientificName, `%${trimmedSearch}%`))
-        .orderBy(asc(scientificSpecies.scientificName))
+        .orderBy(
+          sql`CASE WHEN ${scientificSpecies.scientificName} ILIKE ${trimmedSearch + '%'} THEN 0 ELSE 1 END`,
+          asc(scientificSpecies.scientificName),
+        )
         .limit(limit);
 
       return species;

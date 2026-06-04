@@ -137,7 +137,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({ loading, onLogin }) => {
 
       {/* Documentation button */}
       <a
-        href="https://docs-ruddy-six.vercel.app/en"
+        href="https://docs.treemapper.app/en"
         target="_blank"
         rel="noopener noreferrer"
         className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-[#007A49]/30 text-[#007A49] hover:bg-[#007A49]/5 hover:border-[#007A49] font-medium text-sm transition-all duration-200"
